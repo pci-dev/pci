@@ -1,0 +1,62 @@
+/* Patch for sub-menus from https://github.com/web2py/web2py/issues/938 */
+.dropdown-submenu{position:relative;}
+.dropdown-submenu>.dropdown-menu{top:0;left:100%;margin-top:-6px;margin-left:-1px;-webkit-border-radius:0 6px 6px 6px;-moz-border-radius:0 6px 6px 6px;border-radius:0 6px 6px 6px;}
+.dropdown-submenu:hover>.dropdown-menu{display:block;}
+.dropdown-submenu>a:after{display:block;content:" ";float:right;width:0;height:0;border-color:transparent;border-style:solid;border-width:5px 0 5px 5px;border-left-color:#cccccc;margin-top:5px;margin-right:-10px;}
+.dropdown-submenu:hover>a:after{border-left-color:#ffffff;}
+.dropdown-submenu.pull-left{float:none;}.dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
+
+/* My tweaks */
+.background { background: url(../images/biblio-light.jpg) no-repeat center center; }
+h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
+.web2py_grid .row_buttons {white-space: initial; text-align: center;}
+
+#languageChooser{margin-top:20px;}
+#languageChooser>span{color: #d1d1d1;}
+#v_recommenders-picture {width: 0px;}
+#t_recommendations_recommendation_comments {height:20cm;}
+#t_recommendations_reply {height:20cm;}
+
+/* #t_articles-doi {width: 120px;} */
+
+.doi_url {width: 200px;}
+.pci-button {box-sizing: unset; width: 80px; white-space: initial; padding: 8px;}
+.pci-button.btn-warning {background-color: #ffbf00; color: black;}
+.pci-button.btn-good {background-color: #b9f20d; color: black;}
+.pci-button.btn-success {background-color: #089108; color: white;}
+.pci-button.btn-info {background-color: #0db9f2; color: white;}
+.pci-button.btn-danger {background-color: #e61919; color: white;}
+.pci-button.btn-default {background-color: #BBBBBB; color: white;}
+.fake-btn {cursor:default;}
+.fake-btn:hover {box-shadow:none;}
+
+.searchForm {margin-left: auto; margin-right: auto; }
+.pci-thematicFieldsDiv {vertical-align: middle;}
+.pci-thematicFieldsCheck {padding-right: 32px;}
+.pci-thematicFieldsTable {display: inline-block; vertical-align: middle; background-color: #dddddd;}
+
+.searchField {width: 60%; margin-left: 8px; margin-right: 32px;}
+
+.thematicFieldsDivs {width: 500px; margin-left: 8px; margin-right: 8px;}
+.thematicFieldsMainDiv {display: inline; width: 33%; background-color: #dddddd;}
+
+.pci-printable-body {margin-top: 0; padding-top: 0; margin-bottom: 0; margin-left:0.5cm;}
+/* .pci-printable-div {width:99vw; margin-left: auto; margin-right:auto;} */
+.pci-article-div {max-width:19cm; }
+.pci-article-div-printable {width:100%; }
+.pci-recommendation-div {margin-left: 2vw; }
+.pci-recommendation-title {background-color: #089108; color: white; max-width:19cm; text-align:center; }
+.pci-recommendation-title-printable {color: #089108; width:100%; text-align:center; }
+.pci-status-title {max-width:19cm; text-align:center; border: 1px solid black;}
+.pci-status-title-printable {width:100%; text-align:center; border: 1px solid black;}
+.pci-bigtext {}
+.pci-bigtext.margin {border: 1px solid black; padding: 8px;}
+
+.pci-searchTitle {color:#089108;}
+
+.pci-status-button {margin:12px;}
+.pci-status-buttons-group{margin-top:32px; padding: 32px;}
+
+/* .pci-grid {font-size: 11px;} */
+/* .web2py_grid {font-size: 10px;} */
+

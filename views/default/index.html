@@ -1,0 +1,31 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{extend 'layout.html'}}
+
+{{block header}}
+    <header class="container-fluid background">
+      <div class="jumbotron text-center">
+        {{if response.title:}}
+			<h1>{{=response.title}} <small>{{=response.subtitle or ''}}</small></h1>
+			{{pass}}
+      </div>
+      <span style="color:#b0b0b0;">Photo credit: Ben Lee, Stockholm library</span>
+    </header>
+{{end}}
+
+{{if 'message' in globals():}}
+	<h2>{{=message}}</h2>
+	{{pass}}
+
+{{if 'content' in globals():}}
+	{{=content}}
+	{{pass}}
+
+{{if 'form' in globals():}}
+	<div>{{=form}}</div>
+	{{pass}}
+
+{{if 'panel' in globals():}}
+	{{block right_sidebar}}
+	{{=panel}}
+	{{end}}
+	{{pass}} 

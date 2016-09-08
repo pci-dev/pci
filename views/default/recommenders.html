@@ -1,0 +1,13 @@
+{{extend 'layout.html'}}
+
+{{if 'myTitle' in locals():}}
+{{=H1(myTitle)}}
+{{pass}}
+
+{{if 'searchForm' in locals():}}
+<div>{{=searchForm}}</div>
+{{pass}}
+
+{{if 'grid' in locals():}}
+<div>{{=grid}}</div>
+{{pass}}

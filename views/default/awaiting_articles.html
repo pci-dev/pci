@@ -1,0 +1,32 @@
+{{extend 'layout.html'}}
+
+{{if 'myTitle' in locals():}}
+{{=H1(myTitle)}}
+{{pass}}
+
+<div>
+{{if 'form' in locals():}}
+	{{=form}}
+{{elif grid.create_form:}}
+   {{=grid.create_form}}
+{{elif grid.update_form:}}
+   {{if 'myBackButton' in locals():}}
+      {{=myBackButton}}
+      {{pass}}
+   {{=grid.update_form}}
+{{elif grid.view_form:}}
+   {{if 'myBackButton' in locals():}}
+      {{=myBackButton}}
+      {{pass}}
+   {{=grid.view_form}}
+   {{if 'myAcceptBtn' in locals():}}
+      {{=myAcceptBtn}}
+      {{pass}}
+{{else:}}
+   {{if 'searchForm' in globals():}}
+      <div>{{=searchForm}}</div>
+    {{pass}}
+    {{=grid}}
+    {{pass}}
+{{pass}}
+</div>

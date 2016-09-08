@@ -1,0 +1,21 @@
+    <!-- The footer =============================== -->
+    {{block footer}} 
+    <footer class="footer">
+            <p><span>{{=T('Powered by')}} {{=A('web2py', _href='http://www.web2py.com')}}&trade; {{=T('created by')}} Massimo Di Pierro &copy;2007-{{=request.now.year}}</span>
+                -----
+                <span>{{=T('Interface')+' '+T('created by')}} Sylvain Piry &copy; INRA 2016-{{=request.now.year}}
+					<A href="https://www.inra.fr"><IMG src="{{=URL('static','images/Logotype-INRA-transparent_small.png')}}" height="22px"></A>
+				</span>
+            </p>
+    </footer>
+    {{end}}
+
+    {{if response.google_analytics_id:}}
+    <!-- Analytics ==================================== -->
+    <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+    <script type="text/javascript">
+      analytics.initialize({
+      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
+      });
+    </script>
+    {{pass}}
