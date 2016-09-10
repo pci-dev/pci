@@ -193,6 +193,8 @@ def mkStatusButton(auth, db, row):
 
 # Builds a status button which allow to open recommendations only when submitter is user
 def mkUserStatusButton(auth, db, row):
+	if row is None:
+		return ''
 	if len(statusArticles) == 0:
 		print 'statusArticles...'
 		for sa in db(db.t_status_article).select():
