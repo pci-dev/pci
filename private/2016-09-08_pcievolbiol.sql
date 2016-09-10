@@ -161,9 +161,24 @@ $$;
 -- Name: search_articles(text[], text[], character varying, real); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION search_articles(mythematics text[], mywords text[], mystatus character varying DEFAULT 'Recommended'::character varying, mylimit real DEFAULT 0.4) RETURNS TABLE(id integer, num integer, score double precision, title text, authors text, doi character varying, abstract text, upload_timestamp timestamp without time zone, thematics character varying, keywords text, auto_nb_recommendations integer, status character varying, last_status_change timestamp without time zone)
-    LANGUAGE plpgsql
-    AS $_$
+DROP FUNCTION IF EXISTS search_articles(text[], text[], varchar(50), real);
+CREATE OR REPLACE FUNCTION search_articles(myThematics text[], myWords text[], myStatus varchar(50) DEFAULT 'Recommended', myLimit real DEFAULT 0.4)
+  RETURNS TABLE (
+	id integer,
+	num integer,
+	score float8,
+	title text,
+	authors text,
+	doi varchar(512),
+	abstract text,
+	upload_timestamp timestamp without time zone,
+	thematics character varying(1024),
+	keywords text,
+	auto_nb_recommendations integer,
+	status varchar(50),
+	last_status_change timestamp without time zone
+  ) AS 
+$BODY$
 DECLARE
   myThematicsRegexp text;
 BEGIN
@@ -205,7 +220,8 @@ BEGIN
 	  AND a.thematics ~* myThematicsRegexp;
   END IF;
 END;
-$_$;
+$BODY$
+LANGUAGE plpgsql VOLATILE;
 
 
 --
