@@ -33,7 +33,7 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 .searchForm {margin-left: auto; margin-right: auto; }
 .pci-thematicFieldsDiv {vertical-align: middle;}
 .pci-thematicFieldsCheck {padding-right: 32px;}
-.pci-thematicFieldsTable {display: inline-block; vertical-align: middle; background-color: #dddddd;}
+.pci-thematicFieldsTable {display: inline-block; vertical-align: middle; background-color: #dddddd; margin-right:8px;}
 
 .searchField {width: 60%; margin-left: 8px; margin-right: 32px;}
 
@@ -57,6 +57,7 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 .pci-status-button {margin:12px;}
 .pci-status-buttons-group{margin-top:32px; padding: 32px;}
 
+.pci-blocked {font-size:20px; color:red;}
 /* .pci-grid {font-size: 11px;} */
 /* .web2py_grid {font-size: 10px;} */
 

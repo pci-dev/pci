@@ -223,13 +223,15 @@ def my_articles():
 		,maxtextlength=250,paginate=10
 		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
-		,orderby=~db.t_articles.upload_timestamp
+		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
+		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
+		#,orderby=~db.t_articles.upload_timestamp
 	)
 	myCancelBtn = ''
 	if grid.create_form:
 		myTitle=T('Submit new article')
 	elif grid.view_form:
-		myTitle=T('My submitted article')
+		myTitle=T('My recommendation request')
 		articleId=request.args(2)
 		if articleId is not None:
 			art = db.t_articles[articleId]
@@ -238,7 +240,7 @@ def my_articles():
 												_href=URL(c='user', f='article_to_cancel', vars=dict(articleId=articleId), user_signature=True),
 												_class='button')
 	elif grid.update_form:
-		myTitle=T('My submitted article')
+		myTitle=T('My recommendation request')
 		grid.element(_type='submit')['_value'] = T("Save")
 		articleId=request.args(2)
 		if articleId is not None:
@@ -250,7 +252,7 @@ def my_articles():
 				grid.update_form.add_button(SPAN(T('Step 2: reply to revision'), _class='buttontext btn btn-success'), 
 												URL(c='user', f='reply_to_revision', vars=dict(articleId=articleId), user_signature=True))
 	else:
-		myTitle=T('My submitted articles')
+		myTitle=T('My recommendation requests')
 	response.view='user/my_articles.html'
 	return dict(grid=grid, myTitle=myTitle, myBackButton=mkBackButton(), myAcceptBtn=myCancelBtn) #, formReply=formReply)
 
@@ -303,17 +305,21 @@ def my_reviews():
 	query = db.t_reviews.reviewer_id == auth.user_id
 	db.t_reviews.reviewer_id.writable = False
 	db.t_reviews.recommendation_id.writable = False
+	db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row)
 	db.t_reviews._id.readable = False
 	if len(request.args) == 0:
 		db.t_reviews.review.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
 	else:
 		db.t_reviews.review.represent=lambda text, row: WIKI(text or '')
+	db.t_reviews.review.label = T('My review')
 	grid = SQLFORM.grid( query
 		,searchable=False, deletable=False, create=False
+		,editable=lambda row: not(row.is_closed)
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_reviews.recommendation_id, db.t_reviews.review, db.t_reviews.last_change, db.t_reviews.anonymously]
-		,links=[dict(header=T('Article'), body=lambda row: mkViewArticle4ReviewButton(auth, db, row))]
+		,fields=[db.t_reviews.recommendation_id, db.t_reviews.review, db.t_reviews.last_change, db.t_reviews.anonymously, db.t_reviews.is_closed]
+		,links=[dict(header=T('Article'), body=lambda row: mkViewArticle4ReviewButton(auth, db, row)),
+				dict(header=T('Article status'), body=lambda row: mkReviewerArticleStatusButton(auth, db, row))]
 		,links_placement = 'left'
 		,orderby=~db.t_reviews.last_change
 	)

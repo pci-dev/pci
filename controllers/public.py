@@ -125,7 +125,7 @@ def managers():
 				dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
 		]
 	)
-	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href=myconf.take('contacts.managers')))
+	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href='mailto:%s' % myconf.take('contacts.managers')))
 	response.view='default/myLayout.html'
 	return dict(grid=grid, myTitle=T('Managing board'), content=content)
 
@@ -144,6 +144,7 @@ def recommenders():
 		Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
+		Field('email', type='string', length=128, label=T('email')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('city', type='string', label=T('City')),
 		Field('country', type='string', label=T('Country')),

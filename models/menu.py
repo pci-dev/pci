@@ -101,7 +101,7 @@ def _RecommMenu():
 # Appends personnal menu
 def _MyMenu():
 	myMenu = []
-	myMenu.append((T('My submitted articles'),                   False, URL('user', 'my_articles', user_signature=True)))
+	myMenu.append((T('My recommendation requests'),                   False, URL('user', 'my_articles', user_signature=True)))
 	# appends my_reviews only if exists
 	nrev = db(db.t_reviews.reviewer_id == auth.user_id).count()
 	if nrev > 0:

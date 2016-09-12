@@ -25,6 +25,7 @@ def search_reviewers():
 		Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
+		Field('email', type='string', length=512, label=T('email')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('city', type='string', label=T('City')),
 		Field('country', type='string', label=T('Country')),
@@ -33,6 +34,7 @@ def search_reviewers():
 		Field('thematics', type='list:string', label=T('Thematic fields')),
 		Field('roles', type='string', length=1024, label=T('Roles')),
 	)
+	temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href='mailto:'+text)
 	myVars = request.vars
 	qyKw = ''
 	qyTF = []
@@ -64,7 +66,7 @@ def search_reviewers():
 		,editable = False,deletable = False,create = False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_reviewers.num, temp_db.qy_reviewers.score, temp_db.qy_reviewers.uploaded_picture, temp_db.qy_reviewers.user_title, temp_db.qy_reviewers.first_name, temp_db.qy_reviewers.last_name, temp_db.qy_reviewers.laboratory, temp_db.qy_reviewers.institution, temp_db.qy_reviewers.city, temp_db.qy_reviewers.country, temp_db.qy_reviewers.thematics]
+		,fields=[temp_db.qy_reviewers.num, temp_db.qy_reviewers.score, temp_db.qy_reviewers.uploaded_picture, temp_db.qy_reviewers.user_title, temp_db.qy_reviewers.first_name, temp_db.qy_reviewers.last_name, temp_db.qy_reviewers.email, temp_db.qy_reviewers.laboratory, temp_db.qy_reviewers.institution, temp_db.qy_reviewers.city, temp_db.qy_reviewers.country, temp_db.qy_reviewers.thematics]
 		,links=links
 		,orderby=temp_db.qy_reviewers.num
 		,args=request.args
@@ -312,6 +314,8 @@ def my_recommendations():
 			dict(header=T('Reviews'), body=lambda row: mkRecommReviewsButton(auth, db, row)),
 			dict(header=T('Search reviewers'), body=lambda row: mkSearchReviewersButton(auth, db, row) if not row.is_closed else ''),
 		]
+		#TODO: order by status priority first
+		#,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status and db.t_articles.id==db.t_recommendations.article_id)
 		,links_placement = 'left'
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
@@ -334,14 +338,14 @@ def my_recommendations():
 @auth.requires(auth.has_membership(role='recommender'))
 def direct_submission():
 	myTitle=T('Submit new article and initiate recommendation')
-	db.t_articles.user_id.default = auth.user_id
+	db.t_articles.user_id.default = None
 	db.t_articles.user_id.writable = False
 	db.t_articles.status.default = 'Under consideration'
 	db.t_articles.status.writable = False
 	form = SQLFORM(db.t_articles)
 	if form.process().accepted:
 		db.executesql("""INSERT INTO t_recommendations (article_id, recommender_id, doi) VALUES (%s, %s, %s);""", placeholders=[form.vars.id, auth.user_id, form.vars.doi])
-		redirect('my_recommendations')
+		redirect(URL(c='recommender', f='my_recommendations'))
 	response.view='user/my_articles.html'
 	return dict(form=form, myTitle=myTitle, myBackButton=mkBackButton())
 
@@ -388,31 +392,58 @@ def recommendations():
 			)
 
 
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def reopen_review(ids):
+	if auth.has_membership(role='manager'):
+		for myId in ids:
+			db.executesql("UPDATE t_reviews SET is_closed='F' WHERE id=%s;", placeholders=[myId])
+	elif auth.has_membership(role='recommender'):
+		for myId in ids:
+			db.executesql("""UPDATE t_reviews SET is_closed='F' 
+								FROM t_recommendations
+								WHERE t_reviews.id=%s 
+								AND t_reviews.recommendation_id = t_recommendations.id
+								AND t_recommendations.recommender_id=%s;""", placeholders=[myId, auth.user_id])
+
 
 
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reviews():
 	#write_auth = lambda row: auth.has_membership('administrator') or auth.has_membership('manager') or (auth.has_membership('recommender') and row.recommender_id == auth.user_id)
-	write_auth = lambda row: auth.has_membership('recommender')
-	query = (db.t_reviews.recommendation_id == request.vars['recommendationId'])
+	recommendationId = request.vars['recommendationId']
+	recomm = db.t_recommendations[recommendationId]
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+	myContents = mkRecommendationFormat(auth, db, recomm)
+	query = (db.t_reviews.recommendation_id == recommendationId)
 	db.t_reviews._id.readable = False
-	db.t_reviews.recommendation_id.default = request.vars['recommendationId']
+	db.t_reviews.recommendation_id.default = recommendationId
 	db.t_reviews.recommendation_id.writable = False
+	db.t_reviews.recommendation_id.readable = False
 	db.t_reviews.reviewer_id.writable = False
+	db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
 	db.t_reviews.anonymously.default = True
-	db.t_reviews.anonymously.writable = False
+	db.t_reviews.anonymously.writable = auth.has_membership(role='manager')
+	db.t_reviews.review.writable = lambda row: row.reviewer_id is None or auth.has_membership(role='manager')
+	db.t_reviews.review.represent = lambda text, row: WIKI(text or '')
+	if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'):
+		selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'class1')]
+	else:
+		selectable = None
+	
 	grid = SQLFORM.grid( query
 		,details=True
-		,editable=write_auth
-		,deletable=write_auth
-		,create=write_auth
+		,editable=auth.has_membership(role='manager')
+		,deletable=False
+		,create=auth.has_membership('recommender')
 		,searchable=False
 		,maxtextlength = 250,paginate=100
 		,csv = csv, exportclasses = expClass
-		,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review]
+		,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.is_closed]
+		,selectable=selectable
 	)
 	response.view='recommender/reviews.html'
-	return dict(grid=grid, myTitle=T('Reviews'))
+	return dict(myContents=myContents, grid=grid, myTitle=T('Reviews for recommendation:'), myBackButton=mkBackButton())
 	
 
 

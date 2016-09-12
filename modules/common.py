@@ -30,7 +30,10 @@ def mkPanel(myconf, auth):
 # Transforms a DOI in link
 def mkDOI(doi):
 	if (doi is not None) and (doi != ''):
-		return A(doi, _href="http://dx.doi.org/"+sub(r'doi: *', '', doi), _class="doi_url", _target="_blank") 
+		if (match('^http', doi)):
+			return A(doi, _href=doi, _class="doi_url", _target="_blank")
+		else:
+			return A(doi, _href="http://dx.doi.org/"+sub(r'doi: *', '', doi), _class="doi_url", _target="_blank") 
 	else:
 		return SPAN('', _class="doi_url")
 
@@ -84,7 +87,10 @@ def mkSearchForm(auth, db, myVars):
 				LABEL(current.T('in thematic fields:')), 
 				DIV(
 					TABLE(tab, _class='pci-thematicFieldsTable'),
-					A(SPAN(current.T('Check all thematic fields'), _class='buttontext btn btn-default'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', true);} });", _class="pci-flushright"),
+					SPAN(
+						A(SPAN(current.T('Check all thematic fields'), _class='buttontext btn btn-default'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', true);} });", _class="pci-flushright"),
+						A(SPAN(current.T('Toggle thematic fields'), _class='buttontext btn btn-default'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', !jQuery(this).prop('checked'));} });", _class="pci-flushright"),
+					),
 					_class="pci-thematicFieldsDiv"),
 				_class='searchForm',
 				_name='searchForm',
@@ -109,7 +115,7 @@ def mkRepresentArticle(auth, db, articleId):
 						,A(art.doi, _href="http://dx.doi.org/"+sub(r'doi: *', '', art.doi), _class="doi_url", _target="_blank")+BR() if (art.doi) else SPAN('')
 						,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '')
 						,BR()+B(current.T('Abstract'))+BR()
-						,DIV(WIKI(art.abstract), _class='pci-bigtext')
+						,DIV(WIKI(art.abstract or ''), _class='pci-bigtext')
 						, _class='pci-article-div'
 					)
 	return resu
@@ -159,7 +165,6 @@ def mkSearchReviewersButton(auth, db, row):
 # Builds an article status button from a recommendation row
 def mkRecommStatusButton(auth, db, row):
 	if len(statusArticles) == 0:
-		print 'statusArticles...'
 		for sa in db(db.t_status_article).select():
 			statusArticles[sa['status']] = sa
 	anchor = ''
@@ -168,6 +173,21 @@ def mkRecommStatusButton(auth, db, row):
 	color_class = statusArticles[article['status']]['color_class'] or 'btn-default'
 	hint = statusArticles[article['status']]['explaination'] or ''
 	anchor = A(SPAN(status_txt, _class='buttontext btn pci-button '+color_class), _href=URL(c='default', f='under_consideration_one_article', args=[row.article_id], user_signature=True), _class='button', _title=current.T(hint))
+	return anchor
+
+
+
+# Builds an article status button from a recommendation row
+def mkReviewerArticleStatusButton(auth, db, row):
+	if len(statusArticles) == 0:
+		for sa in db(db.t_status_article).select():
+			statusArticles[sa['status']] = sa
+	anchor = ''
+	article = db.t_articles[db.t_recommendations[row.recommendation_id].article_id]
+	status_txt = current.T(article['status']).replace('-', '- ')
+	color_class = statusArticles[article['status']]['color_class'] or 'btn-default'
+	hint = statusArticles[article['status']]['explaination'] or ''
+	anchor = A(SPAN(status_txt, _class='buttontext btn pci-button '+color_class), _href=URL(c='default', f='under_consideration_one_article', args=[article.id], user_signature=True), _class='button', _title=current.T(hint))
 	return anchor
 
 
@@ -254,9 +274,12 @@ def mkViewArticle4ReviewButton(auth, db, row):
 		art = db.t_articles[recomm.article_id]
 		if art:
 			anchor = DIV(
-						A(art.title, _href=URL(c='default', f='under_review_one_article', args=[recomm.article_id], user_signature=True)),
+						#A(art.title, _href=URL(c='default', f='under_review_one_article', args=[recomm.article_id], user_signature=True)),
+						SPAN(art.title),
 						BR(),
-						B(current.T('Authors:')+' '), SPAN(art.authors)
+						B(current.T('Authors:')+' '), SPAN(art.authors),
+						BR(),
+						B(current.T('Submitted on:')+' '), SPAN(art.upload_timestamp),
 					)
 	return anchor
 
@@ -290,7 +313,7 @@ def mkRecommendedArticle(auth, db, art, printable, with_comments=False):
 					,(mkDOI(art.doi)+BR()) if (art.doi) else SPAN('')
 					,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '')
 					,BR()+B(current.T('Abstract'))+BR()
-					,DIV(WIKI(art.abstract), _class='pci-bigtext')
+					,DIV(WIKI(art.abstract or ''), _class='pci-bigtext')
 					, _class=('pci-article-div-printable' if printable else 'pci-article-div')
 				)
 	
@@ -323,8 +346,7 @@ def mkRecommendedArticle(auth, db, art, printable, with_comments=False):
 			)
 		)
 		if recomm.reply is not None and len(recomm.reply) > 0:
-			myContents.append(B(current.T('Reply:'))+BR()
-							,DIV(WIKI(art.recomm.reply), _class='pci-bigtext'))
+			myContents.append(B(current.T('Reply:'))+BR()+DIV(WIKI(recomm.reply or ''), _class='pci-bigtext'))
 	if with_comments:
 		#TODO: Add comments (optionnal)
 		pass
@@ -375,12 +397,40 @@ def mkRecommReviewsButton(auth, db, row):
 def mkRecommendationFormat(auth, db, row):
 	recommender = db.auth_user[row.recommender_id]
 	art = db.t_articles[row.article_id]
-	anchor = SPAN(art.title, 
+	anchor = SPAN(  art.title, 
 					BR(),
-					B(current.T('Recommender:')), SPAN(' %s %s %s' % (recommender.user_title, recommender.first_name, recommender.last_name)),
+					B(current.T('Recommender:')+' '), SPAN('%s %s %s' % (recommender.user_title, recommender.first_name, recommender.last_name)),
 					BR(),
-					B(current.T('DOI:')), mkDOI(row.doi)
+					B(current.T('DOI:')+' '), mkDOI(row.doi),
+					BR(),
+					B(current.T('Started on:')+' '), row.recommendation_timestamp
 				)
 	return anchor
+
+
+
+def mkRecommendation4ReviewFormat(auth, db, row):
+	recomm = db.t_recommendations[row.recommendation_id]
+	#recommender = db.auth_user[recomm.recommender_id]
+	art = db.t_articles[recomm.article_id]
+	anchor = SPAN(  #art.title, 
+					#BR(),
+					#B(current.T('Recommender:')+' '), SPAN('%s %s %s ' % (recommender.user_title, recommender.first_name, recommender.last_name)), A(recommender.email, _href='mailto:%s' % recommender.email),
+					B(current.T('Recommender:')+' '), SPAN(mkUserWithMail(auth, db, recomm.recommender_id)),
+					BR(),
+					B(current.T('DOI:')+' '), mkDOI(recomm.doi),
+					BR(),
+					B(current.T('Started on:')+' '), recomm.recommendation_timestamp
+				)
+	return anchor
+
+
+def mkUserWithMail(auth, db, userId):
+	resu = ''
+	if userId is not None:
+		theUser = db.auth_user[userId]
+		if theUser:
+			resu = SPAN('%s %s %s (%s, %s, %s, %s) -- ' % (theUser.user_title, theUser.first_name, theUser.last_name, theUser.laboratory, theUser.institution, theUser.city, theUser.country)), A(theUser.email, _href='mailto:%s' % theUser.email)
+	return resu
 
 

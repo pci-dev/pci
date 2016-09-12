@@ -112,6 +112,10 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
+db.auth_user.registration_key.label=T('Registration key')
+db.auth_user.registration_key.readable=True
+db.auth_user.registration_key.writable=True
+db.auth_user.registration_key.requires=IS_IN_SET(('','blocked'))
 db.auth_user._format = '%(user_title)s %(first_name)s %(last_name)s (%(laboratory)s, %(institution)s, %(city)s, %(country)s)'
 db.auth_group._format = '%(role)s'
 
@@ -141,6 +145,7 @@ db.define_table('t_status_article',
 	Field('status', type='string', length=50, label=T('Status'), requires=IS_NOT_EMPTY()),
 	Field('color_class', type='string', length=50, default='btn-default', requires=IS_NOT_EMPTY()),
 	Field('explaination', type='text', label=T('Explaination')),
+	Field('priority_level', type='text', length=1, requires=IS_IN_SET(('A', 'B', 'C'))),
 	format='%(status)s',
 	migrate=False,
 )
@@ -206,6 +211,7 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
+	Field('is_closed', type='boolean', label=T('Review terminated'), default=False),
 	migrate=False,
 )
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(user_title)s %(first_name)s %(last_name)s'))
@@ -246,6 +252,14 @@ db.define_table('v_reviewers',
 	writable=False,
 	migrate=False,
 )
+
+db.define_table('v_roles',
+	Field('id', type='id'),
+	Field('roles', type='string', length=512, label=T('Roles')),
+	writable=False,
+	migrate=False,
+)
+
 # -------------------------------------------------------------------------
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------

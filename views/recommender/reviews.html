@@ -39,7 +39,7 @@
             return $(this).attr("title") ? $(this).attr("title").indexOf('{{=T("Add record to database")}}') != -1 : false;
         })
         .each(function(i) {
-            $(this).text('{{=T("Create new review")}}').attr("title", '{{=T("Add a new review")}}');
+            $(this).text('{{=T("Add a review")}}').attr("title", '{{=T("Add a new review from scratch")}}');
         });
     })
 </script>

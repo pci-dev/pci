@@ -21,13 +21,23 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
 def _validate_articles(ids):
 	for myId in ids:
-		db.executesql("""UPDATE t_articles SET status = (CASE 
-														WHEN status LIKE 'Pending' THEN 'Awaiting consideration'
-														WHEN status LIKE 'Pre-recommended' THEN 'Recommended'
-														ELSE status
-														END) 
-							WHERE id=%s
-							AND status ~* '(Pending)|(Pre-recommended)';""", placeholders=[myId])
+		#db.executesql("""UPDATE t_articles SET status = (CASE 
+														#WHEN status LIKE 'Pending' THEN 'Awaiting consideration'
+														#WHEN status LIKE 'Pre-recommended' THEN 'Recommended'
+														#ELSE status
+														#END) 
+							#WHERE id=%s
+							#AND status ~* '(Pending)|(Pre-recommended)';""", placeholders=[myId])
+		art = db.t_articles[myId]
+		if art.status == 'Pending':
+			art.status = 'Awaiting consideration'
+			art.update_record()
+		elif art.status == 'Pre-recommended':
+			art.status = 'Recommended'
+			art.update_record()
+			link = A(art.title, _href=URL(c='public', f='recommendations', vars=dict(articleId=art.id)))
+			#TODO: tweet article
+			print link
 
 
 
@@ -96,7 +106,8 @@ def _manage_articles(includeRecommended):
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
-		,orderby=~db.t_articles.last_status_change
+		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
+		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 	)
 	if grid.elements('th'):
 		grid.elements('th')[0].append(SPAN(T('All'), BR(), 
@@ -161,6 +172,7 @@ def search_recommenders():
 		Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
+		Field('email', type='string', length=512, label=T('email')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('city', type='string', label=T('City')),
 		Field('country', type='string', label=T('Country')),
@@ -168,6 +180,7 @@ def search_recommenders():
 		Field('institution', type='string', label=T('Institution')),
 		Field('thematics', type='list:string', label=T('Thematic fields')),
 	)
+	temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href='mailto:'+text)
 	myVars = request.vars
 	qyKw = ''
 	qyTF = []
@@ -202,7 +215,7 @@ def search_recommenders():
 		,editable = False,deletable = False,create = False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.user_title, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
+		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.user_title, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.email, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
 		,links=links
 		,orderby=temp_db.qy_recomm.num
 		,args=request.args
