@@ -11,6 +11,12 @@ from gluon.contrib.markdown import WIKI
 statusArticles = dict()
 
 
+def mkStatusArticles(db):
+	statusArticles.clear()
+	for sa in db(db.t_status_article).select():
+		statusArticles[sa['status']] = sa
+
+
 # Builds the right-panel for home page
 def mkPanel(myconf, auth):
 	panel = [
@@ -124,6 +130,8 @@ def mkRepresentArticle(auth, db, articleId):
 
 # Builds a search button for recommenders matching keywords
 def mkSearchRecommendersButton(auth, db, row):
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	if row['status'] == 'Awaiting consideration' or row['status'] == 'Pending':
 		myVars = dict(articleId=row['id'])
@@ -137,6 +145,8 @@ def mkSearchRecommendersButton(auth, db, row):
 
 # Builds a search button for recommenders matching keywords
 def mkSearchRecommendersUserButton(auth, db, row):
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	if row['status'] == 'Awaiting consideration' or row['status'] == 'Pending':
 		myVars = dict(articleId=row['id'])
@@ -150,6 +160,8 @@ def mkSearchRecommendersUserButton(auth, db, row):
 
 # Builds a search button for reviewers matching keywords
 def mkSearchReviewersButton(auth, db, row):
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	article = db.t_articles[row['article_id']]
 	if article['status'] == 'Under consideration':
@@ -164,9 +176,8 @@ def mkSearchReviewersButton(auth, db, row):
 
 # Builds an article status button from a recommendation row
 def mkRecommStatusButton(auth, db, row):
-	if len(statusArticles) == 0:
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	article = db.t_articles[row.article_id]
 	status_txt = current.T(article['status']).replace('-', '- ')
@@ -179,9 +190,8 @@ def mkRecommStatusButton(auth, db, row):
 
 # Builds an article status button from a recommendation row
 def mkReviewerArticleStatusButton(auth, db, row):
-	if len(statusArticles) == 0:
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	article = db.t_articles[db.t_recommendations[row.recommendation_id].article_id]
 	status_txt = current.T(article['status']).replace('-', '- ')
@@ -194,10 +204,8 @@ def mkReviewerArticleStatusButton(auth, db, row):
 
 # Builds a status button which allow to open recommendations only when recommended and recommendations exists
 def mkStatusButton(auth, db, row):
-	if len(statusArticles) == 0:
-		print 'statusArticles...'
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	articleId = row['id']
 	status_txt = '%s (n=%s)' % (current.T(row['status']).replace('-', '- '), row['auto_nb_recommendations'])
@@ -215,10 +223,8 @@ def mkStatusButton(auth, db, row):
 def mkUserStatusButton(auth, db, row):
 	if row is None:
 		return ''
-	if len(statusArticles) == 0:
-		print 'statusArticles...'
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	articleId = row['id']
 	status_txt = '%s (n=%s)' % (current.T(row['status']).replace('-', '- '), row['auto_nb_recommendations'])
@@ -234,10 +240,8 @@ def mkUserStatusButton(auth, db, row):
 
 # Builds a status button which allow to open recommendations only when submitter is user
 def mkRecommenderStatusButton(auth, db, row):
-	if len(statusArticles) == 0:
-		print 'statusArticles...'
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	articleId = row['id']
 	status_txt = '%s (n=%s)' % (current.T(row['status']).replace('-', '- '), row['auto_nb_recommendations'])
@@ -253,10 +257,8 @@ def mkRecommenderStatusButton(auth, db, row):
 
 # Builds a status button always clickable, with number of recommendations
 def mkManagerStatusButton(auth, db, row):
-	if len(statusArticles) == 0:
-		print 'statusArticles...'
-		for sa in db(db.t_status_article).select():
-			statusArticles[sa['status']] = sa
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
 	anchor = ''
 	articleId = row['id']
 	status_txt = '%s (n=%s)' % (current.T(row['status']).replace('-', '- '), row['auto_nb_recommendations'])
@@ -298,8 +300,11 @@ def mkViewArticle4RecommendationButton(auth, db, row):
 
 
 
-def mkBackButton():
-	return A(SPAN(current.T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
+def mkBackButton(target=None):
+	if target:
+		return A(SPAN(current.T('Back'), _class='buttontext btn btn-default'), _href=target, _class='button')
+	else:
+		return A(SPAN(current.T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 
 
 
@@ -307,7 +312,7 @@ def mkBackButton():
 def mkRecommendedArticle(auth, db, art, printable, with_comments=False):
 	submitter = db.auth_user[art.user_id]
 	myContents = DIV(
-					SPAN(I(current.T('Submitted by %s %s %s, %s') % (submitter.user_title, submitter.first_name, submitter.last_name, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
+					SPAN(I(current.T('Submitted by %s %s %s, %s') % (submitter.user_title, submitter.first_name, submitter.last_name, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')) if submitter else '')
 					,H4(art.authors)
 					,H3(art.title)
 					,(mkDOI(art.doi)+BR()) if (art.doi) else SPAN('')
@@ -316,7 +321,6 @@ def mkRecommendedArticle(auth, db, art, printable, with_comments=False):
 					,DIV(WIKI(art.abstract or ''), _class='pci-bigtext')
 					, _class=('pci-article-div-printable' if printable else 'pci-article-div')
 				)
-	
 	recomms = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.last_change)
 	for recomm in recomms:
 		recommender = db.auth_user[recomm.recommender_id]

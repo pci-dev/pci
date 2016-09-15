@@ -24,7 +24,7 @@ def article_revised():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	art.status = 'Under consideration'
 	art.update_record()
 	last_recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
@@ -45,7 +45,7 @@ def article_to_cancel():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	art.status = 'Cancelled'
 	art.update_record()
 	redirect('my_articles')
@@ -54,9 +54,9 @@ def article_to_cancel():
 
 @auth.requires_login()
 def suggest_article_to():
-	articleId = request.vars['articleId']
-	recommenderId = request.vars['recommenderId']
 	try:
+		articleId = request.vars['articleId']
+		recommenderId = request.vars['recommenderId']
 		db.executesql("""INSERT INTO t_suggested_recommenders (suggested_recommender_id, article_id) VALUES (%s, %s);""" , placeholders=[recommenderId, articleId])
 	except:
 		pass # ignore duplicated keys, lazy way ;-S
@@ -75,6 +75,7 @@ def search_recommenders():
 		Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
+		Field('email', type='string', length=512, label=T('email')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('city', type='string', label=T('City')),
 		Field('country', type='string', label=T('Country')),
@@ -104,7 +105,7 @@ def search_recommenders():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	
 	qyKwArr = qyKw.split(' ')
 	searchForm =  mkSearchForm(auth, db, myVars)
@@ -149,7 +150,7 @@ def suggested_recommenders():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	query = (db.t_suggested_recommenders.article_id == articleId)
 	db.t_suggested_recommenders._id.readable = False
 	grid = SQLFORM.grid( query
@@ -173,7 +174,7 @@ def reply_to_revision():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
 	db.t_recommendations.reply.writable = True
 	form = SQLFORM(db.t_recommendations
@@ -268,7 +269,7 @@ def recommendations():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 
 	myContents = mkRecommendedArticle(auth, db, art, printable)
 	myContents.append(HR())

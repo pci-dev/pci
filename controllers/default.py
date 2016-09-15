@@ -72,6 +72,8 @@ def user():
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
 	myMessage = T('Log In')
+	db.auth_user.registration_key.writable = False
+	db.auth_user.registration_key.readable = False
 	response.view='default/index.html'
 	return dict(
 		message = myMessage,

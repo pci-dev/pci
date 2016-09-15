@@ -153,7 +153,7 @@ def _awaiting_articles(myVars):
 	temp_db.qy_art._id.readable = False
 	temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
 	temp_db.qy_art.auto_nb_recommendations.readable = False
-	temp_db.qy_art.status.represent = lambda text, row: mkRecommenderStatusButton(auth, db, row)
+	#temp_db.qy_art.status.represent = lambda text, row: mkRecommenderStatusButton(auth, db, row)
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=True
 		,maxtextlength=250,paginate=10
@@ -196,9 +196,13 @@ def all_awaiting_articles():
 def accept_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	article = db.t_articles[articleId]
-	db.executesql("""INSERT INTO t_recommendations (article_id, recommender_id, doi) VALUES (%s, %s, %s);""", placeholders=[articleId, auth.user_id, article.doi])
-	db.executesql("""UPDATE t_articles SET status=%s WHERE id=%s""", placeholders=['Under consideration', articleId])
-	redirect('my_recommendations')
+	if article.status == 'Awaiting consideration':
+		db.executesql("""INSERT INTO t_recommendations (article_id, recommender_id, doi) VALUES (%s, %s, %s);""", placeholders=[articleId, auth.user_id, article.doi])
+		db.executesql("""UPDATE t_articles SET status=%s WHERE id=%s""", placeholders=['Under consideration', articleId])
+		redirect('my_recommendations')
+	else:
+		session.flash = T('Article no more available', lazy=False)
+		redirect('my_awaiting_articles')
 
 
 
@@ -212,7 +216,8 @@ def recommend_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
+		#raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
 	art = db.t_articles[recomm.article_id]
 	art.status = 'Pre-recommended'
 	art.update_record()
@@ -231,7 +236,8 @@ def reject_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
+		return
 	art = db.t_articles[recomm.article_id]
 	art.status = 'Rejected'
 	art.update_record()
@@ -250,7 +256,7 @@ def revise_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	art = db.t_articles[recomm.article_id]
 	art.status = 'Awaiting revision'
 	art.update_record()
@@ -282,7 +288,7 @@ def suggest_review_to():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	try:
 		db.executesql("""INSERT INTO t_reviews (recommendation_id, reviewer_id) VALUES (%s, %s);""",  placeholders=[recommId, reviewerId])
 	except:
@@ -361,7 +367,7 @@ def recommendations():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.status != 'Awaiting consideration':
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 
 	myContents = mkRecommendedArticle(auth, db, art, printable)
 	myContents.append(HR())
@@ -413,7 +419,7 @@ def reviews():
 	recommendationId = request.vars['recommendationId']
 	recomm = db.t_recommendations[recommendationId]
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		auth.not_authorized()
 	myContents = mkRecommendationFormat(auth, db, recomm)
 	query = (db.t_reviews.recommendation_id == recommendationId)
 	db.t_reviews._id.readable = False
@@ -421,7 +427,7 @@ def reviews():
 	db.t_reviews.recommendation_id.writable = False
 	db.t_reviews.recommendation_id.readable = False
 	db.t_reviews.reviewer_id.writable = False
-	db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
+	#db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
 	db.t_reviews.anonymously.default = True
 	db.t_reviews.anonymously.writable = auth.has_membership(role='manager')
 	db.t_reviews.review.writable = lambda row: row.reviewer_id is None or auth.has_membership(role='manager')
@@ -433,13 +439,14 @@ def reviews():
 	
 	grid = SQLFORM.grid( query
 		,details=True
-		,editable=auth.has_membership(role='manager')
+		,editable=lambda row: auth.has_membership(role='manager') or (not row.is_closed and row.reviewer_id is None)
 		,deletable=False
 		,create=auth.has_membership('recommender')
 		,searchable=False
 		,maxtextlength = 250,paginate=100
 		,csv = csv, exportclasses = expClass
 		,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.is_closed]
+		,links=[dict(header=T("Reviewer's email"), body=lambda row: '' if row.reviewer_id is None else A(db.auth_user[row.reviewer_id].email, _href='mailto:%s'%db.auth_user[row.reviewer_id].email))]
 		,selectable=selectable
 	)
 	response.view='recommender/reviews.html'

@@ -63,7 +63,6 @@ def recommended_articles():
 		]
 		,orderby=temp_db.qy_art.num
 		,args=request.args
-	#, _class="pci-grid"
 	)
 	response.view='default/recommended_articles.html'
 	return dict(grid=grid, searchForm=searchForm, myTitle=H1(T('Recommended Articles')), shareable=True)
@@ -81,23 +80,17 @@ def recommendations():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.status != 'Recommended':
-		raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		raise HTTP(403, "403: "+T('Forbidden access')) # Forbidden access
 
 	myContents = mkRecommendedArticle(auth, db, art, printable)
 	myContents.append(HR())
 	
 	if printable:
-		#if art.status == 'Recommended':
 		myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
-		#else:
-		#myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title-printable')
 		myAcceptBtn = ''
 		response.view='default/recommended_article_printable.html'
 	else:
-		#if art.status == 'Recommended':
 		myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title')
-		#else:
-		#myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title')
 		myAcceptBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
 			_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
 			_class='button')#, _target='_blank')

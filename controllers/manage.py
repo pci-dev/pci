@@ -14,36 +14,93 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
+# Send email to the requester (if any)
+@auth.requires(auth.has_membership(role='manager'))
+def _send_email_to_requester(article):
+	mail_resu = None
+	target = URL(c='user', f='my_articles', scheme=True, host=True)
+	mySubject = myconf.take('app.name')+': Request status changed'
+	userQy = db.executesql('SELECT au.* FROM auth_user AS au WHERE id=%s;', placeholders=[article.user_id], as_dict=True)
+	for theUser in userQy:
+		context = dict(article=article, target=target, person='%s %s %s'%(theUser['user_title'], theUser['first_name'], theUser['last_name']))
+		myMessage = response.render('manage/email_request_status_changed.html', context)
+		mail_resu = mail.send(to=[theUser['email']],
+						subject=mySubject,
+						message=myMessage,
+					)
+	return mail_resu
+
+
+
+# Send email to suggested recommenders for a given article
+@auth.requires(auth.has_membership(role='manager'))
+def send_email_to_suggested_recommenders():
+	articleId = request.vars['articleId']
+	if articleId:
+		article = db.t_articles[articleId]
+		if article is not None:
+			if _send_email_to_suggested_recommenders(article):
+				session.flash = T('email sent', lazy=False)
+			else:
+				session.flash = T('email NOT sent', lazy=False)
+	redirect(URL('suggested_recommenders', vars=dict(articleId=articleId)))
+
+
+
+# Do send email to suggested recommenders for a given article
+@auth.requires(auth.has_membership(role='manager'))
+def _send_email_to_suggested_recommenders(article):
+	target = URL(c='recommender', f='my_awaiting_articles', scheme=True, host=True)
+	mySubject = myconf.take('app.name')+': Recommendation request suggested'
+	suggestedQy = db.executesql('SELECT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
+	for theUser in suggestedQy:
+		context = dict(article=article, abstract=WIKI(article.abstract or ''), target=target, person='%s %s %s'%(theUser['user_title'], theUser['first_name'], theUser['last_name']))
+		myMessage = response.render('manage/email_suggest_recommendation.html', context)
+		mail_resu = mail.send(to=[theUser['email']],
+						subject=mySubject,
+						message=myMessage,
+					)
+		if mail_resu:
+			db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
+		else:
+			db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
+	
+
+
+
 # Change article status :
 #	Pending -> Awaiting consideration
 #	Pre-recommended -> Recommended
 # Limited to manager or administrator
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
-def _validate_articles(ids):
+@auth.requires(auth.has_membership(role='manager'))
+def _validate_articles(ids, response):
 	for myId in ids:
-		#db.executesql("""UPDATE t_articles SET status = (CASE 
-														#WHEN status LIKE 'Pending' THEN 'Awaiting consideration'
-														#WHEN status LIKE 'Pre-recommended' THEN 'Recommended'
-														#ELSE status
-														#END) 
-							#WHERE id=%s
-							#AND status ~* '(Pending)|(Pre-recommended)';""", placeholders=[myId])
 		art = db.t_articles[myId]
+		
+		
 		if art.status == 'Pending':
 			art.status = 'Awaiting consideration'
 			art.update_record()
+			_send_email_to_suggested_recommenders(art)
+			_send_email_to_requester(art)
+
+		
+		
 		elif art.status == 'Pre-recommended':
 			art.status = 'Recommended'
 			art.update_record()
-			link = A(art.title, _href=URL(c='public', f='recommendations', vars=dict(articleId=art.id)))
+			_send_email_to_requester(art)
 			#TODO: tweet article
-			print link
+			link = _href=URL(c='public', f='recommendations', scheme=True, host=True, vars=dict(articleId=art.id))
+			print A(link, _href=link)
+
+
 
 
 
 # Display pending articles and allow management
 # Managers or administrators
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager'))
 def pending_articles():
 	resu = _manage_articles(False)
 	resu['myTitle'] = T('Pending articles')
@@ -53,7 +110,7 @@ def pending_articles():
 
 # Display all articles and allow management
 # Managers or administrators
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager'))
 def all_articles():
 	resu = _manage_articles(True)
 	resu['myTitle'] = T('All articles')
@@ -75,13 +132,13 @@ def suggest_article_to():
 
 
 # Allow management of articles
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager'))
 def _manage_articles(includeRecommended):
 	if includeRecommended:
 		query = db.t_articles
 	else:
 		query = ~(db.t_articles.status=='Recommended')
-	selectable = [(T('Validate pending or pre-recommended selected articles'), lambda ids: _validate_articles(ids), 'class1')]
+	selectable = [(T('Validate pending or pre-recommended selected articles'), lambda ids: _validate_articles(ids, response), 'class1')]
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
 	db.t_articles.status.readable = False
@@ -122,7 +179,7 @@ def _manage_articles(includeRecommended):
 
 
 # Allow management of article recommendations
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager'))
 def manage_recommendations():
 	articleId = request.vars['article']
 	query = db.t_recommendations.article_id == articleId
@@ -161,7 +218,7 @@ def manage_recommendations():
 
 
 
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager'))
 def search_recommenders():
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
@@ -197,7 +254,7 @@ def search_recommenders():
 		elif (myVar == 'articleId'):
 			articleId = myValue
 	if articleId is None:
-		raise HTTP(403)
+		auth.not_authorized()
 	qyKwArr = qyKw.split(' ')
 	searchForm =  mkSearchForm(auth, db, myVars)
 	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
@@ -231,7 +288,7 @@ def search_recommenders():
 
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
-@auth.requires_login()
+@auth.requires(auth.has_membership(role='manager'))
 def suggested_recommenders():
 	articleId = request.vars['articleId']
 	if articleId is None:
@@ -245,12 +302,10 @@ def suggested_recommenders():
 		,details=False,editable=False,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100
 		,csv = csv, exportclasses = expClass
-		,fields=[db.t_suggested_recommenders.suggested_recommender_id]
+		,fields=[db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent]
 	)
-	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton())
-
-
-
+	myEmailButton = A(SPAN(current.T('Send email to suggested recommenders'), _class='buttontext btn btn-default'), _href=URL(f='send_email_to_suggested_recommenders', vars=dict(articleId=articleId), user_signature=True), _class='button')
+	response.view='manage/suggested_recommenders.html'
+	return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton(URL(c='manage',f='pending_articles')), myEmailButton=myEmailButton)
 
 

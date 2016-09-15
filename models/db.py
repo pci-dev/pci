@@ -113,8 +113,7 @@ auth.settings.extra_fields['auth_user'] = [
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user.registration_key.label=T('Registration key')
-db.auth_user.registration_key.readable=True
-db.auth_user.registration_key.writable=True
+db.auth_user.registration_key.writable = db.auth_user.registration_key.readable = auth.has_membership(role='administrator')
 db.auth_user.registration_key.requires=IS_IN_SET(('','blocked'))
 db.auth_user._format = '%(user_title)s %(first_name)s %(last_name)s (%(laboratory)s, %(institution)s, %(city)s, %(country)s)'
 db.auth_group._format = '%(role)s'
@@ -151,12 +150,10 @@ db.define_table('t_status_article',
 )
 
 
-# in-memory dicts
+# in-memory dict
 statusArticles = dict()
 for sa in db(db.t_status_article).select():
 	statusArticles[sa['status']] = T(sa['status'])
-
-
 
 db.define_table('t_articles',
 	Field('id', type='id'),
@@ -223,6 +220,7 @@ db.define_table('t_suggested_recommenders',
 	Field('id', type='id'),
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
 	Field('suggested_recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Suggested recommender')),
+	Field('email_sent', type='boolean', default=False, label=T('email sent')),
 	migrate=False,
 )
 db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s %(user_title)s'))
