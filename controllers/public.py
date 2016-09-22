@@ -23,6 +23,7 @@ def recommended_articles():
 		Field('score', type='double', label=T('Score'), default=0),
 		Field('title', type='text', label=T('Title')),
 		Field('authors', type='text', label=T('Authors')),
+		Field('article_source', type='string', label=T('Source')),
 		Field('doi', type='string', label=T('DOI')),
 		Field('abstract', type='text', label=T('Abstract')),
 		Field('upload_timestamp', type='date', default=request.now, label=T('Submission date/time')),
@@ -30,7 +31,7 @@ def recommended_articles():
 		Field('keywords', type='text', label=T('Keywords')),
 		Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
 		Field('status', type='string', length=50, default='Pending', label=T('Status')),
-		Field('last_status_change', type='date', default=request.now, label=T('Recommendation')),
+		Field('last_status_change', type='date', default=request.now, label=T('Recommendation date')),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -52,14 +53,23 @@ def recommended_articles():
 	temp_db.qy_art._id.readable = False
 	temp_db.qy_art.auto_nb_recommendations.readable = False
 	temp_db.qy_art.status.readable = False
-	temp_db.qy_art.abstract.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
-	temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+	#temp_db.qy_art.title.readable = False
+	temp_db.qy_art.title.represent = lambda text, row: mkArticleCell(auth, db, row)
+	temp_db.qy_art.authors.readable = False
+	temp_db.qy_art.keywords.readable = False
+	temp_db.qy_art.thematics.readable = False
+	temp_db.qy_art.article_source.readable = False
+	temp_db.qy_art.upload_timestamp.readable = False
+	temp_db.qy_art.doi.readable = False
+	#temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+	temp_db.qy_art.abstract.represent=lambda text, row: WIKI(text[:700]+'...') if len(text or '')>500 else WIKI(text or '')
+	temp_db.qy_art.title.label = T('Article')
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
 		,links=[
-			dict(header=T('View'), body=lambda row: A(SPAN(T('View'), _class='buttontext btn btn-success'), _href=URL(c='public', f='recommendations', vars=dict(articleId=row.id), user_signature=True), _target='blank', _class='button')),
+			dict(header='', body=lambda row: A(SPAN(T('View'), _class='buttontext btn btn-success'), _href=URL(c='public', f='recommendations', vars=dict(articleId=row.id), user_signature=True), _target='blank', _class='button')),
 		]
 		,orderby=temp_db.qy_art.num
 		,args=request.args
@@ -113,7 +123,7 @@ def managers():
 		,editable=False,deletable=False,create=False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
 		,csv=csv,exportclasses=expClass
-		,fields=[db.auth_user.uploaded_picture, db.auth_user.user_title, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country]
+		,fields=[db.auth_user.uploaded_picture, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country]
 		,links=[
 				dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
 		]
@@ -134,7 +144,7 @@ def recommenders():
 		Field('id', type='integer'),
 		Field('num', type='integer'),
 		Field('score', type='double', label=T('Score'), default=0),
-		Field('user_title', type='string', length=10, label=T('Title')),
+		#Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
 		Field('email', type='string', length=128, label=T('email')),
@@ -173,7 +183,7 @@ def recommenders():
 		,editable = False,deletable = False,create = False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.user_title, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
+		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
 		,links=links
 		,orderby=temp_db.qy_recomm.num
 		,args=request.args

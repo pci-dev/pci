@@ -13,14 +13,20 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 
 #languageChooser{margin-top:20px;}
 #languageChooser>span{color: #d1d1d1;}
+
 #v_recommenders-picture {width: 0px;}
+
 #t_recommendations_recommendation_comments {height:20cm;}
 #t_recommendations_reply {height:20cm;}
+/* #t_recommendations-article_id {width: 25%;} */
+/* #t_recommendations-recommendation_comments {width: 25%} */
+/* #t_recommendations-reply {width: 25%;} */
 
+#qy_art-title {width: 33%;}
 /* #t_articles-doi {width: 120px;} */
 
 .doi_url {width: 200px;}
-.pci-button {box-sizing: unset; width: 80px; white-space: initial; padding: 8px;}
+.pci-button {box-sizing: unset; width: 80px; white-space: initial; padding: 8px; font-size:9px;}
 .pci-button.btn-warning {background-color: #ffbf00; color: black;}
 .pci-button.btn-good {background-color: #b9f20d; color: black;}
 .pci-button.btn-success {background-color: #089108; color: white;}
@@ -54,10 +60,14 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 
 .pci-searchTitle {color:#089108;}
 
-.pci-status-button {margin:12px;}
+.pci-status-button {margin:12px; font-size:8px;}
 .pci-status-buttons-group{margin-top:32px; padding: 32px;}
 
 .pci-blocked {font-size:20px; color:red;}
-/* .pci-grid {font-size: 11px;} */
-/* .web2py_grid {font-size: 10px;} */
 
+.pci-opinionform {margin: 20px; padding: 8px; border: 1px solid black; text-align:center;}
+.pci-radio {margin-left:12px; padding: 12px;}
+.pci-recommend {background-color: #089108; color: white;}
+.pci-review {background-color: #BBBBBB;}
+.pci-reject {background-color: #e61919; color:white;}
+.pci-later {background-color: white; color:black;}

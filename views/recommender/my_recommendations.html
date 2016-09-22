@@ -1,0 +1,45 @@
+{{extend 'layout.html'}}
+
+{{if 'myBackButton' in locals() and (grid.create_form or grid.update_form or grid.view_form):}}
+	{{=myBackButton}}
+	{{pass}}
+      
+{{if 'myTitle' in locals():}}
+	{{=H1(myTitle)}}
+	{{pass}}
+
+{{if 'myContents' in locals():}}
+	{{=myContents}}
+	{{pass}}
+
+<hr>
+<div>
+{{if 'form' in locals():}}
+	{{=form}}
+{{elif grid.create_form:}}
+   {{=grid.create_form}}
+{{elif grid.update_form:}}
+    {{=grid.update_form}}
+{{elif grid.view_form:}}
+   {{=grid.view_form}}
+{{else:}}
+   {{=grid}}
+{{pass}}
+</div>
+
+{{if grid.view_form and 'opinionForm' in locals() and opinionForm:}}
+	{{=opinionForm}}
+	{{pass}}
+
+<!-- Replace Add Record button text -->
+<!--<script type="text/javascript">
+    $(function() {
+        $('span')
+        .filter(function(i) {
+            return $(this).attr("title") ? $(this).attr("title").indexOf('{{=T("Add record to database")}}') != -1 : false;
+        })
+        .each(function(i) {
+            $(this).text('{{=T("Create new recommendation")}}').attr("title", '{{=T("Add a new recommendation")}}');
+        });
+    })
+</script>-->

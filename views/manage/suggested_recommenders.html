@@ -1,0 +1,30 @@
+{{extend 'layout.html'}}
+
+{{if 'myBackButton' in locals():}}
+	{{=myBackButton}}
+	{{pass}}
+
+{{if 'myTitle' in locals():}}
+{{=H1(myTitle)}}
+{{pass}}
+
+{{if 'content' in locals():}}
+<div>{{=content}}</div>
+{{pass}}
+
+<div>
+{{if 'form' in locals():}}
+	{{=form}}
+{{elif grid.create_form:}}
+   {{=grid.create_form}}
+{{elif grid.update_form:}}
+   {{=grid.update_form}}
+{{elif grid.view_form:}}
+   {{=grid.view_form}}
+{{else:}}
+   {{=grid}}
+   {{if 'myEmailButton' in locals():}}
+      {{=myEmailButton}}
+      {{pass}}
+{{pass}}
+</div>

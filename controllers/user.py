@@ -25,14 +25,15 @@ def article_revised():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-	art.status = 'Under consideration'
-	art.update_record()
-	last_recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
-	last_recomm.is_closed = 'T'
-	last_recomm.update_record()
-	db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, is_closed=False)
-	db.commit()
-	redirect('my_articles')
+	else:
+		art.status = 'Under consideration'
+		art.update_record()
+		last_recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
+		last_recomm.is_closed = True
+		last_recomm.update_record()
+		db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, is_closed=False)
+		db.commit()
+		redirect('my_articles')
 
 
 @auth.requires_login()
@@ -46,9 +47,10 @@ def article_to_cancel():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-	art.status = 'Cancelled'
-	art.update_record()
-	redirect('my_articles')
+	else:
+		art.status = 'Cancelled'
+		art.update_record()
+		redirect('my_articles')
 
 
 
@@ -72,7 +74,7 @@ def search_recommenders():
 		Field('id', type='integer'),
 		Field('num', type='integer'),
 		Field('score', type='double', label=T('Score'), default=0),
-		Field('user_title', type='string', length=10, label=T('Title')),
+		#Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
 		Field('email', type='string', length=512, label=T('email')),
@@ -106,34 +108,34 @@ def search_recommenders():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-	
-	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars)
-	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
-	for fr in filtered:
-		qy_recomm.insert(**fr)
-			
-	temp_db.qy_recomm._id.readable = False
-	temp_db.qy_recomm.uploaded_picture.readable = False
-	links = [
-				dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
-				dict(header=T('Suggest as recommender'),         body=lambda row: mkSuggestUserArticleToButton(auth, db, row, art.id)),
-		]
-	grid = SQLFORM.grid( qy_recomm
-		,editable = False,deletable = False,create = False,details=False,searchable=False
-		,maxtextlength=250,paginate=100
-		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.user_title, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
-		,links=links
-		,orderby=temp_db.qy_recomm.num
-		,args=request.args
-	)
-	response.view='default/recommenders.html'
-	return dict(searchForm=searchForm, 
-				myTitle=T('Search recommenders'), 
-				myBackButton=mkBackButton(),
-				grid=grid, 
-			)
+	else:
+		qyKwArr = qyKw.split(' ')
+		searchForm =  mkSearchForm(auth, db, myVars)
+		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
+		for fr in filtered:
+			qy_recomm.insert(**fr)
+				
+		temp_db.qy_recomm._id.readable = False
+		temp_db.qy_recomm.uploaded_picture.readable = False
+		links = [
+					dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
+					dict(header=T('Suggest as recommender'),         body=lambda row: mkSuggestUserArticleToButton(auth, db, row, art.id)),
+			]
+		grid = SQLFORM.grid( qy_recomm
+			,editable = False,deletable = False,create = False,details=False,searchable=False
+			,maxtextlength=250,paginate=100
+			,csv=csv,exportclasses=expClass
+			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
+			,links=links
+			,orderby=temp_db.qy_recomm.num
+			,args=request.args
+		)
+		response.view='default/recommenders.html'
+		return dict(searchForm=searchForm, 
+					myTitle=T('Search recommenders'), 
+					myBackButton=mkBackButton(),
+					grid=grid, 
+				)
 
 
 
@@ -151,16 +153,17 @@ def suggested_recommenders():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-	query = (db.t_suggested_recommenders.article_id == articleId)
-	db.t_suggested_recommenders._id.readable = False
-	grid = SQLFORM.grid( query
-		,details=False,editable=False,deletable=True,create=False,searchable=False
-		,maxtextlength = 250,paginate=100
-		,csv = csv, exportclasses = expClass
-		,fields=[db.t_suggested_recommenders.suggested_recommender_id]
-	)
-	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton())
+	else:
+		query = (db.t_suggested_recommenders.article_id == articleId)
+		db.t_suggested_recommenders._id.readable = False
+		grid = SQLFORM.grid( query
+			,details=False,editable=False,deletable=True,create=False,searchable=False
+			,maxtextlength = 250,paginate=100
+			,csv = csv, exportclasses = expClass
+			,fields=[db.t_suggested_recommenders.suggested_recommender_id]
+		)
+		response.view='default/myLayout.html'
+		return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton())
 
 
 
@@ -175,28 +178,29 @@ def reply_to_revision():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-	lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
-	db.t_recommendations.reply.writable = True
-	form = SQLFORM(db.t_recommendations
-				,deletable=False
-				,record=lastRecomm
-				,showid=False
-				,fields=['reply']
-				,hidden=dict(hiRecommId=db.t_recommendations.recommender_id)
-			)
-	subButton = form.element(_type='submit')
-	subButton['_value'] = T("Reply sent and article revised, please consider it again")
-	subButton['_class'] = 'buttontext btn btn-success'
-	if form.process().accepted:
-		# creates next recommendation for recommender
-		db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=request.vars['hiRecommId'], is_closed=False, doi=art.doi)
-		# set current recommendation to closed
-		lR = db.t_recommendations[form.vars.id]
-		lR.is_closed = True
-		lR.update_record
-		redirect(URL(c='user', f='article_revised', vars=dict(articleId=articleId), user_signature=True))
-	response.view='default/myLayout.html'
-	return(dict(form=form))
+	else:
+		lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
+		db.t_recommendations.reply.writable = True
+		form = SQLFORM(db.t_recommendations
+					,deletable=False
+					,record=lastRecomm
+					,showid=False
+					,fields=['reply']
+					,hidden=dict(hiRecommId=db.t_recommendations.recommender_id)
+				)
+		subButton = form.element(_type='submit')
+		subButton['_value'] = T("Reply sent and article revised, please consider it again")
+		subButton['_class'] = 'buttontext btn btn-success'
+		if form.process().accepted:
+			# creates next recommendation for recommender
+			db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=request.vars['hiRecommId'], is_closed=False, doi=art.doi)
+			# set current recommendation to closed
+			lR = db.t_recommendations[form.vars.id]
+			lR.is_closed = True
+			lR.update_record
+			redirect(URL(c='user', f='article_revised', vars=dict(articleId=articleId), user_signature=True))
+		response.view='default/myLayout.html'
+		return(dict(form=form))
 
 
 
@@ -213,8 +217,8 @@ def my_articles():
 	db.t_articles.status.represent = lambda text, row: mkUserStatusButton(auth, db, row)
 	db.t_articles.status.writable = False
 	links = [
-			dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
-			dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersUserButton(auth, db, row) if row.status=='Pending' else ''),
+			dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
+			dict(header=T('Suggest recommenders'), body=lambda row: mkSearchRecommendersUserButton(auth, db, row) if row.status=='Pending' else ''),
 		]
 	grid = SQLFORM.grid( query
 		,searchable=False
@@ -222,15 +226,16 @@ def my_articles():
 		,deletable=lambda r: (r.status == 'Pending')
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250,paginate=10
-		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.status, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
-		#,orderby=~db.t_articles.upload_timestamp
 	)
 	myCancelBtn = ''
-	if grid.create_form:
+	if grid.create_form: 
 		myTitle=T('Submit new article')
+		if grid.create_form.process().accepted:
+			redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=grid.create_form.vars['id'])))
 	elif grid.view_form:
 		myTitle=T('My recommendation request')
 		articleId=request.args(2)
@@ -270,34 +275,34 @@ def recommendations():
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if art.user_id != auth.user_id:
 		auth.not_authorized()
-
-	myContents = mkRecommendedArticle(auth, db, art, printable)
-	myContents.append(HR())
-	
-	if printable:
-		if art.status == 'Recommended':
-			myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
-		else:
-			myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title-printable')
-		myAcceptBtn = ''
-		response.view='default/recommended_article_printable.html'
 	else:
-		if art.status == 'Recommended':
-			myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title')
+		myContents = mkRecommendedArticle(auth, db, art, printable)
+		myContents.append(HR())
+		
+		if printable:
+			if art.status == 'Recommended':
+				myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
+			else:
+				myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title-printable')
+			myAcceptBtn = ''
+			response.view='default/recommended_article_printable.html'
 		else:
-			myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title')
-		myAcceptBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-			_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
-			_class='button')#, _target='_blank')
-		response.view='default/recommended_articles.html'
-	
-	response.title = (art.title or myconf.take('app.name'))
-	return dict(
-				myTitle=myTitle,
-				myContents=myContents,
-				myAcceptBtn=myAcceptBtn,
-				shareable=True,
-			)
+			if art.status == 'Recommended':
+				myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title')
+			else:
+				myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title')
+			myAcceptBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
+				_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
+				_class='button')#, _target='_blank')
+			response.view='default/recommended_articles.html'
+		
+		response.title = (art.title or myconf.take('app.name'))
+		return dict(
+					myTitle=myTitle,
+					myContents=myContents,
+					myAcceptBtn=myAcceptBtn,
+					shareable=True,
+				)
 
 
 
@@ -315,21 +320,195 @@ def my_reviews():
 	db.t_reviews.review.label = T('My review')
 	grid = SQLFORM.grid( query
 		,searchable=False, deletable=False, create=False
-		,editable=lambda row: not(row.is_closed)
+		,editable= lambda row: (row.review_state == 'Under consideration')
+		,details=True #lambda row: (row.is_closed==True)  #TODO #BUG
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_reviews.recommendation_id, db.t_reviews.review, db.t_reviews.last_change, db.t_reviews.anonymously, db.t_reviews.is_closed]
+		,fields=[db.t_reviews.recommendation_id, db.t_reviews.review, db.t_reviews.last_change, db.t_reviews.anonymously, db.t_reviews.review_state]
 		,links=[dict(header=T('Article'), body=lambda row: mkViewArticle4ReviewButton(auth, db, row)),
 				dict(header=T('Article status'), body=lambda row: mkReviewerArticleStatusButton(auth, db, row))]
 		,links_placement = 'left'
-		,orderby=~db.t_reviews.last_change
+		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
+	myAcceptBtn = None
+	if grid.view_form:
+		myState = db.t_reviews[request.args(2)]['review_state']
+		if myState is None:
+			myAcceptBtn = DIV(
+				A(SPAN(T('Yes, I accept this review'), _class='buttontext btn btn-success'), 
+					_href=URL(c='user', f='accept_new_review',  vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
+				A(SPAN(T('No thanks, I decline this review'), _class='buttontext btn btn-warning'), 
+					_href=URL(c='user', f='decline_new_review', vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
+				_class='pci-opinionform')
+		elif myState == 'Under consideration':
+			myAcceptBtn = DIV(
+				A(SPAN(T('This review is now completed'), _class='buttontext btn btn-success'), 
+					_href=URL(c='user', f='review_completed',  vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
+				_class='pci-opinionform'
+				)
+	myContents = ''
+	response.view='default/reviewsLayout.html'
+	return dict(grid=grid, myTitle=T('My reviews'), myBackButton=mkBackButton(), myAcceptBtn=myAcceptBtn,myContents=myContents)
+
+
+
+#@auth.requires_login()
+#def is_my_press_review_editable(auth, db, row):
+	#resu = True
+	#recomm = db.t_recommendations[row.recommendation_id]
+	#if row.contribution_state is None:
+		#resu = False
+	#elif recomm.is_closed:
+		#resu = False
+	#else:
+		#article = db.t_articles[recomm.article_id]
+		#if article.status not in ("Under consideration", "Pre-recommended", "Rejected"):
+			#resu = False
+	#return resu
+
+
+@auth.requires_login()
+def my_press_reviews():
+	query = db.t_press_reviews.contributor_id == auth.user_id
+	db.t_press_reviews.contributor_id.writable = False
+	db.t_press_reviews.recommendation_id.writable = False
+	db.t_press_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4PressReviewFormat(auth, db, row)
+	db.t_press_reviews._id.readable = False
+	db.t_press_reviews.contribution_state.represent = lambda text, row: T(text or '')
+	grid = SQLFORM.grid( query
+		,searchable=False, deletable=False, create=False
+		,editable=False #lambda row: is_my_press_review_editable(auth, db, row)
+		,maxtextlength=500,paginate=10
+		,csv=csv, exportclasses=expClass
+		,fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.last_change, db.t_press_reviews.contribution_state]
+		,links=[dict(header=T('Article'), body=lambda row: mkViewArticle4ReviewButton(auth, db, row)),
+				dict(header=T('Article status'), body=lambda row: mkReviewerArticleStatusButton(auth, db, row))]
+		,links_placement = 'left'
+		,orderby=~db.t_press_reviews.last_change
+	)
+	myAcceptBtn = None
+	if grid.view_form:
+		myState = db.t_press_reviews[request.args(2)]['contribution_state']
+		if myState is None:
+			myAcceptBtn = DIV(
+				A(SPAN(T('Yes, I contribute to this press review'), _class='buttontext btn btn-success'), 
+					_href=URL(c='user', f='accept_new_press_review',  vars=dict(pressId=request.args(2)), user_signature=True), _class='button'),
+				A(SPAN(T('No thanks, I decline this contribution'), _class='buttontext btn btn-warning'), 
+					_href=URL(c='user', f='decline_new_press_review', vars=dict(pressId=request.args(2)), user_signature=True), _class='button'),
+				_class='pci-opinionform',
+				)
+		elif myState == 'Under consideration':
+			myAcceptBtn = DIV(
+				A(SPAN(T('Yes, I agree to this press review'), _class='buttontext btn btn-success'), 
+					_href=URL(c='user', f='agree_new_press_review',  vars=dict(pressId=request.args(2)), user_signature=True), _class='button'),
+				_class='pci-opinionform')
 	myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 	myContents = ''
 	response.view='default/reviewsLayout.html'
-	return dict(grid=grid, myTitle=T('My reviews'), myBackButton=myBackButton, myContents=myContents)
+	return dict(grid=grid, myTitle=T('My press review contributions'), myBackButton=myBackButton, myContents=myContents, myAcceptBtn=myAcceptBtn)
 
 
 
+@auth.requires_login()
+def agree_new_press_review():
+	if 'pressId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	pressId = request.vars['pressId']
+	pressRev = db.t_press_reviews[pressId]
+	if pressRev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if pressRev.contributor_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_press_reviews')
+	pressRev.contribution_state = 'Recommendation agreed'
+	pressRev.update_record()
+	# email to recommender sent at database level
+	redirect('my_press_reviews')
 
 
+
+@auth.requires_login()
+def accept_new_press_review():
+	if 'pressId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	pressId = request.vars['pressId']
+	pressRev = db.t_press_reviews[pressId]
+	if pressRev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if pressRev.contributor_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_press_reviews')
+	pressRev.contribution_state = 'Under consideration'
+	pressRev.update_record()
+	# email to recommender sent at database level
+	redirect('my_press_reviews')
+
+
+
+@auth.requires_login()
+def decline_new_press_review():
+	if 'pressId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	pressId = request.vars['pressId']
+	pressRev = db.t_press_reviews[pressId]
+	if pressRev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if pressRev.contributor_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_press_reviews')
+	db(pressRev).delete()
+	# email to recommender sent at database level
+	redirect('my_press_reviews')
+	
+
+
+@auth.requires_login()
+def accept_new_review():
+	if 'reviewId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	reviewId = request.vars['reviewId']
+	rev = db.t_reviews[reviewId]
+	if rev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if rev.reviewer_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_reviews')
+	rev.review_state = 'Under consideration'
+	rev.update_record()
+	# email to recommender sent at database level
+	redirect('my_reviews')
+
+
+
+@auth.requires_login()
+def decline_new_review():
+	if 'reviewId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	reviewId = request.vars['reviewId']
+	rev = db.t_reviews[reviewId]
+	if rev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if rev.reviewer_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_reviews')
+	db(rev).delete()
+	# email to recommender sent at database level
+	redirect('my_reviews')
+
+
+
+@auth.requires_login()
+def review_completed():
+	if 'reviewId' not in request.vars:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	reviewId = request.vars['reviewId']
+	rev = db.t_reviews[reviewId]
+	if rev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if rev.reviewer_id != auth.user_id:
+		session.flash = T('Unauthorized', lazy=False)
+		redirect('my_reviews')
+	rev.review_state = 'Terminated'
+	rev.update_record()
+	# email to recommender sent at database level
+	redirect('my_reviews')

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
 # File is released under public domain and you can use without limitations
@@ -101,7 +104,7 @@ db.define_table('t_thematics',
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
 auth.settings.extra_fields['auth_user'] = [
-	Field('user_title', type='string', length=10, label=T('Title'), requires=IS_IN_SET(('', 'Dr.', 'Pr.', 'M.', 'Mrs.')), default=''),
+	#Field('user_title', type='string', length=10, label=T('Title'), requires=IS_IN_SET(('', 'Dr.', 'Pr.', 'M.', 'Mrs.')), default=''),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
 	Field('laboratory', type='string', label=T('Laboratory')),
@@ -115,7 +118,7 @@ auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user.registration_key.label=T('Registration key')
 db.auth_user.registration_key.writable = db.auth_user.registration_key.readable = auth.has_membership(role='administrator')
 db.auth_user.registration_key.requires=IS_IN_SET(('','blocked'))
-db.auth_user._format = '%(user_title)s %(first_name)s %(last_name)s (%(laboratory)s, %(institution)s, %(city)s, %(country)s)'
+db.auth_user._format = '%(last_name)s, %(first_name)s'
 db.auth_group._format = '%(role)s'
 
 # -------------------------------------------------------------------------
@@ -159,6 +162,7 @@ db.define_table('t_articles',
 	Field('id', type='id'),
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
+	Field('article_source', type='string', length=1024, label=T('Source (journal, year, pages)')),
 	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
@@ -179,6 +183,17 @@ db.t_articles.auto_nb_recommendations.writable = False
 db.t_articles.auto_nb_recommendations.readable = False
 db.t_articles.user_id.requires = IS_IN_DB(db, db.auth_user.id)
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
+db.t_articles._before_update.append(lambda s, f: deltaStatus(s,f))
+
+def deltaStatus(s, f):
+	o = s.select().first()
+	if o['status'] != f['status']:
+		if f['status'] == 'Awaiting consideration':
+			do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
+		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+		do_send_email_to_recommender(session, auth, db, o['id'], f['status'])
+	return None
+
 
 
 
@@ -191,14 +206,15 @@ db.define_table('t_recommendations',
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
+	Field('is_press_review', type='boolean', label=T('Press review'), default=False),
 	Field('reply', type='text', label=T('Reply'), default=''),
+	Field('auto_nb_agreements', type='integer', label=T('Number of agreements'), writable=False),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
 	migrate=False,
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 )
-db.t_recommendations.recommender_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(user_title)s %(first_name)s %(last_name)s')
-
+db.t_recommendations.recommender_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(first_name)s %(last_name)s')
 
 
 db.define_table('t_reviews',
@@ -208,11 +224,30 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('is_closed', type='boolean', label=T('Review terminated'), default=False),
+	Field('review_state', type='string', length=50, label=T('State'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Terminated'))), writable=False),
 	migrate=False,
 )
-db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(user_title)s %(first_name)s %(last_name)s'))
+db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
+db.t_reviews._before_update.append(lambda s,f: reviewDone(s,f))
+db.t_reviews._after_insert.append(lambda s,i: reviewSuggested(s,i))
+
+def reviewDone(s, f):
+	o = s.select().first()
+	if o['review_state'] is None and f['review_state'] == 'Under consideration':
+		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
+	if f['review_state'] == 'Terminated':
+		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
+	return None
+
+def reviewDeclined(s):
+	o = s.select().first()
+	do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
+	return None
+
+def reviewSuggested(s, i):
+	do_send_email_to_reviewer_review_suggested(session, auth, db, i)
+	return None
 
 
 
@@ -223,10 +258,41 @@ db.define_table('t_suggested_recommenders',
 	Field('email_sent', type='boolean', default=False, label=T('email sent')),
 	migrate=False,
 )
-db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s %(user_title)s'))
+db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s'))
 
 
 
+db.define_table('t_press_reviews',
+	Field('id', type='id'),
+	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
+	Field('contributor_id', type='reference auth_user', ondelete='RESTRICT', label=T('Contributor')),
+	Field('contribution_state', type='string', length=50, label=T('State'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Recommendation agreed'))), writable=False),
+	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
+	migrate=False,
+)
+db.t_press_reviews.contributor_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
+db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
+db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
+db.t_press_reviews._before_delete.append(lambda s: contributionDeclined(s))
+db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))
+
+def contributionAgreement(s, f):
+	o = s.select().first()
+	if o['contribution_state'] == 'Under consideration':
+		do_send_email_to_recommenders_press_review_considerated(session, auth, db, o['id'])
+	if o['contribution_state'] == 'Recommendation agreed':
+		do_send_email_to_recommenders_press_review_agreement(session, auth, db, o['id'])
+	return None
+
+def contributionDeclined(s):
+	o = s.select().first()
+	do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
+	return None
+
+def contributionSuggested(s, i):
+	print 'contributionSuggested:', i, s
+	do_send_email_to_reviewer_contribution_suggested(session, auth, db, i)
+	return None
 
 ##-------------------------------- Views ---------------------------------
 db.define_table('v_last_recommendation',
@@ -244,9 +310,33 @@ db.define_table('v_suggested_recommenders',
 	migrate=False,
 )
 
+db.define_table('v_article_recommender',
+	Field('id', type='id'),
+	Field('recommender', type='text', label=T('Recommender')),
+	writable=False,
+	migrate=False,
+)
+
+
 db.define_table('v_reviewers',
 	Field('id', type='id'),
 	Field('reviewers', type='text', label=T('Reviewers')),
+	writable=False,
+	migrate=False,
+)
+
+
+db.define_table('v_reviewers_named',
+	Field('id', type='id'),
+	Field('reviewers', type='text', label=T('Reviewers')),
+	writable=False,
+	migrate=False,
+)
+
+
+db.define_table('v_recommendation_contributors',
+	Field('id', type='id'),
+	Field('contributors', type='text', label=T('Contributors')),
 	writable=False,
 	migrate=False,
 )
@@ -257,6 +347,7 @@ db.define_table('v_roles',
 	writable=False,
 	migrate=False,
 )
+
 
 # -------------------------------------------------------------------------
 # after defining tables, uncomment below to enable auditing

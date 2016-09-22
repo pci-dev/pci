@@ -27,6 +27,6 @@
 {{pass}}
 </div>
 
-{{if 'myAcceptBtn' in locals() and (grid.create_form or grid.update_form or grid.view_form):}}
+{{if 'myAcceptBtn' in locals() and myAcceptBtn and (grid.create_form or grid.update_form or grid.view_form):}}
 	{{=myAcceptBtn}}
 	{{pass}}

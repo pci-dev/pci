@@ -36,7 +36,7 @@ def list_users():
 		links = None
 	db.auth_user.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))
 	db.auth_user.email.represent = lambda text, row: A(text, _href='mailto:%s'%text)
-	fields = [db.auth_user.id, db.auth_user.registration_key, db.auth_user.uploaded_picture, db.auth_user.user_title, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.thematics, db.auth_user.alerts, db.auth_membership.user_id, db.auth_membership.group_id]
+	fields = [db.auth_user.id, db.auth_user.registration_key, db.auth_user.uploaded_picture, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.thematics, db.auth_user.alerts, db.auth_membership.user_id, db.auth_membership.group_id]
 	db.auth_user._id.readable=False
 	db.auth_user.registration_key.represent = lambda text,row: SPAN(text, _class="pci-blocked") if (text=='blocked' or text=='disabled') else text
 	grid = SQLFORM.smartgrid(db.auth_user

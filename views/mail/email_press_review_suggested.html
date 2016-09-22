@@ -1,0 +1,16 @@
+<html>
+Dear {{=person}},
+<br><br>
+You have been suggested by {{=recommender}} to contribute to a press review for the followig article:
+<br><br>
+<b>Authors:</b> {{=article.authors}}
+<br>
+<b>Title:</b> <i>{{=article.title}}</i>
+<br>
+<b>Source: </b>{{=article.article_source}}
+<br>
+<b>DOI: </b>{{=mkDOI(article.doi)}}
+<br>
+<br>
+You may accept or decline this suggestion from: <a href="{{=target}}">{{=target}}</a>
+</html>

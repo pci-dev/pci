@@ -14,24 +14,6 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
-# Send email to the requester (if any)
-@auth.requires(auth.has_membership(role='manager'))
-def _send_email_to_requester(article):
-	mail_resu = None
-	target = URL(c='user', f='my_articles', scheme=True, host=True)
-	mySubject = myconf.take('app.name')+': Request status changed'
-	userQy = db.executesql('SELECT au.* FROM auth_user AS au WHERE id=%s;', placeholders=[article.user_id], as_dict=True)
-	for theUser in userQy:
-		context = dict(article=article, target=target, person='%s %s %s'%(theUser['user_title'], theUser['first_name'], theUser['last_name']))
-		myMessage = response.render('manage/email_request_status_changed.html', context)
-		mail_resu = mail.send(to=[theUser['email']],
-						subject=mySubject,
-						message=myMessage,
-					)
-	return mail_resu
-
-
-
 # Send email to suggested recommenders for a given article
 @auth.requires(auth.has_membership(role='manager'))
 def send_email_to_suggested_recommenders():
@@ -39,36 +21,14 @@ def send_email_to_suggested_recommenders():
 	if articleId:
 		article = db.t_articles[articleId]
 		if article is not None:
-			if _send_email_to_suggested_recommenders(article):
-				session.flash = T('email sent', lazy=False)
-			else:
-				session.flash = T('email NOT sent', lazy=False)
+			do_send_email_to_suggested_recommenders(session, auth, db, articleId)
 	redirect(URL('suggested_recommenders', vars=dict(articleId=articleId)))
 
 
 
-# Do send email to suggested recommenders for a given article
-@auth.requires(auth.has_membership(role='manager'))
-def _send_email_to_suggested_recommenders(article):
-	target = URL(c='recommender', f='my_awaiting_articles', scheme=True, host=True)
-	mySubject = myconf.take('app.name')+': Recommendation request suggested'
-	suggestedQy = db.executesql('SELECT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
-	for theUser in suggestedQy:
-		context = dict(article=article, abstract=WIKI(article.abstract or ''), target=target, person='%s %s %s'%(theUser['user_title'], theUser['first_name'], theUser['last_name']))
-		myMessage = response.render('manage/email_suggest_recommendation.html', context)
-		mail_resu = mail.send(to=[theUser['email']],
-						subject=mySubject,
-						message=myMessage,
-					)
-		if mail_resu:
-			db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
-		else:
-			db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
-	
 
 
-
-# Change article status :
+# Change article status:
 #	Pending -> Awaiting consideration
 #	Pre-recommended -> Recommended
 # Limited to manager or administrator
@@ -76,22 +36,14 @@ def _send_email_to_suggested_recommenders(article):
 def _validate_articles(ids, response):
 	for myId in ids:
 		art = db.t_articles[myId]
-		
-		
 		if art.status == 'Pending':
 			art.status = 'Awaiting consideration'
 			art.update_record()
-			_send_email_to_suggested_recommenders(art)
-			_send_email_to_requester(art)
-
-		
-		
 		elif art.status == 'Pre-recommended':
 			art.status = 'Recommended'
 			art.update_record()
-			_send_email_to_requester(art)
 			#TODO: tweet article
-			link = _href=URL(c='public', f='recommendations', scheme=True, host=True, vars=dict(articleId=art.id))
+			link = URL(c='public', f='recommendations', scheme=True, host=True, vars=dict(articleId=art.id))
 			print A(link, _href=link)
 
 
@@ -141,27 +93,33 @@ def _manage_articles(includeRecommended):
 	selectable = [(T('Validate pending or pre-recommended selected articles'), lambda ids: _validate_articles(ids, response), 'class1')]
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
+	db.t_articles.user_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
 	db.t_articles.status.readable = False
 	db.t_articles.status.writable = True
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.auto_nb_recommendations.writable = False
 	db.t_articles.doi.represent = lambda text, row: mkDOI(text)
-	if len(request.args) == 0:
-		db.t_articles.abstract.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
-	else:
+	if len(request.args) == 0: # we are in grid
+		db.t_articles.doi.readable = False
+		db.t_articles.authors.readable = False
+		db.t_articles.title.readable = False
+		db.t_articles.abstract.readable = False
+		db.t_articles.keywords.readable = False
+		db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+		db.t_articles._id.label = T('Article')
+		#db.t_articles.abstract.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
+	else: # we are in grid's form
 		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
 
-	links = [dict(header=T('Recommendations'), body=lambda row: mkManagerStatusButton(auth, db, row))]
+	links = [dict(header=T('Recommendations'), body=lambda row: mkManagerStatusButton(auth, db, row)),
+			 dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersButton(auth, db, row))]
 	if not includeRecommended:
-		links += [
-				dict(header=T('Suggested recommenders'), body=lambda row: A((db.v_suggested_recommenders[row.id]).suggested_recommenders, _href=URL(f='suggested_recommenders', vars=dict(articleId=row.id)))),
-				dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row)),
-			]
+		links += [dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row))]
 	grid = SQLFORM.grid(query
 		,editable=True, deletable=True, create=False, selectable=selectable
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
@@ -209,7 +167,7 @@ def manage_recommendations():
 	myContents = mkRepresentArticle(auth, db, articleId)
 	response.view='default/recommLayout.html'
 	return dict(
-				myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button'),
+				myBackButton = mkBackButton(),
 				myTitle=T('Manage recommendations'),
 				myContents=myContents,
 				grid=grid,
@@ -226,7 +184,7 @@ def search_recommenders():
 		Field('id', type='integer'),
 		Field('num', type='integer'),
 		Field('score', type='double', label=T('Score'), default=0),
-		Field('user_title', type='string', length=10, label=T('Title')),
+		#Field('user_title', type='string', length=10, label=T('Title')),
 		Field('first_name', type='string', length=128, label=T('First name')),
 		Field('last_name', type='string', length=128, label=T('Last name')),
 		Field('email', type='string', length=512, label=T('email')),
@@ -255,34 +213,35 @@ def search_recommenders():
 			articleId = myValue
 	if articleId is None:
 		auth.not_authorized()
-	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars)
-	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
-	for fr in filtered:
-		qy_recomm.insert(**fr)
-			
-	temp_db.qy_recomm._id.readable = False
-	temp_db.qy_recomm.uploaded_picture.readable = False
-	links = [
-				dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
-				dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
-				dict(header=T('Suggest as recommender'),         body=lambda row: mkSuggestArticleToButton(auth, db, row, articleId)),
-		]
-	grid = SQLFORM.grid( qy_recomm
-		,editable = False,deletable = False,create = False,details=False,searchable=False
-		,maxtextlength=250,paginate=100
-		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.user_title, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.email, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
-		,links=links
-		,orderby=temp_db.qy_recomm.num
-		,args=request.args
-	)
-	response.view='default/recommenders.html'
-	return dict(searchForm=searchForm, 
-				myTitle=T('Search recommenders'), 
-				myBackButton=mkBackButton(),
-				grid=grid, 
-			)
+	else:
+		qyKwArr = qyKw.split(' ')
+		searchForm =  mkSearchForm(auth, db, myVars)
+		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
+		for fr in filtered:
+			qy_recomm.insert(**fr)
+				
+		temp_db.qy_recomm._id.readable = False
+		temp_db.qy_recomm.uploaded_picture.readable = False
+		links = [
+					dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
+					dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
+					dict(header=T('Suggest as recommender'),         body=lambda row: mkSuggestArticleToButton(auth, db, row, articleId)),
+			]
+		grid = SQLFORM.grid( qy_recomm
+			,editable = False,deletable = False,create = False,details=False,searchable=False
+			,maxtextlength=250,paginate=100
+			,csv=csv,exportclasses=expClass
+			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.email, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
+			,links=links
+			,orderby=temp_db.qy_recomm.num
+			,args=request.args
+		)
+		response.view='default/recommenders.html'
+		return dict(searchForm=searchForm, 
+					myTitle=T('Search recommenders'), 
+					myBackButton=mkBackButton(),
+					grid=grid, 
+				)
 
 
 
@@ -298,6 +257,7 @@ def suggested_recommenders():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	query = (db.t_suggested_recommenders.article_id == articleId)
 	db.t_suggested_recommenders._id.readable = False
+	db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
 	grid = SQLFORM.grid( query
 		,details=False,editable=False,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100

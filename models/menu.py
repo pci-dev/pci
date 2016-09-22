@@ -91,7 +91,7 @@ def _ManagerMenu():
 def _RecommMenu():
 	return [
         (T('Articles to be considered'), False, '#', [
-			(T('Suggested articles'),                           False, URL('recommender', 'my_awaiting_articles', user_signature=True)),
+			(T('Articles wor which you have been sollicitated'),False, URL('recommender', 'my_awaiting_articles', user_signature=True)),
 			(T('Articles awaiting consideration in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			(T('All articles awaiting consideration'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
 		]),
@@ -101,11 +101,15 @@ def _RecommMenu():
 # Appends personnal menu
 def _MyMenu():
 	myMenu = []
-	myMenu.append((T('My recommendation requests'),                   False, URL('user', 'my_articles', user_signature=True)))
+	myMenu.append((T('My recommendation requests'),              False, URL('user', 'my_articles', user_signature=True)))
 	# appends my_reviews only if exists
 	nrev = db(db.t_reviews.reviewer_id == auth.user_id).count()
 	if nrev > 0:
 		myMenu.append((T('My reviews'),                          False, URL('user', 'my_reviews', user_signature=True)))
+	# appends my_press_reviews only if exists
+	ncontribs = db(db.t_press_reviews.contributor_id == auth.user_id).count()
+	if ncontribs > 0:
+		myMenu.append((T('My press review contributions'),                    False, URL('user', 'my_press_reviews', user_signature=True)))
 	# appends my_recommendations only if recommender
 	if auth.has_membership(None, None, 'recommender'):
 		myMenu.append((T('My recommendations'),                  False, URL('recommender', 'my_recommendations', user_signature=True)))
@@ -118,9 +122,8 @@ def _MyMenu():
 response.menu = [
     (T('Home'),       False, URL('default', 'index'), []),
 	(T('About'),      False, '#', [
-		('%s %s' % (T('About'), myconf.take('app.name')), False, URL('about', 'about')),
-		(T('Managing board'),                             False, URL('public', 'managers')),
-		(T('Recommendation board'),                       False, URL('public', 'recommenders')),
+		('%s %s' % (T('About'), myconf.take('app.name')),   False, URL('public', 'managers')),
+		('%s %s' % (T('Members of'), myconf.take('app.name')),       False, URL('public', 'recommenders')),
 	]),
 ]
 
