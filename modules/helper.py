@@ -29,7 +29,7 @@ def getHelp(request, auth, dbHelp, myHashtag, myLanguage='default'):
 			_class='pci-help-button'),]
 	
 	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
-		r0 += [A(SPAN(current.T('Admin')+': '+current.T('edit help')), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-help-button-edit')]
+		r0 += [A(SPAN(current.T('edit help')), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-help-button-edit')]
 
 	return DIV(
 				DIV(r0, _class='pci-help-buttons'), 
