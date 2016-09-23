@@ -4,6 +4,10 @@
 	<div>{{=myTitle}}</div>
 	{{pass}}
 
+{{if 'myHelp' in locals():}}
+  {{=myHelp}}
+  {{pass}}
+
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>
 	{{pass}}

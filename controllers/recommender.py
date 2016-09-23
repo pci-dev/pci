@@ -7,6 +7,7 @@ from dateutil.relativedelta import *
 
 from gluon.contrib.markdown import WIKI
 from common import *
+from helper import *
 
 
 # frequently used constants
@@ -81,7 +82,11 @@ def search_reviewers():
 		,args=request.args
 	)
 	response.view='default/recommenders.html'
-	return dict(searchForm=searchForm, grid=grid, myTitle=myTitle)
+	return dict(searchForm=searchForm, 
+				grid=grid, 
+				myTitle=myTitle,
+				myHelp=getHelp(request, auth, dbHelp, '#RecommenderSearchReviewers'),
+			 )
 
 
 
@@ -133,7 +138,12 @@ def my_awaiting_articles():
 	else:
 		myAcceptBtn = ''
 	response.view='default/awaiting_articles.html'
-	return dict(grid=grid, myTitle=T('Suggested considerations'), myBackButton=myBackButton, myAcceptBtn=myAcceptBtn)
+	return dict(grid=grid, 
+				myTitle=T('Suggested considerations'), 
+				myBackButton=myBackButton, 
+				myAcceptBtn=myAcceptBtn,
+				myHelp=getHelp(request, auth, dbHelp, '#RecommenderSuggestedArticles'),
+			)
 
 
 
@@ -151,12 +161,12 @@ def _awaiting_articles(myVars):
 		Field('article_source', type='string', label=T('Source')),
 		Field('doi', type='string', label=T('DOI')),
 		Field('abstract', type='text', label=T('Abstract')),
-		Field('upload_timestamp', type='date', default=request.now, label=T('Submission date/time')),
+		Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 		Field('thematics', type='string', length=1024, label=T('Thematic fields')),
 		Field('keywords', type='text', label=T('Keywords')),
 		Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
 		Field('status', type='string', length=50, default='Pending', label=T('Status')),
-		Field('last_status_change', type='date', default=request.now, label=T('Last status change')),
+		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -175,15 +185,31 @@ def _awaiting_articles(myVars):
 	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit], as_dict=True)
 	for fr in filtered:
 		qy_art.insert(**fr)
-	temp_db.qy_art._id.readable = False
-	temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+	
 	temp_db.qy_art.auto_nb_recommendations.readable = False
-	#temp_db.qy_art.status.represent = lambda text, row: mkRecommenderStatusButton(auth, db, row)
+	if len(request.args)==0: # in grid
+		temp_db.qy_art._id.readable = True
+		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+		temp_db.qy_art.title.readable = False
+		temp_db.qy_art.authors.readable = False
+		#temp_db.qy_art.status.readable = False
+		temp_db.qy_art.article_source.readable = False
+		temp_db.qy_art.upload_timestamp.represent = lambda t, row: mkLastChange(t)
+		temp_db.qy_art.last_status_change.represent = lambda t, row: mkLastChange(t)
+		temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+		temp_db.qy_art.status.represent = lambda text, row: mkRecommenderStatusButton(auth, db, row)
+	else:
+		temp_db.qy_art._id.readable = False
+		temp_db.qy_art.num.readable = False
+		temp_db.qy_art.score.readable = False
+		temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+		temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or '')
+		
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=True
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
+		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
 		,orderby=temp_db.qy_art.num
 	)
 	myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
@@ -197,7 +223,11 @@ def _awaiting_articles(myVars):
 	else:
 		myAcceptBtn = ''
 	response.view='default/awaiting_articles.html'
-	return dict(grid=grid, searchForm=searchForm, myTitle=T('Articles awaiting consideration'), myBackButton=myBackButton, myAcceptBtn=myAcceptBtn)
+	return dict(grid=grid, searchForm=searchForm, 
+				myTitle=T('Articles awaiting consideration'), 
+				myBackButton=myBackButton, 
+				myAcceptBtn=myAcceptBtn,
+			)
 
 
 
@@ -205,6 +235,7 @@ def _awaiting_articles(myVars):
 def fields_awaiting_articles():
 	resu = _awaiting_articles(request.vars)
 	resu['myTitle'] = T('Articles awaiting consideration in my fields')
+	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
 	return resu
 
 
@@ -216,6 +247,7 @@ def all_awaiting_articles():
 		myVars['qy_'+thema.keyword] = 'on'
 	resu = _awaiting_articles(myVars)
 	resu['myTitle'] = T('All articles awaiting consideration')
+	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:All')
 	return resu
 
 
@@ -344,7 +376,7 @@ def is_my_recommendation_editable(auth, db, row):
 		article = db.t_articles[recomm.article_id]
 		if recomm.is_closed:
 			resu = False
-		elif article.status not in ("Under consideration", "Pre-recommended", "Rejected"):
+		elif article and article.status not in ("Under consideration", "Pre-recommended", "Rejected"):
 			resu = False
 	return resu
 
@@ -362,19 +394,29 @@ def my_recommendations():
 	db.t_recommendations.is_closed.writable = False
 	db.t_status_article.priority_level.readable=True
 	db.t_status_article.priority_level.writable=False
+	db.t_status_article.priority_level.label = T('Status')
 	db.t_recommendations.recommendation_timestamp.label = T('Elapsed days')
 	
 	#db.t_recommendations.reply.represent = lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '') #BUG Poor compatibility between WIKI and show_if
-	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: relativedelta(datetime.datetime.now(), row.t_recommendations.recommendation_timestamp if 't_recommendations' in row else row.recommendation_timestamp).days
+	#db.t_recommendations.recommendation_timestamp.represent = lambda text, row: relativedelta(datetime.datetime.now(), row.t_recommendations.recommendation_timestamp if 't_recommendations' in row else row.recommendation_timestamp).days
+	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkElapsed(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsed(row.recommendation_timestamp)
 	db.t_recommendations.article_id.represent = lambda text, row: mkViewArticle4Recommendation(auth, db, row)
 	db.t_status_article.priority_level.represent = lambda text, row: mkRecommStatusButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)
-	db.t_recommendations.recommendation_comments.represent = lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
+	#db.t_recommendations.recommendation_comments.represent = lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
 	db.t_recommendations.is_press_review.represent = lambda yesno, row: IMG(_src=URL(r=request,c='static',f='images/journal.png')) if yesno else ''
 	
 	#BUG: crap on toast!
 	#db.t_recommendations.auto_nb_agreements.show_if = (db.t_recommendations.is_press_review==True or False)
 	#db.t_recommendations.reply.show_if = (db.t_recommendations.is_press_review==False and db.t_recommendations.is_closed==True)
 	#db.t_recommendations.is_closed.show_if = (db.t_recommendations.is_press_review==True)
+	
+	if len(request.args) == 0: # grid view
+		db.t_recommendations.doi.readable=False
+		db.t_recommendations.last_change.readable=False
+		db.t_recommendations.reply.readable=False
+		db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+	else: # form view
+		db.t_recommendations.recommendation_comments.represent = lambda text, row: WIKI(text or '')
 	
 	grid = SQLFORM.grid( query
 		,left=[db.t_articles.on(db.t_articles.id==db.t_recommendations.article_id), db.t_status_article.on(db.t_status_article.status==db.t_articles.status)]
@@ -386,8 +428,8 @@ def my_recommendations():
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_recommendations.article_id, db.t_recommendations.is_press_review, db.t_status_article.priority_level, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_comments, db.t_recommendations.auto_nb_agreements, db.t_recommendations.reply]
 		,links=[
-			dict(header=T('Search contributors'), body=lambda row: mkSearchReviewersButton(auth, db, row.t_recommendations if 't_recommendations' in row else row) if not (row.t_recommendations if 't_recommendations' in row else row).is_closed else ''),
-			dict(header=T('Contributors'), body=lambda row: mkRecommReviewsButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T('Search reviewers'), body=lambda row: mkSearchReviewersButton(auth, db, row.t_recommendations if 't_recommendations' in row else row) if not (row.t_recommendations if 't_recommendations' in row else row).is_closed else ''),
+			dict(header=T('Reviewers'), body=lambda row: mkRecommReviewsButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 		]
 		,orderby=db.t_status_article.priority_level|~db.t_recommendations.last_change #|db.t_recommendations.is_closed
 	)
@@ -395,7 +437,8 @@ def my_recommendations():
 	opinionForm = None
 	if grid.view_form:
 		myRecom = db.t_recommendations[request.args(2)]
-		if myRecom['is_press_review'] and myRecom.auto_nb_agreements > 0 and myRecom.is_closed==False:
+		myArt = db.t_articles[myRecom.article_id]
+		if myRecom['is_press_review'] and myRecom.auto_nb_agreements > 0 and myRecom.is_closed==False and myArt.status not in ('Pre-recommended', 'Recommended'):
 			if myRecom['auto_nb_agreements'] > 0: # press review agreed by at least 1 user
 				opinionForm = FORM(LABEL(T('Final recommendation:')),
 						SPAN(INPUT(_name='recommender_opinion', _type='checkbox', _value='do_recommend'), T('I recommend this article'), _class='pci-radio pci-recommend'),
@@ -404,7 +447,7 @@ def my_recommendations():
 						_action=URL('process_opinion', vars=dict(recommendationId=myRecom['id']), user_signature=True),
 						_name='opinionForm'
 					)
-		elif myRecom.is_closed==False: # not a press review
+		elif myRecom.is_closed==False and myArt.status not in ('Pre-recommended', 'Recommended'): # not a press review
 			opinionForm = FORM(LABEL(T('Final recommendation:')),
 					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend'), T('I recommend this article'), _class='pci-radio pci-recommend'),
 					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise'), T('This article worth a revision'), _class='pci-radio pci-review'),
@@ -416,7 +459,12 @@ def my_recommendations():
 				)
 	myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 	response.view='recommender/my_recommendations.html'
-	return dict(grid=grid, myTitle=T('My recommendations'), myBackButton=myBackButton, opinionForm=opinionForm)
+	return dict(grid=grid, 
+				myTitle=T('My recommendations'), 
+				myBackButton=myBackButton, 
+				opinionForm=opinionForm,
+				myHelp = getHelp(request, auth, dbHelp, '#RecommenderMyRecommendations'),
+			 )
 
 
 def process_opinion():
@@ -451,7 +499,11 @@ def direct_submission():
 		db.t_recommendations.insert(article_id=newId, recommender_id=auth.user_id, doi=form.vars.doi, is_press_review=form.vars['is_press_review'])
 		redirect(URL(c='recommender', f='my_recommendations'))
 	response.view='user/my_articles.html'
-	return dict(form=form, myTitle=myTitle, myBackButton=mkBackButton())
+	return dict(form=form, 
+				myTitle=myTitle, 
+				myBackButton=mkBackButton(),
+				myHelp = getHelp(request, auth, dbHelp, '#RecommenderDirectSubmission'),
+			 )
 
 
 
@@ -493,6 +545,7 @@ def recommendations():
 					myContents=myContents,
 					myAcceptBtn=myAcceptBtn,
 					shareable=True,
+					myHelp = getHelp(request, auth, dbHelp, '#RecommenderOtherRecommendations'),
 				)
 
 
@@ -500,10 +553,10 @@ def recommendations():
 def reopen_review(ids):
 	if auth.has_membership(role='manager'):
 		for myId in ids:
-			db.executesql("UPDATE t_reviews SET is_closed=false WHERE id=%s;", placeholders=[myId])
+			db.executesql("UPDATE t_reviews SET review_state='Under consideration' WHERE id=%s;", placeholders=[myId])
 	elif auth.has_membership(role='recommender'):
 		for myId in ids:
-			db.executesql("""UPDATE t_reviews SET is_closed=false
+			db.executesql("""UPDATE t_reviews SET review_state='Under consideration'
 								FROM t_recommendations
 								WHERE t_reviews.id=%s 
 								AND t_reviews.recommendation_id = t_recommendations.id
@@ -519,7 +572,6 @@ def reviews():
 		auth.not_authorized()
 	else:
 		myContents = mkRecommendationFormat(auth, db, recomm)
-		query = (db.t_reviews.recommendation_id == recommendationId)
 		db.t_reviews._id.readable = False
 		db.t_reviews.recommendation_id.default = recommendationId
 		db.t_reviews.recommendation_id.writable = False
@@ -529,16 +581,20 @@ def reviews():
 		db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
 		db.t_reviews.anonymously.default = True
 		db.t_reviews.anonymously.writable = auth.has_membership(role='manager')
-		db.t_reviews.review.writable = lambda row: row.reviewer_id is None or auth.has_membership(role='manager')
-		db.t_reviews.review.represent = lambda text, row: WIKI(text or '')
-		if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'):
-			selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'class1')]
-		else:
-			selectable = None
+		db.t_reviews.review.writable = auth.has_membership(role='manager')
+		db.t_reviews.review_state.writable = auth.has_membership(role='manager')
 		
+		if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'): # grid view
+			selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'class1')]
+			db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+		else: # form view
+			selectable = None
+			db.t_reviews.review.represent = lambda text, row: WIKI(text or '')
+		
+		query = (db.t_reviews.recommendation_id == recommendationId)
 		grid = SQLFORM.grid( query
 			,details=True
-			,editable=lambda row: auth.has_membership(role='manager') or (not row.is_closed and row.reviewer_id is None)
+			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Terminated' and row.reviewer_id is None)
 			,deletable=auth.has_membership(role='manager')
 			,create=False
 			,searchable=False
@@ -547,8 +603,14 @@ def reviews():
 			,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.review_state]
 			,selectable=selectable
 		)
+		
 		response.view='recommender/reviews.html'
-		return dict(myContents=myContents, grid=grid, myTitle=T('Reviews for recommendation:'), myBackButton=mkBackButton())
+		return dict(myContents=myContents, 
+				grid=grid, 
+				myTitle=T('Reviews for recommendation:'), 
+				myBackButton=mkBackButton(),
+				myHelp = getHelp(request, auth, dbHelp, '#RecommenderArticleReviews'),
+			  )
 	
 
 
@@ -582,7 +644,12 @@ def contributions():
 			,fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.last_change, db.t_press_reviews.contribution_state]
 		)
 		response.view='recommender/reviews.html'
-		return dict(myContents=myContents, grid=grid, myTitle=T('Contributions'), myBackButton=mkBackButton())
+		return dict(myContents=myContents, 
+					grid=grid, 
+					myTitle=T('Contributions'), 
+					myBackButton=mkBackButton(),
+					myHelp = getHelp(request, auth, dbHelp, '#RecommenderContributionsToPressReviews'),
+				)
 	
 
 

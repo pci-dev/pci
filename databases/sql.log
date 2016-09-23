@@ -24,3 +24,25 @@ CREATE TABLE scheduler_task(
     last_run_time TIMESTAMP,
     assigned_worker_name VARCHAR(512)
 );
+timestamp: 2016-09-23T11:06:40.887304
+CREATE TABLE hashtags(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hashtag CHAR(128)
+);
+success!
+timestamp: 2016-09-23T11:06:41.074532
+CREATE TABLE help_texts(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hashtag CHAR(128),
+    language CHAR(10),
+    contents TEXT
+);
+success!
+timestamp: 2016-09-23T11:44:24.239599
+CREATE TABLE help_texts(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hashtag CHAR(128),
+    language CHAR(10),
+    contents TEXT
+);
+success!

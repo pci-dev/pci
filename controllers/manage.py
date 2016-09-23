@@ -5,6 +5,7 @@ import copy
 
 from gluon.contrib.markdown import WIKI
 from common import *
+from helper import *
 
 
 # frequently used constants
@@ -56,6 +57,7 @@ def _validate_articles(ids, response):
 def pending_articles():
 	resu = _manage_articles(False)
 	resu['myTitle'] = T('Pending articles')
+	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManagePendingArticles')
 	return resu
 
 
@@ -66,6 +68,7 @@ def pending_articles():
 def all_articles():
 	resu = _manage_articles(True)
 	resu['myTitle'] = T('All articles')
+	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageAllArticles')
 	return resu
 
 
@@ -107,16 +110,19 @@ def _manage_articles(includeRecommended):
 		db.t_articles.keywords.readable = False
 		db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
 		db.t_articles._id.label = T('Article')
+		db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(row.upload_timestamp)
+		db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(row.last_status_change)
 		#db.t_articles.abstract.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
 	else: # we are in grid's form
 		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
 
 	links = [dict(header=T('Recommendations'), body=lambda row: mkManagerStatusButton(auth, db, row)),
 			 dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersButton(auth, db, row))]
-	if not includeRecommended:
-		links += [dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row))]
+	#if not includeRecommended:
+	links += [dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row))]
 	grid = SQLFORM.grid(query
 		,editable=True, deletable=True, create=False, selectable=selectable
+		,searchable=True
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
@@ -125,13 +131,16 @@ def _manage_articles(includeRecommended):
 		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 	)
 	if grid.elements('th'):
+		grid.elements('colgroup')[0].insert(0, XML('<col id="kazakoch" data-column="0">')) # Trick: restore columns alignment
 		grid.elements('th')[0].append(SPAN(T('All'), BR(), 
 			INPUT(_name='mySelectAll', _type='checkbox', 
 				_onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name == 'records') {jQuery(this).prop('checked', !jQuery(this).prop('checked'));} });"
 				)
 		))
 	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Articles'))
+	return dict(grid=grid, 
+				myTitle=T('Articles'),
+			)
 
 
 
@@ -146,15 +155,18 @@ def manage_recommendations():
 	db.t_recommendations.article_id.writable = False
 	db.t_recommendations.doi.represent = lambda text, row: mkDOI(text)
 	db.t_recommendations._id.readable = False
-	if len(request.args) == 0:
-		db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
-	else:
-		db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text)
+	if len(request.args) == 0: # in grid
+		#db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
+		db.t_recommendations.recommendation_comments.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+		db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(row.recommendation_timestamp)
+		db.t_recommendations.last_change.represent = lambda text, row: mkLastChange(row.last_change)
+	else: # in form
+		db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text or '')
 
 	grid = SQLFORM.grid( query
 		,editable=True
 		,deletable=True
-		,create=True
+		,create=False
 		,details=False
 		,searchable=False
 		,maxtextlength=1000
@@ -171,6 +183,7 @@ def manage_recommendations():
 				myTitle=T('Manage recommendations'),
 				myContents=myContents,
 				grid=grid,
+				myHelp=getHelp(request, auth, dbHelp, '#ManageRecommendations'),
 			)
 
 
@@ -241,6 +254,7 @@ def search_recommenders():
 					myTitle=T('Search recommenders'), 
 					myBackButton=mkBackButton(),
 					grid=grid, 
+					myHelp=getHelp(request, auth, dbHelp, '#SearchRecommenders'),
 				)
 
 
@@ -266,6 +280,11 @@ def suggested_recommenders():
 	)
 	myEmailButton = A(SPAN(current.T('Send email to suggested recommenders'), _class='buttontext btn btn-default'), _href=URL(f='send_email_to_suggested_recommenders', vars=dict(articleId=articleId), user_signature=True), _class='button')
 	response.view='manage/suggested_recommenders.html'
-	return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton(URL(c='manage',f='pending_articles')), myEmailButton=myEmailButton)
+	return dict(grid=grid, 
+				myTitle=T('Suggested recommenders'), 
+				myBackButton=mkBackButton(URL(c='manage',f='pending_articles')), 
+				myEmailButton=myEmailButton,
+				myHelp=getHelp(request, auth, dbHelp, '#ManageSuggestedRecommenders'),
+			 )
 
 

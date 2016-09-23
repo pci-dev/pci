@@ -27,6 +27,19 @@ response.google_analytics_id = None
 # ----------------------------------------------------------------------------------------------------------------------
 # this is the main application menu add/remove items as required
 # ----------------------------------------------------------------------------------------------------------------------
+appName = ' '+myconf.take('app.name')
+
+# default public menu
+def _BaseMenu():
+	app = request.application
+	return [
+		(T('Home'),       False, URL('default', 'index'), []),
+		(T('About'),      False, '#', [
+			(T('About', lazy=False)+appName,      False, URL('public', 'managers')),
+			(T('Members of', lazy=False)+appName,  False, URL('public', 'recommenders')),
+		]),
+	]
+
 
 # Appends developpers menu (web2py)
 def _DevMenu():
@@ -73,6 +86,7 @@ def _AdminMenu():
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Thematic fields'),   False, URL('admin', 'thematics_list', user_signature=True)),
 			(T('Article status'),    False, URL('admin', 'article_status', user_signature=True)),
+			(T('Help texts'),        False, URL('help',  'help_texts', user_signature=True)),
 		]),
 	]
 
@@ -118,15 +132,7 @@ def _MyMenu():
 	]
 
 
-# default public menu (global)
-response.menu = [
-    (T('Home'),       False, URL('default', 'index'), []),
-	(T('About'),      False, '#', [
-		('%s %s' % (T('About'), myconf.take('app.name')),   False, URL('public', 'managers')),
-		('%s %s' % (T('Members of'), myconf.take('app.name')),       False, URL('public', 'recommenders')),
-	]),
-]
-
+response.menu = _BaseMenu()
 
 if auth.is_logged_in():
 	response.menu += _MyMenu()

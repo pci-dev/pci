@@ -19,18 +19,6 @@ from gluon.tools import Mail
 myconf = AppConfig(reload=True)
 
 statusArticles = dict()
-
-
-
-def getMailer(auth):
-	mail = auth.settings.mailer
-	mail.settings.server = myconf.get('smtp.server')
-	mail.settings.sender = myconf.get('smtp.sender')
-	mail.settings.login = myconf.get('smtp.login')
-	mail.settings.tls = myconf.get('smtp.tls') or False
-	mail.settings.ssl = myconf.get('smtp.ssl') or False
-	return mail
-
 def mkStatusArticles(db):
 	statusArticles.clear()
 	for sa in db(db.t_status_article).select():
@@ -63,6 +51,7 @@ def mkDOI(doi):
 			return A(doi, _href="http://dx.doi.org/"+sub(r'doi: *', '', doi), _class="doi_url", _target="_blank") 
 	else:
 		return SPAN('', _class="doi_url")
+
 
 
 # Builds common search form (fuzzy + thematic fields)
@@ -158,8 +147,9 @@ def mkArticleCell(auth, db, art):
 					SPAN(art.authors),
 					BR(),
 					mkDOI(art.doi),
-					BR(),
-					SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or ''),
+					#BR(),
+					#SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or ''),
+					(BR()+SPAN(art.article_source) if art.article_source else '')
 				)
 	return anchor
 
@@ -174,6 +164,7 @@ def mkRepresentArticleLight(auth, db, article_id):
 					SPAN(art.authors),
 					BR(),
 					mkDOI(art.doi),
+					(BR()+SPAN(art.article_source) if art.article_source else '')
 				)
 	return anchor
 
@@ -235,7 +226,7 @@ def mkSearchReviewersButton(auth, db, row):
 		mkStatusArticles(db)
 	anchor = ''
 	article = db.t_articles[row['article_id']]
-	if article['status'] == 'Under consideration':
+	if article and article['status'] == 'Under consideration':
 		myVars = dict(recommendationId=row['id'])
 		for thema in article['thematics']:
 			myVars['qy_'+thema] = 'on'
@@ -255,13 +246,20 @@ def mkRecommStatusButton(auth, db, row):
 	if statusArticles is None or len(statusArticles) == 0:
 		mkStatusArticles(db)
 	anchor = ''
+	status = ''
+	status_txt = ''
+	color_class = 'btn-default'
+	hint = ''
 	article = db.t_articles[row.article_id]
-	status_txt = current.T(article['status']).replace('-', '- ')
-	if row.is_closed and not(row.is_press_review):
-		color_class = 'btn-default'
-	else:
-		color_class = statusArticles[article['status']]['color_class'] or 'btn-default'
-	hint = statusArticles[article['status']]['explaination'] or ''
+	if article:
+		status = article['status']
+		if status:
+			status_txt = current.T(status)
+			if (row.is_closed and not(row.is_press_review)):
+				color_class = 'btn-default'
+			else:
+				color_class = statusArticles[status]['color_class'] or 'btn-default'
+			hint = statusArticles[status]['explaination'] or ''
 	anchor = A(SPAN(status_txt, _class='buttontext btn pci-button '+color_class), _href=URL(c='default', f='under_consideration_one_article', args=[row.article_id], user_signature=True), _class='button', _title=current.T(hint))
 	return anchor
 
@@ -272,10 +270,20 @@ def mkReviewerArticleStatusButton(auth, db, row):
 	if statusArticles is None or len(statusArticles) == 0:
 		mkStatusArticles(db)
 	anchor = ''
-	article = db.t_articles[db.t_recommendations[row.recommendation_id].article_id]
-	status_txt = current.T(article['status']).replace('-', '- ')
-	color_class = statusArticles[article['status']]['color_class'] or 'btn-default'
-	hint = statusArticles[article['status']]['explaination'] or ''
+	status = ''
+	status_txt = ''
+	color_class = 'btn-default'
+	hint = ''
+	article = db.t_articles[row.article_id]
+	if article:
+		status = article['status']
+		if status:
+			status_txt = current.T(status)
+			if (row.is_closed and not(row.is_press_review)):
+				color_class = 'btn-default'
+			else:
+				color_class = statusArticles[status]['color_class'] or 'btn-default'
+			hint = statusArticles[status]['explaination'] or ''
 	anchor = A(SPAN(status_txt, _class='buttontext btn pci-button '+color_class), _href=URL(c='default', f='under_consideration_one_article', args=[article.id], user_signature=True), _class='button', _title=current.T(hint))
 	return anchor
 
@@ -359,7 +367,9 @@ def mkViewArticle4Recommendation(auth, db, row):
 		anchor = DIV(
 					A(art.title, _href=URL(c='default', f='under_consideration_one_article', args=[recomm.article_id], user_signature=True)),
 						BR(),
-						B(current.T('Authors:')+' '), SPAN(art.authors)
+						B(art.authors),
+						BR(),
+						mkDOI(art.doi),
 				)
 	return anchor
 
@@ -513,10 +523,10 @@ def mkRecommendationFormat(auth, db, row):
 def mkRecommendation4ReviewFormat(auth, db, row):
 	recomm = db.t_recommendations[row.recommendation_id]
 	anchor = SPAN(  SPAN(mkUserWithMail(auth, db, recomm.recommender_id)),
-					BR(),
-					mkDOI(recomm.doi),
-					BR(),
-					I(current.T('Started %s days ago') % relativedelta(datetime.datetime.now(), recomm.recommendation_timestamp).days)
+					#BR(),
+					#mkDOI(recomm.doi),
+					#BR(),
+					#I(current.T('Started %s days ago') % relativedelta(datetime.datetime.now(), recomm.recommendation_timestamp).days)
 				)
 	return anchor
 
@@ -552,357 +562,57 @@ def mkUserWithMail(auth, db, userId):
 
 
 
-
-# Send email to the requester (if any)
-def do_send_email_to_requester(session, auth, db, articleId, newStatus):
-	report = []
-	mail_resu = False
-	article = db.t_articles[articleId]
-	if article:
-		mail = getMailer(auth)
-		mySubject = '%s: Request status changed' % (myconf.take('app.name'))
-		target = URL(c='user', f='my_articles', scheme=True, host=True)
-		person = mkUser(auth, db, article.user_id)
-		context = dict(article=article, newStatus=newStatus, target=target, person=person)
-		filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_request_status_changed.html')
-		myMessage = render(filename=filename, context=context)
-		destId = article['user_id']
-		if destId is None: return
-		destEmail = db.auth_user[destId]['email']
-		if destEmail:
-			mail_resu = mail.send(to=[destEmail],
-					subject=mySubject,
-					message=myMessage,
-				)
-		if mail_resu:
-			report.append( 'email to requester %s sent' % person.flatten() )
+def mkLastChange(t):
+	if t:
+		d = datetime.datetime.now() - t
+		if d.days==0:
+			return SPAN(current.T('Today'))
+		elif d.days==1:
+			return SPAN(current.T('Yesterday'))
 		else:
-			report.append( 'email to requester %s NOT SENT' % person.flatten() )
-	print ''.join(report)
-	if session.flash is None:
-		session.flash = '\n'.join(report)
+			return SPAN(current.T('%s days ago') % d.days)
 	else:
-		session.flash += '\n'.join(report)
+		return ''
+	#d = relativedelta(datetime.datetime.now(), t)
+	#if d.years==0 and d.months==0 and d.days==0:
+		#return SPAN(current.T('Today'))
+	#elif d.years==0 and d.months==0 and d.days==1:
+		#return SPAN(current.T('Yesterday'))
+	#elif d.years==0 and d.months==0:
+		#return SPAN(current.T('%s days ago') % d.days)
+	#elif d.years==0 and d.months==1:
+		#return SPAN(current.T('%s month and %s days ago') % (d.months, d.days))
+	#elif d.years==0 and d.months>1:
+		#return SPAN(current.T('%s months and %s days ago') % (d.months, d.days))
+	#elif d.years==1 and d.months>1:
+		#return SPAN(current.T('%s year, %s months and %s days ago') % (d.years, d.months, d.days))
+	#else:
+		#return SPAN(current.T('%s years, %s months and %s days ago') % (d.years, d.months, d.days))
 
 
-
-
-# Send email to the recommenders (if any)
-def do_send_email_to_recommender(session, auth, db, articleId, newStatus):
-	report = []
-	mail_resu = False
-	article = db.t_articles[articleId]
-	if article:
-		mail = getMailer(auth)
-		mySubject = '%s: Request status changed' % (myconf.take('app.name'))
-		target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-		for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
-			recommender_id = myRecomm['recommender_id']
-			person = mkUser(auth, db, recommender_id)
-			context = dict(article=article, newStatus=newStatus, target=target, person=person)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_request_status_changed.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print ''.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
+def mkElapsed(t):
+	if t:
+		d = datetime.datetime.now() - t
+		if d.days<2:
+			return SPAN(current.T('%s day') % d.days)
+		else:
+			return SPAN(current.T('%s days') % d.days)
 	else:
-		session.flash += '; ' + '; '.join(report)
+		return ''
+	#d = relativedelta(datetime.datetime.now(), t)
+	#if d.days < 2:
+		#return SPAN(current.T('%s day') % d.days)
+	#else:
+		#return SPAN(current.T('%s days') % d.days)
 
 
-
-# Do send email to suggested recommenders for a given article
-def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
-	report = []
-	mail_resu = False
-	article = db.t_articles[articleId]
-	if article:
-		mail = getMailer(auth)
-		target = URL(c='recommender', f='my_awaiting_articles', scheme=True, host=True)
-		mySubject = '%s: Recommendation request suggested' % (myconf.take('app.name'))
-		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
-		for theUser in suggestedQy:
-			person = mkUser(auth, db, theUser['id'])
-			context = dict(article=article, abstract=WIKI(article.abstract or ''), target=target, person=person)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_suggest_recommendation.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[theUser['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
-				report.append( 'email to suggested recommender %s sent' % person.flatten() )
-			else:
-				db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
-				report.append( 'email to suggested recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
+def mkDuration(t0, t1):
+	if t0 and t1:
+		d = t1 - t0
+		if d.days<2:
+			return SPAN(current.T('%s day') % d.days)
+		else:
+			return SPAN(current.T('%s days') % d.days)
 	else:
-		session.flash += '; ' + '; '.join(report)
+		return ''
 
-
-
-
-# Do send email to recommender when a review is closed
-def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
-	report = []
-	mail_resu = False
-	rev = db.t_reviews[reviewId]
-	recomm = db.t_recommendations[rev.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Review terminated' % (myconf.take('app.name'))
-			theUser = db.auth_user[recomm.recommender_id]
-			if theUser:
-				person = mkUser(auth, db, recomm.recommender_id)
-				context = dict(article=article, target=target, person=person, reviewer=mkUserWithMail(auth, db, rev.reviewer_id))
-				filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_review_done.html')
-				myMessage = render(filename=filename, context=context)
-				mail_resu = mail.send(to=[theUser['email']],
-								subject=mySubject,
-								message=myMessage,
-							)
-				if mail_resu:
-					report.append( 'email to recommender %s sent' % person.flatten() )
-				else:
-					report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-# Do send email to recommender when a press review is accepted for consideration
-def do_send_email_to_recommenders_press_review_considerated(session, auth, db, pressId):
-	report = []
-	mail_resu = False
-	press = db.t_press_reviews[pressId]
-	recomm = db.t_recommendations[press.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Press review considered' % (myconf.take('app.name'))
-			person = mkUser(auth, db, recomm.recommender_id)
-			contributor = mkUserWithMail(auth, db, press.contributor_id)
-			context = dict(article=article, target=target, person=person, contributor=contributor)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_press_review_considerated.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recomm.recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-def do_send_email_to_recommenders_press_review_declined(session, auth, db, pressId):
-	report = []
-	mail_resu = False
-	press = db.t_press_reviews[pressId]
-	recomm = db.t_recommendations[press.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Press review declined' % (myconf.take('app.name'))
-			person = mkUser(auth, db, recomm.recommender_id)
-			contributor = mkUserWithMail(auth, db, press.contributor_id)
-			context = dict(article=article, target=target, person=person, contributor=contributor)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_press_review_declined.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recomm.recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pressId):
-	report = []
-	mail_resu = False
-	press = db.t_press_reviews[pressId]
-	recomm = db.t_recommendations[press.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Press review agreed' % (myconf.take('app.name'))
-			person = mkUser(auth, db, recomm.recommender_id)
-			contributor = mkUserWithMail(auth, db, press.contributor_id)
-			context = dict(article=article, target=target, person=person, contributor=contributor)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_press_review_agreed.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recomm.recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-# Do send email to recommender when a review is accepted for consideration
-def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId):
-	report = []
-	mail_resu = False
-	rev = db.t_reviews[reviewId]
-	recomm = db.t_recommendations[rev.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Review considered'% (myconf.take('app.name'))
-			person = mkUser(auth, db, recomm.recommender_id)
-			reviewer = mkUserWithMail(auth, db, rev.reviewer_id)
-			context = dict(article=article, target=target, person=person, reviewer=reviewer)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_review_considerated.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recomm.recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-
-def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
-	report = []
-	mail_resu = False
-	rev = db.t_reviews[reviewId]
-	recomm = db.t_recommendations[rev.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='recommender', f='my_recommendations', scheme=True, host=True)
-			mySubject = '%s: Review declined' % (myconf.take('app.name'))
-			person = mkUser(auth, db, recomm.recommender_id)
-			reviewer = mkUserWithMail(auth, db, rev.reviewer_id)
-			context = dict(article=article, target=target, person=person, reviewer=reviewer)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_review_declined.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[recomm.recommender_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to recommender %s sent' % person.flatten() )
-			else:
-				report.append( 'email to recommender %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-
-def do_send_email_to_reviewer_review_suggested(session, auth, db, reviewId):
-	report = []
-	mail_resu = False
-	rev = db.t_reviews[reviewId]
-	recomm = db.t_recommendations[rev.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='user', f='my_reviews', scheme=True, host=True)
-			mySubject = '%s: Review suggested' % (myconf.take('app.name'))
-			person = mkUser(auth, db, rev.reviewer_id)
-			recommender = mkUserWithMail(auth, db, recomm.recommender_id)
-			context = dict(article=article, target=target, person=person, recommender=recommender)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_review_suggested.html')
-			myMessage = render(filename=filename, context=context)
-			mail_resu = mail.send(to=[db.auth_user[rev.reviewer_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to reviewer %s sent' % person.flatten() )
-			else:
-				report.append( 'email to reviewer %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)
-
-
-def do_send_email_to_reviewer_contribution_suggested(session, auth, db, pressId):
-	report = []
-	mail_resu = False
-	press = db.t_press_reviews[pressId]
-	recomm = db.t_recommendations[press.recommendation_id]
-	if recomm:
-		article = db.t_articles[recomm['article_id']]
-		if article:
-			mail = getMailer(auth)
-			target = URL(c='user', f='my_press_reviews', scheme=True, host=True)
-			mySubject = '%s: Contribution to press review suggested' % (myconf.take('app.name'))
-			person = mkUser(auth, db, press.contributor_id)
-			recommender = mkUserWithMail(auth, db, recomm.recommender_id)
-			context = dict(article=article, target=target, person=person, recommender=recommender)
-			filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_press_review_suggested.html')
-			try:
-				myMessage = render(filename=filename, context=context)
-			except:
-				print 'planté !'
-			mail_resu = mail.send(to=[db.auth_user[press.contributor_id]['email']],
-							subject=mySubject,
-							message=myMessage,
-						)
-			if mail_resu:
-				report.append( 'email to contributor %s sent' % person.flatten() )
-			else:
-				report.append( 'email to contributor %s NOT SENT' % person.flatten() )
-	print '\n'.join(report)
-	if session.flash is None:
-		session.flash = '; '.join(report)
-	else:
-		session.flash += '; ' + '; '.join(report)

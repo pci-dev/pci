@@ -5,6 +5,7 @@ import copy
 
 from gluon.contrib.markdown import WIKI
 from common import *
+from helper import *
 
 # frequently used constants
 csv = False # no export allowed
@@ -135,6 +136,7 @@ def search_recommenders():
 					myTitle=T('Search recommenders'), 
 					myBackButton=mkBackButton(),
 					grid=grid, 
+					myHelp = getHelp(request, auth, dbHelp, '#UserSearchRecommenders'),
 				)
 
 
@@ -163,7 +165,11 @@ def suggested_recommenders():
 			,fields=[db.t_suggested_recommenders.suggested_recommender_id]
 		)
 		response.view='default/myLayout.html'
-		return dict(grid=grid, myTitle=T('Suggested recommenders'), myBackButton=mkBackButton())
+		return dict(grid=grid, 
+					myTitle=T('Suggested recommenders'), 
+					myBackButton=mkBackButton(),
+					myHelp = getHelp(request, auth, dbHelp, '#UserSuggestedRecommenders'),
+				)
 
 
 
@@ -200,7 +206,9 @@ def reply_to_revision():
 			lR.update_record
 			redirect(URL(c='user', f='article_revised', vars=dict(articleId=articleId), user_signature=True))
 		response.view='default/myLayout.html'
-		return(dict(form=form))
+		return(dict(form=form,
+					myHelp = getHelp(request, auth, dbHelp, '#UserReplyToRevisionRequest'),
+			  ))
 
 
 
@@ -211,22 +219,32 @@ def my_articles():
 	query = db.t_articles.user_id == auth.user_id
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
-	db.t_articles._id.readable = False
-	db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.status.represent = lambda text, row: mkUserStatusButton(auth, db, row)
 	db.t_articles.status.writable = False
+	db.t_articles._id.represent = lambda text, row: mkArticleCell(auth, db, row)
+	db.t_articles.doi.readable = False
+	db.t_articles.title.readable = False
+	db.t_articles.authors.readable = False
+	db.t_articles.article_source.readable = False
 	links = [
 			dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
 			dict(header=T('Suggest recommenders'), body=lambda row: mkSearchRecommendersUserButton(auth, db, row) if row.status=='Pending' else ''),
 		]
+	if len(request.args) == 0: #in grid
+		db.t_articles.abstract.readable = False
+		db.t_articles.keywords.readable = False
+		db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(text)
+		db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(text)
+	else: # in form
+		db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 	grid = SQLFORM.grid( query
 		,searchable=False
 		,editable=lambda r: (r.status == 'Pending' or r.status == 'Awaiting revision')
 		,deletable=lambda r: (r.status == 'Pending')
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250,paginate=10
-		,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.status, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.status, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
@@ -260,7 +278,11 @@ def my_articles():
 	else:
 		myTitle=T('My recommendation requests')
 	response.view='user/my_articles.html'
-	return dict(grid=grid, myTitle=myTitle, myBackButton=mkBackButton(), myAcceptBtn=myCancelBtn) #, formReply=formReply)
+	return dict(grid=grid, myTitle=myTitle, 
+					myBackButton=mkBackButton(), 
+					myAcceptBtn=myCancelBtn,
+					myHelp = getHelp(request, auth, dbHelp, '#UserMyArticles'),
+			 ) 
 
 
 
@@ -301,7 +323,7 @@ def recommendations():
 					myTitle=myTitle,
 					myContents=myContents,
 					myAcceptBtn=myAcceptBtn,
-					shareable=True,
+					myHelp = getHelp(request, auth, dbHelp, '#UserRecommendations'),
 				)
 
 
@@ -311,7 +333,10 @@ def my_reviews():
 	query = db.t_reviews.reviewer_id == auth.user_id
 	db.t_reviews.reviewer_id.writable = False
 	db.t_reviews.recommendation_id.writable = False
+	db.t_reviews.last_change.represent = lambda text,row: mkElapsed(row.last_change)
+	db.t_reviews.last_change.label = T('Duration')
 	db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row)
+	db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
 	db.t_reviews._id.readable = False
 	if len(request.args) == 0:
 		db.t_reviews.review.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
@@ -348,7 +373,12 @@ def my_reviews():
 				)
 	myContents = ''
 	response.view='default/reviewsLayout.html'
-	return dict(grid=grid, myTitle=T('My reviews'), myBackButton=mkBackButton(), myAcceptBtn=myAcceptBtn,myContents=myContents)
+	return dict(grid=grid, myTitle=T('My reviews'), 
+					myBackButton=mkBackButton(), 
+					myAcceptBtn=myAcceptBtn,
+					myContents=myContents,
+					myHelp = getHelp(request, auth, dbHelp, '#UserMyReviews'),
+			 )
 
 
 
@@ -405,7 +435,13 @@ def my_press_reviews():
 	myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 	myContents = ''
 	response.view='default/reviewsLayout.html'
-	return dict(grid=grid, myTitle=T('My press review contributions'), myBackButton=myBackButton, myContents=myContents, myAcceptBtn=myAcceptBtn)
+	return dict(grid=grid, 
+					myTitle=T('My press review contributions'), 
+					myBackButton=myBackButton, 
+					myContents=myContents, 
+					myAcceptBtn=myAcceptBtn,
+					myHelp = getHelp(request, auth, dbHelp, '#UserMyPressReviews'),
+			 )
 
 
 

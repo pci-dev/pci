@@ -5,6 +5,7 @@ import copy
 
 from gluon.contrib.markdown import WIKI
 from common import *
+from helper import *
 
 # frequently used constants
 csv = False # no export allowed
@@ -62,7 +63,8 @@ def recommended_articles():
 	temp_db.qy_art.upload_timestamp.readable = False
 	temp_db.qy_art.doi.readable = False
 	#temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
-	temp_db.qy_art.abstract.represent=lambda text, row: WIKI(text[:700]+'...') if len(text or '')>500 else WIKI(text or '')
+	#temp_db.qy_art.abstract.represent=lambda text, row: WIKI(text[:700]+'...') if len(text or '')>500 else WIKI(text or '')
+	temp_db.qy_art.abstract.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
 	temp_db.qy_art.title.label = T('Article')
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
@@ -75,7 +77,12 @@ def recommended_articles():
 		,args=request.args
 	)
 	response.view='default/recommended_articles.html'
-	return dict(grid=grid, searchForm=searchForm, myTitle=H1(T('Recommended Articles')), shareable=True)
+	return dict(grid=grid, 
+					searchForm=searchForm, 
+					myTitle=H1(T('Recommended Articles')), 
+					myHelp=getHelp(request, auth, dbHelp, '#RecommendedArticles'),
+					shareable=True,
+				)
 
 
 
@@ -111,6 +118,7 @@ def recommendations():
 				myTitle=myTitle,
 				myContents=myContents,
 				myAcceptBtn=myAcceptBtn,
+				#myHelp=getHelp(request, auth, dbHelp, '#Recommendations'),
 				shareable=True,
 			)
 
@@ -130,7 +138,11 @@ def managers():
 	)
 	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href='mailto:%s' % myconf.take('contacts.managers')))
 	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Managing board'), content=content)
+	return dict(grid=grid, 
+				myTitle=T('Managing board'), 
+				content=content, 
+				myHelp=getHelp(request, auth, dbHelp, '#PublicManagingBoardDescription'),
+			)
 
 
 
@@ -189,6 +201,10 @@ def recommenders():
 		,args=request.args
 	)
 	response.view='default/recommenders.html'
-	return dict(searchForm=searchForm, grid=grid, myTitle=T('Recommendation board'))
+	return dict(searchForm=searchForm, 
+				grid=grid, 
+				myTitle=T('Recommendation board'),
+				myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
+			)
 
 

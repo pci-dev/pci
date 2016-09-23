@@ -16,6 +16,10 @@
 	<h2>{{=message}}</h2>
 	{{pass}}
 
+{{if 'myHelp' in locals():}}
+  {{=myHelp}}
+  {{pass}}
+
 {{if 'content' in globals():}}
 	{{=content}}
 	{{pass}}

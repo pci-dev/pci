@@ -16,8 +16,9 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 
 #v_recommenders-picture {width: 0px;}
 
-#t_recommendations_recommendation_comments {height:20cm;}
-#t_recommendations_reply {height:20cm;}
+#t_recommendations_recommendation_comments {height:15cm;}
+#t_recommendations_reply {height:15cm;}
+#help_texts_contents {height:12cm;}
 /* #t_recommendations-article_id {width: 25%;} */
 /* #t_recommendations-recommendation_comments {width: 25%} */
 /* #t_recommendations-reply {width: 25%;} */
@@ -71,3 +72,11 @@ h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
 .pci-review {background-color: #BBBBBB;}
 .pci-reject {background-color: #e61919; color:white;}
 .pci-later {background-color: white; color:black;}
+
+.pci-helper   {border:1px solid #ddddff;margin-bottom:4px;}
+.pci-helptext {max-height:200px; overflow:auto; background-color:#ddeeff; margin:4px; padding:4px;}
+.pci-help-buttons {display:inline; font-size:8pt; padding-left:8px; padding-right:8px;}
+.pci-help-button {cursor:pointer;}
+.pci-help-button-edit {cursor:pointer; float:right;}
+
+.pci-div4wiki {max-height:200px; overflow:auto;}

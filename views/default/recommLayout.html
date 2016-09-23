@@ -8,6 +8,10 @@
 	{{=H1(myTitle)}}
 	{{pass}}
 
+{{if 'myHelp' in locals():}}
+  {{=myHelp}}
+  {{pass}}
+
 {{if 'myContents' in locals():}}
 	{{=myContents}}
 	{{pass}}

@@ -5,6 +5,7 @@ import copy
 
 from gluon.contrib.markdown import WIKI
 from common import *
+from helper import *
 
 
 # frequently used constants
@@ -53,7 +54,10 @@ def list_users():
 				,paginate=25
 			)
 	response.view='admin/list_users.html'
-	return dict(grid=grid, myTitle=T('Users'))
+	return dict(grid=grid, 
+				myTitle=T('Users'),
+				myHelp=getHelp(request, auth, dbHelp, '#AdministrateUsers'),
+			 )
 
 
 
@@ -72,7 +76,11 @@ def memberships():
 				,paginate=25
 			)
 	response.view='admin/memberships.html'
-	return dict(grid=grid, myTitle=T('Memberships'), myBackButton=mkBackButton())
+	return dict(grid=grid, 
+				myTitle=T('Memberships'), 
+				myBackButton=mkBackButton(),
+				myHelp=getHelp(request, auth, dbHelp, '#AdministrateMemberships'),
+		)
 
 
 
@@ -96,7 +104,10 @@ def thematics_list():
 		,orderby=db.t_thematics.keyword
 	)
 	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Thematic fields'))
+	return dict(grid=grid, 
+				myTitle=T('Thematic fields'),
+				myHelp=getHelp(request, auth, dbHelp, '#AdministrateThematicFields'),
+			 )
 
 
 
@@ -106,20 +117,22 @@ def thematics_list():
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def article_status():
 	write_auth = auth.has_membership('developper')
-	db.t_status_article.status.represent = lambda text, row: SPAN(T(text).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
+	db.t_status_article._id.represent = lambda text, row: SPAN(T(row.status).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
+	#db.t_status_article.status.represent = lambda text, row: SPAN(T(text).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
 	grid = SQLFORM.grid( db.t_status_article
 		,searchable=False, create=False, details=False, deletable=False
-
 		,editable=write_auth
 		,maxtextlength=500,paginate=100
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_status_article.status, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination]
+		,fields=[db.t_status_article._id, db.t_status_article.status, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination]
 		,orderby=db.t_status_article.priority_level
 		)
 	mkStatusArticles(db)
-	myBackButton = mkBackButton()
 	response.view='default/myLayout.html'
-	return dict(grid=grid, myTitle=T('Article status'), myBackButton=myBackButton)
+	return dict(grid=grid, myTitle=T('Article status'), 
+			myBackButton=mkBackButton(),
+			myHelp=getHelp(request, auth, dbHelp, '#AdministrateArticleStatus'),
+			 )
 
 
 

@@ -100,6 +100,8 @@ db.define_table('t_thematics',
 	migrate=False,
 )
 
+from emailing import *
+
 # -------------------------------------------------------------------------
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
@@ -144,7 +146,7 @@ auth.settings.showid = False
 
 # -------------------------------------------------------------------------
 db.define_table('t_status_article',
-	Field('status', type='string', length=50, label=T('Status'), requires=IS_NOT_EMPTY()),
+	Field('status', type='string', length=50, label=T('Status'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('color_class', type='string', length=50, default='btn-default', requires=IS_NOT_EMPTY()),
 	Field('explaination', type='text', label=T('Explaination')),
 	Field('priority_level', type='text', length=1, requires=IS_IN_SET(('A', 'B', 'C'))),
@@ -208,7 +210,7 @@ db.define_table('t_recommendations',
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
 	Field('is_press_review', type='boolean', label=T('Press review'), default=False),
 	Field('reply', type='text', label=T('Reply'), default=''),
-	Field('auto_nb_agreements', type='integer', label=T('Number of agreements'), writable=False),
+	Field('auto_nb_agreements', type='integer', label=T('Number of reviews'), writable=False),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
 	migrate=False,
@@ -224,7 +226,7 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('review_state', type='string', length=50, label=T('State'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Terminated'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Review state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Terminated'))), writable=False),
 	migrate=False,
 )
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
@@ -236,7 +238,7 @@ def reviewDone(s, f):
 	o = s.select().first()
 	if o['review_state'] is None and f['review_state'] == 'Under consideration':
 		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
-	if f['review_state'] == 'Terminated':
+	if o['reviewer_id'] is not None and f['review_state'] == 'Terminated':
 		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
 	return None
 
@@ -266,7 +268,7 @@ db.define_table('t_press_reviews',
 	Field('id', type='id'),
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('contributor_id', type='reference auth_user', ondelete='RESTRICT', label=T('Contributor')),
-	Field('contribution_state', type='string', length=50, label=T('State'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Recommendation agreed'))), writable=False),
+	Field('contribution_state', type='string', length=50, label=T('Contribution state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Recommendation agreed'))), writable=False),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	migrate=False,
 )
