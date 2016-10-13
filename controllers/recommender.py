@@ -18,6 +18,18 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 @auth.requires(auth.has_membership(role='recommender'))
+def new_submission():
+	panel = [LI(A(current.T("Click to start a recommendation process of a manuscript already peer-reviewed"), _href=URL('recommender', 'direct_submission', args=['new', 't_articles'], user_signature=True), _class="btn btn-success pci-panelButton"), _class="list-group-item list-group-item-centered")]
+	response.view='default/info.html'
+	return dict(
+		panel = DIV(UL( panel, _class="list-group"), _class="panel panel-info"),
+		myText = getText(request, auth, dbHelp, '#NewRecommendationInfo'),
+		myBackButton = mkBackButton(),
+	)
+
+
+
+@auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
@@ -63,8 +75,8 @@ def search_reviewers():
 	links = [
 				dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100)))
 		]
-	if 'recommendationId' in request.vars:
-		recommendationId = request.vars['recommendationId']
+	if 'recommId' in request.vars:
+		recommendationId = request.vars['recommId']
 		links.append(  dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation)  )
 		if myGoal == '4review':
 			links.append(  dict(header=T('Propose review'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommendationId, myGoal)) )
@@ -84,7 +96,7 @@ def search_reviewers():
 	response.view='default/recommenders.html'
 	return dict(searchForm=searchForm, 
 				grid=grid, 
-				myTitle=myTitle,
+				myTitle=T('Search reviewers'),
 				myHelp=getHelp(request, auth, dbHelp, '#RecommenderSearchReviewers'),
 			 )
 
@@ -116,11 +128,10 @@ def my_awaiting_articles():
 		,searchable=False,editable=False,deletable=False,create=False,details=True
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		#,fields=[db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,fields=[db.t_articles._id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=[
 			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
-			dict(header=T('Status'), body=lambda row: mkStatusButton(auth, db, row)),
+			dict(header=T('Status'), body=lambda row: mkStatusDiv(auth, db, row.status)),
 		]
 		,orderby=db.t_articles.upload_timestamp
 	)
@@ -182,7 +193,7 @@ def _awaiting_articles(myVars):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
 	searchForm =  mkSearchForm(auth, db, myVars)
-	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit], as_dict=True)
+	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
 	for fr in filtered:
 		qy_art.insert(**fr)
 	
@@ -197,7 +208,7 @@ def _awaiting_articles(myVars):
 		temp_db.qy_art.upload_timestamp.represent = lambda t, row: mkLastChange(t)
 		temp_db.qy_art.last_status_change.represent = lambda t, row: mkLastChange(t)
 		temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
-		temp_db.qy_art.status.represent = lambda text, row: mkRecommenderStatusButton(auth, db, row)
+		temp_db.qy_art.status.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
 	else:
 		temp_db.qy_art._id.readable = False
 		temp_db.qy_art.num.readable = False
@@ -260,7 +271,7 @@ def accept_new_article_to_recommend():
 		db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi)
 		article.status = 'Under consideration'
 		article.update_record()
-		redirect('my_recommendations')
+		redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 	else:
 		session.flash = T('Article no more available', lazy=False)
 		redirect('my_awaiting_articles')
@@ -269,7 +280,6 @@ def accept_new_article_to_recommend():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def recommend_article():
-	#print request.vars
 	recommId = request.vars['recommendationId']
 	if recommId is None:
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
@@ -278,14 +288,14 @@ def recommend_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		auth.not_authorized()
-		#raise HTTP(403, "403: "+T('Access forbidden')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		art = db.t_articles[recomm.article_id]
 		art.status = 'Pre-recommended'
 		art.update_record()
 		db.commit()
-		redirect('my_recommendations')
+		redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 
 
 
@@ -299,13 +309,14 @@ def reject_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		art = db.t_articles[recomm.article_id]
 		art.status = 'Rejected'
 		art.update_record()
 		db.commit()
-		redirect('my_recommendations')
+		redirect(URL('my_recommendations', vars=dict(pendingOnly=False, pressReviews=False), user_signature=True))
 
 
 
@@ -319,13 +330,14 @@ def revise_article():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		art = db.t_articles[recomm.article_id]
 		art.status = 'Awaiting revision'
 		art.update_record()
 		db.commit()
-		redirect('my_recommendations')
+		redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 
 
 
@@ -352,124 +364,81 @@ def suggest_review_to():
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
-		try:
-			if request.vars['myGoal'] == '4review':
-				db.t_reviews.insert(recommendation_id=recommId, reviewer_id=reviewerId)
-			elif request.vars['myGoal'] == '4press':
-				db.t_press_reviews.insert(recommendation_id=recommId, contributor_id=reviewerId)
-		except:
-			pass # ignore duplicated keys, ugly lazy way ;-S  #TODO: improve!
-		redirect('my_recommendations')
+		if request.vars['myGoal'] == '4review':
+			db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
+		elif request.vars['myGoal'] == '4press':
+			db.t_press_reviews.update_or_insert(recommendation_id=recommId, contributor_id=reviewerId)
+	redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 
-
-def is_my_recommendation_editable(auth, db, row):
-	resu = True
-	if 't_recommendations' in row:
-		recomm = row.t_recommendations
-	else:
-		recomm = row
-	if 'article_id' not in recomm:
-		resu = False
-	else:
-		article = db.t_articles[recomm.article_id]
-		if recomm.is_closed:
-			resu = False
-		elif article and article.status not in ("Under consideration", "Pre-recommended", "Rejected"):
-			resu = False
-	return resu
 
 
 @auth.requires(auth.has_membership(role='recommender'))
 def my_recommendations():
-	query = (db.t_recommendations.recommender_id == auth.user_id)
+	isPress = ( ('pressReviews' in request.vars) and (request.vars['pressReviews']=='True') )
+	isPending = ( ('pendingOnly' in request.vars) and (request.vars['pendingOnly']=='True') )
+	if isPending:
+		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
+				& (db.t_recommendations.article_id == db.t_articles.id) 
+				& (db.t_articles.status.belongs(['Pre-recommended', 'Under consideration', 'Awaiting revision'])) 
+				& (db.t_recommendations.is_press_review==True if isPress else True)
+				& (db.t_recommendations.is_closed == False)
+			)
+		myTitle = T('My onging press-reviews') if isPress else T('My ongoing recommendations')
+	else:
+		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
+				& (db.t_recommendations.article_id == db.t_articles.id) 
+				& (db.t_articles.status.belongs(['Cancelled', 'Recommended', 'Rejected'])) 
+				& (db.t_recommendations.is_press_review==True if isPress else True) 
+				& (db.t_recommendations.is_closed == False)
+			)
+		myTitle = T('My closed press-reviews') if isPress else T('My closed recommendations')
+		
 	db.t_recommendations.recommender_id.writable = False
 	db.t_recommendations.doi.writable = False
 	db.t_recommendations.article_id.writable = False
 	db.t_recommendations._id.readable = False
-	db.t_recommendations.is_press_review.writable = False #TODO Good idea???
+	db.t_recommendations.is_press_review.writable = False
 	db.t_recommendations.reply.writable = False
 	db.t_recommendations.is_closed.readable = False
 	db.t_recommendations.is_closed.writable = False
-	db.t_status_article.priority_level.readable=True
-	db.t_status_article.priority_level.writable=False
-	db.t_status_article.priority_level.label = T('Status')
-	db.t_recommendations.recommendation_timestamp.label = T('Elapsed days')
-	
-	#db.t_recommendations.reply.represent = lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '') #BUG Poor compatibility between WIKI and show_if
-	#db.t_recommendations.recommendation_timestamp.represent = lambda text, row: relativedelta(datetime.datetime.now(), row.t_recommendations.recommendation_timestamp if 't_recommendations' in row else row.recommendation_timestamp).days
-	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkElapsed(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsed(row.recommendation_timestamp)
-	db.t_recommendations.article_id.represent = lambda text, row: mkViewArticle4Recommendation(auth, db, row)
-	db.t_status_article.priority_level.represent = lambda text, row: mkRecommStatusButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)
-	#db.t_recommendations.recommendation_comments.represent = lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
-	db.t_recommendations.is_press_review.represent = lambda yesno, row: IMG(_src=URL(r=request,c='static',f='images/journal.png')) if yesno else ''
-	
-	#BUG: crap on toast!
-	#db.t_recommendations.auto_nb_agreements.show_if = (db.t_recommendations.is_press_review==True or False)
-	#db.t_recommendations.reply.show_if = (db.t_recommendations.is_press_review==False and db.t_recommendations.is_closed==True)
-	#db.t_recommendations.is_closed.show_if = (db.t_recommendations.is_press_review==True)
-	
-	if len(request.args) == 0: # grid view
-		db.t_recommendations.doi.readable=False
-		db.t_recommendations.last_change.readable=False
-		db.t_recommendations.reply.readable=False
-		db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
-	else: # form view
-		db.t_recommendations.recommendation_comments.represent = lambda text, row: WIKI(text or '')
-	
+	db.t_recommendations.recommendation_timestamp.label = T('Last change')
+	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsed(row.recommendation_timestamp)
+	db.t_recommendations.article_id.represent = lambda aid, row: mkArticleCellNoRecomm(auth, db, db.t_articles[aid])
+	db.t_recommendations.is_press_review.readable = False
+	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+	db.t_recommendations.doi.readable=False
+	db.t_recommendations.last_change.readable=False
+	db.t_recommendations.reply.readable=False
+	db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
 	grid = SQLFORM.grid( query
-		,left=[db.t_articles.on(db.t_articles.id==db.t_recommendations.article_id), db.t_status_article.on(db.t_status_article.status==db.t_articles.status)]
-		,searchable=False
-		,create=False
-		,deletable=False
-		,editable = lambda row: is_my_recommendation_editable(auth, db, row)
+		,searchable=False, create=False, deletable=False, editable=False, details=False
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_recommendations.article_id, db.t_recommendations.is_press_review, db.t_status_article.priority_level, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_comments, db.t_recommendations.auto_nb_agreements, db.t_recommendations.reply]
+		,fields=[db.t_recommendations.article_id, db.t_recommendations.is_press_review, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_comments, db.t_recommendations.auto_nb_agreements, db.t_recommendations.reply]
 		,links=[
-			dict(header=T('Search reviewers'), body=lambda row: mkSearchReviewersButton(auth, db, row.t_recommendations if 't_recommendations' in row else row) if not (row.t_recommendations if 't_recommendations' in row else row).is_closed else ''),
-			dict(header=T('Reviewers'), body=lambda row: mkRecommReviewsButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T('Sollicited reviewers'), body=lambda row: mkSollicitedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T('Declined reviewers'),   body=lambda row:   mkDeclinedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T('Ongoing reviewers'),    body=lambda row:    mkOngoingRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T('Closed reviewers'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			dict(header=T(''),                     body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 		]
-		,orderby=db.t_status_article.priority_level|~db.t_recommendations.last_change #|db.t_recommendations.is_closed
+		,orderby=~db.t_recommendations.last_change
 	)
-	
-	opinionForm = None
-	if grid.view_form:
-		myRecom = db.t_recommendations[request.args(2)]
-		myArt = db.t_articles[myRecom.article_id]
-		if myRecom['is_press_review'] and myRecom.auto_nb_agreements > 0 and myRecom.is_closed==False and myArt.status not in ('Pre-recommended', 'Recommended'):
-			if myRecom['auto_nb_agreements'] > 0: # press review agreed by at least 1 user
-				opinionForm = FORM(LABEL(T('Final recommendation:')),
-						SPAN(INPUT(_name='recommender_opinion', _type='checkbox', _value='do_recommend'), T('I recommend this article'), _class='pci-radio pci-recommend'),
-						INPUT(_value=T('submit'), _type='submit', _class='btn btn-primary pci-radio'),
-						_class='pci-opinionform', keepvalues=True, 
-						_action=URL('process_opinion', vars=dict(recommendationId=myRecom['id']), user_signature=True),
-						_name='opinionForm'
-					)
-		elif myRecom.is_closed==False and myArt.status not in ('Pre-recommended', 'Recommended'): # not a press review
-			opinionForm = FORM(LABEL(T('Final recommendation:')),
-					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend'), T('I recommend this article'), _class='pci-radio pci-recommend'),
-					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise'), T('This article worth a revision'), _class='pci-radio pci-review'),
-					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_reject'), T('I reject this article'), _class='pci-radio pci-reject'),
-					INPUT(_value=T('submit'), _type='submit', _class='btn btn-primary pci-radio'),
-					_class='pci-opinionform', keepvalues=True,
-					_action=URL('process_opinion', vars=dict(recommendationId=myRecom['id']), user_signature=True),
-					_name='opinionForm'
-				)
 	myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 	response.view='recommender/my_recommendations.html'
 	return dict(grid=grid, 
-				myTitle=T('My recommendations'), 
+				myTitle=myTitle, 
 				myBackButton=myBackButton, 
-				opinionForm=opinionForm,
 				myHelp = getHelp(request, auth, dbHelp, '#RecommenderMyRecommendations'),
 			 )
 
 
+@auth.requires(auth.has_membership(role='recommender'))
 def process_opinion():
 	print request.vars
-	#if opinionForm: # and opinionForm.process().accepted:
 	if 'recommender_opinion' in request.vars and 'recommendationId' in request.vars:
 		ro = request.vars['recommender_opinion']
 		rId = request.vars['recommendationId']
@@ -479,25 +448,35 @@ def process_opinion():
 			redirect(URL(c='recommender', f='revise_article', vars=dict(recommendationId=rId), user_signature=True))
 		elif ro == 'do_reject': 
 			redirect(URL(c='recommender', f='reject_article', vars=dict(recommendationId=rId), user_signature=True))
-	redirect(URL('my_recommendations', user_signature=True))
+	redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 
 
 
 
 @auth.requires(auth.has_membership(role='recommender'))
 def direct_submission():
-	myTitle=T('Submit new article and initiate recommendation')
+	myTitle=T('Initiate the recommendation of an article')
 	db.t_articles.user_id.default = None
 	db.t_articles.user_id.writable = False
 	db.t_articles.status.default = 'Under consideration'
 	db.t_articles.status.writable = False
-	fields = [Field('is_press_review', type='boolean', label=T('Is press review?'), default=True)]
-	fields += [field for field in db.t_articles]
+	fields = [
+			Field('is_press_review', label=T('Article already peer-reviewed?'), default=True, 
+						widget=SQLFORM.widgets.radio.widget, 
+						requires=IS_IN_SET({True : 'Yes', False : 'No'}),
+				)
+		]
+	fields += [db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords]
 	form = SQLFORM.factory(*fields, table_name='t_articles')
+	form.custom.widget.is_press_review['_class'] = 'pci-alreadyPeerReviewedRadio'
 	if form.process().accepted:
+		is_press_review=form.vars['is_press_review']
+		if not is_press_review:
+			form.vars['article_source'] = None
 		newId = db.t_articles.insert(**db.t_articles._filter_fields(form.vars))
-		db.t_recommendations.insert(article_id=newId, recommender_id=auth.user_id, doi=form.vars.doi, is_press_review=form.vars['is_press_review'])
-		redirect(URL(c='recommender', f='my_recommendations'))
+		db.t_recommendations.insert(article_id=newId, recommender_id=auth.user_id, doi=form.vars.doi, is_press_review=is_press_review)
+		#redirect(URL(c='recommender', f='my_recommendations'))
+		redirect(URL('my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
 	response.view='user/my_articles.html'
 	return dict(form=form, 
 				myTitle=myTitle, 
@@ -507,7 +486,6 @@ def direct_submission():
 
 
 
-# Recommendations of other's articles
 @auth.requires(auth.has_membership(role='recommender'))
 def recommendations():
 	printable = 'printable' in request.vars
@@ -516,67 +494,74 @@ def recommendations():
 	if art is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.status != 'Awaiting consideration':
-		auth.not_authorized()
+	amIAllowed = db( (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == articleId) ).count() > 0
+	if not(amIAllowed):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		myContents = mkRecommendedArticle(auth, db, art, printable)
 		myContents.append(HR())
 		
 		if printable:
 			if art.status == 'Recommended':
-				myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
+				myTitle=H1(myconf.take('app.longname')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
 			else:
-				myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title-printable')
-			myAcceptBtn = ''
+				myTitle=H1('%s %s %s' % (myconf.take('app.longname'), T('Status:'), T(art.status)), _class='pci-status-title-printable')
+			myUpperBtn = ''
 			response.view='default/recommended_article_printable.html'
 		else:
 			if art.status == 'Recommended':
-				myTitle=H1(myconf.take('app.name')+' '+T('Recommended Article'), _class='pci-recommendation-title')
+				myTitle=H1(myconf.take('app.longname')+' '+T('Recommended Article'), _class='pci-recommendation-title')
 			else:
-				myTitle=H1('%s %s %s' % (myconf.take('app.name'), T('Status:'), T(art.status)), _class='pci-status-title')
-			myAcceptBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
+				myTitle=H1('%s %s %s' % (myconf.take('app.longname'), T('Status:'), T(art.status)), _class='pci-status-title')
+			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
 				_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
 				_class='button')#, _target='_blank')
 			response.view='default/recommended_articles.html'
 		
-		response.title = (art.title or myconf.take('app.name'))
+		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
 					myTitle=myTitle,
 					myContents=myContents,
-					myAcceptBtn=myAcceptBtn,
-					shareable=True,
+					myUpperBtn=myUpperBtn,
 					myHelp = getHelp(request, auth, dbHelp, '#RecommenderOtherRecommendations'),
 				)
+
 
 
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reopen_review(ids):
 	if auth.has_membership(role='manager'):
 		for myId in ids:
-			db.executesql("UPDATE t_reviews SET review_state='Under consideration' WHERE id=%s;", placeholders=[myId])
+			rev = db.t_reviews[myId]
+			if rev.review_state != 'Under consideration':
+				rev.review_state = 'Under consideration'
+				rev.update_record()
 	elif auth.has_membership(role='recommender'):
 		for myId in ids:
-			db.executesql("""UPDATE t_reviews SET review_state='Under consideration'
-								FROM t_recommendations
-								WHERE t_reviews.id=%s 
-								AND t_reviews.recommendation_id = t_recommendations.id
-								AND t_recommendations.recommender_id=%s;""", placeholders=[myId, auth.user_id])
+			rev = db.t_reviews[myId]
+			if rev.recommender_id == auth.user_id and rev.review_state != 'Under consideration':
+				rev.review_state = 'Under consideration'
+				rev.update_record()
+			
+
 
 
 
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reviews():
-	recommendationId = request.vars['recommendationId']
+	recommendationId = request.vars['recommId']
 	recomm = db.t_recommendations[recommendationId]
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		myContents = mkRecommendationFormat(auth, db, recomm)
 		db.t_reviews._id.readable = False
 		db.t_reviews.recommendation_id.default = recommendationId
 		db.t_reviews.recommendation_id.writable = False
 		db.t_reviews.recommendation_id.readable = False
-		db.t_reviews.reviewer_id.writable = True
+		db.t_reviews.reviewer_id.writable = False
 		db.t_reviews.reviewer_id.default = auth.user_id
 		db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
 		db.t_reviews.anonymously.default = True
@@ -596,7 +581,7 @@ def reviews():
 			,details=True
 			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Terminated' and row.reviewer_id is None)
 			,deletable=auth.has_membership(role='manager')
-			,create=False
+			,create=True
 			,searchable=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
@@ -620,7 +605,8 @@ def contributions():
 	recommendationId = request.vars['recommendationId']
 	recomm = db.t_recommendations[recommendationId]
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		myContents = mkRecommendationFormat(auth, db, recomm)
 		query = (db.t_press_reviews.recommendation_id == recommendationId)
@@ -651,6 +637,38 @@ def contributions():
 					myHelp = getHelp(request, auth, dbHelp, '#RecommenderContributionsToPressReviews'),
 				)
 	
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def edit_recommendation():
+	recommId = request.vars['recommId']
+	recomm = db.t_recommendations[recommId]
+	art = db.t_articles[recomm.article_id]
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	elif art.status not in ('Under consideration', 'Pre-recommended'):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		form = SQLFORM(db.t_recommendations
+					,record=recomm
+					,deletable=False
+					,fields=['recommendation_comments']
+					,showid=False
+				)
+		if form.process().accepted:
+			response.flash = T('Recommendation saved', lazy=False)
+			redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+		elif form.errors:
+			response.flash = T('Form has errors', lazy=False)
+		response.view='default/myLayout.html'
+		return dict(
+			form = form,
+			myTitle = T('Edit article'),
+			myHelp = getHelp(request, auth, dbHelp, '#UserEditArticle'),
+			myBackButton = mkBackButton(),
+		)
 
 
 

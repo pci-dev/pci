@@ -77,10 +77,7 @@ def all_articles():
 def suggest_article_to():
 	articleId = request.vars['articleId']
 	recommenderId = request.vars['recommenderId']
-	try:
-		db.executesql("""INSERT INTO t_suggested_recommenders (suggested_recommender_id, article_id) VALUES (%s, %s);""" , placeholders=[recommenderId, articleId])
-	except:
-		pass # ignore duplicated keys, lazy way ;-S
+	db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
 	redirect('pending_articles')
 
 
@@ -97,7 +94,7 @@ def _manage_articles(includeRecommended):
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
 	db.t_articles.user_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
-	db.t_articles.status.readable = False
+	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_articles.status.writable = True
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.auto_nb_recommendations.writable = False
@@ -108,21 +105,24 @@ def _manage_articles(includeRecommended):
 		db.t_articles.title.readable = False
 		db.t_articles.abstract.readable = False
 		db.t_articles.keywords.readable = False
+		db.t_articles.thematics.readable = False
+		db.t_articles.user_id.readable = False
 		db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
 		db.t_articles._id.label = T('Article')
 		db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(row.upload_timestamp)
 		db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(row.last_status_change)
-		#db.t_articles.abstract.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
 	else: # we are in grid's form
 		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
 
-	links = [dict(header=T('Recommendations'), body=lambda row: mkManagerStatusButton(auth, db, row)),
-			 dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersButton(auth, db, row))]
-	#if not includeRecommended:
-	links += [dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row))]
+	links = [
+				dict(header=T('Recommenders'), body=lambda row: mkSuggestedRecommendersButton(auth, db, row)),
+				dict(header=T('Search recommenders'), body=lambda row: mkSearchRecommendersButton(auth, db ,row)),
+				dict(header=T('Manage Recomm.'), body=lambda row: mkRecommendationsButton(auth, db, row, URL(f='manage_recommendations', vars=dict(articleId=row.id)))),
+			]
 	grid = SQLFORM.grid(query
-		,editable=True, deletable=True, create=False, selectable=selectable
-		,searchable=True
+		,details=False
+		,editable=True, deletable=False, create=False, selectable=selectable
+		,searchable=False
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
@@ -148,7 +148,7 @@ def _manage_articles(includeRecommended):
 # Allow management of article recommendations
 @auth.requires(auth.has_membership(role='manager'))
 def manage_recommendations():
-	articleId = request.vars['article']
+	articleId = request.vars['articleId']
 	query = db.t_recommendations.article_id == articleId
 	db.t_recommendations.recommender_id.default = auth.user_id
 	db.t_recommendations.article_id.default = articleId
@@ -225,7 +225,8 @@ def search_recommenders():
 		elif (myVar == 'articleId'):
 			articleId = myValue
 	if articleId is None:
-		auth.not_authorized()
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	else:
 		qyKwArr = qyKw.split(' ')
 		searchForm =  mkSearchForm(auth, db, myVars)
@@ -278,7 +279,7 @@ def suggested_recommenders():
 		,csv = csv, exportclasses = expClass
 		,fields=[db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent]
 	)
-	myEmailButton = A(SPAN(current.T('Send email to suggested recommenders'), _class='buttontext btn btn-default'), _href=URL(f='send_email_to_suggested_recommenders', vars=dict(articleId=articleId), user_signature=True), _class='button')
+	myEmailButton = '' #A(SPAN(current.T('Send email to suggested recommenders'), _class='buttontext btn btn-default'), _href=URL(f='send_email_to_suggested_recommenders', vars=dict(articleId=articleId), user_signature=True), _class='button')
 	response.view='manage/suggested_recommenders.html'
 	return dict(grid=grid, 
 				myTitle=T('Suggested recommenders'), 

@@ -1,12 +1,17 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
-
-{{if 'myTitle' in locals():}}
-	<div>{{=myTitle}}</div>
-	{{pass}}
 
 {{if 'myHelp' in locals():}}
   {{=myHelp}}
   {{pass}}
+
+{{if 'myUpperBtn' in locals():}}
+	{{=myUpperBtn}}
+	{{pass}}
+
+{{if 'myTitle' in locals():}}
+	<div>{{=myTitle}}</div>
+	{{pass}}
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>
@@ -23,3 +28,9 @@
 {{if 'myAcceptBtn' in locals():}}
 	{{=myAcceptBtn}}
 	{{pass}}
+
+{{if 'panel' in globals():}}
+	{{block right_sidebar}}
+	{{=panel}}
+	{{end}}
+	{{pass}} 

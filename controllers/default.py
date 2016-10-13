@@ -36,23 +36,25 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 # Home page (public)
 def index():
-	form = mkSearchForm(auth, db, None)
-	if form.process().accepted:
-		redirect(URL('public','recommended_articles', user_signature=True, vars=request.post_vars))
-	elif form.errors:
-		response.flash = 'form has errors'
+	#durationDays = 30
+	maxArticles = 10
+	thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
+	options = [OPTION('--- All thematic fields ---', _value='')]
+	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+		options.append(OPTION(thema.keyword, _value=thema.keyword))
+	form = FORM (
+				LABEL(T('Last %s recommendations in:')%(maxArticles)), 
+				SELECT(options, _name='qyThemaSelect', 
+					_onChange="ajax('%s', ['qyThemaSelect'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=dict(maxArticles=maxArticles), user_signature=True))),
+			)
 	
 	return dict(
-		message=T('Welcome to ')+myconf.take('app.name'),
-		content= DIV(
-					#SPAN(T("A free recommendation process of published and unpublished scientific papers in Evolutionary Biology based on peer reviews.")),
-					HR(),
-					H3(T("Search recommended articles"), _class="pci-searchTitle"),
-			),
+		message=T('Welcome to ')+myconf.take('app.longname'),
 		form=form,
+		script=SCRIPT("window.onload=ajax('%s', ['qyThemaSelect'], 'lastRecommendations');"%(URL('public', 'last_recomms', vars=dict(maxArticles=maxArticles), user_signature=True)), _type='text/javascript'),
 		panel=mkPanel(myconf, auth),
 		shareable=True,
-		myHelp=getHelp(request, auth, dbHelp, '#WelcomingMessage'),
+		#myHelp=getHelp(request, auth, dbHelp, '#WelcomingMessage'),
 	)
 
 
@@ -105,27 +107,6 @@ def call():
 
 
 
-# Display suggested recommenders for a submitted article
-# Logged users only (submission)
-@auth.requires_login()
-def suggested_recommenders():
-	write_auth = auth.has_membership('administrator') or auth.has_membership('developper')
-	query = (db.t_suggested_recommenders.article_id == request.vars['articleId'])
-	db.t_suggested_recommenders._id.readable = False
-	grid = SQLFORM.grid( query
-		,details=False,editable=False,deletable=write_auth,create=False,searchable=False
-		,maxtextlength = 250,paginate=100
-		,csv = csv, exportclasses = expClass
-		,fields=[db.t_suggested_recommenders.suggested_recommender_id]
-	)
-	response.view='default/recommLayout.html'
-	return dict(grid=grid, 
-			 myTitle=T('Suggested recommenders'),
-			 myHelp=getHelp(request, auth, dbHelp, '#SuggestedRecommenders'),
-			)
-	
-
-
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
 def under_consideration_one_article():
 	db.t_articles._id.readable = False
@@ -139,23 +120,6 @@ def under_consideration_one_article():
 			 myTitle=T('Article'),
 			 myHelp=getHelp(request, auth, dbHelp, '#ViewArticleUnderConsideration'),
 			)
-
-
-
-#@auth.requires_login()
-#def under_review_one_article():
-	##WARNING: security hole --> check reviewer or recommender (etc.) attribution
-	#db.t_articles._id.readable = False
-	#record = db.t_articles(request.args(0))
-	#if record:
-		#form = SQLFORM(db.t_articles, record, readonly=True)
-	#else:
-		#form = None
-	#response.view='default/myLayout.html'
-	#return dict(form=form, 
-			 #myTitle=T('Reviewed article'),
-			 #myHelp=getHelp(request, auth, dbHelp, '#ViewArticleUnderReview'),
-			 #)
 
 
 

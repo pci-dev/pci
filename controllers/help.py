@@ -19,7 +19,6 @@ def help_texts():
 		redirect_url = URL()
 	dbHelp.help_texts.language.writable = False
 	dbHelp.help_texts.hashtag.writable = False
-	#dbHelp.help_texts.contents.represent = lambda text, row: WIKI(text[:500]) if text and len(text)>500 else WIKI(text or '')
 	dbHelp.help_texts.contents.represent = lambda text, row: WIKI(text or '')
 	grid = SQLFORM.grid( dbHelp.help_texts
 				,create=False, deletable=False
@@ -35,6 +34,7 @@ def help_texts():
 	response.view='default/myLayout.html'
 	return dict(grid=grid, 
 			myTitle=T('Help texts'), 
+			#content=SPAN("See MARKDOWN syntax for formatting: ", A("https://en.wikipedia.org/wiki/Markdown", _href="https://en.wikipedia.org/wiki/Markdown#Example", _target="blank")),
 			myBackButton=mkBackButton(),
 			myHelp=getHelp(request, auth, dbHelp, '#AdministrateHelpTexts'),
 		 )

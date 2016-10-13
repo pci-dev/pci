@@ -50,3 +50,35 @@
         });
     })
 </script>
+<script>
+jQuery(document).ready(function(){
+   if(jQuery('#is_press_reviewTrue').prop('checked')) {
+       jQuery('#t_articles_article_source__row').show();
+   } else {
+       jQuery('#t_articles_article_source__row').hide();
+       jQuery(':submit').prop('disabled', true);
+   }
+   if(jQuery('#is_press_reviewTrue').length) jQuery(':submit').prop('disabled', false);
+   jQuery('#is_press_reviewTrue').change(function(){
+            if(jQuery('#is_press_reviewTrue').prop('checked')) {
+                jQuery('#t_articles_article_source__row').show();
+            } else {
+                jQuery('#t_articles_article_source__row').hide();
+            }
+   });
+   jQuery('#is_press_reviewFalse').change(function(){
+            if(jQuery('#is_press_reviewTrue').prop('checked')) {
+                jQuery('#t_articles_article_source__row').show();
+            } else {
+                jQuery('#t_articles_article_source__row').hide();
+            }
+   });
+   jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
+            if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+                jQuery(':submit').prop('disabled', false);
+            } else {
+                jQuery(':submit').prop('disabled', true);
+            }
+   });
+});
+</script>

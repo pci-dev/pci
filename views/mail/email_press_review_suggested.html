@@ -1,16 +1,34 @@
 <html>
 Dear {{=person}},
-<br><br>
-You have been suggested by {{=recommender}} to contribute to a press review for the followig article:
-<br><br>
-<b>Authors:</b> {{=article.authors}}
-<br>
-<b>Title:</b> <i>{{=article.title}}</i>
-<br>
-<b>Source: </b>{{=article.article_source}}
-<br>
-<b>DOI: </b>{{=mkDOI(article.doi)}}
-<br>
-<br>
-You may accept or decline this suggestion from: <a href="{{=target}}">{{=target}}</a>
+<p>
+I invite you to jointly write a recommendation on a manuscript written by {{=article.authors}} and entitled <b>{{=article.title}}</b> (doi {{=doi}}). 
+This recommendation will appear in the <i>{{=appdesc}}</i> (<i>{{=applongname}}</i>).
+<p>
+Because this MS has already been peer-reviewed we do not need to write reviews.
+We rather simply need to write together a short text (between half a page and a page). 
+This text should explain the reasons for which this article is of particular interest. 
+There are no constraints on format.<br>
+The goal is to highlight the scientific qualities of the article (crucial, original or previously untested hypothesis, scientific rigour, refinement of the demonstration, outstanding quality of the data and methodology, noteworthy scientific consequences, etc.).<br>
+The only absolute rule is that we must not be directly associated with the authors of the recommended article or have any other conflict of interest.
+<p>
+Writing a recommendation of this type should not take us too much time and energy, given the short format and the fact that no detailed reviewing is required.
+<p>
+If you agree, I can start a first draft of this recommendation and send it to you.
+<p>
+Please let me know as soon as possible if you will accept to co-recommend this paper by following this link: <a href="{{=target}}">{{=target}}</a>
+<p>
+Thanks in advance.
+<p>
+Sincerely yours,
+<span style="padding-left:1in;">{{=recommender}}</span>
+
+<div style="background-color:#eeeeee; border: 1px solid black;">
+<i>{{=applongname}}</i> is the first community of the parent project <a href="https://peercommunityin.org/">Peer Community In</a>. 
+It is a community of researchers in {{=appthematics}} dedicated to review and recommend manuscripts publicly available in pre-print servers (such as bioRxiv). 
+The motivation behind this project is the establishment of a high-profile, free, public recommendation system for identifying high-quality manuscripts. 
+More information can be found on the web site of <i>{{=applongname}}</i> (<a href="{{=baseurl}}">{{=baseurl}}</a>).
+<p>
+If you want to modify your profile or the fields and periodicity for the alerts, follow this link: <a href="{{=profileurl}}">{{=profileurl}}</a>
+</div>
+
 </html>

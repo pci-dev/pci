@@ -21,14 +21,14 @@ SET search_path = public, pg_catalog;
 -- Data for Name: t_status_article; Type: TABLE DATA; Schema: public; Owner: piry
 --
 
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (1, 'Cancelled', 'btn-default', NULL);
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (2, 'Recommended', 'btn-success', NULL);
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (5, 'Pre-recommended', 'btn-good', NULL);
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (3, 'Under consideration', 'btn-info', NULL);
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (6, 'Rejected', 'btn-default', NULL);
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (4, 'Awaiting revision', 'btn-info', '');
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (9, 'Awaiting consideration', 'btn-warning', 'Submitted by a user and approaved by managing board. Waiting for a recommender.');
-INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (8, 'Pending', 'btn-danger', 'Submitted by a user and waiting for managing board approval');
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (1, 'Cancelled', 'default', NULL);
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (2, 'Recommended', 'success', NULL);
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (5, 'Pre-recommended', 'good', NULL);
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (3, 'Under consideration', 'info', NULL);
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (6, 'Rejected', 'default', NULL);
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (4, 'Awaiting revision', 'warning', '');
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (9, 'Awaiting consideration', 'warning', 'Submitted by a user and approaved by managing board. Waiting for a recommender.');
+INSERT INTO t_status_article (id, status, color_class, explaination) VALUES (8, 'Pending', 'danger', 'Submitted by a user and waiting for managing board approval');
 
 
 --

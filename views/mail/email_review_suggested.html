@@ -1,18 +1,22 @@
 <html>
 Dear {{=person}},
-<br><br>
-You have been suggested by {{=recommender}} as reviewer for the followig article:
-<br><br>
-<b>Authors:</b> {{=article.authors}}
-<br>
-<b>Title:</b> <i>{{=article.title}}</i>
-<br>
-<b>Keywords: </b>{{=article.keywords}}
-<br>
-<b>Abstract:</b>{{=article.abstract}}
-<br>
-<b>DOI: </b>{{=mkDOI(article.doi)}}
-<br>
-<br>
-You may accept or decline this suggestion from: <a href="{{=target}}">{{=target}}</a>
+<p>
+I invite you to review a preprint manuscript entitled <b>{{=article.title}}</b> with the perspective to recommend it to <i>{{=appdesc}}</i> (<i>{{=applongname}}</i>). 
+This MS can be downloaded from this adress (doi {{=doi}}). 
+Please let me know as soon as possible if you will be able to accept my invitation to review by following this link: <a href="{{=target}}">{{=target}}</a>.
+<p>
+Thanks in advance.
+<p>
+Sincerely yours,
+<span style="padding-left:1in;">{{=recommender}}</span>
+
+<div style="background-color:#eeeeee; border: 1px solid black;">
+<i>{{=applongname}}</i> is the first community of the parent project <a href="https://peercommunityin.org/">Peer Community In</a>. 
+It is a community of researchers in {{=appthematics}} dedicated to review and recommend manuscripts publicly available in pre-print servers (such as bioRxiv). 
+The motivation behind this project is the establishment of a high-profile, free, public recommendation system for identifying high-quality manuscripts. 
+More information can be found on the web site of <i>{{=applongname}}</i> (<a href="{{=baseurl}}">{{=baseurl}}</a>).
+<p>
+If you want to modify your profile or the fields and periodicity for the alerts, follow this link: <a href="{{=profileurl}}">{{=profileurl}}</a>
+</div>
+
 </html>

@@ -3,6 +3,13 @@
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
+from gluon.tools import Auth, Service, PluginManager, Mail
+from gluon.contrib.appconfig import AppConfig
+
+#from gluon.custom_import import track_changes; track_changes(True)
+from common import *
+from emailing import *
+
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
 # File is released under public domain and you can use without limitations
@@ -16,11 +23,6 @@ if request.global_settings.web2py_version < "2.14.1":
 # be redirected to HTTPS, uncomment the line below:
 # -------------------------------------------------------------------------
 # request.requires_https()
-
-# -------------------------------------------------------------------------
-# app configuration made easy. Look inside private/appconfig.ini
-# -------------------------------------------------------------------------
-from gluon.contrib.appconfig import AppConfig
 
 # -------------------------------------------------------------------------
 # once in production, remove reload=True to gain full speed
@@ -83,8 +85,6 @@ response.form_label_separator = myconf.get('forms.separator') or ''
 # (more options discussed in gluon/tools.py)
 # -------------------------------------------------------------------------
 
-from gluon.tools import Auth, Service, PluginManager, Mail
-
 # host names must be a list of allowed host names (glob syntax allowed)
 auth = Auth(db, host_names=myconf.get('host.names'))
 service = Service()
@@ -100,7 +100,6 @@ db.define_table('t_thematics',
 	migrate=False,
 )
 
-from emailing import *
 
 # -------------------------------------------------------------------------
 # create all tables needed by auth if not custom tables
@@ -111,8 +110,8 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('picture_data', type='blob'),
 	Field('laboratory', type='string', label=T('Laboratory')),
 	Field('institution', type='string', label=T('Institution')),
-	Field('city', type='string', label=T('City'), requires=IS_NOT_EMPTY()),
-	Field('country', type='string', label=T('Country'), requires=IS_IN_SET(('Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'North Korea','South Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'FYROM', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'))),
+	Field('city', type='string', label=T('City')),
+	Field('country', type='string', label=T('Country'), requires=IS_EMPTY_OR(IS_IN_SET(('Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'North Korea','South Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'FYROM', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe')))),
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=IS_EMPTY_OR(IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 ]
@@ -143,6 +142,14 @@ auth.settings.reset_password_requires_verification = True
 auth.settings.create_user_groups = False
 auth.settings.showid = False
 
+db.auth_user._after_insert.append(lambda f, id: newUser(f, id))
+def newUser(f, userId):
+	do_send_mail_new_user(session, auth, db, userId)
+
+db.auth_membership._after_insert.append(lambda f, id: newMembership(f, id))
+def newMembership(f, membershipId):
+	do_send_mail_new_membreship(session, auth, db, membershipId)
+
 
 # -------------------------------------------------------------------------
 db.define_table('t_status_article',
@@ -171,8 +178,9 @@ db.define_table('t_articles',
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
 	Field('status', type='string', length=50, default='Pending', label=T('Status')),
 	Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
-	Field('thematics', type='list:string', label=T('Thematic fields'), requires=IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), widget=SQLFORM.widgets.checkboxes.widget),
+	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
+	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This article has not been sent for review elsewhere')),
 	Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
@@ -186,14 +194,19 @@ db.t_articles.auto_nb_recommendations.readable = False
 db.t_articles.user_id.requires = IS_IN_DB(db, db.auth_user.id)
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s,f))
+db.t_articles._after_insert.append(lambda s,i: newArticle(s,i))
 
 def deltaStatus(s, f):
 	o = s.select().first()
+	if f['status'] == 'Awaiting consideration':
+		do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
 	if o['status'] != f['status']:
-		if f['status'] == 'Awaiting consideration':
-			do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
 		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 		do_send_email_to_recommender(session, auth, db, o['id'], f['status'])
+	return None
+
+def newArticle(s,articleId):
+	do_send_email_to_managers(session, auth, db, articleId)
 	return None
 
 
@@ -226,7 +239,7 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('review_state', type='string', length=50, label=T('Review state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Terminated'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Review state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Declined', 'Terminated'))), writable=False),
 	migrate=False,
 )
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
@@ -238,13 +251,12 @@ def reviewDone(s, f):
 	o = s.select().first()
 	if o['review_state'] is None and f['review_state'] == 'Under consideration':
 		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
+	elif o['review_state'] != 'Under consideration' and f['review_state'] == 'Under consideration':
+		do_send_email_to_reviewer_review_reopened(session, auth, db, o['id'])
+	elif o['review_state'] is None and f['review_state'] == 'Declined':
+		do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
 	if o['reviewer_id'] is not None and f['review_state'] == 'Terminated':
 		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
-	return None
-
-def reviewDeclined(s):
-	o = s.select().first()
-	do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
 	return None
 
 def reviewSuggested(s, i):
@@ -261,6 +273,13 @@ db.define_table('t_suggested_recommenders',
 	migrate=False,
 )
 db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s'))
+db.t_suggested_recommenders._after_insert.append(lambda s,i: recommendationSuggested(s,i))
+
+def recommendationSuggested(s, i):
+	print 'recommendationSuggested:', i, s
+	articleId = db.t_suggested_recommenders[i].article_id
+	do_send_email_to_suggested_recommenders(session, auth, db, articleId)
+	return None
 
 
 
@@ -268,27 +287,23 @@ db.define_table('t_press_reviews',
 	Field('id', type='id'),
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('contributor_id', type='reference auth_user', ondelete='RESTRICT', label=T('Contributor')),
-	Field('contribution_state', type='string', length=50, label=T('Contribution state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Recommendation agreed'))), writable=False),
+	Field('contribution_state', type='string', length=50, label=T('Contribution state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Declined', 'Recommendation agreed'))), writable=False),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	migrate=False,
 )
 db.t_press_reviews.contributor_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
 db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
 db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
-db.t_press_reviews._before_delete.append(lambda s: contributionDeclined(s))
 db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))
 
 def contributionAgreement(s, f):
 	o = s.select().first()
 	if o['contribution_state'] == 'Under consideration':
 		do_send_email_to_recommenders_press_review_considerated(session, auth, db, o['id'])
-	if o['contribution_state'] == 'Recommendation agreed':
+	elif o['contribution_state'] == 'Declined':
+		do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
+	elif o['contribution_state'] == 'Recommendation agreed':
 		do_send_email_to_recommenders_press_review_agreement(session, auth, db, o['id'])
-	return None
-
-def contributionDeclined(s):
-	o = s.select().first()
-	do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
 	return None
 
 def contributionSuggested(s, i):

@@ -8,7 +8,7 @@ from gluon.custom_import import track_changes; track_changes(True)
 # ----------------------------------------------------------------------------------------------------------------------
 
 response.logo = ""
-response.title = myconf.take('app.name')
+response.title = myconf.take('app.longname')
 response.subtitle = T(myconf.take('app.description'))
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ response.google_analytics_id = None
 # ----------------------------------------------------------------------------------------------------------------------
 # this is the main application menu add/remove items as required
 # ----------------------------------------------------------------------------------------------------------------------
-appName = ' '+myconf.take('app.name')
+appName = ' '+myconf.take('app.longname')
 
 # default public menu
 def _BaseMenu():
@@ -35,7 +35,8 @@ def _BaseMenu():
 	return [
 		(T('Home'),       False, URL('default', 'index'), []),
 		(T('About'),      False, '#', [
-			(T('About', lazy=False)+appName,      False, URL('public', 'managers')),
+			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
+			(T('Ethics', lazy=False)+appName,      False, URL('about', 'ethics')),
 			(T('Members of', lazy=False)+appName,  False, URL('public', 'recommenders')),
 		]),
 	]
@@ -94,7 +95,7 @@ def _AdminMenu():
 # Appends managers menu
 def _ManagerMenu():
 	return [
-        (T('Management'), False, '#', [
+        (T('Management process'), False, '#', [
 			(T('Pending articles'),  False, URL('manage', 'pending_articles', user_signature=True)),
 			(T('All articles'),      False, URL('manage', 'all_articles', user_signature=True)),
 		]),
@@ -104,8 +105,7 @@ def _ManagerMenu():
 # Appends recommenders menu
 def _RecommMenu():
 	return [
-        (T('Articles to be considered'), False, '#', [
-			(T('Articles wor which you have been sollicitated'),False, URL('recommender', 'my_awaiting_articles', user_signature=True)),
+        (T('Articles requiring a recommander'), False, '#', [
 			(T('Articles awaiting consideration in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			(T('All articles awaiting consideration'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
 		]),
@@ -115,20 +115,53 @@ def _RecommMenu():
 # Appends personnal menu
 def _MyMenu():
 	myMenu = []
-	myMenu.append((T('My recommendation requests'),              False, URL('user', 'my_articles', user_signature=True)))
-	# appends my_reviews only if exists
-	nrev = db(db.t_reviews.reviewer_id == auth.user_id).count()
-	if nrev > 0:
-		myMenu.append((T('My reviews'),                          False, URL('user', 'my_reviews', user_signature=True)))
-	# appends my_press_reviews only if exists
-	ncontribs = db(db.t_press_reviews.contributor_id == auth.user_id).count()
-	if ncontribs > 0:
-		myMenu.append((T('My press review contributions'),                    False, URL('user', 'my_press_reviews', user_signature=True)))
-	# appends my_recommendations only if recommender
+	mySollicitationsMenu = []
+	myContributionsMenu = []
+	
 	if auth.has_membership(None, None, 'recommender'):
-		myMenu.append((T('My recommendations'),                  False, URL('recommender', 'my_recommendations', user_signature=True)))
+		nRecomSug = db( (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) & (db.t_suggested_recommenders.article_id == db.t_articles.id) & (db.t_articles.status == 'Awaiting consideration') ).count()
+		if nRecomSug > 0:
+			mySollicitationsMenu.append((T('Articles for which you have been sollicitated:'+' '+str(nRecomSug)),False, 
+								URL('recommender', 'my_awaiting_articles', user_signature=True)))
+		
+		nPreprintsRecomPend = db( (db.t_recommendations.recommender_id==auth.user_id) & (db.t_recommendations.is_closed==False) & (db.t_recommendations.article_id==db.t_articles.id) & (db.t_articles.status.belongs(['Under consideration', 'Awaiting revision', 'Pre-recommended'])) & (db.t_recommendations.is_press_review==False) ).count()
+		myContributionsMenu.append((T('Ongoing articles recommendations:'+' '+str(nPreprintsRecomPend)),False, 
+								URL('recommender', 'my_recommendations', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
+
+		nPressRecomPend = db( (db.t_recommendations.recommender_id==auth.user_id) & (db.t_recommendations.is_closed==False) & (db.t_recommendations.article_id==db.t_articles.id) & (db.t_articles.status.belongs(['Under consideration', 'Awaiting revision', 'Pre-recommended'])) & (db.t_recommendations.is_press_review==True) ).count()
+		myContributionsMenu.append((T('Ongoing press-review recommendations:'+' '+str(nPressRecomPend)),False, 
+								URL('recommender', 'my_recommendations', vars=dict(pendingOnly=True, pressReviews=True), user_signature=True))) 
+
+		myContributionsMenu.append((T('Recommendation process completed (submissions)'), False, 
+								URL('recommender', 'my_recommendations', vars=dict(pendingOnly=False, pressReviews=False), user_signature=True)))
+		myContributionsMenu.append((T('Recommendation process completed (press-reviews)'), False, 
+								URL('recommender', 'my_recommendations', vars=dict(pendingOnly=False, pressReviews=True), user_signature=True)))
+
+	
+	# pending reviews, if any
+	nRevPend = db( (db.t_reviews.reviewer_id == auth.user_id) &  ( (db.t_reviews.review_state==None) | (db.t_reviews.review_state=='Under consideration') ) ).count()
+	if nRevPend > 0:
+		mySollicitationsMenu.append((T('Your pending reviews:'+' '+str(nRevPend)), False, 
+							   URL('user', 'my_reviews', vars=dict(pendingOnly=True), user_signature=True))) #TODO: filter pendingOnly in my_reviews
+	nRevDone = db( (db.t_reviews.reviewer_id == auth.user_id) &  ( (db.t_reviews.review_state==None) | (db.t_reviews.review_state=='Under consideration') ) ).count()
+	if nRevDone > 0:
+		myContributionsMenu.append((T('Your reviews:'+' '+str(nRevDone)), False, 
+							   URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True))) #TODO: filter pendingOnly in my_reviews
+	
+	# appends my_press_reviews only if exists
+	nContribsPend = db( (db.t_press_reviews.contributor_id == auth.user_id) & ( (db.t_press_reviews.contribution_state==None) | (db.t_press_reviews.contribution_state=='Under consideration') ) ).count()
+	if nContribsPend > 0:
+		mySollicitationsMenu.append((T('Your pending press review contributions:'+ ' '+str(nContribsPend)), False, 
+							   URL('user', 'my_press_reviews', vars=dict(pendingOnly=True), user_signature=True))) #TODO: filter pendingOnly in my_press_reviews
+	nContribsDone = db( (db.t_press_reviews.contributor_id == auth.user_id) & ( (db.t_press_reviews.contribution_state==None) | (db.t_press_reviews.contribution_state=='Under consideration') ) ).count()
+	if nContribsDone > 0:
+		myContributionsMenu.append((T('Your pending press review contributions:'+ ' '+str(nContribsDone)), False, 
+							   URL('user', 'my_press_reviews', vars=dict(pendingOnly=False), user_signature=True))) #TODO: filter pendingOnly in my_press_reviews
+	
 	return [
-        (T('My contributions'), False, '#', myMenu)
+		(T('Your submissions'), False, URL('user', 'my_articles', user_signature=True)),
+        (T('Your contributions'),  False, '#', myContributionsMenu),
+        (T('Requests for your input'),  False, '#', mySollicitationsMenu),
 	]
 
 

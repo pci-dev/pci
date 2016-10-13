@@ -1,0 +1,129 @@
+/* Patch for sub-menus from https://github.com/web2py/web2py/issues/938 */
+.dropdown-submenu{position:relative;}
+.dropdown-submenu>.dropdown-menu{top:0;left:100%;margin-top:-6px;margin-left:-1px;-webkit-border-radius:0 6px 6px 6px;-moz-border-radius:0 6px 6px 6px;border-radius:0 6px 6px 6px;}
+.dropdown-submenu:hover>.dropdown-menu{display:block;}
+.dropdown-submenu>a:after{display:block;content:" ";float:right;width:0;height:0;border-color:transparent;border-style:solid;border-width:5px 0 5px 5px;border-left-color:#cccccc;margin-top:5px;margin-right:-10px;}
+.dropdown-submenu:hover>a:after{border-left-color:#ffffff;}
+.dropdown-submenu.pull-left{float:none;}.dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
+
+/* My tweaks */
+/* body {padding-top:30px;} */
+/* .navbar-default {opacity:0.8; height:32px;} */
+/* .navbar-fixed-top {top: 200px;} TODO*/
+.background { background: url(../images/biblio-light.jpg) no-repeat center center; }
+h1 small {color: #FFF; text-shadow: 0 0 24px #000;}
+.web2py_grid .row_buttons {white-space: initial; text-align: center;}
+.web2py_grid thead th {background: none; font-size: 14pt; color:#777777;}
+.web2py_grid thead th a {color: #777777;}
+
+.col-md-3 {position:fixed; width:300px; right:0; top:400px; border:none;}
+.col-md-9 {width: calc(100% - 300px); }
+.panel { border:none; border-radius:8px;}
+.list-group-item {border:none; padding: 8px; border-color:#f0f0f0;}
+.list-group-item-centered {text-align:center;}
+.pci-panelButton {white-space: initial;}
+
+/* #languageChooser{margin-top:20px;} */
+/* #languageChooser>span{color: #d1d1d1;} */
+
+#v_recommenders-picture {width: 0px;}
+#t_recommendations_recommendation_comments {height:15cm;}
+#t_recommendations_reply {height:15cm;}
+#help_texts_contents {height:15cm;}
+/* #t_recommendations-article_id {width: 25%;} */
+/* #t_recommendations-recommendation_comments {width: 25%} */
+/* #t_recommendations-reply {width: 25%;} */
+
+/* #qy_art-title {width: 33%;} */
+#qy_art-id {width: 33%;}
+
+/* #t_articles-doi {width: 120px;} */
+
+.btn {border-radius: 16px;}
+
+.doi_url {width: 200px;}
+.pci-status {box-sizing: unset; width: 100px; white-space: initial; padding: 8px; font-family:Helvetica;  font-size:11px; text-align:left;}
+.pci-status.warning {color: #ffbf00;}
+.pci-status.good {color: #b9f20d;}
+.pci-status.success {color: #089108;}
+.pci-status.info {color: #0db9f2;}
+.pci-status.danger {color: #e61919;}
+.pci-status.default {color: #BBBBBB;}
+/* .fake-btn {cursor:default;} */
+/* .fake-btn:hover {box-shadow:none;} */
+
+.searchForm {margin-left: auto; margin-right: auto; }
+.pci-thematicFieldsDiv {vertical-align: middle;}
+.pci-thematicFieldsCheck {padding-right: 32px;}
+.pci-thematicFieldsTable {display: inline-block; vertical-align: middle; background-color: #eeeeee; margin-left:32px; margin-right:8px; border-radius:8px;}
+
+.searchField {width: 60%; margin-left: 8px; margin-right: 32px;}
+
+.thematicFieldsDivs {width: 500px; margin-left: 8px; margin-right: 8px;}
+.thematicFieldsMainDiv {display: inline; width: 33%; background-color: #eeeeee; }
+
+.pci-printable-body {margin-top: 0; padding-top: 0; margin-bottom: 0; margin-left:0.5cm;}
+/* .pci-printable-div {width:99vw; margin-left: auto; margin-right:auto;} */
+.pci-article-div {max-width:19cm; }
+.pci-article-div-printable {width:100%; }
+.pci-recommendation-div {margin-left: 2vw; }
+.pci-recommendation-title {background-color: #089108; color: white; max-width:19cm; text-align:center; }
+.pci-recommendation-title-printable {color: #089108; width:100%; text-align:center; }
+.pci-status-title {max-width:19cm; text-align:center; border: 1px solid black;}
+.pci-status-title-printable {width:100%; text-align:center; border: 1px solid black;}
+.pci-bigtext {}
+.pci-bigtext.margin {border: 1px solid black; padding: 8px;}
+
+.pci-searchTitle {color:#089108;}
+
+.pci-status-button {margin:12px; font-size:8px; border-radius: 25px;}
+.pci-status-buttons-group{margin-top:32px; padding: 32px;}
+
+.pci-blocked {font-size:20px; color:red;}
+
+.pci-opinionform {margin: 20px; padding: 8px; border: 1px solid black; text-align:center;}
+.pci-radio {margin-left:12px; padding: 12px;}
+.pci-recommend {background-color: #089108; color: white;}
+.pci-review {background-color: #BBBBBB;}
+.pci-reject {background-color: #e61919; color:white;}
+.pci-later {background-color: white; color:black;}
+
+.pci-helper   {border:1px solid #ddddff; border-radius:4px; margin-bottom:4px;}
+.pci-helptext {max-height:200px; overflow:auto; background-color:#ddeeff; margin:4px; padding:4px; font-size:10px;}
+.pci-help-buttons {display:inline; font-size:8pt; padding-left:8px; padding-right:8px;}
+.pci-help-button {cursor:pointer;}
+.pci-help-button-edit {cursor:pointer; float:right;}
+
+.pci-div4wiki {max-height:200px; overflow:auto;}
+
+.pci-alreadyPeerReviewedRadio {}
+
+#lastRecommendationsDiv {padding:4px; border:1px solid #eeeeee; border-radius:8px; /*background-color:#dddddf;*/}
+.searchRecommendationsDiv {margin-top:8px; padding:4px; border:1px solid #eeeeee; border-radius:8px; /*background-color:#dddddf;*/}
+/* .pci-lastArticles-div {max-height:500px; overflow:auto; margin:4px;} */
+/* .pci-lastArticles-div {border-radius:8px; background-color:#dddddf; } */
+.pci-lastArticles-table {width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 4px; margin-top: -4px;}
+.pci-lastArticles-table td { border: none; border-style: none; padding: 8px; background-color: transparent;}
+.pci-lastArticles-table td:first-child { border-left-style: none; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.pci-lastArticles-table td:last-child { border-right-style: none; border-bottom-right-radius: 8px; border-top-right-radius: 8px; }
+.pci-lastArticles-row {width:100%;}
+.pci-lastArticles-row:nth-child(even) td {background-color:#ffffff;}
+.pci-lastArticles-row:nth-child(odd)  td {background-color:#f5f5f5; }
+.pci-lastArticles-date {width: 80px; text-align:center; font-style:italic; font-size:8pt;}
+.pci-lastArticles-article {font-size:13px; }
+.pci-lastArticles-linkcol {width:80px; text-align:center;}
+/* #lastRecommendations {} */
+
+.pci-userPicture {max-width:120px; max-height:120px;}
+/* .pci-UsersTable {background-color:transparent; border-collapse: separate; border-spacing: 0 4px; margin-top: -4px;} */
+.pci-UsersTable {width: auto;}
+/* .pci-UsersTable-row:nth-child(even) tr {background-color:#ffffff;} */
+/* .pci-UsersTable-row:nth-child(odd)  tr {background-color:#f5f5f5; } */
+.pci-nResults {text-align:center; width:100%;}
+.pci-EditButtons {text-align: right;}
+.pci-EditButtons-centered {text-align: center;}
+.pci-inCell-UL {list-style: inside; padding-left:0;}
+
+
+
+

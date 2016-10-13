@@ -1,4 +1,4 @@
-{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
 {{block header}}
@@ -24,9 +24,13 @@
 	{{=content}}
 	{{pass}}
 
+<div id="lastRecommendationsDiv">
 {{if 'form' in globals():}}
-	<div>{{=form}}</div>
+	{{=form}}
 	{{pass}}
+<div id="lastRecommendations">
+</div>
+</div>
 
 {{if 'panel' in globals():}}
 	{{block right_sidebar}}

@@ -1,17 +1,17 @@
 {{extend 'layout.html'}}
 
 {{if 'myTitle' in locals():}}
-{{=H1(myTitle)}}
-{{pass}}
+  {{=H1(myTitle)}}
+  {{pass}}
 
 {{if 'myHelp' in locals():}}
   {{=myHelp}}
   {{pass}}
 
 {{if 'searchForm' in locals():}}
-<div>{{=searchForm}}</div>
-{{pass}}
+   <div>{{=searchForm}}</div>
+   {{pass}}
 
 {{if 'grid' in locals():}}
-<div>{{=grid}}</div>
-{{pass}}
+   <div>{{=grid}}</div>
+   {{pass}}
