@@ -28,33 +28,44 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
-
-#def _mkViewArticleButton(row):
-	#anchor = A(SPAN(T('View'), _class='buttontext btn btn-default'), _href=URL(c='default', f='under_consideration_one_article', args=[row.article_id], user_signature=True), _class='button')
-	#return anchor
-
-
 # Home page (public)
 def index():
-	#durationDays = 30
-	maxArticles = 10
-	thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
-	options = [OPTION('--- All thematic fields ---', _value='')]
-	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-		options.append(OPTION(thema.keyword, _value=thema.keyword))
+	nbs = [
+			OPTION('10', _value=10),
+			OPTION('20', _value=20),
+			OPTION('50', _value=50),
+			OPTION('100', _value=100),
+		]
+	#WARNING: do not delete: for later use
+	#thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
+	#options = [OPTION('--- All thematic fields ---', _value='')]
+	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+		#options.append(OPTION(thema.keyword, _value=thema.keyword))
+	vars=dict(qyThemaSelect='')
 	form = FORM (
-				LABEL(T('Last %s recommendations in:')%(maxArticles)), 
-				SELECT(options, _name='qyThemaSelect', 
-					_onChange="ajax('%s', ['qyThemaSelect'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=dict(maxArticles=maxArticles), user_signature=True))),
+				LABEL(T('Show')+' '),
+				SELECT(nbs, _name='maxArticles',
+					_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 
+									vars=vars, 
+									user_signature=True))
+						, _style='margin-left:8px; margin-right:8px;'),
+				LABEL(' '+T('last recommendations')+' '), 
+				#WARNING: do not delete: for later use
+				#LABEL(' '+T('last recommendations in:')+' '), 
+				#SELECT(options, _name='qyThemaSelect', 
+					#_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 
+									#vars=vars, 
+									#user_signature=True))),
 			)
 	
 	return dict(
-		message=T('Welcome to ')+myconf.take('app.longname'),
+		myTitle=T('Welcome to ')+myconf.take('app.longname'),
 		form=form,
-		script=SCRIPT("window.onload=ajax('%s', ['qyThemaSelect'], 'lastRecommendations');"%(URL('public', 'last_recomms', vars=dict(maxArticles=maxArticles), user_signature=True)), _type='text/javascript'),
+		script=SCRIPT("window.onload=ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"%(URL('public', 'last_recomms', 
+											vars=vars, 
+											user_signature=True)), _type='text/javascript'),
 		panel=mkPanel(myconf, auth),
 		shareable=True,
-		#myHelp=getHelp(request, auth, dbHelp, '#WelcomingMessage'),
 	)
 
 
@@ -104,22 +115,6 @@ def call():
 	supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
 	"""
 	return service()
-
-
-
-@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
-def under_consideration_one_article():
-	db.t_articles._id.readable = False
-	record = db.t_articles(request.args(0))
-	if record:
-		form = SQLFORM(db.t_articles, record, readonly=True)
-	else:
-		form = None
-	response.view='default/myLayout.html'
-	return dict(form=form, 
-			 myTitle=T('Article'),
-			 myHelp=getHelp(request, auth, dbHelp, '#ViewArticleUnderConsideration'),
-			)
 
 
 

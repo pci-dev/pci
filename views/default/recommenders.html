@@ -1,12 +1,12 @@
 {{extend 'layout.html'}}
 
-{{if 'myTitle' in locals():}}
-  {{=H1(myTitle)}}
-  {{pass}}
-
 {{if 'myHelp' in locals():}}
   {{=myHelp}}
   {{pass}}
+
+{{if 'myTitle' in locals():}}
+	<div class="pci-myTitle"><div class="pci-myTitleText">{{=myTitle}}</div></div>
+	{{pass}}
 
 {{if 'searchForm' in locals():}}
    <div>{{=searchForm}}</div>

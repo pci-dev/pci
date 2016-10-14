@@ -5,13 +5,21 @@
   {{=myHelp}}
   {{pass}}
 
+<div id="pci-ArticleTopButtons">
+{{if 'myCloseButton' in locals():}}
+	{{=myCloseButton}}
+	{{pass}}
+<br>
 {{if 'myUpperBtn' in locals():}}
 	{{=myUpperBtn}}
 	{{pass}}
+</div>
 
-{{if 'myTitle' in locals():}}
-	<div>{{=myTitle}}</div>
+<div id="pci-ArticleHeader">
+{{if 'statusTitle' in locals():}}
+	{{=statusTitle}}
 	{{pass}}
+</div>
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>

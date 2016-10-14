@@ -46,10 +46,9 @@ def recommended_articles():
 	n = len(filtered)
 	myRows = []
 	for row in filtered:
-		r = mkArticleRow(Storage(row), withScore=True, withDate=True)
+		r = mkArticleRow(auth, db, Storage(row), withScore=True, withDate=True)
 		print r
 		myRows.append(r)
-	response.view='default/recommended_articles.html'
 	grid = DIV(DIV(
 				DIV(T('%s records found')%(n), _class='pci-nResults'),
 				TABLE(
@@ -57,11 +56,13 @@ def recommended_articles():
 					TBODY(myRows),
 				_class='web2py_grid pci-lastArticles-table'), 
 			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
+	response.view='default/myLayout.html'
 	return dict(
 				panel=mkPanel(myconf, auth, inSearch=True),
 				grid=grid, 
 				searchForm=searchForm, 
-				myTitle=H1(T('Recommended Articles')), 
+				myTitle=T('Recommended Articles'), 
+				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, dbHelp, '#RecommendedArticles'),
 				shareable=True,
 			)
@@ -74,7 +75,6 @@ def last_recomms():
 	else:
 		maxArticles = 10
 	query = None
-	#dateLimit = d = datetime.now() - timedelta(days=30)
 	if 'qyThemaSelect' in request.vars:
 		thema = request.vars['qyThemaSelect']
 		if thema and len(thema)>0:
@@ -84,7 +84,7 @@ def last_recomms():
 	n = len(query)
 	myRows = []
 	for row in query:
-		myRows.append(mkArticleRow(Storage(row), withDate=True))
+		myRows.append(mkArticleRow(auth, db, Storage(row), withDate=True))
 	return DIV(
 			#DIV(T('%s records found')%(n), _class='pci-nResults'),
 			TABLE(TBODY(myRows), _class='web2py_grid pci-lastArticles-table'), _class='pci-lastArticles-div')
@@ -111,25 +111,34 @@ def recommendations():
 		redirect(URL('public', 'recommended_articles', user_signature=True))
 		#raise HTTP(403, "403: "+T('Forbidden access')) # Forbidden access
 
-	myContents = mkRecommendedArticle(auth, db, art, printable)
+	myContents = mkFeaturedArticle(auth, db, art, printable)
 	myContents.append(HR())
 	
 	if printable:
-		myTitle=H1(myconf.take('app.longname')+' '+T('Recommended Article'), _class='pci-recommendation-title-printable')
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png'), _height="100"),
+				DIV(
+					DIV(T('Recommended Article'), _class='pci-ArticleText printable'),
+					_class='pci-ArticleHeaderIn recommended printable'
+				))
 		myUpperBtn = ''
-		response.view='default/recommended_article_printable.html'
+		response.view='default/recommended_article_printable.html' #OK
 	else:
-		myTitle=H1(myconf.take('app.longname')+' '+T('Recommended Article'), _class='pci-recommendation-title')
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
+				DIV(
+					DIV(I(myconf.take('app.longname')+': ')+T('Recommended Article'), _class='pci-ArticleText'),
+					_class='pci-ArticleHeaderIn recommended'
+				))
 		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
 			_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
 			_class='button')
-		response.view='default/recommended_articles.html'
+		response.view='default/recommended_articles.html' #OK
 	
 	response.title = (art.title or myconf.take('app.longname'))
 	return dict(
-				myTitle=myTitle,
+				statusTitle=myTitle,
 				myContents=myContents,
 				myUpperBtn=myUpperBtn,
+				myCloseButton=mkCloseButton(),
 				shareable=True,
 			)
 
@@ -156,12 +165,15 @@ def managers():
 			_class="web2py_grid pci-UsersTable")
 	
 	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href='mailto:%s' % myconf.take('contacts.managers')))
-	#response.view='default/myLayout.html'
+	#response.view='default/myLayout.html' #TODO
 	response.view='default/recommenders.html'
-	return dict(grid=grid, 
-				myTitle=T('Managing board'), 
-				content=content, 
+	return dict(
 				myHelp=getHelp(request, auth, dbHelp, '#PublicManagingBoardDescription'),
+				myTitle=T('Managing board'), 
+				mkBackButton = mkBackButton(),
+				#searchForm=searchForm, 
+				content=content, 
+				grid=grid, 
 			)
 
 
@@ -187,7 +199,6 @@ def recommenders():
 				qyTF.append(re.sub(r'^qy_', '', myVar))
 		qyKwArr = qyKw.split(' ')
 		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
-		#myRows = BEAUTIFY(filtered)
 		myRows = []
 		for fr in filtered:
 			myRows.append(mkUserRow(Storage(fr), withMail=False))
@@ -227,12 +238,13 @@ def recommenders():
 		#)
 	#else:
 		#grid = ''
-	response.view='default/recommenders.html'
+	response.view='default/myLayout.html'
 	resu = dict(
+				myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
+				myTitle=T('Recommendation board'),
+				myBackButton = mkBackButton(),
 				searchForm=searchForm, 
 				grid=grid, 
-				myTitle=T('Recommendation board'),
-				myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
 			)
 	return resu
 

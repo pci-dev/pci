@@ -4,28 +4,47 @@
   {{=myHelp}}
   {{pass}}
 
-{{if 'myBackButton' in locals():}}
-	{{=myBackButton}}
+<div class="pci-myTitle">
+	<div class="pci-backButtonDiv">
+	{{if 'myBackButton' in locals():}}
+		{{=myBackButton}}
+		{{pass}}
+	</div>
+	<div class="pci-myTitleText">
+	{{if 'myTitle' in locals():}}
+		{{=myTitle}}
+		{{pass}}
+	</div>
+</div>
+
+{{if 'searchForm' in locals():}}
+	<div>{{=searchForm}}</div>
 	{{pass}}
 
-{{if 'myTitle' in locals():}}
-{{=H1(myTitle)}}
-{{pass}}
+<hr>
 
 {{if 'content' in locals():}}
-<div>{{=content}}</div>
-{{pass}}
+	<div>{{=content}}</div>
+	{{pass}}
 
 <div>
 {{if 'form' in locals():}}
 	{{=form}}
-{{elif grid.create_form:}}
+{{elif 'create_form' in grid:}}
    {{=grid.create_form}}
-{{elif grid.update_form:}}
+{{elif 'update_form' in grid:}}
    {{=grid.update_form}}
-{{elif grid.view_form:}}
+{{elif 'view_form' in grid:}}
    {{=grid.view_form}}
 {{else:}}
    {{=grid}}
 {{pass}}
 </div>
+
+{{if 'myAcceptBtn' in locals():}}
+	{{=myAcceptBtn}}
+	{{pass}}
+
+{{if 'myFinalScript' in locals():}}
+	{{=myFinalScript}}
+	{{pass}}

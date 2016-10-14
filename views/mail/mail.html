@@ -1,0 +1,12 @@
+<html style='font-size:12pt;'>
+{{if 'content' in globals() and content is not None:}}
+	{{=content}}
+	{{pass}}
+{{if 'footer' in locals() and footer is not None:}}
+	{{=footer}}
+	{{pass}}
+{{if 'recommendation' in locals() and recommendation is not None:}}
+	<hr>
+	{{=recommendation}}
+	{{pass}}
+</html>

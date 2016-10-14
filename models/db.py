@@ -114,6 +114,7 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('country', type='string', label=T('Country'), requires=IS_EMPTY_OR(IS_IN_SET(('Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'North Korea','South Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'FYROM', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe')))),
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=IS_EMPTY_OR(IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
+	Field('cv', type='text', label=T('Curriculum vitae')),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user.registration_key.label=T('Registration key')
@@ -176,10 +177,11 @@ db.define_table('t_articles',
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
-	Field('status', type='string', length=50, default='Pending', label=T('Status')),
+	Field('status', type='string', length=50, default='Pending', label=T('Article status')),
 	Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
+	Field('already_published', type='boolean', label=T('Already published'), default=False),
 	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This article has not been sent for review elsewhere')),
 	Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
 	format='%(title)s (%(authors)s)',
@@ -191,22 +193,31 @@ db.t_articles.upload_timestamp.writable = False
 db.t_articles.last_status_change.writable = False
 db.t_articles.auto_nb_recommendations.writable = False
 db.t_articles.auto_nb_recommendations.readable = False
-db.t_articles.user_id.requires = IS_IN_DB(db, db.auth_user.id)
+db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s,f))
 db.t_articles._after_insert.append(lambda s,i: newArticle(s,i))
 
 def deltaStatus(s, f):
 	o = s.select().first()
-	if f['status'] == 'Awaiting consideration':
+	if o.status == 'Pending' and f['status'] == 'Awaiting consideration':
 		do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
-	if o['status'] != f['status']:
 		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
-		do_send_email_to_recommender(session, auth, db, o['id'], f['status'])
+	elif o.status == 'Awaiting consideration' and f['status'] == 'Under consideration':
+		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+	elif o.status == 'Under consideration' and f['status'] == 'Pre-recommended': 
+		do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+		if o.already_published:
+			do_send_email_to_contributors(session, auth, db, o['id'])
+		# no email for submitter (yet)
+		do_send_email_to_managers(session, auth, db, o['id'], f['status'])
+	elif o.status != f['status']:
+		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+		do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 	return None
 
 def newArticle(s,articleId):
-	do_send_email_to_managers(session, auth, db, articleId)
+	do_send_email_to_managers(session, auth, db, articleId, 'Pending')
 	return None
 
 
@@ -221,8 +232,8 @@ db.define_table('t_recommendations',
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
-	Field('is_press_review', type='boolean', label=T('Press review'), default=False),
-	Field('reply', type='text', label=T('Reply'), default=''),
+	#Field('is_press_review', type='boolean', label=T('Press review'), default=False),
+	Field('reply', type='text', label=T('Author\'s Reply'), default=''),
 	Field('auto_nb_agreements', type='integer', label=T('Number of reviews'), writable=False),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
@@ -230,6 +241,20 @@ db.define_table('t_recommendations',
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 )
 db.t_recommendations.recommender_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(first_name)s %(last_name)s')
+db.t_recommendations._after_insert.append(lambda s,f: newRecommendation(s,f))
+db.t_recommendations._after_update.append(lambda s,f: closedRecommendation(s,f))
+
+def newRecommendation(s,f):
+	do_send_email_to_thank_recommender(session, auth, db, f)
+	return None
+
+def closedRecommendation(s,f):
+	o = s.select().first()
+	a = db.t_articles[o.article_id]
+	if a.already_published and (o.recommendation_comments or '') != '':
+		pass #TODO: warn co-recommenders
+	return None
+
 
 
 db.define_table('t_reviews',
@@ -239,7 +264,7 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('review_state', type='string', length=50, label=T('Review state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Declined', 'Terminated'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Review state'), default='Pending', requires=IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Terminated')), writable=False),
 	migrate=False,
 )
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
@@ -249,11 +274,12 @@ db.t_reviews._after_insert.append(lambda s,i: reviewSuggested(s,i))
 
 def reviewDone(s, f):
 	o = s.select().first()
-	if o['review_state'] is None and f['review_state'] == 'Under consideration':
+	if o['review_state'] == 'Pending' and f['review_state'] == 'Under consideration':
 		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
-	elif o['review_state'] != 'Under consideration' and f['review_state'] == 'Under consideration':
+		do_send_email_to_thank_reviewer(session, auth, db, o['id'])
+	elif o['review_state'] == 'Terminated' and f['review_state'] == 'Under consideration':
 		do_send_email_to_reviewer_review_reopened(session, auth, db, o['id'])
-	elif o['review_state'] is None and f['review_state'] == 'Declined':
+	elif o['review_state'] == 'Pending' and f['review_state'] == 'Declined':
 		do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
 	if o['reviewer_id'] is not None and f['review_state'] == 'Terminated':
 		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
@@ -262,6 +288,7 @@ def reviewDone(s, f):
 def reviewSuggested(s, i):
 	do_send_email_to_reviewer_review_suggested(session, auth, db, i)
 	return None
+
 
 
 
@@ -287,29 +314,28 @@ db.define_table('t_press_reviews',
 	Field('id', type='id'),
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('contributor_id', type='reference auth_user', ondelete='RESTRICT', label=T('Contributor')),
-	Field('contribution_state', type='string', length=50, label=T('Contribution state'), requires=IS_EMPTY_OR(IS_IN_SET(('Under consideration', 'Declined', 'Recommendation agreed'))), writable=False),
-	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
+	#Field('contribution_state', type='string', length=50, label=T('Contribution state'), default='Pending', requires=IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Recommendation agreed')), writable=False),
+	#Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	migrate=False,
 )
-db.t_press_reviews.contributor_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, '%(last_name)s, %(first_name)s'))
+db.t_press_reviews.contributor_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s')
 db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
-db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
-db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))
-
-def contributionAgreement(s, f):
-	o = s.select().first()
-	if o['contribution_state'] == 'Under consideration':
-		do_send_email_to_recommenders_press_review_considerated(session, auth, db, o['id'])
-	elif o['contribution_state'] == 'Declined':
-		do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
-	elif o['contribution_state'] == 'Recommendation agreed':
-		do_send_email_to_recommenders_press_review_agreement(session, auth, db, o['id'])
-	return None
-
-def contributionSuggested(s, i):
-	print 'contributionSuggested:', i, s
-	do_send_email_to_reviewer_contribution_suggested(session, auth, db, i)
-	return None
+#db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
+#db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))
+#def contributionAgreement(s, f):
+	#o = s.select().first()
+	#if o['contribution_state'] == 'Under consideration':
+		#do_send_email_to_recommenders_press_review_considerated(session, auth, db, o['id'])
+	#elif o['contribution_state'] == 'Declined':
+		#do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
+	#elif o['contribution_state'] == 'Recommendation agreed':
+		#do_send_email_to_recommenders_press_review_agreement(session, auth, db, o['id'])
+		##TODO close recommendation
+	#return None
+#def contributionSuggested(s, i):
+	#print 'contributionSuggested:', i, s
+	#do_send_email_to_reviewer_contribution_suggested(session, auth, db, i)
+	#return None
 
 ##-------------------------------- Views ---------------------------------
 db.define_table('v_last_recommendation',

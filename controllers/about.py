@@ -11,7 +11,7 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 
 
 def about():
-	response.view='default/info.html'
+	response.view='default/info.html' #OK
 	return dict(
 		message=T("What is %s?") % (myconf.take('app.longname')),
 		#content=SPAN(T("Peer Community in Evolutionary Biology is the first community of the parent project")+' ')+A("Peer Community In", _href="https://peercommunityin.org")+SPAN("."),
@@ -23,7 +23,7 @@ def about():
 
 
 def ethics():
-	response.view='default/info.html'
+	response.view='default/info.html' #OK
 	return dict(
 		myTitle=I(myconf.take('app.longname'))+SPAN(" code of ethical conduct"),
 		#content=SPAN(""),
