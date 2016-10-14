@@ -624,7 +624,7 @@ def recommendations():
 						_class='pci-ArticleHeaderIn'
 					))
 			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-				_href=URL(c="user", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
+				_href=URL(c="recommender", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
 				_class='button')
 			response.view='default/recommended_articles.html' #OK
 		
@@ -762,6 +762,13 @@ def contributions():
 			,csv = csv, exportclasses = expClass
 			,fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id]
 		)
+		myAcceptBtn = DIV(
+							A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'), 
+								_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
+							A(SPAN(current.T('Later'), _class='buttontext btn btn-info'), 
+										_href=URL(c='recommender', f='my_recommendations', user_signature=True)),
+							_style='margin-top:16px; text-align:center;'
+						)
 		# This script renames the "Add record" button
 		myScript = SCRIPT("""$(function() { 
 						$('span').filter(function(i) {
@@ -779,12 +786,7 @@ def contributions():
 					myBackButton=mkBackButton(),
 					contents=myContents, 
 					grid=grid, 
-					myAcceptButton = DIV(
-										A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'), 
-											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
-										A(SPAN(current.T('Later'), _class='buttontext btn btn-info'), 
-													_href=URL(c='recommender', f='my_recommendations', user_signature=True)),
-										),
+					myAcceptBtn = myAcceptBtn,
 					myFinalScript=myScript,
 				)
 
@@ -817,8 +819,8 @@ def edit_recommendation():
 		response.view='default/myLayout.html'
 		return dict(
 			form = form,
-			myTitle = T('Edit article'),
-			myHelp = getHelp(request, auth, dbHelp, '#UserEditArticle'),
+			myTitle = T('Edit recommendation'),
+			myHelp = getHelp(request, auth, dbHelp, '#RecommenderEditRecommendation'),
 			myBackButton = mkBackButton(),
 		)
 
@@ -884,58 +886,58 @@ def my_press_reviews():
 
 
 
-@auth.requires(auth.has_membership(role='recommender'))
-def agree_new_press_review():
-	if 'pressId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	pressId = request.vars['pressId']
-	pressRev = db.t_press_reviews[pressId]
-	if pressRev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	if pressRev.contributor_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_press_reviews')
-	pressRev.contribution_state = 'Recommendation agreed'
-	pressRev.update_record()
-	# email to recommender sent at database level
-	redirect('my_press_reviews')
+#@auth.requires(auth.has_membership(role='recommender'))
+#def agree_new_press_review():
+	#if 'pressId' not in request.vars:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#pressId = request.vars['pressId']
+	#pressRev = db.t_press_reviews[pressId]
+	#if pressRev is None:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#if pressRev.contributor_id != auth.user_id:
+		#session.flash = T('Unauthorized', lazy=False)
+		#redirect('my_press_reviews')
+	#pressRev.contribution_state = 'Recommendation agreed'
+	#pressRev.update_record()
+	## email to recommender sent at database level
+	#redirect('my_press_reviews')
 
 
 
-@auth.requires(auth.has_membership(role='recommender'))
-def accept_new_press_review():
-	if 'pressId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	pressId = request.vars['pressId']
-	pressRev = db.t_press_reviews[pressId]
-	if pressRev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	if pressRev.contributor_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_press_reviews')
-	pressRev.contribution_state = 'Under consideration'
-	pressRev.update_record()
-	# email to recommender sent at database level
-	redirect('my_press_reviews')
+#@auth.requires(auth.has_membership(role='recommender'))
+#def accept_new_press_review():
+	#if 'pressId' not in request.vars:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#pressId = request.vars['pressId']
+	#pressRev = db.t_press_reviews[pressId]
+	#if pressRev is None:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#if pressRev.contributor_id != auth.user_id:
+		#session.flash = T('Unauthorized', lazy=False)
+		#redirect('my_press_reviews')
+	#pressRev.contribution_state = 'Under consideration'
+	#pressRev.update_record()
+	## email to recommender sent at database level
+	#redirect('my_press_reviews')
 
 
 
-@auth.requires(auth.has_membership(role='recommender'))
-def decline_new_press_review():
-	if 'pressId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	pressId = request.vars['pressId']
-	pressRev = db.t_press_reviews[pressId]
-	if pressRev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	if pressRev.contributor_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_press_reviews')
-	#db(db.t_press_reviews.id==pressId).delete()
-	pressRev.contribution_state = 'Declined'
-	pressRev.update_record()
-	# email to recommender sent at database level
-	redirect('my_press_reviews')
+#@auth.requires(auth.has_membership(role='recommender'))
+#def decline_new_press_review():
+	#if 'pressId' not in request.vars:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#pressId = request.vars['pressId']
+	#pressRev = db.t_press_reviews[pressId]
+	#if pressRev is None:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#if pressRev.contributor_id != auth.user_id:
+		#session.flash = T('Unauthorized', lazy=False)
+		#redirect('my_press_reviews')
+	##db(db.t_press_reviews.id==pressId).delete()
+	#pressRev.contribution_state = 'Declined'
+	#pressRev.update_record()
+	## email to recommender sent at database level
+	#redirect('my_press_reviews')
 	
 
 

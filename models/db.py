@@ -207,9 +207,9 @@ def deltaStatus(s, f):
 		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 	elif o.status == 'Under consideration' and f['status'] == 'Pre-recommended': 
 		do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+		# no email for submitter (yet)
 		if o.already_published:
 			do_send_email_to_contributors(session, auth, db, o['id'])
-		# no email for submitter (yet)
 		do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 	elif o.status != f['status']:
 		do_send_email_to_requester(session, auth, db, o['id'], f['status'])
@@ -318,7 +318,7 @@ db.define_table('t_press_reviews',
 	#Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	migrate=False,
 )
-db.t_press_reviews.contributor_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s')
+db.t_press_reviews.contributor_id.requires = IS_IN_DB(db((db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s')
 db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
 #db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
 #db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))

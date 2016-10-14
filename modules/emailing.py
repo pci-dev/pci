@@ -302,7 +302,7 @@ Dear %(destPerson)s,<p>
 You have been proposed for being in charge of the evaluation of the manuscript entitled %(articleTitle)s.<p>
 You can get information about this recommendation request and details on the recommendation process through the following link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you again for your recommendation request.<p>
-Sincerely yours,<br>
+Sincerely yours,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
 			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
 			mail_resu = mail.send(to=[destAddress],
@@ -624,8 +624,8 @@ def do_send_email_to_reviewer_review_suggested(session, auth, db, reviewId):
 I invite you to review a preprint manuscript entitled <b>%(articleTitle)s</b> with the perspective to recommend it to <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<br>
 This MS can be downloaded from this adress (doi %(articleDOI)s).<br>
 Please let me know as soon as possible if you will be able to accept my invitation to review by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
-Thanks in advance.<p>
-Sincerely yours,<br>
+Thanks in advance.<br>
+Sincerely yours,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
 				#filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_review_suggested.html')
@@ -954,6 +954,9 @@ Sincerely yours,<p>
 
 
 def do_send_email_to_contributors(session, auth, db, articleId):
+	report = []
+	mail_resu = False
+	mail = getMailer(auth)
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
 	managers=myconf.take('contacts.managers')
@@ -975,11 +978,11 @@ You are co-author of this recommendation.<br>
 You can see this recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a><p>
 In case you do not agree with this recommendation, or not co-authored it, please write to the managing board <a href="mailto:%(managers)s">%(managers)s</a> in order to suspend the publication.<br>
 Otherwise, this recommendation will soon appear in <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
-Sincerely yours,
+Sincerely yours,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
 		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		mail_resu = mail.send(to=[db.auth_user[destAddress]],
+		mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
