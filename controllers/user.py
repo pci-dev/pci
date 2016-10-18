@@ -42,43 +42,10 @@ def fill_new_article():
 	db.t_articles.user_id.readable = False
 	db.t_articles.last_status_change.readable = False
 	db.t_articles.auto_nb_recommendations.readable = False
+	db.t_articles.already_published.default = False
+	db.t_articles.already_published.readable = False
+	db.t_articles.already_published.writable = False
 	myTitle=T('Submit an article for a recommendation')
-	#myScript = """jQuery(document).ready(function(){
-					#if(jQuery('#is_press_reviewTrue').prop('checked')) {
-						#jQuery('#t_articles_article_source__row').show();
-					#} else {
-						#jQuery('#t_articles_article_source__row').hide();
-						#jQuery(':submit').prop('disabled', true);
-					#}
-					#if(jQuery('#is_press_reviewTrue').length) jQuery(':submit').prop('disabled', false);
-					#if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-						#jQuery(':submit').prop('disabled', false);
-					#} else {
-						#jQuery(':submit').prop('disabled', true);
-					#}
-					#jQuery('#is_press_reviewTrue').change(function(){
-								#if(jQuery('#is_press_reviewTrue').prop('checked')) {
-									#jQuery('#t_articles_article_source__row').show();
-								#} else {
-									#jQuery('#t_articles_article_source__row').hide();
-								#}
-					#});
-					#jQuery('#is_press_reviewFalse').change(function(){
-								#if(jQuery('#is_press_reviewTrue').prop('checked')) {
-									#jQuery('#t_articles_article_source__row').show();
-								#} else {
-									#jQuery('#t_articles_article_source__row').hide();
-								#}
-					#});
-					#jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
-								#if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-									#jQuery(':submit').prop('disabled', false);
-								#} else {
-									#jQuery(':submit').prop('disabled', true);
-								#}
-					#});
-				#});
-	#"""
 	myScript = """jQuery(document).ready(function(){
 					if(jQuery('#t_articles_already_published').prop('checked')) {
 						jQuery('#t_articles_article_source__row').show();
@@ -87,7 +54,7 @@ def fill_new_article():
 						jQuery(':submit').prop('disabled', true);
 					}
 					if(jQuery('#t_articles_already_published').length) jQuery(':submit').prop('disabled', false);
-					if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+					if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
 						jQuery(':submit').prop('disabled', false);
 					} else {
 						jQuery(':submit').prop('disabled', true);
@@ -107,7 +74,14 @@ def fill_new_article():
 								}
 					});
 					jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
-								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
+									jQuery(':submit').prop('disabled', false);
+								} else {
+									jQuery(':submit').prop('disabled', true);
+								}
+					});
+					jQuery('#t_articles_i_am_an_author').change(function(){
+								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
 									jQuery(':submit').prop('disabled', false);
 								} else {
 									jQuery(':submit').prop('disabled', true);
@@ -115,18 +89,15 @@ def fill_new_article():
 					});
 				});
 	"""
-	db.t_articles.already_published.default = False
-	db.t_articles.already_published.readable = False
-	db.t_articles.already_published.writable = False
-	form = SQLFORM( db.t_articles, keepvalues=True)
+	form = SQLFORM( db.t_articles, keepvalues=True )
 	if form.process().accepted:
 		articleId=form.vars.id
 		session.flash = T('Article submitted', lazy=False)
 		myVars = dict(articleId=articleId)
-		for thema in form.vars.thematics:
-			myVars['qy_'+thema] = 'on'
-		myVars['qyKeywords'] = form.vars.keywords
-		redirect(URL(f='search_recommenders', vars=myVars, user_signature=True))
+		#for thema in form.vars.thematics:
+			#myVars['qy_'+thema] = 'on'
+		#myVars['qyKeywords'] = form.vars.keywords
+		redirect(URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
@@ -216,6 +187,111 @@ def suggested_recommenders():
 				grid=grid, 
 			)
 	
+
+
+@auth.requires_login()
+def add_suggested_recommender():
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	if (art.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		recommendersListSel = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
+		recommendersList = []
+		for con in recommendersListSel:
+			recommendersList.append(LI(mkUser(auth, db, con.id)))
+		myContents = DIV(
+			LABEL(T('Current suggested recommenders:')),
+			UL(recommendersList)
+		)
+		db.t_suggested_recommenders._id.readable = False
+		db.t_suggested_recommenders.article_id.default = articleId
+		db.t_suggested_recommenders.article_id.writable = False
+		db.t_suggested_recommenders.article_id.readable = False
+		db.t_suggested_recommenders.email_sent.writable = False
+		db.t_suggested_recommenders.email_sent.readable = False
+		db.t_suggested_recommenders.suggested_recommender_id.writable = True
+		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
+		alreadySugg = db(db.t_suggested_recommenders.article_id==articleId)._select(db.t_suggested_recommenders.suggested_recommender_id)
+		otherSuggQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadySugg)) )
+		db.t_suggested_recommenders.suggested_recommender_id.requires = IS_IN_DB(otherSuggQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
+		form = SQLFORM(db.t_suggested_recommenders)
+		if form.process().accepted:
+			redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+		myAcceptBtn = DIV(
+							A(SPAN(T('Terminate recommendation request'), _class='buttontext btn btn-info'), 
+								_href=URL(c='user', f='my_articles', user_signature=True)),
+							_style='margin-top:16px; text-align:center;'
+						)
+		response.view='default/myLayout.html'
+		return dict(
+					myHelp = getHelp(request, auth, dbHelp, '#UserAddSuggestedRecommender'),
+					myTitle=T('Suggest a recommender for your article'), 
+					myBackButton=mkBackButton(),
+					content=myContents, 
+					form=form, 
+					myAcceptBtn = myAcceptBtn,
+					#myFinalScript=myScript,
+				)
+
+
+
+@auth.requires_login()
+def recommenders():
+	articleId = request.vars['articleId']
+	article = db.t_articles[articleId]
+	if (article.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		query = (db.t_suggested_recommenders.article_id == articleId)
+		db.t_suggested_recommenders._id.readable = False
+		db.t_suggested_recommenders.article_id.default = articleId
+		db.t_suggested_recommenders.article_id.writable = False
+		db.t_suggested_recommenders.article_id.readable = False
+		db.t_suggested_recommenders.email_sent.writable = False
+		db.t_suggested_recommenders.email_sent.readable = False
+		db.t_suggested_recommenders.suggested_recommender_id.writable = True
+		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
+		if len(request.args)>0 and request.args[0]=='new':
+			myAcceptBtn = ''
+		else:
+			myAcceptBtn = DIV(
+							A(SPAN(current.T('Terminated'), _class='buttontext btn btn-info'), 
+										_href=URL(c='user', f='my_articles', user_signature=True)),
+							_style='margin-top:16px; text-align:center;'
+						)
+		grid = SQLFORM.grid( query
+			,details=False
+			,editable=False
+			,deletable=article.status in ('Pending', 'Awaiting consideration')
+			,create=False
+			,searchable=False
+			,maxtextlength = 250,paginate=100
+			,csv = csv, exportclasses = expClass
+			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
+		)
+		## This script renames the "Add record" button
+		#myScript = SCRIPT("""$(function() { 
+						#$('span').filter(function(i) {
+								#return $(this).attr("title") ? $(this).attr("title").indexOf('"""+T("Add record to database")+"""') != -1 : false;
+							#})
+							#.each(function(i) {
+								#$(this).text('"""+T("Add a recommender")+"""').attr("title", '"""+T("Suggest this article to a potential recommender")+"""');
+							#});
+						#})""",
+						#_type='text/javascript')
+		response.view='default/myLayout.html'
+		return dict(
+					myHelp = getHelp(request, auth, dbHelp, '#UserManageRecommenders'),
+					myTitle=T('Manage recommenders for your article'), 
+					myBackButton=mkBackButton(),
+					grid=grid, 
+					myAcceptBtn = myAcceptBtn,
+					#myFinalScript=myScript,
+				)
+
 
 
 @auth.requires_login()
@@ -312,7 +388,7 @@ def suggested_recommenders():
 	if art is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id or art.status != 'Pending':
+	if art.user_id != auth.user_id or art.status not in ('Pending', 'Awaiting consideration'):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
@@ -323,7 +399,7 @@ def suggested_recommenders():
 		db.t_suggested_recommenders._id.readable = False
 		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda userId, row: mkUser(auth, db, userId)
 		grid = SQLFORM.grid( query
-			,details=False,editable=False,deletable=True,create=False,searchable=False
+			,details=False,editable=False,deletable=True,searchable=False,create=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
 			,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.auth_user.thematics]
@@ -351,14 +427,14 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 		butts += suggRecomsTxt
 	if row.status in ('Pending', 'Awaiting consideration'):
 		if len(suggRecomsTxt)>0:
-			butts.append( A(current.T('[MANAGE]'), _href=URL(c='user', f='suggested_recommenders', vars=dict(articleId=row.id))) )
+			butts.append( A(current.T('[MANAGE]'), _href=URL(c='user', f='recommenders', vars=dict(articleId=row.id))) )
 		myVars = dict(articleId=row['id'])
-		if len(exclude)>0:
-			myVars['exclude'] = ','.join(exclude)
-		for thema in row['thematics']:
-			myVars['qy_'+thema] = 'on'
+		#if len(exclude)>0:
+			#myVars['exclude'] = ','.join(exclude)
+		#for thema in row['thematics']:
+			#myVars['qy_'+thema] = 'on'
 		#butts.append( BR() )
-		butts.append( A(current.T('[+ADD]'), _href=URL(c='user', f='search_recommenders', vars=myVars, user_signature=True)) )
+		butts.append( A(current.T('[+ADD]'), _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	#else:
 		#butts.append( SPAN((db.v_suggested_recommenders[row.id]).suggested_recommenders) )
 	return butts
@@ -553,32 +629,12 @@ def my_reviews():
 		,links=links
 		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
-	#myAcceptBtn = None
-	#if grid.view_form:
-		#myState = db.t_reviews[request.args(2)]['review_state']
-		#if myState is None:
-			#myAcceptBtn = DIV(
-				#A(SPAN(T('Yes, I accept this review'), _class='buttontext btn btn-success'), 
-					#_href=URL(c='user', f='accept_new_review',  vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
-				#A(SPAN(T('No thanks, I decline this review'), _class='buttontext btn btn-warning'), 
-					#_href=URL(c='user', f='decline_new_review', vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
-				#_class='pci-opinionform')
-		#elif myState == 'Under consideration':
-			#myAcceptBtn = DIV(
-				#A(SPAN(T('This review is now completed'), _class='buttontext btn btn-success'), 
-					#_href=URL(c='user', f='review_completed',  vars=dict(reviewId=request.args(2)), user_signature=True), _class='button'),
-				#_class='pci-opinionform'
-				#)
-	myContents = ''
-	#response.view='default/reviewsLayout.html'
 	response.view='default/myLayout.html'
 	return dict(
-				grid=grid, 
+				myHelp = getHelp(request, auth, dbHelp, '#UserMyReviews'),
 				myTitle=myTitle,
 				myBackButton=mkBackButton(), 
-				#myAcceptBtn=myAcceptBtn,
-				myContents=myContents,
-				myHelp = getHelp(request, auth, dbHelp, '#UserMyReviews'),
+				grid=grid, 
 			 )
 
 
@@ -690,7 +746,7 @@ def edit_review():
 	else:
 		form = SQLFORM(db.t_reviews
 					,record=review
-					,fields=['anonymously', 'review']
+					,fields=['anonymously', 'review', 'no_conflict_of_interest']
 					,showid=False
 				)
 		if form.process().accepted:
@@ -698,12 +754,28 @@ def edit_review():
 			redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
+	myScript = """jQuery(document).ready(function(){
+					if(jQuery('#t_reviews_no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+					jQuery('#t_reviews_no_conflict_of_interest').change(function(){
+								if(jQuery('#t_reviews_no_conflict_of_interest').prop('checked')) {
+									jQuery(':submit').prop('disabled', false);
+								} else {
+									jQuery(':submit').prop('disabled', true);
+								}
+					});
+				});
+	"""
 	response.view='default/myLayout.html'
 	return dict(
 		myHelp = getHelp(request, auth, dbHelp, '#UserEditReview'),
 		myBackButton = mkBackButton(),
 		myTitle = T('Edit review'),
 		form = form,
+		myFinalScript = SCRIPT(myScript),
 	)
 
 

@@ -22,11 +22,6 @@ from helper import *
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
-# frequently used constants
-csv = False # no export allowed
-expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.take('config.trgm_limit') or 0.4
-
 
 # Home page (public)
 def index():
@@ -36,7 +31,7 @@ def index():
 			OPTION('50', _value=50),
 			OPTION('100', _value=100),
 		]
-	#WARNING: do not delete: for later use
+	#NOTE: do not delete: kept for later use
 	#thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
 	#options = [OPTION('--- All thematic fields ---', _value='')]
 	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
@@ -50,7 +45,7 @@ def index():
 									user_signature=True))
 						, _style='margin-left:8px; margin-right:8px;'),
 				LABEL(' '+T('last recommendations')+' '), 
-				#WARNING: do not delete: for later use
+				#NOTE: do not delete: kept for later use
 				#LABEL(' '+T('last recommendations in:')+' '), 
 				#SELECT(options, _name='qyThemaSelect', 
 					#_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 

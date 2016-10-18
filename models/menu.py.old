@@ -106,14 +106,7 @@ def _UserMenu():
 	
 	### contributions menu
 	# reviews
-	myContributionsMenu.append((T('Your submissions'), False, URL('user', 'my_articles', user_signature=True)))
-	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
-					& (db.t_reviews.recommendation_id == db.t_recommendations.id)
-					& (db.t_recommendations.article_id == db.t_articles.id) 
-			   ).count()
-	if nRevTot>0:
-		myContributionsMenu.append(LI(_class="divider"))
-		myContributionsMenu.append((T('Your reviews'), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
+	myContributionsMenu.append((T('Your reviews'), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
 	# recommendations
 	if auth.has_membership(None, None, 'recommender'):
 		myContributionsMenu.append(LI(_class="divider"))
@@ -153,13 +146,9 @@ def _UserMenu():
 			colorRequests = True
 		mySollicitationsMenu.append((txtPreprintsRecomPend,False, 
 								URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
-		mySollicitationsMenu += [
-				LI(_class="divider"),
-				(T('Articles requiring a recommender in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
-				(T('All articles requiring a recommender'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
-			]
+
 	resu = [
-		#(T('Your submissions'),         False, URL('user', 'my_articles', user_signature=True)),
+		(T('Your submissions'),         False, URL('user', 'my_articles', user_signature=True)),
         (T('Your contributions'),       False, '#', myContributionsMenu),
 	]
 	if colorRequests:
@@ -171,14 +160,14 @@ def _UserMenu():
 	return resu
 
 
-## Appends recommenders menu
-#def _RecommMenu():
-	#return [
-        #(T('Articles requiring a recommender'), False, '#', [
-			#(T('Articles in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
-			#(T('All articles'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
-		#]),
-	#]
+# Appends recommenders menu
+def _RecommMenu():
+	return [
+        (T('Articles requiring a recommender'), False, '#', [
+			(T('Articles in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
+			(T('All articles'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
+		]),
+	]
 
 # Appends managers menu
 def _ManagerMenu():
@@ -187,11 +176,14 @@ def _ManagerMenu():
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
 		txtPending = SPAN(txtPending, _style='color:blue;')
+		#txtPending = B(txtPending)
 		txtMenu = SPAN(txtMenu, _style='color:blue;')
+		#txtMenu = B(txtMenu)
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes in progress') if nbGoing > 1 else T('Recommendation process in progress'))
 	if nbGoing>0:
 		txtGoing = SPAN(txtGoing, _style='color:blue;')
+		#txtGoing = B(txtGoing)
 	return [
         (txtMenu, False, '#', [
 			(txtPending, False, URL('manager', 'pending_articles', user_signature=True)),
@@ -210,8 +202,8 @@ response.menu = _BaseMenu()
 if auth.is_logged_in():
 	response.menu += _UserMenu()
 
-#if auth.has_membership(None, None, 'recommender'):
-	#response.menu += _RecommMenu()
+if auth.has_membership(None, None, 'recommender'):
+	response.menu += _RecommMenu()
 
 if auth.has_membership(None, None, 'manager'):
 	response.menu += _ManagerMenu()

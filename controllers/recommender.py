@@ -75,8 +75,7 @@ def search_reviewers():
 		elif (re.match('^qy_', myVar)):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars)
-	#TODO: modify search_reviewers for possibly limiting to recommenders only
+	searchForm =  mkSearchForm(auth, db, myVars, allowBlanks=True)
 	filtered = db.executesql('SELECT * FROM search_reviewers(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	for fr in filtered:
 		qy_reviewers.insert(**fr)
@@ -104,7 +103,6 @@ def search_reviewers():
 		,orderby=temp_db.qy_reviewers.num
 		,args=request.args
 	)
-	#response.view='default/recommenders.html'
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp=myHelp,
@@ -118,7 +116,6 @@ def search_reviewers():
 
 def mkViewEditArticleRecommenderButton(auth, db, row):
 	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id), user_signature=True), _class='button', _title=current.T('View and accept or decline recommendation'))
-
 
 
 @auth.requires(auth.has_membership(role='recommender'))
@@ -318,10 +315,11 @@ def accept_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	article = db.t_articles[articleId]
 	if article.status == 'Awaiting consideration':
-		db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi)
+		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi)
 		article.status = 'Under consideration'
 		article.update_record()
-		redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
+		#redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
+		redirect(URL('reviewers', vars=dict(recommId=recommId), user_signature=True)) #TODO #WARNING # basculer sur add reviewer
 	else:
 		session.flash = T('Article no more available', lazy=False)
 		redirect('my_awaiting_articles')
@@ -422,14 +420,8 @@ def suggest_review_to():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		#if request.vars['myGoal'] == '4review':
 		db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
-		redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
-		#elif request.vars['myGoal'] == '4press':
-			#db.t_press_reviews.update_or_insert(recommendation_id=recommId, contributor_id=reviewerId)
-			#redirect(URL('my_recommendations', vars=dict(pressReviews=True), user_signature=True))
-		#else:
-			#raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		redirect(URL('reviewers', vars=dict(recommId=recommId), user_signature=True))
 
 
 
@@ -449,14 +441,8 @@ def suggest_collaboration_to():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		#if request.vars['myGoal'] == '4review':
-			#db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
-			#redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
-		#elif request.vars['myGoal'] == '4press':
 		db.t_press_reviews.update_or_insert(recommendation_id=recommId, contributor_id=reviewerId)
 		redirect(URL('my_recommendations', vars=dict(pressReviews=True), user_signature=True))
-		#else:
-			#raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 
 
 
@@ -475,10 +461,7 @@ def my_recommendations():
 		fields = [db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_comments]
 		links = [
 				dict(header=T('Contributors'), body=lambda row: mkSollicitedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				#dict(header=T('Declined contributions'),   body=lambda row:   mkDeclinedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				#dict(header=T('Ongoing contributions'),    body=lambda row:    mkOngoingPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				#dict(header=T('Closed contributions'),     body=lambda row:     mkClosedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T(''),                        body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 	else:
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
@@ -493,7 +476,7 @@ def my_recommendations():
 				dict(header=T('Declined reviews'),   body=lambda row:   mkDeclinedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Ongoing reviews'),    body=lambda row:    mkOngoingRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Closed reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T(''),                     body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 		
 	db.t_recommendations.recommender_id.writable = False
@@ -521,8 +504,6 @@ def my_recommendations():
 		,links=links
 		,orderby=~db.t_recommendations.last_change
 	)
-	#myBackButton = A(SPAN(T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
-	#response.view='recommender/my_recommendations.html'
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp = getHelp(request, auth, dbHelp, '#RecommenderMyRecommendations'),
@@ -564,8 +545,7 @@ def direct_submission():
 	if form.process().accepted:
 		newId = db.t_articles.insert(**db.t_articles._filter_fields(form.vars))
 		recommId = db.t_recommendations.insert(article_id=newId, recommender_id=auth.user_id, doi=form.vars.doi)
-		#redirect(URL('my_recommendations', vars=dict(pressReviews=True), user_signature=True))
-		redirect(URL('contributions', vars=dict(recommId=recommId), user_signature=True))
+		redirect(URL(f='add_contributor', vars=dict(recommId=recommId), user_signature=True))
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, dbHelp, '#RecommenderDirectSubmission'),
@@ -672,7 +652,7 @@ def reviews():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		myContents = mkRecommendationFormat(auth, db, recomm)
+		#myContents = mkRecommendationFormat(auth, db, recomm)
 		db.t_reviews._id.readable = False
 		db.t_reviews.recommendation_id.default = recommId
 		db.t_reviews.recommendation_id.writable = False
@@ -684,6 +664,7 @@ def reviews():
 		db.t_reviews.anonymously.writable = auth.has_membership(role='manager')
 		db.t_reviews.review.writable = auth.has_membership(role='manager')
 		db.t_reviews.review_state.writable = auth.has_membership(role='manager')
+		db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
 		
 		if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'): # grid view
 			selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'class1')]
@@ -697,7 +678,7 @@ def reviews():
 			,details=True
 			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Terminated' and row.reviewer_id is None)
 			,deletable=auth.has_membership(role='manager')
-			,create=True
+			,create=lambda row: auth.has_membership(role='manager')
 			,searchable=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
@@ -722,11 +703,185 @@ def reviews():
 				myHelp = getHelp(request, auth, dbHelp, '#RecommenderArticleReviews'),
 				myTitle=T('Reviews for recommendation'), 
 				myBackButton=mkBackButton(),
-				content=myContents, 
+				#content=myContents, 
 				grid=grid, 
 				myFinalScript=myScript,
 			  )
-	
+
+
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def add_recommender_as_reviewer():
+	recommId = request.vars['recommId']
+	recomm = db.t_recommendations[recommId]
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		db.t_reviews.validate_and_insert(recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state='Pending')
+	redirect(request.env.http_referer)
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def del_reviewer():
+	reviewId = request.vars['reviewId']
+	if reviewId:
+		if db( (db.t_reviews.id==reviewId) & (db.t_recommendations.id==db.t_reviews.recommendation_id) & (db.t_recommendations.recommender_id==auth.user_id) ).count() > 0:
+			db( (db.t_reviews.id==reviewId) ).delete()
+	redirect(request.env.http_referer)
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def reviewers():
+	recommId = request.vars['recommId']
+	recomm = db.t_recommendations[recommId]
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		reviewersListSel = db( (db.t_reviews.recommendation_id==recommId) & (db.t_reviews.reviewer_id==db.auth_user.id) ).select(db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id)
+		reviewersList = []
+		reviewersIds = [auth.user_id]
+		selfFlag = False
+		for con in reviewersListSel:
+			if recomm.recommender_id == con.auth_user.id: selfFlag=True
+			reviewersIds.append(con.auth_user.id)
+			reviewersList.append(LI(mkUserWithMail(auth, db, con.auth_user.id),
+									A('X', _href=URL(c='recommender', f='del_reviewer', vars=dict(reviewId=con.t_reviews.id)), 
+									   _title=T('Delete'), _style='margin-left:8px;')
+									if con.t_reviews.review_state=='Pending' else '',
+								))
+		excludeList = ','.join(map(str,reviewersIds))
+		myContents = DIV(
+			LABEL(T('Current reviewers:')),
+			UL(reviewersList),
+		)
+		db.t_reviews._id.readable = False
+		db.t_reviews.recommendation_id.default = recommId
+		db.t_reviews.recommendation_id.writable = False
+		db.t_reviews.recommendation_id.readable = False
+		db.t_reviews.review.writable = False
+		db.t_reviews.review.readable = False
+		db.t_reviews.anonymously.writable = False
+		db.t_reviews.anonymously.readable = False
+		db.t_reviews.last_change.writable = False
+		db.t_reviews.last_change.readable = False
+		db.t_reviews.no_conflict_of_interest.writable = False
+		db.t_reviews.no_conflict_of_interest.readable = False
+		db.t_reviews.reviewer_id.writable = True
+		db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
+		db.t_reviews.review_state.writable = False
+		db.t_reviews.review_state.readable = False
+		myUpperBtn = DIV(
+							A(SPAN(current.T('Search reviewer'), _class='buttontext btn btn-info'), 
+								_href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList), user_signature=True)),
+							A(SPAN(current.T('Add yourself as a reviewer'), _class='buttontext btn btn-info'), 
+										_href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId), user_signature=True)) if not(selfFlag) else '',
+							A(SPAN(current.T('Template email for buddies'), _class='buttontext btn btn-info'), 
+										_href=URL(c='recommender', f='email_for_reviewer', vars=dict(recommId=recommId), user_signature=True)),
+							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
+						)
+		alreadyRev = db(db.t_reviews.recommendation_id==recommId)._select(db.t_reviews.reviewer_id)
+		otherRevQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user.registration_key=='') & (~db.auth_user.id.belongs(alreadyRev)) )
+		db.t_reviews.reviewer_id.requires = IS_IN_DB(otherRevQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
+		form = SQLFORM(db.t_reviews)
+		if form.process().accepted:
+			redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id), user_signature=True))
+		response.view='default/myLayout.html'
+		return dict(
+					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddReviewers'),
+					myTitle=T('Add or manage reviewers to your recommendation'), 
+					content=myContents, 
+					form=form, 
+					myUpperBtn = myUpperBtn,
+				)
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def email_for_reviewer():
+	response.view='default/info.html' #OK
+	return dict(
+		message=T("Template email for registration and review"),
+		#panel=mkPanel(myconf, auth),
+		myText=getText(request, auth, dbHelp, '#TemplateEmailForReviewInfo'),
+		myBackButton=mkBackButton(),
+	)
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def email_for_author():
+	response.view='default/info.html' #OK
+	return dict(
+		message=T("Template email for author"),
+		#panel=mkPanel(myconf, auth),
+		myText=getText(request, auth, dbHelp, '#TemplateEmailForAuthorInfo'),
+		myBackButton=mkBackButton(),
+	)
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def del_contributor():
+	pressId = request.vars['pressId']
+	if pressId:
+		if db( (db.t_press_reviews.id==pressId) & (db.t_recommendations.id==db.t_press_reviews.recommendation_id) & (db.t_recommendations.recommender_id==auth.user_id) ).count() > 0:
+			db( (db.t_press_reviews.id==pressId) ).delete()
+	redirect(request.env.http_referer)
+
+
+
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def add_contributor():
+	recommId = request.vars['recommId']
+	recomm = db.t_recommendations[recommId]
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		contributorsListSel = db( (db.t_press_reviews.recommendation_id==recommId) & (db.t_press_reviews.contributor_id==db.auth_user.id) ).select(db.t_press_reviews.id, db.auth_user.id)
+		contributorsList = []
+		for con in contributorsListSel:
+			contributorsList.append(LI(mkUserWithMail(auth, db, con.auth_user.id),
+									A('X', 
+									   _href=URL(c='recommender', f='del_contributor', vars=dict(pressId=con.t_press_reviews.id)), 
+									   _title=T('Delete'), _style='margin-left:8px;'),
+									))
+		myContents = DIV(
+			LABEL(T('Current contributors:')),
+			UL(contributorsList),
+		)
+		db.t_press_reviews._id.readable = False
+		db.t_press_reviews.recommendation_id.default = recommId
+		db.t_press_reviews.recommendation_id.writable = False
+		db.t_press_reviews.recommendation_id.readable = False
+		db.t_press_reviews.contributor_id.writable = True
+		db.t_press_reviews.contributor_id.represent = lambda text,row: mkUserWithMail(auth, db, row.contributor_id) if row else ''
+		alreadyCo = db(db.t_press_reviews.recommendation_id==recommId)._select(db.t_press_reviews.contributor_id)
+		otherContribsQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadyCo)) )
+		db.t_press_reviews.contributor_id.requires = IS_IN_DB(otherContribsQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
+		form = SQLFORM(db.t_press_reviews)
+		if form.process().accepted:
+			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id), user_signature=True))
+		myAcceptBtn = DIV(
+							A(SPAN(current.T('Write or edit recommendation'), _class='buttontext btn btn-info'), 
+										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
+							A(SPAN(current.T('Continue later'), _class='buttontext btn btn-info'), 
+										_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
+							A(SPAN(current.T('Terminate this collective recommendation'), _class='buttontext btn btn-success'), 
+										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True), 
+										_title=current.T('Click here to check the final recommendation of this article')) if len(recomm.recommendation_comments)>50 and len(contributorsList)>0 else '',
+							_style='margin-top:16px; text-align:center;'
+						)
+		response.view='default/myLayout.html'
+		return dict(
+					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddContributor'),
+					myTitle=T('Add a contributor to your recommendation'), 
+					#myBackButton=mkBackButton(),
+					content=myContents, 
+					form=form, 
+					myAcceptBtn = myAcceptBtn,
+					#myFinalScript=myScript,
+				)
 
 
 
@@ -745,13 +900,10 @@ def contributions():
 		db.t_press_reviews.recommendation_id.writable = False
 		db.t_press_reviews.recommendation_id.readable = False
 		db.t_press_reviews.contributor_id.writable = True
-		#db.t_press_reviews.contributor_id.default = auth.user_id
 		db.t_press_reviews.contributor_id.represent = lambda text,row: mkUserWithMail(auth, db, row.contributor_id) if row else ''
-		#db.t_press_reviews.last_change.readable = False
-		#db.t_press_reviews.contribution_state.readable = False
-		#db.t_press_reviews.contribution_state.writable = False
-		#db.t_press_reviews.contribution_state.represent = lambda state,row: mkContributionStateDiv(auth, db, state)
-		
+		alreadyCo = db(db.t_press_reviews.recommendation_id==recommId)._select(db.t_press_reviews.contributor_id)
+		otherContribsQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadyCo)) )
+		db.t_press_reviews.contributor_id.requires = IS_IN_DB(otherContribsQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
 		grid = SQLFORM.grid( query
 			,details=False
 			,editable=False
@@ -762,13 +914,13 @@ def contributions():
 			,csv = csv, exportclasses = expClass
 			,fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id]
 		)
-		myAcceptBtn = DIV(
-							A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'), 
-								_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
-							A(SPAN(current.T('Later'), _class='buttontext btn btn-info'), 
-										_href=URL(c='recommender', f='my_recommendations', user_signature=True)),
-							_style='margin-top:16px; text-align:center;'
-						)
+		#myAcceptBtn = DIV(
+							#A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'), 
+								#_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
+							#A(SPAN(current.T('Later'), _class='buttontext btn btn-info'), 
+										#_href=URL(c='recommender', f='my_recommendations', user_signature=True)),
+							#_style='margin-top:16px; text-align:center;'
+						#)
 		# This script renames the "Add record" button
 		myScript = SCRIPT("""$(function() { 
 						$('span').filter(function(i) {
@@ -786,7 +938,7 @@ def contributions():
 					myBackButton=mkBackButton(),
 					contents=myContents, 
 					grid=grid, 
-					myAcceptBtn = myAcceptBtn,
+					#myAcceptBtn = myAcceptBtn,
 					myFinalScript=myScript,
 				)
 
@@ -808,7 +960,7 @@ def edit_recommendation():
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
-					,fields=['recommendation_comments']
+					,fields=['recommendation_comments', 'no_conflict_of_interest']
 					,showid=False
 				)
 		if form.process().accepted:
@@ -816,28 +968,34 @@ def edit_recommendation():
 			redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
+		myScript = """jQuery(document).ready(function(){
+						if(jQuery('#t_recommendations_no_conflict_of_interest').prop('checked')) {
+							jQuery(':submit').prop('disabled', false);
+						} else {
+							jQuery(':submit').prop('disabled', true);
+						}
+						jQuery('#t_recommendations_no_conflict_of_interest').change(function(){
+									if(jQuery('#t_recommendations_no_conflict_of_interest').prop('checked')) {
+										jQuery(':submit').prop('disabled', false);
+									} else {
+										jQuery(':submit').prop('disabled', true);
+									}
+						});
+					});
+		"""
 		response.view='default/myLayout.html'
 		return dict(
 			form = form,
-			myTitle = T('Edit recommendation'),
+			myTitle = T('Write or edit recommendation'),
 			myHelp = getHelp(request, auth, dbHelp, '#RecommenderEditRecommendation'),
 			myBackButton = mkBackButton(),
+			myFinalScript = SCRIPT(myScript),
 		)
 
 
 
 @auth.requires(auth.has_membership(role='recommender'))
 def my_press_reviews():
-	#pendingOnly = ('pendingOnly' in request.vars) and (request.vars['pendingOnly'] == "True")
-	#if pendingOnly:
-		#query = ( 
-				  #(db.t_press_reviews.contributor_id == auth.user_id) 
-				#& (db.t_press_reviews.contribution_state == 'Pending') 
-				#& (db.t_press_reviews.recommendation_id==db.t_recommendations.id) 
-				#& (db.t_recommendations.article_id==db.t_articles.id)
-				#)
-		#myTitle = T('Requests for co-recommendations of reviewed articles')
-	#else:
 	query = (
 			  (db.t_press_reviews.contributor_id == auth.user_id) 
 			& (db.t_press_reviews.recommendation_id==db.t_recommendations.id) 
@@ -864,11 +1022,11 @@ def my_press_reviews():
 		,links=[
 				dict(header=T('Other contributors'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''), 
-						body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button'), 
+						body=lambda row: A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
 										_target="_blank", 
 										_class='button', 
-										_title=current.T('View and/or validate press review')
+										_title=current.T('View this co-recommendation')
 										)
 					),
 				]
@@ -886,58 +1044,25 @@ def my_press_reviews():
 
 
 
-#@auth.requires(auth.has_membership(role='recommender'))
-#def agree_new_press_review():
-	#if 'pressId' not in request.vars:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#pressId = request.vars['pressId']
-	#pressRev = db.t_press_reviews[pressId]
-	#if pressRev is None:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#if pressRev.contributor_id != auth.user_id:
-		#session.flash = T('Unauthorized', lazy=False)
-		#redirect('my_press_reviews')
-	#pressRev.contribution_state = 'Recommendation agreed'
-	#pressRev.update_record()
-	## email to recommender sent at database level
-	#redirect('my_press_reviews')
 
-
-
-#@auth.requires(auth.has_membership(role='recommender'))
-#def accept_new_press_review():
-	#if 'pressId' not in request.vars:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#pressId = request.vars['pressId']
-	#pressRev = db.t_press_reviews[pressId]
-	#if pressRev is None:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#if pressRev.contributor_id != auth.user_id:
-		#session.flash = T('Unauthorized', lazy=False)
-		#redirect('my_press_reviews')
-	#pressRev.contribution_state = 'Under consideration'
-	#pressRev.update_record()
-	## email to recommender sent at database level
-	#redirect('my_press_reviews')
-
-
-
-#@auth.requires(auth.has_membership(role='recommender'))
-#def decline_new_press_review():
-	#if 'pressId' not in request.vars:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#pressId = request.vars['pressId']
-	#pressRev = db.t_press_reviews[pressId]
-	#if pressRev is None:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#if pressRev.contributor_id != auth.user_id:
-		#session.flash = T('Unauthorized', lazy=False)
-		#redirect('my_press_reviews')
-	##db(db.t_press_reviews.id==pressId).delete()
-	#pressRev.contribution_state = 'Declined'
-	#pressRev.update_record()
-	## email to recommender sent at database level
-	#redirect('my_press_reviews')
-	
+@auth.requires(auth.has_membership(role='recommender'))
+def do_cancel_press_review():
+	recommId = request.vars['recommId']
+	if recommId is None:
+		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+	recomm = db.t_recommendations[recommId]
+	if recomm is None:
+		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+	art = db.t_articles[recomm.article_id]
+	if art is None:
+		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+	if recomm.recommender_id != auth.user_id:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		art.status = 'Cancelled'
+		art.update_record()
+		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True))
 
 

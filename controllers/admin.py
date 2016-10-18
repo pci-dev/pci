@@ -16,7 +16,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
-@auth.requires(auth.has_membership(role='developper'))
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def testMail():
 	do_send_email_to_test(session, auth, db, auth.user_id)
 	redirect(request.env.http_referer)
@@ -142,8 +142,6 @@ def article_status():
 			myBackButton=mkBackButton(),
 			myHelp=getHelp(request, auth, dbHelp, '#AdministrateArticleStatus'),
 			 )
-
-
 
 
 

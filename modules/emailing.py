@@ -3,7 +3,7 @@
 import os
 import datetime
 from re import sub, match
-from copy import deepcopy
+#from copy import deepcopy
 import datetime
 from dateutil.relativedelta import *
 
@@ -17,6 +17,7 @@ from gluon.tools import Mail
 
 from gluon.custom_import import track_changes; track_changes(True)
 from common import *
+import socket
 
 myconf = AppConfig(reload=True)
 
@@ -37,8 +38,8 @@ def mkFooter():
 	appname=myconf.take('app.name')
 	applongname=myconf.take('app.longname')
 	appthematics=myconf.take('app.thematics')
-	baseurl=URL(c='default', f='index', scheme=True, host=True)
-	profileurl=URL(c='default', f='user', args=['profile'], scheme=True, host=True)
+	baseurl=URL(c='default', f='index', scheme=myconf.take('alerts.scheme'), host=myconf.take('alerts.host'), port=myconf.take('alerts.port'))
+	profileurl=URL(c='default', f='user', args=['profile'], scheme=myconf.take('alerts.scheme'), host=myconf.take('alerts.host'), port=myconf.take('alerts.port'))
 	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
 <i>%(applongname)s</i> is the first community of the parent project <a href="https://peercommunityin.org/">Peer Community In</a>.<br>
 It is a community of researchers in %(appthematics)s dedicated to review and recommend manuscripts publicly available in pre-print servers (such as bioRxiv).<br>
@@ -69,7 +70,6 @@ Dear %(destPerson)s,<p>
 This is a test mail; please ignore.<p>
 You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>""" % locals()
 	myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-	print myMessage
 	mail_resu = mail.send(to=[destAddress],
 					subject=mySubject,
 					message=myMessage,
@@ -884,8 +884,17 @@ def do_send_email_to_thank_recommender(session, auth, db, recommId):
 			if theUser:
 				#recommender = mkUser(auth, db, recomm.recommender_id)
 				destPerson = mkUserWithMail(auth, db, recomm.recommender_id)
-				content = """Dear %(destPerson)s,<p>
-You accepted the evaluation of the manuscript entitled <b>%(articleTitle)s</b>. 
+				if article.already_published:
+					content = """Dear %(destPerson)s,<p>
+You initiated the evaluation of the manuscript entitled <b>%(articleTitle)s</b>.<br>
+You can get information about this recommendation and details on the recommendation process through the following link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+We thank you for initiating this recommendation.<p>
+Sincerely yours,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+				else:
+					content = """Dear %(destPerson)s,<p>
+You accepted the evaluation of the manuscript entitled <b>%(articleTitle)s</b>.<br>
 You can get information about this recommendation and details on the recommendation process through the following link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you for accepting your recommendation.<p>
 Sincerely yours,<p>
@@ -996,3 +1005,38 @@ Sincerely yours,<p>
 	else:
 		session.flash += '; ' + '; '.join(report)
 
+
+def alert_new_recommendations(session, auth, db, userId, msgArticles):
+	report = []
+	mail_resu = False
+	mail = getMailer(auth)
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	destPerson = mkUser(auth, db, userId)
+	destAddress = db.auth_user[userId]['email']
+	mySubject = '%s: New recommendations alert' % (applongname)
+	content = """Dear %(destPerson)s,<p>
+We are pleased to inform you that the following recommendations have been recently published on the web site of <i>%(applongname)s</i> (in the fields for which you requested to be alerted).<p>
+Sincerely yours,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+<hr>
+%(msgArticles)s
+<hr>
+""" % locals()
+	if destAddress:
+		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+		mail_resu = mail.send(to=[destAddress],
+							subject=mySubject,
+							message=myMessage,
+						)
+		if mail_resu:
+			report.append( 'email to %s sent' % destPerson.flatten() )
+		else:
+			report.append( 'email to %s NOT SENT' % destPerson.flatten() )
+		print '\n'.join(report)
+	if session:
+		if session.flash is None:
+			session.flash = '; '.join(report)
+		else:
+			session.flash += '; ' + '; '.join(report)
+	

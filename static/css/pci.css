@@ -201,8 +201,8 @@ header {-webkit-box-shadow: 0 0 8px 2px #999999; -moz-box-shadow: 0 0 8px 2px #9
 .pci-reject {background-color: #e61919; color:white;}
 .pci-later {background-color: white; color:black;}
 
-.pci-helper   {border:1px solid #ddddff; border-radius:4px; margin-bottom:4px;}
-.pci-helptext {max-height:200px; overflow:auto; background-color:#ddeeff; margin:4px; padding:4px; font-size:10px;}
+.pci-helper   {border:1px solid #f0f0ff; border-radius:4px; margin-bottom:4px;}
+.pci-helptext {max-height:200px; overflow:auto; background-color:#fafaff; margin:4px; padding:4px; font-size:10px;}
 .pci-help-buttons {display:inline; font-size:8pt; padding-left:8px; padding-right:8px;}
 .pci-help-button {cursor:pointer;}
 .pci-help-button-edit {cursor:pointer; float:right;}
@@ -221,7 +221,7 @@ header {-webkit-box-shadow: 0 0 8px 2px #999999; -moz-box-shadow: 0 0 8px 2px #9
 .pci-lastArticles-table td:last-child { border-right-style: none; border-bottom-right-radius: 8px; border-top-right-radius: 8px; }
 .pci-lastArticles-row {width:100%;}
 .pci-lastArticles-row:nth-child(even) td {background-color:#ffffff;}
-.pci-lastArticles-row:nth-child(odd)  td {background-color:#f5f5f5; }
+.pci-lastArticles-row:nth-child(odd)  td {background-color:#f5f5f5;}
 .pci-lastArticles-date {width: 80px; text-align:center; font-style:italic; font-size:8pt;}
 .pci-lastArticles-article {font-size:13px; }
 .pci-lastArticles-linkcol {width:80px; text-align:center;}
