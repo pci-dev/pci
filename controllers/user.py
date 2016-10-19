@@ -190,6 +190,16 @@ def suggested_recommenders():
 
 
 @auth.requires_login()
+def del_suggested_recommender():
+	suggId = request.vars['suggId']
+	if suggId:
+		if db( (db.t_suggested_recommenders.id==suggId) & (db.t_articles.id==db.t_suggested_recommenders.article_id) & (db.t_articles.user_id==auth.user_id) ).count() > 0:
+			db( (db.t_suggested_recommenders.id==suggId) ).delete()
+	redirect(request.env.http_referer)
+
+
+
+@auth.requires_login()
 def add_suggested_recommender():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
@@ -197,10 +207,15 @@ def add_suggested_recommender():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		recommendersListSel = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
+		recommendersListSel = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select()
 		recommendersList = []
 		for con in recommendersListSel:
-			recommendersList.append(LI(mkUser(auth, db, con.id)))
+			#recommendersList.append(LI(mkUser(auth, db, con.id)))
+			recommendersList.append(LI(mkUser(auth, db, con.auth_user.id),
+									A('X', 
+									   _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), 
+									   _title=T('Delete'), _style='margin-left:8px;'),
+									))
 		myContents = DIV(
 			LABEL(T('Current suggested recommenders:')),
 			UL(recommendersList)
@@ -228,7 +243,7 @@ def add_suggested_recommender():
 		return dict(
 					myHelp = getHelp(request, auth, dbHelp, '#UserAddSuggestedRecommender'),
 					myTitle=T('Suggest a recommender for your article'), 
-					myBackButton=mkBackButton(),
+					myBackButton=mkBackButton(T('Close'), URL(c='user', f='my_articles', user_signature=True)),
 					content=myContents, 
 					form=form, 
 					myAcceptBtn = myAcceptBtn,
@@ -488,7 +503,8 @@ def my_articles():
 	grid = SQLFORM.grid( query
 		,searchable=False, details=False, editable=False, deletable=False, create=False
 		,csv=csv, exportclasses=expClass
-		,maxtextlength=250,paginate=10
+		,maxtextlength=250
+		,paginate=20
 		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
@@ -816,4 +832,5 @@ def edit_my_article():
 		myHelp = getHelp(request, auth, dbHelp, '#UserEditArticle'),
 		myBackButton = mkBackButton(),
 	)
+
 

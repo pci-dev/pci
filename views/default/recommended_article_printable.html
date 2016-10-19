@@ -32,6 +32,9 @@
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     <!-- Favicons -->
+    <!-- ALtimetrics badge -->
+    <script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
+    
     {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     {{block head}}{{end}}
     {{
@@ -46,7 +49,7 @@
     }}
   </head>
 <body class="pci-printable-body">
-  
+
 <div id="pci-ArticleHeaderPrintable">
 {{if 'statusTitle' in locals():}}
 	{{=statusTitle}}

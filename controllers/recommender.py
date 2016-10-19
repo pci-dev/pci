@@ -75,7 +75,7 @@ def search_reviewers():
 		elif (re.match('^qy_', myVar)):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars, allowBlanks=True)
+	searchForm =  mkSearchForm(auth, db, myVars, allowBlank=True)
 	filtered = db.executesql('SELECT * FROM search_reviewers(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	for fr in filtered:
 		qy_reviewers.insert(**fr)
@@ -246,7 +246,8 @@ def _awaiting_articles(myVars):
 @auth.requires(auth.has_membership(role='recommender'))
 def fields_awaiting_articles():
 	resu = _awaiting_articles(request.vars)
-	resu['myTitle'] = T('Articles awaiting consideration in my fields')
+	#resu['myTitle'] = T('Articles awaiting consideration in my fields')
+	resu['myTitle'] = T('Articles awaiting consideration')
 	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
 	return resu
 
@@ -258,7 +259,8 @@ def all_awaiting_articles():
 	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		myVars['qy_'+thema.keyword] = 'on'
 	resu = _awaiting_articles(myVars)
-	resu['myTitle'] = T('All articles awaiting consideration')
+	#resu['myTitle'] = T('All articles awaiting consideration')
+	resu['myTitle'] = T('Articles awaiting consideration')
 	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:All')
 	return resu
 
@@ -776,8 +778,8 @@ def reviewers():
 		myUpperBtn = DIV(
 							A(SPAN(current.T('Search reviewer'), _class='buttontext btn btn-info'), 
 								_href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList), user_signature=True)),
-							A(SPAN(current.T('Add yourself as a reviewer'), _class='buttontext btn btn-info'), 
-										_href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId), user_signature=True)) if not(selfFlag) else '',
+							A(SPAN(current.T('Add yourself as a reviewer')), _class='buttontext btn btn-info'+(' disabled' if selfFlag else ''), 
+										_href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId), user_signature=True)),
 							A(SPAN(current.T('Template email for buddies'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='email_for_reviewer', vars=dict(recommId=recommId), user_signature=True)),
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
@@ -792,6 +794,7 @@ def reviewers():
 		return dict(
 					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddReviewers'),
 					myTitle=T('Add or manage reviewers to your recommendation'), 
+					myBackButton=mkBackButton(T('Close'), URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))),
 					content=myContents, 
 					form=form, 
 					myUpperBtn = myUpperBtn,
@@ -865,18 +868,18 @@ def add_contributor():
 		myAcceptBtn = DIV(
 							A(SPAN(current.T('Write or edit recommendation'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
-							A(SPAN(current.T('Continue later'), _class='buttontext btn btn-info'), 
+							A(SPAN(current.T('Do this later'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
-							A(SPAN(current.T('Terminate this collective recommendation'), _class='buttontext btn btn-success'), 
+							A(SPAN(current.T('Terminate this collective recommendation'), _class='buttontext btn btn-success'+(' disabled'if not(len(recomm.recommendation_comments)>50 and len(contributorsList)>0) else '')), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True), 
-										_title=current.T('Click here to check the final recommendation of this article')) if len(recomm.recommendation_comments)>50 and len(contributorsList)>0 else '',
+										_title=current.T('Click here to check the final recommendation of this article')),
 							_style='margin-top:16px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddContributor'),
 					myTitle=T('Add a contributor to your recommendation'), 
-					#myBackButton=mkBackButton(),
+					myBackButton=mkBackButton(T('Close'), URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
 					content=myContents, 
 					form=form, 
 					myAcceptBtn = myAcceptBtn,

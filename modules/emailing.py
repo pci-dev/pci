@@ -289,7 +289,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
-	if article and article.status == 'Awaiting consideration':
+	if article:# and article.status in ('Pending', 'Awaiting consideration'):
 		articleTitle = article.title
 		mySubject = '%s: Recommendation request suggested' % (applongname)
 		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)

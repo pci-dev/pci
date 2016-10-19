@@ -131,22 +131,6 @@ def mkSearchForm(auth, db, myVars, allowBlank=False):
 
 
 
-def mkUserRow(userRow, withMail=False):
-	resu = []
-	resu.append(TD(B( (userRow.last_name or ''), ' ', (userRow.first_name or '') )))
-	resu.append(TD(I( (userRow.laboratory or ''), ', ', (userRow.institution or ''), ', ', (userRow.city or ''), ', ', (userRow.country or '') )))
-	if withMail:
-		resu.append(TD(A(' [%s]' % userRow.email, _href='mailto:%s' % userRow.email) if withMail else ''))
-	if (userRow.uploaded_picture is not None and userRow.uploaded_picture != ''):
-		resu.append(TD((IMG(_src=URL('default', 'download', args=userRow.uploaded_picture), _class='pci-userPicture'))))
-	else:
-		resu.append((IMG(_src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture')))
-	return TR(resu, _class='pci-UsersTable-row')
-
-
-
-
-
 
 def mkArticleRow(auth, db, row, withScore=False, withDate=False, fullURL=False):
 	resu = []
@@ -416,11 +400,11 @@ def mkRecommendationsButton(auth, db, art, target):
 
 # code for a "Back" button
 # go to the target instead, if any.
-def mkBackButton(target=None):
+def mkBackButton(text=current.T('Back'), target=None):
 	if target:
-		return A(SPAN(current.T('Back'), _class='buttontext btn btn-default'), _href=target, _class='button')
+		return A(SPAN(text, _class='buttontext btn btn-default'), _href=target, _class='button')
 	else:
-		return A(SPAN(current.T('Back'), _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
+		return A(SPAN(text, _class='buttontext btn btn-default'), _onclick='window.history.back();', _class='button')
 
 # code for a "Close" button
 def mkCloseButton():
@@ -435,9 +419,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	allowOpinion = None
 	###NOTE: article facts
 	myContents = DIV(
+					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', art.doi)), _style='text-align:right;'),
 					SPAN(I(current.T('Submitted by')+' '+(submitter.first_name or '')+' '+(submitter.last_name or '')+' '+(art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')) if submitter else '')
-					,H4(art.authors)
-					,H3(art.title)
+					,H4(art.authors or '')
+					,H3(art.title or '')
 					,(mkDOI(art.doi)+BR()) if (art.doi) else SPAN('')
 					,(SPAN(art.article_source)+BR() if art.article_source else '')
 					,SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else '')
@@ -968,5 +953,53 @@ def mkDuration(t0, t1):
 	else:
 		return ''
 
+
+def mkUserRow(userRow, withMail=False):
+	resu = []
+	resu.append(TD(A( (userRow.last_name or ''), ' ', (userRow.first_name or ''), _href=URL(c='public', f='viewUserCard', vars=dict(userId=userRow.id)))))
+	resu.append(TD(I( (userRow.laboratory or ''), ', ', (userRow.institution or ''), ', ', (userRow.city or ''), ', ', (userRow.country or '') )))
+	if withMail:
+		resu.append(TD(A(' [%s]' % userRow.email, _href='mailto:%s' % userRow.email) if withMail else ''))
+	if (userRow.uploaded_picture is not None and userRow.uploaded_picture != ''):
+		resu.append(TD((IMG(_src=URL('default', 'download', args=userRow.uploaded_picture), _class='pci-userPicture'))))
+	else:
+		resu.append((IMG(_src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture')))
+	return TR(resu, _class='pci-UsersTable-row')
+
+
+
+
+def mkUserCard(auth, db, userId, withMail=False):
+	user  = db.auth_user[userId]
+	name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
+	addr  = LI(I( (user.laboratory or ''), ', ', (user.institution or ''), ', ', (user.city or ''), ', ', (user.country or '') ))
+	thema = LI(', '.join(user.thematics))
+	mail  = LI(A(' [%s]' % user.email, _href='mailto:%s' % user.email) if withMail else '')
+	if (user.uploaded_picture is not None and user.uploaded_picture != ''):
+		img = IMG(_src=URL('default', 'download', args=user.uploaded_picture), _class='pci-userPicture', _style='float:left;')
+	else:
+		img = IMG(_src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture', _style='float:left;')
+	if (user.cv or '') != '':
+		cv = DIV(WIKI(user.cv or ''), _class='pci-bigtext margin', _style='border: 1px solid #f0f0f0;')
+	else:
+		cv = ''
+	#TODO: add roles
+	rolesQy = db( (db.auth_membership.user_id==userId) & (db.auth_membership.group_id==db.auth_group.id) ).select(db.auth_group.role)
+	print rolesQy
+	rolesList = []
+	for roleRow in rolesQy:
+		rolesList.append(roleRow.role)
+	roles = LI(B(', '.join(rolesList)))
+	resu = DIV(
+			DIV(
+				img,
+				DIV(
+					UL(name, addr, mail, thema, roles) if withMail else UL(name, addr, thema, roles), 
+					_style='margin-left:120px; margin-bottom:24px; min-height:120px;'),
+			),
+			cv,
+			_style='margin-top:20px; margin-left:auto; margin-right:auto; max-width:20cm;',
+			)
+	return resu
 
 

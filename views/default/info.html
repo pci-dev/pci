@@ -10,9 +10,18 @@
   {{=myHelp}}
   {{pass}}
 
-{{if 'myBackButton' in locals():}}
-	{{=myBackButton}}
-	{{pass}}
+<div class="pci-myTitle">
+	<div class="pci-backButtonDiv">
+	{{if 'myBackButton' in locals():}}
+		{{=myBackButton}}
+		{{pass}}
+	</div>
+	<div class="pci-myTitleText">
+	{{if 'myTitle' in locals():}}
+		{{=myTitle}}
+		{{pass}}
+	</div>
+</div>
 
 <div class="pci-leftOfPanel">
 {{if 'message' in globals():}}

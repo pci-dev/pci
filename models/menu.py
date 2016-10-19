@@ -106,7 +106,7 @@ def _UserMenu():
 	
 	### contributions menu
 	# reviews
-	myContributionsMenu.append((T('Your submissions'), False, URL('user', 'my_articles', user_signature=True)))
+	myContributionsMenu.append((T('Your submitted articles'), False, URL('user', 'my_articles', user_signature=True)))
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 					& (db.t_reviews.recommendation_id == db.t_recommendations.id)
 					& (db.t_recommendations.article_id == db.t_articles.id) 
@@ -135,7 +135,8 @@ def _UserMenu():
 					& (db.t_recommendations.article_id == db.t_articles.id) 
 					& (db.t_articles.status == 'Under consideration') 
 			   ).count()
-	txtRevPend = str(nRevPend)+' '+(T('Reviews') if nRevPend > 1 else T('Review'))
+	#txtRevPend = str(nRevPend)+' '+(T('Reviews') if nRevPend > 1 else T('Review'))
+	txtRevPend = 'Accept a solicitation to review?'
 	if nRevPend > 0:
 		txtRevPend = SPAN(txtRevPend, _style='color:blue;')
 		colorRequests = True
@@ -147,7 +148,8 @@ def _UserMenu():
 								  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
 								  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) 
 								).count()
-		txtPreprintsRecomPend = str(nPreprintsRecomPend)+' '+(T('Recommendations of prereview articles') if nPreprintsRecomPend>1 else T('Recommendation of prereview articles'))
+		#txtPreprintsRecomPend = str(nPreprintsRecomPend)+' '+(T('Recommendations of prereview articles') if nPreprintsRecomPend>1 else T('Recommendation of prereview articles'))
+		txtPreprintsRecomPend = 'Accept a solicitation to start a recommendation?'
 		if nPreprintsRecomPend > 0:
 			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _style='color:blue;')
 			colorRequests = True
@@ -155,17 +157,18 @@ def _UserMenu():
 								URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
 		mySollicitationsMenu += [
 				LI(_class="divider"),
-				(T('Articles requiring a recommender in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
-				(T('All articles requiring a recommender'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
+				#(T('Articles requiring a recommender in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
+				#(T('All articles requiring a recommender'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
+				(T('Articles requiring a recommender'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			]
 	resu = [
 		#(T('Your submissions'),         False, URL('user', 'my_articles', user_signature=True)),
         (T('Your contributions'),       False, '#', myContributionsMenu),
 	]
 	if colorRequests:
-		requestsMenuTitle = SPAN(T('Requests for your input'), _style='color:blue;')
+		requestsMenuTitle = SPAN(T('Requests for input'), _style='color:blue;')
 	else:
-		requestsMenuTitle = T('Requests for your input')
+		requestsMenuTitle = T('Requests for input')
 	if (auth.has_membership(None, None, 'recommender') or ( auth.is_logged_in() and colorRequests ) ):
 		resu.append( (requestsMenuTitle,  False, '#', mySollicitationsMenu) )
 	return resu
