@@ -8,7 +8,7 @@
 .dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 
 /* My tweaks */
-.main-container {margin-top: 8px;}
+/* .main-container {margin-top: 16px;} */
 .navbar {position:fixed; min-height:30px; margin-bottom:4px; border:1px solid transparent;}
 .navbar-default {background-color:#fff; border-color:#FFFFFF;}
 /*.nav .navbar-nav {color:black;}
@@ -49,6 +49,8 @@ navbar-default .navbar-brand,.navbar-default .navbar-link:hover,.navbar-default 
 
 header{} /* Don't remove */
 
+/* body{font-family: FS Albert Web Regular,Arial,sans-serif;} */
+
 /* .navbar-fixed-top {top: 200px;} TODO*/
 .background {width:100%; height: 160px; background-image: url(../images/background.png); background-size:contain; background-repeat:no-repeat;}
 
@@ -57,15 +59,15 @@ header{} /* Don't remove */
 .web2py_grid thead th a {color: #777777;}
 
 .col-md-3 {position:fixed; width:320px; right:0; top:400px; border:none;}
-.pci-leftOfPanel {width: calc(100% - 320px); }
+/* .pci-leftOfPanel {width: calc(100% - 320px); } */
 .col-md-9 {width:100%;}
 
 header {-webkit-box-shadow: 0 0 8px 2px #999999; -moz-box-shadow: 0 0 8px 2px #999999; box-shadow: 0 0 8px 2px #999999; margin-bottom: 4px;}
 
 
-
-.pci-myTitle {height: 100px; margin-bottom:8px;
-				background-image: url(../images/small-background.png); background-size:contain; background-position: right center; background-repeat:no-repeat;}
+.pci-menuImage {height:36px; margin-left:6px;}
+.pci-myLogo {height: 100px; margin-bottom:8px;
+				background-image: url(../images/small-background.png); background-size:contain; background-position: left center; background-repeat:no-repeat;}
 .pci-myTitleNoImage {height: 64px; margin-bottom:8px;}
 .pci-myTitleText {width:100%; text-align:center; font-size:40px;}
 
@@ -117,14 +119,14 @@ header {-webkit-box-shadow: 0 0 8px 2px #999999; -moz-box-shadow: 0 0 8px 2px #9
 /* .pci-printable-div {width:99vw; margin-left: auto; margin-right:auto;} */
 .pci-article-div {max-width:20cm; margin:auto;}
 .pci-article-div-printable {width:100%; }
-.pci-recommendation-div {margin-left: 2vw; }
+.pci-recommendation-div {margin-left: 0vw; }
 /* .pci-recommendation-title-printable {color: #089108; width:100%; text-align:center; } */
 
 .pci-recommendation-title {/*background-color: #089108;*/ max-width:20cm; height:100%; text-align:center; padding:16px;}
 
 
 
-#pci-ArticleTopButtons { position:fixed; left:24px; top:20vh; text-align:center; }
+/* #pci-ArticleTopButtons { position:fixed; left:24px; top:20vh; text-align:center; } */
 .pci-ArticleTopButton { padding-left:24px; padding-right:24px; margin: 8px; }
 
 #pci-ArticleHeader {
@@ -184,8 +186,8 @@ header {-webkit-box-shadow: 0 0 8px 2px #999999; -moz-box-shadow: 0 0 8px 2px #9
 	/* 	margin:auto; */
 }
 .pci-status-title-printable {width:100%; text-align:center; border: 1px solid black;}
-.pci-bigtext {}
-.pci-bigtext.margin {border: 1px solid black; padding: 8px;}
+.pci-bigtext {text-align:justify;}
+.pci-bigtext.margin {border-left: 1px solid #c0c0c0; padding: 8px;}
 
 .pci-searchTitle {color:#089108;}
 

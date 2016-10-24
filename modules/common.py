@@ -27,6 +27,31 @@ def mkStatusArticles(db):
 
 
 # Builds the right-panel for home page
+def mkTopPanel(myconf, auth, inSearch=False):
+	#if inSearch:
+		#panel = [A(current.T('Search recommended articles'), _href='#TOP', _class='btn btn-default')]
+	#else:
+		#panel = [A(current.T('Search recommended articles'), _href=URL('public', 'recommended_articles'), _class='btn btn-default')]
+	panel = []
+	if auth.user_id is not None:
+		panel.append(A(current.T("Request a recommendation for your preprint"), 
+							_href=URL('user', 'new_submission', user_signature=True), 
+							_class="btn btn-success"))
+	else:
+		panel.append(A(current.T("Request a recommendation for your preprint"), 
+							_href=URL('default', 'user'),
+							_class="btn btn-success"))
+	if auth.has_membership('recommender'):
+		panel.append(A(current.T("Recommend a postprint"), 
+							_href=URL('recommender', 'direct_submission', user_signature=True), 
+							_class="btn btn-info"))
+		panel.append(A(current.T("Consider preprint recommendation requests"), 
+							_href=URL('recommender', 'all_awaiting_articles', user_signature=True), 
+							_class="btn btn-default"))
+	return DIV(panel, _style='margin-top:20px; margin-bottom:20px; text-align:center;')
+
+
+# Builds the right-panel for home page
 def mkPanel(myconf, auth, inSearch=False):
 	if inSearch:
 		panel = [LI(A(current.T('Search recommended articles'), _href='#TOP', _class='btn btn-default'), _class="list-group-item list-group-item-centered"),]
@@ -34,7 +59,7 @@ def mkPanel(myconf, auth, inSearch=False):
 		panel = [LI(A(current.T('Search recommended articles'), _href=URL('public', 'recommended_articles'), _class='btn btn-default'), _class="list-group-item list-group-item-centered"),]
 	if auth.user_id is not None:
 		#panel.append(LI(A(current.T("Request a recommendation"), _href=URL('user', 'my_articles', args=['new', 't_articles'], user_signature=True), _class="btn btn-success"), _class="list-group-item list-group-item-centered"))
-		panel.append(LI(A(current.T("Submit an article for a recommendation"), 
+		panel.append(LI(A(current.T("Request a recommendation for your preprint for a recommendation"), 
 							_href=URL('user', 'new_submission', user_signature=True), 
 							_class="btn btn-success"), 
 						_class="list-group-item list-group-item-centered"))
@@ -42,7 +67,7 @@ def mkPanel(myconf, auth, inSearch=False):
 		panel.append(LI(A(current.T("Log in before requesting a recommendation"), _href=URL('default', 'user')), _class="list-group-item"))
 	if auth.has_membership('recommender'):
 		panel.append(LI(A(current.T("Start a recommendation process"), 
-							_href=URL('recommender', 'new_submission', user_signature=True), 
+							_href=URL('recommender', 'direct_submission', user_signature=True), 
 							_class="btn btn-info"), 
 						_class="list-group-item list-group-item-centered"))
 		panel.append(LI(A(current.T("Template email for authors"), 
@@ -156,7 +181,7 @@ def mkArticleRow(auth, db, row, withScore=False, withDate=False, fullURL=False):
 		whowhen = [SPAN(current.T('See recommendation'))]
 	resu.append(
 				TD(
-					B(row.title),
+					B(row.title, _style='font-size:16px;'),
 					BR(),
 					SPAN(authors),
 					BR(),
@@ -475,23 +500,24 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
 				contributors.append(contr.contributor_id)
-			lastchange = recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else None
-			whoDidIt = [SPAN(current.T('Recommendation by')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+lastchange or ''))]
+			#lastchange = recomm.last_change.strftime('%Y-%m-%d') if recomm.last_change else None
+			#whoDidIt = [SPAN(current.T('Recommendation by')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+lastchange or ''))]
+			whoDidIt = [(recommender.first_name or '')+' '+(recommender.last_name or '')]
 			if len(contributors) > 0:
-				whoDidIt.append(SPAN(' with '))
+				#whoDidIt.append(SPAN(', '))
 				for ic in range(0, len(contributors)):
 					if ic == len(contributors)-1:
-						whoDidIt.append(mkUser(auth, db, contributors[ic]))
+						whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic])))
 					else:
-						whoDidIt.append(mkUser(auth, db, contributors[ic]))
-						whoDidIt.append(', ')
+						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic])))
 			
 			myContents.append(
 				DIV( HR()
-					,SPAN(I(whoDidIt))
+					#,SPAN(B(whoDidIt))
 					,BR()
-					,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
-					,B(current.T('Recommendation'))+BR()
+					,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi != art.doi) else SPAN('')
+					,B(current.T('Recommendation by '), SPAN(whoDidIt))+BR()
+					,I(recomm.last_change.strftime('%Y-%m-%d')) if recomm.last_change else ''
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin')
 					, _class='pci-recommendation-div'
 				)
@@ -865,13 +891,13 @@ def mkSollicitedPress(auth, db, row):
 def mkRecommendationFormat(auth, db, row):
 	recommender = db.auth_user[row.recommender_id]
 	art = db.t_articles[row.article_id]
-	anchor = SPAN(  art.title, 
+	anchor = SPAN(  row.recommendation_title, #TODO
 					BR(),
 					B(current.T('Recommender:')+' '), SPAN('%s %s' % (recommender.first_name, recommender.last_name)),
 					BR(),
 					B(current.T('DOI:')+' '), mkDOI(row.doi),
-					BR(),
-					B(current.T('Started on:')+' '), row.recommendation_timestamp
+					#BR(),
+					#B(current.T('Started on:')+' '), row.recommendation_timestamp
 				)
 	return anchor
 

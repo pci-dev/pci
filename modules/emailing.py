@@ -1014,7 +1014,7 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
-	mySubject = '%s: New recommendations alert' % (applongname)
+	mySubject = '%s: Last recommendations alert' % (applongname)
 	content = """Dear %(destPerson)s,<p>
 We are pleased to inform you that the following recommendations have been recently published on the web site of <i>%(applongname)s</i> (in the fields for which you requested to be alerted).<p>
 Sincerely yours,<p>

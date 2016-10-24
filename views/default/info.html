@@ -1,27 +1,19 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
-{{block header}}
-    <header class="container-fluid background">
-    </header>
-{{end}}
-
 {{if 'myHelp' in locals():}}
   {{=myHelp}}
   {{pass}}
 
-<div class="pci-myTitle">
-	<div class="pci-backButtonDiv">
-	{{if 'myBackButton' in locals():}}
-		{{=myBackButton}}
-		{{pass}}
-	</div>
-	<div class="pci-myTitleText">
-	{{if 'myTitle' in locals():}}
-		{{=myTitle}}
-		{{pass}}
-	</div>
-</div>
+{{if 'myBackButton' in locals():}}
+	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
+	{{pass}}
+
+<div class="pci-myLogo"></div>
+
+{{if 'myTitle' in locals():}}
+	<div class="pci-myTitleText">{{=myTitle}}</div>
+	{{pass}}
 
 <div class="pci-leftOfPanel">
 {{if 'message' in globals():}}

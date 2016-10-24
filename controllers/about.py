@@ -15,9 +15,9 @@ def about():
 	return dict(
 		message=T("What is %s?") % (myconf.take('app.longname')),
 		#content=SPAN(T("Peer Community in Evolutionary Biology is the first community of the parent project")+' ')+A("Peer Community In", _href="https://peercommunityin.org")+SPAN("."),
-		panel=mkPanel(myconf, auth),
+		#panel=mkPanel(myconf, auth),
 		myText=getText(request, auth, dbHelp, '#AboutInfo'),
-		myBackButton=mkBackButton(),
+		#myBackButton=mkBackButton(),
 	)
 
 
@@ -27,9 +27,9 @@ def ethics():
 	return dict(
 		myTitle=I(myconf.take('app.longname'))+SPAN(" code of ethical conduct"),
 		#content=SPAN(""),
-		panel=mkPanel(myconf, auth),
+		#panel=mkPanel(myconf, auth),
 		myText=getText(request, auth, dbHelp, '#EthicsInfo'),
-		myBackButton=mkBackButton(),
+		#myBackButton=mkBackButton(),
 	)
 
 

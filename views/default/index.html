@@ -9,14 +9,13 @@
   {{=myHelp}}
   {{pass}}
 
-<div class="pci-myTitleNoImage">
-	{{if 'myBackButton' in locals():}}
-		<div class="pci-backButtonDiv">{{=myBackButton}}</div>
-		{{pass}}
-	{{if 'myTitle' in locals():}}
-		<div class="pci-myTitleText">{{=myTitle}}</div>
-		{{pass}}
-</div>
+{{if 'myText' in locals():}}
+	<div>{{=myText}}</div>
+	{{pass}}
+
+{{if 'myTopPanel' in locals():}}
+	{{=myTopPanel}}
+	{{pass}}
 
 
 <div class="pci-leftOfPanel">
@@ -33,6 +32,7 @@
 	{{=form}}
 	{{pass}}
 <div id="lastRecommendations">
+<div id="loading" style='text-align:center;'><img alt='Loading...' src="{{=URL(c='static', f='images/loading.gif')}}"></div>
 </div>
 </div>
 </div>

@@ -37,12 +37,14 @@ def index():
 	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		#options.append(OPTION(thema.keyword, _value=thema.keyword))
 	vars=dict(qyThemaSelect='')
-	form = FORM (
+	form = FORM (SPAN((T('%s recommendations') % (myconf.take('app.longname'))), _class='pci-myTitleText'),
+				BR(),
+				A(current.T('Search'), _href=URL('public', 'recommended_articles'), _class='btn btn-warning'),
+				BR(),
 				LABEL(T('Show')+' '),
 				SELECT(nbs, _name='maxArticles',
-					_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 
-									vars=vars, 
-									user_signature=True))
+					_onChange="""ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"""
+								% (URL('public', 'last_recomms', vars=vars, user_signature=True))
 						, _style='margin-left:8px; margin-right:8px;'),
 				LABEL(' '+T('last recommendations')+' '), 
 				#NOTE: do not delete: kept for later use
@@ -54,13 +56,14 @@ def index():
 			)
 	
 	return dict(
-		myTitle=T('Welcome to ')+myconf.take('app.longname'),
+		myText=getText(request, auth, dbHelp, '#HomeInfo'),
+		#myTitle=(T('%s Recommandations') % (myconf.take('app.longname'))),
+		myTopPanel=mkTopPanel(myconf, auth),
 		form=form,
+		shareable=True,
 		script=SCRIPT("window.onload=ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"%(URL('public', 'last_recomms', 
 											vars=vars, 
 											user_signature=True)), _type='text/javascript'),
-		panel=mkPanel(myconf, auth),
-		shareable=True,
 	)
 
 

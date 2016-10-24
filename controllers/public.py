@@ -81,13 +81,15 @@ def last_recomms():
 			query = db( (db.t_articles.status=='Recommended') & (db.t_articles.thematics.contains(thema)) ).select(db.t_articles.ALL, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
 	if query == None:
 		query = db( (db.t_articles.status=='Recommended') ).select(db.t_articles.ALL, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	n = len(query)
+	#n = len(query)
 	myRows = []
 	for row in query:
 		myRows.append(mkArticleRow(auth, db, Storage(row), withDate=True))
 	return DIV(
 			#DIV(T('%s records found')%(n), _class='pci-nResults'),
-			TABLE(TBODY(myRows), _class='web2py_grid pci-lastArticles-table'), _class='pci-lastArticles-div')
+			TABLE(TBODY(myRows), _class='web2py_grid pci-lastArticles-table'), 
+			_class='pci-lastArticles-div',
+		)
 
 
 

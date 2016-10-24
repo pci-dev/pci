@@ -174,7 +174,7 @@ db.define_table('t_articles',
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, pages)')),
-	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
+	Field('doi', type='string', label=T('DOI'), length=512, represent=lambda text, row: mkDOI(text) ),
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
@@ -183,8 +183,8 @@ db.define_table('t_articles',
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
 	Field('already_published', type='boolean', label=T('Already published'), default=False),
-	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and this submission is made on the behalf of all article\'s authors')),
-	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This article has not been sent for review elsewhere')),
+	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and this request is made on the behalf of all article\'s authors')),
+	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published and has not been sent for review elsewhere')),
 	Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
@@ -230,7 +230,9 @@ db.define_table('t_recommendations',
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
 	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
+	Field('recommendation_title', type='text', label=T('Recommendation title'), default=''),
 	Field('recommendation_comments', type='text', label=T('Recommendation comments'), default=''),
+	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
@@ -303,13 +305,13 @@ db.define_table('t_suggested_recommenders',
 	migrate=False,
 )
 db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s'))
-db.t_suggested_recommenders._after_insert.append(lambda s,i: recommendationSuggested(s,i))
+#db.t_suggested_recommenders._after_insert.append(lambda s,i: recommendationSuggested(s,i))
 
-def recommendationSuggested(s, i):
-	print 'recommendationSuggested:', i, s
-	articleId = db.t_suggested_recommenders[i].article_id
-	do_send_email_to_suggested_recommenders(session, auth, db, articleId)
-	return None
+#def recommendationSuggested(s, i):
+	#print 'recommendationSuggested:', i, s
+	#articleId = db.t_suggested_recommenders[i].article_id
+	#do_send_email_to_suggested_recommenders(session, auth, db, articleId)
+	#return None
 
 
 

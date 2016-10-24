@@ -1,27 +1,23 @@
 {{extend 'layout.html'}}
 
+{{if 'myBackButton' in locals():}}
+	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
+	{{pass}}
+
+<div class="pci-myLogo"></div>
+
+{{if 'myTitle' in locals():}}
+	<div class="pci-myTitleText">{{=myTitle}}</div>
+	{{pass}}
+
 {{if 'myHelp' in locals():}}
   {{=myHelp}}
   {{pass}}
 
-<div class="pci-myTitle">
-	<div class="pci-backButtonDiv">
-	{{if 'myBackButton' in locals():}}
-		{{=myBackButton}}
-		{{pass}}
-	</div>
-	<div class="pci-myTitleText">
-	{{if 'myTitle' in locals():}}
-		{{=myTitle}}
-		{{pass}}
-	</div>
-</div>
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>
 	{{pass}}
-
-<hr>
 
 {{if 'content' in locals():}}
 	<div>{{=content}}</div>

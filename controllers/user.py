@@ -16,15 +16,19 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 @auth.requires_login()
 def new_submission():
-	panel = [LI(A(current.T("Click to request a recommendation for a manuscript not yet peer-reviewed that you authored"), 
+	myText = DIV(
+			getText(request, auth, dbHelp, '#NewRecommendationRequestInfo'),
+			DIV(
+				A(current.T("Start your request"), 
 					_href=URL('user', 'fill_new_article', user_signature=True), 
-					_class="btn btn-success pci-panelButton"), 
-				_class="list-group-item list-group-item-centered")
-			]
+					_class="btn btn-success pci-panelButton"),
+				_style='margin-top:16px; text-align:center;',
+			)
+		)
 	response.view='default/info.html' #OK
 	return dict(
-		panel = DIV(UL( panel, _class="list-group"), _class="panel panel-info"),
-		myText = getText(request, auth, dbHelp, '#NewRecommendationRequestInfo'),
+		#panel = DIV(UL( panel, _class="list-group"), _class="panel panel-info"),
+		myText = myText,
 		myBackButton = mkBackButton(),
 	)
 
@@ -45,7 +49,7 @@ def fill_new_article():
 	db.t_articles.already_published.default = False
 	db.t_articles.already_published.readable = False
 	db.t_articles.already_published.writable = False
-	myTitle=T('Submit an article for a recommendation')
+	myTitle=T('Your preprint for which you request a recommendation')
 	myScript = """jQuery(document).ready(function(){
 					if(jQuery('#t_articles_already_published').prop('checked')) {
 						jQuery('#t_articles_article_source__row').show();
@@ -90,6 +94,7 @@ def fill_new_article():
 				});
 	"""
 	form = SQLFORM( db.t_articles, keepvalues=True )
+	form.element(_type='submit')['_value'] = T("Send for request")
 	if form.process().accepted:
 		articleId=form.vars.id
 		session.flash = T('Article submitted', lazy=False)
@@ -161,7 +166,7 @@ def suggest_article_to():
 	articleId = request.vars['articleId']
 	recommenderId = request.vars['recommenderId']
 	db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
-	redirect(URL(f='my_articles', user_signature=True))
+	redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 
 
 
@@ -209,43 +214,56 @@ def add_suggested_recommender():
 	else:
 		recommendersListSel = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select()
 		recommendersList = []
+		reviewersIds = [auth.user_id]
 		for con in recommendersListSel:
-			#recommendersList.append(LI(mkUser(auth, db, con.id)))
+			reviewersIds.append(con.auth_user.id)
 			recommendersList.append(LI(mkUser(auth, db, con.auth_user.id),
 									A('X', 
 									   _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), 
 									   _title=T('Delete'), _style='margin-left:8px;'),
 									))
-		myContents = DIV(
-			LABEL(T('Current suggested recommenders:')),
-			UL(recommendersList)
-		)
-		db.t_suggested_recommenders._id.readable = False
-		db.t_suggested_recommenders.article_id.default = articleId
-		db.t_suggested_recommenders.article_id.writable = False
-		db.t_suggested_recommenders.article_id.readable = False
-		db.t_suggested_recommenders.email_sent.writable = False
-		db.t_suggested_recommenders.email_sent.readable = False
-		db.t_suggested_recommenders.suggested_recommender_id.writable = True
-		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
-		alreadySugg = db(db.t_suggested_recommenders.article_id==articleId)._select(db.t_suggested_recommenders.suggested_recommender_id)
-		otherSuggQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadySugg)) )
-		db.t_suggested_recommenders.suggested_recommender_id.requires = IS_IN_DB(otherSuggQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
-		form = SQLFORM(db.t_suggested_recommenders)
-		if form.process().accepted:
-			redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+		excludeList = ','.join(map(str,reviewersIds))
+		if len(recommendersList)>0:
+			myContents = DIV(
+				LABEL(T('Suggested recommenders:')),
+				UL(recommendersList)
+			)
+			txtbtn = current.T('Search another recommender?')
+		else:
+			myContents = ''
+			txtbtn = current.T('Search a recommender?')
+		#db.t_suggested_recommenders._id.readable = False
+		#db.t_suggested_recommenders.article_id.default = articleId
+		#db.t_suggested_recommenders.article_id.writable = False
+		#db.t_suggested_recommenders.article_id.readable = False
+		#db.t_suggested_recommenders.email_sent.writable = False
+		#db.t_suggested_recommenders.email_sent.readable = False
+		#db.t_suggested_recommenders.suggested_recommender_id.writable = True
+		#db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
+		#alreadySugg = db(db.t_suggested_recommenders.article_id==articleId)._select(db.t_suggested_recommenders.suggested_recommender_id)
+		#otherSuggQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadySugg)) )
+		#db.t_suggested_recommenders.suggested_recommender_id.requires = IS_IN_DB(otherSuggQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
+		#form = SQLFORM(db.t_suggested_recommenders)
+		#if form.process().accepted:
+			#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+		myUpperBtn = DIV(
+							A(SPAN(txtbtn, _class='buttontext btn btn-info'), 
+								_href=URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True)),
+							_style='margin-top:16px; text-align:center;'
+						)
 		myAcceptBtn = DIV(
-							A(SPAN(T('Terminate recommendation request'), _class='buttontext btn btn-info'), 
+							A(SPAN(T('Terminate your submission'), _class='buttontext btn btn-success'), 
 								_href=URL(c='user', f='my_articles', user_signature=True)),
 							_style='margin-top:16px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, dbHelp, '#UserAddSuggestedRecommender'),
-					myTitle=T('Suggest a recommender for your article'), 
-					myBackButton=mkBackButton(T('Close'), URL(c='user', f='my_articles', user_signature=True)),
+					myTitle=T('Suggest recommenders?'), 
+					myUpperBtn=myUpperBtn,
+					#myBackButton=mkBackButton(T('Close'), URL(c='user', f='my_articles', user_signature=True)),
 					content=myContents, 
-					form=form, 
+					form='', 
 					myAcceptBtn = myAcceptBtn,
 					#myFinalScript=myScript,
 				)

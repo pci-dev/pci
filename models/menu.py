@@ -73,8 +73,11 @@ def _DevMenu():
 # default public menu
 def _BaseMenu():
 	return [
-		(T('Home'),       False, URL('default', 'index'), []),
-		(T('About'),      False, '#', [
+		#(T('Home'),       False, URL('default', 'index'), []),
+		(IMG(_title=T('Home'), _alt=T('Home'), _src=URL(c='static',f='images/home.png'), _class='pci-menuImage'), False, URL('default', 'index'), []),
+		(IMG(_title=T('About'), _alt=T('About'), _src=URL(c='static',f='images/about.png'), _class='pci-menuImage'),      False, '#', [
+			(T('Search recommended articles', lazy=False), False, URL('public', 'recommended_articles')),
+			LI(_class="divider"),
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
 			(T('Ethics of', lazy=False)+appName,      False, URL('about', 'ethics')),
 			(T('Members of', lazy=False)+appName,  False, URL('public', 'recommenders')),
@@ -85,7 +88,7 @@ def _BaseMenu():
 # Appends administrators menu
 def _AdminMenu():
 	return [
-        (T('Admin.'), False, '#', [
+        (IMG(_alt=T('Admin.'), _title=T('Admin.'), _src=URL(c='static',f='images/admin.png'), _class='pci-menuImage'), False, '#', [
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Thematic fields'),   False, URL('admin', 'thematics_list', user_signature=True)),
 			(T('Article status'),    False, URL('admin', 'article_status', user_signature=True)),
@@ -136,9 +139,9 @@ def _UserMenu():
 					& (db.t_articles.status == 'Under consideration') 
 			   ).count()
 	#txtRevPend = str(nRevPend)+' '+(T('Reviews') if nRevPend > 1 else T('Review'))
-	txtRevPend = 'Accept a solicitation to review?'
+	txtRevPend = T('Accept a solicitation to review?')
 	if nRevPend > 0:
-		txtRevPend = SPAN(txtRevPend, _style='color:blue;')
+		txtRevPend = SPAN(txtRevPend, _style='color:#94c11f;;')
 		colorRequests = True
 	mySollicitationsMenu.append((txtRevPend, False, 
 							URL('user', 'my_reviews', vars=dict(pendingOnly=True), user_signature=True))) 
@@ -151,7 +154,7 @@ def _UserMenu():
 		#txtPreprintsRecomPend = str(nPreprintsRecomPend)+' '+(T('Recommendations of prereview articles') if nPreprintsRecomPend>1 else T('Recommendation of prereview articles'))
 		txtPreprintsRecomPend = 'Accept a solicitation to start a recommendation?'
 		if nPreprintsRecomPend > 0:
-			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _style='color:blue;')
+			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _style='color:#94c11f;;')
 			colorRequests = True
 		mySollicitationsMenu.append((txtPreprintsRecomPend,False, 
 								URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
@@ -163,12 +166,15 @@ def _UserMenu():
 			]
 	resu = [
 		#(T('Your submissions'),         False, URL('user', 'my_articles', user_signature=True)),
-        (T('Your contributions'),       False, '#', myContributionsMenu),
+        #(T('Your contributions'),       False, '#', myContributionsMenu),
+        (IMG(_title=T('Your contributions'), _alt=T('Your contributions'), _src=URL(c='static', f='images/your_contribs.png'), _class='pci-menuImage'),       False, '#', myContributionsMenu),
 	]
 	if colorRequests:
-		requestsMenuTitle = SPAN(T('Requests for input'), _style='color:blue;')
+		#requestsMenuTitle = SPAN(T('Requests for input'), _style='color:#94c11f;;')
+		requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs_enhanced.png'), _class='pci-menuImage')
 	else:
-		requestsMenuTitle = T('Requests for input')
+		#requestsMenuTitle = T('Requests for input')
+		requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs.png'), _class='pci-menuImage')
 	if (auth.has_membership(None, None, 'recommender') or ( auth.is_logged_in() and colorRequests ) ):
 		resu.append( (requestsMenuTitle,  False, '#', mySollicitationsMenu) )
 	return resu
@@ -185,16 +191,17 @@ def _UserMenu():
 
 # Appends managers menu
 def _ManagerMenu():
-	txtMenu = T('Management process')
+	txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage.png'), _class='pci-menuImage')
 	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
-		txtPending = SPAN(txtPending, _style='color:blue;')
-		txtMenu = SPAN(txtMenu, _style='color:blue;')
+		txtPending = SPAN(txtPending, _style='color:#94c11f;;')
+		txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes in progress') if nbGoing > 1 else T('Recommendation process in progress'))
 	if nbGoing>0:
-		txtGoing = SPAN(txtGoing, _style='color:blue;')
+		txtGoing = SPAN(txtGoing, _style='color:#94c11f;;')
+		txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 	return [
         (txtMenu, False, '#', [
 			(txtPending, False, URL('manager', 'pending_articles', user_signature=True)),
