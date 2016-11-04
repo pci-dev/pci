@@ -67,11 +67,23 @@ def do_recommend_article():
 
 
 
+# Display ALL articles and allow management
+@auth.requires(auth.has_membership(role='manager'))
+def all_articles():
+	resu = _manage_articles(None, 'all_articles')
+	resu['myText']=getText(request, auth, dbHelp, '#ManagerAllArticlesText')
+	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerAllArticlesTitle')
+	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageAllArticlesHelp')
+	return resu
+
+
+
 # Display pending articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def pending_articles():
 	resu = _manage_articles(['Pending', 'Pre-recommended'], 'pending_articles')
-	resu['myTitle'] = T('Pending validations')
+	resu['myText']=getText(request, auth, dbHelp, '#ManagerPendingArticlesText')
+	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerPendingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManagePendingValidations')
 	return resu
 
@@ -81,7 +93,8 @@ def pending_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def ongoing_articles():
 	resu = _manage_articles(['Awaiting consideration', 'Under consideration', 'Awaiting revision'], 'ongoing_articles')
-	resu['myTitle'] = T('Recommendation processes in progress')
+	resu['myText']=getText(request, auth, dbHelp, '#ManagerOngoingArticlesText')
+	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerOngoingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageOngoingArticles')
 	return resu
 
@@ -91,7 +104,8 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def completed_articles():
 	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected'], 'completed_articles')
-	resu['myTitle'] = T('Recommendation processes completed')
+	resu['myText']=getText(request, auth, dbHelp, '#ManagerCompletedArticlesText')
+	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerCompletedArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageCompletedArticles')
 	return resu
 
@@ -150,7 +164,11 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role='manager'))
 def _manage_articles(statuses, whatNext):
-	query = (db.t_articles.status.belongs(statuses))
+	if statuses:
+		query = (db.t_articles.status.belongs(statuses))
+	else:
+		query = (db.t_articles)
+	
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
 	db.t_articles.user_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
@@ -158,15 +176,15 @@ def _manage_articles(statuses, whatNext):
 	db.t_articles.status.writable = True
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.auto_nb_recommendations.writable = False
-	db.t_articles.doi.represent = lambda text, row: mkDOI(text)
+	#db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 	#if len(request.args) == 0: # we are in grid
-	db.t_articles.doi.readable = False
-	db.t_articles.authors.readable = False
-	db.t_articles.title.readable = False
-	db.t_articles.abstract.readable = False
-	db.t_articles.keywords.readable = False
-	db.t_articles.thematics.readable = False
-	db.t_articles.user_id.readable = False
+	#db.t_articles.doi.readable = False
+	#db.t_articles.authors.readable = False
+	#db.t_articles.title.readable = False
+	#db.t_articles.abstract.readable = False
+	#db.t_articles.keywords.readable = False
+	#db.t_articles.thematics.readable = False
+	#db.t_articles.user_id.readable = False
 	db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
 	db.t_articles._id.label = T('Article')
 	db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(row.upload_timestamp)
@@ -181,6 +199,7 @@ def _manage_articles(statuses, whatNext):
 		links += [ dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersManagerButton(row, whatNext) ), ]
 	links += [
 				dict(header=T('Recommender'), body=lambda row: mkRecommenderButton(row)),
+				dict(header=T('Recommendation title'), body=lambda row: mkLastRecommendation(auth, db, row.id)),
 				dict(header=T(''), 
 						body=lambda row: A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), 
 										_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
@@ -192,18 +211,20 @@ def _manage_articles(statuses, whatNext):
 			]
 	grid = SQLFORM.grid(  query
 		,details=False, editable=False, deletable=False, create=False
-		,searchable=False #TODO: improve!
+		,searchable=True #TODO: improve!
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.already_published, db.t_articles.authors, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		#,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.doi, db.t_articles.title, db.t_articles.already_published, db.t_articles.authors, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics]
 		,links=links
-		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
+		#,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		#,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 		,orderby=~db.t_articles.last_status_change
 	)
 	response.view='default/myLayout.html'
 	return dict(
-				myTitle=T('Articles'),
+				myText=getText(request, auth, dbHelp, '#ManagerArticlesText'),
+				myTitle=getTitle(request, auth, dbHelp, '#ManagerArticlesTitle'),
 				grid=grid, 
 			)
 
@@ -222,13 +243,13 @@ def recommendations():
 		if art.status == 'Recommended':
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						DIV(T('Recommended Article'), _class='pci-ArticleText printable'),
+						DIV(T('Recommended article'), _class='pci-ArticleText printable'),
 						_class='pci-ArticleHeaderIn recommended printable'
 					))
 		else:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 				DIV(
-					DIV(I(myconf.take('app.longname')+': ')+T(art.status), _class='pci-ArticleText printable'),
+					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
 					_class='pci-ArticleHeaderIn printable'
 				))
 		myUpperBtn = ''
@@ -237,13 +258,13 @@ def recommendations():
 		if art.status == 'Recommended':
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 				DIV(
-					DIV(I(myconf.take('app.longname'))+BR()+T('Recommended Article'), _class='pci-ArticleText'),
+					DIV(I(T('Recommended article')), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn recommended'
 				))
 		else:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 				DIV(
-					DIV(I(myconf.take('app.longname')+' '+T('status:')), mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
+					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn'
 				))
 		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
@@ -289,8 +310,8 @@ def manage_recommendations():
 	db.t_recommendations.doi.represent = lambda text, row: mkDOI(text)
 	db.t_recommendations._id.readable = False
 	if len(request.args) == 0: # in grid
-		#db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text[:500]+'...') if len(text or '')>500 else WIKI(text or '')
-		db.t_recommendations.recommendation_comments.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+		db.t_recommendations.recommendation_state.represent = lambda state, row: mkContributionStateDiv(auth, db, (state or ''))
+		db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
 		db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(row.recommendation_timestamp)
 		db.t_recommendations.last_change.represent = lambda text, row: mkLastChange(row.last_change)
 	else: # in form
@@ -309,7 +330,7 @@ def manage_recommendations():
 		,maxtextlength=1000
 		,csv=csv, exportclasses=expClass
 		,paginate=10
-		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments]
+		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments]
 		,links = links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
@@ -317,11 +338,12 @@ def manage_recommendations():
 	response.view='default/recommLayout.html'
 	#response.view='default/myLayout.html'
 	return dict(
-				myBackButton = mkBackButton(),
-				myTitle=T('Manage recommendations'),
+				#myBackButton = mkBackButton(),
+				myHelp=getHelp(request, auth, dbHelp, '#ManageRecommendations'),
+				myText=getText(request, auth, dbHelp, '#ManageRecommendationsText'),
+				myTitle=getTitle(request, auth, dbHelp, '#ManageRecommendationsTitle'),
 				myContents=myContents,
 				grid=grid,
-				myHelp=getHelp(request, auth, dbHelp, '#ManageRecommendations'),
 			)
 
 
@@ -340,7 +362,7 @@ def search_recommenders():
 			myValue = myVars[myVar]
 		if (myVar == 'qyKeywords'):
 			qyKw = myValue
-		elif (re.match('^qy_', myVar)):
+		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'exclude'):
 			excludeList = map(int, myValue.split(','))
@@ -395,10 +417,11 @@ def search_recommenders():
 		)
 		response.view='default/recommenders.html'
 		return dict(searchForm=searchForm, 
-					myTitle=T('Search recommenders'), 
-					myBackButton=mkBackButton(),
+					#myBackButton=mkBackButton(),
+					myHelp=getHelp(request, auth, dbHelp, '#ManagerSearchRecommenders'),
+					myText=getText(request, auth, dbHelp, '#ManagerSearchRecommendersText'),
+					myTitle=getTitle(request, auth, dbHelp, '#ManagerSearchRecommendersTitle'),
 					grid=grid, 
-					myHelp=getHelp(request, auth, dbHelp, '#SearchRecommenders'),
 				)
 
 
@@ -424,15 +447,14 @@ def suggested_recommenders():
 		,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent]
 		,field_id=db.t_suggested_recommenders.id
 	)
-	myEmailButton = '' #A(SPAN(current.T('Send email to suggested recommenders'), _class='buttontext btn btn-default'), _href=URL(f='send_email_to_suggested_recommenders', vars=dict(articleId=articleId), user_signature=True), _class='button')
-	#response.view='manage/suggested_recommenders.html'
 	response.view='default/myLayout.html'
-	return dict(grid=grid, 
-				myTitle=T('Suggested recommenders'), 
-				myBackButton=mkBackButton(URL(c='manager',f='pending_articles')), 
-				myEmailButton=myEmailButton,
-				myHelp=getHelp(request, auth, dbHelp, '#ManageSuggestedRecommenders'),
-			 )
+	return dict(
+					myBackButton=mkBackButton(URL(c='manager',f='pending_articles')), 
+					myHelp=getHelp(request, auth, dbHelp, '#ManageSuggestedRecommenders'),
+					myText=getText(request, auth, dbHelp, '#ManageSuggestedRecommendersText'),
+					myTitle=getTitle(request, auth, dbHelp, '#ManageSuggestedRecommendersTitle'),
+					grid=grid, 
+				)
 
 
 
@@ -463,8 +485,29 @@ def edit_article():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-		form = form,
-		myTitle = T('Edit article'),
-		myHelp = getHelp(request, auth, dbHelp, '#UserEditArticle'),
-		myBackButton = mkBackButton(),
-	)
+				#myBackButton = mkBackButton(),
+				myHelp = getHelp(request, auth, dbHelp, '#ManagerEditArticle'),
+				myText=getText(request, auth, dbHelp, '#ManagerEditArticleText'),
+				myTitle=getTitle(request, auth, dbHelp, '#ManagerEditArticleTitle'),
+				form = form,
+			)
+
+
+@auth.requires(auth.has_membership(role='manager'))
+def manage_comments():
+	db.t_comments.parent_id.label=T('Parent comment')
+	grid = SQLFORM.smartgrid(db.t_comments
+					,fields=[db.t_comments.article_id, db.t_comments.comment_datetime, db.t_comments.user_id, db.t_comments.parent_id, db.t_comments.user_comment]
+					,linked_tables=['t_comments']
+					,csv=csv, exportclasses=dict(t_comments=expClass)
+					,maxtextlength=250
+					,paginate=25
+					,orderby=~db.t_comments.comment_datetime
+			)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, dbHelp, '#ManageCommentsText'),
+				myTitle=getTitle(request, auth, dbHelp, '#ManageCommentsTitle'),
+				myHelp=getHelp(request, auth, dbHelp, '#ManageComments'),
+				grid=grid, 
+			 )

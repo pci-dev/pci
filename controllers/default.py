@@ -23,47 +23,75 @@ from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
 
+def loading():
+	return DIV(IMG(_alt='Loading...', _src=URL(c='static', f='images/loading.gif')), _id="loading", _style='text-align:center;')
+
 # Home page (public)
 def index():
-	nbs = [
-			OPTION('10', _value=10),
-			OPTION('20', _value=20),
-			OPTION('50', _value=50),
-			OPTION('100', _value=100),
-		]
+	#nbs = [
+			#OPTION('10', _value=10),
+			#OPTION('20', _value=20),
+			#OPTION('50', _value=50),
+			#OPTION('100', _value=100),
+		#]
 	#NOTE: do not delete: kept for later use
 	#thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
 	#options = [OPTION('--- All thematic fields ---', _value='')]
 	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		#options.append(OPTION(thema.keyword, _value=thema.keyword))
-	vars=dict(qyThemaSelect='')
-	form = FORM (SPAN((T('%s recommendations') % (myconf.take('app.longname'))), _class='pci-myTitleText'),
-				BR(),
-				A(current.T('Search'), _href=URL('public', 'recommended_articles'), _class='btn btn-warning'),
-				BR(),
-				LABEL(T('Show')+' '),
-				SELECT(nbs, _name='maxArticles',
-					_onChange="""ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"""
-								% (URL('public', 'last_recomms', vars=vars, user_signature=True))
-						, _style='margin-left:8px; margin-right:8px;'),
-				LABEL(' '+T('last recommendations')+' '), 
+	myVars = copy.deepcopy(request.vars)
+	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
+	myVarsNext = copy.deepcopy(myVars)
+	myVarsNext['maxArticles'] = myVarsNext['maxArticles']+10
+	form = FORM (
+				H3(T('Last recommendations')),
+				#LABEL(T('Show')+' '),
+				#SELECT(nbs, _name='maxArticles',
+					#_onChange="""ajax('%s', [], 'lastRecommendations');
+								 #ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"""
+								#% (
+									#URL('public', 'loading'),
+									#URL('public', 'last_recomms', vars=vars, user_signature=True),
+								  #)
+						#, _style='margin-left:8px; margin-right:8px;'),
+				#LABEL(' '+T('last recommendations')+' '), 
+				
+				#A(current.T('Search'), _href=URL('public', 'recommended_articles'), _class='btn btn-warning', _style='margin-left:8px; margin-bottom:8px;'),
 				#NOTE: do not delete: kept for later use
 				#LABEL(' '+T('last recommendations in:')+' '), 
 				#SELECT(options, _name='qyThemaSelect', 
 					#_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 
 									#vars=vars, 
 									#user_signature=True))),
+				DIV(
+					loading(),
+					_id='lastRecommendations',
+				),
+				DIV(
+					A(current.T('More...'), 
+						#_onclick="ajax('%s', [], 'lastRecommendations')"%(URL('default', 'loading', user_signature=True)),
+						_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=myVarsNext, user_signature=True)),
+						_class='btn btn-default', _style='margin-left:8px; margin-bottom:8px;'
+					),
+					_style='text-align:center;'
+				)
 			)
-	
+	response.view='default/index.html'
 	return dict(
+		smallSearch=DIV(mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False), _style='float:right; margin-top:50px;'),
 		myText=getText(request, auth, dbHelp, '#HomeInfo'),
-		#myTitle=(T('%s Recommandations') % (myconf.take('app.longname'))),
 		myTopPanel=mkTopPanel(myconf, auth),
+		myHelp=getHelp(request, auth, dbHelp, '#Home'),
 		form=form,
 		shareable=True,
-		script=SCRIPT("window.onload=ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"%(URL('public', 'last_recomms', 
-											vars=vars, 
-											user_signature=True)), _type='text/javascript'),
+		script=SCRIPT("""
+window.onload=function() {
+						ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
+						if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
+}
+""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
+				_type='text/javascript'
+			),
 	)
 
 
@@ -84,15 +112,32 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
-	myMessage = T('Log In')
+	print request.args[0]
+	if request.args[0] == 'login':
+		myHelp = getHelp(request, auth, dbHelp, '#LogIn')
+		myTitle = getTitle(request, auth, dbHelp, '#LogInTitle')
+		myText = getText(request, auth, dbHelp, '#LogInText')
+	elif request.args[0] == 'register':
+		myHelp = getHelp(request, auth, dbHelp, '#CreateAccount')
+		myTitle = getTitle(request, auth, dbHelp, '#CreateAccountTitle')
+		myText = getText(request, auth, dbHelp, '#CreateAccountText')
+	elif request.args[0] == 'profile':
+		myHelp = getHelp(request, auth, dbHelp, '#Profile')
+		myTitle = getTitle(request, auth, dbHelp, '#ProfileTitle')
+		myText = getText(request, auth, dbHelp, '#ProfileText')
+	else:
+		myHelp = ''
+		myTitle = ''
+		myText = ''
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
-	response.view='default/index.html'
+	#response.view='default/index.html'
+	response.view='default/myLayout.html'
 	return dict(
-		message = myMessage,
+		myTitle=myTitle,
+		myText=myText,
+		myHelp=myHelp,
 		form=auth(),
-		panel='',
-		myHelp=getHelp(request, auth, dbHelp, '#LogIn'),
 	)
 
 

@@ -3,7 +3,7 @@
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
-dbHelp = DAL('sqlite://help.sqlite', pool_size=10)
+dbHelp = DAL('sqlite://help.sqlite', pool_size=10, lazy_tables=True)
 
 #dbHelp.define_table('hashtags',
 	#Field('id', type='id'),

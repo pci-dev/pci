@@ -652,56 +652,40 @@ Sincerely yours,<p>
 
 
 
-#def do_send_email_to_reviewer_contribution_suggested(session, auth, db, pressId):
-	#report = []
-	#mail = getMailer(auth)
-	#mail_resu = False
-	#applongname=myconf.take('app.longname')
-	#appdesc=myconf.take('app.description')
-	#press = db.t_press_reviews[pressId]
-	#recomm = db.t_recommendations[press.recommendation_id]
-	#if recomm:
-		#article = db.t_articles[recomm['article_id']]
-		#if article:
-			#articleTitle = article.title
-			#articleAuthors = article.authors
-			#articleDOI = article.doi
-			#linkTarget = URL(c='user', f='my_press_reviews', scheme=True, host=True)
-			#mySubject = '%s: Contribution to recommendation suggested' % (applongname)
-			#destPerson = mkUser(auth, db, press.contributor_id)
-			#destAddress = db.auth_user[press.contributor_id]['email']
-			#recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
-			#content = """Dear %(destPerson)s,<p>
-#I invite you to jointly write a recommendation on a manuscript written by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDOI)s).<br>
-#This recommendation will appear in the <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
-#Because this MS has already been peer-reviewed we do not need to write reviews.  
-#We rather simply need to write together a short text (between half a page and a page). 
-#This text should explain the reasons for which this article is of particular interest. 
-#There are no constraints on format.<p>
-#The goal is to highlight the scientific qualities of the article (crucial, original or previously untested hypothesis, scientific rigour, refinement of the demonstration, outstanding quality of the data and methodology, noteworthy scientific consequences, etc.).<br>
-#The only absolute rule is that we must not be directly associated with the authors of the recommended article or have any other conflict of interest.<p>
-#Writing a recommendation of this type should not take us too much time and energy, given the short format and the fact that no detailed reviewing is required.<p>
-#If you agree, I can start a first draft of this recommendation and send it to you.<p>
-#Please let me know as soon as possible if you will accept to co-recommend this paper by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a><p>
-#Thanks in advance.<p>
-#Sincerely yours,
-#<span style="padding-left:1in;">%(recommenderPerson)s</span>
-#""" % locals()
-			##filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_press_review_suggested.html')
-			#myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			#mail_resu = mail.send(to=[db.auth_user[press.contributor_id]['email']],
-								#subject=mySubject,
-								#message=myMessage,
-							#)
-			#if mail_resu:
-				#report.append( 'email to contributor %s sent' % destPerson.flatten() )
-			#else:
-				#report.append( 'email to contributor %s NOT SENT' % destPerson.flatten() )
-	#print '\n'.join(report)
-	#if session.flash is None:
-		#session.flash = '; '.join(report)
-	#else:
-		#session.flash += '; ' + '; '.join(report)
+
+def do_send_mail_admin_new_user(session, auth, db, userId):
+	report = []
+	mail = getMailer(auth)
+	mail_resu = False
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	admins = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'administrator') ).select(db.auth_user.ALL)
+	dest = []
+	for admin in admins:
+		dest.append(admin.email)
+	user = db.auth_user[userId]
+	if user:
+		userTxt = mkUser(auth, db, userId)
+		userMail = user.email
+		mySubject = '%s: New registred user' % (applongname)
+		content = """Dear administrators,<p>
+A new user joined <i>%(applongname)s</i>: %(userTxt)s (%(userMail)s).<p>
+""" % locals()
+		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+		mail_resu = mail.send(to=dest,
+							subject=mySubject,
+							message=myMessage,
+						)
+	if mail_resu:
+		report.append( 'email to administrators sent' )
+	else:
+		report.append( 'email to administrators NOT SENT' )
+	print '\n'.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
+	else:
+		session.flash += '; ' + '; '.join(report)
+
 
 
 

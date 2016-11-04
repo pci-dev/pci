@@ -5,6 +5,7 @@ pp = pprint.PrettyPrinter(indent=4)
 
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
+from gluon.tools import Recaptcha
 
 #from gluon.custom_import import track_changes; track_changes(True)
 from common import *
@@ -36,7 +37,9 @@ if not request.env.web2py_runtime_gae:
     db = DAL(myconf.get('db.uri'),
              pool_size=myconf.get('db.pool_size'),
              migrate_enabled=myconf.get('db.migrate'),
-             check_reserved=['all'])
+             check_reserved=['all'],
+             lazy_tables=True
+         )
 else:
     # ---------------------------------------------------------------------
     # connect to Google BigTable (optional 'google:datastore://namespace')
@@ -105,7 +108,6 @@ db.define_table('t_thematics',
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
 auth.settings.extra_fields['auth_user'] = [
-	#Field('user_title', type='string', length=10, label=T('Title'), requires=IS_IN_SET(('', 'Dr.', 'Pr.', 'M.', 'Mrs.')), default=''),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
 	Field('laboratory', type='string', label=T('Laboratory')),
@@ -116,6 +118,8 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('cv', type='text', label=T('Curriculum vitae')),
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('last_alert', type='datetime', label=T('Last alert'), writable=False, readable=False),
+	Field('registration_datetime', type='datetime', default=request.now, label=T('Registration date & time'), writable=False, readable=False),
+
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user.registration_key.label=T('Registration key')
@@ -143,10 +147,36 @@ auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
 auth.settings.create_user_groups = False
 auth.settings.showid = False
+if myconf.get('captcha.private'):
+	auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'))
+	auth.settings.login_captcha = False
+	auth.settings.register_captcha = None
+	auth.settings.retrieve_username_captcha = False
+	auth.settings.retrieve_password_captcha = None
+auth.messages.verify_email_subject = '%s: Email verification' % myconf.get('app.longname')
+auth.messages.verify_email="""
+Welcome %(username)s! 
 
-db.auth_user._after_insert.append(lambda f, id: newUser(f, id))
-def newUser(f, userId):
-	do_send_mail_new_user(session, auth, db, userId)
+Click on the link %(link)s to verify your email.
+
+"""+myconf.get('app.longname')+""" is the first community of the parent project Peer Community In…. 
+It is a community of researchers in Evolutionary Biology dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. 
+This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. 
+More information can be found on the website of """+myconf.get('app.longname')+""": """+URL(c='default', f='index', scheme=True, host=True)
+
+#db.auth_user._after_insert.append(lambda f, id: newUser(f, id))
+db.auth_user._before_update.append(lambda s,f: newRegistration(s,f))
+def newRegistration(s,f):
+	o = s.select().first()
+	print o
+	print f
+	if o.registration_key != '' and f['registration_key'] == '':
+		do_send_mail_new_user(session, auth, db, o.id)
+		do_send_mail_admin_new_user(session, auth, db, o.id)
+	return None
+		
+#def newUser(f, userId):
+	#do_send_mail_new_user(session, auth, db, userId)
 
 db.auth_membership._after_insert.append(lambda f, id: newMembership(f, id))
 def newMembership(f, membershipId):
@@ -174,7 +204,10 @@ db.define_table('t_articles',
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, pages)')),
-	Field('doi', type='string', label=T('DOI'), length=512, represent=lambda text, row: mkDOI(text) ),
+	Field('doi', type='string', label=T('DOI'), length=512, unique=True, represent=lambda text, row: mkDOI(text) ),
+	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which I own the rights or free of rights')),
+	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+	Field('picture_data', type='blob', readable=False),
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
@@ -185,12 +218,13 @@ db.define_table('t_articles',
 	Field('already_published', type='boolean', label=T('Already published'), default=False),
 	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and this request is made on the behalf of all article\'s authors')),
 	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published and has not been sent for review elsewhere')),
-	Field('auto_nb_recommendations', type='integer', label=T('Number of recommendations'), default=0),
+	Field('auto_nb_recommendations', type='integer', label=T('Round of reviews'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
 	plural=T("Articles"),
 	migrate=False,
 )
+db.t_articles.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
 db.t_articles.upload_timestamp.writable = False
 db.t_articles.last_status_change.writable = False
 db.t_articles.auto_nb_recommendations.writable = False
@@ -230,15 +264,16 @@ db.define_table('t_recommendations',
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
 	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
-	Field('recommendation_title', type='text', label=T('Recommendation title'), default=''),
+	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), default=''),
 	Field('recommendation_comments', type='text', label=T('Recommendation comments'), default=''),
 	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
+	Field('recommendation_state', type='string', length=50, label=T('Recommendation state'),  requires=IS_EMPTY_OR(IS_IN_SET(('Recommended','Rejected','Awaiting revision')))),
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I/we declare that I/we have no conflict of interests with the authors or the content of the article')),
 	Field('reply', type='text', label=T('Author\'s Reply'), default=''),
-	Field('auto_nb_agreements', type='integer', label=T('Number of reviews'), writable=False),
+	#Field('auto_nb_agreements', type='integer', label=T('Number of reviews'), writable=False),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
 	migrate=False,
@@ -319,28 +354,27 @@ db.define_table('t_press_reviews',
 	Field('id', type='id'),
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('contributor_id', type='reference auth_user', ondelete='RESTRICT', label=T('Contributor')),
-	#Field('contribution_state', type='string', length=50, label=T('Contribution state'), default='Pending', requires=IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Recommendation agreed')), writable=False),
-	#Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	migrate=False,
 )
 db.t_press_reviews.contributor_id.requires = IS_IN_DB(db((db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s')
 db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
-#db.t_press_reviews._after_update.append(lambda s, f: contributionAgreement(s,f))
-#db.t_press_reviews._after_insert.append(lambda s,i: contributionSuggested(s,i))
-#def contributionAgreement(s, f):
-	#o = s.select().first()
-	#if o['contribution_state'] == 'Under consideration':
-		#do_send_email_to_recommenders_press_review_considerated(session, auth, db, o['id'])
-	#elif o['contribution_state'] == 'Declined':
-		#do_send_email_to_recommenders_press_review_declined(session, auth, db, o['id'])
-	#elif o['contribution_state'] == 'Recommendation agreed':
-		#do_send_email_to_recommenders_press_review_agreement(session, auth, db, o['id'])
-		##TODO close recommendation
-	#return None
-#def contributionSuggested(s, i):
-	#print 'contributionSuggested:', i, s
-	#do_send_email_to_reviewer_contribution_suggested(session, auth, db, i)
-	#return None
+
+
+
+
+db.define_table('t_comments',
+	Field('id', type='id'),
+	Field('article_id', type='reference t_articles', ondelete='CASCADE', label=T('Article')),
+	Field('parent_id', type='reference t_comments', ondelete='CASCADE', label=T('Reply to')),
+	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Author')),
+	Field('user_comment', type='text', label=T('Comment'), requires=IS_NOT_EMPTY()),
+	Field('comment_datetime', type='datetime', default=request.now, label=T('Date & time'), writable=False),
+	migrate=False,
+	singular=T("Comment"), 
+	plural=T("Comments"),
+	format=lambda row: row.user_comment[0:100],
+)
+
 
 ##-------------------------------- Views ---------------------------------
 db.define_table('v_last_recommendation',

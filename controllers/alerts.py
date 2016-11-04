@@ -20,41 +20,7 @@ filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.
 
 
 def _mkArticleRowForEmail(row, odd):
-	resu = []
-	if row.authors and len(row.authors)>1000:
-		authors = row.authors[:1000]+'...'
-	else:
-		authors = row.authors or ''
-	# Recommender name(s)
-	recomm = db( (db.t_recommendations.article_id==row.id) ).select(orderby=db.t_recommendations.id).last()
-	if recomm is not None and recomm.recommender_id is not None:
-		whowhen = [SPAN(current.T('See recommendation by '), mkUser(auth, db, recomm.recommender_id))]
-		if row.already_published:
-			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
-			if len(contrQy) > 0:
-				whowhen.append(SPAN(current.T(' with ')))
-			for ic in range(0, len(contrQy)):
-				whowhen.append(mkUser(auth, db, contrQy[ic].contributor_id))
-				if ic < len(contrQy)-1:
-					whowhen.append(', ')
-	else:
-		whowhen = [SPAN(current.T('See recommendation'))]
-	resu.append(
-				TD(
-					B(row.title),
-					BR(),
-					SPAN(authors),
-					BR(),
-					mkDOI(row.doi),
-					A(whowhen, 
-						_href= URL(c='public', f='recommendations', vars=dict(articleId=row.id), scheme=myconf.take('alerts.scheme'), host=myconf.take('alerts.host'), port=myconf.take('alerts.port')),
-						_target='blank',
-						_style="color:green; margin-left:20px;",
-					),
-					_style='border:none; padding: 8px;'
-				)
-			)
-	resu.append(TD(mkLastChange(row.last_status_change), _style='border:none; padding: 8px; text-align:center; font-style:italic; font-size:8pt;'))
+	resu = mkRecommArticleRow(auth, db, row, withImg=False, withScore=False, withDate=True, fullURL=True)
 	if odd:
 		return TR(resu)
 	else:
@@ -93,16 +59,16 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 	print ''.join(report)
 
 
+
+def test_flash():
+	session.flash = 'Coucou !'
+	redirect(request.env.http_referer)
+	
 #@auth.requires(auth.user_id==1)
 #@auth.requires_login()
 def test_mail_piry():
-	#print request
-	#print 'COUCOU1'
 	if 'client' not in request:
 		_do_send_email_to_test(1)
-		#print 'COUCOU2'
-	#else:
-		#print 'COUCOU3'
 
 
 #@auth.requires_login()
@@ -133,7 +99,8 @@ def testUserRecommendedAlert():
 									_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
 									), 
 								)
-					alert_new_recommendations(session, auth, db, userId, msgContents)
+					if len(myRows)>0:
+						alert_new_recommendations(session, auth, db, userId, msgContents)
 				
 			redirect(request.env.http_referer)
 		else:
@@ -160,7 +127,11 @@ def alertUsersLastRecommendations():
 			articleIdsQy = db.executesql('SELECT * FROM alert_last_recommended_article_ids_for_user(%s);', placeholders=[userId])
 			if len(articleIdsQy) > 0: # yes, new stuff to display
 				artIds = articleIdsQy[0][0]
-				query = db( (db.t_articles.id.belongs(artIds)) ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+				query = db( 
+						  (db.t_articles.id.belongs(artIds)) 
+						& (db.t_recommendations.article_id==db.t_articles.id) 
+						& (db.t_recommendations.recommendation_state=='Recommended')
+					).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 				n = len(query)
 				myRows = []
 				odd = True
@@ -173,7 +144,8 @@ def alertUsersLastRecommendations():
 								_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
 								), 
 							)
-				alert_new_recommendations(session, auth, db, userId, msgContents)
+				if len(myRows)>0:
+					alert_new_recommendations(session, auth, db, userId, msgContents)
 			#user.last_alert = datetime.datetime.now()
 			#user.update_record()
-			#db.commit()
+			db.commit()

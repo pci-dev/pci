@@ -27,9 +27,7 @@ def new_submission():
 		)
 	response.view='default/info.html' #OK
 	return dict(
-		#panel = DIV(UL( panel, _class="list-group"), _class="panel panel-info"),
 		myText = myText,
-		myBackButton = mkBackButton(),
 	)
 
 
@@ -49,20 +47,38 @@ def fill_new_article():
 	db.t_articles.already_published.default = False
 	db.t_articles.already_published.readable = False
 	db.t_articles.already_published.writable = False
-	myTitle=T('Your preprint for which you request a recommendation')
 	myScript = """jQuery(document).ready(function(){
+					
+					if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
+						jQuery('#t_articles_uploaded_picture').prop('disabled', false);
+					} else {
+						jQuery('#t_articles_uploaded_picture').prop('disabled', true);
+					}
+					
 					if(jQuery('#t_articles_already_published').prop('checked')) {
 						jQuery('#t_articles_article_source__row').show();
 					} else {
 						jQuery('#t_articles_article_source__row').hide();
 						jQuery(':submit').prop('disabled', true);
 					}
+					
 					if(jQuery('#t_articles_already_published').length) jQuery(':submit').prop('disabled', false);
+					
 					if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
 						jQuery(':submit').prop('disabled', false);
 					} else {
 						jQuery(':submit').prop('disabled', true);
 					}
+					
+					jQuery('#t_articles_picture_rights_ok').change(function(){
+								if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
+									jQuery('#t_articles_uploaded_picture').prop('disabled', false);
+								} else {
+									jQuery('#t_articles_uploaded_picture').prop('disabled', true);
+									jQuery('#t_articles_uploaded_picture').val('');
+								}
+					});
+					
 					jQuery('#t_articles_already_published').change(function(){
 								if(jQuery('#t_articles_already_published').prop('checked')) {
 									jQuery('#t_articles_article_source__row').show();
@@ -70,13 +86,7 @@ def fill_new_article():
 									jQuery('#t_articles_article_source__row').hide();
 								}
 					});
-					jQuery('#t_articles_already_published').change(function(){
-								if(jQuery('#t_articles_already_published').prop('checked')) {
-									jQuery('#t_articles_article_source__row').show();
-								} else {
-									jQuery('#t_articles_article_source__row').hide();
-								}
-					});
+					
 					jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
 								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
 									jQuery(':submit').prop('disabled', false);
@@ -107,10 +117,10 @@ def fill_new_article():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-				form=form, 
-				myTitle=myTitle, 
-				myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, dbHelp, '#UserSubmitNewArticle'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserSubmitNewArticleTitle'),
+				myText=getText(request, auth, dbHelp, '#UserSubmitNewArticleText'),
+				form=form, 
 				myFinalScript = SCRIPT(myScript),
 			 ) 
 
@@ -157,6 +167,26 @@ def do_cancel_article():
 	else:
 		art.status = 'Cancelled'
 		art.update_record()
+		session.flash = T('Preprint submission cancelled')
+		redirect(URL(f='my_articles', user_signature=True))
+
+
+
+@auth.requires_login()
+def do_delete_article():
+	articleId = request.vars['articleId']
+	if articleId is None:
+		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+	art = db.t_articles[articleId]
+	if art is None:
+		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+	if art.user_id != auth.user_id:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		db(db.t_articles.id == articleId).delete()
+		session.flash = T('Preprint submission deleted')
 		redirect(URL(f='my_articles', user_signature=True))
 
 
@@ -165,7 +195,7 @@ def do_cancel_article():
 def suggest_article_to():
 	articleId = request.vars['articleId']
 	recommenderId = request.vars['recommenderId']
-	db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
+	do_suggest_article_to(auth, db, articleId, recommenderId)
 	redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 
 
@@ -183,11 +213,11 @@ def suggested_recommenders():
 		,csv = csv, exportclasses = expClass
 		,fields=[db.t_suggested_recommenders.suggested_recommender_id]
 	)
-	#response.view='default/recommLayout.html'
 	response.view='default/myLayout.html'
 	return dict(
-				myTitle=T('Suggested recommenders'),
 				myBackButton = mkBackButton(),
+				myTitle=getTitle(request, auth, dbHelp, '#SuggestedRecommendersTitle'),
+				myText=getText(request, auth, dbHelp, '#SuggestedRecommendersText'),
 				myHelp=getHelp(request, auth, dbHelp, '#SuggestedRecommenders'),
 				grid=grid, 
 			)
@@ -258,10 +288,10 @@ def add_suggested_recommender():
 						)
 		response.view='default/myLayout.html'
 		return dict(
+					myTitle=getTitle(request, auth, dbHelp, '#UserAddSuggestedRecommenderTitle'),
+					myText=getText(request, auth, dbHelp, '#UserAddSuggestedRecommenderText'),
 					myHelp = getHelp(request, auth, dbHelp, '#UserAddSuggestedRecommender'),
-					myTitle=T('Suggest recommenders?'), 
 					myUpperBtn=myUpperBtn,
-					#myBackButton=mkBackButton(T('Close'), URL(c='user', f='my_articles', user_signature=True)),
 					content=myContents, 
 					form='', 
 					myAcceptBtn = myAcceptBtn,
@@ -317,9 +347,10 @@ def recommenders():
 						#_type='text/javascript')
 		response.view='default/myLayout.html'
 		return dict(
+					#myBackButton=mkBackButton(),
+					myTitle=getTitle(request, auth, dbHelp, '#UserManageRecommendersTitle'),
+					myText=getText(request, auth, dbHelp, '#UserManageRecommendersText'),
 					myHelp = getHelp(request, auth, dbHelp, '#UserManageRecommenders'),
-					myTitle=T('Manage recommenders for your article'), 
-					myBackButton=mkBackButton(),
 					grid=grid, 
 					myAcceptBtn = myAcceptBtn,
 					#myFinalScript=myScript,
@@ -341,7 +372,7 @@ def search_recommenders():
 			myValue = myVars[myVar]
 		if (myVar == 'qyKeywords'):
 			qyKw = myValue
-		elif (re.match('^qy_', myVar)):
+		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'articleId'):
 			articleId = myValue
@@ -386,9 +417,10 @@ def search_recommenders():
 					#dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
 					dict(header=T(''), body=lambda row: mkSuggestUserArticleToButton(auth, db, row, art.id)),
 			]
-		#TODO: ugly
+		selectable = [(T('Suggest to checked recommenders'), lambda ids: [suggest_article_to_all(articleId, ids)], 'class1')]
 		grid = SQLFORM.grid( qy_recomm
 			,editable = False,deletable = False,create = False,details=False,searchable=False
+			,selectable=selectable
 			,maxtextlength=250,paginate=100
 			,csv=csv,exportclasses=expClass
 			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
@@ -400,14 +432,21 @@ def search_recommenders():
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, dbHelp, '#UserSearchRecommenders'),
-					myTitle=T('Suggest recommenders for your submitted article'), 
-					#myBackButton=mkBackButton(),
+					myText=getText(request, auth, dbHelp, '#UserSearchRecommendersText'),
+					myTitle=getTitle(request, auth, dbHelp, '#UserSearchRecommendersTitle'),
 					myBackButton=myBackButton,
 					searchForm=searchForm, 
 					grid=grid, 
 				)
 
 
+
+
+def suggest_article_to_all(articleId, recommenderIds):
+	for recommenderId in recommenderIds:
+		do_suggest_article_to(auth, db, articleId, recommenderId)
+	redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+	
 
 
 # Display suggested recommenders for a submitted article
@@ -440,9 +479,10 @@ def suggested_recommenders():
 		)
 		response.view='default/myLayout.html'
 		return dict(
-					myTitle=T('Suggested recommenders'), 
-					myBackButton=mkBackButton(),
+					#myBackButton=mkBackButton(),
 					myHelp = getHelp(request, auth, dbHelp, '#UserSuggestedRecommenders'),
+					myText=getText(request, auth, dbHelp, '#UserSuggestedRecommendersText'),
+					myTitle=getTitle(request, auth, dbHelp, '#UserSuggestedRecommendersTitle'),
 					grid=grid, 
 				)
 
@@ -523,19 +563,19 @@ def my_articles():
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250
 		,paginate=20
-		,fields=[db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		#,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 		,orderby=~db.t_articles.last_status_change
 	)
-	myTitle=T('Your submitted articles')
 	response.view='default/myLayout.html'
 	return dict(
-				grid=grid, 
-				myTitle=myTitle, 
-				myBackButton=mkBackButton(), 
+				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, dbHelp, '#UserMyArticles'),
+				myText=getText(request, auth, dbHelp, '#UserMyArticlesText'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserMyArticlesTitle'),
+				grid=grid, 
 			 ) 
 
 
@@ -566,13 +606,13 @@ def recommendations():
 			if art.status == 'Recommended':
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 						DIV(
-							DIV(T('Recommended Article'), _class='pci-ArticleText printable'),
+							DIV(T('Recommended article'), _class='pci-ArticleText printable'),
 							_class='pci-ArticleHeaderIn recommended printable'
 						))
 			else:
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						DIV(I(myconf.take('app.longname')+': ')+T(art.status), _class='pci-ArticleText printable'),
+						DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
 						_class='pci-ArticleHeaderIn printable'
 					))
 			myUpperBtn = ''
@@ -581,13 +621,13 @@ def recommendations():
 			if art.status == 'Recommended':
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 					DIV(
-						DIV(I(myconf.take('app.longname'))+BR()+T('Recommended Article'), _class='pci-ArticleText'),
+						DIV(I(T('Recommended article')), _class='pci-ArticleText'),
 						_class='pci-ArticleHeaderIn recommended'
 					))
 			else:
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 					DIV(
-					DIV(I(myconf.take('app.longname')+' '+T('status:')), mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
+						DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
 						_class='pci-ArticleHeaderIn'
 					))
 			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
@@ -617,7 +657,10 @@ def my_reviews():
 				& (db.t_reviews.recommendation_id == db.t_recommendations._id)  
 				& (db.t_recommendations.article_id == db.t_articles._id)
 			)
-		myTitle = T('Requests for reviews')
+		#myTitle = T('Requests for reviews')
+		myTitle=getTitle(request, auth, dbHelp, '#UserMyReviewsRequestsTitle')
+		myText=getText(request, auth, dbHelp, '#UserMyReviewsRequestsText')
+		btnTxt = current.T('Accept or decline')
 		db.t_reviews.anonymously.readable=False
 	else:
 		query = (
@@ -626,18 +669,24 @@ def my_reviews():
 				& (db.t_reviews.recommendation_id == db.t_recommendations._id)  
 				& (db.t_recommendations.article_id == db.t_articles._id)
 			)
-		myTitle = T('Your reviews')
+		#myTitle = T('Your reviews')
+		myTitle=getTitle(request, auth, dbHelp, '#UserMyReviewsTitle')
+		myText=getText(request, auth, dbHelp, '#UserMyReviewsText')
+		btnTxt = current.T('View / Edit')
 	
-	db.t_articles._id.represent = lambda aId, row: mkRepresentArticleLight(auth, db, aId)
-	db.t_articles._id.label = T('Article')
+	db.t_articles._id.readable = False
+	#db.t_articles._id.represent = lambda aId, row: mkRepresentArticleLight(auth, db, aId)
+	#db.t_articles._id.label = T('Article')
+	db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+	db.t_recommendations._id.label = T('Recommendation')
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_reviews.last_change.label = T('Elapsed days')
 	db.t_reviews.last_change.represent = lambda text,row: mkElapsed(text)
 	db.t_reviews.reviewer_id.writable = False
-	db.t_reviews.recommendation_id.writable = False
+	#db.t_reviews.recommendation_id.writable = False
 	#db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
-	db.t_reviews.recommendation_id.label = T('Recommender')
-	db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
+	#db.t_reviews.recommendation_id.label = T('Recommender')
+	#db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
 	db.t_reviews._id.readable = False
 	db.t_reviews.review.readable=False
 	db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
@@ -647,7 +696,7 @@ def my_reviews():
 	#links = [dict(header='toto', body=lambda row: row.t_articles.id),]
 	links = [
 			dict(header=T(''), 
-					body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button'), 
+					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-button'), 
 									_href=URL(c='user', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
 									_target="_blank", 
 									_class='button', 
@@ -659,22 +708,41 @@ def my_reviews():
 		,searchable=False, deletable=False, create=False, editable=False, details=False
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles._id, db.t_articles.status, db.t_reviews.review_state, db.t_reviews.last_change, db.t_reviews.anonymously, db.t_reviews.recommendation_id, db.t_reviews.review]
+		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.status, db.t_reviews.review_state, db.t_reviews.last_change, db.t_reviews.anonymously,  db.t_reviews.review]
 		,links=links
 		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
 	response.view='default/myLayout.html'
 	return dict(
+				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, dbHelp, '#UserMyReviews'),
 				myTitle=myTitle,
-				myBackButton=mkBackButton(), 
+				myText=myText,
 				grid=grid, 
 			 )
 
 
-
 @auth.requires_login()
 def accept_new_review():
+	myTitle = getTitle(request, auth, dbHelp, '#AcceptReviewInfoTitle')
+	myText = DIV(
+			getText(request, auth, dbHelp, '#AcceptReviewInfoText'),
+			DIV(
+				A(current.T("Yes, I consider this preprint for review"), 
+					_href=URL('user', 'do_accept_new_review', vars=request.vars, user_signature=True), 
+					_class="btn btn-success pci-panelButton"),
+				_style='margin-top:16px; text-align:center;',
+			)
+		)
+	response.view='default/info.html' #OK
+	return dict(
+		myText=myText,
+		myTitle=myTitle,
+	)
+
+
+@auth.requires_login()
+def do_accept_new_review():
 	if 'reviewId' not in request.vars:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	reviewId = request.vars['reviewId']
@@ -690,6 +758,8 @@ def accept_new_review():
 	recomm = db.t_recommendations[rev.recommendation_id]
 	redirect(URL(c='user', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True))
 	#redirect(URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), user_signature=True))
+
+
 
 
 
@@ -754,11 +824,12 @@ def edit_reply():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-		form = form,
-		myTitle = T('Edit your reply to recommender'),
-		myHelp = getHelp(request, auth, dbHelp, '#UserEditReply'),
-		myBackButton = mkBackButton(),
-	)
+				myHelp = getHelp(request, auth, dbHelp, '#UserEditReply'),
+				myBackButton = mkBackButton(),
+				myText=getText(request, auth, dbHelp, '#UserEditReplyText'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserEditReplyTitle'),
+				form = form,
+			)
 
 
 
@@ -778,14 +849,22 @@ def edit_review():
 		session.flash = T('Unauthorized', lazy=False)
 		redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	else:
+		buttons = [
+					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
+					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
+				]
 		form = SQLFORM(db.t_reviews
 					,record=review
 					,fields=['anonymously', 'review', 'no_conflict_of_interest']
 					,showid=False
+					,buttons=buttons
 				)
 		if form.process().accepted:
-			response.flash = T('Review saved', lazy=False)
-			redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+			if form.vars.save:
+				session.flash = T('Review saved', lazy=False)
+				redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+			elif form.vars.terminate:
+				redirect(URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
 	myScript = """jQuery(document).ready(function(){
@@ -805,12 +884,13 @@ def edit_review():
 	"""
 	response.view='default/myLayout.html'
 	return dict(
-		myHelp = getHelp(request, auth, dbHelp, '#UserEditReview'),
-		myBackButton = mkBackButton(),
-		myTitle = T('Edit review'),
-		form = form,
-		myFinalScript = SCRIPT(myScript),
-	)
+				myHelp=getHelp(request, auth, dbHelp, '#UserEditReview'),
+				#myBackButton=mkBackButton(),
+				myText=getText(request, auth, dbHelp, '#UserEditReviewText'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserEditReviewTitle'),
+				form=form,
+				myFinalScript=SCRIPT(myScript),
+			)
 
 
 
@@ -845,10 +925,49 @@ def edit_my_article():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-		form = form,
-		myTitle = T('Edit article'),
-		myHelp = getHelp(request, auth, dbHelp, '#UserEditArticle'),
-		myBackButton = mkBackButton(),
-	)
+				#myBackButton=mkBackButton(),
+				myHelp=getHelp(request, auth, dbHelp, '#UserEditArticle'),
+				myText=getText(request, auth, dbHelp, '#UserEditArticleText'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserEditArticleTitle'),
+				form=form,
+			)
 
 
+
+
+@auth.requires_login()
+def new_comment():
+	if not('articleId' in request.vars):
+		session.flash = T('Unavailable')
+		redirect(URL('my_articles', user_signature=True))
+	articleId = request.vars['articleId']
+	if 'parentId' in request.vars:
+		parentId = request.vars['parentId']
+		fields = ['article_id', 'parent_id', 'user_comment']
+	else:
+		parentId = None
+		fields = ['article_id', 'user_comment']
+	db.t_comments.user_id.default = auth.user_id
+	db.t_comments.user_id.readable = False
+	db.t_comments.user_id.writable = False
+	db.t_comments.article_id.default = articleId
+	db.t_comments.article_id.writable = False
+	db.t_comments.parent_id.default = parentId
+	db.t_comments.parent_id.writable = False
+	form = SQLFORM(db.t_comments
+				,fields=fields
+				,showid=False
+			)
+	if form.process().accepted:
+		response.flash = T('Article saved', lazy=False)
+		redirect(URL(c='public', f='recommendations', vars=dict(articleId=articleId, comments=True), user_signature=True))
+	elif form.errors:
+		response.flash = T('Form has errors', lazy=False)
+	response.view='default/myLayout.html'
+	return dict(
+				myHelp=getHelp(request, auth, dbHelp, '#UserComment'),
+				myText=getText(request, auth, dbHelp, '#UserCommentText'),
+				myTitle=getTitle(request, auth, dbHelp, '#UserCommentTitle'),
+				form=form,
+			)
+	

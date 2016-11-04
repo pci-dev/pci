@@ -36,33 +36,32 @@ def recommended_articles():
 		elif (myVar == 'qyThemaSelect') and myValue:
 			qyTF=[myValue]
 			myVars2['qy_'+myValue] = True
-		elif (re.match('^qy_', myVar)) and not('qyThemaSelect' in myVars):
+		elif (re.match('^qy_', myVar) and myValue=='on' and not('qyThemaSelect' in myVars)):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 			myVars2[myVar] = myValue
 	qyKwArr = qyKw.split(' ')
 
 	searchForm =  mkSearchForm(auth, db, myVars2)
-	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Recommended', trgmLimit], as_dict=True)
+	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Recommended', trgmLimit, True], as_dict=True)
 	n = len(filtered)
 	myRows = []
 	for row in filtered:
-		r = mkArticleRow(auth, db, Storage(row), withScore=True, withDate=True)
-		print r
-		myRows.append(r)
+		r = mkRecommArticleRow(auth, db, Storage(row), withImg=True, withScore=False, withDate=True)
+		if r:
+			myRows.append(r)
 	grid = DIV(DIV(
 				DIV(T('%s records found')%(n), _class='pci-nResults'),
 				TABLE(
-					THEAD(TR(TH(T('Score')), TH(T('Article')), TH(T('Recommended')), _class='pci-lastArticles-row')),
+					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
 					TBODY(myRows),
 				_class='web2py_grid pci-lastArticles-table'), 
 			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
 	response.view='default/myLayout.html'
 	return dict(
-				panel=mkPanel(myconf, auth, inSearch=True),
 				grid=grid, 
 				searchForm=searchForm, 
-				myTitle=T('Recommended Articles'), 
-				#myBackButton = mkBackButton(),
+				myTitle=getTitle(request, auth, dbHelp, '#RecommendedArticlesTitle'),
+				myText=getText(request, auth, dbHelp, '#RecommendedArticlesText'),
 				myHelp=getHelp(request, auth, dbHelp, '#RecommendedArticles'),
 				shareable=True,
 			)
@@ -78,16 +77,28 @@ def last_recomms():
 	if 'qyThemaSelect' in request.vars:
 		thema = request.vars['qyThemaSelect']
 		if thema and len(thema)>0:
-			query = db( (db.t_articles.status=='Recommended') & (db.t_articles.thematics.contains(thema)) ).select(db.t_articles.ALL, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	if query == None:
-		query = db( (db.t_articles.status=='Recommended') ).select(db.t_articles.ALL, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	#n = len(query)
+			query = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+				  & (db.t_articles.thematics.contains(thema)) 
+				).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	if query is None:
+		query = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	print db._lastsql
 	myRows = []
 	for row in query:
-		myRows.append(mkArticleRow(auth, db, Storage(row), withDate=True))
+		r = mkRecommArticleRow(auth, db, row, withDate=True)
+		if r:
+			myRows.append(r)
 	return DIV(
-			#DIV(T('%s records found')%(n), _class='pci-nResults'),
-			TABLE(TBODY(myRows), _class='web2py_grid pci-lastArticles-table'), 
+			TABLE(
+				TBODY(myRows), 
+				_class='web2py_grid pci-lastArticles-table'), 
 			_class='pci-lastArticles-div',
 		)
 
@@ -96,7 +107,19 @@ def last_recomms():
 
 # Recommendations of an article (public)
 def recommendations():
-	printable = 'printable' in request.vars
+	if 'printable' in request.vars and request.vars['printable']=='True':
+		printable = True
+	else:
+		printable = False
+	if 'reviews' in request.vars and request.vars['reviews']=='True':
+		with_reviews = True
+	else:
+		with_reviews = False
+	if 'comments' in request.vars and request.vars['comments']=='True':
+		with_comments = True
+	else:
+		with_comments = False
+		
 	if not('articleId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
@@ -113,26 +136,51 @@ def recommendations():
 		redirect(URL('public', 'recommended_articles', user_signature=True))
 		#raise HTTP(403, "403: "+T('Forbidden access')) # Forbidden access
 
-	myContents = mkFeaturedArticle(auth, db, art, printable)
+	#myContents = mkFeaturedArticle(auth, db, art, printable)
+	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
+	myContents = myFeaturedRecommendation['myContents']
+	nbReviews = myFeaturedRecommendation['nbReviews']
+	print nbReviews
 	myContents.append(HR())
 	
 	if printable:
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png'), _height="100"),
+		myTitle=DIV(
+				IMG(_src=URL(r=request,c='static',f='images/background.png'), _height="100"),
 				DIV(
-					DIV(T('Recommended Article'), _class='pci-ArticleText printable'),
+					DIV(T('Recommendation'), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn recommended printable'
 				))
 		myUpperBtn = ''
 		response.view='default/recommended_article_printable.html' #OK
 	else:
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
+		myTitle=DIV(
+				IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
 				DIV(
-					DIV(I(myconf.take('app.longname')+': ')+T('Recommended Article'), _class='pci-ArticleText'),
+					DIV(I(T('Recommendation')), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn recommended'
 				))
-		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-			_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
-			_class='button')
+		if with_reviews:
+			btnSHRtxt = T('Hide reviews')
+		else:
+			btnSHRtxt = T('Show reviews')
+		if with_comments:
+			btnSHCtxt = T('Hide user comments')
+		else:
+			btnSHCtxt = T('Show user comments')
+		myUpperBtn = DIV(
+						A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
+						_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
+						_class='button'),
+						BR(),
+						(A(SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
+							_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=printable, reviews=not(with_reviews), comments=with_comments), user_signature=True),
+							_class='button')+BR()) if (nbReviews>0) else '',
+						(A(SPAN(btnSHCtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
+							_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=printable, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+							_class='button')+BR()),
+						mkCloseButton(),
+						_class="pci-ArticleTopButtons",
+					)
 		response.view='default/recommended_articles.html' #OK
 	
 	response.title = (art.title or myconf.take('app.longname'))
@@ -140,7 +188,7 @@ def recommendations():
 				statusTitle=myTitle,
 				myContents=myContents,
 				myUpperBtn=myUpperBtn,
-				myCloseButton=mkCloseButton(),
+				#myCloseButton=mkCloseButton(),
 				shareable=True,
 			)
 
@@ -160,20 +208,33 @@ def managers():
 	#)
 	myRows = []
 	for fr in query.select(db.auth_user.ALL):
-		myRows.append(mkUserRow(Storage(fr), withMail=False))
-	grid = TABLE(
-			THEAD(TR(TH(T('First & Last names')), TH(T('Lab, institution, city, country')), TH(T('Picture')) )), 
+		sfr = Storage(fr)
+		if sfr.last_name[0] != my1:
+			my1 = sfr.last_name[0]
+			myRows.append(TR(TD(A(my1, _name=my1, _class='pci-capitals')), TD()))
+			myIdx.append(A(my1, _href='#%s'%my1, _class='pci-capitals')+SPAN(' '))
+		myRows.append(mkUserRow(sfr, withMail=False))
+	grid = DIV(
+			SPAN(myIdx),
+			TABLE(
+			THEAD(TR(TH(T('Name')), TH(T('Affiliation')) )), 
 			myRows, 
 			_class="web2py_grid pci-UsersTable")
+		)
+	#myRows.append(mkUserRow(Storage(fr), withMail=False))
+	#grid = TABLE(
+			#THEAD(TR(TH(T('Name')), TH(T('Affiliation')), TH(T('Picture')) )), 
+			#myRows, 
+			#_class="web2py_grid pci-UsersTable")
 	
 	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href='mailto:%s' % myconf.take('contacts.managers')))
 	#response.view='default/myLayout.html' #TODO
 	response.view='default/recommenders.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#PublicManagingBoardDescription'),
-				myTitle=T('Managing board'), 
 				mkBackButton = mkBackButton(),
-				#searchForm=searchForm, 
+				myTitle=getTitle(request, auth, dbHelp, '#PublicManagingBoardTitle'),
+				myText=getText(request, auth, dbHelp, '#PublicManagingBoardText'),
+				myHelp=getHelp(request, auth, dbHelp, '#PublicManagingBoardDescription'),
 				content=content, 
 				grid=grid, 
 			)
@@ -197,54 +258,35 @@ def recommenders():
 				myValue = myVars[myVar]
 			if (myVar == 'qyKeywords'):
 				qyKw = myValue
-			elif (re.match('^qy_', myVar)):
+			elif (re.match('^qy_', myVar) and myValue == 'on'):
 				qyTF.append(re.sub(r'^qy_', '', myVar))
 		qyKwArr = qyKw.split(' ')
-		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s);', placeholders=[qyTF, qyKwArr], as_dict=True)
+		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s) ORDER BY last_name, first_name;', placeholders=[qyTF, qyKwArr], as_dict=True)
 		myRows = []
+		my1 = ''
+		myIdx = []
 		for fr in filtered:
-			myRows.append(mkUserRow(Storage(fr), withMail=False))
-		grid = TABLE(
-			THEAD(TR(TH(T('First & Last names')), TH(T('Lab, institution, city, country')), TH(T('Picture')) )), 
-			myRows, 
-			_class="web2py_grid pci-UsersTable")
-
-		## We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-		#temp_db = DAL('sqlite:memory')
-		#qy_recomm = temp_db.define_table('qy_recomm',
-			#Field('id', type='integer'),
-			#Field('num', type='integer'),
-			#Field('score', type='double', label=T('Score'), default=0),
-			#Field('first_name', type='string', length=128, label=T('First name')),
-			#Field('last_name', type='string', length=128, label=T('Last name')),
-			#Field('email', type='string', length=128, label=T('email')),
-			#Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-			#Field('city', type='string', label=T('City')),
-			#Field('country', type='string', label=T('Country')),
-			#Field('laboratory', type='string', label=T('Laboratory')),
-			#Field('institution', type='string', label=T('Institution')),
-			#Field('thematics', type='list:string', label=T('Thematic fields')),
-		#)
-		#for fr in filtered:
-			#qy_recomm.insert(**fr)
-		#temp_db.qy_recomm._id.readable = False
-		#temp_db.qy_recomm.uploaded_picture.represent = lambda text, row: (IMG(_src=URL('default', 'download', args=text), _class='pci-userPicture')) if (text is not None and text != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _class='pci-userPicture'))
-		#grid = SQLFORM.grid( qy_recomm
-							#,editable = False,deletable = False,create = False,details=False,searchable=False
-							#,maxtextlength=250,paginate=1
-							#,csv=csv,exportclasses=expClass
-							#,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.uploaded_picture]
-							#,orderby=temp_db.qy_recomm.num
-							#,args=request.args
-							#,user_signature=True
-		#)
-	#else:
-		#grid = ''
+			sfr = Storage(fr)
+			if sfr.last_name[0].upper() != my1:
+				my1 = sfr.last_name[0].upper()
+				myRows.append(TR(TD( my1, A(_name=my1)), TD(''), _class='pci-capitals'))
+				myIdx.append(A(my1, _href='#%s'%my1, _style='margin-right:20px;'))
+			myRows.append(mkUserRow(sfr, withMail=False))
+		grid = DIV(
+				HR(),
+				LABEL(T('Quick access: '), _style='margin-right:20px;'), SPAN(myIdx, _class='pci-capitals'),
+				HR(),
+				TABLE(
+					THEAD(TR(TH(T('Name')), TH(T('Affiliation')) )), 
+					TBODY(myRows), 
+					_class="web2py_grid pci-UsersTable"
+				)
+			)
 	response.view='default/myLayout.html'
 	resu = dict(
+				myTitle=getTitle(request, auth, dbHelp, '#PublicRecommendationBoardTitle'),
+				myText=getText(request, auth, dbHelp, '#PublicRecommendationBoardText'),
 				myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
-				myTitle=T('Recommendation board'),
-				myBackButton = mkBackButton(),
 				searchForm=searchForm, 
 				grid=grid, 
 			)
@@ -267,11 +309,8 @@ def viewUserCard():
 			myContents = mkUserCard(auth, db, userId, withMail=False)
 	response.view='default/info.html'
 	resu = dict(
-				#myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
-				myTitle=T('User card'),
-				myBackButton = mkBackButton(),
-				#searchForm=searchForm, 
-				#grid=grid, 
+				myHelp=getHelp(request, auth, dbHelp, '#PublicUserCard'),
+				myTitle=getTitle(request, auth, dbHelp, '#PublicUserCardTitle'),
 				myText = myContents
 			)
 	return resu

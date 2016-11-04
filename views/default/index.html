@@ -2,10 +2,14 @@
 {{extend 'layout.html'}}
 
 {{block header}}
-    <header class="container-fluid background"></header>
+    <header class="container-fluid background">
+    {{if 'smallSearch' in locals():}}
+		<div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+    {{pass}}
+    </header>
 {{end}}
 
-{{if 'myHelp' in locals():}}
+{{if 'myHelp#TODO' in locals():}}
   {{=myHelp}}
   {{pass}}
 
@@ -31,10 +35,8 @@
 {{if 'form' in globals():}}
 	{{=form}}
 	{{pass}}
-<div id="lastRecommendations">
-<div id="loading" style='text-align:center;'><img alt='Loading...' src="{{=URL(c='static', f='images/loading.gif')}}"></div>
 </div>
-</div>
+
 </div>
 
 {{if 'panel' in globals():}}

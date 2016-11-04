@@ -2,7 +2,7 @@
 
 import re
 from gluon.custom_import import track_changes; track_changes(True) # reimport module if changed; disable in production
-from common import mkPanel
+#from common import mkPanel
 from helper import *
 
 csv = False # no export allowed
@@ -13,11 +13,8 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 def about():
 	response.view='default/info.html' #OK
 	return dict(
-		message=T("What is %s?") % (myconf.take('app.longname')),
-		#content=SPAN(T("Peer Community in Evolutionary Biology is the first community of the parent project")+' ')+A("Peer Community In", _href="https://peercommunityin.org")+SPAN("."),
-		#panel=mkPanel(myconf, auth),
+		myTitle=getTitle(request, auth, dbHelp, '#AboutTitle'),
 		myText=getText(request, auth, dbHelp, '#AboutInfo'),
-		#myBackButton=mkBackButton(),
 	)
 
 
@@ -25,19 +22,75 @@ def about():
 def ethics():
 	response.view='default/info.html' #OK
 	return dict(
-		myTitle=I(myconf.take('app.longname'))+SPAN(" code of ethical conduct"),
-		#content=SPAN(""),
-		#panel=mkPanel(myconf, auth),
+		myTitle=getTitle(request, auth, dbHelp, '#EthicsTitle'),
 		myText=getText(request, auth, dbHelp, '#EthicsInfo'),
-		#myBackButton=mkBackButton(),
+	)
+
+
+
+def contact():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#ContactTitle'),
+		myText=getText(request, auth, dbHelp, '#ContactInfo'),
+	)
+
+
+
+def buzz():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#BuzzTitle'),
+		myText=getText(request, auth, dbHelp, '#BuzzInfo'),
+	)
+
+
+def faq():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#FAQTitle'),
+		myText=getText(request, auth, dbHelp, '#FAQInfo'),
+	)
+
+
+def help_generic():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#GenericHelpTitle'),
+		myText=getText(request, auth, dbHelp, '#GenericHelpInfo'),
+	)
+
+
+
+def help_user():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#UserHelpTitle'),
+		myText=getText(request, auth, dbHelp, '#UserHelpInfo'),
 	)
 
 
 
 def help_recommender():
-	pass
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#RecommenderHelpTitle'),
+		myText=getText(request, auth, dbHelp, '#RecommenderHelpInfo'),
+	)
 
 
 
 def help_manager():
-	pass
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#ManagerHelpTitle'),
+		myText=getText(request, auth, dbHelp, '#ManagerHelpInfo'),
+	)
+
+
+def help_admin():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, dbHelp, '#AdministratorHelpTitle'),
+		myText=getText(request, auth, dbHelp, '#AdministratorHelpInfo'),
+	)
