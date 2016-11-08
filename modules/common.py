@@ -538,7 +538,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	submitter = db.auth_user[art.user_id]
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _class='pci-articlePicture'))
+		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _style='max-width:150px; max-height:150px;'))
 	else:
 		img = ''
 	myArticle = DIV(
@@ -658,7 +658,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	
 	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
 	nbReviews = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
-	#print 'mkFeaturedRecommendation nbRecomms=%s, nbReviews=%s' % (nbRecomms, nbReviews)
 	return dict(myContents=myContents, nbReviews=(nbReviews+(nbRecomms-1)))
 
 
@@ -679,12 +678,12 @@ def mkCommentsTree(auth, db, commentId):
 
 # The most important function of the site !!
 # Be *VERY* careful with rights management
-def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True):
+def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False):
 	submitter = db.auth_user[art.user_id]
 	allowOpinion = None
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _class='pci-articlePicture'))
+		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture, scheme=scheme, host=host), _style='max-width:150px; max-height:150px;'))
 	else:
 		img = ''
 	myContents = DIV(
@@ -1063,7 +1062,6 @@ def mkClosedRev(auth, db, row):
 def mkOtherContributors(auth, db, row):
 	butts = []
 	hrevs = []
-	print row
 	art = db.t_articles[row.article_id]
 	revs = db(db.t_press_reviews.recommendation_id == row.id).select()
 	for rev in revs:
@@ -1361,3 +1359,10 @@ def do_suggest_article_to(auth, db, articleId, recommenderId):
 	db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
 
 
+
+def menu2footer(menu):
+	resu = []
+	for item in menu:
+		print item
+	return DIV(resu)
+		

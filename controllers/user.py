@@ -262,20 +262,7 @@ def add_suggested_recommender():
 		else:
 			myContents = ''
 			txtbtn = current.T('Search a recommender?')
-		#db.t_suggested_recommenders._id.readable = False
-		#db.t_suggested_recommenders.article_id.default = articleId
-		#db.t_suggested_recommenders.article_id.writable = False
-		#db.t_suggested_recommenders.article_id.readable = False
-		#db.t_suggested_recommenders.email_sent.writable = False
-		#db.t_suggested_recommenders.email_sent.readable = False
-		#db.t_suggested_recommenders.suggested_recommender_id.writable = True
-		#db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
-		#alreadySugg = db(db.t_suggested_recommenders.article_id==articleId)._select(db.t_suggested_recommenders.suggested_recommender_id)
-		#otherSuggQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadySugg)) )
-		#db.t_suggested_recommenders.suggested_recommender_id.requires = IS_IN_DB(otherSuggQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
-		#form = SQLFORM(db.t_suggested_recommenders)
-		#if form.process().accepted:
-			#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+
 		myUpperBtn = DIV(
 							A(SPAN(txtbtn, _class='buttontext btn btn-info'), 
 								_href=URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True)),
@@ -335,25 +322,13 @@ def recommenders():
 			,csv = csv, exportclasses = expClass
 			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
 		)
-		## This script renames the "Add record" button
-		#myScript = SCRIPT("""$(function() { 
-						#$('span').filter(function(i) {
-								#return $(this).attr("title") ? $(this).attr("title").indexOf('"""+T("Add record to database")+"""') != -1 : false;
-							#})
-							#.each(function(i) {
-								#$(this).text('"""+T("Add a recommender")+"""').attr("title", '"""+T("Suggest this article to a potential recommender")+"""');
-							#});
-						#})""",
-						#_type='text/javascript')
 		response.view='default/myLayout.html'
 		return dict(
-					#myBackButton=mkBackButton(),
 					myTitle=getTitle(request, auth, dbHelp, '#UserManageRecommendersTitle'),
 					myText=getText(request, auth, dbHelp, '#UserManageRecommendersText'),
 					myHelp = getHelp(request, auth, dbHelp, '#UserManageRecommenders'),
 					grid=grid, 
 					myAcceptBtn = myAcceptBtn,
-					#myFinalScript=myScript,
 				)
 
 
@@ -418,6 +393,8 @@ def search_recommenders():
 					dict(header=T(''), body=lambda row: mkSuggestUserArticleToButton(auth, db, row, art.id)),
 			]
 		selectable = [(T('Suggest to checked recommenders'), lambda ids: [suggest_article_to_all(articleId, ids)], 'class1')]
+		temp_db.qy_recomm.num.readable = False
+		temp_db.qy_recomm.score.readable = False
 		grid = SQLFORM.grid( qy_recomm
 			,editable = False,deletable = False,create = False,details=False,searchable=False
 			,selectable=selectable

@@ -15,6 +15,7 @@ def about():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#AboutTitle'),
 		myText=getText(request, auth, dbHelp, '#AboutInfo'),
+		shareable=True,
 	)
 
 
@@ -24,6 +25,7 @@ def ethics():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#EthicsTitle'),
 		myText=getText(request, auth, dbHelp, '#EthicsInfo'),
+		shareable=True,
 	)
 
 
@@ -33,6 +35,7 @@ def contact():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#ContactTitle'),
 		myText=getText(request, auth, dbHelp, '#ContactInfo'),
+		shareable=True,
 	)
 
 
@@ -42,6 +45,7 @@ def buzz():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#BuzzTitle'),
 		myText=getText(request, auth, dbHelp, '#BuzzInfo'),
+		shareable=True,
 	)
 
 
@@ -50,6 +54,7 @@ def faq():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#FAQTitle'),
 		myText=getText(request, auth, dbHelp, '#FAQInfo'),
+		shareable=True,
 	)
 
 
@@ -58,6 +63,7 @@ def help_generic():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#GenericHelpTitle'),
 		myText=getText(request, auth, dbHelp, '#GenericHelpInfo'),
+		shareable=True,
 	)
 
 
@@ -93,4 +99,13 @@ def help_admin():
 	return dict(
 		myTitle=getTitle(request, auth, dbHelp, '#AdministratorHelpTitle'),
 		myText=getText(request, auth, dbHelp, '#AdministratorHelpInfo'),
+	)
+
+
+def test():
+	response.view='default/test.html'
+	return dict(
+		myTitle='TEST FB + tweeter',
+		myText='',
+		shareable=True,
 	)

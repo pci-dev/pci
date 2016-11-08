@@ -565,7 +565,6 @@ def my_recommendations():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def process_opinion():
-	print request.vars
 	if 'recommender_opinion' in request.vars and 'recommId' in request.vars:
 		ro = request.vars['recommender_opinion']
 		rId = request.vars['recommId']
@@ -765,7 +764,6 @@ def reviews():
 						})""",
 						_type='text/javascript')
 		
-		#response.view='recommender/reviews.html'
 		response.view='default/myLayout.html'
 		return dict(
 				myHelp = getHelp(request, auth, dbHelp, '#RecommenderArticleReviews'),

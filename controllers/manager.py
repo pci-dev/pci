@@ -60,7 +60,7 @@ def do_recommend_article():
 		art.update_record()
 		#TODO: tweet article
 		link = URL(c='public', f='recommendations', scheme=True, host=True, vars=dict(articleId=art.id))
-		print A(link, _href=link)
+		print 'To be tweeted:', A(link, _href=link)
 	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
 	#redirect(request.env.http_referer)
 
@@ -470,7 +470,7 @@ def edit_article():
 	if art == None:
 		session.flash = T('Unavailable')
 		redirect(request.env.http_referer)
-	db.t_articles.status.readable=False
+	#db.t_articles.status.readable=False
 	db.t_articles.status.writable=True
 	db.t_articles.user_id.writable=True
 	form = SQLFORM(db.t_articles

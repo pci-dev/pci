@@ -63,7 +63,6 @@ def list_users():
 				,maxtextlength=250
 				,paginate=25
 			)
-	#response.view='admin/list_users.html'
 	response.view='default/myLayout.html'
 	return dict(
 				myText=getText(request, auth, dbHelp, '#AdministrateUsersText'),

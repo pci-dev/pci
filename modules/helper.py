@@ -56,7 +56,7 @@ def getText(request, auth, dbHelp, myHashtag, myLanguage='default'):
 
 	return DIV(
 				DIV(r0, _class='pci-text-buttons'), 
-				DIV(WIKI(c), _class='pci-infotext', ), 
+				DIV(WIKI(c, safe_mode=False), _class='pci-infotext', ), 
 				_class='pci-infotextbox',
 			)
 

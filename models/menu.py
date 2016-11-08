@@ -69,6 +69,7 @@ def _DevMenu():
 			#(T('Terminate scheduler'), False, URL(app, 'admin', 'terminateScheduler')),
 			#(T('Kill scheduler'), False, URL(app, 'admin', 'killScheduler')),
 			(T('Test flash'), False, URL('alerts', 'test_flash')),
+			(T('Test FB + tweeter'), False, URL('about', 'test')),
         ]),
     ]
 
@@ -241,15 +242,6 @@ def _UserMenu():
 	return resu
 
 
-## Appends recommenders menu
-#def _RecommMenu():
-	#return [
-        #(T('Articles requiring a recommender'), False, '#', [
-			#(T('Articles in my fields'), False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
-			#(T('All articles'),          False, URL('recommender', 'all_awaiting_articles', user_signature=True)),
-		#]),
-	#]
-
 # Appends managers menu
 def _ManagerMenu():
 	#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage.png'), _class='pci-menuImage')
@@ -258,16 +250,16 @@ def _ManagerMenu():
 	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
-		txtPending = SPAN(txtPending, _style='color:#f3a656;')
+		txtPending = SPAN(txtPending, _class='pci-enhancedMenuItem')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
-		txtMenu = SPAN(T('Manage'), _style='color:#f3a656;')
+		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
 	
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes in progress') if nbGoing > 1 else T('Recommendation process in progress'))
 	if nbGoing>0:
-		txtGoing = SPAN(txtGoing, _style='color:#f3a656;')
+		txtGoing = SPAN(txtGoing, _class='pci-enhancedMenuItem')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
-		txtMenu = SPAN(T('Manage'), _style='color:#f3a656;')
+		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
 		
 	return [
         (txtMenu, False, '#', [

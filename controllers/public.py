@@ -89,7 +89,6 @@ def last_recomms():
 				  & (db.t_recommendations.article_id==db.t_articles.id) 
 				  & (db.t_recommendations.recommendation_state=='Recommended')
 			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	print db._lastsql
 	myRows = []
 	for row in query:
 		r = mkRecommArticleRow(auth, db, row, withDate=True)
@@ -140,7 +139,6 @@ def recommendations():
 	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
 	myContents = myFeaturedRecommendation['myContents']
 	nbReviews = myFeaturedRecommendation['nbReviews']
-	print nbReviews
 	myContents.append(HR())
 	
 	if printable:

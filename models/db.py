@@ -10,6 +10,7 @@ from gluon.tools import Recaptcha
 #from gluon.custom_import import track_changes; track_changes(True)
 from common import *
 from emailing import *
+from helper import *
 
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
@@ -168,8 +169,6 @@ More information can be found on the website of """+myconf.get('app.longname')+"
 db.auth_user._before_update.append(lambda s,f: newRegistration(s,f))
 def newRegistration(s,f):
 	o = s.select().first()
-	print o
-	print f
 	if o.registration_key != '' and f['registration_key'] == '':
 		do_send_mail_new_user(session, auth, db, o.id)
 		do_send_mail_admin_new_user(session, auth, db, o.id)
@@ -207,7 +206,7 @@ db.define_table('t_articles',
 	Field('doi', type='string', label=T('DOI'), length=512, unique=True, represent=lambda text, row: mkDOI(text) ),
 	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which I own the rights or free of rights')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-	Field('picture_data', type='blob', readable=False),
+	Field('picture_data', type='blob'),
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
@@ -343,7 +342,6 @@ db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_I
 #db.t_suggested_recommenders._after_insert.append(lambda s,i: recommendationSuggested(s,i))
 
 #def recommendationSuggested(s, i):
-	#print 'recommendationSuggested:', i, s
 	#articleId = db.t_suggested_recommenders[i].article_id
 	#do_send_email_to_suggested_recommenders(session, auth, db, articleId)
 	#return None

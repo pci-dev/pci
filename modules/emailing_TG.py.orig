@@ -96,7 +96,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 		destAddress = db.auth_user[article.user_id]['email']
 		articleTitle = article.title
 		recommendation = None
-		
+
 		if article.status=='Pending' and newStatus=='Awaiting consideration':
 			mySubject = '%s: Request for recommendation of your preprint' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=True, host=True)
@@ -111,7 +111,7 @@ We thank you again for your request for recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-		
+
 		elif article.status=='Awaiting consideration' and newStatus=='Under consideration':
 			linkTarget = URL(c='user', f='my_articles', scheme=True, host=True)
 			mySubject = '%s: Consideration of your preprint' % (applongname)
@@ -140,7 +140,7 @@ Yours sincerely,<p>
 			#filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_request_rejected.html')
 			linkTarget = URL(c='user', f='my_articles', scheme=True, host=True)
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=True, host=True)
-			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=True, host=True)
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True)
 			content = """Dear %(destPerson)s,<p>
 Your manuscript entitled <b>%(articleTitle)s</b> has been evaluated by at least two referees.<p> 
 On the basis of these reviews, the member of <i>%(applongname)s</i> in charge of the evaluation of your manuscript has decided not to recommend it.<p>
@@ -157,7 +157,7 @@ Yours sincerely,<p>
 			mySubject = '%s: Decision concerning your recommendation request' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=True, host=True)
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=True, host=True)
-			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=True, host=True)
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True)
 			#filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_request_askrevision.html')
 			content = """Dear %(destPerson)s,<p>
 Your preprint, entitled <b>%(articleTitle)s</b>, has now been reviewed. The referees’ comments are enclosed.<br> As you can see, we found your article very interesting and have suggested its recommendation, subject to certain revisions.<p>
@@ -174,7 +174,7 @@ Yours sincerely,<p>
 		elif article.status!=newStatus and newStatus=='Recommended':
 			mySubject = '%s: Recommendation of your preprint' % (applongname)
 			linkTarget = URL(c='public', f='recommendations', vars=dict(articleId=articleId), scheme=True, host=True)
-			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=True, host=True)
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True)
 			#filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_request_recommended.html')
 			content = """Dear %(destPerson)s,<p>
 We are pleased to inform you that the peer-review process concerning your preprint entitled <b>%(articleTitle)s</b> has reached a favorable conclusion.<br> A recommendation has now been published on the <i>%(applongname)s</i> website.<p>
@@ -270,7 +270,6 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
 			linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=True, host=True)
-			helpurl=URL(c='about', f='help_recommender', scheme=True, host=True)
 			content = """
 Dear %(destPerson)s,<p>
 You have been proposed as the recommender for a preprint entitled %(articleTitle)s.<br> You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p> 
@@ -495,6 +494,9 @@ You may check your recommendation on: <a href="%(linkTarget)s">%(linkTarget)s</a
 		session.flash += '; ' + '; '.join(report)
 
 
+# XXXXXXXXXXXXXXXJ'en suis la XXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
 # Do send email to recommender when a review is accepted for consideration
 def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId):
 	report = []
@@ -661,7 +663,7 @@ A new user joined <i>%(applongname)s</i>: %(userTxt)s (%(userMail)s).<p>
 
 
 
-# 
+# NOTE : ya un XXX qui traine
 def do_send_mail_new_user(session, auth, db, userId):
 	report = []
 	mail = getMailer(auth)
@@ -682,7 +684,7 @@ As a user, you can request a recommendation for a preprint. This preprint must f
 More information about <i>%(applongname)s</i> can be found here : <a href="%(baseurl)s">%(baseurl)s</a>.
 <p>
 As a user, you will receive alerts every %(days)s concerning recommendations in the following fields published on the <i>{{=applongname}}</i> web site: %(thematics)s.<p>
-If you wish to request a recommendation for a preprint, please follow this link <a href="%(baseurl)s">%(baseurl)s</a>.<p>
+If you wish to request a recommendation for a preprint or to modify your profile or the fields and frequency of your alerts, please follow this link XXX.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -804,7 +806,7 @@ To validate or reject this request, please, click on this link: <a href="%(linkT
 A new recommendation has been written by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
 To validate or block this recommendation, please click on the following link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 """ % locals()
-				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=True, host=True)
+				recommendation = mkFeaturedArticle(auth, db, article, printable=True)
 				#filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'email_new_recommendation.html')
 				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
 			else:

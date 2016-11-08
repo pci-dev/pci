@@ -2,10 +2,13 @@
 {{extend 'layout.html'}}
 
 {{block header}}
-    <header class="container-fluid background">
+    <header id='pci-home-header' class="container-fluid">
+    <span>
+    <img src="../static/images/background.png">
     {{if 'smallSearch' in locals():}}
 		<div class="pci-smallSearchDiv">{{=smallSearch}}</div>
     {{pass}}
+    </span>
     </header>
 {{end}}
 

@@ -114,8 +114,6 @@ def testUserRecommendedAlert():
 # function called daily
 #@auth.requires_login()
 def alertUsersLastRecommendations():
-	#auth.basic()
-	#if auth.user: print auth.user
 	conditions = ['client' not in request, auth.has_membership(role='manager')]
 	if any(conditions):
 		my_date = date.today()
@@ -123,7 +121,6 @@ def alertUsersLastRecommendations():
 		usersQy = db( db.auth_user.alerts.contains(my_day, case_sensitive=False) ).select()
 		for user in usersQy:
 			userId = user.id
-			#if userId != 1: continue #WARNING Only me for debug!!
 			articleIdsQy = db.executesql('SELECT * FROM alert_last_recommended_article_ids_for_user(%s);', placeholders=[userId])
 			if len(articleIdsQy) > 0: # yes, new stuff to display
 				artIds = articleIdsQy[0][0]

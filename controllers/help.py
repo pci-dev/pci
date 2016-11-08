@@ -12,7 +12,6 @@ expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidd
 
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def help_texts():
-	print session.back
 	if session.back:
 		redirect_url = session.back
 	else:

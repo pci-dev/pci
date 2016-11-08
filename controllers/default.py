@@ -39,6 +39,12 @@ def index():
 	#options = [OPTION('--- All thematic fields ---', _value='')]
 	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		#options.append(OPTION(thema.keyword, _value=thema.keyword))
+	
+	tweeterAcc = myconf.get('social.tweeter')
+	if tweeterAcc:
+		myPanel = DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%s">Tweets by %s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % (tweeterAcc, tweeterAcc)),
+					_class='tweeterPanel')
+	
 	myVars = copy.deepcopy(request.vars)
 	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
 	myVarsNext = copy.deepcopy(myVars)
@@ -78,11 +84,12 @@ def index():
 			)
 	response.view='default/index.html'
 	return dict(
-		smallSearch=DIV(mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False), _style='float:right; margin-top:50px;'),
+		smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
 		myText=getText(request, auth, dbHelp, '#HomeInfo'),
 		myTopPanel=mkTopPanel(myconf, auth),
 		myHelp=getHelp(request, auth, dbHelp, '#Home'),
 		form=form,
+		panel=myPanel,
 		shareable=True,
 		script=SCRIPT("""
 window.onload=function() {
@@ -112,7 +119,6 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
-	print request.args[0]
 	if request.args[0] == 'login':
 		myHelp = getHelp(request, auth, dbHelp, '#LogIn')
 		myTitle = getTitle(request, auth, dbHelp, '#LogInTitle')
