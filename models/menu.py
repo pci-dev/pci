@@ -68,6 +68,7 @@ def _DevMenu():
 			#(T('Queue tasks in scheduler'), False, URL(app, 'admin', 'queueTasks')),
 			#(T('Terminate scheduler'), False, URL(app, 'admin', 'terminateScheduler')),
 			#(T('Kill scheduler'), False, URL(app, 'admin', 'killScheduler')),
+			#(T('Transfer help'), False, URL('help', 'transfer_help')),
 			(T('Test flash'), False, URL('alerts', 'test_flash')),
 			(T('Test FB + tweeter'), False, URL('about', 'test')),
         ]),
@@ -94,12 +95,13 @@ def _BaseMenu():
 	helpMenu += [
 			LI(_class="divider"),
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
-			(T('Ethics of', lazy=False)+appName,      False, URL('about', 'ethics')),
-			(T('FAQ of', lazy=False)+appName,      False, URL('about', 'faq')),
-			(T('Members of', lazy=False)+appName,  False, URL('public', 'recommenders')),
-			(T('Contact', lazy=False)+appName,      False, URL('about', 'contact')),
+			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
+			(T('FAQs', lazy=False),      False, URL('about', 'faq')),
+			(T('Members', lazy=False),  False, URL('public', 'recommenders')),
+			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
 			##TODO: for later use 
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
+			(T('Social networks', lazy=False),      False, URL('about', 'social')),
 		]
 	return [
 		(txtMenuHome, False, URL('default', 'index'), []),

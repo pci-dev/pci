@@ -39,7 +39,7 @@ if not request.env.web2py_runtime_gae:
              pool_size=myconf.get('db.pool_size'),
              migrate_enabled=myconf.get('db.migrate'),
              check_reserved=['all'],
-             lazy_tables=True
+             lazy_tables=True,
          )
 else:
     # ---------------------------------------------------------------------
@@ -183,6 +183,17 @@ def newMembership(f, membershipId):
 
 
 # -------------------------------------------------------------------------
+db.define_table('help_texts',
+	Field('id', type='id'),
+	Field('hashtag', type='string', length=128, label=T('Hashtag'), default='#'),
+	Field('lang', type='string', length=10, label=T('Language'), default='default'),
+	Field('contents', type='text', length=1048576, label=T('Contents')),
+	format='%(hashtag)s',
+	migrate=False,
+)
+
+
+# -------------------------------------------------------------------------
 db.define_table('t_status_article',
 	Field('status', type='string', length=50, label=T('Status'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('color_class', type='string', length=50, default='btn-default', requires=IS_NOT_EMPTY()),
@@ -191,12 +202,11 @@ db.define_table('t_status_article',
 	format='%(status)s',
 	migrate=False,
 )
-
-
 # in-memory dict
 statusArticles = dict()
 for sa in db(db.t_status_article).select():
 	statusArticles[sa['status']] = T(sa['status'])
+
 
 db.define_table('t_articles',
 	Field('id', type='id'),
@@ -204,7 +214,7 @@ db.define_table('t_articles',
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, pages)')),
 	Field('doi', type='string', label=T('DOI'), length=512, unique=True, represent=lambda text, row: mkDOI(text) ),
-	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which I own the rights or free of rights')),
+	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which no rights are required')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
 	Field('abstract', type='text', label=T('Abstract'), requires=IS_NOT_EMPTY()),
@@ -215,9 +225,9 @@ db.define_table('t_articles',
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
 	Field('already_published', type='boolean', label=T('Already published'), default=False),
-	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and this request is made on the behalf of all article\'s authors')),
+	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and I am acting on behalf of all the authors')),
 	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published and has not been sent for review elsewhere')),
-	Field('auto_nb_recommendations', type='integer', label=T('Round of reviews'), default=0),
+	Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
 	plural=T("Articles"),
@@ -264,13 +274,13 @@ db.define_table('t_recommendations',
 	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
 	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), default=''),
-	Field('recommendation_comments', type='text', label=T('Recommendation comments'), default=''),
+	Field('recommendation_comments', type='text', label=T('Recommendation'), default=''),
 	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommendation_state', type='string', length=50, label=T('Recommendation state'),  requires=IS_EMPTY_OR(IS_IN_SET(('Recommended','Rejected','Awaiting revision')))),
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
-	Field('no_conflict_of_interest', type='boolean', label=T('I/we declare that I/we have no conflict of interests with the authors or the content of the article')),
+	Field('no_conflict_of_interest', type='boolean', label=T('I/we declare that I/we have no conflict of interest with the authors or the content of the article')),
 	Field('reply', type='text', label=T('Author\'s Reply'), default=''),
 	#Field('auto_nb_agreements', type='integer', label=T('Number of reviews'), writable=False),
 	singular=T("Recommendation"), 
@@ -300,7 +310,7 @@ db.define_table('t_reviews',
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('reviewer_id', type='reference auth_user', ondelete='RESTRICT', label=T('Reviewer')),
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
-	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interests with the authors or the content of the article')),
+	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interest with the authors or the content of the article')),
 	Field('review', type='text', label=T('Review')),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('review_state', type='string', length=50, label=T('Review state'), default='Pending', requires=IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Terminated')), writable=False),
@@ -339,12 +349,6 @@ db.define_table('t_suggested_recommenders',
 	migrate=False,
 )
 db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s'))
-#db.t_suggested_recommenders._after_insert.append(lambda s,i: recommendationSuggested(s,i))
-
-#def recommendationSuggested(s, i):
-	#articleId = db.t_suggested_recommenders[i].article_id
-	#do_send_email_to_suggested_recommenders(session, auth, db, articleId)
-	#return None
 
 
 
@@ -406,20 +410,13 @@ db.define_table('v_reviewers',
 )
 
 
-db.define_table('v_reviewers_named',
-	Field('id', type='id'),
-	Field('reviewers', type='text', label=T('Reviewers')),
-	writable=False,
-	migrate=False,
-)
-
-
 db.define_table('v_recommendation_contributors',
 	Field('id', type='id'),
-	Field('contributors', type='text', label=T('Contributors')),
+	Field('contributors', type='text', label=T('Co-recommenders')),
 	writable=False,
 	migrate=False,
 )
+
 
 db.define_table('v_roles',
 	Field('id', type='id'),

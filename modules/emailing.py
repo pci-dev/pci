@@ -72,9 +72,9 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 					message=myMessage,
 				)
 	if mail_resu:
-		report.append( 'email to %s sent' % destPerson.flatten() )
+		report.append( 'email sent to %s' % destPerson.flatten() )
 	else:
-		report.append( 'email to %s NOT SENT' % destPerson.flatten() )
+		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print ''.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -202,9 +202,9 @@ You may check your request: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 						message=myMessage,
 					)
 		if mail_resu:
-			report.append( 'email to requester %s sent' % destPerson.flatten() )
+			report.append( 'email sent to requester %s' % destPerson.flatten() )
 		else:
-			report.append( 'email to requester %s NOT SENT' % destPerson.flatten() )
+			report.append( 'email NOT SENT to requester %s' % destPerson.flatten() )
 	print ''.join(report)
 	if session.flash is None:
 		session.flash = '\n'.join(report)
@@ -242,9 +242,9 @@ You may check the request: <a href="%(linkTarget)s">%(linkTarget)s</a><p>
 							message=myMessage,
 						)
 			if mail_resu: 
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print ''.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -284,10 +284,10 @@ Yours sincerely,<p>
 						)
 			if mail_resu:
 				db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
-				report.append( 'email to suggested recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
 			else:
 				db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
-				report.append( 'email to suggested recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
 		print '\n'.join(report)
 		if session.flash is None:
 			session.flash = '; '.join(report)
@@ -327,9 +327,9 @@ You may check your reviews: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 							message=myMessage,
 						)
 				if mail_resu:
-					report.append( 'email to reviewer %s sent' % destPerson.flatten() )
+					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 				else:
-					report.append( 'email to reviewer %s NOT SENT' % destPerson.flatten() )
+					report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -370,9 +370,9 @@ You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 								message=myMessage,
 							)
 				if mail_resu:
-					report.append( 'email to recommender %s sent' % destPerson.flatten() )
+					report.append( 'email sent to recommender %s' % destPerson.flatten() )
 				else:
-					report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+					report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -408,9 +408,9 @@ You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 							message=myMessage,
 						)
 			if mail_resu:
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -447,9 +447,9 @@ You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 							message=myMessage,
 						)
 			if mail_resu:
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -485,9 +485,9 @@ You may check your recommendation on: <a href="%(linkTarget)s">%(linkTarget)s</a
 							message=myMessage,
 						)
 			if mail_resu:
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -524,9 +524,9 @@ You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 							message=myMessage,
 						)
 			if mail_resu:
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -563,9 +563,9 @@ You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 							message=myMessage,
 						)
 			if mail_resu:
-				report.append( 'email to recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -608,9 +608,9 @@ Yours sincerely,<p>
 								message=myMessage,
 							)
 				if mail_resu:
-					report.append( 'email to reviewer %s sent' % destPerson.flatten() )
+					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 				else:
-					report.append( 'email to reviewer %s NOT SENT' % destPerson.flatten() )
+					report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
 			else:
 				print 'do_send_email_to_reviewer_review_suggested: Article not found'
 		else:
@@ -650,9 +650,9 @@ A new user joined <i>%(applongname)s</i>: %(userTxt)s (%(userMail)s).<p>
 							message=myMessage,
 						)
 	if mail_resu:
-		report.append( 'email to administrators sent' )
+		report.append( 'email sent to administrators' )
 	else:
-		report.append( 'email to administrators NOT SENT' )
+		report.append( 'email NOT SENT to administrators' )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -693,9 +693,9 @@ Yours sincerely,<p>
 							message=myMessage,
 						)
 		if mail_resu:
-			report.append( 'email to new user %s sent' % destPerson.flatten() )
+			report.append( 'email sent to new user %s' % destPerson.flatten() )
 		else:
-			report.append( 'email to new user %s NOT SENT' % destPerson.flatten() )
+			report.append( 'email NOT SENT to new user %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -741,9 +741,9 @@ Yours sincerely,<p>
 								message=myMessage,
 							)
 			if mail_resu:
-				report.append( 'email to new recommender %s sent' % destPerson.flatten() )
+				report.append( 'email sent to new recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to new recommender %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to new recommender %s' % destPerson.flatten() )
 			
 		elif group.role == 'manager':
 			mySubject = '%s: Welcome to The Managing Board' % (applongname)
@@ -762,9 +762,9 @@ Yours sincerely,<p>
 								message=myMessage,
 							)
 			if mail_resu:
-				report.append( 'email to new manager %s sent' % destPerson.flatten() )
+				report.append( 'email sent to new manager %s' % destPerson.flatten() )
 			else:
-				report.append( 'email to new manager %s NOT SENT' % destPerson.flatten() )
+				report.append( 'email NOT SENT to new manager %s' % destPerson.flatten() )
 			
 		else:
 			return
@@ -814,9 +814,9 @@ To validate or block this recommendation, please click on the following link: <a
 								message=myMessage,
 							)
 	if mail_resu:
-		report.append( 'email to new managers sent' )
+		report.append( 'email sent to new managers' )
 	else:
-		report.append( 'email to new managers NOT SENT' )
+		report.append( 'email NOT SENT to new managers' )
 
 
 #ok mais j'ai pas su s'il s'agissait des articles en général ou que des preprints
@@ -861,9 +861,9 @@ Sincerely yours,<p>
 								message=myMessage,
 							)
 				if mail_resu:
-					report.append( 'email to recommender %s sent' % destPerson.flatten() )
+					report.append( 'email sent to recommender %s' % destPerson.flatten() )
 				else:
-					report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+					report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -905,9 +905,9 @@ Yours sincerely,<p>
 									message=myMessage,
 								)
 					if mail_resu:
-						report.append( 'email to recommender %s sent' % destPerson.flatten() )
+						report.append( 'email sent to recommender %s' % destPerson.flatten() )
 					else:
-						report.append( 'email to recommender %s NOT SENT' % destPerson.flatten() )
+						report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -950,9 +950,9 @@ Sincerely yours,<p>
 							message=myMessage,
 						)
 		if mail_resu:
-			report.append( 'email to contributor %s sent' % destPerson.flatten() )
+			report.append( 'email sent to contributor %s' % destPerson.flatten() )
 		else:
-			report.append( 'email to contributor %s NOT SENT' % destPerson.flatten() )
+			report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -985,9 +985,9 @@ Yours sincerely,<p>
 							message=myMessage,
 						)
 		if mail_resu:
-			report.append( 'email to %s sent' % destPerson.flatten() )
+			report.append( 'email sent to %s' % destPerson.flatten() )
 		else:
-			report.append( 'email to %s NOT SENT' % destPerson.flatten() )
+			report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 		print '\n'.join(report)
 	if session:
 		if session.flash is None:

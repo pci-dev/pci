@@ -16,11 +16,11 @@
 	<div class="pci-myTitleText">{{=myTitle}}</div>
 	{{pass}}
 
-{{if 'message' in globals():}}
-	<h2>{{=message}}</h2>
-	{{pass}}
-
 {{if 'myText' in globals():}}
 	<div class="pci-myTextInfo">{{=myText}}</div>
+	{{pass}}
+
+{{if 'message' in globals():}}
+	{{=message}}
 	{{pass}}
 

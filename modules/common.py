@@ -178,11 +178,19 @@ def mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=True):
 
 
 def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=False, fullURL=False):
-	resu = []
+	if fullURL:
+		scheme=myconf.take('alerts.scheme')
+		host=myconf.take('alerts.host')
+		port=myconf.take('alerts.port')
+	else:
+		scheme=False
+		host=False
+		port=False
 	if row.authors and len(row.authors)>500:
 		authors = row.authors[:500]+'...'
 	else:
 		authors = row.authors or ''
+	resu = []
 	# Recommender name(s)
 	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
@@ -209,11 +217,11 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 				whoDidIt.append(SPAN(' with '))
 				for ic in range(0, len(contributors)):
 					if ic == len(contributors)-1 and ic > 0:
-						whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic], linked=True)))
+							whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port)))
 					elif ic > 0:
-						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic]), linked=True))
+						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port)))
 					else:
-						whoDidIt.append(mkUser(auth, db, contributors[ic], linked=True))
+						whoDidIt.append(mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port))
 	
 	else:
 		whoDidIt = [SPAN(current.T('See recommendation'))]
@@ -228,7 +236,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 		
 	if withImg:
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
-			img += [IMG(_src=URL('default', 'download', args=row.uploaded_picture), _class='pci-articlePicture')]
+			img += [IMG(_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
 	resu.append(TD( img, _style='vertical-align:top; text-align:left;' ))
 	
 	shortTxt = recomm.recommendation_comments or ''
@@ -246,17 +254,13 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 					DIV(
 						I(SPAN('Recommended by '), SPAN(whoDidIt), SPAN(':'),
 							BR(),
-							#A(
-								SPAN((recomm.recommendation_title or 'Read...'), _target='blank', _style="font-size:16px;"),# color:green;"),
-								#_href= URL(c='public', f='recommendations', vars=dict(articleId=row.id), scheme=True, host=True) if fullURL else URL(c='public', f='recommendations', vars=dict(articleId=row.id)),
-							#),
-							#B(recomm.recommendation_title or ''),
+							SPAN((recomm.recommendation_title or 'Read...'), _target='blank', _style="font-size:16px;"),# color:green;"),
 						),
 						BR(),
 						I(shortTxt, _class='pci-shortTxt'),
 						BR(),
 						A(current.T('Full recommendation'), _target='blank', 
-							_href= URL(c='public', f='recommendations', vars=dict(articleId=row.id), scheme=True, host=True) if fullURL else URL(c='public', f='recommendations', vars=dict(articleId=row.id)),
+							_href= URL(c='public', f='recommendations', vars=dict(articleId=row.id), scheme=scheme, host=host, port=port),
 							_class='btn btn-success pci-smallBtn',
 						),
 						_style='margin-right:1cm; margin-left:1cm; padding-left:8px; border-left:1px solid #cccccc;',
@@ -567,7 +571,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		
 		###NOTE: PUBLISHED ARTICLE
 		if art.already_published:
-			#contributors = db.v_recommendation_contributors[recomm.id]['contributors']
 			contributors = []
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
@@ -678,12 +681,12 @@ def mkCommentsTree(auth, db, commentId):
 
 # The most important function of the site !!
 # Be *VERY* careful with rights management
-def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False):
+def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
 	submitter = db.auth_user[art.user_id]
 	allowOpinion = None
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture, scheme=scheme, host=host), _style='max-width:150px; max-height:150px;'))
+		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture, scheme=scheme, host=host, port=port), _style='max-width:150px; max-height:150px;'))
 	else:
 		img = ''
 	myContents = DIV(
@@ -706,7 +709,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 							_class='pci-EditButtons'))
 	if auth.has_membership(role='manager') and not(printable) and not (quiet):
 		# manager's button allowing article edition
-		myContents.append(DIV(A(SPAN(current.T('Manage this submitted article'), _class='buttontext btn btn-info'), 
+		myContents.append(DIV(A(SPAN(current.T('Manage this request'), _class='buttontext btn btn-info'), 
 								_href=URL(c='manager', f='edit_article', vars=dict(articleId=art.id), user_signature=True)), 
 							_class='pci-EditButtons'))
 
@@ -738,7 +741,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		
 		###NOTE: POST-PRINT ARTICLE
 		if art.already_published:
-			#contributors = db.v_recommendation_contributors[recomm.id]['contributors']
 			contributors = []
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
@@ -932,12 +934,12 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				_name='opinionForm'
 			))
 	if auth.has_membership(role='manager') and art.status == 'Pending' and not(printable) and not (quiet):
-		myContents.append(DIV(	A(SPAN(current.T('Validate this article submission'), _class='buttontext btn btn-success'), 
+		myContents.append(DIV(	A(SPAN(current.T('Validate this request'), _class='buttontext btn btn-success'), 
 										_href=URL(c='manager', f='do_validate_article', vars=dict(articleId=art.id), user_signature=True), 
-										_title=current.T('Click here to validate this article and start recommendation process')),
-								A(SPAN(current.T('Cancel this article submission'), _class='buttontext btn btn-warning'), 
+										_title=current.T('Click here to validate this request and start recommendation process')),
+								A(SPAN(current.T('Cancel this request'), _class='buttontext btn btn-warning'), 
 										_href=URL(c='manager', f='do_cancel_article', vars=dict(articleId=art.id), user_signature=True), 
-										_title=current.T('Click here in order to cancel this article submission')),
+										_title=current.T('Click here in order to cancel this request')),
 								_class='pci-EditButtons-centered'))
 	if auth.has_membership(role='manager') and art.status == 'Pre-recommended' and not(printable) and not (quiet):
 		myContents.append(DIV(	A(SPAN(current.T('Validate the recommendation of this article'), _class='buttontext btn btn-success'), 
@@ -1186,36 +1188,36 @@ def mkRecommendation4PressReviewFormat(auth, db, row):
 	return anchor
 
 
-def mkUser(auth, db, userId, linked=False):
+def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
 		theUser = db.auth_user[userId]
 		if theUser:
 			if linked:
-				resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', vars=dict(userId=userId)))
+				resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
 			else:
 				resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
 	return resu
 
-def mkUserWithAffil(auth, db, userId, linked=False):
+def mkUserWithAffil(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
 		theUser = db.auth_user[userId]
 		if theUser:
 			if linked:
-				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', vars=dict(userId=userId))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 			else:
 				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 	return resu
 
 
-def mkUserWithMail(auth, db, userId, linked=False):
+def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
 		theUser = db.auth_user[userId]
 		if theUser:
 			if linked:
-				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
+				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 			else:
 				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 	return resu

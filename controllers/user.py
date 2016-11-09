@@ -17,7 +17,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 @auth.requires_login()
 def new_submission():
 	myText = DIV(
-			getText(request, auth, dbHelp, '#NewRecommendationRequestInfo'),
+			getText(request, auth, db, '#NewRecommendationRequestInfo'),
 			DIV(
 				A(current.T("Start your request"), 
 					_href=URL('user', 'fill_new_article', user_signature=True), 
@@ -104,7 +104,7 @@ def fill_new_article():
 				});
 	"""
 	form = SQLFORM( db.t_articles, keepvalues=True )
-	form.element(_type='submit')['_value'] = T("Send for request")
+	form.element(_type='submit')['_value'] = T('Send your request')
 	if form.process().accepted:
 		articleId=form.vars.id
 		session.flash = T('Article submitted', lazy=False)
@@ -117,9 +117,9 @@ def fill_new_article():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp = getHelp(request, auth, dbHelp, '#UserSubmitNewArticle'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserSubmitNewArticleTitle'),
-				myText=getText(request, auth, dbHelp, '#UserSubmitNewArticleText'),
+				myHelp = getHelp(request, auth, db, '#UserSubmitNewArticle'),
+				myTitle=getTitle(request, auth, db, '#UserSubmitNewArticleTitle'),
+				myText=getText(request, auth, db, '#UserSubmitNewArticleText'),
 				form=form, 
 				myFinalScript = SCRIPT(myScript),
 			 ) 
@@ -216,9 +216,9 @@ def suggested_recommenders():
 	response.view='default/myLayout.html'
 	return dict(
 				myBackButton = mkBackButton(),
-				myTitle=getTitle(request, auth, dbHelp, '#SuggestedRecommendersTitle'),
-				myText=getText(request, auth, dbHelp, '#SuggestedRecommendersText'),
-				myHelp=getHelp(request, auth, dbHelp, '#SuggestedRecommenders'),
+				myTitle=getTitle(request, auth, db, '#SuggestedRecommendersTitle'),
+				myText=getText(request, auth, db, '#SuggestedRecommendersText'),
+				myHelp=getHelp(request, auth, db, '#SuggestedRecommenders'),
 				grid=grid, 
 			)
 	
@@ -275,9 +275,9 @@ def add_suggested_recommender():
 						)
 		response.view='default/myLayout.html'
 		return dict(
-					myTitle=getTitle(request, auth, dbHelp, '#UserAddSuggestedRecommenderTitle'),
-					myText=getText(request, auth, dbHelp, '#UserAddSuggestedRecommenderText'),
-					myHelp = getHelp(request, auth, dbHelp, '#UserAddSuggestedRecommender'),
+					myTitle=getTitle(request, auth, db, '#UserAddSuggestedRecommenderTitle'),
+					myText=getText(request, auth, db, '#UserAddSuggestedRecommenderText'),
+					myHelp = getHelp(request, auth, db, '#UserAddSuggestedRecommender'),
 					myUpperBtn=myUpperBtn,
 					content=myContents, 
 					form='', 
@@ -308,7 +308,7 @@ def recommenders():
 			myAcceptBtn = ''
 		else:
 			myAcceptBtn = DIV(
-							A(SPAN(current.T('Terminated'), _class='buttontext btn btn-info'), 
+							A(SPAN(current.T('Done'), _class='buttontext btn btn-info'), 
 										_href=URL(c='user', f='my_articles', user_signature=True)),
 							_style='margin-top:16px; text-align:center;'
 						)
@@ -324,9 +324,9 @@ def recommenders():
 		)
 		response.view='default/myLayout.html'
 		return dict(
-					myTitle=getTitle(request, auth, dbHelp, '#UserManageRecommendersTitle'),
-					myText=getText(request, auth, dbHelp, '#UserManageRecommendersText'),
-					myHelp = getHelp(request, auth, dbHelp, '#UserManageRecommenders'),
+					myTitle=getTitle(request, auth, db, '#UserManageRecommendersTitle'),
+					myText=getText(request, auth, db, '#UserManageRecommendersText'),
+					myHelp = getHelp(request, auth, db, '#UserManageRecommenders'),
 					grid=grid, 
 					myAcceptBtn = myAcceptBtn,
 				)
@@ -408,9 +408,9 @@ def search_recommenders():
 		myBackButton = A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='my_articles', user_signature=True), _class='button')
 		response.view='default/myLayout.html'
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#UserSearchRecommenders'),
-					myText=getText(request, auth, dbHelp, '#UserSearchRecommendersText'),
-					myTitle=getTitle(request, auth, dbHelp, '#UserSearchRecommendersTitle'),
+					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
+					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
+					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
 					myBackButton=myBackButton,
 					searchForm=searchForm, 
 					grid=grid, 
@@ -457,9 +457,9 @@ def suggested_recommenders():
 		response.view='default/myLayout.html'
 		return dict(
 					#myBackButton=mkBackButton(),
-					myHelp = getHelp(request, auth, dbHelp, '#UserSuggestedRecommenders'),
-					myText=getText(request, auth, dbHelp, '#UserSuggestedRecommendersText'),
-					myTitle=getTitle(request, auth, dbHelp, '#UserSuggestedRecommendersTitle'),
+					myHelp = getHelp(request, auth, db, '#UserSuggestedRecommenders'),
+					myText=getText(request, auth, db, '#UserSuggestedRecommendersText'),
+					myTitle=getTitle(request, auth, db, '#UserSuggestedRecommendersTitle'),
 					grid=grid, 
 				)
 
@@ -549,9 +549,9 @@ def my_articles():
 	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
-				myHelp = getHelp(request, auth, dbHelp, '#UserMyArticles'),
-				myText=getText(request, auth, dbHelp, '#UserMyArticlesText'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserMyArticlesTitle'),
+				myHelp = getHelp(request, auth, db, '#UserMyArticles'),
+				myText=getText(request, auth, db, '#UserMyArticlesText'),
+				myTitle=getTitle(request, auth, db, '#UserMyArticlesTitle'),
 				grid=grid, 
 			 ) 
 
@@ -614,7 +614,7 @@ def recommendations():
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#UserRecommendations'),
+					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
 					myCloseButton=mkCloseButton(),
 					myUpperBtn=myUpperBtn,
 					statusTitle=myTitle,
@@ -635,8 +635,8 @@ def my_reviews():
 				& (db.t_recommendations.article_id == db.t_articles._id)
 			)
 		#myTitle = T('Requests for reviews')
-		myTitle=getTitle(request, auth, dbHelp, '#UserMyReviewsRequestsTitle')
-		myText=getText(request, auth, dbHelp, '#UserMyReviewsRequestsText')
+		myTitle=getTitle(request, auth, db, '#UserMyReviewsRequestsTitle')
+		myText=getText(request, auth, db, '#UserMyReviewsRequestsText')
 		btnTxt = current.T('Accept or decline')
 		db.t_reviews.anonymously.readable=False
 	else:
@@ -647,8 +647,8 @@ def my_reviews():
 				& (db.t_recommendations.article_id == db.t_articles._id)
 			)
 		#myTitle = T('Your reviews')
-		myTitle=getTitle(request, auth, dbHelp, '#UserMyReviewsTitle')
-		myText=getText(request, auth, dbHelp, '#UserMyReviewsText')
+		myTitle=getTitle(request, auth, db, '#UserMyReviewsTitle')
+		myText=getText(request, auth, db, '#UserMyReviewsText')
 		btnTxt = current.T('View / Edit')
 	
 	db.t_articles._id.readable = False
@@ -692,7 +692,7 @@ def my_reviews():
 	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
-				myHelp = getHelp(request, auth, dbHelp, '#UserMyReviews'),
+				myHelp = getHelp(request, auth, db, '#UserMyReviews'),
 				myTitle=myTitle,
 				myText=myText,
 				grid=grid, 
@@ -701,9 +701,9 @@ def my_reviews():
 
 @auth.requires_login()
 def accept_new_review():
-	myTitle = getTitle(request, auth, dbHelp, '#AcceptReviewInfoTitle')
+	myTitle = getTitle(request, auth, db, '#AcceptReviewInfoTitle')
 	myText = DIV(
-			getText(request, auth, dbHelp, '#AcceptReviewInfoText'),
+			getText(request, auth, db, '#AcceptReviewInfoText'),
 			DIV(
 				A(current.T("Yes, I consider this preprint for review"), 
 					_href=URL('user', 'do_accept_new_review', vars=request.vars, user_signature=True), 
@@ -801,10 +801,10 @@ def edit_reply():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp = getHelp(request, auth, dbHelp, '#UserEditReply'),
+				myHelp = getHelp(request, auth, db, '#UserEditReply'),
 				myBackButton = mkBackButton(),
-				myText=getText(request, auth, dbHelp, '#UserEditReplyText'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserEditReplyTitle'),
+				myText=getText(request, auth, db, '#UserEditReplyText'),
+				myTitle=getTitle(request, auth, db, '#UserEditReplyTitle'),
 				form = form,
 			)
 
@@ -861,10 +861,10 @@ def edit_review():
 	"""
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#UserEditReview'),
+				myHelp=getHelp(request, auth, db, '#UserEditReview'),
 				#myBackButton=mkBackButton(),
-				myText=getText(request, auth, dbHelp, '#UserEditReviewText'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserEditReviewTitle'),
+				myText=getText(request, auth, db, '#UserEditReviewText'),
+				myTitle=getTitle(request, auth, db, '#UserEditReviewTitle'),
 				form=form,
 				myFinalScript=SCRIPT(myScript),
 			)
@@ -903,9 +903,9 @@ def edit_my_article():
 	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(),
-				myHelp=getHelp(request, auth, dbHelp, '#UserEditArticle'),
-				myText=getText(request, auth, dbHelp, '#UserEditArticleText'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserEditArticleTitle'),
+				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
+				myText=getText(request, auth, db, '#UserEditArticleText'),
+				myTitle=getTitle(request, auth, db, '#UserEditArticleTitle'),
 				form=form,
 			)
 
@@ -942,9 +942,9 @@ def new_comment():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#UserComment'),
-				myText=getText(request, auth, dbHelp, '#UserCommentText'),
-				myTitle=getTitle(request, auth, dbHelp, '#UserCommentTitle'),
+				myHelp=getHelp(request, auth, db, '#UserComment'),
+				myText=getText(request, auth, db, '#UserCommentText'),
+				myTitle=getTitle(request, auth, db, '#UserCommentTitle'),
 				form=form,
 			)
 	

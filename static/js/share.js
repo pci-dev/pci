@@ -33,21 +33,11 @@ jQuery(function(){
 	var host =  window.location.hostname;
 	var title = escape(jQuery('title').text());
 	
-// 	var twit = '<a href="http://twitter.com/home?status='+title+'%20'+url+'" id="twit" title="Share on twitter"><img src="'+path+'/twitter.png"  alt="Share on Twitter" width="32" height="32" /></a>';
 	var twit = '<a class="twitter-share-button" style="margin-top:8px;" href="https://twitter.com/intent/tweet?url='+url+'" data-size="large">Tweet</a>';
-// 	console.log('twit=', twit);
 	
-// 	var sharer = encodeURIComponent(window.location.protocol+"://"+window.location.host+'/')
-// 	var facebook = '<span class="fb-share-button" data-href="'+url+'" data-layout="button" data-size="large" data-mobile-iframe="false"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u='+sharer+'&amp;src=sdkpreparse">Share</a></span>'
-// 	var facebook = '<a href="http://www.facebook.com/sharer.php?u='+url+'" id="facebook" title="Share on Facebook"><img src="'+path+'/facebook.png"  alt="Share on facebook" width="32" height="32" /></a>';
 	var facebook = '<div class="fb-share-button" data-href="'+url+'" data-layout="button" data-size="large"></div>';
-// 	var facebook = '<div class="fb-like" data-href="'+url+'" data-layout="button" data-action="like" data-show-faces="true"></div>';
-// 	console.log('facebook=', facebook);
 	
-// 	var gplus = '<a href="https://plus.google.com/share?url='+url+'" id="gplus" title="Share on Google Plus"><img src="'+path+'/gplus-32.png"  alt="Share on Google Plus" width="32" height="32" /></a>';
-// 	var gplus = '<g:plus action="share" data-href="'+url+'"></g:plus>';
-	var gplus = '<a href="https://plus.google.com/share?url='+url+'" onclick="javascript:window.open(this.href, \'\', \'menubar=no,toolbar=no,resizable=yes,scrollbars=yes\');return false;"><img src="https://www.gstatic.com/images/icons/gplus-32.png" alt="Share on Google+"/></a>';
-// 	console.log('gplus=', gplus);
+	var gplus = '<a href="https://plus.google.com/share?url='+url+'" style="vertical-align:top;" onclick="javascript:window.open(this.href, \'\', \'menubar=no,toolbar=no,resizable=yes,scrollbars=yes\');return false;"><img src="https://www.gstatic.com/images/icons/gplus-32.png" alt="Share on Google+"/></a>';
 	
 	var tbar = '<div id="socialdrawer"><span>Share<br/></span><div id="sicons">'
 	if (typeof twit !== 'undefined') {
@@ -60,7 +50,7 @@ jQuery(function(){
 	}
 	if (typeof gplus !== 'undefined') {
 		tbar += gplus
-		wwo += 40
+		wwo += 60
 	}
 	tbar += '</div></div>';
 	wwo=wwo.toString()+'px';
@@ -101,6 +91,7 @@ jQuery(function(){
 	    return false;
 	});
 	
+	// timeout after loading
 	setTimeout(function(){
 		si.animate({opacity:0}, 1000);
 		st.animate({height:hh, width:ww, opacity:0.66}, 2000); 

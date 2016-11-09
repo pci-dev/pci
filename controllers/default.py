@@ -85,9 +85,9 @@ def index():
 	response.view='default/index.html'
 	return dict(
 		smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
-		myText=getText(request, auth, dbHelp, '#HomeInfo'),
+		myText=getText(request, auth, db, '#HomeInfo'),
 		myTopPanel=mkTopPanel(myconf, auth),
-		myHelp=getHelp(request, auth, dbHelp, '#Home'),
+		myHelp=getHelp(request, auth, db, '#Home'),
 		form=form,
 		panel=myPanel,
 		shareable=True,
@@ -120,17 +120,17 @@ def user():
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
 	if request.args[0] == 'login':
-		myHelp = getHelp(request, auth, dbHelp, '#LogIn')
-		myTitle = getTitle(request, auth, dbHelp, '#LogInTitle')
-		myText = getText(request, auth, dbHelp, '#LogInText')
+		myHelp = getHelp(request, auth, db, '#LogIn')
+		myTitle = getTitle(request, auth, db, '#LogInTitle')
+		myText = getText(request, auth, db, '#LogInText')
 	elif request.args[0] == 'register':
-		myHelp = getHelp(request, auth, dbHelp, '#CreateAccount')
-		myTitle = getTitle(request, auth, dbHelp, '#CreateAccountTitle')
-		myText = getText(request, auth, dbHelp, '#CreateAccountText')
+		myHelp = getHelp(request, auth, db, '#CreateAccount')
+		myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
+		myText = getText(request, auth, db, '#CreateAccountText')
 	elif request.args[0] == 'profile':
-		myHelp = getHelp(request, auth, dbHelp, '#Profile')
-		myTitle = getTitle(request, auth, dbHelp, '#ProfileTitle')
-		myText = getText(request, auth, dbHelp, '#ProfileText')
+		myHelp = getHelp(request, auth, db, '#Profile')
+		myTitle = getTitle(request, auth, db, '#ProfileTitle')
+		myText = getText(request, auth, db, '#ProfileText')
 	else:
 		myHelp = ''
 		myTitle = ''

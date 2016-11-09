@@ -21,7 +21,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 @auth.requires(auth.has_membership(role='recommender'))
 def new_submission():
 	myText = DIV(
-				getText(request, auth, dbHelp, '#NewRecommendationInfo'),
+				getText(request, auth, db, '#NewRecommendationInfo'),
 				DIV(
 					A(current.T("Recommend a postprint"), 
 						_title=T('published articles'),
@@ -91,17 +91,19 @@ def search_reviewers():
 		recommId = request.vars['recommId']
 		links.append(  dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation)  )
 		if myGoal == '4review':
-			links.append(  dict(header=T('Propose review'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommId, myGoal)) )
+			links.append(  dict(header=T('Select'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommId, myGoal)) )
 			#myTitle = T('Search for reviewers')
-			myTitle=getTitle(request, auth, dbHelp, '#RecommenderSearchReviewersTitle')
-			myText=getText(request, auth, dbHelp, '#RecommenderSearchReviewersText')
-			myHelp=getHelp(request, auth, dbHelp, '#RecommenderSearchReviewers')
+			myTitle=getTitle(request, auth, db, '#RecommenderSearchReviewersTitle')
+			myText=getText(request, auth, db, '#RecommenderSearchReviewersText')
+			myHelp=getHelp(request, auth, db, '#RecommenderSearchReviewers')
 		elif myGoal == '4press':
 			links.append(  dict(header=T('Propose contribution'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommId, myGoal))  )
 			#myTitle = T('Search for collaborators')
-			myTitle=getTitle(request, auth, dbHelp, '#RecommenderSearchCollaboratorsTitle')
-			myText=getText(request, auth, dbHelp, '#RecommenderSearchCollaboratorsText')
-			myHelp=getHelp(request, auth, dbHelp, '#RecommenderSearchCollaborators')
+			myTitle=getTitle(request, auth, db, '#RecommenderSearchCollaboratorsTitle')
+			myText=getText(request, auth, db, '#RecommenderSearchCollaboratorsText')
+			myHelp=getHelp(request, auth, db, '#RecommenderSearchCollaborators')
+	temp_db.qy_reviewers.num.readble=False
+	temp_db.qy_reviewers.score.readble=False
 	grid = SQLFORM.grid( qy_reviewers
 		,editable = False,deletable = False,create = False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
@@ -166,9 +168,9 @@ def my_awaiting_articles():
 	)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#RecommenderSuggestedArticles'),
-				myText=getText(request, auth, dbHelp, '#RecommenderSuggestedArticlesText'),
-				myTitle=getTitle(request, auth, dbHelp, '#RecommenderSuggestedArticlesTitle'),
+				myHelp=getHelp(request, auth, db, '#RecommenderSuggestedArticles'),
+				myText=getText(request, auth, db, '#RecommenderSuggestedArticlesText'),
+				myTitle=getTitle(request, auth, db, '#RecommenderSuggestedArticlesTitle'),
 				grid=grid, 
 			)
 
@@ -191,7 +193,7 @@ def _awaiting_articles(myVars):
 		Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date/time')),
 		Field('thematics', type='string', length=1024, label=T('Thematic fields')),
 		Field('keywords', type='text', label=T('Keywords')),
-		Field('auto_nb_recommendations', type='integer', label=T('Round of reviews'), default=0),
+		Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
 		Field('status', type='string', length=50, default='Pending', label=T('Status')),
 		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
@@ -251,8 +253,8 @@ def _awaiting_articles(myVars):
 	response.view='default/myLayout.html'
 	return dict(
 				#myTitle=T('Articles requiring a recommender'), 
-				myTitle=getTitle(request, auth, dbHelp, '#RecommenderAwaitingArticlesTitle'),
-				myText=getText(request, auth, dbHelp, '#RecommenderAwaitingArticlesText'),
+				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
+				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
 				searchForm=searchForm, 
 				grid=grid, 
 			)
@@ -262,8 +264,8 @@ def _awaiting_articles(myVars):
 @auth.requires(auth.has_membership(role='recommender'))
 def fields_awaiting_articles():
 	resu = _awaiting_articles(request.vars)
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
-	resu['myText'] = getText(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendationText:InMyFields')
+	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
+	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:InMyFields')
 	return resu
 
 
@@ -274,8 +276,8 @@ def all_awaiting_articles():
 	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		myVars['qy_'+thema.keyword] = 'on'
 	resu = _awaiting_articles(myVars)
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendation:All')
-	resu['myText'] = getText(request, auth, dbHelp, '#RecommenderArticlesAwaitingRecommendationText:All')
+	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:All')
+	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:All')
 	return resu
 
 
@@ -318,7 +320,7 @@ def article_details():
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderArticlesRequiringRecommender'),
+					myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
 					myCloseButton=mkCloseButton(),
 					myUpperBtn=myUpperBtn,
 					statusTitle=myTitle,
@@ -329,11 +331,11 @@ def article_details():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def accept_new_article_to_recommend():
-	myTitle = getTitle(request, auth, dbHelp, '#AcceptPreprintInfoTitle')
+	myTitle = getTitle(request, auth, db, '#AcceptPreprintInfoTitle')
 	myText = DIV(
-			getText(request, auth, dbHelp, '#AcceptPreprintInfoText'),
+			getText(request, auth, db, '#AcceptPreprintInfoText'),
 			DIV(
-				A(current.T("Yes, I consider this preprint for recommendation"), 
+				A(current.T("Yes, I will consider this preprint for recommendation"), 
 					_href=URL('recommender', 'do_accept_new_article_to_recommend', vars=request.vars, user_signature=True), 
 					_class="btn btn-success pci-panelButton"),
 				_style='margin-top:16px; text-align:center;',
@@ -500,11 +502,11 @@ def my_recommendations():
 				& (db.t_articles.already_published == True)
 			)
 		#myTitle = T('Your recommendations of reviewed articles')
-		myTitle=getTitle(request, auth, dbHelp, '#RecommenderMyRecommendationsPostprintTitle')
-		myText=getText(request, auth, dbHelp, '#RecommenderMyRecommendationsPostprintText')
+		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPostprintTitle')
+		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPostprintText')
 		fields = [db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]#, db.t_recommendations.recommendation_title]#, db.t_recommendations.recommendation_comments]
 		links = [
-				dict(header=T('Contributors'), body=lambda row: mkSollicitedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Co-recommenders'), body=lambda row: mkSollicitedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 	else:
@@ -514,14 +516,14 @@ def my_recommendations():
 				#& (db.t_recommendations.is_closed == False)
 			)
 		#myTitle = T('Your recommendations of prereview articles')
-		myTitle=getTitle(request, auth, dbHelp, '#RecommenderMyRecommendationsPreprintTitle')
-		myText=getText(request, auth, dbHelp, '#RecommenderMyRecommendationsPreprintText')
+		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPreprintTitle')
+		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPreprintText')
 		fields = [db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]#, db.t_recommendations.recommendation_title]#, db.t_recommendations.recommendation_comments]
 		links = [
 				dict(header=T('Sollicited reviewers'), body=lambda row: mkSollicitedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Declined reviews'),   body=lambda row:   mkDeclinedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Ongoing reviews'),    body=lambda row:    mkOngoingRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T('Closed reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Terminated reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 		
@@ -556,7 +558,7 @@ def my_recommendations():
 	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
-				myHelp = getHelp(request, auth, dbHelp, '#RecommenderMyRecommendations'),
+				myHelp = getHelp(request, auth, db, '#RecommenderMyRecommendations'),
 				myTitle=myTitle, 
 				myText=myText,
 				grid=grid, 
@@ -613,10 +615,10 @@ def direct_submission():
 		redirect(URL(f='add_contributor', vars=dict(recommId=recommId), user_signature=True))
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#RecommenderDirectSubmission'),
+				myHelp=getHelp(request, auth, db, '#RecommenderDirectSubmission'),
 				#myBackButton=mkBackButton(),
-				myTitle=getTitle(request, auth, dbHelp, '#RecommenderDirectSubmissionTitle'),
-				myText=getText(request, auth, dbHelp, '#RecommenderDirectSubmissionText'),
+				myTitle=getTitle(request, auth, db, '#RecommenderDirectSubmissionTitle'),
+				myText=getText(request, auth, db, '#RecommenderDirectSubmissionText'),
 				form=form, 
 				myFinalScript = SCRIPT(myScript),
 			 )
@@ -680,7 +682,7 @@ def recommendations():
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderOtherRecommendations'),
+					myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
 					myCloseButton=mkCloseButton(),
 					myUpperBtn=myUpperBtn,
 					statusTitle=myTitle,
@@ -766,9 +768,9 @@ def reviews():
 		
 		response.view='default/myLayout.html'
 		return dict(
-				myHelp = getHelp(request, auth, dbHelp, '#RecommenderArticleReviews'),
-				myText=getText(request, auth, dbHelp, '#RecommenderArticleReviewsText'),
-				myTitle=getTitle(request, auth, dbHelp, '#RecommenderArticleReviewsTitle'),
+				myHelp = getHelp(request, auth, db, '#RecommenderArticleReviews'),
+				myText=getText(request, auth, db, '#RecommenderArticleReviewsText'),
+				myTitle=getTitle(request, auth, db, '#RecommenderArticleReviewsTitle'),
 				#myBackButton=mkBackButton(),
 				#content=myContents, 
 				grid=grid, 
@@ -822,13 +824,13 @@ def reviewers():
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(reviewersList)>0:
 			myContents = DIV(
-				LABEL(T('Sollicitated reviewers:')),
+				LABEL(T('Reviewers sollicited:')),
 				UL(reviewersList)
 			)
-			txtbtn = current.T('Search another reviewer?')
+			txtbtn = current.T('Search for another reviewer?')
 		else:
 			myContents = ''
-			txtbtn = current.T('Search a reviewer?')
+			txtbtn = current.T('Search for a reviewer?')
 		#myContents = DIV(
 			#LABEL(T('Current reviewers:')),
 			#UL(reviewersList),
@@ -854,7 +856,7 @@ def reviewers():
 								_href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList), user_signature=True)),
 							A(SPAN(current.T('Add yourself as a reviewer')), _class='buttontext btn btn-info'+(' disabled' if selfFlag else ''), 
 										_href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId), user_signature=True)),
-							A(SPAN(current.T('Template email for external reviewers'), _class='buttontext btn btn-info'), 
+							A(SPAN(current.T('Template email for contacting external reviewers'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='email_for_reviewer', vars=dict(recommId=recommId), user_signature=True)),
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
 						)
@@ -865,15 +867,15 @@ def reviewers():
 		#if form.process().accepted:
 			#redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id), user_signature=True))
 		myAcceptBtn = DIV(
-							A(SPAN(T('Terminated'), _class='buttontext btn btn-success'), 
+							A(SPAN(T('Done'), _class='buttontext btn btn-success'), 
 								_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))),
 							_style='margin-top:16px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddReviewers'),
-					myText=getText(request, auth, dbHelp, '#RecommenderAddReviewersText'),
-					myTitle=getTitle(request, auth, dbHelp, '#RecommenderAddReviewersTitle'),
+					myHelp = getHelp(request, auth, db, '#RecommenderAddReviewers'),
+					myText=getText(request, auth, db, '#RecommenderAddReviewersText'),
+					myTitle=getTitle(request, auth, db, '#RecommenderAddReviewersTitle'),
 					myAcceptBtn=myAcceptBtn,
 					content=myContents, 
 					form='', 
@@ -887,7 +889,7 @@ def email_for_reviewer():
 	return dict(
 		message=T("Template email for registration and review"),
 		#panel=mkPanel(myconf, auth),
-		myText=getText(request, auth, dbHelp, '#TemplateEmailForReviewInfo'),
+		myText=getText(request, auth, db, '#TemplateEmailForReviewInfo'),
 		myBackButton=mkBackButton(),
 	)
 
@@ -898,7 +900,7 @@ def email_for_author():
 	return dict(
 		message=T("Template email for author"),
 		#panel=mkPanel(myconf, auth),
-		myText=getText(request, auth, dbHelp, '#TemplateEmailForAuthorInfo'),
+		myText=getText(request, auth, db, '#TemplateEmailForAuthorInfo'),
 		myBackButton=mkBackButton(),
 	)
 
@@ -950,18 +952,18 @@ def add_contributor():
 		myAcceptBtn = DIV(
 							A(SPAN(current.T('Write or edit recommendation'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
-							A(SPAN(current.T('Do this later'), _class='buttontext btn btn-info'), 
+							A(SPAN(current.T('Add a co-recommender later'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
-							A(SPAN(current.T('Terminate'), _class='buttontext btn btn-success'+(' disabled'if not(len(recomm.recommendation_comments)>50 and len(contributorsList)>0) else '')), 
+							A(SPAN(current.T('Done'), _class='buttontext btn btn-success'+(' disabled'if not(len(recomm.recommendation_comments)>50 and len(contributorsList)>0) else '')), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True), 
 										_title=current.T('Click here to check the final recommendation of this article')),
 							_style='margin-top:16px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderAddContributor'),
-					myText=getText(request, auth, dbHelp, '#RecommenderAddContributorText'),
-					myTitle=getTitle(request, auth, dbHelp, '#RecommenderAddContributorTitle'),
+					myHelp = getHelp(request, auth, db, '#RecommenderAddContributor'),
+					myText=getText(request, auth, db, '#RecommenderAddContributorText'),
+					myTitle=getTitle(request, auth, db, '#RecommenderAddContributorTitle'),
 					content=myContents, 
 					form=form, 
 					myAcceptBtn = myAcceptBtn,
@@ -1017,9 +1019,9 @@ def contributions():
 						_type='text/javascript')
 		response.view='default/myLayout.html'
 		return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderContributionsToPressReviews'),
-					myText=getText(request, auth, dbHelp, '#RecommenderContributionsToPressReviewsText'),
-					myTitle=getTitle(request, auth, dbHelp, '#RecommenderContributionsToPressReviewsTitle'),
+					myHelp = getHelp(request, auth, db, '#RecommenderContributionsToPressReviews'),
+					myText=getText(request, auth, db, '#RecommenderContributionsToPressReviewsText'),
+					myTitle=getTitle(request, auth, db, '#RecommenderContributionsToPressReviewsTitle'),
 					contents=myContents, 
 					grid=grid, 
 					#myAcceptBtn = myAcceptBtn,
@@ -1080,9 +1082,9 @@ def edit_recommendation():
 		response.view='default/myLayout.html'
 		return dict(
 					form = form,
-					myText=getText(request, auth, dbHelp, '#RecommenderEditRecommendationText'),
-					myHelp=getHelp(request, auth, dbHelp, '#RecommenderEditRecommendation'),
-					myTitle=getTitle(request, auth, dbHelp, '#RecommenderEditRecommendationTitle'),
+					myText=getText(request, auth, db, '#RecommenderEditRecommendationText'),
+					myHelp=getHelp(request, auth, db, '#RecommenderEditRecommendation'),
+					myTitle=getTitle(request, auth, db, '#RecommenderEditRecommendationTitle'),
 					#myBackButton = mkBackButton(),
 					myFinalScript = SCRIPT(myScript),
 				)
@@ -1131,9 +1133,9 @@ def my_press_reviews():
 	myContents = ''
 	response.view='default/myLayout.html'
 	return dict(
-					myHelp = getHelp(request, auth, dbHelp, '#RecommenderMyPressReviews'),
-					myText=getText(request, auth, dbHelp, '#RecommenderMyPressReviewsText'),
-					myTitle=getTitle(request, auth, dbHelp, '#RecommenderMyPressReviewsTitle'),
+					myHelp = getHelp(request, auth, db, '#RecommenderMyPressReviews'),
+					myText=getText(request, auth, db, '#RecommenderMyPressReviewsText'),
+					myTitle=getTitle(request, auth, db, '#RecommenderMyPressReviewsTitle'),
 					#myBackButton=mkBackButton(), 
 					contents=myContents, 
 					grid=grid, 

@@ -245,11 +245,17 @@ header{box-shadow:none;} /* Don't remove */
 .pci-smallBtn {/*height:30px;*/ padding:2px; margin-left:0; line-height:initial; border-radius:4px; text-transform:initial;}
 
 .tweeterPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px;}
+.facebookPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px; max-width:516px; margin-left:auto; margin-right:auto;}
+.pci-socialDiv {max-width:20cm; margin-left:auto; margin-right:auto;}
 
 .footer {position:relative; bottom:0px; background-color:#cccccc; color:#070707; padding:16px; width:initial; height:initial; margin:16px; border-radius:16px; font-size:11px;}
 .footer-content {min-height:32px;}
 .footer-content ul {display:block;}
-.footer-content li {display:inline-block;}
+.footer-content li {display:inline-block;
+	break-before:always;
+	page-break-before: always;
+	-webkit-column-break-before: always;
+}
 .footer-content .pci-infotextbox {margin-left:auto; margin-right:auto; border-radius:16px;}
 .footer-content .pci-infotext {border: 1px solid black; border-radius:8px; padding:8px;}
 /* .footer-content div .pci-infotext{background-color:transparent;} */
@@ -258,7 +264,8 @@ header{box-shadow:none;} /* Don't remove */
        -moz-column-width: 160px;
             column-width: 160px; 
 }
-.pci-footer-ul {display: inline-block;}
-.pci-footer-li {color: black;}
-.pci-footer-li a {color:black;}
+.pci-footer-ul {display: block; color: black;}
+.pci-footer-ul li {display:block;}
+.pci-footer-li a {color:black; 
+}
 .pci-footer-li a .pci-enhancedMenuItem {color:white;}

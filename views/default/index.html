@@ -4,7 +4,7 @@
 {{block header}}
     <header id='pci-home-header' class="container-fluid">
     <span>
-    <img src="../static/images/background.png">
+    <img src="{{=URL(c='static', f='images/background.png')}}">
     {{if 'smallSearch' in locals():}}
 		<div class="pci-smallSearchDiv">{{=smallSearch}}</div>
     {{pass}}

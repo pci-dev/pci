@@ -26,7 +26,7 @@ def do_validate_article():
 	if art.status == 'Pending':
 		art.status = 'Awaiting consideration'
 		art.update_record()
-		session.flash = T('Article submission now available to recommenders')
+		session.flash = T('Request now available to recommenders')
 	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
 
 
@@ -71,9 +71,9 @@ def do_recommend_article():
 @auth.requires(auth.has_membership(role='manager'))
 def all_articles():
 	resu = _manage_articles(None, 'all_articles')
-	resu['myText']=getText(request, auth, dbHelp, '#ManagerAllArticlesText')
-	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerAllArticlesTitle')
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageAllArticlesHelp')
+	resu['myText']=getText(request, auth, db, '#ManagerAllArticlesText')
+	resu['myTitle']=getTitle(request, auth, db, '#ManagerAllArticlesTitle')
+	resu['myHelp'] = getHelp(request, auth, db, '#ManageAllArticlesHelp')
 	return resu
 
 
@@ -82,9 +82,9 @@ def all_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def pending_articles():
 	resu = _manage_articles(['Pending', 'Pre-recommended'], 'pending_articles')
-	resu['myText']=getText(request, auth, dbHelp, '#ManagerPendingArticlesText')
-	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerPendingArticlesTitle')
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManagePendingValidations')
+	resu['myText']=getText(request, auth, db, '#ManagerPendingArticlesText')
+	resu['myTitle']=getTitle(request, auth, db, '#ManagerPendingArticlesTitle')
+	resu['myHelp'] = getHelp(request, auth, db, '#ManagePendingValidations')
 	return resu
 
 
@@ -93,9 +93,9 @@ def pending_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def ongoing_articles():
 	resu = _manage_articles(['Awaiting consideration', 'Under consideration', 'Awaiting revision'], 'ongoing_articles')
-	resu['myText']=getText(request, auth, dbHelp, '#ManagerOngoingArticlesText')
-	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerOngoingArticlesTitle')
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageOngoingArticles')
+	resu['myText']=getText(request, auth, db, '#ManagerOngoingArticlesText')
+	resu['myTitle']=getTitle(request, auth, db, '#ManagerOngoingArticlesTitle')
+	resu['myHelp'] = getHelp(request, auth, db, '#ManageOngoingArticles')
 	return resu
 
 
@@ -104,9 +104,9 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def completed_articles():
 	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected'], 'completed_articles')
-	resu['myText']=getText(request, auth, dbHelp, '#ManagerCompletedArticlesText')
-	resu['myTitle']=getTitle(request, auth, dbHelp, '#ManagerCompletedArticlesTitle')
-	resu['myHelp'] = getHelp(request, auth, dbHelp, '#ManageCompletedArticles')
+	resu['myText']=getText(request, auth, db, '#ManagerCompletedArticlesText')
+	resu['myTitle']=getTitle(request, auth, db, '#ManagerCompletedArticlesTitle')
+	resu['myHelp'] = getHelp(request, auth, db, '#ManageCompletedArticles')
 	return resu
 
 
@@ -223,8 +223,8 @@ def _manage_articles(statuses, whatNext):
 	)
 	response.view='default/myLayout.html'
 	return dict(
-				myText=getText(request, auth, dbHelp, '#ManagerArticlesText'),
-				myTitle=getTitle(request, auth, dbHelp, '#ManagerArticlesTitle'),
+				myText=getText(request, auth, db, '#ManagerArticlesText'),
+				myTitle=getTitle(request, auth, db, '#ManagerArticlesTitle'),
 				grid=grid, 
 			)
 
@@ -281,7 +281,7 @@ def recommendations():
 					statusTitle=myTitle,
 					myContents=myContents,
 					myUpperBtn=myUpperBtn,
-					myHelp = getHelp(request, auth, dbHelp, '#ManagerRecommendations'),
+					myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
 				)
 
 
@@ -339,9 +339,9 @@ def manage_recommendations():
 	#response.view='default/myLayout.html'
 	return dict(
 				#myBackButton = mkBackButton(),
-				myHelp=getHelp(request, auth, dbHelp, '#ManageRecommendations'),
-				myText=getText(request, auth, dbHelp, '#ManageRecommendationsText'),
-				myTitle=getTitle(request, auth, dbHelp, '#ManageRecommendationsTitle'),
+				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
+				myText=getText(request, auth, db, '#ManageRecommendationsText'),
+				myTitle=getTitle(request, auth, db, '#ManageRecommendationsTitle'),
 				myContents=myContents,
 				grid=grid,
 			)
@@ -418,9 +418,9 @@ def search_recommenders():
 		response.view='default/recommenders.html'
 		return dict(searchForm=searchForm, 
 					#myBackButton=mkBackButton(),
-					myHelp=getHelp(request, auth, dbHelp, '#ManagerSearchRecommenders'),
-					myText=getText(request, auth, dbHelp, '#ManagerSearchRecommendersText'),
-					myTitle=getTitle(request, auth, dbHelp, '#ManagerSearchRecommendersTitle'),
+					myHelp=getHelp(request, auth, db, '#ManagerSearchRecommenders'),
+					myText=getText(request, auth, db, '#ManagerSearchRecommendersText'),
+					myTitle=getTitle(request, auth, db, '#ManagerSearchRecommendersTitle'),
 					grid=grid, 
 				)
 
@@ -450,9 +450,9 @@ def suggested_recommenders():
 	response.view='default/myLayout.html'
 	return dict(
 					myBackButton=mkBackButton(URL(c='manager',f='pending_articles')), 
-					myHelp=getHelp(request, auth, dbHelp, '#ManageSuggestedRecommenders'),
-					myText=getText(request, auth, dbHelp, '#ManageSuggestedRecommendersText'),
-					myTitle=getTitle(request, auth, dbHelp, '#ManageSuggestedRecommendersTitle'),
+					myHelp=getHelp(request, auth, db, '#ManageSuggestedRecommenders'),
+					myText=getText(request, auth, db, '#ManageSuggestedRecommendersText'),
+					myTitle=getTitle(request, auth, db, '#ManageSuggestedRecommendersTitle'),
 					grid=grid, 
 				)
 
@@ -486,9 +486,9 @@ def edit_article():
 	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton = mkBackButton(),
-				myHelp = getHelp(request, auth, dbHelp, '#ManagerEditArticle'),
-				myText=getText(request, auth, dbHelp, '#ManagerEditArticleText'),
-				myTitle=getTitle(request, auth, dbHelp, '#ManagerEditArticleTitle'),
+				myHelp = getHelp(request, auth, db, '#ManagerEditArticle'),
+				myText=getText(request, auth, db, '#ManagerEditArticleText'),
+				myTitle=getTitle(request, auth, db, '#ManagerEditArticleTitle'),
 				form = form,
 			)
 
@@ -506,8 +506,8 @@ def manage_comments():
 			)
 	response.view='default/myLayout.html'
 	return dict(
-				myText=getText(request, auth, dbHelp, '#ManageCommentsText'),
-				myTitle=getTitle(request, auth, dbHelp, '#ManageCommentsTitle'),
-				myHelp=getHelp(request, auth, dbHelp, '#ManageComments'),
+				myText=getText(request, auth, db, '#ManageCommentsText'),
+				myTitle=getTitle(request, auth, db, '#ManageCommentsTitle'),
+				myHelp=getHelp(request, auth, db, '#ManageComments'),
 				grid=grid, 
 			 )

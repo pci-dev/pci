@@ -65,9 +65,9 @@ def list_users():
 			)
 	response.view='default/myLayout.html'
 	return dict(
-				myText=getText(request, auth, dbHelp, '#AdministrateUsersText'),
-				myTitle=getTitle(request, auth, dbHelp, '#AdministrateUsersTitle'),
-				myHelp=getHelp(request, auth, dbHelp, '#AdministrateUsers'),
+				myText=getText(request, auth, db, '#AdministrateUsersText'),
+				myTitle=getTitle(request, auth, db, '#AdministrateUsersTitle'),
+				myHelp=getHelp(request, auth, db, '#AdministrateUsers'),
 				grid=grid, 
 			 )
 
@@ -89,8 +89,8 @@ def memberships():
 			)
 	response.view='admin/memberships.html'
 	return dict(
-				myTitle=getTitle(request, auth, dbHelp, '#AdministrateMembershipsTitle'),
-				myHelp=getHelp(request, auth, dbHelp, '#AdministrateMemberships'),
+				myTitle=getTitle(request, auth, db, '#AdministrateMembershipsTitle'),
+				myHelp=getHelp(request, auth, db, '#AdministrateMemberships'),
 				grid=grid, 
 		)
 
@@ -117,9 +117,9 @@ def thematics_list():
 	)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#AdministrateThematicFields'),
-				myText=getText(request, auth, dbHelp, '#AdministrateThematicFieldsText'),
-				myTitle=getTitle(request, auth, dbHelp, '#AdministrateThematicFieldsTitle'),
+				myHelp=getHelp(request, auth, db, '#AdministrateThematicFields'),
+				myText=getText(request, auth, db, '#AdministrateThematicFieldsText'),
+				myTitle=getTitle(request, auth, db, '#AdministrateThematicFieldsTitle'),
 				grid=grid, 
 			 )
 
@@ -144,11 +144,8 @@ def article_status():
 	mkStatusArticles(db)
 	response.view='default/myLayout.html'
 	return dict(
-				myHelp=getHelp(request, auth, dbHelp, '#AdministrateArticleStatus'),
-				myText=getText(request, auth, dbHelp, '#AdministrateArticleStatusText'),
-				myTitle=getTitle(request, auth, dbHelp, '#AdministrateArticleStatusTitle'),
+				myHelp=getHelp(request, auth, db, '#AdministrateArticleStatus'),
+				myText=getText(request, auth, db, '#AdministrateArticleStatusText'),
+				myTitle=getTitle(request, auth, db, '#AdministrateArticleStatusTitle'),
 				grid=grid, 
 			 )
-
-
-

@@ -1,3 +1,5 @@
+modules/*.pyc
 *.pyc
+*~
 errors/*
 sessions/*

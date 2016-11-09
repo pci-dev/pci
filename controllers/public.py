@@ -60,9 +60,9 @@ def recommended_articles():
 	return dict(
 				grid=grid, 
 				searchForm=searchForm, 
-				myTitle=getTitle(request, auth, dbHelp, '#RecommendedArticlesTitle'),
-				myText=getText(request, auth, dbHelp, '#RecommendedArticlesText'),
-				myHelp=getHelp(request, auth, dbHelp, '#RecommendedArticles'),
+				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
+				myText=getText(request, auth, db, '#RecommendedArticlesText'),
+				myHelp=getHelp(request, auth, db, '#RecommendedArticles'),
 				shareable=True,
 			)
 
@@ -230,9 +230,9 @@ def managers():
 	response.view='default/recommenders.html'
 	return dict(
 				mkBackButton = mkBackButton(),
-				myTitle=getTitle(request, auth, dbHelp, '#PublicManagingBoardTitle'),
-				myText=getText(request, auth, dbHelp, '#PublicManagingBoardText'),
-				myHelp=getHelp(request, auth, dbHelp, '#PublicManagingBoardDescription'),
+				myTitle=getTitle(request, auth, db, '#PublicManagingBoardTitle'),
+				myText=getText(request, auth, db, '#PublicManagingBoardText'),
+				myHelp=getHelp(request, auth, db, '#PublicManagingBoardDescription'),
 				content=content, 
 				grid=grid, 
 			)
@@ -282,9 +282,9 @@ def recommenders():
 			)
 	response.view='default/myLayout.html'
 	resu = dict(
-				myTitle=getTitle(request, auth, dbHelp, '#PublicRecommendationBoardTitle'),
-				myText=getText(request, auth, dbHelp, '#PublicRecommendationBoardText'),
-				myHelp=getHelp(request, auth, dbHelp, '#PublicRecommendationBoardDescription'),
+				myTitle=getTitle(request, auth, db, '#PublicRecommendationBoardTitle'),
+				myText=getText(request, auth, db, '#PublicRecommendationBoardText'),
+				myHelp=getHelp(request, auth, db, '#PublicRecommendationBoardDescription'),
 				searchForm=searchForm, 
 				grid=grid, 
 			)
@@ -307,8 +307,8 @@ def viewUserCard():
 			myContents = mkUserCard(auth, db, userId, withMail=False)
 	response.view='default/info.html'
 	resu = dict(
-				myHelp=getHelp(request, auth, dbHelp, '#PublicUserCard'),
-				myTitle=getTitle(request, auth, dbHelp, '#PublicUserCardTitle'),
+				myHelp=getHelp(request, auth, db, '#PublicUserCard'),
+				myTitle=getTitle(request, auth, db, '#PublicUserCardTitle'),
 				myText = myContents
 			)
 	return resu

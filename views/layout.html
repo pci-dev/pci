@@ -48,6 +48,17 @@
     }}
   </head>
   <body>
+	{{if 'facebook' in locals():}}
+		<div id="fb-root"></div>
+		<script>(function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if (d.getElementById(id)) return;
+		js = d.createElement(s); js.id = id;
+		js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.8";
+		fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));</script>
+		{{pass}}
+
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
     <!-- Navbar ======================================= -->
@@ -121,7 +132,7 @@
 			{{if response.menu:}}
 			{{=MENU(response.menu, _class='pci-footer', ul_class='pci-footer-ul', li_first='pci-footer-li', li_last='pci-footer-li', li_class='pci-footer-li')}}
 			{{pass}}
-			{{=getText(request, auth, dbHelp, '#Footer')}}
+			{{=getText(request, auth, db, '#Footer')}}
 			{{pass}}
 			{{end}}
 		</div>
