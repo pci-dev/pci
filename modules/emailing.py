@@ -271,11 +271,11 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
-		lastRecomm = db( (db.t_recommendations.article_id==articleId) & (db.t_recommendations.recommendation_state=='Ongoing') ).select(db.recomm.recommender_id).last()
 		articleTitle = article.title
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: Cancellation of a request to act as recommender for a preprint' % (applongname)
-		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=lastRecomm.recommender_id) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
+		#TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
+		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
@@ -1193,7 +1193,7 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 			articleStatus = current.T(newStatus)
 			linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 			mySubject = '%s: Decision on preprint you reviewed' % (applongname)
-			reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == recomm.id) ).select(db.auth_user.ALL)
+			reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state=='Terminated') ).select(db.auth_user.ALL)
 			for rev in reviewers:
 				#recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
 				destPerson = mkUser(auth, db, rev.id)

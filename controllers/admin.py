@@ -76,8 +76,8 @@ def list_users():
 	fields = [
 			db.auth_user.id, db.auth_user.registration_key, db.auth_user.uploaded_picture, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.registration_datetime, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.thematics, db.auth_user.alerts, 
 			db.auth_membership.user_id, db.auth_membership.group_id,
-			db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.status, 
-			db.t_recommendations.id, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_state, db.t_recommendations.recommendation_title, 
+			db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.already_published, db.t_articles.status, 
+			db.t_recommendations.id, db.t_recommendations.article_id, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_state, db.t_recommendations.recommendation_title, 
 			db.t_reviews.id, db.t_reviews.recommendation_id, db.t_reviews.review_state, db.t_reviews.review,
 			db.t_press_reviews.id, db.t_press_reviews.recommendation_id,
 			db.t_comments.id, db.t_comments.article_id, db.t_comments.user_comment, db.t_comments.comment_datetime, db.t_comments.parent_id,

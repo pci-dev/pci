@@ -653,7 +653,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				whoDidIt = mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable))
 			myContents.append(
 				DIV(''
-					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
+					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
 					,H4(current.T(' by '), SPAN(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
@@ -1070,7 +1070,7 @@ def mkSollicitedRev(auth, db, row):
 		else:
 			hrevs.append(LI(I(current.T('not registered'))))
 	butts.append( UL(hrevs, _class='pci-inCell-UL') )
-	if art.status == 'Under consideration':
+	if art.status == 'Under consideration' and not(row.is_closed):
 		myVars = dict(recommId=row['id'])
 		if len(exclude)>0:
 			myVars['exclude'] = ','.join(exclude)

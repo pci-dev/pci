@@ -944,7 +944,7 @@ def add_contributor():
 			contributorsList.append(LI(mkUserWithMail(auth, db, con.auth_user.id),
 									A('X', 
 									   _href=URL(c='recommender', f='del_contributor', vars=dict(pressId=con.t_press_reviews.id)), 
-									   _title=T('Delete'), _style='margin-left:8px;'),
+									   _title=T('Delete'), _style='margin-left:8px; color:red;'),
 									))
 		myContents = DIV(
 			LABEL(T('Co-recommenders:')),
@@ -969,7 +969,7 @@ def add_contributor():
 							#A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-info'), 
 										#_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
 							A(SPAN(current.T('Add a co-recommender later'), _class='buttontext btn btn-info'), 
-										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)), 
+										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)) if len(contributorsListSel)==0 else '', 
 										#_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
 							A(SPAN(current.T('Done'), _class='buttontext btn btn-success'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)), 
@@ -1067,6 +1067,7 @@ def edit_recommendation():
 					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate') if (nbCoRecomm>0) else '',
 				]
+		db.t_recommendations.recommendation_state.default = 'Recommended'
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
@@ -1080,8 +1081,6 @@ def edit_recommendation():
 				redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 			elif form.vars.terminate:
 				session.flash = T('Recommendation saved and terminated', lazy=False)
-				recomm.recommendation_state = 'Recommended'
-				recomm.update_record()
 				art.status = 'Pre-recommended'
 				art.update_record()
 				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress), user_signature=True))

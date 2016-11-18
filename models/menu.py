@@ -146,22 +146,24 @@ def _UserMenu():
 	nPreprintsOngoing = 0
 	nRevOngoing = 0
 	nRevTot = 0
+	revClass = ''
+	contribMenuClass = ''
 	### contributions menu
 	#myContributionsMenu.append((T('Request a recommendation for your preprint'), False, URL('user', 'new_submission', user_signature=True)))
+
 	# reviews
 	myContributionsMenu.append((T('Your recommendation requests of your preprints'), False, URL('user', 'my_articles', user_signature=True)))
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 			   ).count()
+	if nRevTot>0:
+		myContributionsMenu.append(LI(_class="divider"))
+		myContributionsMenu.append((SPAN(T('Your reviews'), _class=revClass), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
 	nRevOngoing = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 					& (db.t_reviews.review_state ==  'Under consideration')
 			   ).count()
 	if nRevOngoing > 0:
 		revClass = 'pci-enhancedMenuItem'
-	else:
-		revClass = ''
-	if nRevTot>0:
-		myContributionsMenu.append(LI(_class="divider"))
-		myContributionsMenu.append((SPAN(T('Your reviews'), _class=revClass), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
+		contribMenuClass = 'pci-enhancedMenuItem'
 	
 	# recommendations
 	if auth.has_membership(None, None, 'recommender'):
@@ -173,6 +175,7 @@ def _UserMenu():
 				).count()
 		if nPreprintsOngoing > 0:
 			classPreprintsOngoing = 'pci-enhancedMenuItem'
+			contribMenuClass = 'pci-enhancedMenuItem'
 		else:
 			classPreprintsOngoing = ''
 		nPostprintsOngoing = db(
@@ -183,6 +186,7 @@ def _UserMenu():
 				).count()
 		if nPostprintsOngoing > 0:
 			classPostprintsOngoing = 'pci-enhancedMenuItem'
+			contribMenuClass = 'pci-enhancedMenuItem'
 		else:
 			classPostprintsOngoing = ''
 		myContributionsMenu.append(LI(_class="divider"))
@@ -227,12 +231,12 @@ def _UserMenu():
 				LI(_class="divider"),
 				(T('Consider preprint recommendation requests'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			]
-	if nRevTot+nPreprintsOngoing+nPostprintsOngoing > 0:
-		yourContribsImg = URL(c='static', f='images/your_contribs_enhanced.png')
-		txtContribMenu = SPAN(T('Your contributions'), _class='pci-enhancedMenuItem')
-	else:
-		yourContribsImg = URL(c='static', f='images/your_contribs.png')
-		txtContribMenu = T('Your contributions')
+	#if nRevTot+nPreprintsOngoing+nPostprintsOngoing > 0:
+		#yourContribsImg = URL(c='static', f='images/your_contribs_enhanced.png')
+	txtContribMenu = SPAN(T('Your contributions'), _class=contribMenuClass)
+	#else:
+		#yourContribsImg = URL(c='static', f='images/your_contribs.png')
+		#txtContribMenu = T('Your contributions')
 	#txtContribMenu = IMG(_title=T('Your contributions'), _alt=T('Your contributions'), _src=yourContribsImg, _class='pci-menuImage')
 	resu = [
         (txtContribMenu,       False, '#', myContributionsMenu),

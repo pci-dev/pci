@@ -140,13 +140,14 @@ def article_revised():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
+		print 'article_revised'
 		art.status = 'Under consideration'
 		art.update_record()
-		last_recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.last_change).last()
+		last_recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 		last_recomm.is_closed = True
 		last_recomm.update_record()
-		db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, is_closed=False)
-		db.commit()
+		newRecomm = db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, is_closed=False, recommendation_state='Ongoing', recommendation_title=last_recomm.recommendation_title)
+		#print newRecomm
 		redirect(URL(f='my_articles', user_signature=True))
 
 
