@@ -33,8 +33,20 @@
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     <!-- Favicons -->
-    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+	{{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
+
+    <!-- http://panzi.github.io/SocialSharePrivacy/ -->
+    <script src="{{=URL('static','js/jquery.cookies.js')}}"></script>
+    <script rel="text/javascript" href="{{=URL('static','js/pci.js')}}"></script>
+    {{if 'shareable' in globals():}}
+		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=True, scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
+		{{pass}}
+    {{if 'shareButtons' in globals():}}
+		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=True, scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
+		<link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
+		{{pass}}
+	
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use
@@ -48,17 +60,6 @@
     }}
   </head>
   <body>
-	{{if 'facebook' in locals():}}
-		<div id="fb-root"></div>
-		<script>(function(d, s, id) {
-		var js, fjs = d.getElementsByTagName(s)[0];
-		if (d.getElementById(id)) return;
-		js = d.createElement(s); js.id = id;
-		js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.8";
-		fjs.parentNode.insertBefore(js, fjs);
-		}(document, 'script', 'facebook-jssdk'));</script>
-		{{pass}}
-
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
     <!-- Navbar ======================================= -->
@@ -125,6 +126,26 @@
 
     </div>
 
+    <!-- The javascript =============================== -->
+    <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
+    <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
+    {{block page_js}}{{end page_js}}
+    
+    <!-- Share ======================================== -->
+    {{if 'shareable' in globals():}}
+		<script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
+<!-- 		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script> -->
+		{{pass}}
+    {{if 'shareButtons' in globals():}}
+		<script src="{{=URL('static','js/shareButtons.js',vars=dict(static=URL('static','images')))}}"></script>
+<!--		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script>-->
+		{{pass}}
+	
+    <!-- other scripts ======================================== -->
+    {{if 'script' in globals():}}
+		{{=script}}
+		{{pass}}
+	
     <!-- The footer =============================== -->
 	<footer class="footer span12" id="footer">
 		<div class="footer-content">
@@ -137,34 +158,9 @@
 			{{end}}
 		</div>
 	</footer>
-    <!-- The javascript =============================== -->
-    <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
-    <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
-    {{block page_js}}{{end page_js}}
-    
-    <!-- Share ======================================== -->
-    {{if 'shareable' in globals():}}
-		<script>window.twttr = (function(d, s, id) {
-		var js, fjs = d.getElementsByTagName(s)[0],
-			t = window.twttr || {};
-		if (d.getElementById(id)) return t;
-		js = d.createElement(s);
-		js.id = id;
-		js.src = "https://platform.twitter.com/widgets.js";
-		fjs.parentNode.insertBefore(js, fjs);
-		t._e = [];
-		t.ready = function(f) {
-			t._e.push(f);
-		};
-		return t;
-		}(document, "script", "twitter-wjs"));</script>
-		
-		<script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
+    {{if 'shareButtons' in globals() or 'shareable' in globals():}}
+		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script>
 		{{pass}}
-	
-    <!-- other scripts ======================================== -->
-    {{if 'script' in globals():}}
-		{{=script}}
-		{{pass}}
-  </body>
+
+	</body>
 </html>

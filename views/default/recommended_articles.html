@@ -8,21 +8,23 @@
   {{=myHelp}}
   {{pass}}
 
-<!-- <div id="pci-ArticleTopButtons"> -->
 {{if 'myCloseButton' in locals():}}
 	{{=myCloseButton}}
 	{{pass}}
-<!-- <br> -->
+
 {{if 'myUpperBtn' in locals():}}
 	{{=myUpperBtn}}
 	{{pass}}
-<!-- </div> -->
 
-<div id="pci-ArticleHeader">
-{{if 'statusTitle' in locals():}}
+{{if 'statusTitle' in locals() and statusTitle:}}
+	<div id="pci-ArticleHeader">
 	{{=statusTitle}}
+	</div>
 	{{pass}}
-</div>
+
+{{if 'shareButtons' in globals():}}
+	<div data-social-share-privacy="true" class='pci-shareLine'></div>
+	{{pass}}
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>

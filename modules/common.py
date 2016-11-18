@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import gc
 import os
-import datetime
+import pytz, datetime
 from re import sub, match
 from copy import deepcopy
-import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import *
+
+import io
+from PIL import Image
 
 from gluon import current, IS_IN_DB
 from gluon.tools import Auth
@@ -186,63 +190,61 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 		scheme=False
 		host=False
 		port=False
-	if row.authors and len(row.authors)>500:
-		authors = row.authors[:500]+'...'
-	else:
-		authors = row.authors or ''
 	resu = []
 	# Recommender name(s)
 	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
 		return None
 	if recomm.recommender_id is not None:
-		whoDidIt = [ mkUser(auth, db, recomm.recommender_id, linked=True) ]
+		theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+		whoDidIt = [ mkUser_U(auth, db, theUser, linked=True, scheme=scheme, host=host, port=port) ]
 		if row.already_published:
-			contributors = []
-			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
+			contrQy = db(
+							(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+						).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_press_reviews.id)
+			n=len(contrQy)
+			ic=0
 			for contr in contrQy:
-				contributors.append(contr.contributor_id)
-			if len(contributors) > 0:
-				for ic in range(0, len(contributors)):
-					if ic == len(contributors)-1:
-						whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic], linked=True)))
-					else:
-						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic], linked=True)))
+				ic += 1
+				if ic == n:
+					whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				else:
+					whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
 		else:
-			contributors = []
-			contrQy = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) ).select(orderby=db.t_reviews.id)
-			for contr in contrQy:
-				contributors.append(contr.reviewer_id)
-			if len(contributors) > 0:
+			contrQy = db(
+							(db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
+						).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_reviews.id)
+			n=len(contrQy)
+			ic=0
+			if n>0:
 				whoDidIt.append(SPAN(' with '))
-				for ic in range(0, len(contributors)):
-					if ic == len(contributors)-1 and ic > 0:
-							whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port)))
-					elif ic > 0:
-						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port)))
-					else:
-						whoDidIt.append(mkUser(auth, db, contributors[ic], linked=True, scheme=scheme, host=host, port=port))
-	
+			for contr in contrQy:
+				ic += 1
+				if ic == n and ic>1:
+					whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				elif ic>1:
+					whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				else:
+					whoDidIt.append(mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port))
 	else:
 		whoDidIt = [SPAN(current.T('See recommendation'))]
 	
-	if 'num' in row:
-		img = [A(_id=row.num, _style='display:none;')]
-	else:
-		img = []
-	
+	img = []
 	if withDate:
 		img += [SPAN(mkLastChange(row.last_status_change), _class='pci-lastArticles-date'),BR(),]
-		
 	if withImg:
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 			img += [IMG(_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
 	resu.append(TD( img, _style='vertical-align:top; text-align:left;' ))
-	
+
 	shortTxt = recomm.recommendation_comments or ''
 	if len(shortTxt)>500:
 		shortTxt = shortTxt[0:500] + '...'
 	
+	if row.authors and len(row.authors)>500:
+		authors = row.authors[:500]+'...'
+	else:
+		authors = row.authors or ''
 	resu.append(
 				TD(
 					SPAN(row.title, _style='font-size:18px;'),
@@ -259,8 +261,8 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 						BR(),
 						I(shortTxt, _class='pci-shortTxt'),
 						BR(),
-						A(current.T('Full recommendation'), _target='blank', 
-							_href= URL(c='public', f='recommendations', vars=dict(articleId=row.id), scheme=scheme, host=host, port=port),
+						A(current.T('More'), _target='blank', 
+							_href= URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port),
 							_class='btn btn-success pci-smallBtn',
 						),
 						_style='margin-right:1cm; margin-left:1cm; padding-left:8px; border-left:1px solid #cccccc;',
@@ -268,9 +270,9 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 					_class='pci-lastArticles-cell'
 				),
 			)
+	
 	if withScore:
 			resu.append(TD(row.score or '', _class='pci-lastArticles-date'))
-	
 	return TR(resu, _class='pci-lastArticles-row')
 
 
@@ -286,7 +288,7 @@ def mkRepresentArticle(auth, db, articleId):
 			submitter = ''
 			sub_repr = ''
 			if art.user_id is not None:
-				submitter = db.auth_user[art.user_id]
+				submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 				sub_repr = 'by %s %s,' % (submitter.first_name, submitter.last_name)
 			resu = DIV(
 						SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
@@ -326,7 +328,7 @@ def mkArticleCell(auth, db, art):
 					mkDOI(art.doi),
 					(BR()+SPAN(art.article_source) if art.article_source else ''),
 					A(whowhen, 
-								_href=URL(c='public', f='recommendations', vars=dict(articleId=art.id)),
+								_href=URL(c='public', f='rec', vars=dict(id=art.id)),
 								_target='blank',
 								_style="color:green;margin-left:12px;",
 						),
@@ -537,19 +539,28 @@ def mkCloseButton():
 
 
 
-def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False, with_comments=False):
+def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False, with_comments=False, fullURL=True):
+	if fullURL:
+		scheme=myconf.take('alerts.scheme')
+		host=myconf.take('alerts.host')
+		port=myconf.take('alerts.port')
+	else:
+		scheme=False
+		host=False
+		port=False
+	
 	myContents = DIV(_class=('pci-article-div-printable' if printable else 'pci-article-div'))
-	submitter = db.auth_user[art.user_id]
+	#submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
 		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _style='max-width:150px; max-height:150px;'))
 	else:
 		img = ''
+	doi = sub(r'doi: *', '', (art.doi or ''))
 	myArticle = DIV(
 					DIV(DIV(I(current.T('Recommended article')), _class='pci-ArticleText'), _class='pci-ArticleHeader recommended'+(' printable' if printable else ''))
-					,DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', art.doi)), _style='text-align:right;')
+					,DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % doi), _style='text-align:right;')
 					,img
-					#SPAN(I(current.T('Submitted by')+' '+(submitter.first_name or '')+' '+(submitter.last_name or '')+' '+(art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')) if submitter else '')
 					,H4(art.authors or '')
 					,H3(art.title or '')
 					,(mkDOI(art.doi)+P()) if (art.doi) else SPAN('')
@@ -560,14 +571,72 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					#,_class=('pci-article-div-printable' if printable else 'pci-article-div')
 					,_class='pci-bigtext pci-article-reference'
 				)
+	myContents.append(myArticle)
+	#TODO: add green box "Recommendation"
+	recomGreen=DIV(
+				#IMG(_src=URL(c='static',f='images/small-background.png', scheme=scheme, host=host, port=port), _height="100"),
+				DIV(
+					DIV(I(current.T('Recommendation')), _class='pci-ArticleText'),
+					_class='pci-ArticleHeader recommended'+ (' printable' if printable else '')
+				))
+	myContents.append(P())
+	myContents.append(recomGreen)
 	###NOTE: recommendations counting
 	if with_reviews:
-		recomms = db( (db.t_recommendations.article_id==art.id) ).select(orderby=db.t_recommendations.id)
+		recomms = db( (db.t_recommendations.article_id==art.id) ).select(orderby=~db.t_recommendations.id)
 	else:
-		recomms = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id)
+		recomms = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=~db.t_recommendations.id)
+
+	leftShift=0
 	for recomm in recomms:
-		#iRecomm += 1
-		recommender = db.auth_user[recomm.recommender_id]
+		
+		if recomm.recommender_id is not None:
+			theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+			whoDidItTxt = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
+			if art.already_published:
+				contrQy = db(
+								(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+							).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_press_reviews.id)
+				n=len(contrQy)
+				ic=0
+				for contr in contrQy:
+					ic += 1
+					if ic == n:
+						whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+					else:
+						whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+			else:
+				contrQy = db(
+								(db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
+							).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_reviews.id)
+				n=len(contrQy)
+				ic=0
+				if n>0:
+					whoDidItTxt.append(SPAN(' with '))
+				for contr in contrQy:
+					ic += 1
+					if ic == n and ic>1:
+						whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+					elif ic>1:
+						whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+					else:
+						whoDidItTxt.append(mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port))
+		else:
+			whoDidItTxt = []
+		if recomm.recommendation_doi:
+			citeRef = mkDOI(recomm.recommendation_doi)
+		else:
+			citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
+			citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+		if recomm.recommendation_state == 'Recommended':
+			cite = DIV(
+						SPAN(B('Cite as:'), 
+						BR(), SPAN(whoDidItTxt), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+'. '), 
+						BR(), 
+						citeRef, 
+					), _class='pci-citation')
+		else:
+			cite = ''
 		
 		###NOTE: PUBLISHED ARTICLE
 		if art.already_published:
@@ -575,9 +644,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
 				contributors.append(contr.contributor_id)
-			#lastchange = recomm.last_change.strftime('%Y-%m-%d') if recomm.last_change else None
-			#whoDidIt = [SPAN(current.T('Recommendation by')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+lastchange or ''))]
-			#whoDidIt = [(recommender.first_name or '')+' '+(recommender.last_name or '')]
 			if len(contributors)>0:
 				whoDidIt = [LI(mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))]
 				for con in contributors:
@@ -585,24 +651,14 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				whoDidIt = UL(whoDidIt)
 			else:
 				whoDidIt = mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable))
-			#if len(contributors) > 0:
-				#for ic in range(0, len(contributors)):
-					#if ic == len(contributors)-1:
-						#whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic])))
-					#else:
-						#whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic])))
-			
 			myContents.append(
-				DIV( HR()
-					#,SPAN(B(whoDidIt))
-					#,BR()
+				DIV(''
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 					,H4(current.T(' by '), SPAN(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
-					#,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi != art.doi) else SPAN('')
-					,BR()
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
+					,cite
 					, _class='pci-recommendation-div'
 				)
 			)
@@ -622,39 +678,46 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 							H4(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
 						)
 					else:
-						reviewer = db.auth_user[review.reviewer_id]
 						myReviews.append(
 							H4(current.T('Reviewed by'),' ',mkUser(auth, db, review.reviewer_id, linked=not(printable)),(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
 						)
 					myReviews.append(BR())
 					myReviews.append(DIV(WIKI(review.review or ''), _class='pci-bigtext margin'))
-			myContents.append( DIV(
-						H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
+			if recomm.reply:
+				reply = DIV(
+						H4(B(current.T('Author\'s reply:'))),
+						DIV(WIKI(recomm.reply), _class='pci-bigtext'),
+						_style='margin-top:32px;',
+					)
+			else:
+				reply = ''
+			myContents.append( DIV(''
+						,cite
+						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-						#,H4(current.T(' by ')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')
-							#+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
-							#)
 						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 						,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
-						,BR()
-						#,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
-						#,B(current.T('Recommendation & Reviews'))+BR()
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
+						,reply
 						, _class='pci-recommendation-div'
+						, _style='margin-left:%spx' % (leftShift)
 						)
 					)
-	myContents.append(myArticle)
+			leftShift += 50
 	
 	if with_comments:
 		# comments
-		myContents.append(H2(current.T('User comments')))
 		commentsQy = db( (db.t_comments.article_id == art.id) & (db.t_comments.parent_id==None) ).select(orderby=db.t_comments.comment_datetime)
-		for comment in commentsQy:
-			myContents.append(mkCommentsTree(auth, db, comment.id))
+		if len(commentsQy) > 0:
+			myContents.append(H2(current.T('User comments')))
+			for comment in commentsQy:
+				myContents.append(mkCommentsTree(auth, db, comment.id))
+		else:
+			myContents.append(SPAN(current.T('No user comments yet')))
 		
 		# add comment button
-		if auth.user:
+		if auth.user and not(printable):
 			myContents.append(DIV(A(SPAN(current.T('New comment'), _class='buttontext btn btn-default'), 
 									_href=URL(c='user', f='new_comment', vars=dict(articleId=art.id), user_signature=True)), 
 								_class='pci-EditButtons'))
@@ -682,7 +745,7 @@ def mkCommentsTree(auth, db, commentId):
 # The most important function of the site !!
 # Be *VERY* careful with rights management
 def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
-	submitter = db.auth_user[art.user_id]
+	submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 	allowOpinion = None
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
@@ -690,7 +753,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	else:
 		img = ''
 	myContents = DIV(
-					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', art.doi)), _style='text-align:right;'),
+					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;'),
 					img,
 					SPAN(I(current.T('Submitted by')+' '+(submitter.first_name or '')+' '+(submitter.last_name or '')+' '+(art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')) if submitter else '')
 					,H4(art.authors or '')
@@ -719,7 +782,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	if nbRecomms > 0 and auth.has_membership(role='manager') and not(printable) and not (quiet):
 		# manager's button allowing recommendations management
 		myContents.append(DIV(A(SPAN(current.T('Manage recommendations'), _class='buttontext btn btn-info'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=art.id), user_signature=True)), _class='pci-EditButtons'))
-	elif len(recomms)==0 and auth.has_membership(role='recommender') and art.status=='Awaiting consideration' and not(printable) and not (quiet):
+	if len(recomms)==0 and auth.has_membership(role='recommender') and art.status=='Awaiting consideration' and not(printable) and not (quiet):
 		# suggested or any recommender's button for recommendation consideration
 		btsAccDec = [A(SPAN(current.T('I wish to consider this preprint for recommendation'), _class='buttontext btn btn-success'), 
 								_href=URL(c='recommender', f='accept_new_article_to_recommend', vars=dict(articleId=art.id), user_signature=True),
@@ -737,7 +800,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	iRecomm = 0
 	for recomm in recomms:
 		iRecomm += 1
-		recommender = db.auth_user[recomm.recommender_id]
+		recommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 		
 		###NOTE: POST-PRINT ARTICLE
 		if art.already_published:
@@ -745,11 +808,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
 				contributors.append(contr.contributor_id)
-			#lastchange = recomm.last_change.strftime('%Y-%m-%d') if recomm.last_change else None
-			#whoDidIt = [SPAN(current.T('Recommendation by')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+lastchange or ''))]
 			whoDidIt = [(recommender.first_name or '')+' '+(recommender.last_name or '')]
 			if len(contributors) > 0:
-				#whoDidIt.append(SPAN(', '))
 				for ic in range(0, len(contributors)):
 					if ic == len(contributors)-1:
 						whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic])))
@@ -758,8 +818,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			
 			myContents.append(
 				DIV( HR()
-					#,SPAN(B(whoDidIt))
-					,BR()
 					,B(SPAN(recomm.recommendation_title))+BR() if (recomm.recommendation_title or '') != '' else ''
 					,B(current.T('Recommendation by '), SPAN(whoDidIt))+BR()
 					,SPAN(current.T('Recommendation doi:')+' ', mkDOI(recomm.recommendation_doi)+BR())
@@ -771,7 +829,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			)
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button allowing recommendation edition
-				myContents.append(DIV(A(SPAN(current.T('Write or edit recommendation'), _class='buttontext btn btn-default'), 
+				myContents.append(DIV(A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-default'), 
 											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 										_class='pci-EditButtons'))
 				
@@ -792,7 +850,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 								_class='pci-EditButtons-centered'))
 				
 				# recommender's button allowing cancellation
-				myContents.append(DIV(A(SPAN(current.T('Cancel this article recommendation'), _class='buttontext btn btn-warning'), 
+				myContents.append(DIV(A(SPAN(current.T('Cancel this postprint recommendation'), _class='buttontext btn btn-warning'), 
 												_href=URL(c='recommender', f='do_cancel_press_review', vars=dict(recommId=recomm.id), user_signature=True), 
 												_title=current.T('Click here in order to cancel this recommendation')), 
 										_class='pci-EditButtons-centered'))
@@ -802,7 +860,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		
 		else: ###NOTE: PRE-PRINT ARTICLE
 			# During recommendation, no one is not allowed to see last (unclosed) recommendation 
-			#TODO: problem with is_closed
 			hideOngoingRecomm = (art.status=='Under consideration') and (iRecomm==nbRecomms)
 			#  ... unless he/she is THE recommender
 			if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id):
@@ -835,9 +892,9 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					if (review.reviewer_id==auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status=='Under consideration') and (review.review_state=='Pending') and not(printable) and not(quiet):
 						# reviewer's buttons in order to accept/decline pending review
 						myReviews.append(DIV(
-										A(SPAN(current.T('Yes, I accept this review'), _class='buttontext btn btn-success'), 
+										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-success'), 
 											_href=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review.id), user_signature=True), _class='button'),
-										A(SPAN(current.T('No thanks, I decline this review'), _class='buttontext btn btn-warning'), 
+										A(SPAN(current.T('No thanks, I\'d rather not'), _class='buttontext btn btn-warning'), 
 											_href=URL(c='user', f='decline_new_review', vars=dict(reviewId=review.id), user_signature=True), _class='button'),
 										_class='pci-opinionform'
 									))
@@ -848,7 +905,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 								SPAN(I(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
 							)
 						else:
-							reviewer = db.auth_user[review.reviewer_id]
+							reviewer = db(db.auth_user.id==review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 							myReviews.append(
 								SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
 							)
@@ -858,19 +915,24 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 						if (review.reviewer_id==auth.user_id) and (review.review_state == 'Under consideration') and (art.status == 'Under consideration') and not(printable) and not(quiet):
 							# reviewer's buttons in order to edit/complete pending review
 							myReviews.append(DIV(
-												A(SPAN(current.T('Write or edit review'), _class='buttontext btn btn-default'), 
-													_href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True)), 
-												A(SPAN(current.T('Review completed'), _class='buttontext btn btn-success'+(' disabled' if (review.review or '')=='' else '')), 
-													_href=URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True)), 
+												A(SPAN(current.T('Write or edit your review'), _class='buttontext btn btn-default'), _href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True)), 
+												#A(SPAN(current.T('Review completed'), _class='buttontext btn btn-success'+(' disabled' if (review.review or '')=='' else '')), _href=URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True)), 
 												_class='pci-EditButtons')
 											)
 			
 			myContents.append(HR())
-			myContents.append( DIV(
-						SPAN(I(current.T('Recommendation by')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+			if recomm.recommendation_state == 'Recommended':
+				tit2 = current.T('Recommendation & reviews')
+			else:
+				tit2 = current.T('Decision & reviews')
+				
+			myContents.append( DIV(''
+						,B(SPAN(recomm.recommendation_title))
+						,BR()
+						,SPAN(I(current.T('by ')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
 						,BR()
 						,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
-						,B(current.T('Recommendation & Reviews'))+BR()
+						,B(tit2)+BR()
 						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (not(hideOngoingRecomm)) else '')
 						,DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else ''
 						, _class='pci-recommendation-div'
@@ -879,13 +941,15 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button for recommendation edition
-				myContents.append(DIV(A(SPAN(current.T('Write or edit recommendation'), _class='buttontext btn btn-default'), 
+				myContents.append(DIV(A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-default'), 
 										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 									_class='pci-EditButtons'))
 
 				# final opinion allowed if comments filled and no ongoing review
-				if (len(recomm.recommendation_comments or '')>50) and not(existOngoingReview): # and len(reviews)>=2 :
+				if (len(recomm.recommendation_comments or '')>50) and not(existOngoingReview):# and len(reviews)>=2 :
 					allowOpinion = recomm.id
+				else:
+					allowOpinion = -1
 				
 			
 			if (recomm.reply is not None) and (len(recomm.reply) > 0):
@@ -907,23 +971,21 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 								_class='pci-EditButtons-centered'))
 	
 	if (art.user_id==auth.user_id) and not(art.already_published) and (art.status not in ('Cancelled', 'Rejected', 'Pre-recommended', 'Recommended')) and not(printable) and not (quiet):
-		# author's button allowing cancellation
 		myContents.append(DIV(A(SPAN(current.T('I wish to cancel this recommendation request'), _class='buttontext btn btn-warning'), 
 										_href=URL(c='user', f='do_cancel_article', vars=dict(articleId=art.id), user_signature=True), 
 										_title=current.T('Click here in order to cancel this recommendation request')), 
-								_class='pci-EditButtons-centered'))
-	if (art.user_id==auth.user_id) and not(art.already_published) and (art.status in ('Pending', 'Awaiting consideration')) and not(printable) and not (quiet):
-		# author's button allowing deletion
-		myContents.append(DIV(A(SPAN(current.T('I wish to delete this recommendation request'), _class='buttontext btn btn-danger'), 
-										_href=URL(c='user', f='do_delete_article', vars=dict(articleId=art.id), user_signature=True), 
-										_title=current.T('Click here in order to delete this recommendation request')), 
-								_class='pci-EditButtons-centered'))
+								_class='pci-EditButtons-centered')) # author's button allowing cancellation
+	#if (art.user_id==auth.user_id) and not(art.already_published) and (art.status in ('Pending', 'Awaiting consideration')) and not(printable) and not (quiet):
+		#myContents.append(DIV(A(SPAN(current.T('I wish to delete this recommendation request'), _class='buttontext btn btn-danger'), 
+										#_href=URL(c='user', f='do_delete_article', vars=dict(articleId=art.id), user_signature=True), 
+										#_title=current.T('Click here in order to delete this recommendation request')), 
+								#_class='pci-EditButtons-centered')) # author's button allowing deletion
 	
 	if allowOpinion:
-		myContents.append( FORM(
-				#LABEL(current.T('Final recommendation:')), 
+		if allowOpinion > 0:
+			myContents.append( FORM(
 				DIV(
-					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend'), current.T('I recommend this article'), _class='pci-radio pci-recommend btn-success'),
+					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend'), current.T('I recommend this preprint'), _class='pci-radio pci-recommend btn-success'),
 					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise'), current.T('This preprint worth a revision'), _class='pci-radio pci-review btn-default'),
 					SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_reject'), current.T('I reject this preprint'), _class='pci-radio pci-reject btn-warning'),
 					_style="height:48px;"
@@ -933,6 +995,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				_action=URL(c='recommender', f='process_opinion', vars=dict(recommId=allowOpinion), user_signature=True),
 				_name='opinionForm'
 			))
+		else: # -1
+			myContents.append(
+				LABEL(current.T('All reviewers must have completed their reviews before you can take a decision (I recommend this preprint, This preprint worth a revision or I reject this preprint) on this preprint.')), 
+			)
 	if auth.has_membership(role='manager') and art.status == 'Pending' and not(printable) and not (quiet):
 		myContents.append(DIV(	A(SPAN(current.T('Validate this request'), _class='buttontext btn btn-success'), 
 										_href=URL(c='manager', f='do_validate_article', vars=dict(articleId=art.id), user_signature=True), 
@@ -1011,7 +1077,7 @@ def mkSollicitedRev(auth, db, row):
 			butts.append( A('['+current.T('MANAGE')+'] ', _href=URL(c='recommender', f='reviews', vars=myVars, user_signature=True)) )
 		for thema in art['thematics']:
 			myVars['qy_'+thema] = 'on'
-		butts.append( A('['+current.T('+ADD')+'] ', _href=URL(c='recommender', f='reviewers', vars=myVars, user_signature=True)) )
+		butts.append( A('['+current.T('Solicit a reviewer')+'] ', _href=URL(c='recommender', f='reviewers', vars=myVars, user_signature=True)) )
 	return butts
 
 
@@ -1054,8 +1120,6 @@ def mkClosedRev(auth, db, row):
 			hrevs.append(LI(I(current.T('not registered'))))
 	butts.append( UL(hrevs, _class='pci-inCell-UL') )
 	return butts
-
-
 
 
 
@@ -1105,73 +1169,22 @@ def mkSollicitedPress(auth, db, row):
 	return butts
 
 
-#def mkDeclinedPress(auth, db, row):
-	#butts = []
-	#hrevs = []
-	#art = db.t_articles[row.article_id]
-	#revs = db( (db.t_press_reviews.recommendation_id == row.id) & (db.t_press_reviews.contribution_state == "Declined") ).select()
-	#for rev in revs:
-		#if rev.contributor_id:
-			#hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
-		#else:
-			#hrevs.append(LI(I(current.T('not registered'))))
-	#butts.append( UL(hrevs, _class='pci-inCell-UL') )
-	#return butts
-
-#def mkOngoingPress(auth, db, row):
-	#butts = []
-	#hrevs = []
-	#art = db.t_articles[row.article_id]
-	#revs = db( (db.t_press_reviews.recommendation_id == row.id) & (db.t_press_reviews.contribution_state == "Under consideration") ).select()
-	#for rev in revs:
-		#if rev.contributor_id:
-			#hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
-		#else:
-			#hrevs.append(LI(I(current.T('not registered'))))
-	#butts.append( UL(hrevs, _class='pci-inCell-UL') )
-	#return butts
-
-#def mkClosedPress(auth, db, row):
-	#butts = []
-	#hrevs = []
-	#art = db.t_articles[row.article_id]
-	#revs = db( (db.t_press_reviews.recommendation_id == row.id) & (db.t_press_reviews.contribution_state == 'Recommendation agreed') ).select()
-	#for rev in revs:
-		#if rev.contributor_id:
-			#hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
-		#else:
-			#hrevs.append(LI(I(current.T('not registered'))))
-	#butts.append( UL(hrevs, _class='pci-inCell-UL') )
-	#return butts
-
-
-
-
-
-
 def mkRecommendationFormat(auth, db, row):
-	recommender = db.auth_user[row.recommender_id]
+	recommender = db(db.auth_user.id==row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 	art = db.t_articles[row.article_id]
 	anchor = SPAN(  row.recommendation_title, #TODO
 					BR(),
 					B(current.T('Recommender:')+' '), SPAN('%s %s' % (recommender.first_name, recommender.last_name)),
 					BR(),
 					B(current.T('DOI:')+' '), mkDOI(row.doi),
-					#BR(),
-					#B(current.T('Started on:')+' '), row.recommendation_timestamp
 				)
 	return anchor
 
 
 
 def mkRecommendation4ReviewFormat(auth, db, row):
-	recomm = db.t_recommendations[row.recommendation_id]
-	anchor = SPAN(  SPAN(mkUserWithMail(auth, db, recomm.recommender_id)),
-					#BR(),
-					#mkDOI(recomm.doi),
-					#BR(),
-					#I(current.T('Started %s days ago') % relativedelta(datetime.datetime.now(), recomm.recommendation_timestamp).days)
-				)
+	recomm = db(db.t_recommendations.id==row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
+	anchor = SPAN(mkUserWithMail(auth, db, recomm.recommender_id))
 	return anchor
 
 
@@ -1189,20 +1202,34 @@ def mkRecommendation4PressReviewFormat(auth, db, row):
 
 
 def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False):
+	if userId is not None:
+		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+		return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port)
+	else:
+		return ''
+
+def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
-		theUser = db.auth_user[userId]
-		if theUser:
-			if linked:
-				resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
-			else:
-				resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
+		if linked:
+			resu = A(str(userId), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
+		else:
+			resu = SPAN(str(userId))
 	return resu
+
+def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
+	resu = SPAN('')
+	if linked:
+		resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
+	else:
+		resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
+	return resu
+
 
 def mkUserWithAffil(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
-		theUser = db.auth_user[userId]
+		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.email).last()
 		if theUser:
 			if linked:
 				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
@@ -1214,7 +1241,7 @@ def mkUserWithAffil(auth, db, userId, linked=False, scheme=False, host=False, po
 def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
-		theUser = db.auth_user[userId]
+		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 		if theUser:
 			if linked:
 				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
@@ -1259,8 +1286,16 @@ def mkDuration(t0, t1):
 		return ''
 
 
-def mkUserRow(userRow, withMail=False):
+
+
+def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=False):
 	resu = []
+	if withPicture:
+		if (userRow.uploaded_picture is not None and userRow.uploaded_picture != ''):
+			img = IMG(_src=URL('default', 'download', args=userRow.uploaded_picture), _class='pci-userPicture', _style='float:left;')
+		else:
+			img = IMG(_src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture', _style='float:left;')
+		resu.append(TD(img))
 	name = ''
 	if (userRow.first_name or '') != '':
 		name += userRow.first_name
@@ -1283,10 +1318,13 @@ def mkUserRow(userRow, withMail=False):
 	resu.append(TD(I(affil)))
 	if withMail:
 		resu.append(TD(A(' [%s]' % userRow.email, _href='mailto:%s' % userRow.email) if withMail else TD('')))
-	#if (userRow.uploaded_picture is not None and userRow.uploaded_picture != ''):
-		#resu.append(TD((IMG(_src=URL('default', 'download', args=userRow.uploaded_picture), _class='pci-userPicture'))))
-	#else:
-		#resu.append((IMG(_src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture')))
+	if withRoles:
+		rolesQy = db( (db.auth_membership.user_id==userRow.id) & (db.auth_membership.group_id==db.auth_group.id) ).select(db.auth_group.role, orderby=db.auth_group.role)
+		rolesList = []
+		for roleRow in rolesQy:
+			rolesList.append(roleRow.role)
+		roles = ', '.join(rolesList)
+		resu.append(TD(B(roles)))
 	return TR(resu, _class='pci-UsersTable-row')
 
 
@@ -1295,6 +1333,7 @@ def mkUserRow(userRow, withMail=False):
 def mkUserCard(auth, db, userId, withMail=False):
 	user  = db.auth_user[userId]
 	name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
+	nameTitle  = (user.last_name or '').upper(), ' ', (user.first_name or '')
 	addr  = LI(I( (user.laboratory or ''), ', ', (user.institution or ''), ', ', (user.city or ''), ', ', (user.country or '') ))
 	thema = LI(', '.join(user.thematics))
 	mail  = LI(A(' [%s]' % user.email, _href='mailto:%s' % user.email) if withMail else '')
@@ -1338,10 +1377,11 @@ def mkUserCard(auth, db, userId, withMail=False):
 	for row in reviewsQy:
 		reviews.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
 	resu = DIV(
+			H2(nameTitle),
 			DIV(
 				img,
 				DIV(
-					UL(name, addr, mail, thema, roles) if withMail else UL(name, addr, thema, roles), 
+					UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles), 
 					_style='margin-left:120px; margin-bottom:24px; min-height:120px;'),
 			),
 			cv,
@@ -1362,9 +1402,45 @@ def do_suggest_article_to(auth, db, articleId, recommenderId):
 
 
 
-def menu2footer(menu):
-	resu = []
-	for item in menu:
-		print item
-	return DIV(resu)
-		
+
+def makeUserThumbnail(auth, db, userId, size=(150,150)):
+	user = db(db.auth_user.id==userId).select().last()
+	if user.picture_data:
+		try:
+			im = Image.open(io.BytesIO(user.picture_data))
+			width, height = im.size
+			if width>200 or height>200:
+				im.thumbnail(size,Image.ANTIALIAS)
+				imgByteArr = io.BytesIO()
+				im.save(imgByteArr, format='PNG')
+				imgByteArr = imgByteArr.getvalue() 
+				user.update_record(picture_data=imgByteArr)
+		except:
+			pass
+	return
+
+
+
+def makeArticleThumbnail(auth, db, articleId, size=(150,150)):
+	art = db(db.t_articles.id==articleId).select().last()
+	if art.picture_data:
+		try:
+			im = Image.open(io.BytesIO(art.picture_data))
+			width, height = im.size
+			if width>200 or height>200:
+				im.thumbnail(size,Image.ANTIALIAS)
+				imgByteArr = io.BytesIO()
+				im.save(imgByteArr, format='PNG')
+				imgByteArr = imgByteArr.getvalue() 
+				art.update_record(picture_data=imgByteArr)
+		except:
+			pass
+	return
+
+
+def getRecommender(auth, db, row):
+	recomm = db( db.t_recommendations.article_id == row.id ).select(db.t_recommendations.recommender_id, orderby=db.t_recommendations.id).last()
+	if recomm and recomm.recommender_id:
+		return mkUser(auth, db, recomm.recommender_id)
+	else:
+		return ''

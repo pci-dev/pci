@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Social Share Privacy : Fork of &quot;jquery.socialshareprivacy.js | 2 Klicks fuer mehr Datenschutz&quot;" />
+
+    <link rel="canonical" href="http://panzi.github.com/SocialSharePrivacy/"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css"/>
+    <link rel="stylesheet" type="text/css" href="stylesheets/jquery.socialshareprivacy.min.css"/>
+
+	<script type="text/javascript" src="javascripts/jquery.min.js"></script>
+	<script type="text/javascript" src="javascripts/jquery.cookies.js"></script>
+	<script type="text/javascript" src="javascripts/jquery.socialshareprivacy.min.js"></script>
+	<script type="text/javascript" src="javascripts/main.js"></script>
+
+    <title>Social Share Privacy</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <div id="header_menu">
+            <span class="lang_select">
+              <a href="index.de.html" title="Deutsch">de</a>
+            </span>
+            <a id="forkme_banner" href="https://github.com/panzi/SocialSharePrivacy">View on GitHub</a>
+          </div>
+
+          <h1 id="project_title">Social Share Privacy</h1>
+          <h2 id="project_tagline">Fork of &quot;jquery.socialshareprivacy.js | 2 Klicks fuer mehr Datenschutz&quot;</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/panzi/SocialSharePrivacy/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/panzi/SocialSharePrivacy/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+
+<figure style="width:180px;margin-top:10px;">
+<div>
+<img src="images/like_deactivated.png">
+
+<div class="step"><span class="darr">&darr;</span> 1st click: activate button</div>
+
+<img src="images/like_activated.png">
+
+<div class="step"><span class="darr">&darr;</span> 2nd click: like</div>
+
+<img src="images/like_liked.png">
+</div>
+
+<figcaption>Before activation this button doesn't send information to a third party.</figcaption>
+</figure>
+
+
+<p>More and more websites use like-buttons from Facebook, Google+ and Twitter. However, these buttons send information to these social networks even if the user doesn't click them, but even if they are just present on a webpage. This way these networks are able to track which websites users are visiting and are able to build fairly complete browser histories of their users. Because this is neither what a user might expect nor what many website operators that embed like-buttons want, this alternative way of using these social services was developed.</p>
+
+<p>The concept is fairly easy. Per default only a gray mockup image of a like-button is embedded. Only if a user clicks this button the real like-button is loaded and information sent to the social network. With a second click the user can then like the webpage (or tweet it etc.).</p>
+
+
+<figure style="width:172px;">
+<img src="images/permissions.png">
+<figcaption>All buttons can be permanently enabled.</figcaption>
+</figure>
+
+<p>The first click basically means that the user agrees that information is sent to the social network in question. But only for the page that embeds like-button and only for the selected social network. If the user visits the same page again the button is at first again deactivated. This way one can prevent, that social network owners can build complete surf profiles of their users.</p>
+
+<p>If users don't care about their privacy and rather want the like-buttons to be always enabled they can do so in the settings menu, accessed via the gear icon. Per default this is done via cookies and on a domain basis, but this feature is extensible so that this information can be stored anywhere (e.g. via AJAX on a webserver or in the browsers HTML5 local storage).</p>
+
+<p>This is a fork of the "<a href="http://www.heise.de/extras/socialshareprivacy/">jquery.socialshareprivacy.js</a> | <a href="http://www.heise.de/ct/artikel/2-Klicks-fuer-mehr-Datenschutz-1333879.html">2 Klicks fuer mehr Datenschutz</a>" project of the German publishing house <a href="http://www.heise.de/">Heise</a>.</p>
+
+<h2>For Webmasters</h2>
+
+<p>Social Share Privacy is a <a href="http://jquery.com/">jQuery</a> plugin under the MIT license. More information on how to use it on your own webpage you can find on <a href="https://github.com/panzi/SocialSharePrivacy">github</a>.</p>
+
+<p>If you don't care about all the possible options and just want a quick short universal embed code you can use this form:</p>
+
+<p><strong>NOTE:</strong> If you directly use this generated code the privacy of your users won't be improved because it loads
+scripts from <code>ajax.googleapis.com</code> and <code>panzi.github.io</code>. Please download these scripts and put them on
+your own webserver and change the embed code accordingly.</p>
+
+<div id="service-edit">
+
+<div id="service-select">
+<label for="select-all">
+<input type="checkbox" id="select-all" value="all" checked="checked" onchange="$('#service-select ul input[type=checkbox]').prop('checked',this.checked);updateEmbedCode();"/>
+All</label>
+<ul>
+</ul>
+</div>
+
+<table id="options-and-code">
+<tbody>
+<tr>
+<td class="label"><label for="layout">Layout:</label></td>
+<td>
+<select id="layout" onchange="updateEmbedCode();">
+<option value="line">Horizontal (Line)</option>
+<option value="box" selected="selected">Vertical (Box)</option>
+</select>
+</td>
+</tr>
+
+<tr>
+<td class="label">
+<label for="uri">URL (optional):</label>
+</td>
+<td>
+<input id="uri" type="url" onchange="updateEmbedCode();"/>
+</td>
+</tr>
+
+<tr>
+<td class="label"></td>
+<td>
+<input type="checkbox" id="cookies" value="1" onchange="updateEmbedCode();" checked="checked"/>
+<label for="cookies" class="checkbox-label">Use cookies</label>
+</td>
+</tr>
+
+<tr>
+<td class="label"></td>
+<td>
+<input type="checkbox" id="async" value="1" onchange="updateEmbedCode();" checked="checked"/>
+<label for="async" class="checkbox-label">Load script asynchronously</label>
+</td>
+</tr>
+
+<tr>
+<td class="label">
+<label for="flattr-uid">Flattr UID:</label>
+</td>
+<td>
+<input id="flattr-uid" type="text" onchange="updateEmbedCode();"/>
+</td>
+</tr>
+
+<tr>
+<td class="label">
+<label for="disqus-shortname">Disqus shortname:</label>
+</td>
+<td>
+<input id="disqus-shortname" type="text" onchange="updateEmbedCode();"/>
+</td>
+</tr>
+
+<tr>
+<td class="label"></td>
+<td>
+<input type="checkbox" id="jquery" value="1" onchange="updateEmbedCode();"/>
+<label for="jquery" class="checkbox-label">I already use jQuery</label>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+</div>
+
+<label for="head-code">Insert this once in the head of your page:</label>
+<textarea id="head-code" onfocus="var code = this; setTimeout(function(){code.select();},0);" readonly="readonly"></textarea>
+
+<label for="share-code">Insert this wherever you want a share widget displayed (can be multiple times):</label>
+<textarea id="share-code" onfocus="var code = this; setTimeout(function(){code.select();},0);" readonly="readonly"></textarea>
+
+<label for="foot-code">Insert this once anywhere after the other code (e.g. the bottom of the page):</label>
+<textarea id="foot-code" onfocus="var code = this; setTimeout(function(){code.select();},0);" readonly="readonly"></textarea>
+
+<div id="share"></div>
+
+<div class="clear"></div>
+
+<hr/>
+
+<div id="disqus_thread"></div>
+
+<a id="comments-button" href="javascript:void(0)">Comments</a>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Social Share Privacy maintained by <a href="https://github.com/panzi">panzi</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>

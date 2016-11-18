@@ -3,15 +3,20 @@
 import re
 import copy
 
+# sudo pip install tweepy
+#import tweepy
+
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *
 
+from gluon.contrib.appconfig import AppConfig
+myconf = AppConfig(reload=True)
 
 # frequently used constants
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.take('config.trgm_limit') or 0.4
+trgmLimit = myconf.get('config.trgm_limit') or 0.4
 
 
 
@@ -58,11 +63,43 @@ def do_recommend_article():
 	if art.status == 'Pre-recommended':
 		art.status = 'Recommended'
 		art.update_record()
-		#TODO: tweet article
-		link = URL(c='public', f='recommendations', scheme=True, host=True, vars=dict(articleId=art.id))
-		print 'To be tweeted:', A(link, _href=link)
-	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-	#redirect(request.env.http_referer)
+		redirect(URL(c='public', f='rec', vars=dict(id=art.id), user_signature=True))
+		#NOTE: tweet article
+		#message = ''
+		#scheme=myconf.take('alerts.scheme')
+		#host=myconf.take('alerts.host')
+		#port=myconf.take('alerts.port')
+		#link = URL(c='public', f='rec', scheme=scheme, host=host, port=port, vars=dict(id=art.id))
+		#print 'To be tweeted:', A(link, _href=link)
+		#tweeterAcc = myconf.get('social.tweeter')
+		#consumer_key = myconf.get('social.tweeter_consumer_key')
+		#consumer_secret = myconf.get('social.tweeter_consumer_secret')
+		#access_token = myconf.get('social.tweeter_access_token')
+		#access_token_secret = myconf.get('social.tweeter_access_token_secret')
+		#if tweeterAcc and consumer_key and consumer_secret and access_token and access_token_secret :
+			#try:
+				#twAuth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+				#twAuth.set_access_token(access_token, access_token_secret)
+				#api = tweepy.API(twAuth)
+				#api.update_status(status="New recommendation: "+link)
+				#frames = []
+				#frames.append(H2('Tweeter'))
+				#frames.append(DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % locals() ), _class='tweeterPanel'))
+				#message = DIV(frames, _class='pci-socialDiv')
+			#except:
+				#message = T('Failure!')
+				#pass
+		#else:
+			#message = T('Configure [socials] in private/appconfig.ini')
+		#response.view='default/info.html'
+		#return dict(
+					#myHelp=getHelp(request, auth, db, '#ManageTweetRecommendation'),
+					#myText=getText(request, auth, db, '#ManageTweetRecommendationText'),
+					#myTitle=getTitle(request, auth, db, '#ManageTweetRecommendationTitle'),
+					#message=message,
+				#)
+	else:
+		redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
 
 
 
@@ -103,6 +140,7 @@ def ongoing_articles():
 # Display completed articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def completed_articles():
+	db.t_articles.status.label = T('Outcome')
 	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected'], 'completed_articles')
 	resu['myText']=getText(request, auth, db, '#ManagerCompletedArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerCompletedArticlesTitle')
@@ -211,14 +249,11 @@ def _manage_articles(statuses, whatNext):
 			]
 	grid = SQLFORM.grid(  query
 		,details=False, editable=False, deletable=False, create=False
-		,searchable=True #TODO: improve!
+		,searchable=True
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		#,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.doi, db.t_articles.title, db.t_articles.already_published, db.t_articles.authors, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics]
 		,links=links
-		#,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
-		#,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 		,orderby=~db.t_articles.last_status_change
 	)
 	response.view='default/myLayout.html'
@@ -335,14 +370,12 @@ def manage_recommendations():
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
 	myContents = mkRepresentArticle(auth, db, articleId)
-	response.view='default/recommLayout.html'
-	#response.view='default/myLayout.html'
+	response.view='default/myLayout.html'
 	return dict(
-				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
 				myText=getText(request, auth, db, '#ManageRecommendationsText'),
 				myTitle=getTitle(request, auth, db, '#ManageRecommendationsTitle'),
-				myContents=myContents,
+				content=myContents,
 				grid=grid,
 			)
 
@@ -378,7 +411,6 @@ def search_recommenders():
 			Field('id', type='integer'),
 			Field('num', type='integer'),
 			Field('score', type='double', label=T('Score'), default=0),
-			#Field('user_title', type='string', length=10, label=T('Title')),
 			Field('first_name', type='string', length=128, label=T('First name')),
 			Field('last_name', type='string', length=128, label=T('Last name')),
 			Field('email', type='string', length=512, label=T('email')),
@@ -398,6 +430,8 @@ def search_recommenders():
 				
 		temp_db.qy_recomm._id.readable = False
 		temp_db.qy_recomm.uploaded_picture.readable = False
+		temp_db.qy_recomm.num.readable = False
+		temp_db.qy_recomm.score.readable = False
 		links = [
 					dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
 					dict(header=T('Suggest as recommender'),         body=lambda row: A(SPAN(current.T('Suggest'), _class='buttontext btn btn-default'), 
@@ -415,9 +449,8 @@ def search_recommenders():
 			,orderby=temp_db.qy_recomm.num
 			,args=request.args
 		)
-		response.view='default/recommenders.html'
+		response.view='default/myLayout.html'
 		return dict(searchForm=searchForm, 
-					#myBackButton=mkBackButton(),
 					myHelp=getHelp(request, auth, db, '#ManagerSearchRecommenders'),
 					myText=getText(request, auth, db, '#ManagerSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#ManagerSearchRecommendersTitle'),
@@ -474,7 +507,8 @@ def edit_article():
 	db.t_articles.status.writable=True
 	db.t_articles.user_id.writable=True
 	form = SQLFORM(db.t_articles
-				,record=art
+				,articleId
+				,upload=URL('default', 'download')
 				,deletable=True
 				,showid=True
 			)
@@ -497,6 +531,7 @@ def edit_article():
 def manage_comments():
 	db.t_comments.parent_id.label=T('Parent comment')
 	grid = SQLFORM.smartgrid(db.t_comments
+					,create=False
 					,fields=[db.t_comments.article_id, db.t_comments.comment_datetime, db.t_comments.user_id, db.t_comments.parent_id, db.t_comments.user_comment]
 					,linked_tables=['t_comments']
 					,csv=csv, exportclasses=dict(t_comments=expClass)
@@ -511,3 +546,11 @@ def manage_comments():
 				myHelp=getHelp(request, auth, db, '#ManageComments'),
 				grid=grid, 
 			 )
+
+
+@auth.requires(auth.has_membership(role='manager'))
+def resizeArticleImages(ids):
+	for articleId in ids:
+		makeArticleThumbnail(auth, db, articleId, size=(150,150))
+
+

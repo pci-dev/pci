@@ -68,7 +68,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-myLogo {height: 100px; margin-bottom:8px; background-image: url(../images/small-background.png); background-size:contain; background-position: left center; background-repeat:no-repeat;}
 .pci-imgLogo {width:4cm;}
 .pci-myTitleNoImage {height: 64px; margin-bottom:8px;}
-.pci-myTitleText {width:100%; text-align:center;}
+.pci-myTitleText {}
 
 .panel { border:none; border-radius:8px;}
 .list-group-item {border:none; padding: 8px; border-color:#f0f0f0;}
@@ -130,7 +130,8 @@ header{box-shadow:none;} /* Don't remove */
 
 
 /* #pci-ArticleTopButtons { position:fixed; left:24px; top:20vh; text-align:center; } */
-.pci-ArticleTopButtons { width:180px; text-align:center; }
+/* .pci-ArticleTopButtons { width:180px; text-align:center; } */
+.pci-ArticleTopButtons { width:100%; text-align:center; }
 .pci-ArticleTopButton { padding-left:24px; padding-right:24px; margin: 8px; }
 
 #pci-ArticleHeader {min-height: 80px; max-width:20cm; margin:auto; margin-bottom:8px;}
@@ -148,22 +149,12 @@ header{box-shadow:none;} /* Don't remove */
 .pci-ArticleHeaderIn.recommended.printable {color: #089108; background: none;}
 .pci-ArticleText {font-size:24pt; text-align:center;}
 
-.pci-article-reference {border: 1px solid #e0e0e0; margin-top:8mm; padding: 8px;}
+.pci-article-reference {border: 1px solid #e0e0e0; padding: 8px;}
 .pci-reviewTitle {margin-top:1cm; }
 .pci-reviews h4 {margin-top:1cm; margin-bottom:0;}
 
+.pci-statusTitleText {width: 100%; max-width:20cm; font-size:24pt;}
 
-
-.pci-statusTitleText {
-	width: 100%;
-	max-width:20cm;
-	/*height:100%;*/ 
-	/* 	display:inline-block;  */
-	/* 	vertical-align:middle;  */
-	font-size:24pt; 
-	
-	/* 	margin:auto; */
-}
 .pci-status-title-printable {width:100%; text-align:center; border: 1px solid black;}
 .pci-bigtext {text-align:justify;}
 .pci-bigtext.margin {border-left: 1px solid #c0c0c0; padding: 8px;}
@@ -191,7 +182,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-infotextbox {}
 .pci-text-buttons {width:100%; text-align:right;}
 .pci-text-button-edit {font-size:8px;}
-.pci-text-title {font-size:32px;}
+.pci-text-title {font-size:32px; font-weight:bold; color:#598398;}
 
 .pci-div4wiki {max-height:200px; overflow:auto;}
 
@@ -242,7 +233,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-comment {border-left: 1px solid #c0c0c0; padding: 8px;}
 .pci-commentReplyLink {}
 .pci-commentHeader {color:#777777;}
-.pci-smallBtn {/*height:30px;*/ padding:2px; margin-left:0; line-height:initial; border-radius:4px; text-transform:initial;}
+.pci-smallBtn {/*height:30px;*/ padding:2px; margin-left:0; line-height:initial; border-radius:4px; /*text-transform:initial;*/}
 
 .tweeterPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px;}
 .facebookPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px; max-width:516px; margin-left:auto; margin-right:auto;}
@@ -269,3 +260,8 @@ header{box-shadow:none;} /* Don't remove */
 .pci-footer-li a {color:black; 
 }
 .pci-footer-li a .pci-enhancedMenuItem {color:white;}
+
+.pci-citation {font-size:10px; border-left:1px solid black; padding-left:8px; margin-top:8px; margin-bottom:8px;}
+
+.pci-shareLine {margin-top:8px; padding:12px; max-width:20cm; margin:auto;}
+

@@ -28,75 +28,52 @@ def loading():
 
 # Home page (public)
 def index():
-	#nbs = [
-			#OPTION('10', _value=10),
-			#OPTION('20', _value=20),
-			#OPTION('50', _value=50),
-			#OPTION('100', _value=100),
-		#]
 	#NOTE: do not delete: kept for later use
 	#thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
 	#options = [OPTION('--- All thematic fields ---', _value='')]
 	#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 		#options.append(OPTION(thema.keyword, _value=thema.keyword))
 	
+	myPanel = []
 	tweeterAcc = myconf.get('social.tweeter')
+	tweetHash = myconf.get('social.tweethash')
+	tweeterId = myconf.get('social.tweeter_id')
 	if tweeterAcc:
-		myPanel = DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%s">Tweets by %s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % (tweeterAcc, tweeterAcc)),
-					_class='tweeterPanel')
-	
+		myPanel.append(DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % locals() ), _class='tweeterPanel'))
+	if tweetHash and tweeterId:
+		#<a class="twitter-timeline"  href="https://twitter.com/hashtag/PCIEvolBiol" data-widget-id="798546629833981952">Tweets sur #PCIEvolBiol</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+		myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
+	nbMax = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).count()
 	myVars = copy.deepcopy(request.vars)
 	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
 	myVarsNext = copy.deepcopy(myVars)
 	myVarsNext['maxArticles'] = myVarsNext['maxArticles']+10
+
 	form = FORM (
-				H3(T('Last recommendations')),
-				#LABEL(T('Show')+' '),
-				#SELECT(nbs, _name='maxArticles',
-					#_onChange="""ajax('%s', [], 'lastRecommendations');
-								 #ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');"""
-								#% (
-									#URL('public', 'loading'),
-									#URL('public', 'last_recomms', vars=vars, user_signature=True),
-								  #)
-						#, _style='margin-left:8px; margin-right:8px;'),
-				#LABEL(' '+T('last recommendations')+' '), 
-				
-				#A(current.T('Search'), _href=URL('public', 'recommended_articles'), _class='btn btn-warning', _style='margin-left:8px; margin-bottom:8px;'),
-				#NOTE: do not delete: kept for later use
-				#LABEL(' '+T('last recommendations in:')+' '), 
-				#SELECT(options, _name='qyThemaSelect', 
-					#_onChange="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', 
-									#vars=vars, 
-									#user_signature=True))),
+				H3(T('Latest recommendations')),
 				DIV(
 					loading(),
 					_id='lastRecommendations',
 				),
-				DIV(
-					A(current.T('More...'), 
-						#_onclick="ajax('%s', [], 'lastRecommendations')"%(URL('default', 'loading', user_signature=True)),
-						_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=myVarsNext, user_signature=True)),
-						_class='btn btn-default', _style='margin-left:8px; margin-bottom:8px;'
-					),
-					_style='text-align:center;'
-				)
 			)
 	response.view='default/index.html'
 	return dict(
 		smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
+		myTitle=getTitle(request, auth, db, '#HomeTitle'),
 		myText=getText(request, auth, db, '#HomeInfo'),
 		myTopPanel=mkTopPanel(myconf, auth),
 		myHelp=getHelp(request, auth, db, '#Home'),
 		form=form,
-		panel=myPanel,
+		panel=DIV(myPanel),
 		shareable=True,
-		script=SCRIPT("""
-window.onload=function() {
-						ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
-						if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
-}
-""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
+		script=SCRIPT("""window.onload=function() {
+	ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
+	if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
+}""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
 				_type='text/javascript'
 			),
 	)
@@ -156,6 +133,7 @@ def download():
 	return response.download(request, db)
 
 
+
 def call():
 	"""
 	exposes services. for example:
@@ -164,6 +142,3 @@ def call():
 	supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
 	"""
 	return service()
-
-
-

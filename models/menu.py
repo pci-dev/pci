@@ -71,6 +71,8 @@ def _DevMenu():
 			#(T('Transfer help'), False, URL('help', 'transfer_help')),
 			(T('Test flash'), False, URL('alerts', 'test_flash')),
 			(T('Test FB + tweeter'), False, URL('about', 'test')),
+			(T('Shrink user images'), False, URL('admin', 'resizeAllUserImages')),
+			(T('Shrink article images'), False, URL('admin', 'resizeAllArticleImages')),
         ]),
     ]
 
@@ -97,11 +99,12 @@ def _BaseMenu():
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('FAQs', lazy=False),      False, URL('about', 'faq')),
+			(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
 			(T('Members', lazy=False),  False, URL('public', 'recommenders')),
+			(T('Managers & administrators', lazy=False),  False, URL('public', 'managers')),
 			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
 			##TODO: for later use 
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
-			(T('Social networks', lazy=False),      False, URL('about', 'social')),
 		]
 	return [
 		(txtMenuHome, False, URL('default', 'index'), []),
@@ -128,6 +131,8 @@ def _AdminMenu():
 			(T('Send me a test mail'), False, URL('admin', 'testMail')),
 			(T('Test my email alert'), False, URL('alerts', 'testUserRecommendedAlert', vars=dict(userId=auth.user_id))),
 			#(T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
+			#(T('Test tweeter'), False, URL('admin', 'test_tweet')),
+			(T('Social networks', lazy=False),      False, URL('about', 'social')),
 		]),
 	]
 
@@ -140,6 +145,7 @@ def _UserMenu():
 	nPostprintsOngoing = 0
 	nPreprintsOngoing = 0
 	nRevOngoing = 0
+	nRevTot = 0
 	### contributions menu
 	#myContributionsMenu.append((T('Request a recommendation for your preprint'), False, URL('user', 'new_submission', user_signature=True)))
 	# reviews
@@ -183,7 +189,6 @@ def _UserMenu():
 		myContributionsMenu.append((SPAN(T('Your recommendations of preprints'), _class=classPreprintsOngoing), False, 
 								URL('recommender', 'my_recommendations', vars=dict(pressReviews=False), user_signature=True)))
 		myContributionsMenu.append(LI(_class="divider"))
-		#myContributionsMenu.append((T('Recommend a postprint'), False, URL('recommender', 'new_submission', user_signature=True)))
 		myContributionsMenu.append((SPAN(T('Your recommendations of postprints'), _class=classPostprintsOngoing), False, 
 								URL('recommender', 'my_recommendations', vars=dict(pressReviews=True), user_signature=True)))
 		myContributionsMenu.append((T('Your co-recommendations of postprints'), False, 
@@ -199,7 +204,7 @@ def _UserMenu():
 					& (db.t_recommendations.article_id == db.t_articles.id) 
 					& (db.t_articles.status == 'Under consideration') 
 			   ).count()
-	txtRevPend = T('Accept a solicitation to review?')
+	txtRevPend = T('Do you agree to review a preprint?')
 	if nRevPend > 0:
 		txtRevPend = SPAN(txtRevPend, _class='pci-enhancedMenuItem')
 		colorRequests = True
@@ -212,8 +217,7 @@ def _UserMenu():
 								  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
 								  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) 
 								).count()
-		#txtPreprintsRecomPend = str(nPreprintsRecomPend)+' '+(T('Recommendations of prereview articles') if nPreprintsRecomPend>1 else T('Recommendation of prereview articles'))
-		txtPreprintsRecomPend = 'Accept a solicitation to start a recommendation?'
+		txtPreprintsRecomPend = 'Do you agree to intiate a recommendation?'
 		if nPreprintsRecomPend > 0:
 			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
 			colorRequests = True
@@ -223,7 +227,7 @@ def _UserMenu():
 				LI(_class="divider"),
 				(T('Consider preprint recommendation requests'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			]
-	if nRevOngoing+nPreprintsOngoing+nPostprintsOngoing > 0:
+	if nRevTot+nPreprintsOngoing+nPostprintsOngoing > 0:
 		yourContribsImg = URL(c='static', f='images/your_contribs_enhanced.png')
 		txtContribMenu = SPAN(T('Your contributions'), _class='pci-enhancedMenuItem')
 	else:
@@ -257,7 +261,7 @@ def _ManagerMenu():
 		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
 	
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
-	txtGoing = str(nbGoing)+' '+(T('Recommendation processes in progress') if nbGoing > 1 else T('Recommendation process in progress'))
+	txtGoing = str(nbGoing)+' '+(T('Recommendation processes underway') if nbGoing > 1 else T('Recommendation process underway'))
 	if nbGoing>0:
 		txtGoing = SPAN(txtGoing, _class='pci-enhancedMenuItem')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')

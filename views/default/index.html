@@ -16,6 +16,10 @@
   {{=myHelp}}
   {{pass}}
 
+{{if 'myTitle' in locals():}}
+	<div class="pci-myTitleText">{{=myTitle}}</div>
+	{{pass}}
+
 {{if 'myText' in locals():}}
 	<div>{{=myText}}</div>
 	{{pass}}

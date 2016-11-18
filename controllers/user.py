@@ -303,7 +303,7 @@ def recommenders():
 		db.t_suggested_recommenders.email_sent.writable = False
 		db.t_suggested_recommenders.email_sent.readable = False
 		db.t_suggested_recommenders.suggested_recommender_id.writable = True
-		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text,row: mkUser(auth, db, row.suggested_recommender_id) if row else ''
+		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda rid,row: mkUser(auth, db, rid) if row else ''
 		if len(request.args)>0 and request.args[0]=='new':
 			myAcceptBtn = ''
 		else:
@@ -405,13 +405,13 @@ def search_recommenders():
 			,orderby=temp_db.qy_recomm.num
 			,args=request.args
 		)
-		myBackButton = A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='my_articles', user_signature=True), _class='button')
+		myAcceptBtn = DIV(A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='my_articles', user_signature=True), _class='button'), _style='text-align:center; margin-top:16px;')
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
 					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
-					myBackButton=myBackButton,
+					myAcceptBtn=myAcceptBtn,
 					searchForm=searchForm, 
 					grid=grid, 
 				)
@@ -509,7 +509,8 @@ def my_articles():
 	db.t_articles.article_source.readable = False
 	links = [
 			dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
-			dict(header=T('Current recommender'), body=lambda row: SPAN((db.v_article_recommender[row.id]).recommender)), #getRecommender(auth, db, row)),
+			#dict(header=T('Recommender'), body=lambda row: SPAN((db.v_article_recommender[row.id]).recommender)), #getRecommender(auth, db, row)),
+			dict(header=T('Recommender'), body=lambda row: getRecommender(auth, db, row)),
 			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button'), 
 												_target="_blank", 
 												_href=URL(c='user', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
@@ -633,8 +634,8 @@ def my_reviews():
 				& (db.t_reviews.review_state == 'Pending') 
 				& (db.t_reviews.recommendation_id == db.t_recommendations._id)  
 				& (db.t_recommendations.article_id == db.t_articles._id)
+				& (db.t_articles.status == 'Under consideration')
 			)
-		#myTitle = T('Requests for reviews')
 		myTitle=getTitle(request, auth, db, '#UserMyReviewsRequestsTitle')
 		myText=getText(request, auth, db, '#UserMyReviewsRequestsText')
 		btnTxt = current.T('Accept or decline')
@@ -646,7 +647,6 @@ def my_reviews():
 				& (db.t_reviews.recommendation_id == db.t_recommendations._id)  
 				& (db.t_recommendations.article_id == db.t_articles._id)
 			)
-		#myTitle = T('Your reviews')
 		myTitle=getTitle(request, auth, db, '#UserMyReviewsTitle')
 		myText=getText(request, auth, db, '#UserMyReviewsText')
 		btnTxt = current.T('View / Edit')
@@ -657,7 +657,7 @@ def my_reviews():
 	db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
 	db.t_recommendations._id.label = T('Recommendation')
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
-	db.t_reviews.last_change.label = T('Elapsed days')
+	db.t_reviews.last_change.label = T('Days elapsed')
 	db.t_reviews.last_change.represent = lambda text,row: mkElapsed(text)
 	db.t_reviews.reviewer_id.writable = False
 	#db.t_reviews.recommendation_id.writable = False
@@ -830,6 +830,7 @@ def edit_review():
 					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
 				]
+		db.t_reviews.anonymously.label = T('I want my review to be anonymous')
 		form = SQLFORM(db.t_reviews
 					,record=review
 					,fields=['anonymously', 'review', 'no_conflict_of_interest']
@@ -876,7 +877,6 @@ def edit_my_article():
 	if not('articleId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(URL('my_articles', user_signature=True))
-		#raise HTTP(404, "404: "+T('Malformed URL')) # Forbidden access
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art == None:
@@ -890,9 +890,10 @@ def edit_my_article():
 	db.t_articles.status.readable=False
 	db.t_articles.status.writable=False
 	form = SQLFORM(db.t_articles
-				,record=art
-				,deletable=deletable
+				,articleId
 				,fields=['title', 'authors', 'doi', 'abstract', 'thematics', 'keywords']
+				,upload=URL('default', 'download')
+				,deletable=deletable
 				,showid=False
 			)
 	if form.process().accepted:
@@ -902,7 +903,6 @@ def edit_my_article():
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
-				#myBackButton=mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
 				myText=getText(request, auth, db, '#UserEditArticleText'),
 				myTitle=getTitle(request, auth, db, '#UserEditArticleTitle'),
@@ -937,7 +937,7 @@ def new_comment():
 			)
 	if form.process().accepted:
 		response.flash = T('Article saved', lazy=False)
-		redirect(URL(c='public', f='recommendations', vars=dict(articleId=articleId, comments=True), user_signature=True))
+		redirect(URL(c='public', f='rec', vars=dict(id=articleId, comments=True), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'

@@ -68,21 +68,27 @@ def recommended_articles():
 
 
 
+@cache.action(time_expire=300, cache_model=cache.ram, quick='V')
 def last_recomms():
 	if 'maxArticles' in request.vars:
 		maxArticles = int(request.vars['maxArticles'])
 	else:
 		maxArticles = 10
+	myVars = copy.deepcopy(request.vars)
+	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
+	myVarsNext = copy.deepcopy(myVars)
+	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
+
 	query = None
-	if 'qyThemaSelect' in request.vars:
-		thema = request.vars['qyThemaSelect']
-		if thema and len(thema)>0:
-			query = db( 
-					(db.t_articles.status=='Recommended') 
-				  & (db.t_recommendations.article_id==db.t_articles.id) 
-				  & (db.t_recommendations.recommendation_state=='Recommended')
-				  & (db.t_articles.thematics.contains(thema)) 
-				).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	#if 'qyThemaSelect' in request.vars:
+		#thema = request.vars['qyThemaSelect']
+		#if thema and len(thema)>0:
+			#query = db( 
+					#(db.t_articles.status=='Recommended') 
+				  #& (db.t_recommendations.article_id==db.t_articles.id) 
+				  #& (db.t_recommendations.recommendation_state=='Recommended')
+				  #& (db.t_articles.thematics.contains(thema)) 
+				#).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
 	if query is None:
 		query = db( 
 					(db.t_articles.status=='Recommended') 
@@ -94,18 +100,29 @@ def last_recomms():
 		r = mkRecommArticleRow(auth, db, row, withDate=True)
 		if r:
 			myRows.append(r)
+	
+	if len(myRows) < maxArticles:
+		moreState = ' disabled'
+	else:
+		moreState = ''
 	return DIV(
 			TABLE(
 				TBODY(myRows), 
 				_class='web2py_grid pci-lastArticles-table'), 
+			DIV(
+				A(current.T('More...'), _id='moreLatestBtn',
+					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=myVarsNext, user_signature=True)),
+					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
+				),
+				_style='text-align:center;'
+			),
 			_class='pci-lastArticles-div',
 		)
 
 
 
-
 # Recommendations of an article (public)
-def recommendations():
+def rec():
 	if 'printable' in request.vars and request.vars['printable']=='True':
 		printable = True
 	else:
@@ -119,44 +136,31 @@ def recommendations():
 	else:
 		with_comments = False
 		
-	if not('articleId' in request.vars):
+	if ('articleId' in request.vars):
+		articleId = request.vars['articleId']
+	elif ('id' in request.vars):
+		articleId = request.vars['id']
+	else:
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
-		#raise HTTP(404, "404: "+T('Malformed URL')) # Forbidden access
-	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art == None:
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
-		#raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+	# NOTE: security hole possible by articleId injection: Enforced checkings below.
 	elif art.status != 'Recommended':
 		session.flash = T('Forbidden access')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
-		#raise HTTP(403, "403: "+T('Forbidden access')) # Forbidden access
 
-	#myContents = mkFeaturedArticle(auth, db, art, printable)
 	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
 	myContents = myFeaturedRecommendation['myContents']
 	nbReviews = myFeaturedRecommendation['nbReviews']
-	myContents.append(HR())
 	
 	if printable:
-		myTitle=DIV(
-				IMG(_src=URL(r=request,c='static',f='images/background.png'), _height="100"),
-				DIV(
-					DIV(T('Recommendation'), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn recommended printable'
-				))
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"))
 		myUpperBtn = ''
 		response.view='default/recommended_article_printable.html' #OK
 	else:
-		myTitle=DIV(
-				IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
-				DIV(
-					DIV(I(T('Recommendation')), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn recommended'
-				))
 		if with_reviews:
 			btnSHRtxt = T('Hide reviews')
 		else:
@@ -166,78 +170,59 @@ def recommendations():
 		else:
 			btnSHCtxt = T('Show user comments')
 		myUpperBtn = DIV(
+						IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
 						A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
-						_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
+						_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
 						_class='button'),
-						BR(),
 						(A(SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-							_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=printable, reviews=not(with_reviews), comments=with_comments), user_signature=True),
-							_class='button')+BR()) if (nbReviews>0) else '',
+							_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=printable, reviews=not(with_reviews), comments=with_comments), user_signature=True),
+							_class='button')) if (nbReviews>0) else '',
 						(A(SPAN(btnSHCtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-							_href=URL(c='public', f='recommendations', vars=dict(articleId=articleId, printable=printable, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-							_class='button')+BR()),
+							_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=printable, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+							_class='button')),
 						mkCloseButton(),
 						_class="pci-ArticleTopButtons",
 					)
+		myTitle=None
 		response.view='default/recommended_articles.html' #OK
 	
-	response.title = (art.title or myconf.take('app.longname'))
+	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+	response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
+	if len(response.title)>64:
+		response.title = response.title[:64]+'...'
 	return dict(
 				statusTitle=myTitle,
 				myContents=myContents,
 				myUpperBtn=myUpperBtn,
-				#myCloseButton=mkCloseButton(),
-				shareable=True,
+				shareButtons=True,
 			)
 
 
 
 def managers():
-	query = db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'manager'))
-	#db.auth_user.uploaded_picture.readable = False
-	#grid = SQLFORM.grid( query
-		#,editable=False,deletable=False,create=False,details=False,searchable=False
-		#,maxtextlength=250,paginate=100
-		#,csv=csv,exportclasses=expClass
-		#,fields=[db.auth_user.uploaded_picture, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country]
-		#,links=[
-				#dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
-		#]
-	#)
+	query = db( (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role.belongs('manager', 'administrator')) ).select(db.auth_user.ALL, distinct=db.auth_user.last_name|db.auth_user.id, orderby=db.auth_user.last_name|db.auth_user.id)
 	myRows = []
-	for fr in query.select(db.auth_user.ALL):
-		sfr = Storage(fr)
-		if sfr.last_name[0] != my1:
-			my1 = sfr.last_name[0]
-			myRows.append(TR(TD(A(my1, _name=my1, _class='pci-capitals')), TD()))
-			myIdx.append(A(my1, _href='#%s'%my1, _class='pci-capitals')+SPAN(' '))
-		myRows.append(mkUserRow(sfr, withMail=False))
+	for user in query:
+		myRows.append(mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
 	grid = DIV(
-			SPAN(myIdx),
 			TABLE(
-			THEAD(TR(TH(T('Name')), TH(T('Affiliation')) )), 
+			THEAD(TR(
+					TH(T('')), 
+					TH(T('Name')), 
+					TH(T('Affiliation')), 
+					TH(T('Roles'))
+				)), 
 			myRows, 
 			_class="web2py_grid pci-UsersTable")
 		)
-	#myRows.append(mkUserRow(Storage(fr), withMail=False))
-	#grid = TABLE(
-			#THEAD(TR(TH(T('Name')), TH(T('Affiliation')), TH(T('Picture')) )), 
-			#myRows, 
-			#_class="web2py_grid pci-UsersTable")
-	
-	content = SPAN(T('Send an e-mail to managing board:')+' ', A(myconf.take('contacts.managers'), _href='mailto:%s' % myconf.take('contacts.managers')))
-	#response.view='default/myLayout.html' #TODO
-	response.view='default/recommenders.html'
+	response.view='default/myLayout.html'
 	return dict(
-				mkBackButton = mkBackButton(),
+				#mkBackButton = mkBackButton(),
 				myTitle=getTitle(request, auth, db, '#PublicManagingBoardTitle'),
 				myText=getText(request, auth, db, '#PublicManagingBoardText'),
 				myHelp=getHelp(request, auth, db, '#PublicManagingBoardDescription'),
-				content=content, 
 				grid=grid, 
 			)
-
-
 
 
 
@@ -269,7 +254,7 @@ def recommenders():
 				my1 = sfr.last_name[0].upper()
 				myRows.append(TR(TD( my1, A(_name=my1)), TD(''), _class='pci-capitals'))
 				myIdx.append(A(my1, _href='#%s'%my1, _style='margin-right:20px;'))
-			myRows.append(mkUserRow(sfr, withMail=False))
+			myRows.append(mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
 		grid = DIV(
 				HR(),
 				LABEL(T('Quick access: '), _style='margin-right:20px;'), SPAN(myIdx, _class='pci-capitals'),
@@ -299,12 +284,12 @@ def viewUserCard():
 		redirect(request.env.http_referer)
 	else:
 		userId = request.vars['userId']
-		hasRoles = db( (db.auth_membership.user_id==userId) ).count() > 0
-		if not(hasRoles):
-			session.flash = T('Unavailable')
-			redirect(request.env.http_referer)
-		else:
-			myContents = mkUserCard(auth, db, userId, withMail=False)
+		#hasRoles = db( (db.auth_membership.user_id==userId) ).count() > 0
+		#if not(hasRoles):
+			#session.flash = T('Unavailable')
+			#redirect(request.env.http_referer)
+		#else:
+		myContents = mkUserCard(auth, db, userId, withMail=False)
 	response.view='default/info.html'
 	resu = dict(
 				myHelp=getHelp(request, auth, db, '#PublicUserCard'),

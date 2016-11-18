@@ -42,17 +42,18 @@ def contact():
 	)
 
 
+## Keep for future use?
 def social():
 	frames = []
 	tweeterAcc = myconf.get('social.tweeter')
 	if tweeterAcc:
 		frames.append(H2('Tweeter'))
-		frames.append(DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%s">Tweets by %s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % (tweeterAcc, tweeterAcc)), _class='tweeterPanel'))
+		frames.append(DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % ( locals())), _class='tweeterPanel'))
 
-	facebookAcc = myconf.get('social.facebook')
-	if facebookAcc:
-		frames.append(H2('Facebook'))
-		frames.append(DIV(XML('<div class="fb-page" data-href="https://www.facebook.com/%s" data-tabs="timeline" data-width=500 data-small-header="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/%s" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/%s">%s</a></blockquote></div>' % (facebookAcc,facebookAcc,facebookAcc,myconf.get('app.description'))), _class='facebookPanel'))
+	#facebookAcc = myconf.get('social.facebook')
+	#if facebookAcc:
+		#frames.append(H2('Facebook'))
+		#frames.append(DIV(XML('<div class="fb-page" data-href="https://www.facebook.com/%s" data-tabs="timeline" data-width=500 data-small-header="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/%s" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/%s">%s</a></blockquote></div>' % (facebookAcc,facebookAcc,facebookAcc,myconf.get('app.description'))), _class='facebookPanel'))
 	
 	response.view='default/info.html' #OK
 	return dict(
@@ -62,6 +63,7 @@ def social():
 		facebook=True,
 		shareable=True,
 	)
+
 
 def buzz():
 	response.view='default/info.html' #OK
@@ -77,6 +79,15 @@ def faq():
 	return dict(
 		myTitle=getTitle(request, auth, db, '#FAQTitle'),
 		myText=getText(request, auth, db, '#FAQInfo'),
+		shareable=True,
+	)
+
+
+def cite():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#CiteTitle'),
+		myText=getText(request, auth, db, '#CiteInfo'),
 		shareable=True,
 	)
 
@@ -125,10 +136,3 @@ def help_admin():
 	)
 
 
-def test():
-	response.view='default/test.html'
-	return dict(
-		myTitle='TEST FB + tweeter',
-		myText='',
-		shareable=True,
-	)

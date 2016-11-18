@@ -1,3 +1,3 @@
 #crontab
 #0-59/1  *  *  *  *		root	*alerts/test_mail_piry
-00   18  *  *  *		root	*alerts/alertUsersLastRecommendations
+00   16  *  *  *		root	*alerts/alertUsersLastRecommendations
