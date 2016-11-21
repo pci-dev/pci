@@ -155,15 +155,15 @@ def _UserMenu():
 	myContributionsMenu.append((T('Your recommendation requests of your preprints'), False, URL('user', 'my_articles', user_signature=True)))
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 			   ).count()
-	if nRevTot>0:
-		myContributionsMenu.append(LI(_class="divider"))
-		myContributionsMenu.append((SPAN(T('Your reviews'), _class=revClass), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
 	nRevOngoing = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 					& (db.t_reviews.review_state ==  'Under consideration')
 			   ).count()
 	if nRevOngoing > 0:
 		revClass = 'pci-enhancedMenuItem'
 		contribMenuClass = 'pci-enhancedMenuItem'
+	if nRevTot>0:
+		myContributionsMenu.append(LI(_class="divider"))
+		myContributionsMenu.append((SPAN(T('Your reviews'), _class=revClass), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
 	
 	# recommendations
 	if auth.has_membership(None, None, 'recommender'):

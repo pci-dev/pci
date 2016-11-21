@@ -831,7 +831,7 @@ def edit_review():
 					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
 				]
-		db.t_reviews.anonymously.label = T('I want my review to be anonymous')
+		db.t_reviews.anonymously.label = T('I wish to remain anonymous')
 		form = SQLFORM(db.t_reviews
 					,record=review
 					,fields=['anonymously', 'review', 'no_conflict_of_interest']

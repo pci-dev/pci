@@ -71,11 +71,14 @@ def do_send_email_to_test(session, auth, db, userId):
 Dear %(destPerson)s,<p>
 This is a test mail; please ignore.<p>
 You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>""" % locals()
-	myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-	mail_resu = mail.send(to=[destAddress],
+	try:
+		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+		mail_resu = mail.send(to=[destAddress],
 					subject=mySubject,
 					message=myMessage,
 				)
+	except:
+		pass
 	if mail_resu:
 		report.append( 'email sent to %s' % destPerson.flatten() )
 	else:
@@ -194,12 +197,15 @@ Yours sincerely,<p>
 		
 		else:
 			return
-		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
 		if destAddress:
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+				mail_resu = mail.send(to=[destAddress],
 						subject=mySubject,
 						message=myMessage,
 					)
+			except:
+				pass
 		if mail_resu:
 			report.append( 'email sent to requester %s' % destPerson.flatten() )
 		else:
@@ -241,11 +247,14 @@ We thank you for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu: 
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -292,11 +301,14 @@ We hope that, in the near future, you will have the opportunity to initiate the 
 Thanks for your support.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
 			else:
@@ -335,11 +347,14 @@ You have been proposed as the recommender for a preprint entitled %(articleTitle
 Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
 				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
@@ -374,7 +389,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 			articleTitle = B(article.title )
 			theUser = db.auth_user[rev.reviewer_id]
 			if theUser:
-				recommPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+				recommPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 				destPerson = mkUser(auth, db, rev.reviewer_id)
 				destAddress = db.auth_user[rev.reviewer_id]['email']
 				content = """Dear %(destPerson)s,<p>
@@ -384,11 +399,14 @@ We thank you again for agreeing to review this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The recommender, %(recommenderPerson)s</span>
 """ % locals()
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[destAddress],
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+				except:
+					pass
 				if mail_resu:
 					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 				else:
@@ -432,11 +450,14 @@ We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[destAddress],
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[destAddress],
 								subject=mySubject,
 								message=myMessage,
 							)
+				except:
+					pass
 				if mail_resu:
 					report.append( 'email sent to recommender %s' % destPerson.flatten() )
 				else:
@@ -472,11 +493,14 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 %(contributorPerson)s has accepted to co-sign the recommendation of the postprint entitled %(articleTitle)s.<p>
 You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -513,11 +537,14 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 %(contributorPerson)s has declined to co-sign the recommendation of the postprint entitled %(articleTitle)s.<p>
 You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -553,11 +580,14 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 %(contributorPerson)s has agreed with the recommendation of the postprint entitled %(articleTitle)s.<p>
 You may check your recommendation on: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -597,11 +627,14 @@ We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -641,11 +674,14 @@ We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
@@ -677,7 +713,7 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 					article = db.t_articles[recomm['article_id']]
 					if article:
 						articleTitle = article.title
-						articleDOI = article.doi
+						articleDOI = mkDOI(article.doi)
 						linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 						mySubject = '%s: Request to review a preprint' % (applongname)
 						destPerson = mkUser(auth, db, rev.reviewer_id)
@@ -691,11 +727,14 @@ Thanks in advance.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
-						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-						mail_resu = mail.send(to=[destAddress],
+						try:
+							myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+							mail_resu = mail.send(to=[destAddress],
 										subject=mySubject,
 										message=myMessage,
 									)
+						except:
+							pass
 						if mail_resu:
 							report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 							rev.review_state = 'Pending'
@@ -750,11 +789,14 @@ Thanks in advance.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
-					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-					mail_resu = mail.send(to=[destAddress],
+					try:
+						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[destAddress],
 									subject=mySubject,
 									message=myMessage,
 								)
+					except:
+						pass
 					if mail_resu:
 						report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 						rev.review_state = 'Pending'
@@ -801,11 +843,15 @@ A new user has joined <i>%(applongname)s</i>: %(userTxt)s (%(userMail)s).<p>
 If this member can act as a recommender, you should change his/her status.<p>
 Have a nice day!
 """ % locals()
-		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		mail_resu = mail.send(to=dest,
+		if len(dest)>0: #TODO: also check elsewhere
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=dest,
 							subject=mySubject,
 							message=myMessage,
 						)
+			except:
+				pass
 	if mail_resu:
 		report.append( 'email sent to administrators' )
 	else:
@@ -856,11 +902,14 @@ If you wish to request a recommendation for a preprint, please follow this link 
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		mail_resu = mail.send(to=[destAddress],
+		try:
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+			mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+		except:
+			pass
 		if mail_resu:
 			report.append( 'email sent to new user %s' % destPerson.flatten() )
 		else:
@@ -906,11 +955,14 @@ As a member of <i>%(applongname)s</i>, <ul>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
 								subject=mySubject,
 								message=myMessage,
 							)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to new recommender %s' % destPerson.flatten() )
 			else:
@@ -925,11 +977,14 @@ The Managing Board of <i>%(applongname)s</i> consists of six individuals randoml
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[user['email']],
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[user['email']],
 								subject=mySubject,
 								message=myMessage,
 							)
+			except:
+				pass
 			if mail_resu:
 				report.append( 'email sent to new manager %s' % destPerson.flatten() )
 			else:
@@ -950,14 +1005,11 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus='Pending')
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
 	managers = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.ALL)
-	dest = []
-	for manager in managers:
-		dest.append(manager.email)
 	linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleDOI = article.doi
+		articleDOI = mkDOI(article.doi)
 		if article.user_id:
 			if article.status == 'Pending' or newStatus=='Pending':
 				submitterPerson = mkUser(auth, db, article.user_id) # submitter
@@ -968,27 +1020,37 @@ To validate or delete this request, please follow this link: <a href="%(linkTarg
 Have a nice day!
 """ % locals()
 				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			elif article.status == 'Pre-recommended' or newStatus=='Pre-recommended':
-				recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-				recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
-				mySubject = '%s: Recommendation requiring validation' % (applongname)
-				content = """Dear members of the Managing Board,<p>
+		elif article.status == 'Pre-recommended' or newStatus=='Pre-recommended':
+			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
+			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			mySubject = '%s: Recommendation requiring validation' % (applongname)
+			content = """Dear members of the Managing Board,<p>
 A new recommendation has been written by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
 To validate and/or manage this recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
-				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+		else:
+			return
+		for manager in managers:
+			try:
+				mail_resu = mail.send(to=[manager.email],
+							subject=mySubject,
+							message=myMessage,
+						)
+			except:
+				pass
+			if mail_resu:
+				report.append( 'email sent to manager '+(manager.email or '') )
 			else:
-				return
-			mail_resu = mail.send(to=dest,
-								subject=mySubject,
-								message=myMessage,
-							)
-	if mail_resu:
-		report.append( 'email sent to managers' )
+				report.append( 'email NOT SENT to manager '+(manager.email or '') )
+	print '\n'.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
 	else:
-		report.append( 'email NOT SENT to managers' )
+		session.flash += '; ' + '; '.join(report)
+
 
 
 #ok mais j'ai pas su s'il s'agissait des articles en général ou que des preprints
@@ -1029,11 +1091,14 @@ We thank you for initiating this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[theUser['email']],
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[theUser['email']],
 								subject=mySubject,
 								message=myMessage,
 							)
+				except:
+					pass
 				if mail_resu:
 					report.append( 'email sent to recommender %s' % destPerson.flatten() )
 				else:
@@ -1075,11 +1140,14 @@ Looking forward reading your review.
 Yours sincerely,<p>
 <span style="padding-left:1in;">The recommender, %(recommenderPerson)s</span>
 """ % locals()
-					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-					mail_resu = mail.send(to=[theUser['email']],
+					try:
+						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[theUser['email']],
 									subject=mySubject,
 									message=myMessage,
 								)
+					except:
+						pass
 					if mail_resu:
 						report.append( 'email sent to recommender %s' % destPerson.flatten() )
 					else:
@@ -1121,11 +1189,14 @@ If you do not agree with this recommendation or did not co-author it, please con
 Yours sincerely,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
-		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		mail_resu = mail.send(to=[destAddress],
+		try:
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+			mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+		except:
+			pass
 		if mail_resu:
 			report.append( 'email sent to contributor %s' % destPerson.flatten() )
 		else:
@@ -1159,11 +1230,14 @@ Yours sincerely,<p>
 <hr>
 """ % locals()
 	if destAddress:
-		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		mail_resu = mail.send(to=[destAddress],
+		try:
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+			mail_resu = mail.send(to=[destAddress],
 							subject=mySubject,
 							message=myMessage,
 						)
+		except:
+			pass
 		if mail_resu:
 			report.append( 'email sent to %s' % destPerson.flatten() )
 		else:
@@ -1199,17 +1273,20 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 				destPerson = mkUser(auth, db, rev.id)
 				content = """Dear %(destPerson)s,<p>
 You have agreed to review the preprint entitled <b>%(articleTitle)s</b>.
-The status of this preprint is now: %(articleStatus)s
+The status of this preprint is now: %(articleStatus)s.
 To view your review, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 I thank you for the time spent evaluating this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[rev['email']],
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[rev['email']],
 								subject=mySubject,
 								message=myMessage,
 							)
+				except:
+					pass
 				if mail_resu:
 					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 				else:

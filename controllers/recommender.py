@@ -816,10 +816,16 @@ def reviewers():
 		for con in reviewersListSel:
 			if recomm.recommender_id == con.auth_user.id: selfFlag=True
 			reviewersIds.append(con.auth_user.id)
-			reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
+			if con.t_reviews.review_state is None:
+				reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
+									SPAN(' will be solicited if you click DONE '),
 									A('X', _href=URL(c='recommender', f='del_reviewer', vars=dict(reviewId=con.t_reviews.id)), 
-									   _title=T('Delete'), _style='margin-left:8px; color:red;')
-									if con.t_reviews.review_state==None else '',
+									   _title=T('Delete'), _style='margin-left:8px; color:red;'),
+								))
+			else:
+				reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
+									' has already been solicited ',
+									I('('+(con.t_reviews.review_state or '')+')'),
 								))
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(reviewersList)>0:
@@ -902,8 +908,7 @@ def email_to_selected_reviewers():
 def email_for_reviewer():
 	response.view='default/info.html' #OK
 	return dict(
-		message=T("Template email for registration and review"),
-		#panel=mkPanel(myconf, auth),
+		myTitle=getTitle(request, auth, db, '#TemplateEmailForReviewInfoTitle'),
 		myText=getText(request, auth, db, '#TemplateEmailForReviewInfo'),
 		myBackButton=mkBackButton(),
 	)
@@ -913,8 +918,7 @@ def email_for_reviewer():
 def email_for_author():
 	response.view='default/info.html' #OK
 	return dict(
-		message=T("Template email for author"),
-		#panel=mkPanel(myconf, auth),
+		myTitle=getTitle(request, auth, db, '#TemplateEmailForAuthorInfoTitle'),
 		myText=getText(request, auth, db, '#TemplateEmailForAuthorInfo'),
 		myBackButton=mkBackButton(),
 	)
@@ -1139,7 +1143,7 @@ def my_press_reviews():
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.status, db.t_recommendations.article_id, db.t_recommendations.recommender_id]
 		,links=[
-				dict(header=T('Other contributors'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Other co-recommenders'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''), 
 						body=lambda row: A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 

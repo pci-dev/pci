@@ -146,16 +146,15 @@ mail.settings.ssl = myconf.get('smtp.ssl') or False
 # -------------------------------------------------------------------------
 auth.settings.registration_requires_verification = True #WARNING set to True in production
 auth.settings.registration_requires_approval = False
-auth.settings.reset_password_requires_verification = True
+auth.settings.reset_password_requires_verification = True #WARNING set to True in production
 auth.settings.create_user_groups = False
 auth.settings.showid = False
 if myconf.get('captcha.private'):
-	auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'))
+	auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'), use_ssl=True)
 	auth.settings.login_captcha = False
 	auth.settings.register_captcha = None
 	auth.settings.retrieve_username_captcha = False
 	auth.settings.retrieve_password_captcha = None
-#auth.messages.verify_email_subject = '%s: Email verification' % myconf.get('app.longname')
 auth.messages.verify_email_subject = '%s: validate your registration' % myconf.get('app.longname')
 auth.messages.verify_email="""
 Welcome %(username)s! 
@@ -268,10 +267,10 @@ def deltaStatus(s, f):
 			do_send_email_to_suggested_recommenders_useless(session, auth, db, o['id'])
 		elif o.status == 'Under consideration' and f['status'] == 'Pre-recommended': 
 			do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+			do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 			# no email for submitter (yet)
 			if o.already_published:
 				do_send_email_to_contributors(session, auth, db, o['id'])
-			do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 		elif o.status != f['status']:
 			do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 			do_send_email_to_requester(session, auth, db, o['id'], f['status'])

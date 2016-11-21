@@ -284,12 +284,12 @@ def viewUserCard():
 		redirect(request.env.http_referer)
 	else:
 		userId = request.vars['userId']
-		#hasRoles = db( (db.auth_membership.user_id==userId) ).count() > 0
-		#if not(hasRoles):
-			#session.flash = T('Unavailable')
-			#redirect(request.env.http_referer)
-		#else:
-		myContents = mkUserCard(auth, db, userId, withMail=False)
+		hasRoles = db( (db.auth_membership.user_id==userId) ).count() > 0
+		if not(hasRoles):
+			session.flash = T('Unavailable')
+			redirect(request.env.http_referer)
+		else:
+			myContents = mkUserCard(auth, db, userId, withMail=False)
 	response.view='default/info.html'
 	resu = dict(
 				myHelp=getHelp(request, auth, db, '#PublicUserCard'),

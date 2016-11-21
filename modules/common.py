@@ -195,39 +195,42 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
 		return None
-	if recomm.recommender_id is not None:
-		theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-		whoDidIt = [ mkUser_U(auth, db, theUser, linked=True, scheme=scheme, host=host, port=port) ]
-		if row.already_published:
-			contrQy = db(
-							(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
-						).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_press_reviews.id)
-			n=len(contrQy)
-			ic=0
-			for contr in contrQy:
-				ic += 1
-				if ic == n:
-					whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
-				else:
-					whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
-		else:
-			contrQy = db(
-							(db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
-						).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_reviews.id)
-			n=len(contrQy)
-			ic=0
-			if n>0:
-				whoDidIt.append(SPAN(' with '))
-			for contr in contrQy:
-				ic += 1
-				if ic == n and ic>1:
-					whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
-				elif ic>1:
-					whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
-				else:
-					whoDidIt.append(mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port))
-	else:
-		whoDidIt = [SPAN(current.T('See recommendation'))]
+	
+	#if recomm.recommender_id is not None:
+		#theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+		#whoDidIt = [ mkUser_U(auth, db, theUser, linked=True, scheme=scheme, host=host, port=port) ]
+		#if row.already_published:
+			#contrQy = db(
+							#(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+						#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_press_reviews.id)
+			#n=len(contrQy)
+			#ic=0
+			#for contr in contrQy:
+				#ic += 1
+				#if ic == n:
+					#whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				#else:
+					#whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+		#else:
+			#contrQy = db(
+							#(db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
+						#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, cacheable=True, orderby=db.t_reviews.id)
+			#n=len(contrQy)
+			#ic=0
+			#if n>0:
+				#whoDidIt.append(SPAN(' based on reviews by '))
+			#for contr in contrQy:
+				#ic += 1
+				#if ic == n and ic>1:
+					#whoDidIt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				#elif ic>1:
+					#whoDidIt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port)))
+				#else:
+					#whoDidIt.append(mkUser_U(auth, db, contr, linked=True, host=host, scheme=scheme, port=port))
+	#else:
+		#whoDidIt = [SPAN(current.T('See recommendation'))]
+	
+	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=True, linked=True, host=False, port=False, scheme=False)
 	
 	img = []
 	if withDate:
@@ -254,7 +257,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 					mkDOI(row.doi),
 					P(),
 					DIV(
-						I(SPAN('Recommended by '), SPAN(whoDidIt), SPAN(':'),
+						I(SPAN('Recommended by '), SPAN(whoDidIt), 
 							BR(),
 							SPAN((recomm.recommendation_title or 'Read...'), _target='blank', _style="font-size:16px;"),# color:green;"),
 						),
@@ -385,7 +388,7 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 					if (i < n):
 						recommenders += ', '
 					else:
-						recommenders += ' & '
+						recommenders += ' and '
 					recommenders += mkUser(auth, db, contrib.contributor_id)
 				recommenders = SPAN(recommenders)
 			else:
@@ -539,6 +542,151 @@ def mkCloseButton():
 
 
 
+def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
+	whoDidIt = []
+	if article.already_published: #NOTE: POST-PRINT
+		mainRecommenders = db(
+							(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
+						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		coRecommenders = db(
+							(db.t_recommendations.article_id==article.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		allRecommenders = mainRecommenders | coRecommenders
+		nr = len(allRecommenders)
+		ir=0
+		for theUser in allRecommenders:
+			ir += 1
+			whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+			if ir == nr-1 and ir>=1:
+				whoDidIt.append(current.T(' and '))
+			elif ir < nr:
+				whoDidIt.append(', ')
+	else: #NOTE: PRE-PRINT
+		mainRecommenders = db(
+							(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
+						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		if with_reviewers:
+			namedReviewers = db(
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+			na = db(
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							).count(distinct=db.auth_user.id)
+			na1 = 1 if na>0 else 0
+		else:
+			namedReviewers = []
+			na = 0
+		nr = len(mainRecommenders)
+		nw = len(namedReviewers)
+		ir = 0
+		for theUser in mainRecommenders:
+			ir += 1
+			whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+			if ir == nr-1 and ir >= 1:
+				whoDidIt.append(current.T(' and '))
+			elif ir < nr:
+				whoDidIt.append(', ')
+		if nr > 0: 
+			if nw+na > 0:
+				whoDidIt.append(current.T(' based on reviews by '))
+			elif nw+na == 1:
+				whoDidIt.append(current.T(' based on review by '))
+		iw = 0
+		for theUser in namedReviewers:
+			iw += 1
+			whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+			if iw == nw+na1-1 and iw >= 1:
+				whoDidIt.append(current.T(' and '))
+			elif iw < nw+na1:
+				whoDidIt.append(', ')
+		#if nw > 0 and na > 0:
+			#whoDidIt.append(current.T(' and '))
+		if na > 1:
+			whoDidIt.append(current.T('%d anonymous reviewers') % (na))
+		elif na == 1:
+			whoDidIt.append(current.T('%d anonymous reviewer') % (na))
+	
+	return whoDidIt
+
+
+def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, linked=False, host=False, port=False, scheme=False):
+	whoDidIt = []
+	article = db( db.t_articles.id==recomm.article_id ).select(db.t_articles.already_published).last()
+	
+	if article.already_published: #NOTE: POST-PRINT
+		mainRecommenders = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
+						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		coRecommenders = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		allRecommenders = mainRecommenders | coRecommenders
+		nr = len(allRecommenders)
+		ir=0
+		for theUser in allRecommenders:
+			ir += 1
+			if as_items:
+				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+			else:
+				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+				if ir == nr-1 and ir>=1:
+					whoDidIt.append(current.T(' and '))
+				elif ir < nr:
+					whoDidIt.append(', ')
+	
+	else: #NOTE: PRE-PRINT
+		mainRecommenders = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
+						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+		if with_reviewers:
+			namedReviewers = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+			na = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							).count(distinct=db.auth_user.id)
+			na1 = 1 if na>0 else 0
+		else:
+			namedReviewers = []
+			na = 0
+		nr = len(mainRecommenders)
+		nw = len(namedReviewers)
+		ir = 0
+		for theUser in mainRecommenders:
+			ir += 1
+			if as_items:
+				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+			else:
+				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+				if ir == nr-1 and ir >= 1:
+					whoDidIt.append(current.T(' and '))
+				elif ir < nr:
+					whoDidIt.append(', ')
+		if nr > 0 and as_items is False: 
+			if nw+na > 0:
+				whoDidIt.append(current.T(' based on reviews by '))
+			elif nw+na == 1:
+				whoDidIt.append(current.T(' based on review by '))
+		iw = 0
+		for theUser in namedReviewers:
+			iw += 1
+			whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+			if as_items is False:
+				if iw == nw+na1-1 and iw >= 1:
+					whoDidIt.append(current.T(' and '))
+				elif iw < nw+na1:
+					whoDidIt.append(', ')
+		#if nw > 0 and na > 0 and as_items is False:
+			#whoDidIt.append(current.T(' and '))
+		if na > 1:
+			whoDidIt.append(current.T('%d anonymous reviewers') % (na))
+		elif na == 1:
+			whoDidIt.append(current.T('%d anonymous reviewer') % (na))
+	
+	return whoDidIt
+
+
+
 def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False, with_comments=False, fullURL=True):
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
@@ -572,9 +720,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					,_class='pci-bigtext pci-article-reference'
 				)
 	myContents.append(myArticle)
-	#TODO: add green box "Recommendation"
 	recomGreen=DIV(
-				#IMG(_src=URL(c='static',f='images/small-background.png', scheme=scheme, host=host, port=port), _height="100"),
 				DIV(
 					DIV(I(current.T('Recommendation')), _class='pci-ArticleText'),
 					_class='pci-ArticleHeader recommended'+ (' printable' if printable else '')
@@ -590,39 +736,57 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	leftShift=0
 	for recomm in recomms:
 		
-		if recomm.recommender_id is not None:
-			theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-			whoDidItTxt = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
-			if art.already_published:
-				contrQy = db(
-								(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
-							).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_press_reviews.id)
-				n=len(contrQy)
-				ic=0
-				for contr in contrQy:
-					ic += 1
-					if ic == n:
-						whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-					else:
-						whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-			else:
-				contrQy = db(
-								(db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
-							).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_reviews.id)
-				n=len(contrQy)
-				ic=0
-				if n>0:
-					whoDidItTxt.append(SPAN(' with '))
-				for contr in contrQy:
-					ic += 1
-					if ic == n and ic>1:
-						whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-					elif ic>1:
-						whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-					else:
-						whoDidItTxt.append(mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port))
-		else:
-			whoDidItTxt = []
+		#if recomm.recommender_id is not None:
+			#theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+			#whoDidItTxt = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
+			#whoDidItCite = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
+			#if art.already_published:
+				#contrQy = db(
+								#(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+							#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_press_reviews.id)
+				#n=len(contrQy)
+				#ic=0
+				#for contr in contrQy:
+					#ic += 1
+					#if ic == n:
+						#whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+						#whoDidItCite.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+					#else:
+						#whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+						#whoDidItCite.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+			#else:
+				#anonQy = db(	(db.t_recommendations.article_id==art.id) &
+								#(db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.auth_user.id==db.t_reviews.reviewer_id) 
+							#).select(distinct=db.auth_user.id)
+				#anonNb = len(anonQy)
+				#print anonNb
+				#contrQy = db(	(db.t_recommendations.article_id==art.id) &
+								#(db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
+							#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_reviews.id)
+				#n=len(contrQy)
+				#ic=0
+				#if n>0 or anonNb>0:
+					#whoDidItTxt.append(SPAN(' based on reviews by '))
+				#for contr in contrQy:
+					#ic += 1
+					#if ic == n and ic>1:
+						#whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+						#if anonNb>0:
+							#whoDidItTxt.append(SPAN(' and '))
+					#elif ic>1:
+						#whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
+					#else:
+						#whoDidItTxt.append(mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port))
+				#if anonNb>0:
+					#whoDidItTxt.append(SPAN( '%d anonymous reviewers' % (anonNb) ))
+		#else:
+			#whoDidItTxt = []
+			#whoDidItCite = []
+			
+		whoDidItTxt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=True, linked=not(printable), host=host, port=port, scheme=scheme)
+		whoDidItCite = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+		whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not(printable), as_items=True, host=host, port=port, scheme=scheme)
+		
 		if recomm.recommendation_doi:
 			citeRef = mkDOI(recomm.recommendation_doi)
 		else:
@@ -631,40 +795,40 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		if recomm.recommendation_state == 'Recommended':
 			cite = DIV(
 						SPAN(B('Cite as:'), 
-						BR(), SPAN(whoDidItTxt), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+'. '), 
+						BR(), SPAN(whoDidItCite), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+'. '), 
 						BR(), 
 						citeRef, 
 					), _class='pci-citation')
 		else:
 			cite = ''
 		
-		###NOTE: PUBLISHED ARTICLE
+		###NOTE: POST-PRINT ARTICLE
 		if art.already_published:
-			contributors = []
-			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
-			for contr in contrQy:
-				contributors.append(contr.contributor_id)
-			if len(contributors)>0:
-				whoDidIt = [LI(mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))]
-				for con in contributors:
-					whoDidIt.append(LI(mkUserWithAffil(auth, db, con, linked=not(printable))))
-				whoDidIt = UL(whoDidIt)
-			else:
-				whoDidIt = mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable))
+			#contributors = []
+			#contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
+			#for contr in contrQy:
+				#contributors.append(contr.contributor_id)
+			#if len(contributors)>0:
+				#whoDidIt = [LI(mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))]
+				#for con in contributors:
+					#whoDidIt.append(LI(mkUserWithAffil(auth, db, con, linked=not(printable))))
+				#whoDidIt = UL(whoDidIt)
+			#else:
+				#whoDidIt = mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable))
 			myContents.append(
 				DIV(''
+					,cite
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
-					,H4(current.T(' by '), SPAN(whoDidIt))
+					,H4(current.T(' by '), UL(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
-					,cite
 					, _class='pci-recommendation-div'
 				)
 			)
 		
 		
-		###NOTE: PREREVIEW ARTICLE
+		###NOTE: PRE-PRINT ARTICLE
 		else: 
 			myReviews = ''
 			myReviews = []
@@ -694,7 +858,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			myContents.append( DIV(''
 						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
-						,H4(current.T(' by '), mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
+						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
 						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 						,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
@@ -808,13 +972,14 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			for contr in contrQy:
 				contributors.append(contr.contributor_id)
-			whoDidIt = [(recommender.first_name or '')+' '+(recommender.last_name or '')]
-			if len(contributors) > 0:
-				for ic in range(0, len(contributors)):
-					if ic == len(contributors)-1:
-						whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic])))
-					else:
-						whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic])))
+			#whoDidIt = [(recommender.first_name or '')+' '+(recommender.last_name or '')]
+			#if len(contributors) > 0:
+				#for ic in range(0, len(contributors)):
+					#if ic == len(contributors)-1:
+						#whoDidIt.append(SPAN(' & ', mkUser(auth, db, contributors[ic])))
+					#else:
+						#whoDidIt.append(SPAN(', ', mkUser(auth, db, contributors[ic])))
+			whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not(printable), host=host, port=port, scheme=scheme)
 			
 			myContents.append(
 				DIV( HR()
@@ -1218,23 +1383,31 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 	return resu
 
 def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
-	resu = SPAN('')
-	if linked:
-		resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
+	if theUser:
+		if linked:
+			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
+		else:
+			resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
 	else:
-		resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
+		resu = SPAN('?')
 	return resu
 
+
+def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
+	if theUser:
+		if linked:
+			resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+		else:
+			resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	else:
+		resu = SPAN('?')
+	return resu
 
 def mkUserWithAffil(auth, db, userId, linked=False, scheme=False, host=False, port=False):
 	resu = SPAN('')
 	if userId is not None:
 		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.email).last()
-		if theUser:
-			if linked:
-				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
-			else:
-				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+		mkUserWithAffil_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port)
 	return resu
 
 
@@ -1247,6 +1420,8 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
 				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 			else:
 				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
+		else:
+			resu = SPAN('?')
 	return resu
 
 
@@ -1444,3 +1619,5 @@ def getRecommender(auth, db, row):
 		return mkUser(auth, db, recomm.recommender_id)
 	else:
 		return ''
+
+
