@@ -261,9 +261,9 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 							BR(),
 							SPAN((recomm.recommendation_title or 'Read...'), _target='blank', _style="font-size:16px;"),# color:green;"),
 						),
-						BR(),
-						I(shortTxt, _class='pci-shortTxt'),
-						BR(),
+						#BR(),
+						DIV(WIKI(shortTxt), _class='pci-shortTxt'),
+						#BR(),
 						A(current.T('More'), _target='blank', 
 							_href= URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port),
 							_class='btn btn-success pci-smallBtn',
@@ -567,10 +567,10 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 		if with_reviewers:
 			namedReviewers = db(
-							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Terminated')
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 			na = db(
-							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Terminated')
 							).count(distinct=db.auth_user.id)
 			na1 = 1 if na>0 else 0
 		else:
@@ -640,12 +640,12 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, li
 						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 		if with_reviewers:
 			namedReviewers = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Terminated')
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 			na = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False)
-							).count(distinct=db.auth_user.id)
-			na1 = 1 if na>0 else 0
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Terminated')
+							).count(distinct=db.t_reviews.reviewer_id)
+			na1 = (1 if(na>0) else 0)
 		else:
 			namedReviewers = []
 			na = 0
@@ -701,13 +701,17 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	#submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _style='max-width:150px; max-height:150px;'))
+		img = DIV(IMG(_src=URL('default', 'download', args=art.uploaded_picture), _style='max-width:150px; max-height:150px;'), _style='text-align:center;')
 	else:
 		img = ''
 	doi = sub(r'doi: *', '', (art.doi or ''))
+	if printable:
+		altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
+	else:
+		altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 	myArticle = DIV(
 					DIV(DIV(I(current.T('Recommended article')), _class='pci-ArticleText'), _class='pci-ArticleHeader recommended'+(' printable' if printable else ''))
-					,DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % doi), _style='text-align:right;')
+					,DIV(altmetric, _style='text-align:right;')
 					,img
 					,H4(art.authors or '')
 					,H3(art.title or '')
@@ -833,7 +837,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			myReviews = ''
 			myReviews = []
 			# Check for reviews
-			reviews = db( (db.t_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_reviews.id)
+			reviews = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Terminated') ).select(orderby=db.t_reviews.id)
 			for review in reviews:
 				if with_reviews:
 					# display the review
@@ -1140,11 +1144,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 										_href=URL(c='user', f='do_cancel_article', vars=dict(articleId=art.id), user_signature=True), 
 										_title=current.T('Click here in order to cancel this recommendation request')), 
 								_class='pci-EditButtons-centered')) # author's button allowing cancellation
-	#if (art.user_id==auth.user_id) and not(art.already_published) and (art.status in ('Pending', 'Awaiting consideration')) and not(printable) and not (quiet):
-		#myContents.append(DIV(A(SPAN(current.T('I wish to delete this recommendation request'), _class='buttontext btn btn-danger'), 
-										#_href=URL(c='user', f='do_delete_article', vars=dict(articleId=art.id), user_signature=True), 
-										#_title=current.T('Click here in order to delete this recommendation request')), 
-								#_class='pci-EditButtons-centered')) # author's button allowing deletion
 	
 	if allowOpinion:
 		if allowOpinion > 0:

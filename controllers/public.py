@@ -187,7 +187,10 @@ def rec():
 		response.view='default/recommended_articles.html' #OK
 	
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
+	if finalRecomm:
+		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
+	else:
+		response.title = myconf.take('app.longname')
 	if len(response.title)>64:
 		response.title = response.title[:64]+'...'
 	return dict(
@@ -284,7 +287,7 @@ def viewUserCard():
 		redirect(request.env.http_referer)
 	else:
 		userId = request.vars['userId']
-		hasRoles = db( (db.auth_membership.user_id==userId) ).count() > 0
+		hasRoles = (db( (db.auth_membership.user_id==userId) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
 		if not(hasRoles):
 			session.flash = T('Unavailable')
 			redirect(request.env.http_referer)

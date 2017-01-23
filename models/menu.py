@@ -79,8 +79,6 @@ def _DevMenu():
 
 # default public menu
 def _BaseMenu():
-	#txtMenuHome = IMG(_title=T('Home'), _alt=T('Home'), _src=URL(c='static',f='images/home.png'), _class='pci-menuImage')
-	#txtMenuAbout = IMG(_title=T('About'), _alt=T('About'), _src=URL(c='static',f='images/about.png'), _class='pci-menuImage')
 	txtMenuHome = T('Home')
 	txtMenuAbout = T('About')
 	
@@ -100,7 +98,7 @@ def _BaseMenu():
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('FAQs', lazy=False),      False, URL('about', 'faq')),
 			(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
-			(T('Members', lazy=False),  False, URL('public', 'recommenders')),
+			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),
 			(T('Managers & administrators', lazy=False),  False, URL('public', 'managers')),
 			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
 			##TODO: for later use 
@@ -156,7 +154,7 @@ def _UserMenu():
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 			   ).count()
 	nRevOngoing = db(  (db.t_reviews.reviewer_id == auth.user_id) 
-					& (db.t_reviews.review_state ==  'Under consideration')
+					 & (db.t_reviews.review_state ==  'Under consideration')
 			   ).count()
 	if nRevOngoing > 0:
 		revClass = 'pci-enhancedMenuItem'

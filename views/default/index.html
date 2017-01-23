@@ -1,4 +1,4 @@
-{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in locals())}}
 {{extend 'layout.html'}}
 
 {{block header}}
@@ -30,24 +30,28 @@
 
 
 <div class="pci-leftOfPanel">
-{{if 'message' in globals():}}
+{{if 'message' in locals():}}
 	<h2>{{=message}}</h2>
 	{{pass}}
 
-{{if 'content' in globals():}}
+{{if 'content' in locals():}}
 	{{=content}}
 	{{pass}}
 
 <div id="lastRecommendationsDiv">
-{{if 'form' in globals():}}
+{{if 'form' in locals():}}
 	{{=form}}
 	{{pass}}
 </div>
 
 </div>
 
-{{if 'panel' in globals():}}
+{{if 'panel' in locals() and panel:}}
 	{{block right_sidebar}}
 	{{=panel}}
 	{{end}}
 	{{pass}} 
+
+{{if 'myBottomPanel' in locals() and myBottomPanel:}}
+	{{=myBottomPanel}}
+	{{pass}}

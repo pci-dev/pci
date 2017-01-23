@@ -39,10 +39,13 @@ def index():
 	tweetHash = myconf.get('social.tweethash')
 	tweeterId = myconf.get('social.tweeter_id')
 	if tweeterAcc:
-		myPanel.append(DIV(XML('<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>' % locals() ), _class='tweeterPanel'))
-	if tweetHash and tweeterId:
-		#<a class="twitter-timeline"  href="https://twitter.com/hashtag/PCIEvolBiol" data-widget-id="798546629833981952">Tweets sur #PCIEvolBiol</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-		myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
+		myPanel.append(XML("""<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> 
+			<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>""" 
+			% locals() ) 
+		)
+	#if tweetHash and tweeterId:
+		#myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
+		
 	nbMax = db( 
 					(db.t_articles.status=='Recommended') 
 				  & (db.t_recommendations.article_id==db.t_articles.id) 
@@ -60,23 +63,37 @@ def index():
 					_id='lastRecommendations',
 				),
 			)
-	response.view='default/index.html'
-	return dict(
-		smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
-		myTitle=getTitle(request, auth, db, '#HomeTitle'),
-		myText=getText(request, auth, db, '#HomeInfo'),
-		myTopPanel=mkTopPanel(myconf, auth),
-		myHelp=getHelp(request, auth, db, '#Home'),
-		form=form,
-		panel=DIV(myPanel),
-		shareable=True,
-		script=SCRIPT("""window.onload=function() {
+	myScript = SCRIPT("""window.onload=function() {
 	ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
 	if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
 }""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
 				_type='text/javascript'
-			),
-	)
+		)
+	response.view='default/index.html'
+	if request.user_agent().is_mobile:
+		return dict(
+			smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
+			myTitle=getTitle(request, auth, db, '#HomeTitle'),
+			myText=getText(request, auth, db, '#HomeInfo'),
+			myTopPanel=mkTopPanel(myconf, auth),
+			myHelp=getHelp(request, auth, db, '#Home'),
+			form=form,
+			myBottomPanel=DIV(myPanel, _class='tweeterBottomPanel'),
+			shareable=True,
+			script=myScript,
+		)
+	else:
+		return dict(
+			smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
+			myTitle=getTitle(request, auth, db, '#HomeTitle'),
+			myText=getText(request, auth, db, '#HomeInfo'),
+			myTopPanel=mkTopPanel(myconf, auth),
+			myHelp=getHelp(request, auth, db, '#Home'),
+			form=form,
+			panel=DIV(myPanel, _class='tweeterPanel'),
+			shareable=True,
+			script=myScript,
+		)
 
 
 

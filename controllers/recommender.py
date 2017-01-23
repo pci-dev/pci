@@ -608,7 +608,7 @@ def direct_submission():
 				});
 	"""
 	fields = ['title', 'authors', 'article_source', 'doi', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords', 'picture_data']
-	form = SQLFORM( db.t_articles, fields=fields, keepvalues=True )
+	form = SQLFORM( db.t_articles, fields=fields, keepvalues=True, submit_button=T('Continue...') )
 	if form.process().accepted:
 		articleId=form.vars.id
 		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=form.vars.doi, recommendation_state='Recommended')

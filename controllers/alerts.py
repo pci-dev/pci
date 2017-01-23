@@ -8,6 +8,7 @@ from common import *
 from emailing import *
 from datetime import date, datetime
 import calendar
+from time import sleep
 
 #import socket
 #host=socket.getfqdn()
@@ -63,7 +64,8 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 def test_flash():
 	session.flash = 'Coucou !'
 	redirect(request.env.http_referer)
-	
+
+
 #@auth.requires(auth.user_id==1)
 #@auth.requires_login()
 def test_mail_piry():
@@ -145,4 +147,6 @@ def alertUsersLastRecommendations():
 					alert_new_recommendations(session, auth, db, userId, msgContents)
 			#user.last_alert = datetime.datetime.now()
 			#user.update_record()
-			db.commit()
+			#db.commit()
+			sleep(3) # avoids mailer black-listing
+

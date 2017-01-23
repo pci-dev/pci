@@ -178,8 +178,8 @@ header{box-shadow:none;} /* Don't remove */
 .pci-help-buttons {display:inline; font-size:8pt; padding-left:8px; padding-right:8px;}
 .pci-help-button {cursor:pointer;}
 .pci-help-button-edit {font-size:8px; cursor:pointer; float:right;}
-.pci-infotext {}
 .pci-infotextbox {}
+.pci-infotext {text-align:justify;}
 .pci-text-buttons {width:100%; text-align:right;}
 .pci-text-button-edit {font-size:8px;}
 .pci-text-title {font-size:32px; font-weight:bold; color:#598398;}
@@ -235,7 +235,8 @@ header{box-shadow:none;} /* Don't remove */
 .pci-commentHeader {color:#777777;}
 .pci-smallBtn {/*height:30px;*/ padding:2px; margin-left:0; line-height:initial; border-radius:4px; /*text-transform:initial;*/}
 
-.tweeterPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px;}
+.tweeterPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px; max-height:95vh; overflow-y:auto;}
+.tweeterBottomPanel {margin-top:16px; padding:2px; border:1px solid #0db9f2; border-radius:12px;}
 .facebookPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px; max-width:516px; margin-left:auto; margin-right:auto;}
 .pci-socialDiv {max-width:20cm; margin-left:auto; margin-right:auto;}
 

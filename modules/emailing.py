@@ -2,10 +2,12 @@
 
 import os
 import datetime
+import time
 from re import sub, match
 #from copy import deepcopy
 import datetime
 from dateutil.relativedelta import *
+import traceback
 
 from gluon import current
 from gluon.tools import Auth
@@ -21,6 +23,12 @@ import socket
 
 myconf = AppConfig(reload=True)
 
+mail_sleep = 0.5 # 1/2 second
+
+# common view for all emails
+filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
+
+
 def getMailer(auth):
 	mail = auth.settings.mailer
 	mail.settings.server = myconf.get('smtp.server')
@@ -32,23 +40,21 @@ def getMailer(auth):
 
 # Footer for all mails
 def mkFooter():
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	appdesc=myconf.take('app.description')
-	appname=myconf.take('app.name')
-	applongname=myconf.take('app.longname')
-	appthematics=myconf.take('app.thematics')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	appdesc=myconf.get('app.description')
+	appname=myconf.get('app.name')
+	applongname=myconf.get('app.longname')
+	appthematics=myconf.get('app.thematics')
+	contact=myconf.get('contacts.managers') #TODO
 	baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	profileurl=URL(c='default', f='user', args=['profile'], scheme=scheme, host=host, port=port)
-	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
-<i>%(applongname)s</i> is the first community of the parent project Peer Community In…. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>
-If you wish to modify your profile or the fields and frequency of alerts, please follow this link <a href="%(profileurl)s">%(profileurl)s</a>
-</div>""" % locals())
-
-
-# common view for all emails
-filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
+	#return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
+#<i>%(applongname)s</i> is the first community of the parent project Peer Community In…. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>
+#If you wish to modify your profile or the fields and frequency of alerts, please follow this link <a href="%(profileurl)s">%(profileurl)s</a>
+#</div>""" % locals())
+	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;"> <i>%(applongname)s</i> is the first community of the parent project Peer Community In. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>In case of any questions or queries, please use the following e-mail: <a href="mailto:%(contact)s">%(contact)s</a>.<p> If you wish to modify your profile or the fields and frequency of alerts, please follow this link: <a href="%(profileurl)s">%(profileurl)s</a>.</div>""" % locals())
 
 
 # TEST MAIL
@@ -57,11 +63,11 @@ def do_send_email_to_test(session, auth, db, userId):
 	mail = getMailer(auth)
 	report = []
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
 	mySubject = "%s: TEST MAIL" % (applongname)
@@ -77,8 +83,8 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 					subject=mySubject,
 					message=myMessage,
 				)
-	except:
-		pass
+	except Exception as e :
+		print "%s" % traceback.format_exc()
 	if mail_resu:
 		report.append( 'email sent to %s' % destPerson.flatten() )
 	else:
@@ -96,11 +102,11 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	article = db.t_articles[articleId]
 	if article and article.user_id is not None:
 		destPerson = mkUser(auth, db, article.user_id)
@@ -114,7 +120,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 			content = """Dear %(destPerson)s,<p>
 Thank you for your request, on behalf of all the authors, for recommendation of your preprint entitled <b>%(articleTitle)s</b>, by <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
 Please remember that <i>%(applongname)s</i> is under no obligation to consider your preprint. We cannot guarantee that your preprint will be reviewed, but all possible efforts will be made to achieve this end. We also remind you that, by sending this request to <i>%(applongname)s</i>, you agree to wait at least 20 days before submitting this preprint to a journal. This delay will allow <i>%(applongname)s</i> to initiate the recommendation process, thereby avoiding simultaneous reviewing by <i>%(applongname)s</i> and a traditional scientific journal.<p>
-You will be notified by e-mail if a member of the <i>%(applongname)s</i> decides to start the peer-review process for your article. If so, your preprint will be sent to at least two reviewers. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the member of <i>%(applongname)s</i> responsible for handling your article reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
+You will be notified by e-mail if a recommender of the <i>%(applongname)s</i> decides to start the peer-review process for your article. If so, your preprint will be sent to at least two reviewers. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the recommender of <i>%(applongname)s</i> responsible for handling your article reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
 To view or cancel your recommendation request, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p> 
 We thank you again for your request for recommendation.<p>
 Yours sincerely,<p>
@@ -125,8 +131,8 @@ Yours sincerely,<p>
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			mySubject = '%s: Consideration of your preprint' % (applongname)
 			content = """Dear %(destPerson)s,<p>
-You have requested, on behalf of all the authors, a recommendation for your preprint entitled <b>%(articleTitle)s</b> from <i>%(appdesc)s</i> (<i>%(applongname)s</i>). We are pleased to inform you that a member of <i>%(applongname)s</i> has read this preprint and agreed to start the peer-review process.<p>
-At this stage of the process, we expect you to wait until completion of the reviewing process (no more than 50 days) before submitting this article to a journal. Your article will be sent to several referees, to ensure that at least two high-quality reviews are obtained. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the member of <i>%(applongname)s</i> responsible for handling your preprint reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
+You have requested, on behalf of all the authors, a recommendation for your preprint entitled <b>%(articleTitle)s</b> from <i>%(appdesc)s</i> (<i>%(applongname)s</i>). We are pleased to inform you that a recommender of <i>%(applongname)s</i> has read this preprint and agreed to start the peer-review process.<p>
+At this stage of the process, we expect you to wait until completion of the reviewing process (no more than 50 days) before submitting this article to a journal. Your article will be sent to several referees, to ensure that at least two high-quality reviews are obtained. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the recommender of <i>%(applongname)s</i> responsible for handling your preprint reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
 To view or cancel your recommendation request, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p> 
 We thank you again for your request for recommendation.<p> 
 Yours sincerely,<p>
@@ -148,8 +154,8 @@ Yours sincerely,<p>
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-Your manuscript entitled <b>%(articleTitle)s</b> has been evaluated by at least two referees. On the basis of these reviews, the member of <i>%(applongname)s</i> in charge of the evaluation of your manuscript has decided not to recommend it.<p>
-You will find through this following link <a href="%(recommTarget)s">%(recommTarget)s</a>, and below, the reviews and the commentary of the member of <i>%(applongname)s</i> in charge of the evaluation of your manuscript. These reviews and commentary will not be published on the <i>%(applongname)s</i> website and will not be publicly released. They will safely be stored in our database and no one except the Managing Board can have access to them.<p>
+Your manuscript entitled <b>%(articleTitle)s</b> has been evaluated by at least two referees. On the basis of these reviews, the recommender of <i>%(applongname)s</i> in charge of the evaluation of your manuscript has decided not to recommend it.<p>
+You will find through this following link <a href="%(recommTarget)s">%(recommTarget)s</a>, and below, the reviews and the commentary of the recommender of <i>%(applongname)s</i> in charge of the evaluation of your manuscript. These reviews and commentary will not be published on the <i>%(applongname)s</i> website and will not be publicly released. They will safely be stored in our database and no one except the Managing Board can have access to them.<p>
 We hope that you would request new recommendations in the future.<p>
 We thank you again for your recommendation request.<p>
 Yours sincerely,<p>
@@ -223,11 +229,11 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	article = db.t_articles[articleId]
 	if article:
 		mySubject = '%s: Change in article status' % (applongname)
@@ -259,6 +265,7 @@ Yours sincerely,<p>
 				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
 	print ''.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -273,11 +280,11 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
@@ -293,10 +300,10 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 			#helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
 You have been proposed as the recommender for a preprint entitled %(articleTitle)s (DOI %(articleDoi)s). 
-This preprint has also attracted the attention of another member of <i>%(applongname)s</i>, who has initiated its evaluation. 
+This preprint has also attracted the attention of another recommender of <i>%(applongname)s</i>, who has initiated its evaluation. 
 Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(applongname)s</i> webpage.<p>
 If you are willing to participate in the evaluation/recommendation of this preprint, please send us an e-mail at %(mailManagers)s. 
-We will send an e-mail to inform the member handling the recommendation process of your willingness to participate and he/she may then contact you.<p>
+We will send an e-mail to inform the recommender handling the recommendation process of your willingness to participate and he/she may then contact you.<p>
 We hope that, in the near future, you will have the opportunity to initiate the recommendation of another preprint.<p>
 Thanks for your support.<p>
 Yours sincerely,<p>
@@ -313,6 +320,7 @@ Yours sincerely,<p>
 				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
 		print '\n'.join(report)
 		if session.flash is None:
 			session.flash = '; '.join(report)
@@ -327,11 +335,11 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	article = db.t_articles[articleId]
 	if article:# and article.status in ('Pending', 'Awaiting consideration'):
 		articleTitle = article.title
@@ -361,6 +369,7 @@ Yours sincerely,<p>
 			else:
 				db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
 				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
 		print '\n'.join(report)
 		if session.flash is None:
 			session.flash = '; '.join(report)
@@ -374,11 +383,11 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -389,11 +398,11 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 			articleTitle = B(article.title )
 			theUser = db.auth_user[rev.reviewer_id]
 			if theUser:
-				recommPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
+				recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 				destPerson = mkUser(auth, db, rev.reviewer_id)
 				destAddress = db.auth_user[rev.reviewer_id]['email']
 				content = """Dear %(destPerson)s,<p>
-Your review concerning the preprint entitled %(articleTitle)s has been re-opened by %(recommPerson)s, the recommender who agreed to initiate and manage the recommendation process for this preprint.<p>
+Your review concerning the preprint entitled %(articleTitle)s has been re-opened by %(recommenderPerson)s, the recommender who agreed to initiate and manage the recommendation process for this preprint.<p>
 You can view and edit your reviews by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you again for agreeing to review this preprint.<p>
 Yours sincerely,<p>
@@ -425,11 +434,11 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -474,11 +483,11 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -517,11 +526,11 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -560,11 +569,11 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -604,11 +613,11 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -651,11 +660,11 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -700,11 +709,11 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	for rev in db( (db.t_reviews.id.belongs(reviewsList)) & (db.t_reviews.review_state==None) ).select():
 		if rev and rev.review_state is None:
 			recomm = db.t_recommendations[rev.recommendation_id]
@@ -741,6 +750,7 @@ Yours sincerely,<p>
 							rev.update_record()
 						else:
 							report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+						time.sleep(mail_sleep)
 					else:
 						print 'do_send_email_to_reviewers_review_suggested: Article not found'
 				else:
@@ -762,11 +772,11 @@ def do_send_email_to_reviewer_review_suggested(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	if rev and rev.review_state is None:
 		recomm = db.t_recommendations[rev.recommendation_id]
@@ -799,10 +809,10 @@ Yours sincerely,<p>
 						pass
 					if mail_resu:
 						report.append( 'email sent to reviewer %s' % destPerson.flatten() )
-						rev.review_state = 'Pending'
-						rev.update_record()
 					else:
 						report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+					rev.review_state = 'Pending'
+					rev.update_record()
 				else:
 					print 'do_send_email_to_reviewer_review_suggested: Article not found'
 			else:
@@ -824,11 +834,11 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	admins = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'administrator') ).select(db.auth_user.ALL)
 	dest = []
 	for admin in admins:
@@ -840,7 +850,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 		mySubject = '%s: A new user has signed up' % (applongname)
 		content = """Dear administrators,<p>
 A new user has joined <i>%(applongname)s</i>: %(userTxt)s (%(userMail)s).<p>
-If this member can act as a recommender, you should change his/her status.<p>
+If this user can act as a recommender, you should change his/her status.<p>
 Have a nice day!
 """ % locals()
 		if len(dest)>0: #TODO: also check elsewhere
@@ -869,11 +879,11 @@ def do_send_mail_new_user(session, auth, db, userId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	user = db.auth_user[userId]
 	if type(user.thematics) is list:
 		thema = user.thematics
@@ -888,17 +898,21 @@ def do_send_mail_new_user(session, auth, db, userId):
 		destPerson = mkUser(auth, db, userId)
 		destAddress = db.auth_user[userId]['email']
 		baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
+		recommurl=URL(c='public', f='recommenders', scheme=scheme, host=host, port=port)
 		thematics = ', '.join(thema)
 		days = ', '.join(alerts)
 		mySubject = 'Welcome to %s' % (applongname)
 		content = """Dear %(destPerson)s,<p>
 You have recently joined <i>%(applongname)s</i>. Thank you for your interest and for registering with us.<p>
-As a user, you can request a recommendation for a preprint. This preprint must first be deposited in a preprint server, such as bioRxiv and must not already be under review for publication in a traditional journal. Once you have requested a recommendation, a member of the community may express an interest in initiating the recommendation process for your article, which will involve sending your article out for peer review.<p>
+As a user, you can request a recommendation for a preprint. This preprint must first be deposited in a preprint server, such as bioRxiv and must not already be under review for publication in a traditional journal. Once you have requested a recommendation, a recommender of the community may express an interest in initiating the recommendation process for your article, which will involve sending your article out for peer review.<p>
 More information about <i>%(applongname)s</i> can be found here: <a href="%(baseurl)s">%(baseurl)s</a>.
 <p>
 As a user, you will receive alerts every %(days)s concerning recommendations in the following fields published on the <i>%(applongname)s</i> web site: %(thematics)s.
 <p>
-If you wish to request a recommendation for a preprint, please follow this link <a href="%(baseurl)s">%(baseurl)s</a>.<p>
+If you wish to request a recommendation for a preprint, please follow this link <a href="%(baseurl)s">%(baseurl)s</a>.
+<p>
+Finally, if you want to become a recommender <i>%(applongname)s</i> please contact a current recommender in your field via this link <a href="%(recommurl)s">%(recommurl)s</a>. New recommenders are nominated by current recommenders and approved by the Managing Board. As indicated in the website, recommenders of <i>%(applongname)s</i> can recommend up to five preprints and postprints per year. They are expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, are eligible for selection as a member of the Managing Board for a period of two years. Finally, they can propose the nomination of new recommenders to the Managing Board. 
+<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -926,11 +940,11 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	user = db.auth_user[db.auth_membership[membershipId].user_id]
 	group = db.auth_group[db.auth_membership[membershipId].group_id]
 	if user and group:
@@ -944,14 +958,14 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
 			mySubject = 'Welcome to %s' % (applongname)
 			content = """Dear %(destPerson)s,<p>
-You are now a member of <i>%(applongname)s</i>. We thank you for your time and support.
-As a member of <i>%(applongname)s</i>, <ul>
+You are now a recommender of <i>%(applongname)s</i>. We thank you for your time and support.
+As a recommender of <i>%(applongname)s</i>, <ul>
 <li> You can recommend up to five articles per year. Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. 
 <li> You will be expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, which can be found here: <a href="%(ethicsurl)s">%(ethicsurl)s</a>
 <li> You are eligible for selection as a member of the Managing Board for a period of two years. 
 <li> You will be notified about new articles recommended by <i>%(applongname)s</i>, according to your requested notification frequency and fields of interest. 
 <li> You will also receive alerts, by default and with the same frequency as above, when <i>%(applongname)s</i> receives requests for preprint recommendations in your fields of interest.
-<li> You can propose the nomination of new members to the Managing Board.<p>
+<li> You can propose the nomination of new recommenders to the Managing Board.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -972,8 +986,8 @@ Yours sincerely,<p>
 			mySubject = '%s: Welcome to The Managing Board' % (applongname)
 			content = """Dear %(destPerson)s,<p>
 You have recently joined the Managing Board of <i>%(applongname)s</i>. We thank you warmly for agreeing to join the Board and for your time and support for this community.<p>
-The members of the Managing Board of <i>%(applongname)s</i> are responsible for accepting/rejecting new members of <i>%(applongname)s</i>. They also deal with any problems arising between authors and the members of the community who have evaluated/recommended their articles. They detect and deal with dysfunctions of <i>%(applongname)s</i>, and may exclude members, if necessary. They also rapidly check the quality of formatting and deontology for the reviews and recommendations published by <i>%(applongname)s</i>. Finally, members of the Managing Board of <i>%(applongname)s</i> are members of the non-profit organization “Peer Community in”. This non-profit organization is responsible for the creation and functioning of the various specific Peer Communities in….<p>
-The Managing Board of <i>%(applongname)s</i> consists of six individuals randomly chosen from the members of this community. Half the Managing Board is replaced each year. The founders of <i>%(applongname)s</i> will also be included, as additional members of the Managing Board during its first two years of existence. After this period, the Managing Board will have only six members.<p>
+The members of the Managing Board of <i>%(applongname)s</i> are responsible for accepting/rejecting new recommenders of <i>%(applongname)s</i>. They also deal with any problems arising between authors and the recommenders of the community who have evaluated/recommended their articles. They detect and deal with dysfunctions of <i>%(applongname)s</i>, and may exclude recommenders, if necessary. They also rapidly check the quality of formatting and deontology for the reviews and recommendations published by <i>%(applongname)s</i>. Finally, members of the Managing Board of <i>%(applongname)s</i> are members of the non-profit organization “Peer Community in”. This non-profit organization is responsible for the creation and functioning of the various specific Peer Communities in….<p>
+The Managing Board of <i>%(applongname)s</i> consists of six individuals randomly chosen from the recommenders of this community. Half the Managing Board is replaced each year. The founders of <i>%(applongname)s</i> will also be included, as additional members of the Managing Board during its first two years of existence. After this period, the Managing Board will have only six members.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -999,11 +1013,11 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus='Pending')
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	managers = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.ALL)
 	linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 	article = db.t_articles[articleId]
@@ -1045,6 +1059,7 @@ Have a nice day!
 				report.append( 'email sent to manager '+(manager.email or '') )
 			else:
 				report.append( 'email NOT SENT to manager '+(manager.email or '') )
+			time.sleep(mail_sleep)
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -1059,11 +1074,11 @@ def do_send_email_to_thank_recommender(session, auth, db, recommId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	recomm = db.t_recommendations[recommId]
 	if recomm:
 		article = db.t_articles[recomm.article_id]
@@ -1115,11 +1130,11 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	rev = db.t_reviews[reviewId]
 	if rev:
 		recomm = db.t_recommendations[rev.recommendation_id]
@@ -1164,12 +1179,12 @@ def do_send_email_to_contributors(session, auth, db, articleId):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
-	managers=myconf.take('contacts.managers')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
+	managers=myconf.get('contacts.managers')
 	article = db.t_articles[articleId]
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	contribs = db(db.t_press_reviews.recommendation_id==recomm.id).select()
@@ -1201,6 +1216,7 @@ Yours sincerely,<p>
 			report.append( 'email sent to contributor %s' % destPerson.flatten() )
 		else:
 			report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
+		time.sleep(mail_sleep)
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -1212,16 +1228,17 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
 	mySubject = '%s: New recommendations of %s' % (applongname, applongname)
+	 #TODO: (in the fields for which you have requested alerts)
 	content = """Dear %(destPerson)s,<p>
-We are pleased to inform you that the following recommendations have recently been posted on the <i>%(applongname)s</i> website (in the fields for which you have requested alerts).<p>
+We are pleased to inform you that the following recommendations have recently been posted on the <i>%(applongname)s</i> website.<p>
 We hope you will appreciate them and share them through your social networks.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1254,11 +1271,11 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port')
-	applongname=myconf.take('app.longname')
-	appdesc=myconf.take('app.description')
+	scheme=myconf.get('alerts.scheme')
+	host=myconf.get('alerts.host')
+	port=myconf.get('alerts.port')
+	applongname=myconf.get('app.longname')
+	appdesc=myconf.get('app.description')
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	if recomm:
 		article = db.t_articles[recomm['article_id']]
@@ -1269,7 +1286,6 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 			mySubject = '%s: Decision on preprint you reviewed' % (applongname)
 			reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state=='Terminated') ).select(db.auth_user.ALL)
 			for rev in reviewers:
-				#recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
 				destPerson = mkUser(auth, db, rev.id)
 				content = """Dear %(destPerson)s,<p>
 You have agreed to review the preprint entitled <b>%(articleTitle)s</b>.
@@ -1291,6 +1307,7 @@ Yours sincerely,<p>
 					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
 				else:
 					report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+				time.sleep(mail_sleep)
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)

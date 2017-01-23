@@ -307,17 +307,17 @@ def recommendations():
 			_class='button')
 		response.view='default/recommended_articles.html' #OK
 	
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
+	myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+	myContents.append(HR())
 		
-		response.title = (art.title or myconf.take('app.longname'))
-		return dict(
-					myCloseButton=mkCloseButton(),
-					statusTitle=myTitle,
-					myContents=myContents,
-					myUpperBtn=myUpperBtn,
-					myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
-				)
+	response.title = (art.title or myconf.take('app.longname'))
+	return dict(
+				myCloseButton=mkCloseButton(),
+				statusTitle=myTitle,
+				myContents=myContents,
+				myUpperBtn=myUpperBtn,
+				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
+			)
 
 
 
