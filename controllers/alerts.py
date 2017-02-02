@@ -43,7 +43,7 @@ def _do_send_email_to_test(userId):
 	destAddress = db.auth_user[userId]['email']
 	mySubject = "%s: TEST MAIL" % (applongname)
 	siteName = I(applongname)
-	linkTarget = URL(c='default', f='index', scheme=myconf.take('alerts.scheme'), host=myconf.take('alerts.host'), port=myconf.take('alerts.port'))
+	linkTarget = URL(c='default', f='index', scheme=myconf.take('alerts.scheme'), host=myconf.take('alerts.host'), port=myconf.take('alerts.port', cast=lambda v: takePort(v) ) )
 	content = """
 Dear %(destPerson)s,<p>
 This is a test mail; please ignore.<p>

@@ -22,6 +22,16 @@ from sqlhtml import *
 
 myconf = AppConfig(reload=True)
 
+
+def takePort(p):
+	print 'port="%s"' % p
+	if p is None:
+		return False
+	elif match('^[0-9]+$', p):
+		return int(p)
+	else:
+		return False
+
 statusArticles = dict()
 def mkStatusArticles(db):
 	statusArticles.clear()
@@ -185,7 +195,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
-		port=myconf.take('alerts.port')
+		port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	else:
 		scheme=False
 		host=False
@@ -691,7 +701,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
-		port=myconf.take('alerts.port')
+		port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	else:
 		scheme=False
 		host=False
@@ -740,53 +750,12 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	leftShift=0
 	for recomm in recomms:
 		
-		#if recomm.recommender_id is not None:
-			#theUser = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-			#whoDidItTxt = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
-			#whoDidItCite = [ mkUser_U(auth, db, theUser, linked=False, scheme=scheme, host=host, port=port) ]
-			#if art.already_published:
-				#contrQy = db(
-								#(db.t_press_reviews.recommendation_id==recomm.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
-							#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_press_reviews.id)
-				#n=len(contrQy)
-				#ic=0
-				#for contr in contrQy:
-					#ic += 1
-					#if ic == n:
-						#whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-						#whoDidItCite.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-					#else:
-						#whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-						#whoDidItCite.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-			#else:
-				#anonQy = db(	(db.t_recommendations.article_id==art.id) &
-								#(db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.auth_user.id==db.t_reviews.reviewer_id) 
-							#).select(distinct=db.auth_user.id)
-				#anonNb = len(anonQy)
-				#print anonNb
-				#contrQy = db(	(db.t_recommendations.article_id==art.id) &
-								#(db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==False) & (db.auth_user.id==db.t_reviews.reviewer_id) 
-							#).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, orderby=db.t_reviews.id)
-				#n=len(contrQy)
-				#ic=0
-				#if n>0 or anonNb>0:
-					#whoDidItTxt.append(SPAN(' based on reviews by '))
-				#for contr in contrQy:
-					#ic += 1
-					#if ic == n and ic>1:
-						#whoDidItTxt.append(SPAN(' & ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-						#if anonNb>0:
-							#whoDidItTxt.append(SPAN(' and '))
-					#elif ic>1:
-						#whoDidItTxt.append(SPAN(', ', mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port)))
-					#else:
-						#whoDidItTxt.append(mkUser_U(auth, db, contr, linked=False, host=host, scheme=scheme, port=port))
-				#if anonNb>0:
-					#whoDidItTxt.append(SPAN( '%d anonymous reviewers' % (anonNb) ))
-		#else:
-			#whoDidItTxt = []
-			#whoDidItCite = []
-			
+		pdfQ = db(db.t_pdf.recommendation_id == recomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
+		if len(pdfQ)>0:
+			pdf = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_src=URL('static', 'images/application-pdf.png'))), _href=URL('default', 'download', args=pdfQ[0]['pdf']), _class='btn btn-info')
+		else:
+			pdf = None
+		
 		whoDidItTxt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=True, linked=not(printable), host=host, port=port, scheme=scheme)
 		whoDidItCite = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 		whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not(printable), as_items=True, host=host, port=port, scheme=scheme)
@@ -808,17 +777,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		
 		###NOTE: POST-PRINT ARTICLE
 		if art.already_published:
-			#contributors = []
-			#contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
-			#for contr in contrQy:
-				#contributors.append(contr.contributor_id)
-			#if len(contributors)>0:
-				#whoDidIt = [LI(mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))]
-				#for con in contributors:
-					#whoDidIt.append(LI(mkUserWithAffil(auth, db, con, linked=not(printable))))
-				#whoDidIt = UL(whoDidIt)
-			#else:
-				#whoDidIt = mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable))
 			myContents.append(
 				DIV(''
 					,cite
@@ -892,7 +850,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	
 	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
 	nbReviews = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
-	return dict(myContents=myContents, nbReviews=(nbReviews+(nbRecomms-1)))
+	return dict(myContents=myContents, pdf=pdf, nbReviews=(nbReviews+(nbRecomms-1)))
 
 
 def mkCommentsTree(auth, db, commentId):
@@ -1335,10 +1293,14 @@ def mkSollicitedPress(auth, db, row):
 
 def mkRecommendationFormat(auth, db, row):
 	recommender = db(db.auth_user.id==row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+	if recommender:
+		recommFmt = SPAN('%s %s' % (recommender.first_name, recommender.last_name))
+	else:
+		recommFmt = ''
 	art = db.t_articles[row.article_id]
-	anchor = SPAN(  row.recommendation_title, #TODO
+	anchor = SPAN(  row.recommendation_title,
 					BR(),
-					B(current.T('Recommender:')+' '), SPAN('%s %s' % (recommender.first_name, recommender.last_name)),
+					B(current.T('Recommender:')+' '), recommFmt,
 					BR(),
 					B(current.T('DOI:')+' '), mkDOI(row.doi),
 				)

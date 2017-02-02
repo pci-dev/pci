@@ -186,12 +186,36 @@ def article_status():
 			 )
 
 
+# PDF management
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+def manage_pdf():
+	grid = SQLFORM.grid( db.t_pdf
+		,details=False, editable=True, deletable=True, create=True, searchable=False
+		,maxtextlength=250, paginate=20
+		,csv=csv, exportclasses=expClass
+		,fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf]
+		#,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics]
+		#,links=links
+		,orderby=~db.t_pdf.id
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#AdminPdfText'),
+				myTitle=getTitle(request, auth, db, '#AdminPdfTitle'),
+				grid=grid, 
+			)
+
+
+
+
+
+
 #@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 #def test_tweet():
 	#message = ''
 	#scheme=myconf.take('alerts.scheme')
 	#host=myconf.take('alerts.host')
-	#port=myconf.take('alerts.port')
+	#port=eval(myconf.take('alerts.port'))
 	#link = URL(c='about', f='social', scheme=scheme, host=host, port=port)
 	#print 'To be tweeted:', A(link, _href=link)
 	#tweeterAcc = myconf.get('social.tweeter')

@@ -330,6 +330,18 @@ def closedRecommendation(s,f):
 
 
 
+db.define_table('t_pdf',
+	Field('id', type='id'),
+	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
+	Field('pdf', type='upload', uploadfield='pdf_data', label=T('PDF')),
+	Field('pdf_data', type='blob'),
+	singular=T("PDF file"), 
+	plural=T("PDF files"),
+	migrate=False,
+)
+
+
+
 db.define_table('t_reviews',
 	Field('id', type='id'),
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),

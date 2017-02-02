@@ -155,6 +155,7 @@ def rec():
 	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
 	myContents = myFeaturedRecommendation['myContents']
 	nbReviews = myFeaturedRecommendation['nbReviews']
+	pdf = myFeaturedRecommendation['pdf']
 	
 	if printable:
 		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"))
@@ -172,6 +173,7 @@ def rec():
 		myUpperBtn = DIV(
 						IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
 						A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
+						pdf if pdf else '',
 						_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
 						_class='button'),
 						(A(SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 

@@ -3,10 +3,13 @@
 # SYNC SOURCE CODE FROM MBIPI TO WEBSITE
 rsync --verbose --stats --progress --recursive --perms --usermap=peercom:www-data --times --copy-links --update --delete --delete-before --exclude='*~' --exclude='*.pyc' --exclude='*.bak' --exclude '.git' --exclude 'sessions' --exclude 'cache' --exclude 'errors' --exclude '*.ini' --exclude '*.old' ~/W/web2py/applications/pcidev/ peercom@peercom-front1:/var/www/peercommunityin/web2py/applications/PCIEvolBiol
 
+ssh peercom@peercom-front1 "touch /var/www/peercommunityin/web2py/wsgihandler.py"
+
+exit
+
 # SYNC SOURCE CODE FROM PRIONO TO WEBSITE
 # rsync --verbose --stats --progress --recursive --perms --usermap=peercom:www-data --times --copy-links --update --delete --delete-before --exclude='*~' --exclude='*.pyc' --exclude='*.bak' --exclude '.git' --exclude 'sessions' --exclude 'cache' --exclude 'errors' --exclude '*.ini' --exclude '*.old' /home/piry/web2py/applications/PCIEvolBiol/ peercom@peercom-front1:/var/www/peercommunityin/web2py/applications/PCIEvolBiol
 
-exit
 
 # HELP FROM GAIA2 TO WEBSITE
 # echo 'TRUNCATE help_texts;' | ssh peercom@peercom-front1 'psql -h mydb1 -U peercom pci_evolbiol'

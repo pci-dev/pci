@@ -119,6 +119,7 @@ def _AdminMenu():
 	txtMenuAdmin = T('Admin.')
 	return [
         (txtMenuAdmin, False, '#', [
+			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Thematic fields'),   False, URL('admin', 'thematics_list', user_signature=True)),
 			(T('Article status'),    False, URL('admin', 'article_status', user_signature=True)),

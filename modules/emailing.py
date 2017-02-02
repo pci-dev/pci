@@ -23,7 +23,7 @@ import socket
 
 myconf = AppConfig(reload=True)
 
-mail_sleep = 0.5 # 1/2 second
+mail_sleep = 1.0 # in seconds
 
 # common view for all emails
 filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
@@ -31,23 +31,23 @@ filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.
 
 def getMailer(auth):
 	mail = auth.settings.mailer
-	mail.settings.server = myconf.get('smtp.server')
-	mail.settings.sender = myconf.get('smtp.sender')
-	mail.settings.login = myconf.get('smtp.login')
-	mail.settings.tls = myconf.get('smtp.tls') or False
-	mail.settings.ssl = myconf.get('smtp.ssl') or False
+	mail.settings.server = myconf.take('smtp.server')
+	mail.settings.sender = myconf.take('smtp.sender')
+	mail.settings.login = myconf.take('smtp.login')
+	mail.settings.tls = myconf.take('smtp.tls') or False
+	mail.settings.ssl = myconf.take('smtp.ssl') or False
 	return mail
 
 # Footer for all mails
 def mkFooter():
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	appdesc=myconf.get('app.description')
-	appname=myconf.get('app.name')
-	applongname=myconf.get('app.longname')
-	appthematics=myconf.get('app.thematics')
-	contact=myconf.get('contacts.managers') #TODO
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	appdesc=myconf.take('app.description')
+	appname=myconf.take('app.name')
+	applongname=myconf.take('app.longname')
+	appthematics=myconf.take('app.thematics')
+	contact=myconf.take('contacts.managers') #TODO
 	baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	profileurl=URL(c='default', f='user', args=['profile'], scheme=scheme, host=host, port=port)
 	#return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
@@ -63,11 +63,11 @@ def do_send_email_to_test(session, auth, db, userId):
 	mail = getMailer(auth)
 	report = []
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
 	mySubject = "%s: TEST MAIL" % (applongname)
@@ -102,11 +102,11 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article and article.user_id is not None:
 		destPerson = mkUser(auth, db, article.user_id)
@@ -229,11 +229,11 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
 		mySubject = '%s: Change in article status' % (applongname)
@@ -280,11 +280,11 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
@@ -295,7 +295,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
-			mailManagers = A(myconf.get('contacts.managers'), _href='mailto:'+myconf.get('contacts.managers'))
+			mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
 			#linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
 			#helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
@@ -335,11 +335,11 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:# and article.status in ('Pending', 'Awaiting consideration'):
 		articleTitle = article.title
@@ -383,11 +383,11 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -434,11 +434,11 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -483,11 +483,11 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -526,11 +526,11 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -569,11 +569,11 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
 	if recomm:
@@ -613,11 +613,11 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -660,11 +660,11 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
 	if recomm:
@@ -709,11 +709,11 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	for rev in db( (db.t_reviews.id.belongs(reviewsList)) & (db.t_reviews.review_state==None) ).select():
 		if rev and rev.review_state is None:
 			recomm = db.t_recommendations[rev.recommendation_id]
@@ -772,11 +772,11 @@ def do_send_email_to_reviewer_review_suggested(session, auth, db, reviewId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	if rev and rev.review_state is None:
 		recomm = db.t_recommendations[rev.recommendation_id]
@@ -834,11 +834,11 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	admins = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'administrator') ).select(db.auth_user.ALL)
 	dest = []
 	for admin in admins:
@@ -879,11 +879,11 @@ def do_send_mail_new_user(session, auth, db, userId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	user = db.auth_user[userId]
 	if type(user.thematics) is list:
 		thema = user.thematics
@@ -940,11 +940,11 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	user = db.auth_user[db.auth_membership[membershipId].user_id]
 	group = db.auth_group[db.auth_membership[membershipId].group_id]
 	if user and group:
@@ -1013,11 +1013,11 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus='Pending')
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	managers = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.ALL)
 	linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 	article = db.t_articles[articleId]
@@ -1074,11 +1074,11 @@ def do_send_email_to_thank_recommender(session, auth, db, recommId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	recomm = db.t_recommendations[recommId]
 	if recomm:
 		article = db.t_articles[recomm.article_id]
@@ -1130,11 +1130,11 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	if rev:
 		recomm = db.t_recommendations[rev.recommendation_id]
@@ -1179,12 +1179,12 @@ def do_send_email_to_contributors(session, auth, db, articleId):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
-	managers=myconf.get('contacts.managers')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	managers=myconf.take('contacts.managers')
 	article = db.t_articles[articleId]
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	contribs = db(db.t_press_reviews.recommendation_id==recomm.id).select()
@@ -1228,11 +1228,11 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
 	mySubject = '%s: New recommendations of %s' % (applongname, applongname)
@@ -1271,11 +1271,11 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
-	scheme=myconf.get('alerts.scheme')
-	host=myconf.get('alerts.host')
-	port=myconf.get('alerts.port')
-	applongname=myconf.get('app.longname')
-	appdesc=myconf.get('app.description')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	if recomm:
 		article = db.t_articles[recomm['article_id']]

@@ -324,8 +324,6 @@ def recommendations():
 
 
 
-
-
 # Allow management of article recommendations
 @auth.requires(auth.has_membership(role='manager'))
 def manage_recommendations():
@@ -343,19 +341,21 @@ def manage_recommendations():
 	db.t_recommendations.article_id.default = articleId
 	db.t_recommendations.article_id.writable = False
 	db.t_recommendations.doi.represent = lambda text, row: mkDOI(text)
+	db.t_pdf.pdf.represent = lambda text, row: A(IMG(_src=URL('static', 'images/application-pdf.png')), _href=URL('default', 'download', args=text)) if text else ''
 	db.t_recommendations._id.readable = False
 	if len(request.args) == 0: # in grid
 		db.t_recommendations.recommendation_state.represent = lambda state, row: mkContributionStateDiv(auth, db, (state or ''))
 		db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
-		db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(row.recommendation_timestamp)
-		db.t_recommendations.last_change.represent = lambda text, row: mkLastChange(row.last_change)
+		db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(text)
+		db.t_recommendations.last_change.represent = lambda text, row: mkLastChange(text)
 	else: # in form
 		db.t_recommendations.recommendation_comments.represent=lambda text, row: WIKI(text or '')
 
 	if art.already_published:
-		links = [dict(header=T('Contributions'), body=lambda row: A((db.v_recommendation_contributors[row.id]).contributors or 'ADD', _href=URL(c='recommender', f='contributions', vars=dict(recommId=row.id))))]
+		links = [dict(header=T('Contributions'), body=lambda row: A((db.v_recommendation_contributors[(row.get('t_recommendations') or row).id]).contributors or 'ADD', _href=URL(c='recommender', f='contributions', vars=dict(recommId=(row.get('t_recommendations') or row).id))))]
 	else:
-		links = [dict(header=T('Reviews'), body=lambda row: A((db.v_reviewers[row.id]).reviewers or 'ADD', _href=URL(c='recommender', f='reviews', vars=dict(recommId=row.id))))]
+		links = [dict(header=T('Reviews'), body=lambda row: A((db.v_reviewers[(row.get('t_recommendations') or row).id]).reviewers or 'ADD', _href=URL(c='recommender', f='reviews', vars=dict(recommId=(row.get('t_recommendations') or row).id))))]
+	#links += [dict(header=T('PDF'), body=lambda row: A(db(db.t_pdf.recommendation_id==row.id).select().last()['pdf'], _href=URL(c='admin', f='manage_pdf', vars=dict(keywords='t_pdf.recommendation_id="%s"'%row.id) )))]
 	grid = SQLFORM.grid( query
 		,editable=True
 		,deletable=True
@@ -365,8 +365,9 @@ def manage_recommendations():
 		,maxtextlength=1000
 		,csv=csv, exportclasses=expClass
 		,paginate=10
-		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments]
-		,links = links
+		,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
+		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_pdf.pdf]
+		,links=links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
 	myContents = mkRepresentArticle(auth, db, articleId)
