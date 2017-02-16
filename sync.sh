@@ -3,7 +3,9 @@
 # GAIA2
 unison -auto -ignore "Name *.ini" -ignore "Name crontab" -ignore "Name *~" -ignore "Name *.bak" -ignore "Name *.pyc" -ignore "Name .git" -ignore "Name sessions" -ignore "Name errors" -sshargs -C  ~/W/web2py/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py/applications/PCiEvolBiol
 
-ssh www-data@gaia2 touch /home/www-data/web2py/wsgihandler.py
+ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -ls"
+ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\;"
+ssh www-data@gaia2 "touch /home/www-data/web2py/wsgihandler.py"
 
 # PRIONO
 # ~/bin/unison-2.48.3 -auto -ignore "Name *.ini" -ignore "Name crontab" -ignore "Name *~" -ignore "Name *.bak" -ignore "Name *.pyc" -ignore "Name .git" -ignore "Name sessions" -ignore "Name errors" -sshargs -C  ~/W/web2py/applications/pcidev   ssh://priono//home/piry/web2py/applications/PCIEvolBiol

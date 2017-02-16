@@ -769,7 +769,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			cite = DIV(
 						SPAN(B('Cite as:'), 
 						BR(), SPAN(whoDidItCite), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+'. '), 
-						BR(), 
 						citeRef, 
 					), _class='pci-citation')
 		else:
@@ -783,7 +782,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
 					,H4(current.T(' by '), UL(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
-					,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
+					,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 					, _class='pci-recommendation-div'
 				)
@@ -822,7 +821,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
 						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
-						,SPAN(current.T('Recommendation doi:')+' '+mkDOI(recomm.recommendation_doi)+BR()) if ((recomm.recommendation_doi or '')!='') else ''
+						,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
 						,reply
@@ -947,8 +946,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				DIV( HR()
 					,B(SPAN(recomm.recommendation_title))+BR() if (recomm.recommendation_title or '') != '' else ''
 					,B(current.T('Recommendation by '), SPAN(whoDidIt))+BR()
-					,SPAN(current.T('Recommendation doi:')+' ', mkDOI(recomm.recommendation_doi)+BR())
-					,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi != art.doi) else SPAN('')
+					,SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()
+					,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi != art.doi) else SPAN('')
 					,I(recomm.last_change.strftime('%Y-%m-%d')) if recomm.last_change else ''
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin')
 					, _class='pci-recommendation-div'
@@ -1058,7 +1057,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 						,BR()
 						,SPAN(I(current.T('by ')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
 						,BR()
-						,SPAN(current.T('Manuscript doi:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
+						,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
 						,B(tit2)+BR()
 						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (not(hideOngoingRecomm)) else '')
 						,DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else ''
@@ -1302,7 +1301,7 @@ def mkRecommendationFormat(auth, db, row):
 					BR(),
 					B(current.T('Recommender:')+' '), recommFmt,
 					BR(),
-					B(current.T('DOI:')+' '), mkDOI(row.doi),
+					mkDOI(row.doi),
 				)
 	return anchor
 
