@@ -1034,17 +1034,28 @@ To validate or delete this request, please follow this link: <a href="%(linkTarg
 Have a nice day!
 """ % locals()
 				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-		elif article.status == 'Pre-recommended' or newStatus=='Pre-recommended':
-			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
-			mySubject = '%s: Recommendation requiring validation' % (applongname)
-			content = """Dear members of the Managing Board,<p>
+			elif article.status == 'Pre-recommended' or newStatus=='Pre-recommended':
+				recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
+				recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+				mySubject = '%s: Recommendation requiring validation' % (applongname)
+				content = """Dear members of the Managing Board,<p>
 A new recommendation has been written by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
 To validate and/or manage this recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
-			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+			elif article.status == 'Under consideration' or newStatus=='Under consideration':
+				recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
+				recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+				mySubject = '%s: Article considered for recommendation' % (applongname)
+				content = """Dear members of the Managing Board,<p>
+A new recommendation is under consideration by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
+To manage this recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+Have a nice day!
+""" % locals()
+				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
 		else:
 			return
 		for manager in managers:

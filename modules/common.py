@@ -24,7 +24,7 @@ myconf = AppConfig(reload=True)
 
 
 def takePort(p):
-	print 'port="%s"' % p
+	#print 'port="%s"' % p
 	if p is None:
 		return False
 	elif match('^[0-9]+$', p):
@@ -619,7 +619,7 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 	return whoDidIt
 
 
-def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, linked=False, host=False, port=False, scheme=False):
+def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_items=False, linked=False, host=False, port=False, scheme=False):
 	whoDidIt = []
 	article = db( db.t_articles.id==recomm.article_id ).select(db.t_articles.already_published).last()
 	
@@ -637,6 +637,8 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, li
 			ir += 1
 			if as_items:
 				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+			elif as_list:
+				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
 			else:
 				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 				if ir == nr-1 and ir>=1:
@@ -666,6 +668,8 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, li
 			ir += 1
 			if as_items:
 				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+			elif as_list:
+				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
 			else:
 				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 				if ir == nr-1 and ir >= 1:
@@ -680,18 +684,22 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_items=False, li
 		iw = 0
 		for theUser in namedReviewers:
 			iw += 1
-			whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
-			if as_items is False:
-				if iw == nw+na1-1 and iw >= 1:
-					whoDidIt.append(current.T(' and '))
-				elif iw < nw+na1:
-					whoDidIt.append(', ')
+			if as_list:
+				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
+			else:
+				whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+				if as_items is False:
+					if iw == nw+na1-1 and iw >= 1:
+						whoDidIt.append(current.T(' and '))
+					elif iw < nw+na1:
+						whoDidIt.append(', ')
 		#if nw > 0 and na > 0 and as_items is False:
 			#whoDidIt.append(current.T(' and '))
-		if na > 1:
-			whoDidIt.append(current.T('%d anonymous reviewers') % (na))
-		elif na == 1:
-			whoDidIt.append(current.T('%d anonymous reviewer') % (na))
+		if not as_list:
+			if na > 1:
+				whoDidIt.append(current.T('%d anonymous reviewers') % (na))
+			elif na == 1:
+				whoDidIt.append(current.T('%d anonymous reviewer') % (na))
 	
 	return whoDidIt
 
@@ -707,6 +715,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		host=False
 		port=False
 	
+	myMeta = dict()
 	myContents = DIV(_class=('pci-article-div-printable' if printable else 'pci-article-div'))
 	#submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 	###NOTE: article facts
@@ -733,7 +742,8 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					#,_class=('pci-article-div-printable' if printable else 'pci-article-div')
 					,_class='pci-bigtext pci-article-reference'
 				)
-	myContents.append(myArticle)
+	#WARNING: bidouille de test !
+	#myContents.append(myArticle)
 	recomGreen=DIV(
 				DIV(
 					DIV(I(current.T('Recommendation')), _class='pci-ArticleText'),
@@ -759,12 +769,30 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		whoDidItTxt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=True, linked=not(printable), host=host, port=port, scheme=scheme)
 		whoDidItCite = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 		whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not(printable), as_items=True, host=host, port=port, scheme=scheme)
+		whoDidItMeta = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, as_list=True, as_items=False, host=host, port=port, scheme=scheme)
+
+		# METADATA
+		myMeta['DC.date'] = recomm.last_change.date()
+		myMeta['DC.rights'] = '(C) '+myconf.take("app.description")+', '+str(recomm.last_change.date().year)
+		myMeta['DC.publisher'] = myconf.take("app.description")
+		myMeta['DC.language'] = 'en'
+		myMeta['DC.title'] = recomm.recommendation_title # for altmetrics
+		if recomm.recommendation_doi:
+			myMeta['DC.identifier'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
+		for recommenderNames in whoDidItMeta:
+			myMeta['DC.creator'] = recommenderNames # for altmetrics
+		
 		
 		if recomm.recommendation_doi:
 			citeRef = mkDOI(recomm.recommendation_doi)
+			if printable:
+				recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', recomm.recommendation_doi))
+			else:
+				recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', recomm.recommendation_doi))
 		else:
 			citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
 			citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+			recomm_altmetric = ''
 		if recomm.recommendation_state == 'Recommended':
 			cite = DIV(
 						SPAN(B('Cite as:'), 
@@ -773,11 +801,11 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					), _class='pci-citation')
 		else:
 			cite = ''
-		
+			
 		###NOTE: POST-PRINT ARTICLE
 		if art.already_published:
 			myContents.append(
-				DIV(''
+				DIV(recomm_altmetric
 					,cite
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
 					,H4(current.T(' by '), UL(whoDidIt))
@@ -816,7 +844,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					)
 			else:
 				reply = ''
-			myContents.append( DIV(''
+			myContents.append( DIV(recomm_altmetric
 						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
@@ -849,7 +877,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	
 	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
 	nbReviews = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
-	return dict(myContents=myContents, pdf=pdf, nbReviews=(nbReviews+(nbRecomms-1)))
+	return dict(myContents=myContents, pdf=pdf, nbReviews=(nbReviews+(nbRecomms-1)), myMeta=myMeta)
 
 
 def mkCommentsTree(auth, db, commentId):

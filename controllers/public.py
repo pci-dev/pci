@@ -156,6 +156,7 @@ def rec():
 	myContents = myFeaturedRecommendation['myContents']
 	nbReviews = myFeaturedRecommendation['nbReviews']
 	pdf = myFeaturedRecommendation['pdf']
+	myMeta = myFeaturedRecommendation['myMeta']
 	
 	if printable:
 		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"))
@@ -195,6 +196,9 @@ def rec():
 		response.title = myconf.take('app.longname')
 	if len(response.title)>64:
 		response.title = response.title[:64]+'...'
+	if len(myMeta)>0:
+		for k in myMeta:
+			response.meta[k] = myMeta[k]
 	return dict(
 				statusTitle=myTitle,
 				myContents=myContents,

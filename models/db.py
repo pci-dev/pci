@@ -264,6 +264,7 @@ def deltaStatus(s, f):
 			do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 		elif o.status == 'Awaiting consideration' and f['status'] == 'Under consideration':
 			do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+			do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 			do_send_email_to_suggested_recommenders_useless(session, auth, db, o['id'])
 		elif o.status == 'Under consideration' and f['status'] == 'Pre-recommended': 
 			do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
@@ -319,6 +320,7 @@ db.t_recommendations._after_update.append(lambda s,f: closedRecommendation(s,f))
 
 def newRecommendation(s,i):
 	do_send_email_to_thank_recommender(session, auth, db, i)
+	#do_send_email_to_managers(session, auth, db, i)
 	return None
 
 def closedRecommendation(s,f):
