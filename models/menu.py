@@ -14,9 +14,9 @@ response.subtitle = T(myconf.take('app.description'))
 # ----------------------------------------------------------------------------------------------------------------------
 # read more at http://dev.w3.org/html5/markup/meta.name.html
 # ----------------------------------------------------------------------------------------------------------------------
-response.meta.author = myconf.get('app.author')
+#response.meta.author = myconf.get('app.author')
 response.meta.description = myconf.get('app.description')
-response.meta.keywords = myconf.get('app.keywords')
+#response.meta.keywords = myconf.get('app.keywords')
 response.meta.generator = myconf.get('app.generator')
 
 # ----------------------------------------------------------------------------------------------------------------------

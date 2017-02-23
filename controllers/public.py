@@ -198,7 +198,10 @@ def rec():
 		response.title = response.title[:64]+'...'
 	if len(myMeta)>0:
 		for k in myMeta:
-			response.meta[k] = myMeta[k]
+			if type(myMeta[k]) is list:
+				response.meta[k] = ' ; '.join(myMeta[k]) # syntax as in: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+			else:
+				response.meta[k] = myMeta[k]
 	return dict(
 				statusTitle=myTitle,
 				myContents=myContents,

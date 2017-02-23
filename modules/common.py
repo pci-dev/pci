@@ -631,6 +631,7 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 							(db.t_recommendations.id==recomm.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 		allRecommenders = mainRecommenders | coRecommenders
+
 		nr = len(allRecommenders)
 		ir=0
 		for theUser in allRecommenders:
@@ -639,6 +640,7 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
 			elif as_list:
 				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
+				print theUser.first_name, theUser.last_name
 			else:
 				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 				if ir == nr-1 and ir>=1:
@@ -779,8 +781,10 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		myMeta['DC.title'] = recomm.recommendation_title # for altmetrics
 		if recomm.recommendation_doi:
 			myMeta['DC.identifier'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
-		for recommenderNames in whoDidItMeta:
-			myMeta['DC.creator'] = recommenderNames # for altmetrics
+		#for recommenderNames in whoDidItMeta:
+			#myMeta['DC.creator'] = recommenderNames # for altmetrics
+		if len(whoDidItMeta)>0:
+			myMeta['DC.creator'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
 		
 		
 		if recomm.recommendation_doi:
