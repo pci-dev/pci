@@ -640,7 +640,6 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
 			elif as_list:
 				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
-				print theUser.first_name, theUser.last_name
 			else:
 				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 				if ir == nr-1 and ir>=1:
@@ -774,17 +773,32 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		whoDidItMeta = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, as_list=True, as_items=False, host=host, port=port, scheme=scheme)
 
 		# METADATA
+		desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+		myMeta['DC.issued'] = recomm.last_change.date()
 		myMeta['DC.date'] = recomm.last_change.date()
+		myMeta['citation_publication_date'] = recomm.last_change.date()
+		myMeta['citation_online_date'] = recomm.last_change.date()
 		myMeta['DC.rights'] = '(C) '+myconf.take("app.description")+', '+str(recomm.last_change.date().year)
 		myMeta['DC.publisher'] = myconf.take("app.description")
+		myMeta['citation_publisher'] = myconf.take("app.description")
+		myMeta['DC.relation.ispartof'] = myconf.take("app.description")
+		myMeta['citation_journal_title'] = myconf.take("app.description")
+		myMeta['citation_journal_abbrev'] = myconf.take("app.name")
+		myMeta['citation_issn'] = myconf.take("app.issn")
 		myMeta['DC.language'] = 'en'
-		myMeta['DC.title'] = recomm.recommendation_title # for altmetrics
+		myMeta['DC.title'] = recomm.recommendation_title
+		myMeta['og:title'] = recomm.recommendation_title
+		myMeta['description'] = desc
+		myMeta['DC.description'] = desc
+		myMeta['citation_abstract'] = desc
 		if recomm.recommendation_doi:
-			myMeta['DC.identifier'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
+			myMeta['citation_doi'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
+			myMeta['DC.identifier'] = myMeta['DC.identifier']
 		#for recommenderNames in whoDidItMeta:
 			#myMeta['DC.creator'] = recommenderNames # for altmetrics
 		if len(whoDidItMeta)>0:
 			myMeta['DC.creator'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+			myMeta['citation_author'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
 		
 		
 		if recomm.recommendation_doi:
