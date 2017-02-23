@@ -743,8 +743,10 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					#,_class=('pci-article-div-printable' if printable else 'pci-article-div')
 					,_class='pci-bigtext pci-article-reference'
 				)
-	#WARNING: bidouille de test !
+	
+	#WARNING: article enlevé de la recommendation
 	#myContents.append(myArticle)
+	
 	recomGreen=DIV(
 				DIV(
 					DIV(I(current.T('Recommendation')), _class='pci-ArticleText'),
@@ -793,7 +795,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		myMeta['citation_abstract'] = desc
 		if recomm.recommendation_doi:
 			myMeta['citation_doi'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
-			myMeta['DC.identifier'] = myMeta['DC.identifier']
+			myMeta['DC.identifier'] = myMeta['citation_doi']
 		#for recommenderNames in whoDidItMeta:
 			#myMeta['DC.creator'] = recommenderNames # for altmetrics
 		if len(whoDidItMeta)>0:
