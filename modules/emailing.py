@@ -299,7 +299,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 			#linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
 			#helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have been proposed as the recommender for a preprint entitled %(articleTitle)s (DOI %(articleDoi)s). 
+You have been proposed as the recommender for a preprint entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). 
 This preprint has also attracted the attention of another recommender of <i>%(applongname)s</i>, who has initiated its evaluation. 
 Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(applongname)s</i> webpage.<p>
 If you are willing to participate in the evaluation/recommendation of this preprint, please send us an e-mail at %(mailManagers)s. 
@@ -328,7 +328,6 @@ Yours sincerely,<p>
 			session.flash += '; ' + '; '.join(report)
 
 
-#TG: OK
 # Do send email to suggested recommenders for a given available article
 def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	print 'do_send_email_to_suggested_recommenders'
@@ -351,7 +350,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have been proposed as the recommender for a preprint entitled %(articleTitle)s. You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+You have been proposed as the recommender for a preprint entitled <b>%(articleTitle)s</b>. You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
@@ -376,8 +375,59 @@ Yours sincerely,<p>
 		else:
 			session.flash += '; ' + '; '.join(report)
 
+# Do send email to all recommenders for a given available article
+def do_send_email_to_all_recommenders(session, auth, db, articleId):
+	print 'do_send_email_to_all_recommenders'
+	report = []
+	mail = getMailer(auth)
+	mail_resu = False
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	article = db.t_articles[articleId]
+	if article and article.status in ('Awaiting consideration'):
+		articleTitle = article.title
+		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
+		suggestedQy = db.executesql("""SELECT DISTINCT au.*
+										FROM auth_user AS au 
+										JOIN auth_membership AS am ON au.id = am.user_id 
+										JOIN auth_group AS ag ON am.group_id = ag.id AND ag.role LIKE 'recommender' 
+										LEFT JOIN t_suggested_recommenders AS sr ON sr.suggested_recommender_id = au.id
+										WHERE sr.email_sent IS FALSE OR sr.email_sent IS NULL
+										AND article_id=%s;""", placeholders=[article.id], as_dict=True)
+		for theUser in suggestedQy:
+			destPerson = mkUser(auth, db, theUser['id'])
+			destAddress = db.auth_user[theUser['id']]['email']
+			linkTarget=URL(c='recommender', f='fields_awaiting_articles', scheme=scheme, host=host, port=port)
+			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
+			content = """Dear %(destPerson)s,<p>
+A preprint entitled <b>%(articleTitle)s</b> is still requesting a recommender. You can obtain information about this request and accept this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
+							subject=mySubject,
+							message=myMessage,
+						)
+			except:
+				pass
+			if mail_resu:
+				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
+			else:
+				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
+		print '\n'.join(report)
+		if session.flash is None:
+			session.flash = '; '.join(report)
+		else:
+			session.flash += '; ' + '; '.join(report)
 
-#TG: OK
+
+
 # Do send email to recommender when a review is re-opened
 def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 	report = []
@@ -402,7 +452,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 				destPerson = mkUser(auth, db, rev.reviewer_id)
 				destAddress = db.auth_user[rev.reviewer_id]['email']
 				content = """Dear %(destPerson)s,<p>
-Your review concerning the preprint entitled %(articleTitle)s has been re-opened by %(recommenderPerson)s, the recommender who agreed to initiate and manage the recommendation process for this preprint.<p>
+Your review concerning the preprint entitled <b>%(articleTitle)s</b> has been re-opened by %(recommenderPerson)s, the recommender who agreed to initiate and manage the recommendation process for this preprint.<p>
 You can view and edit your reviews by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you again for agreeing to review this preprint.<p>
 Yours sincerely,<p>
@@ -453,7 +503,7 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 				destAddress = db.auth_user[recomm.recommender_id]['email']
 				reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 				content = """Dear %(destPerson)s,<p>
-The review by %(reviewerPerson)s concerning the preprint entitled %(articleTitle)s is now completed.<p>
+The review by %(reviewerPerson)s concerning the preprint entitled <b>%(articleTitle)s</b> is now completed.<p>
 You can view this review and manage your recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
@@ -499,7 +549,7 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
-%(contributorPerson)s has accepted to co-sign the recommendation of the postprint entitled %(articleTitle)s.<p>
+%(contributorPerson)s has accepted to co-sign the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
 You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
 			try:
@@ -543,7 +593,7 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
-%(contributorPerson)s has declined to co-sign the recommendation of the postprint entitled %(articleTitle)s.<p>
+%(contributorPerson)s has declined to co-sign the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
 You may check your recommendation: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
 			try:
@@ -586,7 +636,7 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
-%(contributorPerson)s has agreed with the recommendation of the postprint entitled %(articleTitle)s.<p>
+%(contributorPerson)s has agreed with the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
 You may check your recommendation on: <a href="%(linkTarget)s">%(linkTarget)s</a>.
 """ % locals()
 			try:
@@ -630,7 +680,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 			content = """Dear %(destPerson)s,<p>
-%(reviewerPerson)s has accepted your invitation to review the preprint entitled %(articleTitle)s.<p>
+%(reviewerPerson)s has accepted your invitation to review the preprint entitled <b>%(articleTitle)s</b>.<p>
 You can view and manage the recommendation and the reviewing processes by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
@@ -677,7 +727,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 			content = """Dear %(destPerson)s,<p>
-%(reviewerPerson)s has declined your invitation to review the preprint entitled %(articleTitle)s.<p>
+%(reviewerPerson)s has declined your invitation to review the preprint entitled <b>%(articleTitle)s</b>.<p>
 You will probably need to find another reviewer to obtain the two high-quality reviews required. To view and manage the recommendation and the reviewing processes for this preprint, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a><p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>

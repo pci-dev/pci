@@ -804,6 +804,12 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		
 		
 		if recomm.recommendation_doi:
+			citeNumSearch = re.search('([0-9]+$)', recomm.recommendation_doi, re.IGNORECASE)
+			if citeNumSearch:
+				citeNum = citeNumSearch.group(1)
+				myMeta['citation_firstpage'] = citeNum
+			else:
+				citeNum = recomm.recommendation_doi
 			citeRef = mkDOI(recomm.recommendation_doi)
 			if printable:
 				recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', recomm.recommendation_doi))
@@ -812,11 +818,12 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		else:
 			citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
 			citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+			citeNum = ''
 			recomm_altmetric = ''
 		if recomm.recommendation_state == 'Recommended':
 			cite = DIV(
 						SPAN(B('Cite as:'), 
-						BR(), SPAN(whoDidItCite), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+'. '), 
+						BR(), SPAN(whoDidItCite), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+', '+citeNum+'. '), 
 						citeRef, 
 					), _class='pci-citation')
 		else:

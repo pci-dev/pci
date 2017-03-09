@@ -16,7 +16,7 @@ myconf = AppConfig(reload=True)
 
 # frequently used constants
 csv = False # no export allowed
-expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
+expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
@@ -89,7 +89,7 @@ def list_users():
 				,fields=fields
 				,linked_tables=['auth_user', 'auth_membership', 't_articles', 't_recommendations', 't_reviews', 't_press_reviews', 't_comments']
 				,links=links
-				,csv=csv, exportclasses=dict(auth_user=expClass, auth_membership=expClass)
+				,csv=False, exportclasses=dict(auth_user=expClass, auth_membership=expClass)
 				,editable=dict(auth_user=True, auth_membership=False)
 				,details=dict(auth_user=True, auth_membership=False)
 				,searchable=dict(auth_user=True, auth_membership=False)
@@ -107,6 +107,27 @@ def list_users():
 			 )
 
 
+# Prepares lists of email addresses by role
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def mailing_lists():
+	content = DIV()
+	for theRole in db(db.auth_group.role).select():
+		content.append(H1(theRole.role))
+		emails = []
+		query = db( (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == theRole.id) ).select(db.auth_user.email, orderby=db.auth_user.email)
+		for user in query:
+			if user.email:
+				emails.append(user.email)
+		list_emails = ', '.join(emails)
+		content.append(list_emails)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#EmailsListsUsersText'),
+				myTitle=getTitle(request, auth, db, '#EmailsListsUsersTitle'),
+				myHelp=getHelp(request, auth, db, '#EmailsListsUsers'),
+				content=content, 
+				grid='',
+			 )
 
 
 #@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))

@@ -2,6 +2,7 @@
 
 import re
 import copy
+from datetime import datetime, timedelta
 
 # sudo pip install tweepy
 #import tweepy
@@ -238,12 +239,24 @@ def _manage_articles(statuses, whatNext):
 	links += [
 				dict(header=T('Recommender'), body=lambda row: mkRecommenderButton(row)),
 				dict(header=T('Recommendation title'), body=lambda row: mkLastRecommendation(auth, db, row.id)),
-				dict(header=T(''), 
-						body=lambda row: A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), 
-										_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
-										_target="_blank", 
-										_class='button', 
-										_title=current.T('View and/or edit review')
+				dict(header=T('Actions'), 
+						body=lambda row: DIV(
+											A(SPAN(current.T('Check & Edit'), 
+												_class='buttontext btn btn-default pci-button'), 
+												_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
+												_target="_blank", 
+												_class='button', 
+												_title=current.T('View and/or edit review')
+											),
+											A(SPAN(current.T('Email to all recommenders'), 
+												_class='buttontext btn btn-info pci-button'), 
+												_href=URL(c='manager', f='warn_all_recommenders', vars=dict(articleId=row.id), user_signature=True), 
+												_class='button', 
+												_title=current.T('Send an email to all recommenders')
+											) if (row.status == 'Awaiting consideration' 
+													and row.already_published is False 
+													#and datetime.datetime.now() - row.last_status_change > timedelta(days=7)
+												) else '',
 										)
 					),
 			]
@@ -554,4 +567,13 @@ def resizeArticleImages(ids):
 	for articleId in ids:
 		makeArticleThumbnail(auth, db, articleId, size=(150,150))
 
+
+
+@auth.requires(auth.has_membership(role='manager'))
+def warn_all_recommenders():
+	if not('articleId' in request.vars):
+		session.flash = T('Unavailable')
+	articleId = request.vars['articleId']
+	do_send_email_to_all_recommenders(session, auth, db, articleId)
+	redirect(request.env.http_referer)
 
