@@ -65,6 +65,15 @@ def social():
 	)
 
 
+def supports():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#SupportsTitle'),
+		myText=getText(request, auth, db, '#SupportsInfo'),
+		shareable=True,
+	)
+
+
 def buzz():
 	response.view='default/info.html' #OK
 	return dict(

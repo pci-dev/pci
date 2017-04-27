@@ -183,7 +183,10 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
 	for sr in suggRecomms:
 		exclude.append(str(sr.suggested_recommender_id))
-		suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+BR())
+		if sr.declined:
+			suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+XML(':&nbsp;declined')+BR())
+		else:
+			suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+BR())
 	if len(suggRecomsTxt)>0:
 		butts.append(DIV(suggRecomsTxt))
 		butts.append( A(current.T('[MANAGE]'), _href=URL(c='manager', f='suggested_recommenders', vars=dict(articleId=row.id))) )
@@ -252,7 +255,7 @@ def _manage_articles(statuses, whatNext):
 												_class='buttontext btn btn-info pci-button'), 
 												_href=URL(c='manager', f='warn_all_recommenders', vars=dict(articleId=row.id), user_signature=True), 
 												_class='button', 
-												_title=current.T('Send an email to all recommenders')
+												_title=current.T('Send an email to all recommenders not already suggested')
 											) if (row.status == 'Awaiting consideration' 
 													and row.already_published is False 
 													#and datetime.datetime.now() - row.last_status_change > timedelta(days=7)
@@ -491,12 +494,12 @@ def suggested_recommenders():
 		,details=False,editable=False,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100
 		,csv = csv, exportclasses = expClass
-		,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent]
+		,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent, db.t_suggested_recommenders.declined]
 		,field_id=db.t_suggested_recommenders.id
 	)
 	response.view='default/myLayout.html'
 	return dict(
-					myBackButton=mkBackButton(URL(c='manager',f='pending_articles')), 
+					#myBackButton=mkBackButton(target=URL(c='manager',f='pending_articles')), 
 					myHelp=getHelp(request, auth, db, '#ManageSuggestedRecommenders'),
 					myText=getText(request, auth, db, '#ManageSuggestedRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#ManageSuggestedRecommendersTitle'),

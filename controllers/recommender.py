@@ -135,6 +135,7 @@ def my_awaiting_articles():
 				(db.t_articles.status == 'Awaiting consideration')
 			  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
 			  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+			  & (db.t_suggested_recommenders.declined == False)
 		)
 	db.t_articles.user_id.writable = False
 	#db.t_articles.doi.represent = lambda text, row: mkDOI(text)
@@ -443,7 +444,11 @@ def decline_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	if articleId is not None:
 		#NOTE: No security hole as only logged user can be deleted
-		db(db.t_suggested_recommenders.article_id == articleId and db.t_suggested_recommenders.suggested_recommender_id == auth.user_id).delete()
+		#db(db.t_suggested_recommenders.article_id == articleId and db.t_suggested_recommenders.suggested_recommender_id == auth.user_id).delete()
+		sug_rec = db(db.t_suggested_recommenders.article_id == articleId and db.t_suggested_recommenders.suggested_recommender_id == auth.user_id).select().first()
+		sug_rec.declined = True
+		sug_rec.update_record()
+		db.commit()
 	redirect(URL('my_awaiting_articles', user_signature=True))
 
 

@@ -14,14 +14,20 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
-@auth.requires_login()
+#@auth.requires_login()
 def new_submission():
+	if auth.user:
+		button = A(current.T("Start your request"), 
+					_href=URL('user', 'fill_new_article', user_signature=True), 
+					_class="btn btn-success pci-panelButton")
+	else:
+		button = SPAN(B('To start your request, please: '), A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
+						LABEL(current.T(' or ')),
+						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"))
 	myText = DIV(
 			getText(request, auth, db, '#NewRecommendationRequestInfo'),
 			DIV(
-				A(current.T("Start your request"), 
-					_href=URL('user', 'fill_new_article', user_signature=True), 
-					_class="btn btn-success pci-panelButton"),
+				button,
 				_style='margin-top:16px; text-align:center;',
 			)
 		)
@@ -248,7 +254,10 @@ def add_suggested_recommender():
 		reviewersIds = [auth.user_id]
 		for con in recommendersListSel:
 			reviewersIds.append(con.auth_user.id)
-			recommendersList.append(LI(mkUser(auth, db, con.auth_user.id),
+			if con.t_suggested_recommenders.declined:
+				recommendersList.append(LI(mkUser(auth, db, con.auth_user.id), T('(declined)')))
+			else:
+				recommendersList.append(LI(mkUser(auth, db, con.auth_user.id),
 									A('X', 
 									   _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), 
 									   _title=T('Delete'), _style='margin-left:8px;'),
@@ -473,7 +482,10 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
 	for sr in suggRecomms:
 		exclude.append(str(sr.suggested_recommender_id))
-		suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
+		if sr.declined:
+			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+XML(':&nbsp;declined')+BR())
+		else:
+			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
 	if row.status in ('Pending', 'Awaiting consideration'):

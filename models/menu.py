@@ -96,6 +96,7 @@ def _BaseMenu():
 			LI(_class="divider"),
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
+			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
 			(T('FAQs', lazy=False),      False, URL('about', 'faq')),
 			(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
 			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),

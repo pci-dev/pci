@@ -56,11 +56,14 @@ def mkTopPanel(myconf, auth, inSearch=False):
 							#_href=URL('default', 'user'),
 							#_class="btn btn-success"))
 		panel.append(DIV(
+						A(current.T("Request a recommendation for your preprint"), 
+							_href=URL('user', 'new_submission', user_signature=True), 
+							_class="btn btn-success"),
 						#LABEL(current.T('You have to be logged in before requesting a recommendation: ')),
 						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
 						LABEL(current.T(' or ')),
 						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"),
-						_style='text-align:right;',
+						_style='text-align:left;',
 					))
 	if auth.has_membership('recommender'):
 		panel.append(A(current.T("Recommend a postprint"), 
@@ -69,7 +72,7 @@ def mkTopPanel(myconf, auth, inSearch=False):
 		panel.append(A(current.T("Consider preprint recommendation requests"), 
 							_href=URL('recommender', 'all_awaiting_articles', user_signature=True), 
 							_class="btn btn-default"))
-	return DIV(panel, _style='margin-top:20px; margin-bottom:20px; text-align:center;')
+	return DIV(panel, _style='margin-top:20px; margin-bottom:20px; text-align:left;')
 
 
 ## Builds the right-panel for home page
@@ -248,6 +251,8 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	if withImg:
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 			img += [IMG(_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
+	if not(row.already_published):
+		img += [DIV('PREPRINT', _class='pci-preprintTag')]
 	resu.append(TD( img, _style='vertical-align:top; text-align:left;' ))
 
 	shortTxt = recomm.recommendation_comments or ''
@@ -730,22 +735,19 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	else:
 		altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 	myArticle = DIV(
-					DIV(DIV(I(current.T('Recommended article')), _class='pci-ArticleText'), _class='pci-ArticleHeader recommended'+(' printable' if printable else ''))
-					,DIV(altmetric, _style='text-align:right;')
-					,img
-					,H4(art.authors or '')
-					,H3(art.title or '')
-					,(mkDOI(art.doi)+P()) if (art.doi) else SPAN('')
-					,(SPAN(art.article_source)+P() if art.article_source else '')
-					,B(current.T('Abstract'))+BR()
-					,DIV(WIKI(art.abstract or ''))
-					,SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else '')
+					#DIV(DIV(I(current.T('Recommended article')), _class='pci-ArticleText'), _class='pci-ArticleHeader recommended'+(' printable' if printable else ''))
+					#,DIV(altmetric, _style='text-align:right;')
+					#,img
+					SPAN((art.authors or '')+'. ', _class='pci-recomOfAuthors')
+					,SPAN((art.title or '')+'. ', _class='pci-recomOfTitle')
+					,(SPAN((art.article_source+'. '), _class='pci-recomOfSource') if art.article_source else ' ')
+					,(mkDOI(art.doi)) if (art.doi) else SPAN('')
+					#,B(current.T('Abstract'))+BR()
+					#,DIV(WIKI(art.abstract or ''))
+					#,SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else '')
 					#,_class=('pci-article-div-printable' if printable else 'pci-article-div')
-					,_class='pci-bigtext pci-article-reference'
+					,_class='pci-recommOfArticle'
 				)
-	
-	#WARNING: article enlevé de la recommendation
-	#myContents.append(myArticle)
 	
 	recomGreen=DIV(
 				DIV(
@@ -837,7 +839,8 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
 					,H4(current.T(' by '), UL(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
-					,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
+					#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
+					,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 					, _class='pci-recommendation-div'
 				)
@@ -876,7 +879,8 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
 						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
-						,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
+						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
+						,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
 						,reply
@@ -1449,7 +1453,8 @@ def mkLastChange(t):
 		elif d.days==1:
 			return SPAN(current.T('Yesterday'))
 		else:
-			return SPAN(current.T('%s days ago') % d.days)
+			tdt = t.strftime('%Y-%m-%d ')
+			return SPAN(tdt) #+SPAN(current.T('(%s days ago)') % d.days)
 	else:
 		return ''
 
@@ -1492,7 +1497,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 	if (userRow.last_name or '') != '':
 		if name != '': name += ' '
 		name += userRow.last_name.upper()
-	resu.append(TD(A(name, _href=URL(c='public', f='viewUserCard', vars=dict(userId=userRow.id)))))
+	resu.append(TD(A(name, _target='blank', _href=URL(c='public', f='viewUserCard', vars=dict(userId=userRow.id)))))
 	affil = ''
 	if (userRow.laboratory or '') != '':
 		affil += userRow.laboratory

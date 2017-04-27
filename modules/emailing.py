@@ -391,12 +391,14 @@ def do_send_email_to_all_recommenders(session, auth, db, articleId):
 		articleTitle = article.title
 		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
 		suggestedQy = db.executesql("""SELECT DISTINCT au.*
-										FROM auth_user AS au 
-										JOIN auth_membership AS am ON au.id = am.user_id 
-										JOIN auth_group AS ag ON am.group_id = ag.id AND ag.role LIKE 'recommender' 
-										LEFT JOIN t_suggested_recommenders AS sr ON sr.suggested_recommender_id = au.id
-										WHERE sr.email_sent IS FALSE OR sr.email_sent IS NULL
-										AND article_id=%s;""", placeholders=[article.id], as_dict=True)
+			FROM auth_user AS au 
+			JOIN auth_membership AS am ON au.id = am.user_id 
+			JOIN auth_group AS ag ON am.group_id = ag.id AND ag.role LIKE 'recommender'
+			WHERE au.id NOT IN (
+				SELECT sr.suggested_recommender_id
+				FROM t_suggested_recommenders AS sr
+				WHERE sr.email_sent IS TRUE AND sr.article_id=%s
+			);""", placeholders=[articleId], as_dict=True)
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
@@ -404,6 +406,7 @@ def do_send_email_to_all_recommenders(session, auth, db, articleId):
 			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
 A preprint entitled <b>%(articleTitle)s</b> is still requesting a recommender. You can obtain information about this request and accept this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+If you have already declined a previous invitation to become the recommender of this preprint, please do not take this message into account and accept our apologies for multiple mailing.<p>
 Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
@@ -416,9 +419,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to recommender %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
 		print '\n'.join(report)
 		if session.flash is None:
