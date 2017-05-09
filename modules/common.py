@@ -411,7 +411,8 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 			anchor = DIV(
 						B(recomm.recommendation_title), SPAN(current.T(' by ')), recommenders, mkDOI(recomm.recommendation_doi),
 						P(),
-						SPAN(current.T('A recommendation of ')), I(art.title), SPAN(current.T(' by ')), SPAN(art.authors), 
+						SPAN(current.T('A recommendation of ') if (art.already_published) else current.T('A recommendation of the preprint ')), 
+						I(art.title), SPAN(current.T(' by ')), SPAN(art.authors), 
 						(SPAN(current.T(' in '))+SPAN(art.article_source) if art.article_source else ''),
 						BR(), 
 						mkDOI(art.doi),
@@ -763,6 +764,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		recomms = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=~db.t_recommendations.id)
 
 	leftShift=0
+	headerDone = False
 	for recomm in recomms:
 		
 		pdfQ = db(db.t_pdf.recommendation_id == recomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
@@ -777,7 +779,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		whoDidItMeta = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, as_list=True, as_items=False, host=host, port=port, scheme=scheme)
 
 		# METADATA
-		desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+		desc = ('A recommendation of: ' if art.already_published else 'A recommendation of the preprint: ')+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
 		myMeta['DC.issued'] = recomm.last_change.date()
 		myMeta['DC.date'] = recomm.last_change.date()
 		myMeta['citation_publication_date'] = recomm.last_change.date()
@@ -832,7 +834,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			cite = ''
 			
 		###NOTE: POST-PRINT ARTICLE
-		if art.already_published:
+		if art.already_published and not(headerDone):
 			myContents.append(
 				DIV(recomm_altmetric
 					,cite
@@ -845,6 +847,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					, _class='pci-recommendation-div'
 				)
 			)
+			headerDone = True
 		
 		
 		###NOTE: PRE-PRINT ARTICLE
@@ -874,13 +877,14 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					)
 			else:
 				reply = ''
-			myContents.append( DIV(recomm_altmetric
+			if not(headerDone):
+				myContents.append( DIV(recomm_altmetric
 						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
 						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-						,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+						,DIV(SPAN('A recommendation of the preprint:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
 						,reply
@@ -888,6 +892,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						, _style='margin-left:%spx' % (leftShift)
 						)
 					)
+				headerDone = True
 			leftShift += 50
 	
 	if with_comments:

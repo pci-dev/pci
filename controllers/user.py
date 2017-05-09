@@ -21,9 +21,10 @@ def new_submission():
 					_href=URL('user', 'fill_new_article', user_signature=True), 
 					_class="btn btn-success pci-panelButton")
 	else:
-		button = SPAN(B('To start your request, please: '), A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
+		button = SPAN(B('To start your request, please: '), 
+						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login', 'user', 'new_submission']), _class="btn btn-info"),
 						LABEL(current.T(' or ')),
-						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"))
+						A(current.T('Register'), _href=URL(c='default', f='user', args=['register', 'user', 'new_submission']), _class="btn btn-info"))
 	myText = DIV(
 			getText(request, auth, db, '#NewRecommendationRequestInfo'),
 			DIV(

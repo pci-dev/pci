@@ -117,10 +117,14 @@ def user():
 		myHelp = getHelp(request, auth, db, '#LogIn')
 		myTitle = getTitle(request, auth, db, '#LogInTitle')
 		myText = getText(request, auth, db, '#LogInText')
+		if len(request.args) >= 3 and request.args[1] and request.args[2]:
+			auth.settings.login_next = URL(request.args[1], request.args[2])
 	elif request.args[0] == 'register':
 		myHelp = getHelp(request, auth, db, '#CreateAccount')
 		myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
 		myText = getText(request, auth, db, '#CreateAccountText')
+		if len(request.args) >= 3 and request.args[1] and request.args[2]:
+			auth.settings.register_next = URL(request.args[1], request.args[2])
 	elif request.args[0] == 'profile':
 		myHelp = getHelp(request, auth, db, '#Profile')
 		myTitle = getTitle(request, auth, db, '#ProfileTitle')
