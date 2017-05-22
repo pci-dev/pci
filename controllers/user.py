@@ -143,7 +143,7 @@ def article_revised():
 	if art is None:
 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id or art.status != 'Awaiting revision':
+	if not((art.user_id == auth.user_id or auth.has_membership(role='manager')) and art.status == 'Awaiting revision'):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
@@ -800,7 +800,7 @@ def edit_reply():
 	if recomm is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	art = db.t_articles[recomm.article_id]
-	if art.user_id != auth.user_id or art.status != 'Awaiting revision':
+	if not ((art.user_id == auth.user_id or auth.has_membership(role='manager')) and (art.status == 'Awaiting revision')):
 		session.flash = T('Unauthorized', lazy=False)
 		redirect('my_articles')
 	form = SQLFORM(db.t_recommendations

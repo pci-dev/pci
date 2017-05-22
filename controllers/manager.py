@@ -375,7 +375,7 @@ def manage_recommendations():
 	grid = SQLFORM.grid( query
 		,editable=True
 		,deletable=True
-		,create=False
+		,create=False #True
 		,details=False
 		,searchable=False
 		,maxtextlength=1000

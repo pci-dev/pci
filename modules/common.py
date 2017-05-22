@@ -763,6 +763,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	else:
 		recomms = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=~db.t_recommendations.id)
 
+	recommRound = len(recomms)
 	leftShift=0
 	headerDone = False
 	for recomm in recomms:
@@ -893,7 +894,25 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						)
 					)
 				headerDone = True
-			leftShift += 50
+			else:
+				myContents.append( DIV( HR()
+						#H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
+						#,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
+						,H3('Revision round #%s' % recommRound)
+						,SPAN(I(recomm.last_change.strftime('%Y-%m-%d')+' ')) if recomm.last_change else ''
+						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
+						#,DIV(SPAN('A recommendation of the preprint:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
+						,DIV(I(current.T('Preprint DOI:')+' '), mkDOI(recomm.doi), BR()) if ((recomm.doi or '')!='') else ''
+						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
+						,reply
+						, _class='pci-recommendation-div'
+						, _style='margin-left:%spx' % (leftShift)
+						)
+					)
+				headerDone = True
+			leftShift += 16
+		recommRound -= 1
 	
 	if with_comments:
 		# comments
@@ -1119,7 +1138,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			myContents.append( DIV(''
 						,B(SPAN(recomm.recommendation_title))
 						,BR()
-						,SPAN(I(current.T('by ')+' '+(recommender.first_name or '')+' '+(recommender.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+						,SPAN(I(current.T('by ')+' '+(recommender.first_name if recommender else None or '')+' '+(recommender.last_name if recommender else None or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
 						,BR()
 						,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)+BR()) if (recomm.doi) else SPAN('')
 						,B(tit2)+BR()
@@ -1145,7 +1164,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			if (recomm.reply is not None) and (len(recomm.reply) > 0):
 				myContents.append(B(current.T('Author\'s Reply:'))+BR()+DIV(WIKI(recomm.reply or ''), _class='pci-bigtext'))
 			
-			if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
+			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
+			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
 				myContents.append(DIV(A(SPAN(current.T('Edit your reply to recommender'), 
 											_class='buttontext btn btn-info'), 
 											_href=URL(c='user', f='edit_reply', vars=dict(recommId=recomm.id), user_signature=True)),
@@ -1153,7 +1173,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			
 			
 	myContents.append(HR())
-	if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
+	if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
 		# author's button enabling resubmission
 		myContents.append(DIV(A(SPAN(current.T('Revision terminated: submit new version and close revision process'), _class='buttontext btn btn-success'), 
 										_href=URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True), 
