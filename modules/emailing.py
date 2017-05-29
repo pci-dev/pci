@@ -1321,9 +1321,11 @@ Yours sincerely,<p>
 			pass
 		if mail_resu:
 			report.append( 'email sent to %s' % destPerson.flatten() )
+			print 'email sent to %s' % destPerson.flatten() 
 		else:
 			report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-		print '\n'.join(report)
+			print 'email NOT SENT to %s' % destPerson.flatten() 
+		#print '\n'.join(report)
 	if session:
 		if session.flash is None:
 			session.flash = '; '.join(report)

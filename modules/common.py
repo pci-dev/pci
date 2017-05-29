@@ -253,7 +253,12 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 			img += [IMG(_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
 	if not(row.already_published):
 		img += [DIV('PREPRINT', _class='pci-preprintTag')]
-	resu.append(TD( img, _style='vertical-align:top; text-align:left;' ))
+	resu.append(
+			TD( img, 
+				_style='vertical-align:top; text-align:left;', # deprecated .. to be removed 
+				_class='pci-lastArticles-leftcell',
+				_onclick="window.open('%s')" % URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port),
+			))
 
 	shortTxt = recomm.recommendation_comments or ''
 	if len(shortTxt)>500:
@@ -285,7 +290,8 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 						),
 						_style='margin-right:1cm; margin-left:1cm; padding-left:8px; border-left:1px solid #cccccc;',
 					),
-					_class='pci-lastArticles-cell'
+					_class='pci-lastArticles-cell',
+					#_onclick="window.open('%s')" % URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port),
 				),
 			)
 	
@@ -737,12 +743,12 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 	myArticle = DIV(
 					#DIV(DIV(I(current.T('Recommended article')), _class='pci-ArticleText'), _class='pci-ArticleHeader recommended'+(' printable' if printable else ''))
-					#,DIV(altmetric, _style='text-align:right;')
 					#,img
 					SPAN((art.authors or '')+'. ', _class='pci-recomOfAuthors')
 					,SPAN((art.title or '')+'. ', _class='pci-recomOfTitle')
 					,(SPAN((art.article_source+'. '), _class='pci-recomOfSource') if art.article_source else ' ')
 					,(mkDOI(art.doi)) if (art.doi) else SPAN('')
+					,DIV(altmetric, _style='margin-top:12px;')
 					#,B(current.T('Abstract'))+BR()
 					#,DIV(WIKI(art.abstract or ''))
 					#,SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else '')

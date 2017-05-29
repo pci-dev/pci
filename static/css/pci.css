@@ -202,7 +202,8 @@ header{box-shadow:none;} /* Don't remove */
 .pci-lastArticles-date {width: 80px; text-align:center; font-style:italic; font-size:8pt;}
 .pci-lastArticles-article {font-size:13px; }
 .pci-lastArticles-linkcol {width:80px; text-align:center;}
-.pci-lastArticles-cell {padding: 8px; text-align:justify;}
+.pci-lastArticles-cell {padding: 8px; text-align:justify; /*cursor:pointer;*/ }
+.pci-lastArticles-leftcell {vertical-align:top !important; text-align:left; cursor:pointer; }
 /* #lastRecommendations {} */
 
 .pci-userPicture {max-width:120px; max-height:120px;}
@@ -274,4 +275,5 @@ header{box-shadow:none;} /* Don't remove */
 .pci-recomOfAuthors {}
 .pci-recomOfTitle {font-weight:bold;}
 .pci-recomOfSource {font-style:italic;}
+
 

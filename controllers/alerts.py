@@ -145,8 +145,8 @@ def alertUsersLastRecommendations():
 							)
 				if len(myRows)>0:
 					alert_new_recommendations(session, auth, db, userId, msgContents)
-			#user.last_alert = datetime.datetime.now()
-			#user.update_record()
-			#db.commit()
-			sleep(3) # avoids mailer black-listing
+					user.last_alert = datetime.datetime.now()
+					user.update_record()
+					db.commit()
+			sleep(3) # try to avoid mailer black-listing
 
