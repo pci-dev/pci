@@ -94,6 +94,14 @@ auth = Auth(db, host_names=myconf.get('host.names'))
 service = Service()
 plugins = PluginManager()
 
+
+# -------------------------------------------------------------------------
+# HTML editor as a widget
+#from plugin_ckeditor import CKEditor
+#ckeditor = CKEditor(db)     
+#ckeditor.define_tables()
+
+
 # -------------------------------------------------------------------------
 db.define_table('t_thematics',
 	Field('id', type='id'),
@@ -199,7 +207,7 @@ db.define_table('help_texts',
 	Field('id', type='id'),
 	Field('hashtag', type='string', length=128, label=T('Hashtag'), default='#'),
 	Field('lang', type='string', length=10, label=T('Language'), default='default'),
-	Field('contents', type='text', length=1048576, label=T('Contents')),
+	Field('contents', type='text', length=1048576, label=T('Contents')), #, widget=ckeditor.widget),
 	format='%(hashtag)s',
 	migrate=False,
 )
@@ -228,7 +236,7 @@ db.define_table('t_articles',
 	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which no rights are required')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
-	Field('abstract', type='text', length=2097152, label=T('Abstract'), requires=IS_NOT_EMPTY()),
+	Field('abstract', type='text', length=2097152, label=T('Abstract'), requires=IS_NOT_EMPTY()), #, widget=ckeditor.widget),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
 	Field('status', type='string', length=50, default='Pending', label=T('Article status')),
@@ -300,14 +308,16 @@ db.define_table('t_recommendations',
 	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
 	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), requires=IS_NOT_EMPTY()),
-	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''),
+	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''), #, widget=ckeditor.widget),
 	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommendation_state', type='string', length=50, label=T('Recommendation state'),  requires=IS_EMPTY_OR(IS_IN_SET(('Ongoing', 'Recommended', 'Rejected', 'Awaiting revision')))),
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I/we declare that I/we have no conflict of interest with the authors or the content of the article')),
-	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''),
+	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''), #, widget=ckeditor.widget),
+	Field('reply_pdf', type='upload', uploadfield='reply_pdf_data', label=T('Author\'s Reply as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
+	Field('reply_pdf_data', type='blob'), #, readable=False),
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
@@ -336,10 +346,25 @@ db.define_table('t_pdf',
 	Field('recommendation_id', type='reference t_recommendations', ondelete='CASCADE', label=T('Recommendation')),
 	Field('pdf', type='upload', uploadfield='pdf_data', label=T('PDF')),
 	Field('pdf_data', type='blob'),
-	singular=T("PDF file"), 
-	plural=T("PDF files"),
+	singular=T('PDF file'), 
+	plural=T('PDF files'),
 	migrate=False,
 )
+
+
+db.define_table('t_supports',
+	Field('id', type='id', readable=False, writable=False),
+	Field('support_rank', type='integer', label=T('Rank')),
+	Field('support_category', type='string', length=250, label=T('Category')),
+	Field('support_name', type='string', length=512, label=T('Name')),
+	Field('support_url', type='string', length=512, label=T('URL'), requires=IS_EMPTY_OR(IS_URL())),
+	Field('support_logo', type='upload', uploadfield='support_logo_data', label=T('Logo'), requires=IS_IMAGE(extensions=('JPG', 'jpg', 'jpeg', 'PNG', 'png', 'GIF', 'gif'))),
+	Field('support_logo_data', type='blob', readable=False),
+	singular=T('Support'), 
+	plural=T('Supports'),
+	migrate=False,
+)
+db.t_supports.support_logo.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
 
 
 
@@ -349,9 +374,11 @@ db.define_table('t_reviews',
 	Field('reviewer_id', type='reference auth_user', ondelete='RESTRICT', label=T('Reviewer')),
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interest with the authors or the content of the article')),
-	Field('review', type='text', length=2097152, label=T('Review')),
+	Field('review', type='text', length=2097152, label=T('Review as text (MarkDown)')), #, widget=ckeditor.widget),
+	Field('review_pdf', type='upload', uploadfield='review_pdf_data', label=T('Review as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
+	Field('review_pdf_data', type='blob', readable=False),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('review_state', type='string', length=50, label=T('Review state'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Terminated'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Reviewer state'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Terminated'))), writable=False),
 	singular=T("Review"), 
 	plural=T("Reviews"),
 	migrate=False,
@@ -393,6 +420,12 @@ db.define_table('t_suggested_recommenders',
 )
 db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s'))
 
+db.t_suggested_recommenders._after_insert.append(lambda f,i: appendRecommender(f,i))
+def appendRecommender(f, i):
+	a = db.t_articles[f.article_id]
+	if a and a['status'] == 'Awaiting consideration':
+		do_send_email_to_suggested_recommenders(session, auth, db, a['id'])
+
 
 
 db.define_table('t_press_reviews',
@@ -414,7 +447,7 @@ db.define_table('t_comments',
 	Field('article_id', type='reference t_articles', ondelete='CASCADE', label=T('Article')),
 	Field('parent_id', type='reference t_comments', ondelete='CASCADE', label=T('Reply to')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Author')),
-	Field('user_comment', type='text', length=65536, label=T('Comment'), requires=IS_NOT_EMPTY()),
+	Field('user_comment', type='text', length=65536, label=T('Comment'), requires=IS_NOT_EMPTY()), #, widget=ckeditor.widget),
 	Field('comment_datetime', type='datetime', default=request.now, label=T('Date & time'), writable=False),
 	migrate=False,
 	singular=T("Comment"), 

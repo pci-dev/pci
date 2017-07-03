@@ -2,11 +2,16 @@
 
 import re
 import copy
+import tempfile
 from datetime import datetime, timedelta
+import glob
+import os
 
 # sudo pip install tweepy
 #import tweepy
 
+import codecs
+import html2text
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *
@@ -382,7 +387,7 @@ def manage_recommendations():
 		,csv=csv, exportclasses=expClass
 		,paginate=10
 		,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
-		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_pdf.pdf]
+		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_pdf.pdf]
 		,links=links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
@@ -542,6 +547,8 @@ def edit_article():
 				myTitle=getTitle(request, auth, db, '#ManagerEditArticleTitle'),
 				form = form,
 			)
+
+
 
 
 @auth.requires(auth.has_membership(role='manager'))

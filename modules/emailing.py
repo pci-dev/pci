@@ -169,7 +169,7 @@ Yours sincerely,<p>
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
 Your preprint, entitled <b>%(articleTitle)s</b>, has now been reviewed. The referees’ comments are enclosed. As you can see, we found your article very interesting and have suggested its recommendation, subject to certain revisions.<p>
-We shall, in principle, be happy to recommend your article as soon as it has been revised in response to the points raised by the referees. We hope to hear from you within two weeks. Please let us know if you are likely to need much longer than this to make your revisions.<p>
+We shall, in principle, be happy to recommend your article as soon as it has been revised in response to the points raised by the referees. We hope to hear from you as soon as possible to reduce the delays of recommendation.<p>
 When your revised article is ready and you have responded to the reviewers’ questions, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>. Once we have read the revised version, we may decide to recommend it directly, in which case, the recommendation will be published on the <i>%(applongname)s</i> website. Alternatively, a second round of reviews may be needed or it may be decided not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1321,10 +1321,10 @@ Yours sincerely,<p>
 			pass
 		if mail_resu:
 			report.append( 'email sent to %s' % destPerson.flatten() )
-			print 'email sent to %s' % destPerson.flatten() 
+			print 'INFO email sent to %s' % destPerson.flatten() 
 		else:
 			report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-			print 'email NOT SENT to %s' % destPerson.flatten() 
+			print 'INFO email NOT SENT to %s' % destPerson.flatten() 
 		#print '\n'.join(report)
 	if session:
 		if session.flash is None:

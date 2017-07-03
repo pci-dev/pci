@@ -803,9 +803,11 @@ def edit_reply():
 	if not ((art.user_id == auth.user_id or auth.has_membership(role='manager')) and (art.status == 'Awaiting revision')):
 		session.flash = T('Unauthorized', lazy=False)
 		redirect('my_articles')
+	db.t_recommendations.reply_pdf.label=T('OR Upload your reply as PDF file')
 	form = SQLFORM(db.t_recommendations
-				,record=recomm
-				,fields=['reply']
+				,record=recommId
+				,fields=['id', 'reply', 'reply_pdf']
+				,upload=URL('download')
 				,showid=False
 			)
 	if form.process().accepted:
@@ -845,11 +847,13 @@ def edit_review():
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
 				]
 		db.t_reviews.anonymously.label = T('I wish to remain anonymous')
+		db.t_reviews.review_pdf.label = T('OR Upload review as PDF')
 		form = SQLFORM(db.t_reviews
 					,record=review
-					,fields=['anonymously', 'review', 'no_conflict_of_interest']
+					,fields=['anonymously', 'review', 'review_pdf', 'no_conflict_of_interest']
 					,showid=False
 					,buttons=buttons
+					,upload=URL('download')
 				)
 		if form.process().accepted:
 			if form.vars.save:

@@ -113,13 +113,22 @@ def _BaseMenu():
 		),
 	]
 
+def _ToolsMenu():
+	txtMenuTools = T('Tools')
+	return [
+		(txtMenuTools, False, '#', [
+			(T('Convert PDF to MarkDown'),  False, URL('tools', 'convert_pdf_to_markdown', user_signature=True)),
+			#(T('Convert PDF to HTML'),  False, URL('tools', 'convert_pdf_to_html', user_signature=True)),
+		]),
+	]
 
 # Appends administrators menu
 def _AdminMenu():
 	#txtMenuAdmin = IMG(_alt=T('Admin.'), _title=T('Admin.'), _src=URL(c='static',f='images/admin.png'), _class='pci-menuImage')
 	txtMenuAdmin = T('Admin.')
 	return [
-        (txtMenuAdmin, False, '#', [
+		(txtMenuAdmin, False, '#', [
+			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
 			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Email lists'),       False, URL('admin', 'mailing_lists', user_signature=True)),
@@ -153,7 +162,16 @@ def _UserMenu():
 	#myContributionsMenu.append((T('Request a recommendation for your preprint'), False, URL('user', 'new_submission', user_signature=True)))
 
 	# reviews
-	myContributionsMenu.append((T('Your recommendation requests of your preprints'), False, URL('user', 'my_articles', user_signature=True)))
+	nRevisions = db(
+					(db.t_articles.user_id == auth.user_id)
+				  & (db.t_articles.status == 'Awaiting revision')
+				).count()
+	if nRevisions > 0:
+		myContributionsMenu.append(((SPAN(T('Your recommendation requests of your preprints'), _class='pci-enhancedMenuItem')), False, URL('user', 'my_articles', user_signature=True)))
+		contribMenuClass = 'pci-enhancedMenuItem'
+	else:
+		myContributionsMenu.append((T('Your recommendation requests of your preprints'), False, URL('user', 'my_articles', user_signature=True)))
+	
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 			   ).count()
 	nRevOngoing = db(  (db.t_reviews.reviewer_id == auth.user_id) 
@@ -221,8 +239,10 @@ def _UserMenu():
 		nPreprintsRecomPend = db( 	(db.t_articles.status == 'Awaiting consideration') 
 								  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
 								  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) 
+								  & (db.t_suggested_recommenders.declined == False)
 								).count()
-		txtPreprintsRecomPend = 'Do you agree to intiate a recommendation?'
+		#print('nPreprintsRecomPend=%s' % (nPreprintsRecomPend))
+		txtPreprintsRecomPend = 'Do you agree to initiate a recommendation?'
 		if nPreprintsRecomPend > 0:
 			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
 			colorRequests = True
@@ -298,6 +318,9 @@ if auth.has_membership(None, None, 'manager'):
 
 if auth.has_membership(None, None, 'administrator') or auth.has_membership(None, None, 'developper'):
 	response.menu += _AdminMenu()
+
+if auth.has_membership(None, None, 'administrator') or auth.has_membership(None, None, 'manager') or auth.has_membership(None, None, 'developper'):
+	response.menu += _ToolsMenu()
 
 if auth.has_membership(None, None, 'developper'):
 	response.menu += _DevMenu()

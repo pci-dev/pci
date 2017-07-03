@@ -208,7 +208,7 @@ def article_status():
 
 
 # PDF management
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator'))
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def manage_pdf():
 	grid = SQLFORM.grid( db.t_pdf
 		,details=False, editable=True, deletable=True, create=True, searchable=False
@@ -225,6 +225,24 @@ def manage_pdf():
 				myTitle=getTitle(request, auth, db, '#AdminPdfTitle'),
 				grid=grid, 
 			)
+
+
+# Supports management
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def manage_supports():
+	grid = SQLFORM.grid( db.t_supports
+		,details=False, editable=True, deletable=True, create=True, searchable=False
+		,maxtextlength=512, paginate=20
+		,csv=csv, exportclasses=expClass
+		,orderby=db.t_supports.support_rank
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#AdminPdfText'),
+				myTitle=getTitle(request, auth, db, '#AdminPdfTitle'),
+				grid=grid, 
+			)
+
 
 
 

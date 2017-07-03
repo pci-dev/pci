@@ -67,9 +67,22 @@ def social():
 
 def supports():
 	response.view='default/info.html' #OK
+	supports = db(db.t_supports).select(db.t_supports.support_name, db.t_supports.support_url, db.t_supports.support_logo, db.t_supports.support_category, orderby=db.t_supports.support_rank)
+	myTable = []
+	myCategory = ''
+	for support in supports:
+		if (support.support_category or '') != myCategory:
+			myCategory = (support.support_category or '')
+			myTable.append(TR(TD(H1(myCategory)),TD()))
+		myRow = TR(
+				TD( A(support.support_name or '', _target='blank', _href=support.support_url) if support.support_url else SPAN(support.support_name) ),
+				TD(IMG(_src=URL('default', 'download', args=support.support_logo), _width=120) if (support.support_logo is not None and support.support_logo != '') else ('')),
+			)
+		myTable.append(myRow)
 	return dict(
 		myTitle=getTitle(request, auth, db, '#SupportsTitle'),
-		myText=getText(request, auth, db, '#SupportsInfo'),
+		#myText=getText(request, auth, db, '#SupportsInfo'),
+		myText=TABLE(myTable, _class='pci-supports'),
 		shareable=True,
 	)
 

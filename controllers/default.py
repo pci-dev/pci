@@ -26,6 +26,8 @@ myconf = AppConfig(reload=True)
 def loading():
 	return DIV(IMG(_alt='Loading...', _src=URL(c='static', f='images/loading.gif')), _id="loading", _style='text-align:center;')
 
+
+
 # Home page (public)
 def index():
 	#NOTE: do not delete: kept for later use

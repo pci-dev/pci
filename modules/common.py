@@ -252,6 +252,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 			img += [IMG(_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
 	if not(row.already_published):
+		#img += [DIV('PREPRINT', BR(), SPAN(current.T('Submitted '), mkLastChange(row.upload_timestamp), _class='pci-lastArticles-submission-date'), BR(), _class='pci-preprintTag')]
 		img += [DIV('PREPRINT', _class='pci-preprintTag')]
 	resu.append(
 			TD( img, 
@@ -849,7 +850,12 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					,H4(current.T(' by '), UL(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-					,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+					,SPAN('A recommendation of:', _class='pci-recommOf')
+					,DIV(myArticle, _class='pci-recommOfDiv')
+					,DIV( 
+							I(recomm.last_change.strftime('Recommended: %d %B %Y')) if recomm.last_change else ''
+					)
+					,HR()
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 					, _class='pci-recommendation-div'
 				)
@@ -875,11 +881,34 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 							H4(current.T('Reviewed by'),' ',mkUser(auth, db, review.reviewer_id, linked=not(printable)),(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
 						)
 					myReviews.append(BR())
-					myReviews.append(DIV(WIKI(review.review or ''), _class='pci-bigtext margin'))
+					if len(review.review or '')>2:
+						myReviews.append(DIV(WIKI(review.review), _class='pci-bigtext margin'))
+						if review.review_pdf:
+							myReviews.append(DIV(A(current.T('Download the review (PDF file)'), _href=URL('default', 'download', args=review.review_pdf), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'))
+					elif review.review_pdf:
+						myReviews.append(DIV(A(current.T('Download the review (PDF file)'), _href=URL('default', 'download', args=review.review_pdf), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'))
+					else:
+						#myReviews.append(DIV(SPAN(current.T('Unavailable')), _class='pci-bigtext margin'))
+						pass
+						
 			if recomm.reply:
+				if recomm.reply_pdf:
+					reply = DIV(
+							H4(B(current.T('Author\'s reply:'))),
+							DIV(WIKI(recomm.reply), _class='pci-bigtext'),
+							DIV(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'),
+							_style='margin-top:32px;',
+						)
+				else:
+					reply = DIV(
+							H4(B(current.T('Author\'s reply:'))),
+							DIV(WIKI(recomm.reply), _class='pci-bigtext'),
+							_style='margin-top:32px;',
+						)
+			elif recomm.reply_pdf:
 				reply = DIV(
 						H4(B(current.T('Author\'s reply:'))),
-						DIV(WIKI(recomm.reply), _class='pci-bigtext'),
+						DIV(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'),
 						_style='margin-top:32px;',
 					)
 			else:
@@ -889,9 +918,15 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), UL(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-						,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-						,DIV(SPAN('A recommendation of the preprint:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+						,SPAN('A recommendation of the preprint:', _class='pci-recommOf')
+						,DIV(myArticle, _class='pci-recommOfDiv')
+						,DIV( 
+							  I(art.upload_timestamp.strftime('Submitted: %d %B %Y')) if art.upload_timestamp else ''
+							 ,', '
+							 ,I(recomm.last_change.strftime('Recommended: %d %B %Y')) if recomm.last_change else ''
+						)
+						,HR()
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
 						,reply
@@ -1012,6 +1047,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	
 	###NOTE: here start recommendations display
 	iRecomm = 0
+	reply_filled = False
 	for recomm in recomms:
 		iRecomm += 1
 		recommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
@@ -1044,7 +1080,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			)
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button allowing recommendation edition
-				myContents.append(DIV(A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-default'), 
+				myContents.append(DIV(A(SPAN(current.T('Write or edit your decision / recommendation'), _class='buttontext btn btn-default'), 
 											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 										_class='pci-EditButtons'))
 				
@@ -1091,20 +1127,21 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				if review.review_state == 'Under consideration': 
 					existOngoingReview = True
 				
-				# No one is allowd to see ongoing reviews
+			for review in reviews:
+				# No one is allowd to see ongoing reviews ...
 				hideOngoingReview = True
-				if (review.reviewer_id == auth.user_id):
-					# ...  except the reviewer himself ...
+				if (art.user_id == auth.user_id) and (recomm.is_closed or art.status=='Awaiting revision'): # ... except the author for a closed decision/recommendation ...
 					hideOngoingReview = False
-				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id):
-					# ... or he/she is THE recommender ...
+				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Terminated')): # ...  except the reviewer himself once accepted ...
 					hideOngoingReview = False
-				if auth.has_membership(role='manager'):
-					# ... or a manager
+				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id): # ... or he/she is THE recommender ...
 					hideOngoingReview = False
+				if auth.has_membership(role='manager'): # ... or a manager
+					hideOngoingReview = False
+				#print "hideOngoingReview=%s" % (hideOngoingReview)
 				
-				if not(hideOngoingReview):
-					if (review.reviewer_id==auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status=='Under consideration') and (review.review_state=='Pending') and not(printable) and not(quiet):
+				if (review.reviewer_id==auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status=='Under consideration') and not(printable) and not(quiet):
+					if (review.review_state=='Pending'):
 						# reviewer's buttons in order to accept/decline pending review
 						myReviews.append(DIV(
 										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-success'), 
@@ -1113,27 +1150,35 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 											_href=URL(c='user', f='decline_new_review', vars=dict(reviewId=review.id), user_signature=True), _class='button'),
 										_class='pci-opinionform'
 									))
-					elif (review.review_state != 'Pending'): # review accepted or terminated
-						# display the review
-						if review.anonymously:
-							myReviews.append(
-								SPAN(I(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
-							)
-						else:
-							reviewer = db(db.auth_user.id==review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-							myReviews.append(
-								SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
-							)
-						myReviews.append(BR())
-						myReviews.append(DIV(WIKI(review.review or ''), _class='pci-bigtext margin'))
-						# buttons allowing to edit and validate the review
-						if (review.reviewer_id==auth.user_id) and (review.review_state == 'Under consideration') and (art.status == 'Under consideration') and not(printable) and not(quiet):
-							# reviewer's buttons in order to edit/complete pending review
-							myReviews.append(DIV(
-												A(SPAN(current.T('Write or edit your review'), _class='buttontext btn btn-default'), _href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True)), 
-												#A(SPAN(current.T('Review completed'), _class='buttontext btn btn-success'+(' disabled' if (review.review or '')=='' else '')), _href=URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True)), 
-												_class='pci-EditButtons')
-											)
+				
+				if not(hideOngoingReview):
+					# display the review
+					myReviews.append(HR())
+					if review.anonymously:
+						myReviews.append(
+							SPAN(I(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+						)
+					else:
+						reviewer = db(db.auth_user.id==review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+						myReviews.append(
+							SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+						)
+					myReviews.append(BR())
+					if len(review.review or '')>2:
+						myReviews.append(DIV(WIKI(review.review), _class='pci-bigtext margin'))
+						if review.review_pdf:
+							myReviews.append(DIV(A(current.T('Download the review (PDF file)'), _href=URL('default', 'download', args=review.review_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'))
+					elif review.review_pdf:
+						myReviews.append(DIV(A(current.T('Download the review (PDF file)'), _href=URL('default', 'download', args=review.review_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'), _class='pci-bigtext margin'))
+
+					# buttons allowing to edit and validate the review
+					if (review.reviewer_id==auth.user_id) and (review.review_state == 'Under consideration') and (art.status == 'Under consideration') and not(printable) and not(quiet):
+						# reviewer's buttons in order to edit/complete pending review
+						myReviews.append(DIV(
+											A(SPAN(current.T('Write, edit or upload your review'), _class='buttontext btn btn-default'), _href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True)), 
+											#A(SPAN(current.T('Review completed'), _class='buttontext btn btn-success'+(' disabled' if (review.review or '')=='' else '')), _href=URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True)), 
+											_class='pci-EditButtons')
+										)
 			
 			myContents.append(HR())
 			if recomm.recommendation_state == 'Recommended':
@@ -1156,30 +1201,36 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button for recommendation edition
-				myContents.append(DIV(A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-default'), 
+				myContents.append(DIV(A(SPAN(current.T('Write or edit your decision / recommendation'), _class='buttontext btn btn-default'), 
 										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 									_class='pci-EditButtons'))
 
 				# final opinion allowed if comments filled and no ongoing review
-				if (len(recomm.recommendation_comments or '')>50) and not(existOngoingReview):# and len(reviews)>=2 :
+				if (len(recomm.recommendation_comments or '')>5) and not(existOngoingReview):# and len(reviews)>=2 :
 					allowOpinion = recomm.id
 				else:
 					allowOpinion = -1
 				
 			
-			if (recomm.reply is not None) and (len(recomm.reply) > 0):
-				myContents.append(B(current.T('Author\'s Reply:'))+BR()+DIV(WIKI(recomm.reply or ''), _class='pci-bigtext'))
-			
+			if (((recomm.reply is not None) and (len(recomm.reply) > 0)) or recomm.reply_pdf is not None):
+				myContents.append(HR())
+				myContents.append(DIV(B(current.T('Author\'s Reply:'))))
+			if ((recomm.reply is not None) and (len(recomm.reply) > 0)):
+				myContents.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
+			if recomm.reply_pdf:
+				myContents.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+			if (recomm.reply_pdf or len(recomm.reply)>5):
+				reply_filled = True
 			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
 			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
-				myContents.append(DIV(A(SPAN(current.T('Edit your reply to recommender'), 
+				myContents.append(DIV(A(SPAN(current.T('Write, edit or upload your reply to recommender'), 
 											_class='buttontext btn btn-info'), 
 											_href=URL(c='user', f='edit_reply', vars=dict(recommId=recomm.id), user_signature=True)),
 										_class='pci-EditButtons'))
 			
 			
 	myContents.append(HR())
-	if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
+	if reply_filled and (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
 		# author's button enabling resubmission
 		myContents.append(DIV(A(SPAN(current.T('Revision terminated: submit new version and close revision process'), _class='buttontext btn btn-success'), 
 										_href=URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True), 

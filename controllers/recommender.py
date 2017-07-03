@@ -756,7 +756,7 @@ def reviews():
 			,searchable=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
-			,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.review_state]
+			,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.review_pdf, db.t_reviews.review_state]
 			,selectable=selectable
 		)
 		
@@ -791,9 +791,8 @@ def add_recommender_as_reviewer():
 	recomm = db.t_recommendations[recommId]
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
 	else:
-		db.t_reviews.validate_and_insert(recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state='Under consideration')
+		rid = db.t_reviews.validate_and_insert(recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state='Under consideration')
 	redirect(request.env.http_referer)
 
 
@@ -1077,6 +1076,8 @@ def edit_recommendation():
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate') if (nbCoRecomm>0) else '',
 				]
 		db.t_recommendations.recommendation_state.default = 'Recommended'
+		db.t_recommendations.recommendation_title.label = T('Decision or recommendation title')
+		db.t_recommendations.recommendation_comments.label = T('Decision or recommendation')
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False

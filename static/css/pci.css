@@ -18,6 +18,13 @@ div.w2p_flash.alert {background-color: #fafaff; background-image:initial; top:90
 .navbar-default .navbar-nav>li>a:hover {color:#000;}
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {background-color: #f8f5f0; color:#000;}
 
+/*.tooltip {
+	-webkit-transition: all 150ms ease-in-out;
+	-moz-transition: all 150ms ease-in-out;
+	-ms-transition: all 150ms ease-in-out;
+	-o-transition: all 150ms ease-in-out;
+	transition: all 150ms ease-in-out;
+}*/
 
 /*
 navbar-default .navbar-brand,.navbar-default .navbar-link:hover,.navbar-default .btn-link:hover,.navbar-default .btn-link:focus,.navbar-inverse .navbar-brand,.navbar-inverse .navbar-link:hover,.navbar-inverse .btn-link:hover,.navbar-inverse .btn-link:focus {color:#000;}
@@ -200,6 +207,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-lastArticles-row:nth-child(even) td {background-color:#f7f9fb;}
 .pci-lastArticles-row:nth-child(odd)  td {background-color:#e5eef4;}
 .pci-lastArticles-date {width: 80px; text-align:center; font-style:italic; font-size:8pt;}
+.pci-lastArticles-submission-date {width: 100%; text-align:center; font-weight:normal; font-style:italic; font-size:8pt;}
 .pci-lastArticles-article {font-size:13px; }
 .pci-lastArticles-linkcol {width:80px; text-align:center;}
 .pci-lastArticles-cell {padding: 8px; text-align:justify; /*cursor:pointer;*/ }
@@ -259,8 +267,7 @@ header{box-shadow:none;} /* Don't remove */
 }
 .pci-footer-ul {display: block; color: black;}
 .pci-footer-ul li {display:block;}
-.pci-footer-li a {color:black; 
-}
+.pci-footer-li a {color:black; }
 .pci-footer-li a .pci-enhancedMenuItem {color:white;}
 
 .pci-citation {font-size:10px; border-left:1px solid black; padding-left:8px; margin-top:8px; margin-bottom:8px;}
@@ -276,4 +283,9 @@ header{box-shadow:none;} /* Don't remove */
 .pci-recomOfTitle {font-weight:bold;}
 .pci-recomOfSource {font-style:italic;}
 
+.pci-supports td {padding-top: 32px; padding-bottom: 8px; padding-left:20px; padding-right:20px;}
+.pci-converted-pdf-area {width:70%; height:500px; margin-left:auto; margin-right:auto; font-size:12px; font-weight:normal;}
+
+
+/* .pci-download-link {margin-bottom: 64px;} */
 
