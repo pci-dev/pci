@@ -189,8 +189,9 @@ def article_status():
 	write_auth = auth.has_membership('developper')
 	db.t_status_article._id.represent = lambda text, row: SPAN(T(row.status).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
 	#db.t_status_article.status.represent = lambda text, row: SPAN(T(text).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
+	db.t_status_article.status.writable = write_auth
 	grid = SQLFORM.grid( db.t_status_article
-		,searchable=False, create=False, details=False, deletable=False
+		,searchable=False, create=write_auth, details=False, deletable=write_auth
 		,editable=write_auth
 		,maxtextlength=500,paginate=100
 		,csv=csv, exportclasses=expClass

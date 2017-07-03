@@ -147,7 +147,7 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role='manager'))
 def completed_articles():
 	db.t_articles.status.label = T('Outcome')
-	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected'], 'completed_articles')
+	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected', 'Not considered'], 'completed_articles')
 	resu['myText']=getText(request, auth, db, '#ManagerCompletedArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerCompletedArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageCompletedArticles')
@@ -262,9 +262,16 @@ def _manage_articles(statuses, whatNext):
 												_class='button', 
 												_title=current.T('Send an email to all recommenders not already suggested')
 											) if (row.status == 'Awaiting consideration' 
-													and row.already_published is False 
-													#and datetime.datetime.now() - row.last_status_change > timedelta(days=7)
-												) else '',
+													and row.already_published is False ) else '',
+											#TODO
+											#A(SPAN(current.T('Set "Not considered"'), 
+												#_class='buttontext btn btn-danger pci-button'), 
+												#_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
+												#_class='button', 
+												#_title=current.T('Set this preprint as "Not considered"')
+											#) if (row.status == 'Awaiting consideration' 
+													#and row.already_published is False 
+													#and datetime.datetime.now() - row.last_status_change > timedelta(days=30) ) else '',
 										)
 					),
 			]
@@ -585,5 +592,21 @@ def warn_all_recommenders():
 		session.flash = T('Unavailable')
 	articleId = request.vars['articleId']
 	do_send_email_to_all_recommenders(session, auth, db, articleId)
+	redirect(request.env.http_referer)
+
+
+
+@auth.requires(auth.has_membership(role='manager'))
+def set_not_considered():
+	if not('articleId' in request.vars):
+		session.flash = T('Unavailable')
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	if art is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if art.status == 'Awaiting consideration':
+		art.status = 'Not considered'
+		art.update_record()
+		session.flash = T('Article set "Not considered"')
 	redirect(request.env.http_referer)
 

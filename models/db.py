@@ -215,7 +215,7 @@ db.define_table('help_texts',
 
 db.define_table('t_status_article',
 	Field('status', type='string', length=50, label=T('Status'), writable=False, requires=IS_NOT_EMPTY()),
-	Field('color_class', type='string', length=50, default='btn-default', requires=IS_NOT_EMPTY()),
+	Field('color_class', type='string', length=50, default='default', requires=IS_NOT_EMPTY()),
 	Field('explaination', type='text', label=T('Explaination')),
 	Field('priority_level', type='text', length=1, requires=IS_IN_SET(('A', 'B', 'C'))),
 	format='%(status)s',
