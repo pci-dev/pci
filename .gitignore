@@ -1,4 +1,3 @@
-modules/*.pyc
 *.pyc
 *~
 errors/*
