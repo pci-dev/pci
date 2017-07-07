@@ -20,20 +20,58 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 @auth.requires(auth.has_membership(role='recommender'))
 def new_submission():
-	myText = DIV(
-				getText(request, auth, db, '#NewRecommendationInfo'),
-				DIV(
+	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
+	if ethics_not_signed:
+		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
+		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
+		myEthical = DIV(
+				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
+				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
+				FORM(
+					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of ethical conduct'))), _style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-info pci-panelButton"), 
+					_action=URL('recommender', 'direct_submission'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT("""
+			jQuery(document).ready(function(){
+				
+				if(jQuery('#ethics_approved').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+				
+				jQuery('#ethics_approved').change(function(){
+					if(jQuery('#ethics_approved').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+						//jQuery(':submit').val('');
+					}
+				});
+			});
+			""")
+	else:
+		myEthical = DIV(
 					A(current.T("Recommend a postprint"), 
 						_title=T('published articles'),
 						_href=URL('recommender', 'direct_submission', user_signature=True), 
 						_class="btn btn-info pci-panelButton"),
 					_style='margin-top:16px; text-align:center;',
 				)
-				
+		myScript = ''
+
+	myText = DIV(
+				getText(request, auth, db, '#NewRecommendationInfo'),
+				myEthical,
 			)
 	response.view='default/info.html'
 	return dict(
 		myText = myText,
+		myFinalScript = myScript,
 	)
 
 
@@ -42,6 +80,7 @@ def new_submission():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
+	#TODO: exclude author from reviewers!
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
 	qy_reviewers = temp_db.define_table('qy_reviewers',
@@ -290,7 +329,8 @@ def article_details():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	amIAllowed = db( (db.t_recommendations.article_id == articleId) ).count() == 0
 	if not(amIAllowed):
@@ -332,30 +372,119 @@ def article_details():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def accept_new_article_to_recommend():
+	if not('articleId' in request.vars):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	articleId = request.vars['articleId']
+	if articleId is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	#TODO: no_conflict_of_interest AS CHECKBOX, disable submit if not checked
+	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
+	if ethics_not_signed:
+		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
+		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
+		myEthical = DIV(
+				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
+				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
+				FORM(
+					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of Ethical Conduct'))), _style='padding:16px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
+					hidden=dict(articleId=articleId),
+					_action=URL('recommender', 'do_accept_new_article_to_recommend'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT("""
+			jQuery(document).ready(function(){
+				
+				if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+				
+				jQuery('#ethics_approved').change(function(){
+					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				
+				jQuery('#no_conflict_of_interest').change(function(){
+					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+			});
+			""")
+	else:
+		myEthical = DIV(
+				FORM(
+					DIV(B(T('You agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
+					hidden=dict(articleId=articleId, ethics_approved=True),
+					_action=URL('recommender', 'do_accept_new_article_to_recommend'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT("""
+			jQuery(document).ready(function(){
+				
+				if(jQuery('#no_conflict_of_interest').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+				
+				jQuery('#no_conflict_of_interest').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+			});
+			""")
+
 	myTitle = getTitle(request, auth, db, '#AcceptPreprintInfoTitle')
 	myText = DIV(
 			getText(request, auth, db, '#AcceptPreprintInfoText'),
-			DIV(
-				A(current.T("Yes, I will consider this preprint for recommendation"), 
-					_href=URL('recommender', 'do_accept_new_article_to_recommend', vars=request.vars, user_signature=True), 
-					_class="btn btn-success pci-panelButton"),
-				_style='margin-top:16px; text-align:center;',
-			)
-		)
+			myEthical,
+	)
 	response.view='default/info.html' #OK
 	return dict(
 		myText=myText,
 		myTitle=myTitle,
+		myFinalScript = myScript,
 	)
 
 
 
 @auth.requires(auth.has_membership(role='recommender'))
 def do_accept_new_article_to_recommend():
+	theUser = db.auth_user[auth.user_id]
+	if 'ethics_approved' in request.vars:
+		theUser.ethical_code_approved = True
+		theUser.update_record()
+	if not(theUser.ethical_code_approved):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	if 'no_conflict_of_interest' not in request.vars:
+		raise HTTP(403, "403: "+T('Forbidden'))
+	noConflict = request.vars['no_conflict_of_interest']
+	if noConflict != "yes":
+		raise HTTP(403, "403: "+T('Forbidden'))
 	articleId = request.vars['articleId']
 	article = db.t_articles[articleId]
 	if article.status == 'Awaiting consideration':
-		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state=None)
+		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state=None, no_conflict_of_interest=True)
 		article.status = 'Under consideration'
 		article.update_record()
 		#redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
@@ -371,10 +500,12 @@ def do_accept_new_article_to_recommend():
 def recommend_article():
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()
@@ -395,10 +526,12 @@ def recommend_article():
 def reject_article():
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()
@@ -419,10 +552,12 @@ def reject_article():
 def revise_article():
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()
@@ -457,13 +592,16 @@ def decline_new_article_to_recommend():
 def suggest_review_to():
 	reviewerId = request.vars['reviewerId']
 	if reviewerId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()
@@ -478,13 +616,16 @@ def suggest_review_to():
 def suggest_collaboration_to():
 	reviewerId = request.vars['reviewerId']
 	if reviewerId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()
@@ -588,6 +729,13 @@ def process_opinion():
 
 @auth.requires(auth.has_membership(role='recommender'))
 def direct_submission():
+	theUser = db.auth_user[auth.user_id]
+	if 'ethics_approved' in request.vars:
+		theUser.ethical_code_approved = True
+		theUser.update_record()
+	if not(theUser.ethical_code_approved):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	db.t_articles.user_id.default = None
 	db.t_articles.user_id.writable = False
 	db.t_articles.status.default = 'Under consideration'
@@ -636,7 +784,8 @@ def recommendations():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	amIAllowed = db(
 					(
@@ -721,7 +870,8 @@ def reviews():
 	recommId = request.vars['recommId']
 	recomm = db.t_recommendations[recommId]
 	if recomm == None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
@@ -841,26 +991,6 @@ def reviewers():
 		else:
 			myContents = ''
 			txtbtn = current.T('Search for a reviewer?')
-		#myContents = DIV(
-			#LABEL(T('Current reviewers:')),
-			#UL(reviewersList),
-		#)
-		#db.t_reviews._id.readable = False
-		#db.t_reviews.recommendation_id.default = recommId
-		#db.t_reviews.recommendation_id.writable = False
-		#db.t_reviews.recommendation_id.readable = False
-		#db.t_reviews.review.writable = False
-		#db.t_reviews.review.readable = False
-		#db.t_reviews.anonymously.writable = False
-		#db.t_reviews.anonymously.readable = False
-		#db.t_reviews.last_change.writable = False
-		#db.t_reviews.last_change.readable = False
-		#db.t_reviews.no_conflict_of_interest.writable = False
-		#db.t_reviews.no_conflict_of_interest.readable = False
-		#db.t_reviews.reviewer_id.writable = True
-		#db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
-		#db.t_reviews.review_state.writable = False
-		#db.t_reviews.review_state.readable = False
 		myUpperBtn = DIV(
 							A(SPAN(txtbtn, _class='buttontext btn btn-info'), 
 								_href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList), user_signature=True)),
@@ -870,12 +1000,6 @@ def reviewers():
 										_href=URL(c='recommender', f='email_for_reviewer', vars=dict(recommId=recommId), user_signature=True)),
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
 						)
-		#alreadyRev = db(db.t_reviews.recommendation_id==recommId)._select(db.t_reviews.reviewer_id)
-		#otherRevQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user.registration_key=='') & (~db.auth_user.id.belongs(alreadyRev)) )
-		#db.t_reviews.reviewer_id.requires = IS_IN_DB(otherRevQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
-		#form = SQLFORM(db.t_reviews)
-		#if form.process().accepted:
-			#redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id), user_signature=True))
 		myAcceptBtn = DIV(
 							A(SPAN(T('Done'), _class='buttontext btn btn-success'), 
 								_href=URL(c='recommender', f='email_to_selected_reviewers', vars=dict(recommId=recommId))),
@@ -974,15 +1098,10 @@ def add_contributor():
 		if form.process().accepted:
 			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id), user_signature=True))
 		myAcceptBtn = DIV(
-							#A(SPAN(current.T('Write or edit your recommendation'), _class='buttontext btn btn-info'), 
-										#_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
 							A(SPAN(current.T('Add a co-recommender later'), _class='buttontext btn btn-info'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)) if len(contributorsListSel)==0 else '', 
-										#_href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True)),
 							A(SPAN(current.T('Done'), _class='buttontext btn btn-success'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)), 
-										#_title=current.T('Click here to check the final recommendation of this article'),
-										#_class=('disabled' if not( len(recomm.recommendation_comments)>50 and len(contributorsList)>0 ) else '')),
 							_style='margin-top:64px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
@@ -1078,6 +1197,7 @@ def edit_recommendation():
 		db.t_recommendations.recommendation_state.default = 'Recommended'
 		db.t_recommendations.recommendation_title.label = T('Decision or recommendation title')
 		db.t_recommendations.recommendation_comments.label = T('Decision or recommendation')
+		db.t_recommendations.no_conflict_of_interest.writable = not(recomm.no_conflict_of_interest)
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
@@ -1179,13 +1299,16 @@ def my_press_reviews():
 def do_cancel_press_review():
 	recommId = request.vars['recommId']
 	if recommId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	art = db.t_articles[recomm.article_id]
 	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
 	if recomm.recommender_id != auth.user_id:
 		session.flash = auth.not_authorized()

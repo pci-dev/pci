@@ -715,20 +715,101 @@ def my_reviews():
 
 @auth.requires_login()
 def accept_new_review():
+	if not('reviewId' in request.vars):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	reviewId = request.vars['reviewId']
+	if reviewId is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	rev = db.t_reviews[reviewId]
+	if rev is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	if rev['reviewer_id'] != auth.user_id:
+		raise HTTP(403, "403: "+T('Forbidden'))
+	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
+	if ethics_not_signed:
+		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
+		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
+		myEthical = DIV(
+				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
+				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
+				FORM(
+					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of ethical conduct'))), _style='padding:16px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
+					hidden=dict(reviewId=reviewId),
+					_action=URL('user', 'do_accept_new_review'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT("""
+			jQuery(document).ready(function(){
+				
+				if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+				
+				jQuery('#ethics_approved').change(function(){
+					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				
+				jQuery('#no_conflict_of_interest').change(function(){
+					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+			});
+			""")
+	else:
+		myEthical = DIV(
+				FORM(
+					DIV(B(T('You agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
+					hidden=dict(reviewId=reviewId, ethics_approved=True),
+					_action=URL('user', 'do_accept_new_review'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT("""
+			jQuery(document).ready(function(){
+				
+				if(jQuery('#no_conflict_of_interest').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+				
+				jQuery('#no_conflict_of_interest').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+			});
+			""")
+
 	myTitle = getTitle(request, auth, db, '#AcceptReviewInfoTitle')
 	myText = DIV(
 			getText(request, auth, db, '#AcceptReviewInfoText'),
-			DIV(
-				A(current.T("Yes, I consider this preprint for review"), 
-					_href=URL('user', 'do_accept_new_review', vars=request.vars, user_signature=True), 
-					_class="btn btn-success pci-panelButton"),
-				_style='margin-top:16px; text-align:center;',
-			)
+			myEthical,
 		)
 	response.view='default/info.html' #OK
 	return dict(
 		myText=myText,
 		myTitle=myTitle,
+		myFinalScript = myScript,
 	)
 
 
@@ -737,13 +818,24 @@ def do_accept_new_review():
 	if 'reviewId' not in request.vars:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	reviewId = request.vars['reviewId']
+	theUser = db.auth_user[auth.user_id]
+	if 'ethics_approved' in request.vars and theUser.ethical_code_approved is False:
+		theUser.ethical_code_approved = True
+		theUser.update_record()
+	if not(theUser.ethical_code_approved):
+		raise HTTP(403, "403: "+T('Forbidden'))
+	if 'no_conflict_of_interest' not in request.vars:
+		raise HTTP(403, "403: "+T('Forbidden'))
+	noConflict = request.vars['no_conflict_of_interest']
+	if noConflict != "yes":
+		raise HTTP(403, "403: "+T('Forbidden'))
 	rev = db.t_reviews[reviewId]
 	if rev is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if rev.reviewer_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_reviews')
+		raise HTTP(403, "403: "+T('Forbidden'))
 	rev.review_state = 'Under consideration'
+	rev.no_conflict_of_interest = True
 	rev.update_record()
 	# email to recommender sent at database level
 	recomm = db.t_recommendations[rev.recommendation_id]
@@ -846,6 +938,7 @@ def edit_review():
 					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
 					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
 				]
+		db.t_reviews.no_conflict_of_interest.writable = not(review.no_conflict_of_interest)
 		db.t_reviews.anonymously.label = T('I wish to remain anonymous')
 		db.t_reviews.review_pdf.label = T('OR Upload review as PDF')
 		form = SQLFORM(db.t_reviews

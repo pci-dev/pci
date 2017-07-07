@@ -71,6 +71,12 @@ def index():
 }""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
 				_type='text/javascript'
 		)
+	
+	if auth.user_id:
+		theUser = db.auth_user[auth.user_id]
+		if theUser.ethical_code_approved is False:
+			redirect(URL('about','ethics'))
+
 	response.view='default/index.html'
 	if request.user_agent().is_mobile:
 		return dict(
@@ -115,6 +121,7 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
+	#db.auth_user.ethical_code_approved.writable = not(db.auth_user[auth.user_id].ethical_code_approved or False) #WARNING don't allow reversion of agreement if uncommented
 	if request.args[0] == 'login':
 		myHelp = getHelp(request, auth, db, '#LogIn')
 		myTitle = getTitle(request, auth, db, '#LogInTitle')
@@ -125,6 +132,7 @@ def user():
 		myHelp = getHelp(request, auth, db, '#CreateAccount')
 		myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
 		myText = getText(request, auth, db, '#CreateAccountText')
+		db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
 		if len(request.args) >= 3 and request.args[1] and request.args[2]:
 			auth.settings.register_next = URL(request.args[1], request.args[2])
 	elif request.args[0] == 'profile':

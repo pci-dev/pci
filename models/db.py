@@ -128,7 +128,7 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('last_alert', type='datetime', label=T('Last alert'), writable=False, readable=False),
 	Field('registration_datetime', type='datetime', default=request.now, label=T('Registration date & time'), writable=False, readable=False),
-
+	Field('ethical_code_approved', type='boolean', default=False, label=SPAN(' * ', _style='color:red;')+SPAN(T('I agree to comply with the '))+A(T('Code of Ethical Conduct'), _target="_blank", _href=URL('about', 'ethics'))),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user.first_name.label=T('Given name(s)')

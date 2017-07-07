@@ -75,7 +75,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-myLogo {height: 100px; margin-bottom:8px; background-image: url(../images/small-background.png); background-size:contain; background-position: left center; background-repeat:no-repeat;}
 .pci-imgLogo {width:4cm;}
 .pci-myTitleNoImage {height: 64px; margin-bottom:8px;}
-.pci-myTitleText {}
+.pci-myTitleText {font-weight: bold; font-size:30px; color:#598398;}
 
 .panel { border:none; border-radius:8px;}
 .list-group-item {border:none; padding: 8px; border-color:#f0f0f0;}
@@ -288,4 +288,7 @@ header{box-shadow:none;} /* Don't remove */
 
 
 /* .pci-download-link {margin-bottom: 64px;} */
+
+.pci-embeddedEthicContents {}
+.pci-embeddedEthic {border: 2px solid red; padding-left:32px; padding-right:32px; padding-bottom:32px;}
 

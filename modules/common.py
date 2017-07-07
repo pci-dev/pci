@@ -52,9 +52,6 @@ def mkTopPanel(myconf, auth, inSearch=False):
 							_href=URL('user', 'new_submission', user_signature=True), 
 							_class="btn btn-success"))
 	else:
-		#panel.append(A(current.T("Request a recommendation for your preprint"), 
-							#_href=URL('default', 'user'),
-							#_class="btn btn-success"))
 		panel.append(DIV(
 						A(current.T("Request a recommendation for your preprint"), 
 							_href=URL('user', 'new_submission', user_signature=True), 
@@ -73,33 +70,6 @@ def mkTopPanel(myconf, auth, inSearch=False):
 							_href=URL('recommender', 'all_awaiting_articles', user_signature=True), 
 							_class="btn btn-default"))
 	return DIV(panel, _style='margin-top:20px; margin-bottom:20px; text-align:left;')
-
-
-## Builds the right-panel for home page
-#def mkPanel(myconf, auth, inSearch=False):
-	#if inSearch:
-		#panel = [LI(A(current.T('Search recommended articles'), _href='#TOP', _class='btn btn-default'), _class="list-group-item list-group-item-centered"),]
-	#else:
-		#panel = [LI(A(current.T('Search recommended articles'), _href=URL('public', 'recommended_articles'), _class='btn btn-default'), _class="list-group-item list-group-item-centered"),]
-	#if auth.user_id is not None:
-		##panel.append(LI(A(current.T("Request a recommendation"), _href=URL('user', 'my_articles', args=['new', 't_articles'], user_signature=True), _class="btn btn-success"), _class="list-group-item list-group-item-centered"))
-		#panel.append(LI(A(current.T("Request a recommendation for your preprint for a recommendation"), 
-							#_href=URL('user', 'new_submission', user_signature=True), 
-							#_class="btn btn-success"), 
-						#_class="list-group-item list-group-item-centered"))
-	#else:
-		#panel.append(LI(A(current.T("Log in before requesting a recommendation"), _href=URL('default', 'user')), _class="list-group-item"))
-	#if auth.has_membership('recommender'):
-		#panel.append(LI(A(current.T("Start a recommendation process"), 
-							#_href=URL('recommender', 'new_submission', user_signature=True), 
-							#_class="btn btn-info"), 
-						#_class="list-group-item list-group-item-centered"))
-		#panel.append(LI(A(current.T("Template email for authors"), 
-							#_href=URL('recommender', 'email_for_author', user_signature=True), 
-							#_class="btn btn-info"), 
-						#_class="list-group-item list-group-item-centered"))
-	#return DIV(UL( panel, _class="list-group"), _class="panel panel-info")
-
 
 
 
@@ -1160,9 +1130,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 						)
 					else:
 						reviewer = db(db.auth_user.id==review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-						myReviews.append(
-							SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
-						)
+						if reviewer is not None:
+							myReviews.append(
+								SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+							)
 					myReviews.append(BR())
 					if len(review.review or '')>2:
 						myReviews.append(DIV(WIKI(review.review), _class='pci-bigtext margin'))
