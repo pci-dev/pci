@@ -163,6 +163,7 @@ if myconf.get('captcha.private'):
 	auth.settings.register_captcha = None
 	auth.settings.retrieve_username_captcha = False
 	auth.settings.retrieve_password_captcha = None
+auth.messages.email_sent = 'A request of confirmation has been sent to your email address. Please confirm you email address before trying to login.'
 auth.messages.verify_email_subject = '%s: validate your registration' % myconf.get('app.longname')
 auth.messages.verify_email="""
 Welcome %(username)s! 

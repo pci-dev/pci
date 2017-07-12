@@ -844,11 +844,11 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					# display the review
 					if review.anonymously:
 						myReviews.append(
-							H4(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
+							H4(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
 						)
 					else:
 						myReviews.append(
-							H4(current.T('Reviewed by'),' ',mkUser(auth, db, review.reviewer_id, linked=not(printable)),(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
+							H4(current.T('Reviewed by'),' ',mkUser(auth, db, review.reviewer_id, linked=not(printable)),(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
 						)
 					myReviews.append(BR())
 					if len(review.review or '')>2:
@@ -1126,13 +1126,13 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					myReviews.append(HR())
 					if review.anonymously:
 						myReviews.append(
-							SPAN(I(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+							SPAN(I(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else '')))
 						)
 					else:
 						reviewer = db(db.auth_user.id==review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 						if reviewer is not None:
 							myReviews.append(
-								SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+								SPAN(I(current.T('Reviewed by')+' '+(reviewer.first_name or '')+' '+(reviewer.last_name or '')+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else '')))
 							)
 					myReviews.append(BR())
 					if len(review.review or '')>2:

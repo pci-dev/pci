@@ -57,7 +57,7 @@ def validate_ethics():
 	if 'ethics_approved' in request.vars:
 		theUser.ethical_code_approved = True
 		theUser.update_record()
-	redirect(request.env.http_referer)
+	redirect(URL('default','index'))
 
 
 
