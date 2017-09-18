@@ -88,21 +88,22 @@ def testUserRecommendedAlert():
 				articleIdsQy = db.executesql('SELECT * FROM alert_last_recommended_article_ids_for_user(%s);', placeholders=[userId])
 				if len(articleIdsQy)>0:
 					artIds = articleIdsQy[0][0]
-					query = db( (db.t_articles.id.belongs(artIds)) ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-					n = len(query)
-					myRows = []
-					odd = True
-					for row in query:
-						myRows.append(_mkArticleRowForEmail(Storage(row), odd))
-						odd = not(odd)
-					msgContents = DIV(
-								TABLE(
-									TBODY(myRows), 
-									_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
-									), 
-								)
-					if len(myRows)>0:
-						alert_new_recommendations(session, auth, db, userId, msgContents)
+					if artIds:
+						query = db( (db.t_articles.id.belongs(artIds)) ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+						n = len(query)
+						myRows = []
+						odd = True
+						for row in query:
+							myRows.append(_mkArticleRowForEmail(Storage(row), odd))
+							odd = not(odd)
+						msgContents = DIV(
+									TABLE(
+										TBODY(myRows), 
+										_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
+										), 
+									)
+						if len(myRows)>0:
+							alert_new_recommendations(session, auth, db, userId, msgContents)
 				
 			redirect(request.env.http_referer)
 		else:
@@ -126,27 +127,28 @@ def alertUsersLastRecommendations():
 			articleIdsQy = db.executesql('SELECT * FROM alert_last_recommended_article_ids_for_user(%s);', placeholders=[userId])
 			if len(articleIdsQy) > 0: # yes, new stuff to display
 				artIds = articleIdsQy[0][0]
-				query = db( 
-						  (db.t_articles.id.belongs(artIds)) 
-						& (db.t_recommendations.article_id==db.t_articles.id) 
-						& (db.t_recommendations.recommendation_state=='Recommended')
-					).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-				n = len(query)
-				myRows = []
-				odd = True
-				for row in query:
-					myRows.append(_mkArticleRowForEmail(Storage(row), odd))
-					odd = not(odd)
-				msgContents = DIV(
-							TABLE(
-								TBODY(myRows), 
-								_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
-								), 
-							)
-				if len(myRows)>0:
-					alert_new_recommendations(session, auth, db, userId, msgContents)
-					user.last_alert = datetime.datetime.now()
-					user.update_record()
-					db.commit()
+				if artIds:
+					query = db( 
+							(db.t_articles.id.belongs(artIds)) 
+							& (db.t_recommendations.article_id==db.t_articles.id) 
+							& (db.t_recommendations.recommendation_state=='Recommended')
+						).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+					n = len(query)
+					myRows = []
+					odd = True
+					for row in query:
+						myRows.append(_mkArticleRowForEmail(Storage(row), odd))
+						odd = not(odd)
+					msgContents = DIV(
+								TABLE(
+									TBODY(myRows), 
+									_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
+									), 
+								)
+					if len(myRows)>0:
+						alert_new_recommendations(session, auth, db, userId, msgContents)
+						user.last_alert = datetime.datetime.now()
+						user.update_record()
+						db.commit()
 			sleep(3) # try to avoid mailer black-listing
 

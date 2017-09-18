@@ -669,7 +669,7 @@ def my_recommendations():
 				dict(header=T('Solicited reviewers'), body=lambda row: mkSollicitedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Refusals to review'),   body=lambda row:   mkDeclinedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T('Ongoing reviews'),    body=lambda row:    mkOngoingRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T('Terminated reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Completed reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 		
@@ -900,7 +900,7 @@ def reviews():
 		query = (db.t_reviews.recommendation_id == recommId)
 		grid = SQLFORM.grid( query
 			,details=True
-			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Terminated' and row.reviewer_id is None)
+			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Completed' and row.reviewer_id is None)
 			,deletable=auth.has_membership(role='manager')
 			,create=False
 			,searchable=False
@@ -1210,7 +1210,7 @@ def edit_recommendation():
 				session.flash = T('Recommendation saved', lazy=False)
 				redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 			elif form.vars.terminate:
-				session.flash = T('Recommendation saved and terminated', lazy=False)
+				session.flash = T('Recommendation saved and completed', lazy=False)
 				art.status = 'Pre-recommended'
 				art.update_record()
 				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress), user_signature=True))

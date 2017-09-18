@@ -1,11 +1,22 @@
 #!/bin/bash -x
 
 # SYNC SOURCE CODE FROM MBIPI TO WEBSITE
-rsync --verbose --stats --progress --recursive --perms --usermap=peercom:www-data --times --links --update --delete --delete-before --exclude='*~' --exclude='*.pyc' --exclude='*.bak' --exclude '.git' --exclude 'sessions' --exclude 'cache' --exclude 'errors' --exclude '*.ini' --exclude '*.old' ~/W/web2py/applications/pcidev/ peercom@peercom-front1:/var/www/peercommunityin/web2py/applications/PCIEvolBiol
+rsync --verbose --stats --progress --recursive --perms --usermap=peercom:www-data \
+		--times --links --update --delete --delete-before \
+		--exclude='*~' \
+		--exclude='*.pyc' \
+		--exclude='*.bak' \
+		--exclude '.git' \
+		--exclude 'sessions' \
+		--exclude 'cache' \
+		--exclude 'errors' \
+		--exclude '*.ini' \
+		--exclude '*.old' \
+		--exclude '*background.png' \
+		~/W/web2py/applications/pcidev/ \
+		peercom@peercom-front1:/var/www/peercommunityin/web2py/applications/PCIEvolBiol
 
-ssh peercom@peercom-front1 "find /var/www/peercommunityin/web2py/applications/PCIEvolBiol -name \\*.pyc -ls"
-ssh peercom@peercom-front1 "find /var/www/peercommunityin/web2py/applications/PCIEvolBiol -name \\*.pyc -exec rm {} \\;"
-ssh peercom@peercom-front1 "touch /var/www/peercommunityin/web2py/wsgihandler.py"
+ssh peercom@peercom-front1 "find /var/www/peercommunityin/web2py/applications/PCIEvolBiol -name \\*.pyc -ls ; find /var/www/peercommunityin/web2py/applications/PCIEvolBiol -name \\*.pyc -exec rm {} \\; ; touch /var/www/peercommunityin/web2py/wsgihandler.py"
 
 exit
 
@@ -14,6 +25,8 @@ echo 'TRUNCATE help_texts;' | psql -h gaia2 -U piry pci_evolbiol
 ssh peercom@peercom-front1 'pg_dump -h mydb1 -p 5432 -U peercom -Fp  -t help_texts -b --data-only --inserts --column-inserts -O -d pci_evolbiol' > help_texts.sql
 cat help_texts.sql | psql -h gaia2 -U piry pci_evolbiol
 
+echo "UPDATE t_reviews SET review_state='Completed' WHERE review_state LIKE 'Terminated';" | ssh peercom@peercom-front1 'psql -h mydb1 -p 5432 -U peercom -d pci_evolbiol'
+echo "SELECT DISTINCT review_state FROM t_reviews;" | ssh peercom@peercom-front1 'psql -h mydb1 -p 5432 -U peercom -d pci_evolbiol'
 
 
 

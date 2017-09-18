@@ -20,6 +20,10 @@ div.w2p_flash.alert {background-color: #ffb26f; background-image:initial; top:90
 .navbar-default .navbar-nav>li>a:hover {color:#000;}
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {background-color: #f8f5f0; color:#000;}
 
+/* for paginator duplication on top of grid (see layout.html)*/
+.web2py_paginator {margin-top:5px; margin-bottom:5px;}
+.web2py_counter {width:100%;}
+
 /*.tooltip {
 	-webkit-transition: all 150ms ease-in-out;
 	-moz-transition: all 150ms ease-in-out;
@@ -110,8 +114,6 @@ header{box-shadow:none;} /* Don't remove */
 .pci-status.info,.pci-status-big.info {color: #0db9f2;}
 .pci-status.danger,.pci-status-big.danger {color: #e61919;}
 .pci-status.default,.pci-status-big.default {color: #BBBBBB;}
-/* .fake-btn {cursor:default;} */
-/* .fake-btn:hover {box-shadow:none;} */
 
 .searchForm {margin:0; padding:0; }
 .searchFormDiv {margin-left: auto; margin-right: auto; }

@@ -130,6 +130,7 @@
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
     {{block page_js}}{{end page_js}}
+ 	<script>$('.web2py_paginator').clone().insertBefore($('.web2py_table'));</script>
     
     <!-- Share ======================================== -->
     {{if 'shareable' in globals():}}
@@ -162,5 +163,6 @@
 		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script>
 		{{pass}}
 
+<!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
 	</body>
 </html>

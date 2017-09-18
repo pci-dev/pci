@@ -213,7 +213,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	#else:
 		#whoDidIt = [SPAN(current.T('See recommendation'))]
 	
-	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=True, linked=True, host=False, port=False, scheme=False)
+	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
 	
 	img = []
 	if withDate:
@@ -560,10 +560,10 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 		if with_reviewers:
 			namedReviewers = db(
-							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Terminated')
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Completed')
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 			na = db(
-							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Terminated')
+							(db.t_recommendations.article_id==article.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Completed')
 							).count(distinct=db.auth_user.id)
 			na1 = 1 if na>0 else 0
 		else:
@@ -636,10 +636,10 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 		if with_reviewers:
 			namedReviewers = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Terminated')
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Completed')
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 			na = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Terminated')
+							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Completed')
 							).count(distinct=db.t_reviews.reviewer_id)
 			na1 = (1 if(na>0) else 0)
 		else:
@@ -838,7 +838,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			myReviews = ''
 			myReviews = []
 			# Check for reviews
-			reviews = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Terminated') ).select(orderby=db.t_reviews.id)
+			reviews = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Completed') ).select(orderby=db.t_reviews.id)
 			for review in reviews:
 				if with_reviews:
 					# display the review
@@ -1003,7 +1003,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		myContents.append(DIV(A(SPAN(current.T('Manage recommendations'), _class='buttontext btn btn-info'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=art.id), user_signature=True)), _class='pci-EditButtons'))
 	if len(recomms)==0 and auth.has_membership(role='recommender') and art.status=='Awaiting consideration' and not(printable) and not (quiet):
 		# suggested or any recommender's button for recommendation consideration
-		btsAccDec = [A(SPAN(current.T('I wish to consider this preprint for recommendation'), _class='buttontext btn btn-success'), 
+		btsAccDec = [A(SPAN(current.T('Click here before considering this preprint for recommendation'), _class='buttontext btn btn-success'), 
 								_href=URL(c='recommender', f='accept_new_article_to_recommend', vars=dict(articleId=art.id), user_signature=True),
 								_class='button'),]
 		amISugg = db( (db.t_suggested_recommenders.article_id==art.id) & (db.t_suggested_recommenders.suggested_recommender_id==auth.user_id) ).count()
@@ -1096,15 +1096,27 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			for review in reviews:
 				if review.review_state == 'Under consideration': 
 					existOngoingReview = True
-				
+			# If the recommender is also a reviewer, did he/she already completed his/her review?
+			recommReviewFilledOrNull = False # Let's say no by default
+			# Get reviews states for this case
+			recommenderOwnReviewStates = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.reviewer_id==recomm.recommender_id) ).select(db.t_reviews.review_state)
+			if (len(recommenderOwnReviewStates) == 0): 
+				# The recommender is not also a reviewer
+				recommReviewFilledOrNull = True # He/she is allowed to see other's reviews
+			else:
+				# The recommender is also a reviewer
+				for recommenderOwnReviewState in recommenderOwnReviewStates:
+					if (recommenderOwnReviewState.review_state == 'Completed'):
+						recommReviewFilledOrNull = True # Yes, his/her review is completed
+			
 			for review in reviews:
 				# No one is allowd to see ongoing reviews ...
 				hideOngoingReview = True
 				if (art.user_id == auth.user_id) and (recomm.is_closed or art.status=='Awaiting revision'): # ... except the author for a closed decision/recommendation ...
 					hideOngoingReview = False
-				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Terminated')): # ...  except the reviewer himself once accepted ...
+				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Completed')): # ...  except the reviewer himself once accepted ...
 					hideOngoingReview = False
-				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id): # ... or he/she is THE recommender ...
+				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id) and recommReviewFilledOrNull: # ... or he/she is THE recommender and he/she already filled his/her own review ...
 					hideOngoingReview = False
 				if auth.has_membership(role='manager'): # ... or a manager
 					hideOngoingReview = False
@@ -1120,6 +1132,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 											_href=URL(c='user', f='decline_new_review', vars=dict(reviewId=review.id), user_signature=True), _class='button'),
 										_class='pci-opinionform'
 									))
+				elif (review.review_state=='Pending'):
+					hideOngoingReview = True
 				
 				if not(hideOngoingReview):
 					# display the review
@@ -1190,6 +1204,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				myContents.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
 			if recomm.reply_pdf:
 				myContents.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+			if recomm.track_change:
+				myContents.append(A(current.T('Download track-change file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
 			if (recomm.reply_pdf or len(recomm.reply)>5):
 				reply_filled = True
 			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
@@ -1201,12 +1217,12 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			
 			
 	myContents.append(HR())
-	if reply_filled and (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
-		# author's button enabling resubmission
-		myContents.append(DIV(A(SPAN(current.T('Revision terminated: submit new version and close revision process'), _class='buttontext btn btn-success'), 
-										_href=URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True), 
-										_title=current.T('Click here when the revision is terminated in order to submit the new version')), 
-								_class='pci-EditButtons-centered'))
+	#if reply_filled and (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(printable) and not (quiet):
+		## author's button enabling resubmission
+		#myContents.append(DIV(A(SPAN(current.T('Revision completed: submit new version and close revision process'), _class='buttontext btn btn-success'), 
+										#_href=URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True), 
+										#_title=current.T('Click here when the revision is completed in order to submit the new version')), 
+								#_class='pci-EditButtons-centered'))
 	
 	if (art.user_id==auth.user_id) and not(art.already_published) and (art.status not in ('Cancelled', 'Rejected', 'Pre-recommended', 'Recommended')) and not(printable) and not (quiet):
 		myContents.append(DIV(A(SPAN(current.T('I wish to cancel this recommendation request'), _class='buttontext btn btn-warning'), 
@@ -1345,7 +1361,7 @@ def mkClosedRev(auth, db, row):
 	butts = []
 	hrevs = []
 	art = db.t_articles[row.article_id]
-	revs = db( (db.t_reviews.recommendation_id == row.id) & (db.t_reviews.review_state == "Terminated") ).select()
+	revs = db( (db.t_reviews.recommendation_id == row.id) & (db.t_reviews.review_state == "Completed") ).select()
 	for rev in revs:
 		if rev.reviewer_id:
 			hrevs.append(LI(mkUserWithMail(auth, db, rev.reviewer_id)))

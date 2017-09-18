@@ -876,7 +876,7 @@ def review_completed():
 	if rev.reviewer_id != auth.user_id:
 		session.flash = T('Unauthorized', lazy=False)
 		redirect('my_reviews')
-	rev.review_state = 'Terminated'
+	rev.review_state = 'Completed'
 	rev.update_record()
 	# email to recommender sent at database level
 	redirect('my_reviews')
@@ -898,19 +898,27 @@ def edit_reply():
 	db.t_recommendations.reply_pdf.label=T('OR Upload your reply as PDF file')
 	form = SQLFORM(db.t_recommendations
 				,record=recommId
-				,fields=['id', 'reply', 'reply_pdf']
+				,fields=['id', 'reply', 'reply_pdf', 'track_change']
 				,upload=URL('download')
 				,showid=False
 			)
+	form.element(_type='submit')['_value'] = T('Save')
+	do_complete = DIV(BUTTON(current.T('Save & submit your reply'), _title=current.T('Click here when the revision is completed in order to submit the new version'), _type='submit', _name='completed', _class='buttontext btn btn-success', _style='margin-top:32px;'), _style='text-align:center;')
+	form[0].insert(99, do_complete)
+	
 	if form.process().accepted:
-		response.flash = T('Reply saved', lazy=False)
-		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+		if request.vars.completed:
+			session.flash = T('Reply completed', lazy=False)
+			redirect(URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True))
+		else:
+			session.flash = T('Reply saved', lazy=False)
+			redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserEditReply'),
-				myBackButton = mkBackButton(),
+				#myBackButton = mkBackButton(),
 				myText=getText(request, auth, db, '#UserEditReplyText'),
 				myTitle=getTitle(request, auth, db, '#UserEditReplyTitle'),
 				form = form,

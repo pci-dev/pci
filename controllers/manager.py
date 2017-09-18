@@ -263,15 +263,14 @@ def _manage_articles(statuses, whatNext):
 												_title=current.T('Send an email to all recommenders not already suggested')
 											) if (row.status == 'Awaiting consideration' 
 													and row.already_published is False ) else '',
-											#TODO
-											#A(SPAN(current.T('Set "Not considered"'), 
-												#_class='buttontext btn btn-danger pci-button'), 
-												#_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
-												#_class='button', 
-												#_title=current.T('Set this preprint as "Not considered"')
-											#) if (row.status == 'Awaiting consideration' 
-													#and row.already_published is False 
-													#and datetime.datetime.now() - row.last_status_change > timedelta(days=30) ) else '',
+											A(SPAN(current.T('Set "Not considered"'), 
+												_class='buttontext btn btn-danger pci-button'), 
+												_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
+												_class='button', 
+												_title=current.T('Set this preprint as "Not considered"')
+											) if (row.status == 'Awaiting consideration' 
+													and row.already_published is False 
+													and datetime.datetime.now() - row.upload_timestamp > timedelta(days=30) ) else '',
 										)
 					),
 			]
@@ -394,7 +393,7 @@ def manage_recommendations():
 		,csv=csv, exportclasses=expClass
 		,paginate=10
 		,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
-		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_pdf.pdf]
+		,fields=[db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_recommendations.track_change, db.t_pdf.pdf]
 		,links=links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
@@ -605,8 +604,8 @@ def set_not_considered():
 	if art is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if art.status == 'Awaiting consideration':
+		session.flash = T('Article set "Not considered"')
 		art.status = 'Not considered'
 		art.update_record()
-		session.flash = T('Article set "Not considered"')
 	redirect(request.env.http_referer)
 

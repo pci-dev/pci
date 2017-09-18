@@ -1,11 +1,26 @@
 #!/bin/bash -x
 
 # GAIA2
-~/bin/unison-2.40.61 -auto -ignore "Name *.ini" -ignore "Name crontab" -ignore "Name *~" -ignore "Name *.bak" -ignore "Name *.pyc" -ignore "Name .git" -ignore "Name sessions" -ignore "Name errors" -sshargs -C  ~/W/web2py/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py/applications/PCiEvolBiol
+~/bin/unison-2.40.61 -auto \
+	-ignore "Name *.ini" \
+	-ignore "Name crontab" \
+	-ignore "Name *~" \
+	-ignore "Name *.bak" \
+	-ignore "Name *.pyc" \
+	-ignore "Name *.orig" \
+	-ignore "Name .git" \
+	-ignore "Name sessions" \
+	-ignore "Name errors" \
+	-ignore "Name *background.png" \
+	-sshargs -C  \
+	~/W/web2py/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py/applications/PCiEvolBiol
 
-ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -ls"
-ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\;"
-ssh www-data@gaia2 "touch /home/www-data/web2py/wsgihandler.py"
+ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -ls ; find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\; ; touch /home/www-data/web2py/wsgihandler.py"
+
+# echo "UPDATE t_reviews SET review_state='Completed' WHERE review_state LIKE 'Terminated';" | psql -h gaia2 -U piry pci_evolbiol
+# echo "SELECT DISTINCT review_state FROM t_reviews;" | psql -h gaia2 -U piry pci_evolbiol
+# echo "ALTER TABLE public.t_recommendations ADD COLUMN track_change character varying(512); ALTER TABLE public.t_recommendations ADD COLUMN track_change_data bytea;" | psql -h gaia2 -U piry pci_evolbiol
+
 
 # PRIONO
 # ~/bin/unison-2.48.3 -auto -ignore "Name *.ini" -ignore "Name crontab" -ignore "Name *~" -ignore "Name *.bak" -ignore "Name *.pyc" -ignore "Name .git" -ignore "Name sessions" -ignore "Name errors" -sshargs -C  ~/W/web2py/applications/pcidev   ssh://priono//home/piry/web2py/applications/PCIEvolBiol

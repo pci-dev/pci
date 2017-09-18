@@ -319,6 +319,8 @@ db.define_table('t_recommendations',
 	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''), #, widget=ckeditor.widget),
 	Field('reply_pdf', type='upload', uploadfield='reply_pdf_data', label=T('Author\'s Reply as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('reply_pdf_data', type='blob'), #, readable=False),
+	Field('track_change', type='upload', uploadfield='track_change_data', label=T('Track-change document')),
+	Field('track_change_data', type='blob', readable=False),
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
@@ -379,7 +381,7 @@ db.define_table('t_reviews',
 	Field('review_pdf', type='upload', uploadfield='review_pdf_data', label=T('Review as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('review_pdf_data', type='blob', readable=False),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
-	Field('review_state', type='string', length=50, label=T('Reviewer state'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Terminated'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Reviewer state'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed'))), writable=False),
 	singular=T("Review"), 
 	plural=T("Reviews"),
 	migrate=False,
@@ -394,17 +396,13 @@ def reviewDone(s, f):
 	if o['review_state'] == 'Pending' and f['review_state'] == 'Under consideration':
 		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
 		do_send_email_to_thank_reviewer(session, auth, db, o['id'])
-	elif o['review_state'] == 'Terminated' and f['review_state'] == 'Under consideration':
+	elif o['review_state'] == 'Completed' and f['review_state'] == 'Under consideration':
 		do_send_email_to_reviewer_review_reopened(session, auth, db, o['id'])
 	elif o['review_state'] == 'Pending' and f['review_state'] == 'Declined':
 		do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
-	if o['reviewer_id'] is not None and f['review_state'] == 'Terminated':
+	if o['reviewer_id'] is not None and f['review_state'] == 'Completed':
 		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
 	return None
-
-#def reviewSuggested(s, i):
-	#do_send_email_to_reviewer_review_suggested(session, auth, db, i)
-	#return None
 
 
 
