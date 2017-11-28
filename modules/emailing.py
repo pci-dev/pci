@@ -1449,7 +1449,6 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 				mySubject = '%s: Thank you for agreeing to review a preprint!' % (applongname)
 				theUser = db.auth_user[rev.reviewer_id]
 				if theUser:
-					print("coucou")
 					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
 					destPerson = mkUser(auth, db, rev.reviewer_id)
 					expectedDuration = datetime.timedelta(days=21) # three weeks

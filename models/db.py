@@ -421,7 +421,6 @@ db.t_reviews._before_update.append(lambda s,f: reviewDone(s,f))
 #db.t_reviews._after_update.append(lambda s,f: reviewDone(s,f))
 
 def reviewDone(s, f):
-	print("reviewDone:", f)
 	o = s.select().first()
 	if o['review_state'] == 'Pending' and f['review_state'] == 'Under consideration':
 		do_send_email_to_recommenders_review_considered(session, auth, db, o['id'])
