@@ -3,4 +3,5 @@
 *.old
 errors/*
 sessions/*
-static/plugin_*
+static/plugin_ckeditor
+static/web2py.plugin.ckeditor.w2p.uncompressed
