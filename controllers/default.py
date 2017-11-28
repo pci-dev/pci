@@ -42,8 +42,8 @@ def index():
 	tweeterId = myconf.get('social.tweeter_id')
 	if tweeterAcc:
 		myPanel.append(XML("""<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> 
-			<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>""" 
-			% locals() ) 
+			<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+			""" % locals() ) 
 		)
 	#if tweetHash and tweeterId:
 		#myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
@@ -59,11 +59,12 @@ def index():
 	myVarsNext['maxArticles'] = myVarsNext['maxArticles']+10
 
 	form = FORM (
-				H3(T('Latest recommendations')),
-				DIV(
-					loading(),
-					_id='lastRecommendations',
+				H3( T('Latest recommendations'), 
+					A(SPAN(
+						IMG(_alt='rss', _src=URL(c='static', f='images/rss.png'), _style='margin-right:8px;'), 
+					), _href=URL('about', 'rss_info'), _class='btn btn-default pci-rss-btn', _style='float:right;')
 				),
+				DIV( loading(), _id='lastRecommendations', ),
 			)
 	myScript = SCRIPT("""window.onload=function() {
 	ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
@@ -72,15 +73,15 @@ def index():
 				_type='text/javascript'
 		)
 	
-	if auth.user_id:
-		theUser = db.auth_user[auth.user_id]
-		if theUser.ethical_code_approved is False:
-			redirect(URL('about','ethics'))
+	#if auth.user_id:
+		#theUser = db.auth_user[auth.user_id]
+		#if theUser.ethical_code_approved is False:
+			#redirect(URL('about','ethics'))
 
 	response.view='default/index.html'
 	if request.user_agent().is_mobile:
 		return dict(
-			smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
+			#smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myTopPanel=mkTopPanel(myconf, auth),
@@ -92,7 +93,7 @@ def index():
 		)
 	else:
 		return dict(
-			smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
+			#smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myTopPanel=mkTopPanel(myconf, auth),
@@ -121,37 +122,56 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
-	#db.auth_user.ethical_code_approved.writable = not(db.auth_user[auth.user_id].ethical_code_approved or False) #WARNING don't allow reversion of agreement if uncommented
+	#db.auth_user.ethical_code_approved.writable = not(db.auth_user[auth.user_id].ethical_code_approved or False)
+	#print(request.args)
+	#print(request.vars)
+	if '_next' in request.vars:
+		suite = request.vars['_next']
+	else:
+		suite = None
 	if request.args[0] == 'login':
+		#print("LOGIN")
 		myHelp = getHelp(request, auth, db, '#LogIn')
 		myTitle = getTitle(request, auth, db, '#LogInTitle')
 		myText = getText(request, auth, db, '#LogInText')
-		if len(request.args) >= 3 and request.args[1] and request.args[2]:
-			auth.settings.login_next = URL(request.args[1], request.args[2])
+		if suite:
+			auth.settings.login_next = suite
+		form = auth.login()
 	elif request.args[0] == 'register':
+		#print("REGISTER")
 		myHelp = getHelp(request, auth, db, '#CreateAccount')
 		myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
 		myText = getText(request, auth, db, '#CreateAccountText')
 		db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
-		if len(request.args) >= 3 and request.args[1] and request.args[2]:
-			auth.settings.register_next = URL(request.args[1], request.args[2])
+		if suite:
+			auth.settings.register_next = suite
+		form = auth.register()
 	elif request.args[0] == 'profile':
 		myHelp = getHelp(request, auth, db, '#Profile')
 		myTitle = getTitle(request, auth, db, '#ProfileTitle')
 		myText = getText(request, auth, db, '#ProfileText')
+		form = auth.profile()
+	elif request.args[0] == 'reset_password':
+		#print("RESET PWD", suite)
+		myHelp = getHelp(request, auth, db, '#ResetPassword')
+		myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
+		myText = getText(request, auth, db, '#ResetPasswordText')
+		if suite:
+			auth.settings.reset_password_next = suite
+		form = auth.reset_password()
 	else:
 		myHelp = ''
 		myTitle = ''
 		myText = ''
+		form = auth()
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
-	#response.view='default/index.html'
 	response.view='default/myLayout.html'
 	return dict(
 		myTitle=myTitle,
 		myText=myText,
 		myHelp=myHelp,
-		form=auth(),
+		form=form,
 	)
 
 

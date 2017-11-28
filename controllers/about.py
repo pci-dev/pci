@@ -30,7 +30,7 @@ def ethics():
 	message = ''
 	if auth.user_id:
 		if db.auth_user[auth.user_id].ethical_code_approved:
-			message = DIV(B(T('You agreed to comply with this code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;')
+			message = DIV(B(T('You have agreed to comply with this code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;')
 		else:
 			myTitle = DIV(
 					H1('Before login, you must agree to comply with the code of ethical conduct'),
@@ -57,7 +57,13 @@ def validate_ethics():
 	if 'ethics_approved' in request.vars:
 		theUser.ethical_code_approved = True
 		theUser.update_record()
-	redirect(URL('default','index'))
+	_next = None
+	if '_next' in request.vars:
+		_next = request.vars['_next']
+	if _next:
+		redirect(_next)
+	else:
+		redirect(URL('default','index'))
 
 
 
@@ -67,6 +73,20 @@ def contact():
 		myTitle=getTitle(request, auth, db, '#ContactTitle'),
 		myText=getText(request, auth, db, '#ContactInfo'),
 		shareable=True,
+	)
+
+
+def rss_info():
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	aurl = DIV(A(url, _href=url), _style='text-align:center')
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#RssTitle'),
+		myText=getText(request, auth, db, '#RssInfo'),
+		message=aurl,
 	)
 
 
@@ -186,3 +206,10 @@ def help_admin():
 	)
 
 
+#@auth.requires_login()
+def help_practical():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#PracticalHelpTitle'),
+		myText=getText(request, auth, db, '#PracticalHelpInfo'),
+	)

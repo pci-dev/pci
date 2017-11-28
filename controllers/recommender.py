@@ -4,13 +4,15 @@ import re
 import copy
 import datetime
 from dateutil.relativedelta import *
-
+from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
+from gluon.html import markmin_serializer
 from common import *
 from helper import *
 
 
 # frequently used constants
+myconf = AppConfig(reload=True)
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
@@ -18,18 +20,23 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def new_submission():
 	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
 	if ethics_not_signed:
-		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
-		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
+		redirect(URL(c='about', f='ethics', _next=URL()))
+	else:
+		c = getText(request, auth, db, '#ConflictsForRecommenders')
 		myEthical = DIV(
-				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
-				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
 				FORM(
-					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of ethical conduct'))), _style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-info pci-panelButton"), 
+					#DIV(B(T('You have agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
+					DIV(
+						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
+						DIV(c), 
+						_style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-success pci-panelButton"), 
+					hidden=dict(ethics_approved=True),
 					_action=URL('recommender', 'direct_submission'),
 					_style='text-align:center;',
 				),
@@ -38,31 +45,22 @@ def new_submission():
 		myScript = SCRIPT("""
 			jQuery(document).ready(function(){
 				
-				if(jQuery('#ethics_approved').prop('checked')) {
+				if(jQuery('#no_conflict_of_interest').prop('checked')) {
 					jQuery(':submit').prop('disabled', false);
 				} else {
 					jQuery(':submit').prop('disabled', true);
 				}
 				
-				jQuery('#ethics_approved').change(function(){
-					if(jQuery('#ethics_approved').prop('checked')) {
+				jQuery('#no_conflict_of_interest').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked')) {
 						jQuery(':submit').prop('disabled', false);
 					} else {
 						jQuery(':submit').prop('disabled', true);
-						//jQuery(':submit').val('');
 					}
 				});
 			});
 			""")
-	else:
-		myEthical = DIV(
-					A(current.T("Recommend a postprint"), 
-						_title=T('published articles'),
-						_href=URL('recommender', 'direct_submission', user_signature=True), 
-						_class="btn btn-info pci-panelButton"),
-					_style='margin-top:16px; text-align:center;',
-				)
-		myScript = ''
+
 
 	myText = DIV(
 				getText(request, auth, db, '#NewRecommendationInfo'),
@@ -78,9 +76,9 @@ def new_submission():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
-	#TODO: exclude author from reviewers!
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
 	qy_reviewers = temp_db.define_table('qy_reviewers',
@@ -97,6 +95,7 @@ def search_reviewers():
 		Field('institution', type='string', label=T('Institution')),
 		Field('thematics', type='list:string', label=T('Thematic fields')),
 		Field('roles', type='string', length=1024, label=T('Roles')),
+		Field('excluded', type='boolean', label=T('Excluded')),
 	)
 	temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href='mailto:'+text)
 	myVars = request.vars
@@ -117,26 +116,43 @@ def search_reviewers():
 			excludeList = map(int, myValue.split(','))
 		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
+	if 'recommId' in request.vars:
+		recommId = request.vars['recommId']
+		if recommId:
+			recomm = db.t_recommendations[recommId]
+			if recomm:
+				art = db.t_articles[recomm.article_id]
+				if art:
+					uid = art.user_id
+					if uid:
+						excludeList.append(uid)
 	qyKwArr = qyKw.split(' ')
 	searchForm =  mkSearchForm(auth, db, myVars, allowBlank=True)
+	if searchForm.process(keepvalues=True).accepted:
+		response.flash = None
+	else:
+		qyTF = []
+		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+			qyTF.append(thema.keyword)
 	filtered = db.executesql('SELECT * FROM search_reviewers(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	for fr in filtered:
 		qy_reviewers.insert(**fr)
 			
 	temp_db.qy_reviewers._id.readable = False
 	temp_db.qy_reviewers.uploaded_picture.readable = False
+	temp_db.qy_reviewers.excluded.readable = False
 	links = []
 	if 'recommId' in request.vars:
 		recommId = request.vars['recommId']
 		links.append(  dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation)  )
 		if myGoal == '4review':
-			links.append(  dict(header=T('Select'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommId, myGoal)) )
+			links.append(  dict(header=T('Select'), body=lambda row: '' if row.excluded else mkSuggestReviewToButton(auth, db, row, recommId, myGoal)) )
 			#myTitle = T('Search for reviewers')
 			myTitle=getTitle(request, auth, db, '#RecommenderSearchReviewersTitle')
 			myText=getText(request, auth, db, '#RecommenderSearchReviewersText')
 			myHelp=getHelp(request, auth, db, '#RecommenderSearchReviewers')
 		elif myGoal == '4press':
-			links.append(  dict(header=T('Propose contribution'), body=lambda row: mkSuggestReviewToButton(auth, db, row, recommId, myGoal))  )
+			links.append(  dict(header=T('Propose contribution'), body=lambda row: '' if row.excluded else mkSuggestReviewToButton(auth, db, row, recommId, myGoal))  )
 			#myTitle = T('Search for collaborators')
 			myTitle=getTitle(request, auth, db, '#RecommenderSearchCollaboratorsTitle')
 			myText=getText(request, auth, db, '#RecommenderSearchCollaboratorsText')
@@ -147,7 +163,7 @@ def search_reviewers():
 		,editable = False,deletable = False,create = False,details=False,searchable=False
 		,maxtextlength=250,paginate=100
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_reviewers.num, temp_db.qy_reviewers.score, temp_db.qy_reviewers.uploaded_picture, temp_db.qy_reviewers.first_name, temp_db.qy_reviewers.last_name, temp_db.qy_reviewers.email, temp_db.qy_reviewers.laboratory, temp_db.qy_reviewers.institution, temp_db.qy_reviewers.city, temp_db.qy_reviewers.country, temp_db.qy_reviewers.thematics]
+		,fields=[temp_db.qy_reviewers.num, temp_db.qy_reviewers.score, temp_db.qy_reviewers.uploaded_picture, temp_db.qy_reviewers.first_name, temp_db.qy_reviewers.last_name, temp_db.qy_reviewers.email, temp_db.qy_reviewers.laboratory, temp_db.qy_reviewers.institution, temp_db.qy_reviewers.city, temp_db.qy_reviewers.country, temp_db.qy_reviewers.thematics, temp_db.qy_reviewers.excluded]
 		,links=links
 		,orderby=temp_db.qy_reviewers.num
 		,args=request.args
@@ -157,17 +173,19 @@ def search_reviewers():
 				myHelp=myHelp,
 				myTitle=myTitle,
 				myText=myText,
-				#myBackButton=mkBackButton(),
+				myBackButton=mkBackButton(),
 				searchForm=searchForm, 
 				grid=grid, 
 			 )
 
 
 
+######################################################################################################################################################################
 def mkViewEditArticleRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id), user_signature=True), _class='button', _title=current.T('View and accept or decline recommendation'))
+	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id)), _class='button')
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def my_awaiting_articles():
 	query = ( 
@@ -216,6 +234,7 @@ def my_awaiting_articles():
 
 
 
+######################################################################################################################################################################
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role='recommender'))
 def _awaiting_articles(myVars):
@@ -237,6 +256,7 @@ def _awaiting_articles(myVars):
 		Field('status', type='string', length=50, default='Pending', label=T('Status')),
 		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+		Field('already_published', type='boolean'),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -279,15 +299,15 @@ def _awaiting_articles(myVars):
 		temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
 		temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or '')
 		
+	links = []
+	#links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
+	links.append(dict(header=T(''), body=lambda row: mkViewEditArticleRecommenderButton(auth, db, row)))
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
 		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
-		,links=[
-			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
-			dict(header=T(''), body=lambda row: mkViewEditArticleRecommenderButton(auth, db, row)),
-		]
+		,links=links
 		,orderby=temp_db.qy_art.num
 	)
 	response.view='default/myLayout.html'
@@ -301,6 +321,7 @@ def _awaiting_articles(myVars):
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def fields_awaiting_articles():
 	resu = _awaiting_articles(request.vars)
@@ -310,6 +331,7 @@ def fields_awaiting_articles():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def all_awaiting_articles():
 	myVars = request.vars
@@ -323,6 +345,7 @@ def all_awaiting_articles():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def article_details():
 	printable = 'printable' in request.vars
@@ -340,7 +363,8 @@ def article_details():
 		if printable:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 				DIV(
-					DIV(T(art.status), _class='pci-ArticleText printable'),
+					#DIV(T(art.status), _class='pci-ArticleText printable'),
+					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
 					_class='pci-ArticleHeaderIn printable'
 				))
 			myUpperBtn = ''
@@ -348,11 +372,12 @@ def article_details():
 		else:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 				DIV(
-					DIV(T(art.status), _class='pci-ArticleText'),
+					#DIV(T(art.status), _class='pci-ArticleText'),
+					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn'
 				))
 			myUpperBtn = A(SPAN(T('Printable page'), _class='pci-ArticleTopButton buttontext btn btn-info'), 
-				_href=URL(c="user", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
+				_href=URL(c="user", f='recommendations', vars=dict(articleId=articleId, printable=True)),
 				_class='button')
 			response.view='default/recommended_articles.html' #OK
 		
@@ -370,6 +395,7 @@ def article_details():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def accept_new_article_to_recommend():
 	if not('articleId' in request.vars):
@@ -378,55 +404,16 @@ def accept_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	if articleId is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
-	#TODO: no_conflict_of_interest AS CHECKBOX, disable submit if not checked
 	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
 	if ethics_not_signed:
-		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
-		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
-		myEthical = DIV(
-				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
-				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
-				FORM(
-					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of Ethical Conduct'))), _style='padding:16px;'),
-					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
-					hidden=dict(articleId=articleId),
-					_action=URL('recommender', 'do_accept_new_article_to_recommend'),
-					_style='text-align:center;',
-				),
-				_class="pci-embeddedEthic",
-			)
-		myScript = SCRIPT("""
-			jQuery(document).ready(function(){
-				
-				if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-				
-				jQuery('#ethics_approved').change(function(){
-					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				
-				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-			});
-			""")
+		redirect(URL(c='about', f='ethics'))
 	else:
 		myEthical = DIV(
 				FORM(
-					DIV(B(T('You agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
-					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					DIV(
+						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
+						DIV(getText(request, auth, db, '#ConflictsForRecommenders')), 
+						_style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
 					hidden=dict(articleId=articleId, ethics_approved=True),
 					_action=URL('recommender', 'do_accept_new_article_to_recommend'),
@@ -467,6 +454,7 @@ def accept_new_article_to_recommend():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def do_accept_new_article_to_recommend():
 	theUser = db.auth_user[auth.user_id]
@@ -484,11 +472,12 @@ def do_accept_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	article = db.t_articles[articleId]
 	if article.status == 'Awaiting consideration':
-		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state=None, no_conflict_of_interest=True)
+		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state='Ongoing', no_conflict_of_interest=True)
+		db.commit()
+		article = db.t_articles[articleId] # reload due to trigger!
 		article.status = 'Under consideration'
 		article.update_record()
-		#redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
-		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId), user_signature=True)) #TODO #WARNING # basculer sur add reviewer
+		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId)))
 	else:
 		session.flash = T('Article no more available', lazy=False)
 		redirect('my_awaiting_articles')
@@ -496,6 +485,7 @@ def do_accept_new_article_to_recommend():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def recommend_article():
 	recommId = request.vars['recommId']
@@ -518,10 +508,11 @@ def recommend_article():
 		art.status = 'Pre-recommended'
 		art.update_record()
 		#db.commit()
-		redirect(URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True))
+		redirect(URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id)))
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def reject_article():
 	recommId = request.vars['recommId']
@@ -544,10 +535,11 @@ def reject_article():
 		art.status = 'Rejected'
 		art.update_record()
 		db.commit()
-		redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
+		redirect(URL('my_recommendations', vars=dict(pressReviews=False)))
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def revise_article():
 	recommId = request.vars['recommId']
@@ -570,24 +562,25 @@ def revise_article():
 		recomm.recommendation_state = 'Awaiting revision'
 		recomm.update_record()
 		db.commit()
-		redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
+		redirect(URL('my_recommendations', vars=dict(pressReviews=False)))
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def decline_new_article_to_recommend():
 	articleId = request.vars['articleId']
 	if articleId is not None:
 		#NOTE: No security hole as only logged user can be deleted
-		#db(db.t_suggested_recommenders.article_id == articleId and db.t_suggested_recommenders.suggested_recommender_id == auth.user_id).delete()
-		sug_rec = db(db.t_suggested_recommenders.article_id == articleId and db.t_suggested_recommenders.suggested_recommender_id == auth.user_id).select().first()
+		sug_rec = db( (db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) ).select().first()
 		sug_rec.declined = True
 		sug_rec.update_record()
 		db.commit()
-	redirect(URL('my_awaiting_articles', user_signature=True))
+	redirect(URL('my_awaiting_articles'))
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def suggest_review_to():
 	reviewerId = request.vars['reviewerId']
@@ -607,11 +600,12 @@ def suggest_review_to():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
-		redirect(URL('reviewers', vars=dict(recommId=recommId), user_signature=True))
+		revId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
+		redirect(URL(f='email_for_registered_reviewer', vars=dict(reviewId=revId)))
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def suggest_collaboration_to():
 	reviewerId = request.vars['reviewerId']
@@ -632,17 +626,19 @@ def suggest_collaboration_to():
 		redirect(request.env.http_referer)
 	else:
 		db.t_press_reviews.update_or_insert(recommendation_id=recommId, contributor_id=reviewerId)
-		redirect(URL('my_recommendations', vars=dict(pressReviews=True), user_signature=True))
+		redirect(URL('my_recommendations', vars=dict(pressReviews=True)))
 
 
 
+######################################################################################################################################################################
 def mkViewEditRecommendationsRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id), user_signature=True), _class='button', _title=current.T('View and/or edit article'))
+	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def my_recommendations():
 	isPress = ( ('pressReviews' in request.vars) and (request.vars['pressReviews']=='True') )
-	if isPress:
+	if isPress: ## POST-PRINTS
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
 				& (db.t_recommendations.article_id == db.t_articles.id) 
 				& (db.t_articles.already_published == True)
@@ -650,48 +646,44 @@ def my_recommendations():
 		#myTitle = T('Your recommendations of reviewed articles')
 		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPostprintTitle')
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPostprintText')
-		fields = [db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]#, db.t_recommendations.recommendation_title]#, db.t_recommendations.recommendation_comments]
+		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]
 		links = [
 				dict(header=T('Co-recommenders'), body=lambda row: mkSollicitedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
-	else:
+		db.t_recommendations.article_id.label = T('Postprint')
+	else: ## PRE-PRINTS
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
 				& (db.t_recommendations.article_id == db.t_articles.id) 
 				& (db.t_articles.already_published == False)
-				#& (db.t_recommendations.is_closed == False)
 			)
-		#myTitle = T('Your recommendations of prereview articles')
 		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPreprintTitle')
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPreprintText')
-		fields = [db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]#, db.t_recommendations.recommendation_title]#, db.t_recommendations.recommendation_comments]
+		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
 		links = [
-				dict(header=T('Solicited reviewers'), body=lambda row: mkSollicitedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T('Refusals to review'),   body=lambda row:   mkDeclinedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T('Ongoing reviews'),    body=lambda row:    mkOngoingRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T('Completed reviews'),     body=lambda row:     mkClosedRev(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
+		db.t_recommendations.article_id.label = T('Preprint')
 		
 	db.t_recommendations.recommender_id.writable = False
 	db.t_recommendations.doi.writable = False
-	db.t_recommendations.article_id.readable = False
+	#db.t_recommendations.article_id.readable = False
 	db.t_recommendations.article_id.writable = False
-	db.t_recommendations._id.readable = True
-	db.t_recommendations._id.label = T('Recommendation')
-	db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
-	#db.t_recommendations.is_press_review.writable = False
-	#db.t_recommendations.is_press_review.readable = False
-	#db.t_recommendations.reply.writable = False
-	#db.t_recommendations.reply.readable=False
+	db.t_recommendations._id.readable = False
+	#db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+	db.t_recommendations.recommender_id.readable = False
+	db.t_recommendations.recommendation_state.readable = False
 	db.t_recommendations.is_closed.readable = False
 	db.t_recommendations.is_closed.writable = False
-	db.t_recommendations.recommendation_timestamp.label = T('Last change')
-	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkLastChange(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsed(row.recommendation_timestamp)
+	db.t_recommendations.recommendation_timestamp.label = T('Started')
+	db.t_recommendations.last_change.label = T('Last change')
+	db.t_recommendations.last_change.represent = lambda text, row: mkElapsedDays(row.t_recommendations.last_change) if 't_recommendations' in row else mkElapsedDays(row.last_change)
+	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkElapsedDays(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsedDays(row.recommendation_timestamp)
 	db.t_recommendations.article_id.represent = lambda aid, row: mkArticleCellNoRecomm(auth, db, db.t_articles[aid])
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_recommendations.doi.readable=False
-	db.t_recommendations.last_change.readable=False
+	db.t_recommendations.last_change.readable=True
 	db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
 	grid = SQLFORM.grid( query
 		,searchable=False, create=False, deletable=False, editable=False, details=False
@@ -711,22 +703,24 @@ def my_recommendations():
 			 )
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def process_opinion():
 	if 'recommender_opinion' in request.vars and 'recommId' in request.vars:
 		ro = request.vars['recommender_opinion']
 		rId = request.vars['recommId']
 		if ro == 'do_recommend': 
-			redirect(URL(c='recommender', f='recommend_article', vars=dict(recommId=rId), user_signature=True))
+			redirect(URL(c='recommender', f='recommend_article', vars=dict(recommId=rId)))
 		elif ro == 'do_revise': 
-			redirect(URL(c='recommender', f='revise_article', vars=dict(recommId=rId), user_signature=True))
+			redirect(URL(c='recommender', f='revise_article', vars=dict(recommId=rId)))
 		elif ro == 'do_reject': 
-			redirect(URL(c='recommender', f='reject_article', vars=dict(recommId=rId), user_signature=True))
-	redirect(URL('my_recommendations', vars=dict(pressReviews=False), user_signature=True))
+			redirect(URL(c='recommender', f='reject_article', vars=dict(recommId=rId)))
+	redirect(URL('my_recommendations', vars=dict(pressReviews=False)))
 
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def direct_submission():
 	theUser = db.auth_user[auth.user_id]
@@ -736,6 +730,10 @@ def direct_submission():
 	if not(theUser.ethical_code_approved):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
+	noConflict = False
+	if 'no_conflict_of_interest' in request.vars:
+		if request.vars['no_conflict_of_interest']:
+			noConflict = True
 	db.t_articles.user_id.default = None
 	db.t_articles.user_id.writable = False
 	db.t_articles.status.default = 'Under consideration'
@@ -764,8 +762,8 @@ def direct_submission():
 	form = SQLFORM( db.t_articles, fields=fields, keepvalues=True, submit_button=T('Continue...') )
 	if form.process().accepted:
 		articleId=form.vars.id
-		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=form.vars.doi, recommendation_state='Recommended')
-		redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recommId), user_signature=True))
+		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=form.vars.doi, recommendation_state='Ongoing', no_conflict_of_interest=noConflict)
+		redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recommId)))
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, db, '#RecommenderDirectSubmission'),
@@ -778,6 +776,7 @@ def direct_submission():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def recommendations():
 	printable = 'printable' in request.vars
@@ -827,7 +826,7 @@ def recommendations():
 						_class='pci-ArticleHeaderIn'
 					))
 			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-				_href=URL(c="recommender", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
+				_href=URL(c="recommender", f='recommendations', vars=dict(articleId=articleId, printable=True)),
 				_class='button')
 			response.view='default/recommended_articles.html' #OK
 		
@@ -845,6 +844,7 @@ def recommendations():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reopen_review(ids):
 	if auth.has_membership(role='manager'):
@@ -863,8 +863,54 @@ def reopen_review(ids):
 			
 
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def one_review():
+	revId = request.vars['reviewId']
+	rev = db.t_reviews[revId]
+	form = ''
+	if rev == None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	recomm = db.t_recommendations[rev.recommendation_id]
+	if recomm == None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	db.t_reviews._id.readable = False
+	#db.t_reviews.recommendation_id.default = recommId
+	#db.t_reviews.recommendation_id.writable = False
+	#db.t_reviews.recommendation_id.readable = False
+	db.t_reviews.reviewer_id.writable = False
+	#db.t_reviews.reviewer_id.default = auth.user_id
+	db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
+	db.t_reviews.anonymously.default = True
+	db.t_reviews.anonymously.writable = auth.has_membership(role='manager')
+	db.t_reviews.review.writable = auth.has_membership(role='manager')
+	db.t_reviews.review_state.writable = auth.has_membership(role='manager')
+	db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
+	#db.t_reviews.review_pdf
+	form = SQLFORM(db.t_reviews, record=revId, readonly=True
+					,fields=['reviewer_id', 'no_conflict_of_interest', 'anonymously', 'review', 'review_pdf']
+					,showid=False
+					#,buttons=buttons
+					,upload=URL('default', 'download')
+				)
+	response.view='default/myLayout.html'
+	return dict(
+			myHelp = getHelp(request, auth, db, '#RecommenderArticleOneReview'),
+			myText=getText(request, auth, db, '#RecommenderArticleOneReviewText'),
+			myTitle=getTitle(request, auth, db, '#RecommenderArticleOneReviewTitle'),
+			myBackButton=mkCloseButton(),
+			#content=myContents, 
+			form=form, 
+			#myFinalScript=myScript,
+			)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reviews():
 	recommId = request.vars['recommId']
@@ -881,7 +927,7 @@ def reviews():
 		db.t_reviews.recommendation_id.default = recommId
 		db.t_reviews.recommendation_id.writable = False
 		db.t_reviews.recommendation_id.readable = False
-		db.t_reviews.reviewer_id.writable = False
+		db.t_reviews.reviewer_id.writable = auth.has_membership(role='manager')
 		db.t_reviews.reviewer_id.default = auth.user_id
 		db.t_reviews.reviewer_id.represent = lambda text,row: mkUserWithMail(auth, db, row.reviewer_id) if row else ''
 		db.t_reviews.anonymously.default = True
@@ -902,7 +948,7 @@ def reviews():
 			,details=True
 			,editable=lambda row: auth.has_membership(role='manager') or (row.review_state!='Completed' and row.reviewer_id is None)
 			,deletable=auth.has_membership(role='manager')
-			,create=False
+			,create=auth.has_membership(role='manager')
 			,searchable=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
@@ -935,6 +981,7 @@ def reviews():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def add_recommender_as_reviewer():
 	recommId = request.vars['recommId']
@@ -942,10 +989,39 @@ def add_recommender_as_reviewer():
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
 	else:
-		rid = db.t_reviews.validate_and_insert(recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state='Under consideration')
+		# check if review previously cancelled, then reopen
+		reviews = db((db.t_reviews.reviewer_id==recomm.recommender_id) & (db.t_reviews.recommendation_id==recommId)).select()
+		if (len(reviews) > 0):
+			for review in reviews:
+				review.update_record(review_state='Under consideration')
+				db.commit()
+		else:# create review
+			rid = db.t_reviews.validate_and_insert(recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state='Under consideration')
 	redirect(request.env.http_referer)
 
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def cancel_recommender_as_reviewer():
+	recommId = request.vars['recommId']
+	if recommId:
+		recomm = db.t_recommendations[recommId]
+		if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+			session.flash = auth.not_authorized()
+		else:
+			reviews = db((db.t_reviews.reviewer_id==recomm.recommender_id) & (db.t_reviews.recommendation_id==recommId)).select()
+			for review in reviews:
+				if (recomm.recommender_id == auth.user_id) or (auth.has_membership(role='manager')):
+					review.update_record(review_state='Cancelled')
+					db.commit()
+				else:
+					session.flash = auth.not_authorized()
+	else:
+		session.flash = auth.not_authorized()
+	redirect(request.env.http_referer)
+
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def del_reviewer():
 	reviewId = request.vars['reviewId']
@@ -955,6 +1031,7 @@ def del_reviewer():
 	redirect(request.env.http_referer)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def reviewers():
 	recommId = request.vars['recommId']
@@ -967,44 +1044,41 @@ def reviewers():
 		reviewersList = []
 		reviewersIds = [auth.user_id]
 		selfFlag = False
+		selfFlagCancelled = False
 		for con in reviewersListSel:
-			if recomm.recommender_id == con.auth_user.id: selfFlag=True
+			if recomm.recommender_id == con.auth_user.id:
+				selfFlag=True
+				if con.t_reviews.review_state == 'Cancelled':
+					selfFlagCancelled = True
 			reviewersIds.append(con.auth_user.id)
-			if con.t_reviews.review_state is None:
-				reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
-									SPAN(' will be solicited if you click DONE '),
-									A('X', _href=URL(c='recommender', f='del_reviewer', vars=dict(reviewId=con.t_reviews.id)), 
-									   _title=T('Delete'), _style='margin-left:8px; color:red;'),
-								))
-			else:
-				reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
-									' has already been solicited ',
-									I('('+(con.t_reviews.review_state or '')+')'),
-								))
+			#if con.t_reviews.review_state is None:
+				#reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
+									#SPAN(' will be solicited if you click DONE '),
+									#A(T('Delete'), _class='btn btn-warning', _href=URL(c='recommender', f='del_reviewer', vars=dict(reviewId=con.t_reviews.id)), 
+									   #_title=T('Delete'), _style='margin-left:8px;'),
+								#))
+			#else:
+			reviewersList.append(LI(mkUserWithMail(auth, db, con.auth_user.id), ' ',
+								B(T(' (YOU) ')) if con.auth_user.id == recomm.recommender_id else '',
+								I('('+(con.t_reviews.review_state or 'Pending')+')'),
+							))
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(reviewersList)>0:
 			myContents = DIV(
-				LABEL(T('Reviewers solicited:')),
+				H3(T('Reviewers already solicited:')),
 				UL(reviewersList)
 			)
-			txtbtn = current.T('Search for another reviewer?')
 		else:
 			myContents = ''
-			txtbtn = current.T('Search for a reviewer?')
+		longname = myconf.take('app.longname')
 		myUpperBtn = DIV(
-							A(SPAN(txtbtn, _class='buttontext btn btn-info'), 
-								_href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList), user_signature=True)),
-							A(SPAN(current.T('Add yourself as a reviewer')), _class='buttontext btn btn-info'+(' disabled' if selfFlag else ''), 
-										_href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId), user_signature=True)),
-							A(SPAN(current.T('Template email for contacting external reviewers'), _class='buttontext btn btn-info'), 
-										_href=URL(c='recommender', f='email_for_reviewer', vars=dict(recommId=recommId), user_signature=True)),
+							A(SPAN(current.T('Choose a reviewer from %s database')%(longname), _class='btn btn-success'), _href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList))),
+							A(SPAN(current.T('Choose a reviewer outside %s database')%(longname), _class='btn btn-default'), _href=URL(c='recommender', f='email_for_new_reviewer', vars=dict(recommId=recommId))),
+							#A(SPAN(current.T('Add yourself as a reviewer')), _class='btn btn-info', _href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId))) if not(selfFlag) or selfFlagCancelled else '',
+							#A(SPAN(current.T('Cancel yourself as a reviewer')), _class='btn btn-warning', _href=URL(c='recommender', f='cancel_recommender_as_reviewer', vars=dict(recommId=recommId))) if selfFlag and not(selfFlagCancelled) else '',
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
 						)
-		myAcceptBtn = DIV(
-							A(SPAN(T('Done'), _class='buttontext btn btn-success'), 
-								_href=URL(c='recommender', f='email_to_selected_reviewers', vars=dict(recommId=recommId))),
-							_style='margin-top:16px; text-align:center;'
-						)
+		myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))), _style='margin-top:16px; text-align:center;')
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderAddReviewers'),
@@ -1016,8 +1090,467 @@ def reviewers():
 					myUpperBtn = myUpperBtn,
 				)
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def cancel_email_to_registered_reviewer():
+	reviewId = request.vars['reviewId']
+	if reviewId is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	review = db.t_reviews[reviewId]
+	if review is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	recommId = review.recommendation_id
+	db(db.t_reviews.id == reviewId).delete()
+	#session.flash = T('Reviewer "%s" cancelled') % (mkUser(auth, db, review.reviewer_id).flatten())
+	redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId)))
 
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def email_for_registered_reviewer():
+	reviewId = request.vars['reviewId']
+	if reviewId is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	review = db.t_reviews[reviewId]
+	if review is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	recomm = db.t_recommendations[review.recommendation_id]
+	if recomm is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	art = db.t_articles[recomm.article_id]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	reviewer = db.auth_user[review.reviewer_id]
+	if reviewer is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	destUser = mkUser(auth, db, reviewer.id).flatten()
+	sender = mkUser(auth, db, auth.user_id).flatten()
+	description = myconf.take('app.description')
+	longname = myconf.take('app.longname')
+	art_authors = art.authors
+	art_title = art.title
+	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
+	art_doi = (recomm.doi or art.doi)
+	#linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+	linkTarget = URL(c='user', f='recommendations', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
+	default_message = """
+Dear %(destUser)s,
+
+I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
+
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+
+If you have already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.
+
+The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
+
+If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure. 
+
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+
+Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the %(longname)s website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
+
+Thanks in advance for your help.
+
+Yours sincerely,
+
+%(sender)s
+""" % locals()
+	default_subject = 'Solicitation to review a preprint for %(longname)s' % dict(longname=myconf.take('app.longname'))
+	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
+	form = SQLFORM.factory(
+			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+			Field('cc', label=T('CC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, myconf.take('contacts.managers')), writable=False),
+			Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
+			Field('subject', label=T('Subject'), type='string', length=250, default=default_subject, required=True),
+			Field('message', label=T('Message'), type='text', default=default_message, required=True),
+		)
+	form.element(_type='submit')['_value'] = T("Send email")
+	form.element('textarea[name=message]')['_style'] = 'height:500px;'
+	form.append(DIV(
+				A(SPAN(T('Cancel solicitation')), _class='btn btn-warning', _href=URL(c='recommender', f='cancel_email_to_registered_reviewer', vars=dict(reviewId=reviewId)))
+				, _style='margin-top:16px; text-align:center;'
+			))
+	
+	if form.process().accepted:
+		try:
+			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
+		except Exception, e:
+			session.flash = (session.flash or '') + T('Email failed.')
+			raise e
+		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))
+		
+	response.view='default/myLayout.html'
+	return dict(
+		form=form,
+		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
+		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
+	)
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def email_for_new_reviewer():
+	recommId = request.vars['recommId']
+	recomm = db.t_recommendations[recommId]
+	if recomm is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	art = db.t_articles[recomm.article_id]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	sender = mkUser(auth, db, auth.user_id).flatten()
+	description = myconf.take('app.description')
+	longname = myconf.take('app.longname')
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	site_url = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+	art_authors = art.authors
+	art_title = art.title
+	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
+	art_doi = (recomm.doi or art.doi)
+	default_message = """
+Dear colleague,  
+
+I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
+
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+
+You may not yet know about %(longname)s. Briefly, it is a community of researchers in Evolutionary Biology dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of PCI Evol Biol (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg).
+
+The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
+
+If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
+
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+
+Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by validating your account on the website of %(longname)s (link below). Once you have entered a new password and logged onto the website, then go to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
+
+Thanks in advance for your help.
+
+Best wishes,
+
+%(sender)s
+""" % locals()
+	default_subject = 'Solicitation to review a preprint for %(longname)s' % locals()
+	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
+	form = SQLFORM.factory(
+			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+			Field('cc', label=T('CC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, myconf.take('contacts.managers')), writable=False),
+			Field('reviewer_first_name', label=T('Reviewer first name'), type='string', length=250, required=True),
+			Field('reviewer_last_name', label=T('Reviewer last name'), type='string', length=250, required=True),
+			Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!'))),
+			Field('subject', label=T('Subject'), type='string', length=250, default=default_subject, required=True),
+			Field('message', label=T('Message'), type='text', default=default_message, required=True),
+		)
+	form.element(_type='submit')['_value'] = T("Send email")
+	form.element('textarea[name=message]')['_style'] = 'height:500px;'
+	if form.process().accepted:
+		new_user_id = None
+		# search for already-existing user
+		existingUser = db(db.auth_user.email.upper() == request.vars['reviewer_email'].upper()).select().last()
+		if existingUser:
+			new_user_id = existingUser.id
+			nbExistingReviews = db( (db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == new_user_id) ).count()
+		else:
+			# create user
+			try:
+				my_crypt = CRYPT(key=auth.settings.hmac_key)
+				crypt_pass = my_crypt( auth.random_password() )[0]
+				new_user_id = db.auth_user.insert(
+								first_name=request.vars['reviewer_first_name'],
+								last_name=request.vars['reviewer_last_name'],
+								email=request.vars['reviewer_email'],
+								password=crypt_pass,
+							)
+				# reset password link
+				new_user = db.auth_user(new_user_id)
+				max_time = time.time()
+				reset_password_key = str(int(max_time)) + '-' + web2py_uuid()
+				new_user.update_record(reset_password_key=reset_password_key)
+				nbExistingReviews = 0
+				session.flash = T('User "%(reviewer_email)s" created.') % (request.vars)
+			except:
+				session.flash = T('User creation failed :-(')
+				redirect(request.env.http_referer)
+		
+		# Create review
+		reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state='Pending')
+		
+		if nbExistingReviews > 0:
+			session.flash = T('User "%(reviewer_email)s" have already been solicited. Email cancelled.') % (request.vars)
+		else:
+			linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+			#linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True))
+			if existingUser:
+				try:
+					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
+				except Exception, e:
+					session.flash = (session.flash or '') + T('Email failed.')
+					pass
+			else:
+				try:
+					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], reset_password_key, linkTarget)
+				except Exception, e:
+					session.flash = (session.flash or '') + T('Email failed.')
+					pass
+		
+		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId)))
+		
+	response.view='default/myLayout.html'
+	return dict(
+		form=form,
+		myHelp=getHelp(request, auth, db, '#EmailForNewReviewer'),
+		myTitle=getTitle(request, auth, db, '#EmailForNewReviewerInfoTitle'),
+		myText=getText(request, auth, db, '#EmailForNewReviewerInfo'),
+		myBackButton=mkBackButton(),
+	)
+
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def send_review_reminder():
+	reviewId = request.vars['reviewId']
+	if reviewId is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	review = db.t_reviews[reviewId]
+	if review is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	recomm = db.t_recommendations[review.recommendation_id]
+	if recomm is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	art = db.t_articles[recomm.article_id]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	reviewer = db.auth_user[review.reviewer_id]
+	if reviewer is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	site_url = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+	destUser = mkUser(auth, db, reviewer.id).flatten()
+	sender = mkUser(auth, db, auth.user_id).flatten()
+	description = myconf.take('app.description')
+	longname = myconf.take('app.longname')
+	contact = myconf.take('contacts.managers')
+	reset_password_key = None
+	art_authors = art.authors
+	art_title = art.title
+	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
+	art_doi = (recomm.doi or art.doi)
+	if (review.review_state or 'Pending') == 'Pending':
+		default_subject = 'Reminder: Solicitation to review a preprint for %(longname)s' % locals()
+		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+		if len(reviewer.reset_password_key or '')>0: # even not logged in yet
+			reset_password_key = reviewer.reset_password_key
+			default_message = """
+Dear %(destUser)s,
+
+This is a reminder concerning the following message, which you should already have received:
+
+I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
+
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+
+You may not yet know about %(longname)s. Briefly, it is a community of researchers in Evolutionary Biology dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of PCI Evol Biol (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg). Review itself works largely like it does for a journal (including the ability to remain anonymous or not, as you like).
+
+The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
+
+If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
+
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+
+Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by validating your account on the website of %(longname)s (link below). Once you have entered a new password and logged onto the website, then go to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
+
+Thanks in advance for your help.
+
+Best wishes,
+
+%(sender)s
+""" % locals()
+		else:
+			default_message = """
+Dear %(destUser)s,
+
+This is a reminder concerning the following message, which you should already have received:
+
+I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
+
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+
+If you have already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.
+
+The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
+
+If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
+
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+
+Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the %(longname)s website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
+
+Thanks in advance for your help.
+
+Yours sincerely,
+
+%(sender)s
+""" % locals()
+
+	elif(review.review_state == 'Under consideration'):
+		default_subject = 'Reminder: Review due to %(longname)s' % locals()
+		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
+		default_message = """
+Dear %(destUser)s,
+
+This is reminder for the review of the preprint "%(art_title)s" by %(art_authors)s. I fully understand the difficulties involved in complying with the huge number of deadlines we face on a daily basis. However, I also understand the legitimate expectation of authors to receive reviews on their manuscript, the principal motivation behind this reminder.
+
+Could you please give me some idea of when we might expect your review? Please let me know as soon as possible, particularly if there is likely to be some delay.
+
+To write or upload your review, please click on the link below. In case of any problem or difficulties with the website, please contact %(contact)s.
+
+Many thanks in advance for completing your review.
+
+Best regards
+
+%(sender)s
+""" % locals()
+	
+	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
+	form = SQLFORM.factory(
+			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+			Field('cc', label=T('CC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
+			Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
+			Field('subject', label=T('Subject'), type='string', length=250, default=default_subject, required=True),
+			Field('message', label=T('Message'), type='text', default=default_message, required=True),
+		)
+	form.element(_type='submit')['_value'] = T("Send email")
+	form.element('textarea[name=message]')['_style'] = 'height:500px;'
+	
+	if form.process().accepted:
+		try:
+			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], reset_password_key, linkTarget)
+		except Exception, e:
+			session.flash = (session.flash or '') + T('Email failed.')
+			raise e #TODO pass
+		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		
+	response.view='default/myLayout.html'
+	return dict(
+		form=form,
+		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
+		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
+		myBackButton=mkBackButton(),
+	)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def send_review_cancellation():
+	reviewId = request.vars['reviewId']
+	if reviewId is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	review = db.t_reviews[reviewId]
+	if review is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	recomm = db.t_recommendations[review.recommendation_id]
+	if recomm is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	art = db.t_articles[recomm.article_id]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	reviewer = db.auth_user[review.reviewer_id]
+	if reviewer is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	destUser = mkUser(auth, db, reviewer.id).flatten()
+	sender = mkUser(auth, db, auth.user_id).flatten()
+	description = myconf.take('app.description')
+	longname = myconf.take('app.longname')
+	contact = myconf.take('contacts.managers')
+	art_authors = art.authors
+	art_title = art.title
+	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
+	art_doi = (recomm.doi or art.doi)
+	linkTarget = None #URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+	if (review.review_state or 'Pending') == 'Pending':
+		default_subject = 'Cancellation of a review request for %(longname)s' % locals()
+		default_message = """
+Dear %(destUser)s,
+
+I solicited you to act as a reviewer for a preprint entitled "%(art_title)s" by %(art_authors)s (DOI %(art_doi)s). In the meantime, other colleagues also contacted for this evaluation have agreed to review this preprint. I now have enough reviewers for the evaluation of this preprint and your input is therefore no longer required. Consequently, this preprint no longer appears in your list of requests to act as a reviewer on the %(longname)s webpage.
+
+I apologize for any convenience and wish you all the best.
+
+Best regards,
+
+%(sender)s
+""" % locals()
+	else:
+		pass
+	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
+	form = SQLFORM.factory(
+			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+			Field('cc', label=T('CC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
+			Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
+			Field('subject', label=T('Subject'), type='string', length=250, default=default_subject, required=True),
+			Field('message', label=T('Message'), type='text', default=default_message, required=True),
+		)
+	form.element(_type='submit')['_value'] = T("Send email")
+	form.element('textarea[name=message]')['_style'] = 'height:500px;'
+	
+	if form.process().accepted:
+		try:
+			review.update_record(review_state='Cancelled')
+			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
+		except Exception, e:
+			session.flash = (session.flash or '') + T('Email failed.')
+			raise e
+		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		
+	response.view='default/myLayout.html'
+	return dict(
+		form=form,
+		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
+		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
+		myBackButton=mkBackButton(),
+	)
+
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def email_to_selected_reviewers():
 	recommId = request.vars['recommId']
@@ -1032,6 +1565,7 @@ def email_to_selected_reviewers():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def email_for_reviewer():
 	response.view='default/info.html' #OK
@@ -1042,6 +1576,7 @@ def email_for_reviewer():
 	)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def email_for_author():
 	response.view='default/info.html' #OK
@@ -1052,6 +1587,7 @@ def email_for_author():
 	)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def del_contributor():
 	pressId = request.vars['pressId']
@@ -1062,6 +1598,7 @@ def del_contributor():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def add_contributor():
 	recommId = request.vars['recommId']
@@ -1074,9 +1611,9 @@ def add_contributor():
 		contributorsList = []
 		for con in contributorsListSel:
 			contributorsList.append(LI(mkUserWithMail(auth, db, con.auth_user.id),
-									A('X', 
+									A(T('Delete'), _class='btn btn-warning',
 									   _href=URL(c='recommender', f='del_contributor', vars=dict(pressId=con.t_press_reviews.id)), 
-									   _title=T('Delete'), _style='margin-left:8px; color:red;'),
+									   _title=T('Delete this co-recommender')) #, _style='margin-left:8px; color:red;'),
 									))
 		myContents = DIV(
 			LABEL(T('Co-recommenders:')),
@@ -1096,12 +1633,12 @@ def add_contributor():
 		form.element(_type='submit')['_value'] = T("Add")
 		form.element(_type='submit')['_style'] = 'margin-right:300px;'
 		if form.process().accepted:
-			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id), user_signature=True))
+			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id)))
 		myAcceptBtn = DIV(
-							A(SPAN(current.T('Add a co-recommender later'), _class='buttontext btn btn-info'), 
-										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)) if len(contributorsListSel)==0 else '', 
-							A(SPAN(current.T('Done'), _class='buttontext btn btn-success'), 
-										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True)), 
+							A(SPAN(current.T('Add a co-recommender later'), _class='btn btn-info'), 
+										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))) if len(contributorsListSel)==0 else '', 
+							A(SPAN(current.T('Write / Edit your recommendation'), _class='btn btn-default'), 
+										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))), 
 							_style='margin-top:64px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
@@ -1116,6 +1653,7 @@ def add_contributor():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def contributions():
 	recommId = request.vars['recommId']
@@ -1147,9 +1685,9 @@ def contributions():
 		)
 		#myAcceptBtn = DIV(
 							#A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'), 
-								#_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId), user_signature=True)),
+								#_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId))),
 							#A(SPAN(current.T('Later'), _class='buttontext btn btn-info'), 
-										#_href=URL(c='recommender', f='my_recommendations', user_signature=True)),
+										#_href=URL(c='recommender', f='my_recommendations')),
 							#_style='margin-top:16px; text-align:center;'
 						#)
 		# This script renames the "Add record" button
@@ -1176,72 +1714,115 @@ def contributions():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def edit_recommendation():
 	recommId = request.vars['recommId']
 	recomm = db.t_recommendations[recommId]
 	art = db.t_articles[recomm.article_id]
+	isPress = None
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
-	elif art.status not in ('Under consideration', 'Pre-recommended'):
+	elif art.status not in ('Under consideration', 'Pre-recommended', 'Pre-revision', 'Pre-cancelled'):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
 		nbCoRecomm = db(db.t_press_reviews.recommendation_id == recommId).count()
 		isPress = art.already_published
-		buttons = [
-					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
-					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate') if (nbCoRecomm>0) else '',
-				]
-		db.t_recommendations.recommendation_state.default = 'Recommended'
-		db.t_recommendations.recommendation_title.label = T('Decision or recommendation title')
-		db.t_recommendations.recommendation_comments.label = T('Decision or recommendation')
-		db.t_recommendations.no_conflict_of_interest.writable = not(recomm.no_conflict_of_interest)
+		triptyque = DIV(DIV(H3(current.T('Your decision')),
+						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend', _checked=(recomm.recommendation_state=='Recommended')), current.T('I recommend this preprint'), _class='pci-radio pci-recommend btn-success'),
+						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise', _checked=(recomm.recommendation_state=='Revision')), current.T('This preprint merits a revision'), _class='pci-radio pci-review btn-default'),
+						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_reject', _checked=(recomm.recommendation_state=='Rejected')), current.T('I reject this preprint'), _class='pci-radio pci-reject btn-warning'),
+						_style="padding:8px; margin-bottom:12px;"
+					), _style='text-align:center;') if (nbCoRecomm == 0) else ''
+		buttons = [	INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'), ]
+		if isPress:
+			buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
+		else:
+			buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your decision')]
+		#db.t_recommendations.recommendation_state.default = 'Recommended'
+		db.t_recommendations.recommendation_state.readable = False
+		db.t_recommendations.recommendation_state.writable = False
+		if isPress:
+			db.t_recommendations.recommendation_title.label = T('Recommendation title')
+			db.t_recommendations.recommendation_comments.label = T('Recommendation')
+			myText=getText(request, auth, db, '#RecommenderEditRecommendationText')
+			myHelp=getHelp(request, auth, db, '#RecommenderEditRecommendation')
+			myTitle=getTitle(request, auth, db, '#RecommenderEditRecommendationTitle')
+		else:
+			db.t_recommendations.recommendation_title.label = T('Decision or recommendation title')
+			db.t_recommendations.recommendation_comments.label = T('Decision or recommendation')
+			myText=getText(request, auth, db, '#RecommenderEditDecisionText')
+			myHelp=getHelp(request, auth, db, '#RecommenderEditDecision')
+			myTitle=getTitle(request, auth, db, '#RecommenderEditDecisionTitle')
+		#db.t_recommendations.no_conflict_of_interest.writable = not(recomm.no_conflict_of_interest)
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
-					,fields=['recommendation_title', 'no_conflict_of_interest', 'recommendation_comments']
+					,fields=['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments']
 					,showid=False
 					,buttons=buttons
 				)
+		if isPress is False:
+			form.insert(0, triptyque)
 		if form.process().accepted:
 			if form.vars.save:
+				if form.vars.recommender_opinion == 'do_recommend':
+					recomm.recommendation_state = 'Recommended'
+				elif form.vars.recommender_opinion == 'do_revise':
+					recomm.recommendation_state = 'Revision'
+				elif form.vars.recommender_opinion == 'do_reject':
+					recomm.recommendation_state = 'Rejected'
+				recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
+				recomm.recommendation_title = form.vars.recommendation_title
+				recomm.recommendation_comments = form.vars.recommendation_comments
+				recomm.update_record()
 				session.flash = T('Recommendation saved', lazy=False)
-				redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress)))
 			elif form.vars.terminate:
 				session.flash = T('Recommendation saved and completed', lazy=False)
-				art.status = 'Pre-recommended'
+				recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
+				recomm.recommendation_title = form.vars.recommendation_title
+				recomm.recommendation_comments = form.vars.recommendation_comments
+				if isPress is False:
+					if form.vars.recommender_opinion == 'do_recommend':
+						recomm.recommendation_state = 'Recommended'
+						art.status = 'Pre-recommended'
+					elif form.vars.recommender_opinion == 'do_revise':
+						recomm.recommendation_state = 'Revision'
+						art.status = 'Pre-revision'
+					elif form.vars.recommender_opinion == 'do_reject':
+						recomm.recommendation_state = 'Rejected'
+						art.status = 'Pre-rejected'
+				else:
+					recomm.recommendation_state = 'Recommended'
+					art.status = 'Pre-recommended'
+				recomm.update_record()
 				art.update_record()
-				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress), user_signature=True))
+				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress)))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
 		myScript = """jQuery(document).ready(function(){
-						if(jQuery('#t_recommendations_no_conflict_of_interest').prop('checked')) {
-							jQuery(':submit').prop('disabled', false);
-						} else {
-							jQuery(':submit').prop('disabled', true);
-						}
-						jQuery('#t_recommendations_no_conflict_of_interest').change(function(){
-									if(jQuery('#t_recommendations_no_conflict_of_interest').prop('checked')) {
-										jQuery(':submit').prop('disabled', false);
-									} else {
-										jQuery(':submit').prop('disabled', true);
-									}
+							jQuery('#t_recommendations_no_conflict_of_interest').click(function(){
+								jQuery(':submit[name=terminate]').prop('disabled', !jQuery('#t_recommendations_no_conflict_of_interest').prop('checked'));
+							});
+							jQuery(':submit[name=terminate]').prop('disabled', !jQuery('#t_recommendations_no_conflict_of_interest').prop('checked'));
 						});
-					});
 		"""
 		response.view='default/myLayout.html'
 		return dict(
 					form = form,
-					myText=getText(request, auth, db, '#RecommenderEditRecommendationText'),
-					myHelp=getHelp(request, auth, db, '#RecommenderEditRecommendation'),
-					myTitle=getTitle(request, auth, db, '#RecommenderEditRecommendationTitle'),
+					myText=myText,
+					myHelp=myHelp,
+					myTitle=myTitle,
 					myFinalScript = SCRIPT(myScript),
+					myBackButton = mkBackButton(),
 				)
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def my_press_reviews():
 	query = (
@@ -1271,8 +1852,8 @@ def my_press_reviews():
 		,links=[
 				dict(header=T('Other co-recommenders'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''), 
-						body=lambda row: A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), 
-										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
+						body=lambda row: A(SPAN(current.T('View'), _class='btn btn-default pci-button'), 
+										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.t_articles.id)), 
 										_target="_blank", 
 										_class='button', 
 										_title=current.T('View this co-recommendation')
@@ -1295,6 +1876,7 @@ def my_press_reviews():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def do_cancel_press_review():
 	recommId = request.vars['recommId']
@@ -1316,6 +1898,28 @@ def do_cancel_press_review():
 	else:
 		art.status = 'Cancelled'
 		art.update_record()
-		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True), user_signature=True))
+		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=True)))
 
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
+def review_emails():
+	revId = request.vars['reviewId']
+	rev = db.t_reviews[revId]
+	myContents = DIV()
+	myContents.append(SPAN(B(T('Reviewer: ')), mkUserWithMail(auth, db, rev.reviewer_id)))
+	myContents.append(H2(T('Emails:')))
+	myContents.append(DIV(
+						#WIKI((rev.emailing or '*None yet*'), safe_mode=False)
+						XML((rev.emailing or '<b>None yet</b>'))
+					   ,_style='margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;'))
+	response.view='default/info.html'
+	return dict(
+					myHelp = getHelp(request, auth, db, '#RecommenderReviewEmails'),
+					myText=getText(request, auth, db, '#RecommenderReviewEmailsText'),
+					myTitle=getTitle(request, auth, db, '#RecommenderReviewEmailsTitle'),
+					myBackButton=mkCloseButton(), 
+					message=myContents, 
+			 )
 

@@ -8,8 +8,17 @@
 .dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 
 /* My tweaks */
-html {padding-bottom:0px;}
-body {padding-top:0px; margin-bottom:0px;}
+html {
+	padding-bottom:0px; 
+}
+body {
+	padding-top:0px; 
+	margin-bottom:0px; 
+/* 	font-family: Optima; */
+	font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, "sans-serif";
+	font-size:14px;
+/* 	line-height:1.2em; */
+}
 /* div.w2p_flash {background-color: #ff6600; background-image:initial; top:90px; border:4px solid #f0f0ff; border-radius:4px; } */
 div.w2p_flash.alert {background-color: #ffb26f; background-image:initial; top:90px; border:4px solid #ff6600; border-radius:8px; padding:12px;}
 /* div.w2p_flash {background-image:url(../images/glitter_pink.gif); top:90px; border:1px solid #f0f0ff; border-radius:4px; color:white; font-weight:bold;} */
@@ -64,7 +73,7 @@ header{box-shadow:none;} /* Don't remove */
 
 .btn {border-radius: 8px; margin-left:8px;}
 .web2py_grid .row_buttons {white-space: initial; text-align: center;}
-.web2py_grid thead th {background: none; font-size: 12pt; color:#777777;}
+.web2py_grid thead th {background: none; font-size: 11pt; color:#777777;}
 .web2py_grid thead th a {color: #777777;}
 
 /* .col-md-3 {position:fixed; width:300px; right:20px; top:280px; border:none;} */
@@ -81,7 +90,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-myLogo {height: 100px; margin-bottom:8px; background-image: url(../images/small-background.png); background-size:contain; background-position: left center; background-repeat:no-repeat;}
 .pci-imgLogo {width:4cm;}
 .pci-myTitleNoImage {height: 64px; margin-bottom:8px;}
-.pci-myTitleText {font-weight: bold; font-size:30px; color:#598398;}
+.pci-myTitleText {/*font-weight: bold; font-size:30px; */color:#598398;}
 
 .panel { border:none; border-radius:8px;}
 .list-group-item {border:none; padding: 8px; border-color:#f0f0f0;}
@@ -105,7 +114,7 @@ header{box-shadow:none;} /* Don't remove */
 
 /* .btn {border-radius: 16px;} */
 
-.doi_url {width: 200px;}
+.doi_url {width: 180px;}
 .pci-status {box-sizing: unset; width: 100px; white-space: initial; padding: 8px; font-size:11px; text-align:left;}
 .pci-status-big {white-space: initial; padding: 8px; font-size:32px; text-align:center;}
 .pci-status.warning,.pci-status-big.warning {color: #ffbf00;}
@@ -158,7 +167,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-ArticleHeaderIn.recommended {color: white; background-color: #089108;}
 .pci-ArticleHeaderIn.printable {margin-left: 350px; width:calc(100%-350px);}
 .pci-ArticleHeaderIn.recommended.printable {color: #089108; background: none;}
-.pci-ArticleText {font-size:24pt; text-align:center;}
+.pci-ArticleText {font-size:24pt; text-align:center; padding-top:8px; padding-bottom:8px;}
 
 .pci-article-reference {border: 1px solid #e0e0e0; padding: 8px;}
 .pci-reviewTitle {margin-top:1cm; }
@@ -177,7 +186,7 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-blocked {font-size:20px; color:red;}
 
-.pci-opinionform {margin: 20px; padding: 8px; text-align:center;}
+.pci-opinionform {margin: 20px; padding: 8px; text-align:center; border: 2px solid #ddd; border-radius:16px;}
 .pci-radio {margin-left:12px; padding: 12px; border-radius:8px; opacity:0.85;}
 .pci-recommend {background-color: #089108; color: white;}
 .pci-review {background-color: #BBBBBB;}
@@ -193,7 +202,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-infotext {text-align:justify;}
 .pci-text-buttons {width:100%; text-align:right;}
 .pci-text-button-edit {font-size:8px;}
-.pci-text-title {font-size:32px; font-weight:bold; color:#598398;}
+.pci-text-title {font-size:36px; font-weight:400; color:#598398; margin-bottom:10px;}
 
 .pci-div4wiki {max-height:200px; overflow:auto;}
 
@@ -278,7 +287,8 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-shareLine {margin-top:8px; padding:12px; max-width:20cm; margin:auto;}
 
-.pci-preprintTag {font-size:14px; font-weight:bold; text-align:center; width:100%; margin-top:4px;}
+.pci-preprintTag {text-align:center; width:100%; margin-top:8px;}
+.pci-preprintTagText {font-size:14px; font-weight:bold; padding:4px;}
 
 .pci-recommOfDiv {padding:12px; border-radius:12px; background:#f0f0f0; margin-top:12px; margin-bottom:12px;}
 .pci-recommOf {font-size:18px; font-weight:bold;}
@@ -294,5 +304,12 @@ header{box-shadow:none;} /* Don't remove */
 /* .pci-download-link {margin-bottom: 64px;} */
 
 .pci-embeddedEthicContents {}
-.pci-embeddedEthic {border: 2px solid red; padding-left:32px; padding-right:32px; padding-bottom:32px;}
+.pci-embeddedEthic {border: 2px solid red; padding-left:32px; padding-right:32px; padding-bottom:32px; border-radius:16px;}
 
+.pci-reviewers-table-div {padding: 8px; border: 2px solid #dddddd; border-radius:16px;}
+.pci-onoffAbstract {background-color:#eeeeee; display:none; margin-top:-8px; padding:16px; border-radius:16px;}
+
+
+.pci-li-spacy li {margin-top:8px;}
+
+.pci-rss-btn {background: none;}

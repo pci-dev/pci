@@ -24,8 +24,9 @@
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap3.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
-    <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon11.png')}}">
+    <link rel="icon" type="image/png" href="{{=URL('static','images/favicon.png')}}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{=URL('static','images/favicon.ico')}}" />
+    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}" />
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
@@ -38,7 +39,7 @@
 
     <!-- http://panzi.github.io/SocialSharePrivacy/ -->
     <script src="{{=URL('static','js/jquery.cookies.js')}}"></script>
-    <script rel="text/javascript" href="{{=URL('static','js/pci.js')}}"></script>
+    <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
     {{if 'shareable' in globals():}}
 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=True, scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
 		{{pass}}
@@ -152,8 +153,8 @@
 		<div class="footer-content">
 			{{block footer}}
 			{{if response.menu:}}
-			{{=MENU(response.menu, _class='pci-footer', ul_class='pci-footer-ul', li_first='pci-footer-li', li_last='pci-footer-li', li_class='pci-footer-li')}}
-			{{pass}}
+				{{=MENU(response.menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
+				{{pass}}
 			{{=getText(request, auth, db, '#Footer')}}
 			{{pass}}
 			{{end}}

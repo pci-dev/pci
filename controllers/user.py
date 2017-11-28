@@ -2,6 +2,7 @@
 
 import re
 import copy
+import datetime
 
 from gluon.contrib.markdown import WIKI
 from common import *
@@ -17,14 +18,14 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 #@auth.requires_login()
 def new_submission():
 	if auth.user:
-		button = A(current.T("Start your request"), 
+		button = A(current.T("Submit your preprint"), 
 					_href=URL('user', 'fill_new_article', user_signature=True), 
 					_class="btn btn-success pci-panelButton")
 	else:
-		button = SPAN(B('To start your request, please: '), 
-						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login', 'user', 'new_submission']), _class="btn btn-info"),
+		button = SPAN(B(current.T('Before submitting your preprint, please:'), _style='margin-right:8px;'), 
+						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login'], vars=dict(_next=URL(c='user', f='new_submission'))), _class="btn btn-info"),
 						LABEL(current.T(' or ')),
-						A(current.T('Register'), _href=URL(c='default', f='user', args=['register', 'user', 'new_submission']), _class="btn btn-info"))
+						A(current.T('Register'), _href=URL(c='default', f='user', args=['register'], vars=dict(_next=URL(c='user', f='new_submission'))), _class="btn btn-info"))
 	myText = DIV(
 			getText(request, auth, db, '#NewRecommendationRequestInfo'),
 			DIV(
@@ -256,23 +257,22 @@ def add_suggested_recommender():
 		for con in recommendersListSel:
 			reviewersIds.append(con.auth_user.id)
 			if con.t_suggested_recommenders.declined:
-				recommendersList.append(LI(mkUser(auth, db, con.auth_user.id), T('(declined)')))
+				recommendersList.append(LI(mkUser(auth, db, con.auth_user.id), I(T('(declined)'))))
 			else:
-				recommendersList.append(LI(mkUser(auth, db, con.auth_user.id),
-									A('X', 
-									   _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), 
-									   _title=T('Delete'), _style='margin-left:8px;'),
+				recommendersList.append(
+									LI(mkUser(auth, db, con.auth_user.id),
+									A('Remove', _class='btn btn-warning', _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;'),
 									))
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(recommendersList)>0:
 			myContents = DIV(
 				LABEL(T('Suggested recommenders:')),
-				UL(recommendersList)
+				UL(recommendersList, _class='pci-li-spacy')
 			)
-			txtbtn = current.T('Search another recommender?')
+			txtbtn = current.T('Suggest another recommender?')
 		else:
 			myContents = ''
-			txtbtn = current.T('Search a recommender?')
+			txtbtn = current.T('Suggest recommenders')
 
 		myUpperBtn = DIV(
 							A(SPAN(txtbtn, _class='buttontext btn btn-info'), 
@@ -280,7 +280,7 @@ def add_suggested_recommender():
 							_style='margin-top:16px; text-align:center;'
 						)
 		myAcceptBtn = DIV(
-							A(SPAN(T('Terminate your submission'), _class='buttontext btn btn-success'), 
+							A(SPAN(T('Complete your submission'), _class='buttontext btn btn-success'), 
 								_href=URL(c='user', f='my_articles', user_signature=True)),
 							_style='margin-top:16px; text-align:center;'
 						)
@@ -384,15 +384,21 @@ def search_recommenders():
 				Field('last_name', type='string', length=128, label=T('Last name')),
 				Field('email', type='string', length=512, label=T('email')),
 				Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-				Field('city', type='string', label=T('City')),
-				Field('country', type='string', label=T('Country')),
-				Field('laboratory', type='string', label=T('Laboratory')),
-				Field('institution', type='string', label=T('Institution')),
+				Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
+				Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
+				Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
+				Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
 				Field('thematics', type='list:string', label=T('Thematic fields')),
+				Field('excluded', type='boolean', label=T('Excluded')),
 			)
 		qyKwArr = qyKw.split(' ')
 		searchForm =  mkSearchForm(auth, db, myVars)
-		#RETURNS TABLE(id integer, num integer, score double precision, first_name character varying, last_name character varying, email character varying, uploaded_picture character varying, city character varying, country character varying, laboratory character varying, institution character varying, thematics character varying)
+		if searchForm.process(keepvalues=True).accepted:
+			response.flash = None
+		else:
+			qyTF = []
+			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+				qyTF.append(thema.keyword)
 		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 		for fr in filtered:
 			qy_recomm.insert(**fr)
@@ -401,22 +407,25 @@ def search_recommenders():
 		temp_db.qy_recomm.uploaded_picture.readable = False
 		links = [
 					#dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
-					dict(header=T(''), body=lambda row: mkSuggestUserArticleToButton(auth, db, row, art.id)),
+					dict(
+						header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id)
+					),
 			]
-		selectable = [(T('Suggest to checked recommenders'), lambda ids: [suggest_article_to_all(articleId, ids)], 'class1')]
+		selectable = None #[(T('Suggest to checked recommenders'), lambda ids: [suggest_article_to_all(articleId, ids)], 'class1')]
 		temp_db.qy_recomm.num.readable = False
 		temp_db.qy_recomm.score.readable = False
+		temp_db.qy_recomm.excluded.readable = False
 		grid = SQLFORM.grid( qy_recomm
 			,editable = False,deletable = False,create = False,details=False,searchable=False
 			,selectable=selectable
-			,maxtextlength=250,paginate=100
+			,maxtextlength=250,paginate=1000
 			,csv=csv,exportclasses=expClass
-			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics]
+			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
 			,links=links
 			,orderby=temp_db.qy_recomm.num
 			,args=request.args
 		)
-		myAcceptBtn = DIV(A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='my_articles', user_signature=True), _class='button'), _style='text-align:center; margin-top:16px;')
+		myAcceptBtn = DIV(A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId)), _class='button'), _style='text-align:center; margin-top:16px;')
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
@@ -484,21 +493,21 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	for sr in suggRecomms:
 		exclude.append(str(sr.suggested_recommender_id))
 		if sr.declined:
-			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+XML(':&nbsp;declined')+BR())
+			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+I(XML('&nbsp;declined'))+BR())
 		else:
 			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
 	if row.status in ('Pending', 'Awaiting consideration'):
-		if len(suggRecomsTxt)>0:
-			butts.append( A(current.T('[MANAGE]'), _href=URL(c='user', f='recommenders', vars=dict(articleId=row.id))) )
+		#if len(suggRecomsTxt)>0:
+			#butts.append( A(current.T('MANAGE'), _class='btn btn-default', _href=URL(c='user', f='recommenders', vars=dict(articleId=row.id))) )
 		myVars = dict(articleId=row['id'])
 		#if len(exclude)>0:
 			#myVars['exclude'] = ','.join(exclude)
 		#for thema in row['thematics']:
 			#myVars['qy_'+thema] = 'on'
 		#butts.append( BR() )
-		butts.append( A(current.T('[+ADD]'), _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
+		butts.append( A(current.T('Add / Manage'), _class='btn btn-default', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	#else:
 		#butts.append( SPAN((db.v_suggested_recommenders[row.id]).suggested_recommenders) )
 	return butts
@@ -538,7 +547,7 @@ def my_articles():
 		db.t_articles.keywords.readable = False
 		db.t_articles.thematics.readable = False
 		db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(text)
-		db.t_articles.upload_timestamp.label = T('Request submitted')
+		db.t_articles.upload_timestamp.label = T('Submitted')
 		db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(text)
 		db.t_articles.auto_nb_recommendations.readable = True
 	#elif (request.args[0]=='new') and (request.args[1]=='t_articles'): # in form
@@ -580,7 +589,8 @@ def recommendations():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value
 	revCpt = 0
 	if art.user_id == auth.user_id:
@@ -604,7 +614,7 @@ def recommendations():
 			else:
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
+						#DIV(def my_, _class='pci-ArticleText printable'),
 						_class='pci-ArticleHeaderIn printable'
 					))
 			myUpperBtn = ''
@@ -665,9 +675,9 @@ def my_reviews():
 		myText=getText(request, auth, db, '#UserMyReviewsText')
 		btnTxt = current.T('View / Edit')
 	
-	db.t_articles._id.readable = False
-	#db.t_articles._id.represent = lambda aId, row: mkRepresentArticleLight(auth, db, aId)
-	#db.t_articles._id.label = T('Article')
+	#db.t_articles._id.readable = False
+	db.t_articles._id.represent = lambda aId, row: mkRepresentArticleLight(auth, db, aId)
+	db.t_articles._id.label = T('Article')
 	db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
 	db.t_recommendations._id.label = T('Recommendation')
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
@@ -679,7 +689,7 @@ def my_reviews():
 	#db.t_reviews.recommendation_id.label = T('Recommender')
 	#db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
 	db.t_reviews._id.readable = False
-	db.t_reviews.review.readable=False
+	#db.t_reviews.review.readable=False
 	db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
 	db.t_reviews.anonymously.represent = lambda anon,row: mkAnonymousMask(auth, db, anon)
 	#db.t_reviews.review.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
@@ -692,14 +702,14 @@ def my_reviews():
 									_target="_blank", 
 									_class='button', 
 									_title=current.T('View and/or edit review')
-									)
+									) if row.t_reviews.review_state in ('Pending', 'Under consideration', 'Completed') else ''
 				),
 		]
 	grid = SQLFORM.grid( query
 		,searchable=False, deletable=False, create=False, editable=False, details=False
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.status, db.t_reviews.review_state, db.t_reviews.last_change, db.t_reviews.anonymously,  db.t_reviews.review]
+		,fields=[db.t_articles.status, db.t_articles._id, db.t_reviews.review_state, db.t_reviews.last_change, db.t_reviews.anonymously,  db.t_reviews.review, db.t_reviews.review_pdf]
 		,links=links
 		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
@@ -726,57 +736,24 @@ def accept_new_review():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if rev['reviewer_id'] != auth.user_id:
 		raise HTTP(403, "403: "+T('Forbidden'))
+	_next = None
+	if '_next' in request.vars:
+		_next = request.vars['_next']
 	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
 	if ethics_not_signed:
-		myEthicalTitle = getText(request, auth, db, '#EthicsTitle'),
-		myEthicalContents = getText(request, auth, db, '#EthicsInfo'),
-		myEthical = DIV(
-				DIV(myEthicalTitle, _class="pci-myTextInfo pci-myTitleText"),
-				DIV(myEthicalContents, _class="pci-myTextInfo pci-embeddedEthicContents"),
-				FORM(
-					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of ethical conduct'))), _style='padding:16px;'),
-					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
-					hidden=dict(reviewId=reviewId),
-					_action=URL('user', 'do_accept_new_review'),
-					_style='text-align:center;',
-				),
-				_class="pci-embeddedEthic",
-			)
-		myScript = SCRIPT("""
-			jQuery(document).ready(function(){
-				
-				if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-				
-				jQuery('#ethics_approved').change(function(){
-					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				
-				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#ethics_approved').prop('checked') & jQuery('#no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-			});
-			""")
+		redirect(URL(c='about', f='ethics', vars=dict(_next=URL('user', 'accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''))))
 	else:
 		myEthical = DIV(
 				FORM(
-					DIV(B(T('You agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
-					DIV(SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), _style='padding:16px;'),
+					#DIV(B(T('You have agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
+					DIV(
+						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))),
+						DIV(getText(request, auth, db, '#ConflictsForReviewers')), 
+						_style='padding:16px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes", value=False), LABEL('I agree to post my review within three weeks')), _style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
 					hidden=dict(reviewId=reviewId, ethics_approved=True),
-					_action=URL('user', 'do_accept_new_review'),
+					_action=URL('user', 'do_accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''),
 					_style='text-align:center;',
 				),
 				_class="pci-embeddedEthic",
@@ -784,14 +761,22 @@ def accept_new_review():
 		myScript = SCRIPT("""
 			jQuery(document).ready(function(){
 				
-				if(jQuery('#no_conflict_of_interest').prop('checked')) {
+				if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
 					jQuery(':submit').prop('disabled', false);
 				} else {
 					jQuery(':submit').prop('disabled', true);
 				}
 				
 				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked')) {
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				
+				jQuery('#due_time').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
 						jQuery(':submit').prop('disabled', false);
 					} else {
 						jQuery(':submit').prop('disabled', true);
@@ -816,30 +801,34 @@ def accept_new_review():
 @auth.requires_login()
 def do_accept_new_review():
 	if 'reviewId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	reviewId = request.vars['reviewId']
+	if isinstance(reviewId, list):
+		reviewId = reviewId[1]
 	theUser = db.auth_user[auth.user_id]
 	if 'ethics_approved' in request.vars and theUser.ethical_code_approved is False:
 		theUser.ethical_code_approved = True
 		theUser.update_record()
 	if not(theUser.ethical_code_approved):
-		raise HTTP(403, "403: "+T('Forbidden'))
+		raise HTTP(403, "403: "+T('ERROR: Ethical code not approved'))
 	if 'no_conflict_of_interest' not in request.vars:
-		raise HTTP(403, "403: "+T('Forbidden'))
+		raise HTTP(403, "403: "+T('ERROR: Value "no conflict of interest" missing'))
 	noConflict = request.vars['no_conflict_of_interest']
 	if noConflict != "yes":
-		raise HTTP(403, "403: "+T('Forbidden'))
+		raise HTTP(403, "403: "+T('ERROR: No conflict of interest not checked'))
 	rev = db.t_reviews[reviewId]
 	if rev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		raise HTTP(404, "404: "+T('ERROR: Review unavailable'))
 	if rev.reviewer_id != auth.user_id:
-		raise HTTP(403, "403: "+T('Forbidden'))
+		raise HTTP(403, "403: "+T('ERROR: Forbidden access'))
 	rev.review_state = 'Under consideration'
 	rev.no_conflict_of_interest = True
+	rev.acceptation_timestamp = datetime.datetime.now()
 	rev.update_record()
 	# email to recommender sent at database level
 	recomm = db.t_recommendations[rev.recommendation_id]
-	redirect(URL(c='user', f='recommendations', vars=dict(articleId=recomm.article_id), user_signature=True))
+	redirect(URL(c='user', f='recommendations', vars=dict(articleId=recomm.article_id)))
 	#redirect(URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), user_signature=True))
 
 
@@ -899,7 +888,7 @@ def edit_reply():
 	form = SQLFORM(db.t_recommendations
 				,record=recommId
 				,fields=['id', 'reply', 'reply_pdf', 'track_change']
-				,upload=URL('download')
+				,upload=URL('default', 'download')
 				,showid=False
 			)
 	form.element(_type='submit')['_value'] = T('Save')
@@ -944,17 +933,19 @@ def edit_review():
 	else:
 		buttons = [
 					INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'),
-					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & terminate'),
+					INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save & Submit Your Review'),
 				]
 		db.t_reviews.no_conflict_of_interest.writable = not(review.no_conflict_of_interest)
 		db.t_reviews.anonymously.label = T('I wish to remain anonymous')
+		#db.t_reviews.anonymously.writable = review.reviewer_id != recomm.recommender_id
 		db.t_reviews.review_pdf.label = T('OR Upload review as PDF')
+		db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
 		form = SQLFORM(db.t_reviews
 					,record=review
 					,fields=['anonymously', 'review', 'review_pdf', 'no_conflict_of_interest']
 					,showid=False
 					,buttons=buttons
-					,upload=URL('download')
+					,upload=URL('default', 'download')
 				)
 		if form.process().accepted:
 			if form.vars.save:
@@ -982,7 +973,7 @@ def edit_review():
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, db, '#UserEditReview'),
-				#myBackButton=mkBackButton(),
+				myBackButton=mkBackButton(),
 				myText=getText(request, auth, db, '#UserEditReviewText'),
 				myTitle=getTitle(request, auth, db, '#UserEditReviewTitle'),
 				form=form,
@@ -1005,7 +996,8 @@ def edit_my_article():
 	elif art.status not in ('Pending', 'Awaiting revision'):
 		session.flash = T('Forbidden access')
 		redirect(URL('my_articles', user_signature=True))
-	deletable = (art.status == 'Pending')
+	#deletable = (art.status == 'Pending')
+	deletable = False
 	db.t_articles.status.readable=False
 	db.t_articles.status.writable=False
 	form = SQLFORM(db.t_articles
@@ -1015,6 +1007,7 @@ def edit_my_article():
 				,deletable=deletable
 				,showid=False
 			)
+	form.element(_type='submit')['_value'] = T("Save")
 	if form.process().accepted:
 		response.flash = T('Article saved', lazy=False)
 		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))

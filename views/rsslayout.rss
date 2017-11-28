@@ -1,0 +1,1 @@
+{{from my_serializers import rss}}{{=XML(rss(response._vars))}}

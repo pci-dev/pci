@@ -68,7 +68,7 @@ def recommended_articles():
 
 
 
-@cache.action(time_expire=300, cache_model=cache.ram, quick='V')
+@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
 def last_recomms():
 	if 'maxArticles' in request.vars:
 		maxArticles = int(request.vars['maxArticles'])
@@ -100,6 +100,9 @@ def last_recomms():
 		r = mkRecommArticleRow(auth, db, row, withDate=True)
 		if r:
 			myRows.append(r)
+	
+	if len(myRows) == 0:
+		return DIV(I(T('Soon...')))
 	
 	if len(myRows) < maxArticles:
 		moreState = ' disabled'
@@ -240,43 +243,52 @@ def managers():
 
 
 def recommenders():
-	searchForm = mkSearchForm(auth, db, request.vars)
-	if searchForm.process(keepvalues=True).validate:
+	myVars = request.vars
+	#print(request.vars)
+	qyKw = ''
+	qyTF = []
+	excludeList = []
+	for myVar in myVars:
+		if isinstance(myVars[myVar], list):
+			myValue = (myVars[myVar])[1]
+		else:
+			myValue = myVars[myVar]
+		if (myVar == 'qyKeywords'):
+			qyKw = myValue
+		elif (re.match('^qy_', myVar) and myValue == 'on'):
+			qyTF.append(re.sub(r'^qy_', '', myVar))
+	qyKwArr = qyKw.split(' ')
+	searchForm = mkSearchForm(auth, db, myVars)
+	#print(qyTF, qyKwArr)
+	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
-		myVars = searchForm.vars
-		qyKw = ''
+	else:
 		qyTF = []
-		for myVar in myVars:
-			if isinstance(myVars[myVar], list):
-				myValue = (myVars[myVar])[1]
-			else:
-				myValue = myVars[myVar]
-			if (myVar == 'qyKeywords'):
-				qyKw = myValue
-			elif (re.match('^qy_', myVar) and myValue == 'on'):
-				qyTF.append(re.sub(r'^qy_', '', myVar))
-		qyKwArr = qyKw.split(' ')
-		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s) ORDER BY last_name, first_name;', placeholders=[qyTF, qyKwArr], as_dict=True)
-		myRows = []
-		my1 = ''
-		myIdx = []
-		for fr in filtered:
-			sfr = Storage(fr)
-			if sfr.last_name[0].upper() != my1:
-				my1 = sfr.last_name[0].upper()
-				myRows.append(TR(TD( my1, A(_name=my1)), TD(''), _class='pci-capitals'))
-				myIdx.append(A(my1, _href='#%s'%my1, _style='margin-right:20px;'))
-			myRows.append(mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
-		grid = DIV(
-				HR(),
-				LABEL(T('Quick access: '), _style='margin-right:20px;'), SPAN(myIdx, _class='pci-capitals'),
-				HR(),
-				TABLE(
-					THEAD(TR(TH(T('Name')), TH(T('Affiliation')) )), 
-					TBODY(myRows), 
-					_class="web2py_grid pci-UsersTable"
-				)
+		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+			qyTF.append(thema.keyword)
+	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s) ORDER BY last_name, first_name;', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+	myRows = []
+	my1 = ''
+	myIdx = []
+	nbRecomm = len(filtered)
+	for fr in filtered:
+		sfr = Storage(fr)
+		if sfr.last_name[0].upper() != my1:
+			my1 = sfr.last_name[0].upper()
+			myRows.append(TR(TD( my1, A(_name=my1)), TD(''), _class='pci-capitals'))
+			myIdx.append(A(my1, _href='#%s'%my1, _style='margin-right:20px;'))
+		myRows.append(mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
+	grid = DIV(
+			HR(),
+			DIV(nbRecomm + T(' recommenders selected'), _style='text-align:center; margin-bottom:20px;'),
+			LABEL(T('Quick access: '), _style='margin-right:20px;'), SPAN(myIdx, _class='pci-capitals'),
+			HR(),
+			TABLE(
+				THEAD(TR(TH(T('Name')), TH(T('Affiliation')) )), 
+				TBODY(myRows), 
+				_class="web2py_grid pci-UsersTable"
 			)
+		)
 	response.view='default/myLayout.html'
 	resu = dict(
 				myTitle=getTitle(request, auth, db, '#PublicRecommendationBoardTitle'),
@@ -310,4 +322,50 @@ def viewUserCard():
 			)
 	return resu
 
+
+#def rss_info():
+	#scheme=myconf.take('alerts.scheme')
+	#host=myconf.take('alerts.host')
+	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	#aurl = A(url, _href=url)
+	#session.flash = "Enter this URL in your RSS reader: %(aurl)s" % locals
+	#redirect(request.env.http_referer)
+
+
+@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
+def rss():
+	maxArticles = 20
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	title=myconf.take('app.longname')
+	description=T('Articles recommended by ')+myconf.take('app.description')
+	favicon = XML(URL(c='static', f='images/favicon.png', scheme=scheme, host=host, port=port))
+	query = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	myRows = []
+	for row in query:
+		try:
+			r = mkRecommArticleRss(auth, db, row)
+			if r:
+				myRows.append(r)
+		except Exception, e:
+			#raise e
+			pass
+	link = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	if len(myRows) == 0:
+		myRows.append(dict(title=u'Coming soon..', link=link, description=u'patience!'))
+	#response.view='generic.rss'
+	response.view='rsslayout.rss'
+	return dict(
+			title=title,
+			link=link,
+			description=description,
+			image=favicon.xml(),
+			entries=myRows,
+		)
 

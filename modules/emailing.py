@@ -47,14 +47,14 @@ def mkFooter():
 	appname=myconf.take('app.name')
 	applongname=myconf.take('app.longname')
 	appthematics=myconf.take('app.thematics')
-	contact=myconf.take('contacts.managers') #TODO
+	contact=myconf.take('contacts.managers')
 	baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
-	profileurl=URL(c='default', f='user', args=['profile'], scheme=scheme, host=host, port=port)
+	profileurl=URL(c='default', f='user', args=('login'), vars=dict(_next=URL(c='default', f='user', args=('profile'))), scheme=scheme, host=host, port=port)
 	#return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
 #<i>%(applongname)s</i> is the first community of the parent project Peer Community In…. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>
 #If you wish to modify your profile or the fields and frequency of alerts, please follow this link <a href="%(profileurl)s">%(profileurl)s</a>
 #</div>""" % locals())
-	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;"> <i>%(applongname)s</i> is the first community of the parent project Peer Community In. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>In case of any questions or queries, please use the following e-mail: <a href="mailto:%(contact)s">%(contact)s</a>.<p> If you wish to modify your profile or the fields and frequency of alerts, please follow this link: <a href="%(profileurl)s">%(profileurl)s</a>.</div>""" % locals())
+	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;"> <i>%(applongname)s</i> is the first community of the parent project Peer Community In. It is a community of researchers in %(appthematics)s dedicated to both 1) the recommendation of preprints publicly available from open archives (such as bioRxiv), based on a high-quality peer-review process and 2) to a lesser extent, the recommendation of postprints already published in traditional journals. This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>In case of any questions or queries, please use the following e-mail: <a href="mailto:%(contact)s">%(contact)s</a>.<p> If you wish to modify your profile or the fields and frequency of alerts, please click on 'Profile' in the top-right 'Welcome' menu or follow this link: <a href="%(profileurl)s">%(profileurl)s</a>.</div>""" % locals())
 
 
 # TEST MAIL
@@ -70,20 +70,19 @@ def do_send_email_to_test(session, auth, db, userId):
 	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
-	mySubject = "%s: TEST MAIL" % (applongname)
+	mySubject = "%s: Test Mail" % (applongname)
 	siteName = I(applongname)
 	linkTarget = URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	content = """
 Dear %(destPerson)s,<p>
-This is a test mail; please ignore.<p>
-You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>""" % locals()
+This is a test message; please ignore.<p>""" % locals()
 	try:
 		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
 		mail_resu = mail.send(to=[destAddress],
 					subject=mySubject,
 					message=myMessage,
 				)
-	except Exception as e :
+	except Exception, e :
 		print "%s" % traceback.format_exc()
 	if mail_resu:
 		report.append( 'email sent to %s' % destPerson.flatten() )
@@ -114,15 +113,26 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 		articleTitle = article.title
 		recommendation = None
 		
-		if article.status=='Pending' and newStatus=='Awaiting consideration':
-			mySubject = '%s: Request for recommendation of your preprint' % (applongname)
+		if article.status=='Pending' and newStatus=='Cancelled':
+			mySubject = '%s: Cancellation of your preprint' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-Thank you for your request, on behalf of all the authors, for recommendation of your preprint entitled <b>%(articleTitle)s</b>, by <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
-Please remember that <i>%(applongname)s</i> is under no obligation to consider your preprint. We cannot guarantee that your preprint will be reviewed, but all possible efforts will be made to achieve this end. We also remind you that, by sending this request to <i>%(applongname)s</i>, you agree to wait at least 20 days before submitting this preprint to a journal. This delay will allow <i>%(applongname)s</i> to initiate the recommendation process, thereby avoiding simultaneous reviewing by <i>%(applongname)s</i> and a traditional scientific journal.<p>
-You will be notified by e-mail if a recommender of the <i>%(applongname)s</i> decides to start the peer-review process for your article. If so, your preprint will be sent to at least two reviewers and the first round of review will take about 50 days. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the recommender of <i>%(applongname)s</i> responsible for handling your article reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
-To view or cancel your recommendation request, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendation request of your preprints' in the top menu.<p>
-We thank you again for your request for recommendation.<p>
+Your submission, on behalf of all the authors, of your preprint entitled <b>%(articleTitle)s</b>, to <i>%(appdesc)s</i> (<i>%(applongname)s</i>) is now cancelled.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+
+		elif article.status=='Pending' and newStatus=='Awaiting consideration':
+			mySubject = '%s: Submission of your preprint' % (applongname)
+			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
+			content = """Dear %(destPerson)s,<p>
+Thank you for your submission, on behalf of all the authors, of your preprint entitled <b>%(articleTitle)s</b>, to <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
+If you have not already done so, you can suggest recommenders who could initiate the evaluation of your preprint. A recommender is very similar to a journal editor (responsible for finding reviewers, collecting reviews, and making editorial decisions based on reviews), and may eventually recommend your preprint after one or several rounds of reviews.<p>
+Please remember that <i>%(applongname)s</i> is under no obligation to consider your preprint. We cannot guarantee that your preprint will be reviewed, but all possible efforts will be made to make this possible. By submitting your preprint to <i>%(applongname)s</i>, you agree to wait until a recommender initiates the evaluation process, within a maximum of 20 days. You will be notified by e-mail if a recommender of the <i>%(applongname)s</i> decides to start the peer-review process for your preprint.<p>
+If after one or several rounds of reviews, the <i>%(applongname)s</i> recommender handling your preprint reaches a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i> under the license CC-BY-ND. If recommended by <i>%(applongname)s</i> your preprint would become a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
+Alternatively, if the recommender decides not to recommend your article, the reviews and the decision will be sent to you, but they will not be published or publicly released by <i>%(applongname)s</i>. They will be safely stored in our database, to which only the Managing Board has access. You will be notified by e-mail at each stage in the procedure.<p>
+To view or cancel your recommendation request, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your submitted preprints' in the top menu.<p>
+We thank you again for your submission.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -131,67 +141,70 @@ Yours sincerely,<p>
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			mySubject = '%s: Consideration of your preprint' % (applongname)
 			content = """Dear %(destPerson)s,<p>
-You have requested, on behalf of all the authors, a recommendation for your preprint entitled <b>%(articleTitle)s</b> from <i>%(appdesc)s</i> (<i>%(applongname)s</i>). We are pleased to inform you that a recommender of <i>%(applongname)s</i> has read this preprint and agreed to start the peer-review process.<p>
-At this stage of the process, we expect you to wait until completion of the reviewing process before submitting this article to a journal. Your article will be sent to several referees, to ensure that at least two high-quality reviews are obtained. You may then be asked to modify your article and to respond to the questions and points raised by the reviewers. If the recommender of <i>%(applongname)s</i> responsible for handling your preprint reaches a favorable conclusion, a recommendation will be published on the website of <i>%(applongname)s</i> and widely publicized through social and scientific networks. Alternatively, a second round of reviews may be required or the decision may be taken not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
-Note that the time to first decision will take about 50 days.<p>
-To view or cancel your recommendation request, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendation request of your preprints' in the top menu.<p>
-We thank you again for your request for recommendation.<p> 
+You have submitted, on behalf of all the authors, your preprint entitled <b>%(articleTitle)s</b> to <i>%(applongname)s</i>. We are pleased to inform you that a <i>%(applongname)s</i> recommender has initiated the evaluation process.<p>
+At this stage of the process, your article will be sent to several referees, to ensure that at least two high-quality reviews are obtained. Based on this review, the recommender will reject, recommend or ask you to modify your article and to respond to the questions and points raised by the reviewers. The mean time to this first decision is about 50 days.<p>
+If after one or several rounds of review, the <i>%(applongname)s</i> recommender handling your preprint reaches a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i> under the license CC-BY-ND. If recommended by <i>%(applongname)s</i> your preprint would become a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
+Alternatively, if the recommender decides not to recommend your article, the reviews and the decision will be sent to you, but they will not be published or publicly released by <i>%(applongname)s</i>. They will be safely stored in our database, to which only the Managing Board has access. You will be notified by e-mail at each stage in the procedure.<p>
+To view or cancel your recommendation request, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your submitted preprints' in the top menu.<p>
+We thank you again for your submission.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 #OK		
 		elif article.status!=newStatus and newStatus=='Cancelled':
 			linkTarget=URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
-			mySubject = '%s: Cancellation of request for recommendation' % (applongname)
+			mySubject = '%s: Cancellation of your submission' % (applongname)
 			content = """Dear %(destPerson)s,<p>
-Your request for recommendation of your preprint entitled <b>%(articleTitle)s</b> has been cancelled. We respect your choice, but we hope that you will request other recommendations from <i>%(appdesc)s</i> (<i>%(applongname)s</i>) for your preprints in the near future.<p>
+Your submission of your preprint entitled <b>%(articleTitle)s</b> has been cancelled. We respect your decision, but we hope that you will submit other preprints to <i>%(appdesc)s</i> (<i>%(applongname)s</i>) in the near future.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 		
 		elif article.status!=newStatus and newStatus=='Rejected':
-			mySubject = '%s: Decision concerning your recommendation request' % (applongname)
+			mySubject = '%s: Decision concerning your submission' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-Your manuscript entitled <b>%(articleTitle)s</b> has been evaluated by at least two referees. On the basis of these reviews, the recommender of <i>%(applongname)s</i> in charge of the evaluation of your manuscript has decided not to recommend it.<p>
-You will find through this following link <a href="%(recommTarget)s">%(recommTarget)s</a>, and below, the reviews and the commentary of the recommender of <i>%(applongname)s</i> in charge of the evaluation of your manuscript. These reviews and commentary will not be published on the <i>%(applongname)s</i> website and will not be publicly released. They will safely be stored in our database and no one except the Managing Board can have access to them.<p>
-We hope that you would request new recommendations in the future.<p>
-We thank you again for your recommendation request.<p>
+Your preprint entitled <b>%(articleTitle)s</b> has been evaluated by at least two referees. On the basis of these reviews, the <i>%(applongname)s</i> recommender in charge of this evaluation has decided not to recommend it.<p>
+The reviews and the recommender’s decision are shown below. These reviews and the decision will not be published or publicly released by <i>%(applongname)s</i>. They will be safely stored in our database, to which only the Managing Board has access.<p>
+We hope that you are not too disappointed and that you will consider submitting other preprints to <i>%(applongname)s</i> in the future.<p>
+We thank you again for your submission.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 		
 		elif article.status!=newStatus and newStatus=='Not considered':
-			mySubject = '%s: Decision concerning your recommendation request' % (applongname)
+			mySubject = '%s: Decision concerning your submission' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have requested, on behalf of all the authors, a recommendation for your preprint entitled <b>%(articleTitle)s</b> from <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
-Unfortunately, your preprint have not attracted the attention of a recommender since the request was made, and the recommendation process has not, therefore, been initiated. This does not mean that your preprint is not of sufficient quality and/or interest.<p>
-At this stage, we suggest you to submit your preprint to a journal of your choice without further waiting a return from <i>%(applongname)s</i>.<p>
-We hope that you are not too disappointed and that you will consider seeking a recommendation from <i>%(applongname)s</i> as a possible option for your next preprint.<p>
+You have submitted, on behalf of all the authors, your preprint entitled <b>%(articleTitle)s</b> to <i>%(applongname)s</i>.<p>
+Unfortunately, no recommender has initiated the evaluation of your preprint since the request was made. This does not mean that your preprint is not of sufficient quality and/or interest.<p>
+At this stage, we suggest that you do not wait any longer for a return from <i>%(applongname)s</i>.<p>
+We hope that you are not too disappointed and that you will consider submitting other preprints to <i>%(applongname)s</i> in the future.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 		
 		elif article.status!=newStatus and newStatus=='Awaiting revision':
-			mySubject = '%s: Decision concerning your recommendation request' % (applongname)
+			mySubject = '%s: Decision concerning your submission' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			recommTarget = URL(c='user', f='recommendations', vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-Your preprint, entitled <b>%(articleTitle)s</b>, has now been reviewed. The referees' comments are enclosed and/or can be downloaded. As you can see, we found your article very interesting and have suggested its recommendation, subject to certain revisions.<p>
-We shall, in principle, be happy to recommend your article as soon as it has been revised in response to the points raised by the referees. We hope to hear from you as soon as possible to reduce the delays of recommendation.<p>
+Your preprint, entitled <b>%(articleTitle)s</b>, has now been reviewed. The referees' comments and the recommender’s decision are shown below. As you can see, the recommender found your article very interesting, but suggests certain revisions.<p>
+We shall, in principle, be happy to recommend your article as soon as it has been revised in response to the points raised by the referees.<p>
 When your revised article is ready, please:<p>
-1) Upload the new version of your manuscript on your favorite preprint server;<p>
-2) Follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'your recommendation request of your preprints' in the top menu;<p>
-3) Make your changes in the title, summary, link to the article (or its DOI) and keywords if necessary by clicking on the black 'Edit Article' button;<p>
-4) Write or upload (as a PDF file) your reply to the recommender's and reviewers' comments by clicking on the blue 'Write your reply to recommender' button;<p>
-5) When you are ready to submit your new version, click on the green 'Revision completed: submit new version and close revision process' button.<p>
-Once we have read the revised version, we may decide to recommend it directly, in which case, the recommendation will be published on the <i>%(applongname)s</i> website. Alternatively, a second round of reviews may be needed or it may be decided not to recommend your article. You will be notified by e-mail at each stage in the procedure.<p>
+1) Upload the new version of your manuscript onto your favorite preprint server;<p>
+2) Follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(applongname)s</i> website and go to 'your contributions' section and then to 'Your submitted preprints' subsection in the top menu;<p>
+3) Make your changes to the title, summary, link to the article (or its DOI) and keywords if necessary by clicking on the 'Edit Article' button;<p>
+4) Write, copy/paste or upload (as a PDF file) your reply to the recommender's and reviewers' comments by clicking on the 'Write, edit or upload your reply to recommender' button. You can also upload (as a PDF file) a revised version of your preprint, with the modifications indicated in TrackChanges mode;<p>
+5) When you are ready to submit your new version, click on the 'Save & submit your reply' button.<p>
+Once the recommender has read the revised version, he/she may decide to recommend it directly, in which case the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i> under the license CC-BY-ND.<p>
+Alternatively, other rounds of reviews may be needed before the recommender reaches a favorable conclusion. He/she also might decide not to recommend your article. In this latter case, the reviews and decision will be sent to you, but they will not be published or publicly released by <i>%(applongname)s</i>. They will be safely stored in our database, to which only the Managing Board has access. You will be notified by e-mail at each stage in the procedure.<p>
+Thanks in advance for submitting your revised version.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -204,20 +217,21 @@ Yours sincerely,<p>
 			linkTarget = URL(c='public', f='rec', vars=dict(id=articleId), scheme=scheme, host=host, port=port)
 			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-We are pleased to inform you that the peer-review process concerning your preprint entitled <b>%(articleTitle)s</b> has reached a favorable conclusion. A recommendation has now been published on the <i>%(applongname)s</i> website.<p>
-Thank you for requesting a recommendation for this very interesting preprint from <i>%(applongname)s</i>. We hope that you will request recommendations for other preprints in the future and will tell your colleagues about this project.<p>
+We are pleased to inform you that the peer-review process concerning your preprint entitled <b>%(articleTitle)s</b> has reached a favorable conclusion. A recommendation text written by the recommender has now been published by <i>%(applongname)s</i>. The editorial correspondence (reviews, author’s responses and recommender’ decisions) has also been published by <i>%(applongname)s</i>. The recommendation text and the editorial correspondence are shown below.<p>
+Thank you for using <i>%(applongname)s</i>. We hope that you will submit other preprints in the future and will tell your colleagues about <i>%(applongname)s</i>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 		
 		elif article.status!=newStatus:
-			oldStatus = article.status
+			tOldStatus = current.T(article.status)
+			tNewStatus = current.T(newStatus)
 			mySubject = '%s: Change in the status of your preprint' % (applongname)
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-The status of your preprint entitled <b>%(articleTitle)s</b> has changed from "%(oldStatus)s" to "%(newStatus)s".<p>
-You can view, edit or cancel your request by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendation request of your preprints' in the top menu.<p>
-We thank you again for your recommendation request.<p>
+The status of your preprint entitled <b>%(articleTitle)s</b> has changed from "%(tOldStatus)s" to "%(tNewStatus)s".<p>
+You can view, edit or cancel your request by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your submitted preprints' in the top menu.<p>
+We thank you again for your submission.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -235,9 +249,9 @@ Yours sincerely,<p>
 			except:
 				pass
 		if mail_resu:
-			report.append( 'email sent to requester %s' % destPerson.flatten() )
+			report.append( 'email sent to submitter %s' % destPerson.flatten() )
 		else:
-			report.append( 'email NOT SENT to requester %s' % destPerson.flatten() )
+			report.append( 'email NOT SENT to submitter %s' % destPerson.flatten() )
 	print ''.join(report)
 	if session.flash is None:
 		session.flash = '\n'.join(report)
@@ -258,7 +272,6 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
-		mySubject = '%s: Change in article status' % (applongname)
 		linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 		for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
 			recommender_id = myRecomm['recommender_id']
@@ -266,11 +279,48 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
 			articleAuthors = article.authors
 			articleTitle = article.title
-			oldStatus = article.status 
-			content = """
+			articleDoi = mkDOI(article.doi)
+			tOldStatus = current.T(article.status)
+			tNewStatus = current.T(newStatus)
+			if article.status == 'Awaiting consideration' and newStatus == 'Under consideration':
+				mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
+				content = """Dear %(destPerson)s,<p>
+You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
+We remind you that the role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews) and may eventually lead to recommendation of the preprint after one or several rounds of review. The evaluation should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited just like a ‘classic’ article published in a journal.<p>
+If after one or several rounds of review you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least to the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+As you have agreed to handle this preprint, you will manage its evaluation until you reach a final decision (recommend or reject).<p>
+All preprints must be reviewed by at least two referees. If you have not already done so, you need to solicit reviewers (either from the <i>%(applongname)s</i> database or not included in this database). You can invite potential reviewers to review the preprint via the <i>%(applongname)s</i> website:<p>
+1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
+2) Click on the 'solicit a reviewer' button.<p>
+We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
+Please do not solicit reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
+Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
+If you need assistance in any way do not hesitate to ask us.<p>
+We thank you again for initiating and managing this evaluation.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
+""" % locals()
+			elif article.status == 'Awaiting revision' and newStatus == 'Under consideration':
+				mySubject = '%s: Revised version' % (applongname)
+				content = """
 Dear %(destPerson)s,<p>
-You have intiated the recommendation of the article by %(articleAuthors)s entitled <b>%(articleTitle)s</b>. The status of this article has changed from "%(oldStatus)s" to "%(newStatus)s".<p>
-You can view and manage your recommendation process by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contribtions —> Your recommendations of preprints' in the top menu.<p>
+You are the recommender handling the preprint by %(articleAuthors)s entitled <b>%(articleTitle)s</b>. The authors have posted their revised version and their replies to your comments and those of the reviewers. They may also have downloaded (as a PDF file) a revised version of their preprint, with the modifications indicated in TrackChanges mode.<p>
+For this second round of evaluation, you must reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. To reach your new decision you may or may not need the help of reviewers. You can solicit the same reviewers or another/additional reviewers via the %(applongname)s website:<br>
+1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the %(applongname)s website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<br>
+2) Click on the 'Choose a reviewer' button.<p>
+We strongly advise you to set a deadline of no more than 21 days.<p>
+If, after the second round of evaluation, you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by PCI Evol Biol under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has a title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference for the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by %(applongname)s.<p>
+We thank you for managing this new round of evaluation.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+			else:
+				mySubject = '%s: Change in article status' % (applongname)
+				content = """
+Dear %(destPerson)s,<p>
+You have intiated the evaluation of the article by %(articleAuthors)s entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s).<p>
+The status of this article has changed from "%(tOldStatus)s" to "%(tNewStatus)s".<p>
+You can view and manage your evaluation process by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contribtions —> Your recommendations of preprints' in the top menu.<p>
 We thank you for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -284,9 +334,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu: 
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
 	print ''.join(report)
 	if session.flash is None:
@@ -310,23 +360,23 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
+		articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: About our request to act as recommender for a preprint' % (applongname)
 		#TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
-		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
+		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.declined==False) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
 			mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
 			#linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
-			#helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
+			#helpurl=URL(c='about', f='help_practical', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have been proposed as the recommender for a preprint entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). 
-This preprint has also attracted the attention of another recommender of <i>%(applongname)s</i>, who has initiated its evaluation. 
-Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(applongname)s</i> webpage.<p>
-If you are willing to participate in the evaluation/recommendation of this preprint, please send us an e-mail at %(mailManagers)s. 
-We will send an e-mail to inform the recommender handling the recommendation process of your willingness to participate and he/she may then contact you.<p>
-We hope that, in the near future, you will have the opportunity to initiate the recommendation of another preprint.<p>
+You have been proposed as recommender for a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s).
+This preprint has also attracted the attention of another recommender of <i>%(applongname)s</i>, who has initiated its evaluation. Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(applongname)s</i> webpage.<p>
+If you are willing to participate in the evaluation of this preprint, please send us an e-mail at %(mailManagers)s.
+We will inform the recommender handling the evaluation process of your willingness to participate and he/she may then contact you.<p>
+We hope that, in the near future, you will have the opportunity to initiate the evaluation of another preprint.<p>
 Thanks for your support.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
@@ -362,22 +412,24 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
-	if article:# and article.status in ('Pending', 'Awaiting consideration'):
+	if article:
 		articleTitle = article.title
+		articleAuthors = article.authors
+		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
-		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
+		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
-			linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
-			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
+			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
+			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have been proposed as the recommender for a preprint entitled <b>%(articleTitle)s</b>. You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
-As <i>%(applongname)s</i> is a very young and fragile initiative, we would be extremely happy if you could accept the role of recommender for this preprint (unless you do not consider it as sufficiently interesting to start a recommendation process). Because this is just the start of the project, it is important that preprints would find recommenders. We understand that this may represent an extra effort that was not expected in your schedule but we also think that this may be a significant help to a nice and deserving initiative.<p>
-If you accept, you will be invited to search for reviewers. You will be allowed to postpone this step by simply clicking on the 'Done' button. You will then be able to solicit reviewers by:<p>
-1) login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
-2) click on 'solicit a reviewer' hypertext link.<p>
-Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://www.youtube.com/watch?v=Igx_wui0L1k&feature=youtu.be">How to start and manage a preprint recommendation</a>.<p>
+You have been proposed as recommender for a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
+As <i>%(applongname)s</i> is a very recent initiative requiring as much support as possible, we would be extremely grateful if you would accept the role of recommender for this preprint (unless you do not consider it sufficiently interesting to merit initiation of the evaluation process of course). At this early stage in the project, it is vital that we find recommenders for as many valuable preprints as possible. We understand that this may require a little extra effort from you that you may not have anticipated, but it would provide significant assistance to a deserving initiative.<p>
+The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
+If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to solicit, through the <i>%(applongname)s</i> website, reviewers included in the <i>%(applongname)s</i> database or not already present in this database.<p>
+Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M">How to start and manage a preprint recommendation</a>.<p>
 Thanks again for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
@@ -402,9 +454,9 @@ Yours sincerely,<p>
 		else:
 			session.flash += '; ' + '; '.join(report)
 
-# Do send email to all recommenders for a given available article
-def do_send_email_to_all_recommenders(session, auth, db, articleId):
-	print 'do_send_email_to_all_recommenders'
+# Individual reminder for previous message
+def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecommId):
+	print 'do_send_reminder_email_to_suggested_recommenders'
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -413,53 +465,120 @@ def do_send_email_to_all_recommenders(session, auth, db, articleId):
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
-	article = db.t_articles[articleId]
-	if article and article.status in ('Awaiting consideration'):
-		articleTitle = article.title
-		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
-		suggestedQy = db.executesql("""SELECT DISTINCT au.*
-			FROM auth_user AS au 
-			JOIN auth_membership AS am ON au.id = am.user_id 
-			JOIN auth_group AS ag ON am.group_id = ag.id AND ag.role LIKE 'recommender'
-			WHERE au.id NOT IN (
-				SELECT sr.suggested_recommender_id
-				FROM t_suggested_recommenders AS sr
-				WHERE sr.email_sent IS TRUE AND sr.article_id=%s
-			);""", placeholders=[articleId], as_dict=True)
-		for theUser in suggestedQy:
-			destPerson = mkUser(auth, db, theUser['id'])
-			destAddress = db.auth_user[theUser['id']]['email']
-			linkTarget=URL(c='recommender', f='fields_awaiting_articles', scheme=scheme, host=host, port=port)
-			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
-			content = """Dear %(destPerson)s,<p>
-A preprint entitled <b>%(articleTitle)s</b> is still requesting a recommender. You can obtain information about this request and accept this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Requests for input —> Consider preprint recommendation requests' in the top menu.<p>
-If you have already declined a previous invitation to become the recommender of this preprint, please do not take this message into account and accept our apologies for multiple mailing.<p>
-Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://www.youtube.com/watch?v=Igx_wui0L1k&feature=youtu.be">How to start and manage a preprint recommendation</a>.<p>
+	suggRecomm = db.t_suggested_recommenders[suggRecommId]
+	if suggRecomm:
+		article = db.t_articles[suggRecomm.article_id]
+		if article:
+			articleTitle = article.title
+			articleAuthors = article.authors
+			articleDoi = mkDOI(article.doi)
+			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
+			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+			theUser = db.auth_user[suggRecomm.suggested_recommender_id]
+			mySubject = '%s: Request to act as recommender for a preprint (reminder)' % (applongname)
+			if theUser:
+				destPerson = mkUser(auth, db, theUser['id'])
+				destAddress = db.auth_user[theUser['id']]['email']
+				content = """Dear %(destPerson)s,<p>
+A few days ago, you have been proposed as recommender for a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
+As <i>%(applongname)s</i> is a very recent initiative requiring as much support as possible, we would be extremely grateful if you would accept the role of recommender for this preprint (unless you do not consider it sufficiently interesting to merit initiation of the evaluation process of course). At this early stage in the project, it is vital that we find recommenders for as many valuable preprints as possible. We understand that this may require a little extra effort from you that you may not have anticipated, but it would provide significant assistance to a deserving initiative.<p>
+The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
+If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to solicit, through the <i>%(applongname)s</i> website, reviewers included in the <i>%(applongname)s</i> database or not already present in this database.<p>
+Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M">How to start and manage a preprint recommendation</a>.<p>
+Thanks again for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
-			try:
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[destAddress],
-							subject=mySubject,
-							message=myMessage,
-						)
-			except:
-				pass
-			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
-			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
-			time.sleep(mail_sleep)
-		print '\n'.join(report)
-		if session.flash is None:
-			session.flash = '; '.join(report)
-		else:
-			session.flash += '; ' + '; '.join(report)
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[destAddress],
+								subject=mySubject,
+								message=myMessage,
+							)
+				except:
+					pass
+				if mail_resu:
+					suggRecomm.email_sent = True
+					suggRecomm.update_record()
+					report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
+				else:
+					suggRecomm.email_sent = False
+					suggRecomm.update_record()
+					report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
+				time.sleep(mail_sleep)
+				print '\n'.join(report)
+				if session.flash is None:
+					session.flash = '; '.join(report)
+				else:
+					session.flash += '; ' + '; '.join(report)
+
+
+
+## Do send email to all recommenders for a given available article
+#def do_send_email_to_all_recommenders(session, auth, db, articleId):
+	#print 'do_send_email_to_all_recommenders'
+	#report = []
+	#mail = getMailer(auth)
+	#mail_resu = False
+	#scheme=myconf.take('alerts.scheme')
+	#host=myconf.take('alerts.host')
+	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#applongname=myconf.take('app.longname')
+	#appdesc=myconf.take('app.description')
+	#article = db.t_articles[articleId]
+	#if article and article.status in ('Awaiting consideration'):
+		#articleTitle = article.title
+		#articleAuthors = article.authors
+		#articleDoi = mkDOI(article.doi)
+		#mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
+		#suggestedQy = db.executesql("""SELECT DISTINCT au.*
+			#FROM auth_user AS au 
+			#JOIN auth_membership AS am ON au.id = am.user_id 
+			#JOIN auth_group AS ag ON am.group_id = ag.id AND ag.role LIKE 'recommender'
+			#WHERE au.id NOT IN (
+				#SELECT sr.suggested_recommender_id
+				#FROM t_suggested_recommenders AS sr
+				#WHERE sr.email_sent IS TRUE AND sr.article_id=%s
+			#);""", placeholders=[articleId], as_dict=True)
+		#for theUser in suggestedQy:
+			#destPerson = mkUser(auth, db, theUser['id'])
+			#destAddress = db.auth_user[theUser['id']]['email']
+			#linkTarget=URL(c='recommender', f='fields_awaiting_articles', scheme=scheme, host=host, port=port)
+			#helpurl=URL(c='about', f='help_practical', scheme=scheme, host=host, port=port)
+			#content = """Dear %(destPerson)s,<p>
+#A preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s) submitted to <i>%(applongname)s</i> is requiring a recommender. We send you this alert because your profile has keywords in common with those of this preprint.<p>
+#You can obtain information about this preprint and accept this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Consider preprint recommendation requests' in the top menu. If you cannot see the preprint in the list of preprints still requiring a recommender it means that another recommender has, in the meantime, taken charge of its evaluation.<p>
+#As <i>%(applongname)s</i> is a very recent initiative requiring as much support as possible, we would be extremely grateful if you would accept the role of recommender for this preprint (unless you do not consider it sufficiently interesting to merit initiation of the evaluation process of course). At this early stage in the project, it is vital that we find recommenders for as many valuable preprints as possible. We understand that this may require a little extra effort from you that you may not have anticipated, but it would provide significant assistance to a deserving initiative.<p>
+#The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of review. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
+#If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+#If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to solicit, through the <i>%(applongname)s</i> website, reviewers included in the <i>%(applongname)s</i> database or not already present in this database.<p>
+#Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M">How to start and manage a preprint recommendation</a>.<p>
+#Thanks again for your help.<p>
+#Yours sincerely,<p>
+#<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
+			#try:
+				#myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				#mail_resu = mail.send(to=[destAddress],
+							#subject=mySubject,
+							#message=myMessage,
+						#)
+			#except:
+				#pass
+			#if mail_resu:
+				#report.append( 'email sent to %s' % destPerson.flatten() )
+			#else:
+				#report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+			#time.sleep(mail_sleep)
+		#print '\n'.join(report)
+		#if session.flash is None:
+			#session.flash = '; '.join(report)
+		#else:
+			#session.flash += '; ' + '; '.join(report)
 
 
 
 # Do send email to recommender when a review is re-opened
-def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
+def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -474,16 +593,18 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId):
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			linkTarget = URL(c='user', f='my_reviews', scheme=scheme, host=host, port=port)
-			mySubject = '%s: Review re-opened' % (applongname)
+			mySubject = '%s: Review modification' % (applongname)
 			articleTitle = B(article.title )
+			articleAuthors = article.authors
 			theUser = db.auth_user[rev.reviewer_id]
 			if theUser:
 				recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 				destPerson = mkUser(auth, db, rev.reviewer_id)
 				destAddress = db.auth_user[rev.reviewer_id]['email']
 				content = """Dear %(destPerson)s,<p>
-Your review concerning the preprint entitled <b>%(articleTitle)s</b> has been re-opened by %(recommenderPerson)s, the recommender who agreed to initiate and manage the recommendation process for this preprint.<p>
-You can view and edit your reviews by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> My reviews' in the top menu.<p>
+%(recommenderPerson)s, the recommender managing the evaluation process for the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> has made your review concerning this preprint available for modification.<p>
+You can now access this review, and edit it if necessary.<p>
+You can view and edit your reviews by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> My reviews' in the top menu.<p>
 We thank you again for agreeing to review this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -494,12 +615,22 @@ Yours sincerely,<p>
 							subject=mySubject,
 							message=myMessage,
 						)
+					if newForm['emailing']:
+						emailing0 = newForm['emailing']
+					else:
+						emailing0 = ''
+					emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+					emailing += myMessage
+					emailing += '<hr>'
+					emailing += emailing0
+					newForm['emailing'] = emailing
+					#rev.update_record()
 				except:
 					pass
 				if mail_resu:
-					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
+					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
-					report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -533,8 +664,10 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 				destAddress = db.auth_user[recomm.recommender_id]['email']
 				reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 				content = """Dear %(destPerson)s,<p>
-The review by %(reviewerPerson)s concerning the preprint entitled <b>%(articleTitle)s</b> is now completed.<p>
-You can view and/or upload this review and manage your recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
+The review by %(reviewerPerson)s of the preprint entitled <b>%(articleTitle)s</b> is now available.<p>
+You can view and/or upload this review and manage your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
+We remind you that the goal of the evaluation is to reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a full article that may be used and cited, just like ‘classic’ articles published in journals.<p>
+If after one or several rounds of reviews, you decide to recommend a preprint, you will need to write “recommendation” that will have its own DOI and will be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing at least the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) relating to the preprint will also be published by <i>%(applongname)s</i>.<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -548,9 +681,9 @@ Yours sincerely,<p>
 				except:
 					pass
 				if mail_resu:
-					report.append( 'email sent to recommender %s' % destPerson.flatten() )
+					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
-					report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -580,7 +713,7 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
 %(contributorPerson)s has accepted to co-sign the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
-You may check your recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of postprints' in the top menu.<p>
+You may check your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of postprints' in the top menu.<p>
 We thank you again for writting this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -594,9 +727,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -627,7 +760,8 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
 %(contributorPerson)s has declined your invitation to co-sign the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
-You may check your recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of postprints' in the top menu. You would notably be able to invite another recommender to co-sign your recommendation.<p>
+You may check your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging to the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of postprints' in the top menu. You would notably be able to invite another recommender to co-sign your recommendation.<p>
+We thank you again for writting this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -640,9 +774,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -672,7 +806,8 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 			contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
 			content = """Dear %(destPerson)s,<p>
 %(contributorPerson)s has agreed with the recommendation of the postprint entitled <b>%(articleTitle)s</b>.<p>
-You may check your recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of postprints' in the top menu.
+You may check your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of postprints' in the top menu.<p>
+We thank you again for writting this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -685,9 +820,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -711,15 +846,18 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
+			articleAuthors = article.authors
+			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review accepted'% (applongname)
 			destPerson = mkUser(auth, db, recomm.recommender_id)
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
+			expectedDuration = datetime.timedelta(days=21) # three weeks
+			dueTime = str((datetime.datetime.now() + expectedDuration).date())
 			content = """Dear %(destPerson)s,<p>
-%(reviewerPerson)s has accepted your invitation to review the preprint entitled <b>%(articleTitle)s</b>.<p>
-We encourage you to contact him/her as soon as possible to set a precise deadline - ideally within the next 20 days.<p>
-You can view and manage the recommendation and the reviewing processes by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
+You are the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). %(reviewerPerson)s has accepted your invitation to review this preprint and has been sent a message indicating that this review must be posted or uploaded on the <i>%(applongname)s</i> website before %(dueTime)s.<p>
+You will receive a message notifying you of the posting of this review. If the review is not posted by the deadline, you can send the reviewer a reminder by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -733,9 +871,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -759,14 +897,16 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
+			articleAuthors = article.authors
+			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review declined' % (applongname)
 			destPerson = mkUser(auth, db, recomm.recommender_id)
 			destAddress = db.auth_user[recomm.recommender_id]['email']
 			reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 			content = """Dear %(destPerson)s,<p>
-%(reviewerPerson)s has declined your invitation to review the preprint entitled <b>%(articleTitle)s</b>.<p>
-You will probably need to find another reviewer to obtain the two high-quality reviews required. To view and manage the recommendation and the reviewing processes for this preprint, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
+You are the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). %(reviewerPerson)s has declined your invitation to review this preprint.<p>
+You will probably need to find another reviewer to obtain the two high-quality reviews required. You can solicit additional reviewers by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -780,9 +920,9 @@ Yours sincerely,<p>
 			except:
 				pass
 			if mail_resu:
-				report.append( 'email sent to recommender %s' % destPerson.flatten() )
+				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
-				report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -810,18 +950,21 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 					article = db.t_articles[recomm['article_id']]
 					if article:
 						articleTitle = article.title
-						articleDOI = mkDOI(article.doi)
+						articleAuthors = article.authors
+						articleDoi = mkDOI(article.doi)
 						linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 						mySubject = '%s: Request to review a preprint' % (applongname)
 						destPerson = mkUser(auth, db, rev.reviewer_id)
 						destAddress = db.auth_user[rev.reviewer_id]['email']
 						recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
 						content = """Dear %(destPerson)s,<p>
-I have agreed to handle the evaluation of a preprint entitled <b>%(articleTitle)s</b>, with a view to its recommendation by <i>%(appdesc)s</i> (<i>%(applongname)s</i>). This article can be visualized and downloaded at the following address (doi %(articleDOI)s).<p>
-At first glance, it appears particularly interesting but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for <i>%(applongname)s</i>.<p>
-Note that you may have already reviewed a previous version of this preprint as several rounds of reviews might be necessary before a final decision is reached. In case you already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.<p>
-Please let me know as soon as possible whether you are willing to accept or not my invitation to review this article, by clicking on this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Requests for input —> Do you agree to review a preprint?' in the top menu.<p>
-If you agree you will then be able to write or upload your review on the <i>%(applongname)s</i> website.<p>
+I have agreed to handle the evaluation of a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b>, for potential recommendation by <i>%(appdesc)s</i> (<i>%(applongname)s</i>). This article can be visualized and downloaded at the following address (doi %(articleDoi)s).<p>
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for <i>%(applongname)s</i>.<p>
+If you have already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.<p>
+The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.<p>
+If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i>, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.<p>
+Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.<p>
+If you agree, you will then be able to copy/paste, write or upload your review onto the <i>%(applongname)s</i> website.<p>
 Thanks in advance for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
@@ -835,11 +978,11 @@ Yours sincerely,<p>
 						except:
 							pass
 						if mail_resu:
-							report.append( 'email sent to reviewer %s' % destPerson.flatten() )
+							report.append( 'email sent to %s' % destPerson.flatten() )
 							rev.review_state = 'Pending'
 							rev.update_record()
 						else:
-							report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+							report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 						time.sleep(mail_sleep)
 					else:
 						print 'do_send_email_to_reviewers_review_suggested: Article not found'
@@ -989,19 +1132,23 @@ def do_send_mail_new_user(session, auth, db, userId):
 	if user:
 		destPerson = mkUser(auth, db, userId)
 		destAddress = db.auth_user[userId]['email']
-		baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
+		baseurl=URL(c='about', f='about', scheme=scheme, host=host, port=port)
 		recommurl=URL(c='public', f='recommenders', scheme=scheme, host=host, port=port)
 		thematics = ', '.join(thema)
 		days = ', '.join(alerts)
 		mySubject = 'Welcome to %s' % (applongname)
 		content = """Dear %(destPerson)s,<p>
 You have recently joined <i>%(applongname)s</i>. Thank you for your interest and for registering with us.<p>
-More information about <i>%(applongname)s</i> can be found here: <a href="%(baseurl)s">%(baseurl)s</a> and in this <a href="https://www.youtube.com/watch?v=4PZhpnc8wwo">video</a>.<p>
-As a user, you can request a recommendation for a preprint - and find five good reasons to do so in this short <a href="https://www.youtube.com/watch?v=jMhVl__gupg">video</a>. Briefly, your preprint must first be deposited in a preprint server, such as bioRxiv and must not already be under review for publication in a traditional journal. Once you have requested a recommendation, a recommender of the community may express an interest in initiating the recommendation process for your article, which will involve sending your article out for peer review.<p> 
-If you wish to request a recommendation for a preprint, please follow this link <a href="%(baseurl)s">%(baseurl)s</a>.<p>
+More information about <i>%(applongname)s</i> can be found here <a href="%(baseurl)s">%(baseurl)s</a> and in this <a href="https://www.youtube.com/watch?v=4PZhpnc8wwo">video</a>.<p>
+As a user, you can submit your preprints <i>%(applongname)s</i> for evaluation and recommandation - and find five good reasons to do so in this short <a href="https://www.youtube.com/watch?v=jMhVl__gupg">video</a>. Briefly, your preprints must first be deposited on a preprint server, such as bioRxiv, and must not already be under review for publication in a traditional journal.<p>
+When submitting your preprints, you are allowed to suggest recommenders. A recommender is very similar to a journal editor (responsible for finding reviewers, collecting reviews, and making editorial decisions based on reviews), and may eventually recommend your preprint after one or several rounds of reviews. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
+Once you have submitted your preprint, one of the recommenders you suggest, or any other recommenders from the community may express an interest in initiating the evaluation process for your preprint, which will involve sending your preprint out for peer review.<p>
+If you wish to submit a preprint, please click on the "Submit a preprint" button on the home page of the <i>%(applongname)s</i> website.<p>
 As a user, you will also receive alerts every %(days)s concerning recommendations in the following fields published on the <i>%(applongname)s</i> web site: %(thematics)s.<p>
-Finally, if you want to become a recommender <i>%(applongname)s</i> - <a href="https://www.youtube.com/watch?v=2BDrPoHGkn0">see video</a> - please contact a current recommender in your field via this link <a href="%(recommurl)s">%(recommurl)s</a>. New recommenders are nominated by current recommenders and approved by the Managing Board. As indicated in the website, recommenders of <i>%(applongname)s</i> can recommend up to five preprints and postprints per year. They are expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, are eligible for selection as a member of the Managing Board for a period of two years. Finally, they can propose the nomination of new recommenders to the Managing Board.<p>
-Thanks again you for your interest and for joining <i>%(applongname)s</i>.<p>
+Finally, if you want to become a recommender <i>%(applongname)s</i> - <a href="https://www.youtube.com/watch?v=2BDrPoHGkn0">see video</a> - please contact a current recommender in your field via this link <a href="%(recommurl)s">%(recommurl)s</a>.<p>
+The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of review. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
+New recommenders are nominated by current recommenders, subject to approval from the Managing Board. As indicated in the website, <i>%(applongname)s</i> recommenders can recommend up to five preprints or postprints per year. They are expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, and are eligible for selection as a member of the Managing Board for a period of two years. Finally, they can propose the nomination of new recommenders to the Managing Board.<p>
+Thanks again for your interest and for joining <i>%(applongname)s</i>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -1043,17 +1190,19 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 			thematics = ', '.join(user.thematics)
 			days = ', '.join(user.alerts)
 			baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
-			helpurl=URL(c='about', f='help_recommender', scheme=scheme, host=host, port=port)
+			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
 			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
-			mySubject = 'Welcome to %s' % (applongname)
+			mySubject = 'Welcome as a recommender of %s' % (applongname)
 			content = """Dear %(destPerson)s,<p>
-You are now a recommender of <i>%(applongname)s</i>. We thank you for your time and support.
+You are now a recommender of <i>%(applongname)s</i>. We thank you for your time and support.<p>
+The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, making editorial decisions based on reviews), with the possibility of recommending the preprints you have chosen to handle after one or after several rounds of reviews. The evaluation process is designed to help guide decisions as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.<p>
+A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal. If you decide to recommend a preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (for the preprint recommended, at least). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
 As a recommender of <i>%(applongname)s</i>, <ul>
-<li> You can recommend up to five articles per year. Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a> and on this short <a href="https://www.youtube.com/watch?v=Igx_wui0L1k&feature=youtu.be">video</a>.
+<li> You can recommend up to five articles per year. Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a> and in this short <a href="https://youtu.be/u5greO-q8-M">video</a>.
 <li> You will be expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, which can be found here: <a href="%(ethicsurl)s">%(ethicsurl)s</a>
 <li> You are eligible for selection as a member of the Managing Board for a period of two years. 
 <li> You will be notified about new articles recommended by <i>%(applongname)s</i>, according to your requested notification frequency and fields of interest. 
-<li> You will also receive requests to intiate preprint recommendations in your fields of interest.
+<li> You will also receive requests to intiate preprint evaluations in your fields of interest with a view to recommending them.
 <li> You can propose the nomination of new recommenders to the Managing Board.<p>
 Thanks again for your interest, your help and your support.<p>
 Yours sincerely,<p>
@@ -1077,7 +1226,7 @@ Yours sincerely,<p>
 			content = """Dear %(destPerson)s,<p>
 You have recently joined the Managing Board of <i>%(applongname)s</i>. We thank you warmly for agreeing to join the Board and for your time and support for this community.<p>
 The members of the Managing Board of <i>%(applongname)s</i> are responsible for accepting/rejecting new recommenders of <i>%(applongname)s</i>. They also deal with any problems arising between authors and the recommenders of the community who have evaluated/recommended their articles. They detect and deal with dysfunctions of <i>%(applongname)s</i>, and may exclude recommenders, if necessary. They also rapidly check the quality of formatting and deontology for the reviews and recommendations published by <i>%(applongname)s</i>. Finally, members of the Managing Board of <i>%(applongname)s</i> are members of the non-profit organization “Peer Community in”. This non-profit organization is responsible for the creation and functioning of the various specific Peer Communities in….<p>
-The Managing Board of <i>%(applongname)s</i> consists of six individuals randomly chosen from the recommenders of this community. Half the Managing Board is replaced each year. The founders of <i>%(applongname)s</i> will also be included, as additional members of the Managing Board during its first two years of existence. After this period, the Managing Board will have only six members.<p>
+The Managing Board of <i>%(applongname)s</i> consists of six individuals randomly chosen from the recommenders of this community. Half the Managing Board is replaced each year. The founders of <i>%(applongname)s</i> are also members of the Managing Board, during its first two years of existence. After this period, the Managing Board will have only six members.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -1099,7 +1248,7 @@ Yours sincerely,<p>
 
 
 #OK
-def do_send_email_to_managers(session, auth, db, articleId, newStatus='Pending'):
+def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -1109,53 +1258,85 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus='Pending')
 	applongname=myconf.take('app.longname')
 	appdesc=myconf.take('app.description')
 	managers = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.ALL)
-	linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleDOI = mkDOI(article.doi)
+		articleAuthors = article.authors
+		articleDoi = mkDOI(article.doi)
 		if article.user_id:
-			if article.status == 'Pending' or newStatus=='Pending':
-				submitterPerson = mkUser(auth, db, article.user_id) # submitter
-				mySubject = '%s: Preprint recommendation request requiring validation' % (applongname)
-				content = """Dear members of the Managing Board,<p>
-<i>%(applongname)s</i> has received a request for the recommendation of a preprint by %(submitterPerson)s.<p>
-To validate or delete this request, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+			submitterPerson = mkUser(auth, db, article.user_id) # submitter
+		else:
+			submitterPerson = '?'
+		if article.status == 'Pending': # or newStatus=='Pending':
+			mySubject = '%s: Preprint submission requiring validation' % (applongname)
+			linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
+			content = """Dear members of the Managing Board,<p>
+<i>%(applongname)s</i> has received a submission of a preprint by %(submitterPerson)s.<p>
+To validate or delete this submission, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			elif article.status == 'Pre-recommended' or newStatus=='Pre-recommended':
-				recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-				recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
-				mySubject = '%s: Recommendation requiring validation' % (applongname)
-				content = """Dear members of the Managing Board,<p>
-A new recommendation has been written by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
-To validate and/or manage this recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+		elif newStatus.startswith('Pre-'):
+			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
+			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			mySubject = '%s: Decision or recommendation requiring validation' % (applongname)
+			linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
+			content = """Dear members of the Managing Board,<p>
+A decision or a recommendation has been written by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
+To validate and/or manage this recommendation or decision, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
-				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
-			elif article.status == 'Under consideration' or newStatus=='Under consideration':
-				recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-				recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+		elif newStatus=='Under consideration':
+			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
+			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			linkTarget = URL(c='manager', f='ongoing_articles', scheme=scheme, host=host, port=port)
+			if article.status == 'Awaiting revision':
+				mySubject = '%s: Article resubmitted' % (applongname)
+				content = """Dear members of the Managing Board,<p>
+A new new version of the article entitled "%(articleTitle)s" is under consideration by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
+To manage this recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+Have a nice day!
+""" % locals()
+			else:
 				mySubject = '%s: Article considered for recommendation' % (applongname)
 				content = """Dear members of the Managing Board,<p>
 A new recommendation is under consideration by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
-To manage this recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+To manage this recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
-				recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
-				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+			recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
+		elif newStatus=='Cancelled':
+			mySubject = '%s: Article cancelled' % (applongname)
+			linkTarget = URL(c='manager', f='completed_articles', scheme=scheme, host=host, port=port)
+			content = """Dear members of the Managing Board,<p>
+The submission of the article entitled "%(articleTitle)s" has been cancelled by the author.<p>
+To manage this recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+Have a nice day!
+""" % locals()
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
 		else:
-			return
+			mySubject = '%s: Article status changed' % (applongname)
+			linkTarget = URL(c='manager', f='all_articles', scheme=scheme, host=host, port=port)
+			tOldStatus = current.T(article.status)
+			tNewStatus = current.T(newStatus)
+			content = """Dear members of the Managing Board,<p>
+The status of the article entitled "%(articleTitle)s" changed from "%(tOldStatus)s" to "%(tNewStatus)s".<p>
+To manage this recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
+Have a nice day!
+""" % locals()
+			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+
 		for manager in managers:
 			try:
 				mail_resu = mail.send(to=[manager.email],
 							subject=mySubject,
 							message=myMessage,
 						)
-			except:
-				pass
+			except Exception, e:
+				raise(e)
 			if mail_resu:
 				report.append( 'email sent to manager '+(manager.email or '') )
 			else:
@@ -1185,6 +1366,8 @@ def do_send_email_to_thank_recommender(session, auth, db, recommId):
 		article = db.t_articles[recomm.article_id]
 		if article:
 			articleTitle = article.title
+			articleAuthors = article.authors
+			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
 			theUser = db.auth_user[recomm.recommender_id]
@@ -1193,37 +1376,37 @@ def do_send_email_to_thank_recommender(session, auth, db, recommId):
 				destPerson = mkUser(auth, db, recomm.recommender_id)
 				if article.already_published:
 					content = """Dear %(destPerson)s,<p>
-You have decided to recommend a postprint entitled <b>%(articleTitle)s</b>. To view and/or manage your recommendation, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of postprints' in the top menu.<p>
+You have decided to recommend a postprint entitled <b>%(articleTitle)s</b>. To view and/or manage your recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of postprints' in the top menu.<p>
 We thank you in advance for writing this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-			else:
-				nbRecomms = db(db.t_recommendations.article_id==article.id).count()
-				if nbRecomms > 1: return # follow-up after resubmission
-				content = """Dear %(destPerson)s,<p>
-Thanks a lot for having initiated the evaluation of the preprint entitled <b>%(articleTitle)s</b>. To view or manage the recommendation process for this preprint, please follow this link: <a >href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to ‘Your contributions —> Your recommendations of preprints’ in the top menu.<p>
-<b>Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>. This may look like a long delay, but is not. So please, do not postpone too much your work for <i>%(applongname)s</i>.<p>
-All preprints must indeed be reviewed by at least two referees. You can be one of them.<p>
-To find additional reviewers we advise you to <b>sollicit 5 and 10 researchers right now or within the next 3 days</b> (you could then cancel some of your invitations when you have the desired number of reviewers). When inviting reviewers we strongly encourage you to <b>set a deadline for writing their review (if possible within 20 days (J+20)).</b><p>
-To help you find reviewers you can solicit:<p>
-1) any other recommenders of <i>%(applongname)s</i> or scientists who have registered on the <i>%(applongname)s</i> website. You can perform a search using their thematic fields. Once solicited, they could accept or decline your invitation directly through the website and you’ll receive an e-mail with their response.<p>
-and/or<p>
-2) scientists outside <i>%(applongname)s</i> by contacting them by e-mail (you will find below a template message to explain them what is <i>%(applongname)s</i> and to invite them to review this preprint). If they accept, they will have to register on to the <i>%(applongname)s</i> website. You must then invite them to be a reviewer of this preprint through the <i>%(applongname)s</i> website (in the top menu go to ‘Your contributions’, and then ‘Your recommendations of preprint’) and they need to accept to be reviewer (through the website).<p>
-All reviewers have to write or upload his/her review on the website.<p>
-If you need assistance in any way do not hesitate to ask us.<p>
-We thank you again for initiating and managing this evaluation.<p>
-Yours sincerely,<p>
-<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
-PS: template mail to invite a external reviewer:<p>
-Dear XXX<p>
-I'm writing you in my capacity as a recommender for the (<i>%(applongname)s</i>). I’m handling a paper preprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDOI)s). I’m wondering if you would be willing to provide a review – if possible within 20 days – of the manuscript. If you are willing, please create an account on the website of <i>%(applongname)s</i> (https://evolbiol.peercommunityin.org/). I can then send you a request for review through the website.<p>
-You may not yet know about <i>%(applongname)s</i>. Briefly, it is a community of researchers in Evolutionary Biology dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). Our motivation is to establish a high-profile, free, public evaluation system for identifying high-quality articles. More information can be found on the website or by watching this short <a href="https://www.youtube.com/watch?v=jMhVl__gupg">video</a>. Review itself works largely like it does for a journal (including the ability to remain anonymous or not, as you like).<p>
-Let me know if you think you can do the above review.<p>
-Thanks in advance for your help<p>
-Best wishes<p>
-%(destPerson)s<p>
-""" % locals()
+				#else:
+					#nbRecomms = db(db.t_recommendations.article_id==article.id).count()
+					#if nbRecomms > 1 and article.status == 'Under consideration': 
+						#content = """Dear %(destPerson)s,<p>
+#You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
+#An revised version of this manuscript have been submitted by the author.<p>
+#Yours sincerely,<p>
+#<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
+#""" % locals()
+					#else:
+						#content = """Dear %(destPerson)s,<p>
+#You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
+#We remind you that the role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews) and may eventually lead to recommendation of the preprint after one or several rounds of review. The evaluation should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited just like a ‘classic’ article published in a journal.<p>
+#If after one or several rounds of review you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least to the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+#As you have agreed to handle this preprint, you will manage its evaluation until you reach a final decision (recommend or reject).<p>
+#All preprints must be reviewed by at least two referees. If you have not already done so, you need to solicit reviewers (either from the <i>%(applongname)s</i> database or not included in this database). You can invite potential reviewers to review the preprint via the <i>%(applongname)s</i> website:<p>
+#1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
+#2) Click on the 'solicit a reviewer' button.<p>
+#We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
+#Please do not solicit reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
+#Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
+#If you need assistance in any way do not hesitate to ask us.<p>
+#We thank you again for initiating and managing this evaluation.<p>
+#Yours sincerely,<p>
+#<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
+#""" % locals()
 				try:
 					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
 					mail_resu = mail.send(to=[theUser['email']],
@@ -1233,9 +1416,9 @@ Best wishes<p>
 				except:
 					pass
 				if mail_resu:
-					report.append( 'email sent to recommender %s' % destPerson.flatten() )
+					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
-					report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -1244,7 +1427,7 @@ Best wishes<p>
 
 
 #ok
-def do_send_email_to_thank_reviewer(session, auth, db, reviewId):
+def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
@@ -1260,37 +1443,52 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId):
 			article = db.t_articles[recomm['article_id']]
 			if article:
 				articleTitle = article.title
+				articleAuthors = article.authors
+				articleDoi = mkDOI(article.doi)
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for agreeing to review a preprint!' % (applongname)
 				theUser = db.auth_user[rev.reviewer_id]
 				if theUser:
+					print("coucou")
 					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
 					destPerson = mkUser(auth, db, rev.reviewer_id)
+					expectedDuration = datetime.timedelta(days=21) # three weeks
+					dueTime = str((datetime.datetime.now() + expectedDuration).date())
 					content = """Dear %(destPerson)s,<p>
-You have agreed to review the preprint entitled <b>%(articleTitle)s</b>. I remind you that <b>I expect to receive your review within 20 days></b>. If this dealine is too short, please let me know as soon as possible. Otherwise, thank you in advance for writing your review before this deadline.<p>
-To view, write and manage your review, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to ‘Your contributions —> Your reviews’ in the top menu.<p>
-When you have written or uploaded your review, you will have the possibility to:<p>
-1) save temporarily your review by clicking on the blue ‘Save’ button ; you could then make changes and/or complete it later;<p>
+You have agreed to review the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much. I expect to receive your review within three weeks, hence before <b>%(dueTime)s</b>. If this dealine is too short, please let me know as soon as possible. Otherwise, thank you in advance for writing your review before this deadline.<p>
+To view, write, upload and manage your review, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or log onto the <i>%(applongname)s</i> website and go to ‘Your contributions —> Your reviews’ in the top menu.<p>
+When you have written or uploaded your review, you can:<p>
+1) save a draft version of your review for future modification by clicking on the ‘Save’ button; this allows you to make changes or to complete your review later;<p>
 or<p>
-2) save and send your review to the recommender by clicking on the green ‘Save and terminate’ button.<p>
-If you have temporarily saved your review, you can complete it by going to ‘Your contributions —> Your reviews’ in the top menu, then click on the black ‘View/Edit’ button on the right of the corresponding line. Do not forget to ‘Save and terminate’ your review to send it to me.<p>
-I thank you in advance for the time spent evaluating this preprint.<p>
-Looking forward reading your review.<p>
+2) save and send me your review by clicking on the ‘Save & submit your review’ button.<p>
+If you have saved a draft version of your review, you can come back to it for modification or completion by clicking on ‘Your contributions —> Your reviews’ in the top menu, and then on the black ‘View/Edit’ button to the right on the corresponding line. Don’t forget to click on the ‘Save & submit your review’ button to send your completed review to me.<p>
+Thanks in advance for the time spent evaluating this preprint.<p>
+I look forward to reading your review.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The recommender, %(recommenderPerson)s</span>
 """ % locals()
 					try:
 						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						if newForm['emailing']:
+							emailing0 = newForm['emailing']
+						else:
+							emailing0= ''
+						emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+						emailing += myMessage
+						emailing += '<hr>'
+						emailing += emailing0
+						newForm['emailing'] = emailing
+						#rev.update_record()
 						mail_resu = mail.send(to=[theUser['email']],
 									subject=mySubject,
 									message=myMessage,
 								)
-					except:
-						pass
+					except Exception, e:
+						raise(e)
 					if mail_resu:
-						report.append( 'email sent to recommender %s' % destPerson.flatten() )
+						report.append( 'email sent to %s' % destPerson.flatten() )
 					else:
-						report.append( 'email NOT SENT to recommender %s' % destPerson.flatten() )
+						report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -1298,8 +1496,61 @@ Yours sincerely,<p>
 		session.flash += '; ' + '; '.join(report)
 
 
+def do_send_email_to_one_contributor(session, auth, db, contribId):
+	report = []
+	mail_resu = False
+	mail = getMailer(auth)
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	managers=myconf.take('contacts.managers')
+	if contribId:
+		contrib = db.t_press_reviews[contribId]
+		if contrib:
+			recomm = db.t_recommendations[contrib.recommendation_id]
+			if recomm:
+				article = db.t_articles[recomm.article_id]
+				if article:
+					articleTitle = article.title
+					articleAuthors = article.authors
+					articleDoi = mkDOI(article.doi)
+					linkTarget = URL(c='recommender', f='my_press_reviews', scheme=scheme, host=host, port=port)
+					mySubject = '%s: Your co-recommendation of a postprint for %s' % (applongname, applongname)
+					destPerson = mkUser(auth, db, contrib.contributor_id)
+					destAddress = db.auth_user[contrib.contributor_id]['email']
+					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+					if article.status == 'Under consideration':
+						content = """Dear %(destPerson)s,<p>
+A recommendation text for the postprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDoi)s) is under consideration. You have been declared as a co-recommender of this postprint. You can view the recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your co-recommendations of postprints' in the top menu.<p>
+We are currently handling this recommendation; it will probably be rapidly posted on the <i>%(applongname)s</i> website.<p>
+If you do not wish to co-author this recommendation, please contact us as soon as possible. Otherwise, we warmly thank you for co-writing this recommendation.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+						try:
+							myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+							mail_resu = mail.send(to=[destAddress],
+											subject=mySubject,
+											message=myMessage,
+										)
+						except:
+							pass
+						if mail_resu:
+							report.append( 'email sent to contributor %s' % destPerson.flatten() )
+						else:
+							report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
+						time.sleep(mail_sleep)
+						print '\n'.join(report)
+						if session.flash is None:
+							session.flash = '; '.join(report)
+						else:
+							session.flash += '; ' + '; '.join(report)
+
+
 #ok
-def do_send_email_to_contributors(session, auth, db, articleId):
+def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
@@ -1315,16 +1566,26 @@ def do_send_email_to_contributors(session, auth, db, articleId):
 	for contrib in contribs:
 		articleTitle = article.title
 		articleAuthors = article.authors
-		articleDOI = article.doi
+		articleDoi = mkDOI(article.doi)
 		linkTarget = URL(c='recommender', f='my_press_reviews', scheme=scheme, host=host, port=port)
 		mySubject = '%s: Your co-recommendation of a postprint for %s' % (applongname, applongname)
 		destPerson = mkUser(auth, db, contrib.contributor_id)
 		destAddress = db.auth_user[contrib.contributor_id]['email']
 		recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
-		content = """Dear %(destPerson)s,<p>
-We received a recommendation for the postprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDOI)s). You have been declared as a co-recommender of this postprint. You can view the recommendation by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by login to the <i>%(applongname)s</i> website and go to 'Your contributions —> Your co-recommendations of postprints' in the top menu.<p>
-We are currently handling this recommendation; it will probably be rapidly posted on the website of <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
-If you do not agree with this recommendation or did not co-author it, please contact us as soon as possible to suspend the publication of the recommendation. Otherwise, we warmly thank you for co-writing this recommendation.<p>
+		
+		if newStatus == 'Recommended':
+			content = """Dear %(destPerson)s,<p>
+The recommendation for the postprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDoi)s) is now published on <i>%(applongname)s</i> website.<p>
+We warmly thank you for co-writing this recommendation.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+
+		elif newStatus == 'Pre-recommended':
+			content = """Dear %(destPerson)s,<p>
+We received a recommendation text for the postprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDoi)s). You have been declared as a co-recommender of this postprint. You can view the recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your co-recommendations of postprints' in the top menu.<p>
+We are currently handling this recommendation; it will probably be rapidly posted on the <i>%(applongname)s</i> website.<p>
+If you do not agree with this recommendation or did not co-author it, please contact us as soon as possible to suspend the publication of this recommendation. Otherwise, we warmly thank you for co-writing this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -1334,13 +1595,14 @@ Yours sincerely,<p>
 							subject=mySubject,
 							message=myMessage,
 						)
-		except:
-			pass
+		except Exception, e:
+			raise(e)
 		if mail_resu:
 			report.append( 'email sent to contributor %s' % destPerson.flatten() )
 		else:
 			report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
 		time.sleep(mail_sleep)
+	
 	print '\n'.join(report)
 	if session.flash is None:
 		session.flash = '; '.join(report)
@@ -1362,7 +1624,7 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 	mySubject = '%s: New recommendations of %s' % (applongname, applongname)
 	 #TODO: (in the fields for which you have requested alerts)
 	content = """Dear %(destPerson)s,<p>
-We are pleased to inform you that the following recommendations have recently been posted on the <i>%(applongname)s</i> website.<p>
+We are pleased to inform you that the following recommendations have recently been published by <i>%(applongname)s</i>.<p>
 We hope you will appreciate them and share them through your social networks.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1381,10 +1643,10 @@ Yours sincerely,<p>
 			pass
 		if mail_resu:
 			report.append( 'email sent to %s' % destPerson.flatten() )
-			print 'INFO email sent to %s' % destPerson.flatten() 
+			print 'INFO automatic alert email sent to %s' % destPerson.flatten() 
 		else:
 			report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-			print 'INFO email NOT SENT to %s' % destPerson.flatten() 
+			print 'INFO automatic alert email NOT SENT to %s' % destPerson.flatten() 
 		#print '\n'.join(report)
 	if session:
 		if session.flash is None:
@@ -1410,29 +1672,43 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 			articleStatus = current.T(newStatus)
 			linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 			mySubject = '%s: Decision on preprint you reviewed' % (applongname)
-			reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state=='Completed') ).select(db.auth_user.ALL)
+			if newStatus == 'Recommended':
+				reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == article.id) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.id, db.auth_user.ALL)
+			else:
+				reviewers = db( (db.auth_user.id == db.t_reviews.reviewer_id) & (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.id, db.auth_user.ALL)
 			for rev in reviewers:
-				destPerson = mkUser(auth, db, rev.id)
+				review = db.t_reviews[rev.t_reviews.id]
+				destPerson = mkUser(auth, db, rev.auth_user.id)
 				content = """Dear %(destPerson)s,<p>
 You have agreed to review the preprint entitled <b>%(articleTitle)s</b>.
 The status of this preprint is now: %(articleStatus)s.
-To view your review, please follow this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> My reviews' in the top menu.<p>
+To view your review, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> My reviews' in the top menu.<p>
 We thank you for the time spent evaluating this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
 				try:
 					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-					mail_resu = mail.send(to=[rev['email']],
+					mail_resu = mail.send(to=[rev.auth_user.email],
 								subject=mySubject,
 								message=myMessage,
 							)
+					if review.emailing:
+						emailing0 = review.emailing
+					else:
+						emailing0= ''
+					emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+					emailing += myMessage
+					emailing += '<hr>'
+					emailing += emailing0
+					review.emailing = emailing
+					review.update_record()
 				except:
 					pass
 				if mail_resu:
-					report.append( 'email sent to reviewer %s' % destPerson.flatten() )
+					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
-					report.append( 'email NOT SENT to reviewer %s' % destPerson.flatten() )
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 				time.sleep(mail_sleep)
 	print '\n'.join(report)
 	if session.flash is None:
@@ -1441,3 +1717,74 @@ Yours sincerely,<p>
 		session.flash += '; ' + '; '.join(report)
 
 
+def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc, subject, message, reset_password_key=None, linkTarget=None):
+	report = []
+	mail_resu = False
+	mail = getMailer(auth)
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	review = db.t_reviews[reviewId]
+	if review:
+		recomm = db.t_recommendations[review.recommendation_id]
+		if recomm:
+			rev = db.auth_user[review['reviewer_id']]
+			if rev:
+				destPerson = mkUser(auth, db, review.reviewer_id)
+				myMessage = DIV(WIKI(message))
+				if reset_password_key:
+					if linkTarget:
+						link = URL(c='default', f='user', args='reset_password', vars=dict(key=reset_password_key, _next=linkTarget), scheme=scheme, host=host, port=port)
+					else:
+						link = URL(c='default', f='user', args='reset_password', vars=dict(key=reset_password_key), scheme=scheme, host=host, port=port)
+					myMessage.append(P())
+					myMessage.append(P(B(current.T('Please, follow this link in order to validate your account:'))))
+					myMessage.append(A(link, _href=link))
+				elif linkTarget:
+					myMessage.append(P())
+					if review.review_state == 'Pending':
+						myMessage.append(P(B(current.T('TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:'))))
+					else:
+						myMessage.append(P(B(current.T('TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:'))))
+					myMessage.append(A(linkTarget, _href=linkTarget))
+				try:
+					myRenderedMessage = render(filename=filename, context=dict(content=XML(myMessage), footer=mkFooter()))
+					mail_resu = mail.send(to=[rev['email']],
+								cc=[cc, replyto],
+								reply_to=replyto,
+								subject=subject,
+								message=myRenderedMessage,
+							)
+					#if review.emailing:
+						#emailing = review.emailing
+						#emailing += '\n\n'
+					#else:
+						#emailing = ''
+					#emailing += ('<h2>'+str(datetime.datetime.now())+'</h2>')
+					#emailing += myRenderedMessage
+					if review.emailing:
+						emailing0 = review.emailing
+					else:
+						emailing0 = ''
+					emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+					emailing += myRenderedMessage
+					emailing += '<hr>'
+					emailing += emailing0
+					review.emailing = emailing
+					review.update_record()
+				except Exception, e:
+					raise(e) #TODO pass
+				if mail_resu:
+					report.append( 'email sent to "%s"' % destPerson.flatten() )
+				else:
+					report.append( 'email NOT SENT to "%s"' % destPerson.flatten() )
+				time.sleep(mail_sleep)
+	print '\n'.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
+	else:
+		session.flash += '; ' + '; '.join(report)
+				
+	pass

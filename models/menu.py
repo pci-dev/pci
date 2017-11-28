@@ -79,39 +79,35 @@ def _DevMenu():
 
 # default public menu
 def _BaseMenu():
-	txtMenuHome = T('Home')
-	txtMenuAbout = T('About')
-	
-	helpMenu=[]
-	helpMenu.append((T('How does it work?', lazy=False),              False, URL('about', 'help_generic')))
+	helpMenu = []
+	aboutMenu = []
+
+	helpMenu += [
+		(T('How does it work?'),  False, URL('about', 'help_generic')),
+		(T('How to ...?'),        False, URL('about', 'help_practical')),
+		(T('FAQs', lazy=False),      False, URL('about', 'faq')),
+		(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
+	]
 	#if auth.is_logged_in():
 		#helpMenu.append((T('Help for registered users', lazy=False), False, URL('about', 'help_user')))
-	#if auth.has_membership(None, None, 'recommender'):
-		#helpMenu.append((T('Help for recommenders', lazy=False),     False, URL('about', 'help_recommender')))
-	#if auth.has_membership(None, None, 'manager'):
-		#helpMenu.append((T('Help for managers', lazy=False),         False, URL('about', 'help_manager')))
-	#if auth.has_membership(None, None, 'administrator'):
-		#helpMenu.append((T('Help for administrators', lazy=False),   False, URL('about', 'help_administrator')))
-	helpMenu += [
-			LI(_class="divider"),
+	aboutMenu += [
+			#LI(_class="divider"),
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
-			(T('FAQs', lazy=False),      False, URL('about', 'faq')),
-			(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
 			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),
-			(T('Managers & administrators', lazy=False),  False, URL('public', 'managers')),
+			#(T('Managers & administrators', lazy=False),  False, URL('public', 'managers')),
 			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
 			##TODO: for later use 
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
 		]
-	return [
-		(txtMenuHome, False, URL('default', 'index'), []),
-		(txtMenuAbout,      False, '#', 
-			#(T('Search recommended articles', lazy=False), False, URL('public', 'recommended_articles')),
-			helpMenu,
-		),
+	menuBar = [
+		(T('Home'),       False, URL('default', 'index')),
+		(T(u'🔍 Search'), False, URL('public', 'recommended_articles')),
+		(T('About'),      False, '#', aboutMenu),
+		(T('Help'),       False, '#', helpMenu),
 	]
+	return menuBar
 
 def _ToolsMenu():
 	txtMenuTools = T('Tools')
@@ -167,10 +163,10 @@ def _UserMenu():
 				  & (db.t_articles.status == 'Awaiting revision')
 				).count()
 	if nRevisions > 0:
-		myContributionsMenu.append(((SPAN(T('Your recommendation requests of your preprints'), _class='pci-enhancedMenuItem')), False, URL('user', 'my_articles', user_signature=True)))
+		myContributionsMenu.append(((SPAN(T('Your submitted preprints'), _class='pci-enhancedMenuItem')), False, URL('user', 'my_articles', user_signature=True)))
 		contribMenuClass = 'pci-enhancedMenuItem'
 	else:
-		myContributionsMenu.append((T('Your recommendation requests of your preprints'), False, URL('user', 'my_articles', user_signature=True)))
+		myContributionsMenu.append((T('Your submitted preprints'), False, URL('user', 'my_articles', user_signature=True)))
 	
 	nRevTot = db(  (db.t_reviews.reviewer_id == auth.user_id) 
 			   ).count()
@@ -250,7 +246,7 @@ def _UserMenu():
 								URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
 		mySollicitationsMenu += [
 				LI(_class="divider"),
-				(T('Consider preprint recommendation requests'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
+				(T('Consider preprint submissions'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			]
 	#if nRevTot+nPreprintsOngoing+nPostprintsOngoing > 0:
 		#yourContribsImg = URL(c='static', f='images/your_contribs_enhanced.png')
@@ -278,7 +274,7 @@ def _ManagerMenu():
 	#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage.png'), _class='pci-menuImage')
 	txtMenu = T('Manage')
 	
-	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended')) ).count()
+	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
 		txtPending = SPAN(txtPending, _class='pci-enhancedMenuItem')

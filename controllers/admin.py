@@ -65,6 +65,7 @@ def resizeUserImages(ids):
 def list_users():
 	selectable = None
 	links = None
+	create = True # allow create buttons
 	if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'):
 		#selectable = [  (T('Deny login to selected users'), lambda ids: [deny_login(ids)], 'class1')  ]
 		links = [  dict(header=T('Roles'), body=lambda row: mkRoles(row))  ]
@@ -84,6 +85,7 @@ def list_users():
 		]
 	db.auth_user._id.readable=True
 	db.auth_user._id.represent=lambda i,row: mkUserId(auth, db, i, linked=True)
+	db.t_reviews.recommendation_id.label = T('Article DOI')
 	db.auth_user.registration_key.represent = lambda text,row: SPAN(text, _class="pci-blocked") if (text=='blocked' or text=='disabled') else text
 	grid = SQLFORM.smartgrid(db.auth_user
 				,fields=fields
@@ -93,11 +95,15 @@ def list_users():
 				,editable=dict(auth_user=True, auth_membership=False)
 				,details=dict(auth_user=True, auth_membership=False)
 				,searchable=dict(auth_user=True, auth_membership=False)
-				,create=dict(auth_user=False, auth_membership=True)
+				,create=dict(auth_user=create, auth_membership=create, t_articles=create, t_recommendations=create, t_reviews=create, t_press_reviews=create, t_comments=create)
 				,selectable=selectable
 				,maxtextlength=250
 				,paginate=25
 			)
+	if ('auth_membership.user_id' in request.args):
+		if grid and grid.element(_title="Add record to database"):
+				grid.element(_title="Add record to database")[0] = T('Add role')
+				#grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
 	response.view='default/myLayout.html'
 	return dict(
 				myText=getText(request, auth, db, '#AdministrateUsersText'),
@@ -187,7 +193,9 @@ def thematics_list():
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def article_status():
 	write_auth = auth.has_membership('developper')
-	db.t_status_article._id.represent = lambda text, row: SPAN(T(row.status).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
+	db.t_status_article._id.label = T('Coded representation')
+	db.t_status_article._id.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
+	#db.t_status_article._id.represent = lambda text, row: SPAN(T(row.status).replace('-','- '), _class='buttontext btn fake-btn pci-button btn-'+row.color_class, _title=T(row.explaination or ''))
 	#db.t_status_article.status.represent = lambda text, row: SPAN(T(text).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
 	db.t_status_article.status.writable = write_auth
 	grid = SQLFORM.grid( db.t_status_article
@@ -195,7 +203,7 @@ def article_status():
 		,editable=write_auth
 		,maxtextlength=500,paginate=100
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_status_article._id, db.t_status_article.status, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination]
+		,fields=[db.t_status_article.status, db.t_status_article._id, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination]
 		,orderby=db.t_status_article.priority_level
 		)
 	mkStatusArticles(db)

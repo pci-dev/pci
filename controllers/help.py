@@ -50,3 +50,4 @@ def transfer_help():
 		db.help_texts.insert(lang='default', hashtag=t.hashtag, contents=t.contents)
 	response.view='default/myLayout.html'
 	return None
+

@@ -1,4 +1,6 @@
 *.pyc
 *~
+*.old
 errors/*
 sessions/*
+static/plugin_*
