@@ -291,20 +291,21 @@ def deltaStatus(s, f):
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 				do_send_email_to_suggested_recommenders_useless(session, auth, db, o['id'])
+				do_send_email_to_thank_recommender_preprint(session, auth, db, o['id'])
 			elif o.status == 'Awaiting revision' and f['status'] == 'Under consideration':
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 			elif o.status == 'Under consideration' and (f['status'].startswith('Pre-')): 
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
-			elif o.status == 'Under consideration' and f['status']=='Cancelled': 
+			elif o.status in ('Pending', 'Awaiting consideration', 'Under consideration') and f['status']=='Cancelled': 
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 			elif o.status != f['status']:
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
-				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended', 'Cancelled'):
+				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended'):
 					do_send_email_decision_to_reviewer(session, auth, db, o['id'], f['status'])
 					do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 	return None
@@ -358,7 +359,7 @@ def newRecommendation(s,i):
 		art = db.t_articles[recomm.article_id]
 		if art:
 			if art.already_published:
-				do_send_email_to_thank_recommender(session, auth, db, i)
+				do_send_email_to_thank_recommender_postprint(session, auth, db, i)
 	return None
 
 #def closedRecommendation(s,f):

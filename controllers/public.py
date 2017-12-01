@@ -333,7 +333,8 @@ def viewUserCard():
 	#redirect(request.env.http_referer)
 
 
-@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
+#WARNING - DO NOT ACTIVATE CACHE WITHOUT "response.render"
+@cache.action(time_expire=60, cache_model=cache.ram)
 def rss():
 	maxArticles = 20
 	scheme=myconf.take('alerts.scheme')
@@ -348,24 +349,28 @@ def rss():
 				  & (db.t_recommendations.recommendation_state=='Recommended')
 			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
 	myRows = []
+	most_recent = None
 	for row in query:
 		try:
 			r = mkRecommArticleRss(auth, db, row)
 			if r:
 				myRows.append(r)
+				if most_recent is None or row.last_status_change > most_recent:
+					most_recent = row.last_status_change
 		except Exception, e:
 			#raise e
 			pass
-	link = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	link = URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	if len(myRows) == 0:
-		myRows.append(dict(title=u'Coming soon..', link=link, description=u'patience!'))
-	#response.view='generic.rss'
+		myRows.append(dict(title=T(u'Coming soon..'), link=link, description=T(u'patience!')))
+	response.headers['Content-Type'] = 'application/rss+xml'
 	response.view='rsslayout.rss'
-	return dict(
+	return response.render(dict(
 			title=title,
 			link=link,
+			created_on=most_recent,
 			description=description,
 			image=favicon.xml(),
 			entries=myRows,
-		)
+		))
 

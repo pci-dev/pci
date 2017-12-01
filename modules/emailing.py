@@ -1352,7 +1352,7 @@ Have a nice day!
 
 #ok mais j'ai pas su s'il s'agissait des articles en général ou que des preprints
 # si que preprints, remplacer article par preprint
-def do_send_email_to_thank_recommender(session, auth, db, recommId):
+def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -1391,22 +1391,6 @@ Yours sincerely,<p>
 #<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
 #""" % locals()
 					#else:
-						#content = """Dear %(destPerson)s,<p>
-#You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
-#We remind you that the role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews) and may eventually lead to recommendation of the preprint after one or several rounds of review. The evaluation should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited just like a ‘classic’ article published in a journal.<p>
-#If after one or several rounds of review you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least to the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
-#As you have agreed to handle this preprint, you will manage its evaluation until you reach a final decision (recommend or reject).<p>
-#All preprints must be reviewed by at least two referees. If you have not already done so, you need to solicit reviewers (either from the <i>%(applongname)s</i> database or not included in this database). You can invite potential reviewers to review the preprint via the <i>%(applongname)s</i> website:<p>
-#1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
-#2) Click on the 'solicit a reviewer' button.<p>
-#We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
-#Please do not solicit reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
-#Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
-#If you need assistance in any way do not hesitate to ask us.<p>
-#We thank you again for initiating and managing this evaluation.<p>
-#Yours sincerely,<p>
-#<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
-#""" % locals()
 				try:
 					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
 					mail_resu = mail.send(to=[theUser['email']],
@@ -1424,6 +1408,65 @@ Yours sincerely,<p>
 		session.flash = '; '.join(report)
 	else:
 		session.flash += '; ' + '; '.join(report)
+
+
+def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
+	report = []
+	mail = getMailer(auth)
+	mail_resu = False
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	if articleId:
+		article = db.t_articles[articleId]
+		if article:
+			articleTitle = article.title
+			articleAuthors = article.authors
+			articleDoi = mkDOI(article.doi)
+			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=False))
+			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
+			recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
+			theUser = db.auth_user[recomm.recommender_id]
+			if theUser:
+				destPerson = mkUser(auth, db, theUser.id)
+				content = """Dear %(destPerson)s,<p>
+You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
+We remind you that the role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews) and may eventually lead to recommendation of the preprint after one or several rounds of review. The evaluation should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited just like a ‘classic’ article published in a journal.<p>
+If after one or several rounds of review you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least to the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
+As you have agreed to handle this preprint, you will manage its evaluation until you reach a final decision (recommend or reject).<p>
+All preprints must be reviewed by at least two referees. If you have not already done so, you need to solicit reviewers (either from the <i>%(applongname)s</i> database or not included in this database). You can invite potential reviewers to review the preprint via the <i>%(applongname)s</i> website:<p>
+1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
+2) Click on the 'choose a reviewer' button.<p>
+We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
+Please do not solicit reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
+Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
+If you need assistance in any way do not hesitate to ask us.<p>
+We thank you again for initiating and managing this evaluation.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span><p>
+""" % locals()
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[theUser['email']],
+								subject=mySubject,
+								message=myMessage,
+							)
+				except:
+					pass
+				if mail_resu:
+					report.append( 'email sent to %s' % destPerson.flatten() )
+				else:
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+	print '\n'.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
+	else:
+		session.flash += '; ' + '; '.join(report)
+
+
+
 
 
 #ok

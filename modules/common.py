@@ -1903,11 +1903,16 @@ def mkRecommArticleRss(auth, db, row):
 	
 	xdesc = desc.xml()
 	title = recomm.recommendation_title or u'(no title)'
+	
+	local = pytz.timezone ("Europe/Paris")
+	local_dt = local.localize(row.last_status_change, is_dst=None)
+	created_on = local_dt.astimezone (pytz.utc)
+	
 	return dict(
-		guid = row.id,
+		guid = link,
 		title = title.decode('utf-8'),
 		link = link,
 		description = xdesc.decode('utf-8'),
-		created_on = row.last_status_change,
+		created_on = created_on,
 	 )
 
