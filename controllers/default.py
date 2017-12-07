@@ -129,41 +129,41 @@ def user():
 		suite = request.vars['_next']
 	else:
 		suite = None
-	if request.args[0] == 'login':
-		#print("LOGIN")
-		myHelp = getHelp(request, auth, db, '#LogIn')
-		myTitle = getTitle(request, auth, db, '#LogInTitle')
-		myText = getText(request, auth, db, '#LogInText')
-		if suite:
-			auth.settings.login_next = suite
-		form = auth.login()
-	elif request.args[0] == 'register':
-		#print("REGISTER")
-		myHelp = getHelp(request, auth, db, '#CreateAccount')
-		myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
-		myText = getText(request, auth, db, '#CreateAccountText')
-		db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
-		if suite:
-			auth.settings.register_next = suite
-		form = auth.register()
-	elif request.args[0] == 'profile':
-		myHelp = getHelp(request, auth, db, '#Profile')
-		myTitle = getTitle(request, auth, db, '#ProfileTitle')
-		myText = getText(request, auth, db, '#ProfileText')
-		form = auth.profile()
-	elif request.args[0] == 'reset_password':
-		#print("RESET PWD", suite)
-		myHelp = getHelp(request, auth, db, '#ResetPassword')
-		myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
-		myText = getText(request, auth, db, '#ResetPasswordText')
-		if suite:
-			auth.settings.reset_password_next = suite
-		form = auth.reset_password()
-	else:
-		myHelp = ''
-		myTitle = ''
-		myText = ''
-		form = auth()
+	myHelp = ''
+	myTitle = ''
+	myText = ''
+	form = auth()
+	if request.args and len(request.args)>0:
+		if request.args[0] == 'login':
+			#print("LOGIN")
+			myHelp = getHelp(request, auth, db, '#LogIn')
+			myTitle = getTitle(request, auth, db, '#LogInTitle')
+			myText = getText(request, auth, db, '#LogInText')
+			if suite:
+				auth.settings.login_next = suite
+			form = auth.login()
+		elif request.args[0] == 'register':
+			#print("REGISTER")
+			myHelp = getHelp(request, auth, db, '#CreateAccount')
+			myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
+			myText = getText(request, auth, db, '#CreateAccountText')
+			db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
+			if suite:
+				auth.settings.register_next = suite
+			form = auth.register()
+		elif request.args[0] == 'profile':
+			myHelp = getHelp(request, auth, db, '#Profile')
+			myTitle = getTitle(request, auth, db, '#ProfileTitle')
+			myText = getText(request, auth, db, '#ProfileText')
+			form = auth.profile()
+		elif request.args[0] == 'reset_password':
+			#print("RESET PWD", suite)
+			myHelp = getHelp(request, auth, db, '#ResetPassword')
+			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
+			myText = getText(request, auth, db, '#ResetPasswordText')
+			if suite:
+				auth.settings.reset_password_next = suite
+			form = auth.reset_password()
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
 	response.view='default/myLayout.html'

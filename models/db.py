@@ -382,6 +382,33 @@ db.define_table('t_pdf',
 )
 
 
+db.define_table('t_resources',
+	Field('id', type='id', readable=False, writable=False),
+	Field('resource_rank', type='integer', label=T('Rank')),
+	Field('resource_category', type='string', length=250, label=T('Category')),
+	Field('resource_name', type='string', length=512, label=T('Name')),
+	Field('resource_description', type='text', label=T('Description')),
+	#Field('resource_url', type='string', length=512, label=T('URL'), requires=IS_EMPTY_OR(IS_URL())),
+	Field('resource_logo', type='upload', uploadfield='resource_logo_data', label=T('Logo'), comment=T("Small image (jpg, png, gif) as an illustration"), requires=IS_EMPTY_OR(IS_IMAGE(extensions=('JPG', 'jpg', 'jpeg', 'PNG', 'png', 'GIF', 'gif')))),
+	Field('resource_logo_data', type='blob', readable=False),
+	Field('resource_document', type='upload', uploadfield='resource_document_data', comment=T("The document itself"), label=T('Document')),
+	Field('resource_document_data', type='blob', readable=False),
+	singular=T('Resource'), 
+	plural=T('Resources'),
+	migrate=False,
+)
+db.t_resources.resource_logo.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
+db.t_resources._after_insert.append(lambda f,i: insResourceThumb(f,i))
+db.t_resources._after_update.append(lambda s,f: updResourceThumb(s,f))
+
+def insResourceThumb(f,i):
+	makeResourceThumbnail(auth, db, i, size=(150,150))
+	return None
+def updResourceThumb(s,f):
+	o = s.select().first()
+	makeResourceThumbnail(auth, db, o.id, size=(150,150))
+	return None
+
 db.define_table('t_supports',
 	Field('id', type='id', readable=False, writable=False),
 	Field('support_rank', type='integer', label=T('Rank')),

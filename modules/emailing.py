@@ -1295,7 +1295,7 @@ Have a nice day!
 			if article.status == 'Awaiting revision':
 				mySubject = '%s: Article resubmitted' % (applongname)
 				content = """Dear members of the Managing Board,<p>
-A new new version of the article entitled "%(articleTitle)s" is under consideration by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
+A new version of the article entitled "%(articleTitle)s" is under consideration by %(recommenderPerson)s for <i>%(applongname)s</i>.<p>
 To manage this recommendation, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 Have a nice day!
 """ % locals()
@@ -1788,9 +1788,10 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					myMessage.append(P())
 					if review.review_state == 'Pending':
 						myMessage.append(P(B(current.T('TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:'))))
-					else:
+						myMessage.append(A(linkTarget, _href=linkTarget))
+					elif review.review_state == 'Under consideration':
 						myMessage.append(P(B(current.T('TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:'))))
-					myMessage.append(A(linkTarget, _href=linkTarget))
+						myMessage.append(A(linkTarget, _href=linkTarget))
 				try:
 					myRenderedMessage = render(filename=filename, context=dict(content=XML(myMessage), footer=mkFooter()))
 					mail_resu = mail.send(to=[rev['email']],
@@ -1799,13 +1800,6 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 								subject=subject,
 								message=myRenderedMessage,
 							)
-					#if review.emailing:
-						#emailing = review.emailing
-						#emailing += '\n\n'
-					#else:
-						#emailing = ''
-					#emailing += ('<h2>'+str(datetime.datetime.now())+'</h2>')
-					#emailing += myRenderedMessage
 					if review.emailing:
 						emailing0 = review.emailing
 					else:
@@ -1817,7 +1811,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					review.emailing = emailing
 					review.update_record()
 				except Exception, e:
-					raise(e) #TODO pass
+					pass
 				if mail_resu:
 					report.append( 'email sent to "%s"' % destPerson.flatten() )
 				else:
@@ -1828,5 +1822,4 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 		session.flash = '; '.join(report)
 	else:
 		session.flash += '; ' + '; '.join(report)
-				
-	pass
+

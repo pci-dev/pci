@@ -96,7 +96,8 @@ def _BaseMenu():
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
 			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),
-			#(T('Managers & administrators', lazy=False),  False, URL('public', 'managers')),
+			#TODO activate 
+			(T('Resources', lazy=False),  False, URL('about', 'resources')),
 			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
 			##TODO: for later use 
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
@@ -125,6 +126,7 @@ def _AdminMenu():
 	return [
 		(txtMenuAdmin, False, '#', [
 			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
+			(T('Resources'),          False, URL('admin', 'manage_resources', user_signature=True)),
 			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Email lists'),       False, URL('admin', 'mailing_lists', user_signature=True)),

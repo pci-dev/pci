@@ -35,6 +35,4 @@ ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-13_auto_last_change_recommendation_trigger_function.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-27_search_recommenders.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-29_search_reviewers.sql  | psql -h gaia2 -U piry pci_evolbiol_test
-
-
-exit
+# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql  | psql -h gaia2 -U piry pci_evolbiol_test

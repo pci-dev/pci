@@ -15,24 +15,21 @@ def rss(feed):
 	def safestr(obj, key, default=''):
 		return safe_encode(obj.get(key,''))
 
-	#now = datetime.datetime.now()
 	local = pytz.timezone ("Europe/Paris")
 	local_dt = local.localize(datetime.datetime.now(), is_dst=None)
 	now = local_dt.astimezone (pytz.utc)
-	#<image>
-		#<url>http://www.lemonde.fr/medias/www/img/lgo/lemonde_fr_google_ed_picks_250x40.png</url>
-	#</image>
-	#img = Element('image')
-	#url = SubElement(img, 'url')
-	#url = Element('url')
-	#url.text = feed.get('image')
 	img = rss2.Image(url=feed.get('image'), title=safestr(feed,'title'), link=safestr(feed,'link'))
-	#print(tostring(img))
-	#<atom:link href="http://dallas.example.com/rss.xml" rel="self" type="application/rss+xml" />
+	link = safestr(feed,'link')
+	#thisLink=feed.get('thisLink', link)
+	
 	rss = rss2.RSS2(title=safestr(feed,'title'),
 					link=safestr(feed,'link'),
+					#thisLink=feed.get('thisLink', link),
 					description=safestr(feed,'description'),
-					lastBuildDate=feed.get('created_on', now),
+					#lastBuildDate=feed.get('created_on', now),
+					#pubDate=feed.get('pubDate', now),
+					pubDate=feed.get('created_on', now),
+					managingEditor=safestr(feed,'managingEditor'),
 					image=img,
 					items=[rss2.RSSItem(
 						guid=safestr(entry,'guid'),
@@ -42,4 +39,5 @@ def rss(feed):
 						pubDate=entry.get('created_on', now)
 					) for entry in feed.get('entries', [])]
 				)
+	
 	return rss.to_xml(encoding='utf-8')

@@ -333,8 +333,12 @@ class RSS2(WriteXmlMixin):
     Stores the channel attributes, with the "category" elements under
     ".categories" and the RSS items under ".items".
     """
-
-    rss_attrs = {"xmlns:atom": "http://www.w3.org/2005/Atom", "version": "2.0",  }
+    #rss_attrs = {"version": "2.0", "xmlns:atom": "http://www.w3.org/2005/Atom"}
+    from collections import OrderedDict
+    rss_attrs = OrderedDict() # Order matters!
+    rss_attrs["version"] = "2.0"
+    rss_attrs["xmlns:atom"] = "http://www.w3.org/2005/Atom"
+    
     element_attrs = {}
 
     def __init__(self,
@@ -348,6 +352,7 @@ class RSS2(WriteXmlMixin):
                  webMaster=None,
                  pubDate=None,  # a datetime, *in* *GMT*
                  lastBuildDate=None,  # a datetime
+                 thisLink=None,
 
                  categories=None,  # list of strings or Category
                  generator=_generator_name,
@@ -366,6 +371,7 @@ class RSS2(WriteXmlMixin):
         self.title = title
         self.link = link
         self.description = description
+        self.thisLink = thisLink
         self.language = language
         self.copyright = copyright
         self.managingEditor = managingEditor
@@ -395,7 +401,6 @@ class RSS2(WriteXmlMixin):
         handler.startElement("rss", self.rss_attrs)
         handler.startElement("channel", self.element_attrs)
         _element(handler, "title", self.title)
-        #_element(handler, "atom:link", None, dict(href=self.link, rel="self", type="application/rss+xml"))
         _element(handler, "atom:link", None, dict(href=self.link, rel="self", type="application/rss+xml"))
         _element(handler, "link", self.link)
         _element(handler, "description", self.description)

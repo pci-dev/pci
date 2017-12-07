@@ -21,12 +21,15 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-27_search_recommenders.sql                               | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-29_search_reviewers.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
-# rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
+#TODO cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+
+#WARNING: check group!!
+rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/background.png             peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/small-background.png       peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/workflow1.png              peercom@peercom-front1:$dir_name/static/images
 
-ssh peercom@peercom-front1 "find $dir_name -name \\*.pyc -ls ; find $dir_name -name \\*.pyc -exec rm {} \\; ; touch /var/www/peercommunityin/web2py/wsgihandler.py"
+ssh peercom@peercom-front1 "chgrp www-data $dir_name/private/appconfig.ini ; chmod 640 $dir_name/private/appconfig.ini ; find $dir_name -name \\*.pyc -ls ; find $dir_name -name \\*.pyc -exec rm {} \\; ; touch /var/www/peercommunityin/web2py/wsgihandler.py"
 
 # exit
 

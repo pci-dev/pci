@@ -247,8 +247,25 @@ def manage_supports():
 	)
 	response.view='default/myLayout.html'
 	return dict(
-				myText=getText(request, auth, db, '#AdminPdfText'),
-				myTitle=getTitle(request, auth, db, '#AdminPdfTitle'),
+				myText=getText(request, auth, db, '#AdminSupportsText'),
+				myTitle=getTitle(request, auth, db, '#AdminSupportsTitle'),
+				grid=grid, 
+			)
+
+
+# Resources management
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def manage_resources():
+	grid = SQLFORM.grid( db.t_resources
+		,details=False, editable=True, deletable=True, create=True, searchable=False
+		,maxtextlength=512, paginate=20
+		,csv=csv, exportclasses=expClass
+		,orderby=db.t_resources.resource_rank
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#AdminResourcesText'),
+				myTitle=getTitle(request, auth, db, '#AdminResourcesTitle'),
 				grid=grid, 
 			)
 

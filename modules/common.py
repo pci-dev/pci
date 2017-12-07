@@ -1785,7 +1785,7 @@ def makeUserThumbnail(auth, db, userId, size=(150,150)):
 ######################################################################################################################################################################
 def makeArticleThumbnail(auth, db, articleId, size=(150,150)):
 	art = db(db.t_articles.id==articleId).select().last()
-	if art.picture_data:
+	if art and art.picture_data:
 		try:
 			im = Image.open(io.BytesIO(art.picture_data))
 			width, height = im.size
@@ -1795,6 +1795,24 @@ def makeArticleThumbnail(auth, db, articleId, size=(150,150)):
 				im.save(imgByteArr, format='PNG')
 				imgByteArr = imgByteArr.getvalue() 
 				art.update_record(picture_data=imgByteArr)
+		except:
+			pass
+	return
+
+
+######################################################################################################################################################################
+def makeResourceThumbnail(auth, db, resourceId, size=(150,150)):
+	rec = db(db.t_resources.id==resourceId).select().last()
+	if rec and rec.resource_logo_data:
+		try:
+			im = Image.open(io.BytesIO(rec.resource_logo_data))
+			width, height = im.size
+			if width>200 or height>200:
+				im.thumbnail(size,Image.ANTIALIAS)
+				imgByteArr = io.BytesIO()
+				im.save(imgByteArr, format='PNG')
+				imgByteArr = imgByteArr.getvalue() 
+				rec.update_record(resource_logo_data=imgByteArr)
 		except:
 			pass
 	return

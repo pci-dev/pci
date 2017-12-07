@@ -83,6 +83,7 @@ def rss_info():
 	url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
 	aurl = DIV(A(url, _href=url), _style='text-align:center')
 	response.view='default/info.html' #OK
+	#response.view='default/myLayout.html'
 	return dict(
 		myTitle=getTitle(request, auth, db, '#RssTitle'),
 		myText=getText(request, auth, db, '#RssInfo'),
@@ -131,6 +132,29 @@ def supports():
 		myTitle=getTitle(request, auth, db, '#SupportsTitle'),
 		#myText=getText(request, auth, db, '#SupportsInfo'),
 		myText=TABLE(myTable, _class='pci-supports'),
+		shareable=True,
+	)
+
+
+def resources():
+	response.view='default/info.html' #OK
+	resources = db(db.t_resources).select(db.t_resources.resource_name, db.t_resources.resource_description, db.t_resources.resource_logo, db.t_resources.resource_document, db.t_resources.resource_category, orderby=db.t_resources.resource_rank)
+	myTable = []
+	myCategory = ''
+	for resource in resources:
+		if (resource.resource_category or '') != myCategory:
+			myCategory = (resource.resource_category or '')
+			myTable.append(TR(TD(H1(myCategory)),TD()))
+		myRow = TR(
+				TD( SPAN(resource.resource_name) ),
+				TD (IMG(_src=URL('default', 'download', args=resource.resource_logo), _width=120)  if (resource.resource_logo is not None and resource.resource_logo != '') else ('')),
+				TD( SPAN(resource.resource_description) ),
+				TD( A(T("Download"), _href=URL('default', 'download', args=resource.resource_document)) if (resource.resource_document is not None and resource.resource_document != '') else ('')),
+			)
+		myTable.append(myRow)
+	return dict(
+		myTitle=getTitle(request, auth, db, '#ResourcesTitle'),
+		myText=TABLE(myTable, _class='pci-resources'),
 		shareable=True,
 	)
 

@@ -303,6 +303,7 @@ def recommenders():
 
 
 def viewUserCard():
+	myContents = ''
 	if not('userId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(request.env.http_referer)
@@ -323,26 +324,20 @@ def viewUserCard():
 	return resu
 
 
-#def rss_info():
-	#scheme=myconf.take('alerts.scheme')
-	#host=myconf.take('alerts.host')
-	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	#url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
-	#aurl = A(url, _href=url)
-	#session.flash = "Enter this URL in your RSS reader: %(aurl)s" % locals
-	#redirect(request.env.http_referer)
-
-
-#WARNING - DO NOT ACTIVATE CACHE WITHOUT "response.render"
-@cache.action(time_expire=60, cache_model=cache.ram)
-def rss():
-	maxArticles = 20
+# sub function called by cache.ram below
+def _rss_cacher(maxArticles):
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	title=myconf.take('app.longname')
+	contact=myconf.take('contacts.managers')
+	managingEditor='%(contact)s (%(title)s contact)' % locals()
 	description=T('Articles recommended by ')+myconf.take('app.description')
 	favicon = XML(URL(c='static', f='images/favicon.png', scheme=scheme, host=host, port=port))
+	#link = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+	#thisLink = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	link = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+
 	query = db( 
 					(db.t_articles.status=='Recommended') 
 				  & (db.t_recommendations.article_id==db.t_articles.id) 
@@ -360,17 +355,30 @@ def rss():
 		except Exception, e:
 			#raise e
 			pass
-	link = URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	if len(myRows) == 0:
 		myRows.append(dict(title=T(u'Coming soon..'), link=link, description=T(u'patience!')))
-	response.headers['Content-Type'] = 'application/rss+xml'
-	response.view='rsslayout.rss'
-	return response.render(dict(
+	
+	return dict(
 			title=title,
 			link=link,
+			#thisLink=thisLink,
+			managingEditor=managingEditor,
 			created_on=most_recent,
 			description=description,
 			image=favicon.xml(),
 			entries=myRows,
-		))
+		)
+
+
+
+#WARNING - DO NOT ACTIVATE cache.action 
+def rss():
+	#maxArticles = int(myconf.take('rss.number') or "20")
+	#timeExpire  = int(myconf.take('rss.cache') or "60")
+	maxArticles = 20
+	timeExpire = 60
+	response.headers['Content-Type'] = 'application/rss+xml'
+	response.view='rsslayout.rss'
+	d = cache.ram('rss_content', lambda: _rss_cacher(maxArticles), time_expire=timeExpire)
+	return(d)
 
