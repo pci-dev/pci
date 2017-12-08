@@ -20,6 +20,7 @@ from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
 # frequently used constants
+from emailing import filename, mail_sleep
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get('config.trgm_limit') or 0.4
@@ -228,6 +229,8 @@ def _manage_articles(statuses, whatNext):
 	db.t_articles.user_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_articles.status.writable = True
+	db.t_articles.keywords.readable = False
+	db.t_articles.keywords.writable = False
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.auto_nb_recommendations.writable = False
 	db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
@@ -247,24 +250,21 @@ def _manage_articles(statuses, whatNext):
 				dict(header=T('Recommendation title'), body=lambda row: mkLastRecommendation(auth, db, row.id)),
 				dict(header=T('Actions'), 
 						body=lambda row: DIV(
-											A(SPAN(current.T('Check & Edit'), 
-												_class='buttontext btn btn-default pci-button'), 
+											A(SPAN(current.T('Check & Edit')), 
 												_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
 												_target="_blank", 
-												_class='button', 
+												_class='buttontext btn btn-default pci-button', 
 												_title=current.T('View and/or edit review')
 											),
-											#A(SPAN(current.T('Email to all recommenders'), 
-												#_class='buttontext btn btn-info pci-button'), 
-												#_href=URL(c='manager', f='warn_all_recommenders', vars=dict(articleId=row.id), user_signature=True), 
-												#_class='button', 
-												#_title=current.T('Send an email to all recommenders not already suggested')
-											#) if (row.status == 'Awaiting consideration' 
-													#and row.already_published is False ) else '',
-											A(SPAN(current.T('Set "Not considered"'), 
-												_class='buttontext btn btn-danger pci-button'), 
+											A(SPAN(current.T('Email to more'),BR(),T('recommenders')), 
+												_href=URL(c='manager', f='warn_recommenders', vars=dict(mkTFDict(row.thematics), articleId=row.id, qyKeywords=row.keywords, comeback=URL())),
+												_class='button btn btn-info', 
+												_title=current.T('Pick up recommenders not already suggested and send them an email')
+											) if (row.status == 'Awaiting consideration' 
+													and row.already_published is False ) else '',
+											A(SPAN(current.T('Set "Not considered"')), 
 												_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
-												_class='button', 
+												_class='buttontext btn btn-danger pci-button', 
 												_title=current.T('Set this preprint as "Not considered"')
 											) if (row.status == 'Awaiting consideration' 
 													and row.already_published is False 
@@ -277,7 +277,7 @@ def _manage_articles(statuses, whatNext):
 		,searchable=True
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords]
 		,links=links
 		,orderby=~db.t_articles.last_status_change
 	)
@@ -463,11 +463,6 @@ def search_recommenders():
 		for fr in filtered:
 			qy_recomm.insert(**fr)
 				
-		temp_db.qy_recomm._id.readable = False
-		temp_db.qy_recomm.uploaded_picture.readable = False
-		temp_db.qy_recomm.num.readable = False
-		temp_db.qy_recomm.score.readable = False
-		temp_db.qy_recomm.excluded.readable = False
 		links = [
 					dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
 					dict(header='',         body=lambda row: '' if row.excluded else A(SPAN(current.T('Suggest'), _class='btn btn-default'), 
@@ -476,6 +471,11 @@ def search_recommenders():
 																									user_signature=True), 
 																						_class='button')),
 			]
+		temp_db.qy_recomm._id.readable = False
+		temp_db.qy_recomm.uploaded_picture.readable = False
+		temp_db.qy_recomm.num.readable = False
+		temp_db.qy_recomm.score.readable = False
+		temp_db.qy_recomm.excluded.readable = False
 		grid = SQLFORM.grid( qy_recomm
 			,editable = False,deletable = False,create = False,details=False,searchable=False
 			,maxtextlength=250,paginate=1000
@@ -635,4 +635,209 @@ def send_suggested_recommender_reminder():
 	else:
 		session.flash = T('Unavailable')
 	redirect(request.env.http_referer)
+
+
+
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def warn_recommenders(): 
+	myVars = request.vars
+	qyKw = ''
+	qyTF = []
+	excludeList = []
+	articleId = None
+	comeback = None
+	for myVar in myVars:
+		if isinstance(myVars[myVar], list):
+			myValue = (myVars[myVar])[1]
+		else:
+			myValue = myVars[myVar]
+		if (myVar == 'qyKeywords'):
+			qyKw = myValue
+		elif (re.match('^qy_', myVar) and myValue=='on'):
+			qyTF.append(re.sub(r'^qy_', '', myVar))
+		elif (myVar == 'articleId'):
+			articleId = myValue
+		elif (myVar == 'comeback'):
+			comeback = myValue
+		#elif (myVar == 'exclude'):
+			#excludeList = map(int, myValue.split(','))
+	if articleId is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	art = db.t_articles[articleId]
+	if art is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+
+	#TODO 
+	excludeList.append(art.user_id)
+	for sr in db(db.t_suggested_recommenders.article_id == articleId).select(db.t_suggested_recommenders.suggested_recommender_id):
+		excludeList.append(sr.suggested_recommender_id)
+	
+	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+	temp_db = DAL('sqlite:memory')
+	qy_recomm = temp_db.define_table('qy_recomm',
+			Field('id', type='integer'),
+			Field('num', type='integer'),
+			Field('score', type='double', label=T('Score'), default=0),
+			Field('first_name', type='string', length=128, label=T('First name')),
+			Field('last_name', type='string', length=128, label=T('Last name')),
+			Field('email', type='string', length=512, label=T('email')),
+			Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+			Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
+			Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
+			Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
+			Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
+			Field('thematics', type='list:string', label=T('Thematic fields')),
+			Field('excluded', type='boolean', label=T('Excluded')),
+		)
+	qyKwArr = qyKw.split(' ')
+	sfDict = copy.deepcopy(request.vars)
+	sfDict['qyKeywords'] = qyKw
+	searchForm =  mkSearchForm(auth, db, sfDict)
+	if searchForm.process(keepvalues=True).accepted:
+		response.flash = None
+	elif len(qyTF)==0:
+		qyTF = []
+		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+			qyTF.append(thema.keyword)
+	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+	for fr in filtered:
+		if fr['excluded'] is False:
+			qy_recomm.insert(**fr)
+	
+	links = []
+	selectable = [(T('Send email to checked recommenders'), lambda ids: [f_email_article_to_recommenders(articleId, ids, comeback)], 'btn btn-success')]
+	temp_db.qy_recomm._id.readable = False
+	temp_db.qy_recomm.uploaded_picture.readable = False
+	temp_db.qy_recomm.num.readable = False
+	temp_db.qy_recomm.score.readable = True
+	temp_db.qy_recomm.excluded.readable = False
+	grid = SQLFORM.grid( qy_recomm
+		,editable = False,deletable = False,create = False,details=False,searchable=False
+		,selectable=selectable
+		,maxtextlength=250,paginate=1000
+		,csv=csv,exportclasses=expClass
+		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
+		,links=links
+		,orderby=temp_db.qy_recomm.num
+		,args=request.args
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				myHelp = getHelp(request, auth, db, '#UserSearchRecommendersForWarning'),
+				myText=getText(request, auth, db, '#UserSearchRecommendersForWarningText'),
+				myTitle=getTitle(request, auth, db, '#UserSearchRecommendersForWarningTitle'),
+				searchForm=searchForm, 
+				grid=grid, 
+			)
+
+
+def f_email_article_to_recommenders(articleId, ids, comeback):
+	redirect(URL(c='manager', f='email_article_to_recommenders', vars=dict(articleId=articleId, ids=ids, comeback=comeback)))
+
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def email_article_to_recommenders():
+	if 'articleId' in request.vars and request.vars['articleId']:
+		articleId = request.vars['articleId']
+		art = db.t_articles[articleId]
+	if 'ids' in request.vars and request.vars['ids']:
+		ids = request.vars['ids']
+	if 'comeback' in request.vars and request.vars['comeback']:
+		comeback = request.vars['comeback']
+	if art is None or ids is None or len(ids)==0:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	else:
+		scheme = myconf.take('alerts.scheme')
+		host = myconf.take('alerts.host')
+		port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+		site_url = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+		description = myconf.take('app.description')
+		longname = myconf.take('app.longname')
+		contact = myconf.take('contacts.managers')
+		art_authors = art.authors
+		art_title = art.title
+		art_doi = art.doi
+		linkTarget = URL(c='recommender', f='article_details', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
+		linkHelp = URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+		default_subject='%(longname)s: Preprint available for recommenders' % locals()
+		default_message = """Dear recommender of %(longname)s,
+
+We would like to inform you that the following preprint has recently been submitted to %(longname)s and still requires a recommender to handle its evaluation. You have declared keywords in your profile that match those of this submission, this is why you receive this message.
+
+* Title : %(art_title)s
+* By: %(art_authors)s
+* DOI: %(art_doi)s
+
+You can obtain information about this submission and accept or decline to handle the evaluation of the preprint by following this link:
+%(linkTarget)s 
+or by going to the %(longname)s website, logging in, and going to 'Requests for input —> Consider preprint submissions' in the top menu.
+
+The role of a recommender for %(longname)s is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.
+
+If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by %(longname)s under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by %(longname)s.
+
+If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to solicit, through the %(longname)s website, reviewers included in the %(longname)s database or not already present in this database.
+
+Details about the recommendation process can be found here: %(linkHelp)s. 
+You can also watch this short video: https://youtu.be/u5greO-q8-M
+
+Thanks again for your help.
+
+Yours sincerely,
+
+The Managing Board of %(longname)s""" % locals()
+
+	report = []
+	selRec = []
+	print(ids)
+	for rid in ids:
+		selRec.append(LI(mkUserWithMail(auth, db, rid)))
+	content = DIV(H3(T('To each selected recommender:')), UL(selRec), _style='margin-left:400px;')
+	form = SQLFORM.factory(
+			#Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+			#Field('bcc', label=T('BCC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
+			#Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
+			Field('subject', label=T('Subject'), type='string', length=250, default=default_subject, required=True),
+			Field('message', label=T('Message'), type='text', default=default_message, required=True),
+		)
+	form.element(_type='submit')['_value'] = T("Send email so selected recommenders")
+	form.element('textarea[name=message]')['_style'] = 'height:550px;'
+	
+	if form.process().accepted:
+		response.flash = None
+		mySubject = request.vars['subject']
+		myContent = request.vars['message']
+		myMessage = render(filename=filename, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
+		for rid in ids:
+			destPerson = mkUserWithMail(auth, db, rid)
+			destAddress = db.auth_user[rid].email
+			mail_resu = False
+			try:
+				mail_resu = mail.send(to=[destAddress], subject=mySubject, message=myMessage)
+			except:
+				pass
+			if mail_resu:
+				report.append( 'email sent to %s' % destPerson.flatten() )
+			else:
+				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
+		
+		print '\n'.join(report)
+		if session.flash is None:
+			session.flash = '; '.join(report)
+		else:
+			session.flash += '; ' + '; '.join(report)
+		if comeback:
+			redirect(comeback)
+		else:
+			redirect(request.env.http_referer)
+
+	response.view='default/myLayout.html'
+	return dict(
+		content=content,
+		form=form,
+		myHelp=getHelp(request, auth, db, '#EmailToWarnRecommendersHelp'),
+		myTitle=getTitle(request, auth, db, '#EmailToWarnRecommendersTitle'),
+		myText=getText(request, auth, db, '#EmailToWarnRecommendersInfoText'),
+		myBackButton=mkBackButton(),
+	)
 

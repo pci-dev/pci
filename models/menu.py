@@ -69,10 +69,10 @@ def _DevMenu():
 			#(T('Terminate scheduler'), False, URL(app, 'admin', 'terminateScheduler')),
 			#(T('Kill scheduler'), False, URL(app, 'admin', 'killScheduler')),
 			#(T('Transfer help'), False, URL('help', 'transfer_help')),
-			(T('Test flash'), False, URL('alerts', 'test_flash')),
-			(T('Test FB + tweeter'), False, URL('about', 'test')),
-			(T('Shrink user images'), False, URL('admin', 'resizeAllUserImages')),
-			(T('Shrink article images'), False, URL('admin', 'resizeAllArticleImages')),
+			#(T('Test flash'), False, URL('alerts', 'test_flash')),
+			#(T('Test FB + tweeter'), False, URL('about', 'test')),
+			#(T('Shrink user images'), False, URL('admin', 'resizeAllUserImages')),
+			#(T('Shrink article images'), False, URL('admin', 'resizeAllArticleImages')),
         ]),
     ]
 

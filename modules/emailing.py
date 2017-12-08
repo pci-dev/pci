@@ -34,8 +34,8 @@ def getMailer(auth):
 	mail.settings.server = myconf.take('smtp.server')
 	mail.settings.sender = myconf.take('smtp.sender')
 	mail.settings.login = myconf.take('smtp.login')
-	mail.settings.tls = myconf.take('smtp.tls') or False
-	mail.settings.ssl = myconf.take('smtp.ssl') or False
+	mail.settings.tls = myconf.get('smtp.tls', default=False)
+	mail.settings.ssl = myconf.get('smtp.ssl', default=False)
 	return mail
 
 # Footer for all mails
@@ -50,16 +50,11 @@ def mkFooter():
 	contact=myconf.take('contacts.managers')
 	baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	profileurl=URL(c='default', f='user', args=('login'), vars=dict(_next=URL(c='default', f='user', args=('profile'))), scheme=scheme, host=host, port=port)
-	#return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;">
-#<i>%(applongname)s</i> is the first community of the parent project Peer Community In…. It is a community of researchers in %(appthematics)s dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>
-#If you wish to modify your profile or the fields and frequency of alerts, please follow this link <a href="%(profileurl)s">%(profileurl)s</a>
-#</div>""" % locals())
 	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin:8px;"> <i>%(applongname)s</i> is the first community of the parent project Peer Community In. It is a community of researchers in %(appthematics)s dedicated to both 1) the recommendation of preprints publicly available from open archives (such as bioRxiv), based on a high-quality peer-review process and 2) to a lesser extent, the recommendation of postprints already published in traditional journals. This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of <i>%(applongname)s</i> (<a href="%(baseurl)s">%(baseurl)s</a>).<p>In case of any questions or queries, please use the following e-mail: <a href="mailto:%(contact)s">%(contact)s</a>.<p> If you wish to modify your profile or the fields and frequency of alerts, please click on 'Profile' in the top-right 'Welcome' menu or follow this link: <a href="%(profileurl)s">%(profileurl)s</a>.</div>""" % locals())
 
 
 # TEST MAIL
 def do_send_email_to_test(session, auth, db, userId):
-	#do_send_mail_new_user(session, auth, db, userId)
 	mail = getMailer(auth)
 	report = []
 	mail_resu = False
@@ -574,7 +569,6 @@ Yours sincerely,<p>
 			#session.flash = '; '.join(report)
 		#else:
 			#session.flash += '; ' + '; '.join(report)
-
 
 
 # Do send email to recommender when a review is re-opened

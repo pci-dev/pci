@@ -181,8 +181,8 @@ Thanks for signing up!
 Yours sincerely,
 The Managing Board of """+myconf.get('app.longname')+"""
 
-"""+myconf.get('app.longname')+""" is the first community of the parent project Peer Community In…. 
-It is a community of researchers in Evolutionary Biology dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. 
+"""+myconf.get('app.longname')+""" is the first community of the parent project Peer Community In... .
+It is a community of researchers in """+myconf.get('app.thematics')+""" dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. 
 This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. 
 More information can be found on the website of """+myconf.get('app.longname')+""": """+URL(c='default', f='index', scheme=True, host=True)
 

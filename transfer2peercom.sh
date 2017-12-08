@@ -20,8 +20,7 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-13_auto_last_change_recommendation_trigger_function.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-27_search_recommenders.sql                               | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-29_search_reviewers.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-
-#TODO cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 #WARNING: check group!!
 rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini

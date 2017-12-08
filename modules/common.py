@@ -421,6 +421,13 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 
 
 ######################################################################################################################################################################
+def mkTFDict(tfArray):
+	resu = dict()
+	for tf in tfArray:
+		resu['qy_'+tf] = 'on'
+	return resu
+
+######################################################################################################################################################################
 #def mkViewArticle4ReviewButton(auth, db, row):
 	#anchor = ''
 	#recomm = db.t_recommendations[row.recommendation_id]

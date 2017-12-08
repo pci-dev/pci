@@ -132,6 +132,8 @@ def user():
 	myHelp = ''
 	myTitle = ''
 	myText = ''
+	db.auth_user.registration_key.writable = False
+	db.auth_user.registration_key.readable = False
 	form = auth()
 	if request.args and len(request.args)>0:
 		if request.args[0] == 'login':
@@ -164,8 +166,6 @@ def user():
 			if suite:
 				auth.settings.reset_password_next = suite
 			form = auth.reset_password()
-	db.auth_user.registration_key.writable = False
-	db.auth_user.registration_key.readable = False
 	response.view='default/myLayout.html'
 	return dict(
 		myTitle=myTitle,
