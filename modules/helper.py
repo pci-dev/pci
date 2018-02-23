@@ -65,7 +65,7 @@ def getText(request, auth, db, myHashtag, myLanguage='default'):
 		i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 	
 	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
-		r0 = A(current.T('edit text'), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit')
+		r0 = A(current.T('edit text'), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit pci-admin')
 
 	return DIV(
 				DIV(r0, _class='pci-text-buttons'), 
@@ -90,7 +90,7 @@ def getTitle(request, auth, db, myHashtag, myLanguage='default'):
 		i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 	
 	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
-		r0 = A(current.T('edit title'), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit')
+		r0 = A(current.T('edit title'), _href=URL(c='help', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit pci-admin')
 
 	return DIV(
 				DIV(r0, _class='pci-text-buttons'), 

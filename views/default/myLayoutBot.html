@@ -1,0 +1,60 @@
+{{extend 'layout.html'}}
+<script>window.onload = function() {if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();}</script>
+
+<a href="{{=URL(c='default', f='index')}}"><img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo"></a>
+
+{{if 'myBackButton' in locals():}}
+	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
+	{{pass}}
+
+{{if 'myTitle' in locals():}}
+	<div class="pci-myTitleText">{{=myTitle}}</div>
+	{{pass}}
+
+{{if 'myText' in locals():}}
+  {{=myText}}
+  {{pass}}
+
+{{if 'myHelp#TODO' in locals():}}
+  {{=myHelp}}
+  {{pass}}
+
+
+{{if 'searchForm' in locals():}}
+	<div>{{=searchForm}}</div>
+	{{pass}}
+
+{{if 'content' in locals():}}
+	<div>{{=content}}</div>
+	{{pass}}
+
+{{if 'myUpperBtn' in locals():}}
+	{{=myUpperBtn}}
+	{{pass}}
+
+<div>
+{{if 'form' in locals():}}
+	{{=form}}
+{{elif 'create_form' in grid:}}
+   {{=grid.create_form}}
+{{elif 'update_form' in grid:}}
+   {{=grid.update_form}}
+{{elif 'view_form' in grid:}}
+   {{=grid.view_form}}
+{{else:}}
+   {{=grid}}
+{{pass}}
+</div>
+
+{{if 'myAcceptBtn' in locals():}}
+	{{=myAcceptBtn}}
+	{{pass}}
+
+{{if 'myFinalScript' in locals():}}
+	{{=myFinalScript}}
+	{{pass}}
+
+{{if 'myBottomText' in locals():}}
+  {{=myBottomText}}
+  {{pass}}
+

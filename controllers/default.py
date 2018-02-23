@@ -122,54 +122,52 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
-	#db.auth_user.ethical_code_approved.writable = not(db.auth_user[auth.user_id].ethical_code_approved or False)
-	#print(request.args)
-	#print(request.vars)
 	if '_next' in request.vars:
 		suite = request.vars['_next']
 	else:
 		suite = None
+	if isinstance(suite, list):
+		suite = suite[1]
 	myHelp = ''
 	myTitle = ''
 	myText = ''
+	myBottomText = ''
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
-	form = auth()
 	if request.args and len(request.args)>0:
 		if request.args[0] == 'login':
-			#print("LOGIN")
 			myHelp = getHelp(request, auth, db, '#LogIn')
 			myTitle = getTitle(request, auth, db, '#LogInTitle')
 			myText = getText(request, auth, db, '#LogInText')
 			if suite:
 				auth.settings.login_next = suite
-			form = auth.login()
 		elif request.args[0] == 'register':
-			#print("REGISTER")
 			myHelp = getHelp(request, auth, db, '#CreateAccount')
 			myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
-			myText = getText(request, auth, db, '#CreateAccountText')
+			myText = getText(request, auth, db, '#ProfileText')
+			myBottomText = getText(request, auth, db, '#ProfileBottomText')
 			db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
 			if suite:
 				auth.settings.register_next = suite
-			form = auth.register()
 		elif request.args[0] == 'profile':
 			myHelp = getHelp(request, auth, db, '#Profile')
 			myTitle = getTitle(request, auth, db, '#ProfileTitle')
 			myText = getText(request, auth, db, '#ProfileText')
-			form = auth.profile()
+			myBottomText = getText(request, auth, db, '#ProfileBottomText')
+			if suite:
+				auth.settings.profile_next = suite
 		elif request.args[0] == 'reset_password':
-			#print("RESET PWD", suite)
 			myHelp = getHelp(request, auth, db, '#ResetPassword')
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			if suite:
 				auth.settings.reset_password_next = suite
-			form = auth.reset_password()
-	response.view='default/myLayout.html'
+	form = auth()
+	response.view='default/myLayoutBot.html'
 	return dict(
 		myTitle=myTitle,
 		myText=myText,
+		myBottomText=myBottomText,
 		myHelp=myHelp,
 		form=form,
 	)

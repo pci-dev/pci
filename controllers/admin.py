@@ -21,6 +21,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def testMail():
 	do_send_email_to_test(session, auth, db, auth.user_id)
@@ -29,6 +30,7 @@ def testMail():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def mkRoles(row):
 	resu = ''
@@ -39,6 +41,7 @@ def mkRoles(row):
 	return resu
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def resizeAllUserImages():
 	for userId in db(db.auth_user.uploaded_picture != None).select(db.auth_user.id):
@@ -47,6 +50,7 @@ def resizeAllUserImages():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def resizeAllArticleImages():
 	for articleId in db(db.t_articles.uploaded_picture != None).select(db.t_articles.id):
@@ -55,12 +59,32 @@ def resizeAllArticleImages():
 
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def resizeUserImages(ids):
 	for userId in ids:
 		makeUserThumbnail(auth, db, userId, size=(150,150))
 
 
+######################################################################################################################################################################
+#@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+#def deny_login(ids):
+	#for myId in ids:
+		#db.executesql("UPDATE auth_user SET registration_key='blocked' WHERE id=%s;", placeholders=[myId])
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def set_as_recommender(ids):
+	# get recommender group id
+	recommRoleId = (db(db.auth_group.role == "recommender").select(db.auth_group.id).last())["id"]
+	for myId in ids:
+		# check not already recommender
+		isAlreadyRecommender = db((db.auth_membership.user_id==myId) & (db.auth_membership.group_id==recommRoleId)).count()
+		if (isAlreadyRecommender == 0):
+			# insert membership
+			db.auth_membership.insert(user_id=myId, group_id=recommRoleId)
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def list_users():
 	selectable = None
@@ -68,6 +92,7 @@ def list_users():
 	create = True # allow create buttons
 	if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'):
 		#selectable = [  (T('Deny login to selected users'), lambda ids: [deny_login(ids)], 'class1')  ]
+		selectable = [  (T('Add role \'recommender\' to selected users'), lambda ids: [set_as_recommender(ids)], 'btn btn-info pci-admin')  ]
 		links = [  dict(header=T('Roles'), body=lambda row: mkRoles(row))  ]
 	db.auth_user.registration_datetime.readable = True
 	
@@ -113,6 +138,7 @@ def list_users():
 			 )
 
 
+######################################################################################################################################################################
 # Prepares lists of email addresses by role
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def mailing_lists():
@@ -136,6 +162,7 @@ def mailing_lists():
 			 )
 
 
+######################################################################################################################################################################
 #@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 #def memberships():
 	#userId = request.args(1)
@@ -158,13 +185,7 @@ def mailing_lists():
 
 
 
-#@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
-#def deny_login(ids):
-	#for myId in ids:
-		#db.executesql("UPDATE auth_user SET registration_key='blocked' WHERE id=%s;", placeholders=[myId])
-
-
-
+######################################################################################################################################################################
 # Display the list of thematic fields
 # Can be modified only by developper and administrator
 @auth.requires_login()
@@ -188,6 +209,7 @@ def thematics_list():
 
 
 
+######################################################################################################################################################################
 # Lists article status
 # writable by developpers only!!
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
@@ -195,8 +217,6 @@ def article_status():
 	write_auth = auth.has_membership('developper')
 	db.t_status_article._id.label = T('Coded representation')
 	db.t_status_article._id.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
-	#db.t_status_article._id.represent = lambda text, row: SPAN(T(row.status).replace('-','- '), _class='buttontext btn fake-btn pci-button btn-'+row.color_class, _title=T(row.explaination or ''))
-	#db.t_status_article.status.represent = lambda text, row: SPAN(T(text).replace('-','- '), _class='buttontext btn fake-btn pci-button '+row.color_class, _title=T(row.explaination or ''))
 	db.t_status_article.status.writable = write_auth
 	grid = SQLFORM.grid( db.t_status_article
 		,searchable=False, create=write_auth, details=False, deletable=write_auth
@@ -216,6 +236,7 @@ def article_status():
 			 )
 
 
+######################################################################################################################################################################
 # PDF management
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def manage_pdf():
@@ -236,6 +257,7 @@ def manage_pdf():
 			)
 
 
+######################################################################################################################################################################
 # Supports management
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def manage_supports():
@@ -253,6 +275,25 @@ def manage_supports():
 			)
 
 
+######################################################################################################################################################################
+# Images management
+'''
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def manage_images():
+	grid = SQLFORM.grid( db.t_images
+		,details=False, editable=True, deletable=True, create=True, searchable=False
+		,maxtextlength=512, paginate=20
+		,csv=csv, exportclasses=expClass
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#AdminImagesText'),
+				myTitle=getTitle(request, auth, db, '#AdminImagesTitle'),
+				grid=grid, 
+			)
+'''
+
+######################################################################################################################################################################
 # Resources management
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def manage_resources():
@@ -275,6 +316,7 @@ def manage_resources():
 
 
 
+######################################################################################################################################################################
 #@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 #def test_tweet():
 	#message = ''

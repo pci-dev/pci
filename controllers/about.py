@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import os
+#import os.path
 import re
 from gluon.custom_import import track_changes; track_changes(True) # reimport module if changed; disable in production
 #from common import mkPanel
@@ -13,6 +14,7 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 
 
 
+######################################################################################################################################################################
 def about():
 	response.view='default/info.html' #OK
 	return dict(
@@ -23,6 +25,7 @@ def about():
 
 
 
+######################################################################################################################################################################
 def ethics():
 	response.view='default/info.html' #OK
 	myTitle=getTitle(request, auth, db, '#EthicsTitle')
@@ -51,6 +54,7 @@ def ethics():
 	)
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def validate_ethics():
 	theUser = db.auth_user[auth.user_id]
@@ -67,6 +71,7 @@ def validate_ethics():
 
 
 
+######################################################################################################################################################################
 def contact():
 	response.view='default/info.html' #OK
 	return dict(
@@ -76,12 +81,18 @@ def contact():
 	)
 
 
+######################################################################################################################################################################
 def rss_info():
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
-	aurl = DIV(A(url, _href=url), _style='text-align:center')
+	fname = os.path.dirname(os.path.abspath(__file__)) + '/../static/images/RSS_datamatrix.png'
+	if os.path.isfile(fname):
+		datamImg = IMG(_src=URL(c='static', f='images/RSS_datamatrix.png'), _alt='datamatrix', _style='margin-left:32px;')
+	else:
+		datamImg = ''
+	aurl = DIV(A(url, _href=url), datamImg, _style='text-align:center')
 	response.view='default/info.html' #OK
 	#response.view='default/myLayout.html'
 	return dict(
@@ -91,6 +102,7 @@ def rss_info():
 	)
 
 
+######################################################################################################################################################################
 ## Keep for future use?
 def social():
 	frames = []
@@ -114,6 +126,7 @@ def social():
 	)
 
 
+######################################################################################################################################################################
 def supports():
 	response.view='default/info.html' #OK
 	supports = db(db.t_supports).select(db.t_supports.support_name, db.t_supports.support_url, db.t_supports.support_logo, db.t_supports.support_category, orderby=db.t_supports.support_rank)
@@ -136,6 +149,7 @@ def supports():
 	)
 
 
+######################################################################################################################################################################
 def resources():
 	response.view='default/info.html' #OK
 	resources = db(db.t_resources).select(db.t_resources.resource_name, db.t_resources.resource_description, db.t_resources.resource_logo, db.t_resources.resource_document, db.t_resources.resource_category, orderby=db.t_resources.resource_rank)
@@ -159,6 +173,7 @@ def resources():
 	)
 
 
+######################################################################################################################################################################
 def buzz():
 	response.view='default/info.html' #OK
 	return dict(
@@ -168,6 +183,7 @@ def buzz():
 	)
 
 
+######################################################################################################################################################################
 def faq():
 	response.view='default/info.html' #OK
 	return dict(
@@ -177,6 +193,7 @@ def faq():
 	)
 
 
+######################################################################################################################################################################
 def cite():
 	response.view='default/info.html' #OK
 	return dict(
@@ -186,6 +203,7 @@ def cite():
 	)
 
 
+######################################################################################################################################################################
 def help_generic():
 	response.view='default/info.html' #OK
 	return dict(
@@ -196,6 +214,7 @@ def help_generic():
 
 
 
+######################################################################################################################################################################
 def help_user():
 	response.view='default/info.html' #OK
 	return dict(
@@ -205,6 +224,7 @@ def help_user():
 
 
 
+######################################################################################################################################################################
 def help_recommender():
 	response.view='default/info.html' #OK
 	return dict(
@@ -214,6 +234,7 @@ def help_recommender():
 
 
 
+######################################################################################################################################################################
 def help_manager():
 	response.view='default/info.html' #OK
 	return dict(
@@ -222,6 +243,7 @@ def help_manager():
 	)
 
 
+######################################################################################################################################################################
 def help_admin():
 	response.view='default/info.html' #OK
 	return dict(
@@ -231,9 +253,30 @@ def help_admin():
 
 
 #@auth.requires_login()
+######################################################################################################################################################################
 def help_practical():
 	response.view='default/info.html' #OK
 	return dict(
 		myTitle=getTitle(request, auth, db, '#PracticalHelpTitle'),
 		myText=getText(request, auth, db, '#PracticalHelpInfo'),
 	)
+
+
+######################################################################################################################################################################
+def help_guidelines():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#GuidelinesHelpTitle'),
+		myText=getText(request, auth, db, '#GuidelinesHelpInfo'),
+	)
+
+
+######################################################################################################################################################################
+def thanks_to_reviewers():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#ThanksToReviewersTitle'),
+		myText=getText(request, auth, db, '#ThanksToReviewersInfo'),
+	)
+
+

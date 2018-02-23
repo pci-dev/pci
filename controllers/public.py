@@ -7,8 +7,8 @@ from gluon.storage import Storage
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, date
+from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
@@ -102,7 +102,7 @@ def last_recomms():
 			myRows.append(r)
 	
 	if len(myRows) == 0:
-		return DIV(I(T('Soon...')))
+		return DIV(I(T('Coming soon...')))
 	
 	if len(myRows) < maxArticles:
 		moreState = ' disabled'
@@ -357,6 +357,7 @@ def _rss_cacher(maxArticles):
 			pass
 	if len(myRows) == 0:
 		myRows.append(dict(title=T(u'Coming soon..'), link=link, description=T(u'patience!')))
+	most_recent = most_recent or parser.parse('2018-01-01')
 	
 	return dict(
 			title=title,

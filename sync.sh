@@ -1,5 +1,9 @@
 #!/bin/bash -x
 
+# RSS link as datamatrix
+datam="/home/piry/Documents/Labo/PCiEvolBiol/RSS_datamatrix.png"
+echo "http://147.99.65.220:82/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 --module=4 --output=$datam
+
 # GAIA2
 ~/bin/unison-2.40.61 -auto \
 	-ignore "Name *.old" \
@@ -14,8 +18,12 @@
 	-ignore "Name errors" \
 	-ignore "Name *background.png" \
 	-ignore "Name *workflow.png" \
+	-ignore "Name *datamatrix.*" \
 	-sshargs -C  \
 	~/W/web2py/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py/applications/PCiEvolBiol
+
+rsopt="--verbose --progress --times"
+rsync $rsopt $datam  www-data@gaia2:/home/www-data/web2py/applications/PCiPaleontology/static/images
 
 # ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -ls ; find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\; ; touch /home/www-data/web2py/wsgihandler.py"
 ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\; ; touch /home/www-data/web2py/wsgihandler.py"
@@ -36,3 +44,11 @@ ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-27_search_recommenders.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-11-29_search_reviewers.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-08_search_recommenders.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-14_trigger_reviews.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_search_reviewers.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_versionMS.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "UPDATE help_texts SET contents = regexp_replace(contents, 'font-family *: *optima *;', '', 'ig') WHERE contents ~* 'font-family *: *optima *;';"  | psql -h gaia2 -U piry pci_evolbiol_test
+
+# Delete local datamatrix
+rm -f $datam

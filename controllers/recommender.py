@@ -30,12 +30,11 @@ def new_submission():
 		c = getText(request, auth, db, '#ConflictsForRecommenders')
 		myEthical = DIV(
 				FORM(
-					#DIV(B(T('You have agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
 					DIV(
 						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
 						DIV(c), 
 						_style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-success pci-panelButton"), 
+					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-success pci-panelButton pci-recommender"), 
 					hidden=dict(ethics_approved=True),
 					_action=URL('recommender', 'direct_submission'),
 					_style='text-align:center;',
@@ -182,7 +181,7 @@ def search_reviewers():
 
 ######################################################################################################################################################################
 def mkViewEditArticleRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id)), _class='button')
+	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button pci-recommender'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id)), _class='button')
 
 
 ######################################################################################################################################################################
@@ -637,22 +636,22 @@ def mkViewEditRecommendationsRecommenderButton(auth, db, row):
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def my_recommendations():
+	goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
 	isPress = ( ('pressReviews' in request.vars) and (request.vars['pressReviews']=='True') )
-	if isPress: ## POST-PRINTS
+	if isPress: ## NOTE: POST-PRINTS
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
 				& (db.t_recommendations.article_id == db.t_articles.id) 
 				& (db.t_articles.already_published == True)
 			)
-		#myTitle = T('Your recommendations of reviewed articles')
 		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPostprintTitle')
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPostprintText')
 		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]
 		links = [
-				dict(header=T('Co-recommenders'), body=lambda row: mkSollicitedPress(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Co-recommenders'), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 		db.t_recommendations.article_id.label = T('Postprint')
-	else: ## PRE-PRINTS
+	else: ## NOTE: PRE-PRINTS
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
 				& (db.t_recommendations.article_id == db.t_articles.id) 
 				& (db.t_articles.already_published == False)
@@ -661,6 +660,7 @@ def my_recommendations():
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPreprintText')
 		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
 		links = [
+				dict(header=T('Co-recommenders'),    body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
@@ -763,7 +763,7 @@ def direct_submission():
 	if form.process().accepted:
 		articleId=form.vars.id
 		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=form.vars.doi, recommendation_state='Ongoing', no_conflict_of_interest=noConflict)
-		redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recommId)))
+		redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recommId, goBack=URL('recommender', 'my_recommendations', vars=dict(pressReviews=True)), onlyAdd=False)))
 	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, db, '#RecommenderDirectSubmission'),
@@ -935,13 +935,19 @@ def reviews():
 		db.t_reviews.review.writable = auth.has_membership(role='manager')
 		db.t_reviews.review_state.writable = auth.has_membership(role='manager')
 		db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
+		db.t_reviews.emailing.writable = False
+		db.t_reviews.emailing.represent = lambda text,row: XML(text)
+		db.t_reviews.last_change.writable = True
 		
 		if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'): # grid view
-			selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'class1')]
+			selectable = [(T('Re-open selected reviews'), lambda ids: [reopen_review(ids)], 'button btn btn-info')]
 			db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+			db.t_reviews.emailing.readable = False
 		else: # form view
 			selectable = None
 			db.t_reviews.review.represent = lambda text, row: WIKI(text or '')
+			db.t_reviews.emailing.readable = True
+			db.t_reviews.emailing.represent = lambda text, row: WIKI(text or '')
 		
 		query = (db.t_reviews.recommendation_id == recommId)
 		grid = SQLFORM.grid( query
@@ -952,7 +958,7 @@ def reviews():
 			,searchable=False
 			,maxtextlength = 250,paginate=100
 			,csv = csv, exportclasses = expClass
-			,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review, db.t_reviews.review_pdf, db.t_reviews.review_state]
+			,fields=[db.t_reviews.recommendation_id, db.t_reviews.reviewer_id, db.t_reviews.anonymously, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews.review, db.t_reviews.review_pdf, db.t_reviews.emailing]
 			,selectable=selectable
 		)
 		
@@ -1051,13 +1057,6 @@ def reviewers():
 				if con.t_reviews.review_state == 'Cancelled':
 					selfFlagCancelled = True
 			reviewersIds.append(con.auth_user.id)
-			#if con.t_reviews.review_state is None:
-				#reviewersList.append(LI(mkUser(auth, db, con.auth_user.id),
-									#SPAN(' will be solicited if you click DONE '),
-									#A(T('Delete'), _class='btn btn-warning', _href=URL(c='recommender', f='del_reviewer', vars=dict(reviewId=con.t_reviews.id)), 
-									   #_title=T('Delete'), _style='margin-left:8px;'),
-								#))
-			#else:
 			reviewersList.append(LI(mkUserWithMail(auth, db, con.auth_user.id), ' ',
 								B(T(' (YOU) ')) if con.auth_user.id == recomm.recommender_id else '',
 								I('('+(con.t_reviews.review_state or 'Pending')+')'),
@@ -1065,7 +1064,7 @@ def reviewers():
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(reviewersList)>0:
 			myContents = DIV(
-				H3(T('Reviewers already solicited:')),
+				H3(T('Reviewers already invited:')),
 				UL(reviewersList)
 			)
 		else:
@@ -1074,8 +1073,6 @@ def reviewers():
 		myUpperBtn = DIV(
 							A(SPAN(current.T('Choose a reviewer from %s database')%(longname), _class='btn btn-success'), _href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList))),
 							A(SPAN(current.T('Choose a reviewer outside %s database')%(longname), _class='btn btn-default'), _href=URL(c='recommender', f='email_for_new_reviewer', vars=dict(recommId=recommId))),
-							#A(SPAN(current.T('Add yourself as a reviewer')), _class='btn btn-info', _href=URL(c='recommender', f='add_recommender_as_reviewer', vars=dict(recommId=recommId))) if not(selfFlag) or selfFlagCancelled else '',
-							#A(SPAN(current.T('Cancel yourself as a reviewer')), _class='btn btn-warning', _href=URL(c='recommender', f='cancel_recommender_as_reviewer', vars=dict(recommId=recommId))) if selfFlag and not(selfFlagCancelled) else '',
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
 						)
 		myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))), _style='margin-top:16px; text-align:center;')
@@ -1148,7 +1145,7 @@ Dear %(destUser)s,
 
 I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
 
-At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.  Extensions may be provided when needed.
 
 If you have already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.
 
@@ -1166,7 +1163,7 @@ Yours sincerely,
 
 %(sender)s
 """ % locals()
-	default_subject = 'Solicitation to review a preprint for %(longname)s' % dict(longname=myconf.take('app.longname'))
+	default_subject = '%(longname)s: Invitation to review a preprint' % locals()
 	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 	form = SQLFORM.factory(
@@ -1179,7 +1176,7 @@ Yours sincerely,
 	form.element(_type='submit')['_value'] = T("Send email")
 	form.element('textarea[name=message]')['_style'] = 'height:500px;'
 	form.append(DIV(
-				A(SPAN(T('Cancel solicitation')), _class='btn btn-warning', _href=URL(c='recommender', f='cancel_email_to_registered_reviewer', vars=dict(reviewId=reviewId)))
+				A(SPAN(T('Cancel invitation')), _class='btn btn-warning', _href=URL(c='recommender', f='cancel_email_to_registered_reviewer', vars=dict(reviewId=reviewId)))
 				, _style='margin-top:16px; text-align:center;'
 			))
 	
@@ -1217,6 +1214,7 @@ def email_for_new_reviewer():
 	sender = mkUser(auth, db, auth.user_id).flatten()
 	description = myconf.take('app.description')
 	longname = myconf.take('app.longname')
+	thematics = myconf.take('app.thematics')
 	scheme = myconf.take('alerts.scheme')
 	host = myconf.take('alerts.host')
 	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
@@ -1230,9 +1228,9 @@ Dear colleague,
 
 I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
 
-At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.  Extensions may be provided when needed.
 
-You may not yet know about %(longname)s. Briefly, it is a community of researchers in Evolutionary Biology dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of PCI Evol Biol (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg).
+You may not yet know about %(longname)s. Briefly, it is a community of researchers in %(thematics)s dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of %(longname)s (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg).
 
 The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
 
@@ -1248,7 +1246,7 @@ Best wishes,
 
 %(sender)s
 """ % locals()
-	default_subject = 'Solicitation to review a preprint for %(longname)s' % locals()
+	default_subject = '%(longname)s: Invitation to review a preprint' % locals()
 	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 	form = SQLFORM.factory(
@@ -1295,7 +1293,7 @@ Best wishes,
 		reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state='Pending')
 		
 		if nbExistingReviews > 0:
-			session.flash = T('User "%(reviewer_email)s" have already been solicited. Email cancelled.') % (request.vars)
+			session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
 		else:
 			linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 			#linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True))
@@ -1355,6 +1353,7 @@ def send_review_reminder():
 	destUser = mkUser(auth, db, reviewer.id).flatten()
 	sender = mkUser(auth, db, auth.user_id).flatten()
 	description = myconf.take('app.description')
+	thematics = myconf.take('app.thematics')
 	longname = myconf.take('app.longname')
 	contact = myconf.take('contacts.managers')
 	reset_password_key = None
@@ -1363,7 +1362,7 @@ def send_review_reminder():
 	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
 	art_doi = (recomm.doi or art.doi)
 	if (review.review_state or 'Pending') == 'Pending':
-		default_subject = 'Reminder: Solicitation to review a preprint for %(longname)s' % locals()
+		default_subject = '%(longname)s reminder: Invitation to review a preprint' % locals()
 		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 		if len(reviewer.reset_password_key or '')>0: # even not logged in yet
 			reset_password_key = reviewer.reset_password_key
@@ -1374,9 +1373,9 @@ This is a reminder concerning the following message, which you should already ha
 
 I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
 
-At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.  Extensions may be provided when needed.
 
-You may not yet know about %(longname)s. Briefly, it is a community of researchers in Evolutionary Biology dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of PCI Evol Biol (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg). Review itself works largely like it does for a journal (including the ability to remain anonymous or not, as you like).
+You may not yet know about %(longname)s. Briefly, it is a community of researchers in %(thematics)s dedicated to reviewing and (if they are high quality) recommending articles publicly available in preprint servers (such as bioRxiv). This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of remarkable preprints. More information can be found on the website of %(longname)s (%(site_url)s) and in this short video (https://www.youtube.com/watch?v=jMhVl__gupg). Review itself works largely like it does for a journal (including the ability to remain anonymous or not, as you like).
 
 The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
 
@@ -1400,7 +1399,7 @@ This is a reminder concerning the following message, which you should already ha
 
 I have agreed to handle the evaluation of a preprint entitled "%(art_title)s", for potential recommendation by %(description)s (%(longname)s). This article can be visualized and downloaded at the following address (doi %(art_doi)s).
 
-At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.
+At first glance, this preprint appears to me to be potentially interesting, but I would like to have your expert opinion. I would therefore like to invite you to review this preprint for %(longname)s possibly within three weeks.  Extensions may be provided when needed.
 
 If you have already reviewed a previous version of this MS, please consider this message as an invitation to review a new version of the preprint for a new round of evaluation.
 
@@ -1420,7 +1419,7 @@ Yours sincerely,
 """ % locals()
 
 	elif(review.review_state == 'Under consideration'):
-		default_subject = 'Reminder: Review due to %(longname)s' % locals()
+		default_subject = '%(longname)s reminder: Review due' % locals()
 		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 		default_message = """
 Dear %(destUser)s,
@@ -1505,11 +1504,11 @@ def send_review_cancellation():
 	art_doi = (recomm.doi or art.doi)
 	linkTarget = None #URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 	if (review.review_state or 'Pending') == 'Pending':
-		default_subject = 'Cancellation of a review request for %(longname)s' % locals()
+		default_subject = '%(longname)s: Cancellation of a review request' % locals()
 		default_message = """
 Dear %(destUser)s,
 
-I solicited you to act as a reviewer for a preprint entitled "%(art_title)s" by %(art_authors)s (DOI %(art_doi)s). In the meantime, other colleagues also contacted for this evaluation have agreed to review this preprint. I now have enough reviewers for the evaluation of this preprint and your input is therefore no longer required. Consequently, this preprint no longer appears in your list of requests to act as a reviewer on the %(longname)s webpage.
+I invited you to act as a reviewer for a preprint entitled "%(art_title)s" by %(art_authors)s (DOI %(art_doi)s). In the meantime, other colleagues also contacted for this evaluation have agreed to review this preprint. I now have enough reviewers for the evaluation of this preprint and your input is therefore no longer required. Consequently, this preprint no longer appears in your list of requests to act as a reviewer on the %(longname)s webpage.
 
 I apologize for any convenience and wish you all the best.
 
@@ -1602,16 +1601,20 @@ def del_contributor():
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def add_contributor():
 	recommId = request.vars['recommId']
+	onlyAdd = request.vars['onlyAdd'] or True
+	goBack = request.vars['goBack']
 	recomm = db.t_recommendations[recommId]
 	if (recomm.recommender_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
+		roleClass = ' pci-manager' if (recomm.recommender_id != auth.user_id) and auth.has_membership(role='manager') else ' pci-recommender'
+		art = db.t_articles[recomm.article_id]
 		contributorsListSel = db( (db.t_press_reviews.recommendation_id==recommId) & (db.t_press_reviews.contributor_id==db.auth_user.id) ).select(db.t_press_reviews.id, db.auth_user.id)
 		contributorsList = []
 		for con in contributorsListSel:
 			contributorsList.append(LI(mkUserWithMail(auth, db, con.auth_user.id),
-									A(T('Delete'), _class='btn btn-warning',
+									A(T('Delete'), _class='btn btn-warning pci-smallBtn '+roleClass,
 									   _href=URL(c='recommender', f='del_contributor', vars=dict(pressId=con.t_press_reviews.id)), 
 									   _title=T('Delete this co-recommender')) #, _style='margin-left:8px; color:red;'),
 									))
@@ -1619,6 +1622,8 @@ def add_contributor():
 			LABEL(T('Co-recommenders:')),
 			UL(contributorsList),
 		)
+		myAcceptBtn = DIV(mkBackButton('Done', target=goBack), _style='width:100%; text-align:center;')
+		myBackButton = ''
 		db.t_press_reviews._id.readable = False
 		db.t_press_reviews.recommendation_id.default = recommId
 		db.t_press_reviews.recommendation_id.writable = False
@@ -1626,23 +1631,24 @@ def add_contributor():
 		db.t_press_reviews.contributor_id.writable = True
 		db.t_press_reviews.contributor_id.label = T('Select a co-recommender')
 		db.t_press_reviews.contributor_id.represent = lambda text,row: mkUserWithMail(auth, db, row.contributor_id) if row else ''
-		alreadyCo = db(db.t_press_reviews.recommendation_id==recommId)._select(db.t_press_reviews.contributor_id)
+		alreadyCo = db((db.t_press_reviews.recommendation_id==recommId) & (db.t_press_reviews.contributor_id != None))._select(db.t_press_reviews.contributor_id)
 		otherContribsQy = db((db.auth_user._id!=auth.user_id) & (db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender') & (~db.auth_user.id.belongs(alreadyCo)) )
 		db.t_press_reviews.contributor_id.requires = IS_IN_DB(otherContribsQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
 		form = SQLFORM(db.t_press_reviews)
 		form.element(_type='submit')['_value'] = T("Add")
 		form.element(_type='submit')['_style'] = 'margin-right:300px;'
+		form.element(_type='submit')['_class'] = 'btn btn-info '+roleClass
 		if form.process().accepted:
-			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id)))
-		myAcceptBtn = DIV(
-							A(SPAN(current.T('Add a co-recommender later'), _class='btn btn-info'), 
-										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))) if len(contributorsListSel)==0 else '', 
-							A(SPAN(current.T('Write / Edit your recommendation'), _class='btn btn-default'), 
-										_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))), 
+			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id, goBack=goBack, onlyAdd=onlyAdd)))
+		if art.already_published and onlyAdd is False:
+			myAcceptBtn = DIV(
+							A(SPAN(current.T('Add a co-recommender later'), _class='btn btn-info'+roleClass), _href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))) if len(contributorsListSel)==0 else '', 
+							A(SPAN(current.T('Write / Edit your recommendation'), _class='btn btn-default'+roleClass), _href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id))), 
 							_style='margin-top:64px; text-align:center;'
 						)
 		response.view='default/myLayout.html'
 		return dict(
+					myBackButton = myBackButton,
 					myHelp = getHelp(request, auth, db, '#RecommenderAddContributor'),
 					myText=getText(request, auth, db, '#RecommenderAddContributorText'),
 					myTitle=getTitle(request, auth, db, '#RecommenderAddContributorTitle'),
@@ -1735,7 +1741,7 @@ def edit_recommendation():
 						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise', _checked=(recomm.recommendation_state=='Revision')), current.T('This preprint merits a revision'), _class='pci-radio pci-review btn-default'),
 						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_reject', _checked=(recomm.recommendation_state=='Rejected')), current.T('I reject this preprint'), _class='pci-radio pci-reject btn-warning'),
 						_style="padding:8px; margin-bottom:12px;"
-					), _style='text-align:center;') if (nbCoRecomm == 0) else ''
+					), _style='text-align:center;')
 		buttons = [	INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'), ]
 		if isPress:
 			buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
@@ -1812,7 +1818,7 @@ def edit_recommendation():
 		"""
 		response.view='default/myLayout.html'
 		return dict(
-					form = form,
+					form=form,
 					myText=myText,
 					myHelp=myHelp,
 					myTitle=myTitle,
@@ -1824,7 +1830,7 @@ def edit_recommendation():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
-def my_press_reviews():
+def my_co_recommendations():
 	query = (
 			  (db.t_press_reviews.contributor_id == auth.user_id) 
 			& (db.t_press_reviews.recommendation_id==db.t_recommendations.id) 

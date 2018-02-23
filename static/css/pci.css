@@ -1,3 +1,4 @@
+
 /* Patch for sub-menus from https://github.com/web2py/web2py/issues/938 */
 .dropdown-submenu{position:relative;}
 .dropdown-submenu>.dropdown-menu{top:0;left:100%;margin-top:-6px;margin-left:-1px;-webkit-border-radius:0 6px 6px 6px;-moz-border-radius:0 6px 6px 6px;border-radius:0 6px 6px 6px;}
@@ -7,7 +8,6 @@
 .dropdown-submenu.pull-left{float:none;}
 .dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 
-/* My tweaks */
 html {
 	padding-bottom:0px; 
 }
@@ -15,7 +15,8 @@ body {
 	padding-top:0px; 
 	margin-bottom:0px; 
 /* 	font-family: Optima; */
-	font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, "sans-serif";
+/* 	font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, "sans-serif"; */
+	font-family: Optima, 'Open Sans', sans-serif;
 	font-size:14px;
 /* 	line-height:1.2em; */
 }
@@ -71,7 +72,7 @@ header{box-shadow:none;} /* Don't remove */
 #pci-home-header img {width: calc(100% - 450px); min-width:300px; max-width:800px;}
 .pci-smallSearchDiv {float:right; width:410px; margin-left:auto; margin-right:20px; margin-top:20px;}
 
-.btn {border-radius: 8px; margin-left:8px;}
+.btn {border-radius: 8px; margin-left:8px; padding:4px 8px;}
 .web2py_grid .row_buttons {white-space: initial; text-align: center;}
 .web2py_grid thead th {background: none; font-size: 11pt; color:#777777;}
 .web2py_grid thead th a {color: #777777;}
@@ -198,7 +199,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-help-buttons {display:inline; font-size:8pt; padding-left:8px; padding-right:8px;}
 .pci-help-button {cursor:pointer;}
 .pci-help-button-edit {font-size:8px; cursor:pointer; float:right;}
-.pci-infotextbox {}
+.pci-infotextbox {padding-left:10%; padding-right:10%;}
 .pci-infotext {text-align:justify;}
 .pci-text-buttons {width:100%; text-align:right;}
 .pci-text-button-edit {font-size:8px;}
@@ -208,11 +209,11 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-alreadyPeerReviewedRadio {}
 
-#lastRecommendationsDiv {padding:4px; border:1px solid #eeeeee; border-radius:8px; max-width:30cm; margin-left:auto; margin-right:auto;}
+#lastRecommendationsDiv {padding:4px; border:1px solid #eeeeee; border-radius:8px; max-width:30cm; min-height:95vh; margin-left:auto; margin-right:auto;}
 .searchRecommendationsDiv {margin-top:8px; padding:4px; border:1px solid #eeeeee; border-radius:8px; max-width:30cm; margin-left:auto; margin-right:auto;}
 /* .pci-lastArticles-div {max-height:500px; overflow:auto; margin:4px;} */
 /* .pci-lastArticles-div {border-radius:8px; background-color:#dddddf; } */
-.pci-lastArticles-table {width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 24px; margin-top: -24px;}
+.pci-lastArticles-table {width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 24px; margin-top: -24px; }
 .pci-lastArticles-table td { border: none; border-style: none; padding: 8px; background-color: transparent;}
 .pci-lastArticles-table td:first-child { border-left-style: none; border-top-left-radius:     16px; border-bottom-left-radius: 16px; }
 .pci-lastArticles-table td:last-child  { border-right-style:none; border-bottom-right-radius: 16px; border-top-right-radius:   16px; }
@@ -255,7 +256,7 @@ header{box-shadow:none;} /* Don't remove */
 .pci-comment {border-left: 1px solid #c0c0c0; padding: 8px;}
 .pci-commentReplyLink {}
 .pci-commentHeader {color:#777777;}
-.pci-smallBtn {/*height:30px;*/ padding:2px; margin-left:0; line-height:initial; border-radius:4px; /*text-transform:initial;*/}
+.pci-smallBtn {padding:2px 8px 2px 8px; margin-left:0; line-height:initial; border-radius:4px;}
 
 .tweeterPanel {padding:8px; border:1px solid #0db9f2; border-radius:12px; max-height:95vh; overflow-y:auto;}
 .tweeterBottomPanel {margin-top:16px; padding:2px; border:1px solid #0db9f2; border-radius:12px;}
@@ -310,7 +311,14 @@ header{box-shadow:none;} /* Don't remove */
 .pci-reviewers-table-div {padding: 8px; border: 2px solid #dddddd; border-radius:16px;}
 .pci-onoffAbstract {background-color:#eeeeee; display:none; margin-top:-8px; padding:16px; border-radius:16px;}
 
-
 .pci-li-spacy li {margin-top:8px;}
-
 .pci-rss-btn {background: none;}
+
+.pci-admin       {}
+.pci-manager     {}
+.pci-recommender {}
+.pci-reviewer    {}
+.pci-submitter   {}
+.pci-public      {}
+
+

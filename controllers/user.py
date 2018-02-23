@@ -15,7 +15,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
-#@auth.requires_login()
+######################################################################################################################################################################
 def new_submission():
 	if auth.user:
 		button = A(current.T("Submit your preprint"), 
@@ -40,9 +40,11 @@ def new_submission():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
 	db.t_articles.article_source.writable = False
+	db.t_articles.ms_version.writable = True
 	db.t_articles.status.readable = False
 	db.t_articles.upload_timestamp.readable = False
 	db.t_articles.status.readable = False
@@ -135,6 +137,7 @@ def fill_new_article():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def article_revised():
 	articleId = request.vars['articleId']
@@ -148,19 +151,26 @@ def article_revised():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		print 'article_revised'
+		#print 'article_revised'
 		art.status = 'Under consideration'
 		art.update_record()
 		last_recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 		last_recomm.is_closed = True
 		last_recomm.update_record()
-		newRecomm = db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, is_closed=False, recommendation_state='Ongoing', recommendation_title=last_recomm.recommendation_title)
-		#print newRecomm
+		newRecomm = db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=last_recomm.recommendation_title)
+		# propagate co-recommenders
+		corecommenders = db(db.t_press_reviews.recommendation_id==last_recomm.id).select(db.t_press_reviews.contributor_id)
+		if len(corecommenders) > 0 :
+			# NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
+			db.t_press_reviews._after_insert = []
+			for corecommender in corecommenders:
+				db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
 		redirect(URL(f='my_articles', user_signature=True))
 
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def do_cancel_article():
 	articleId = request.vars['articleId']
@@ -181,6 +191,7 @@ def do_cancel_article():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def do_delete_article():
 	articleId = request.vars['articleId']
@@ -200,6 +211,7 @@ def do_delete_article():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def suggest_article_to():
 	articleId = request.vars['articleId']
@@ -209,6 +221,7 @@ def suggest_article_to():
 
 
 
+######################################################################################################################################################################
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
 @auth.requires_login()
@@ -233,6 +246,7 @@ def suggested_recommenders():
 	
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def del_suggested_recommender():
 	suggId = request.vars['suggId']
@@ -243,6 +257,7 @@ def del_suggested_recommender():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def add_suggested_recommender():
 	articleId = request.vars['articleId']
@@ -298,6 +313,7 @@ def add_suggested_recommender():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def recommenders():
 	articleId = request.vars['articleId']
@@ -344,6 +360,7 @@ def recommenders():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders(): 
 	myVars = request.vars
@@ -405,13 +422,8 @@ def search_recommenders():
 				
 		temp_db.qy_recomm._id.readable = False
 		temp_db.qy_recomm.uploaded_picture.readable = False
-		links = [
-					#dict(header=T('Picture'), body=lambda row: (IMG(_src=URL('default', 'download', args=row.uploaded_picture), _width=100)) if (row.uploaded_picture is not None and row.uploaded_picture != '') else (IMG(_src=URL(r=request,c='static',f='images/default_user.png'), _width=100))),
-					dict(
-						header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id)
-					),
-			]
-		selectable = None #[(T('Suggest to checked recommenders'), lambda ids: [suggest_article_to_all(articleId, ids)], 'class1')]
+		links = [dict(header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id)),]
+		selectable = None
 		temp_db.qy_recomm.num.readable = False
 		temp_db.qy_recomm.score.readable = False
 		temp_db.qy_recomm.excluded.readable = False
@@ -439,6 +451,7 @@ def search_recommenders():
 
 
 
+######################################################################################################################################################################
 def suggest_article_to_all(articleId, recommenderIds):
 	for recommenderId in recommenderIds:
 		do_suggest_article_to(auth, db, articleId, recommenderId)
@@ -446,6 +459,7 @@ def suggest_article_to_all(articleId, recommenderIds):
 	
 
 
+######################################################################################################################################################################
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
 @auth.requires_login()
@@ -485,6 +499,7 @@ def suggested_recommenders():
 
 
 
+######################################################################################################################################################################
 def mkSuggestedRecommendersUserButton(auth, db, row):
 	butts = []
 	suggRecomsTxt = []
@@ -499,23 +514,15 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
 	if row.status in ('Pending', 'Awaiting consideration'):
-		#if len(suggRecomsTxt)>0:
-			#butts.append( A(current.T('MANAGE'), _class='btn btn-default', _href=URL(c='user', f='recommenders', vars=dict(articleId=row.id))) )
 		myVars = dict(articleId=row['id'])
-		#if len(exclude)>0:
-			#myVars['exclude'] = ','.join(exclude)
-		#for thema in row['thematics']:
-			#myVars['qy_'+thema] = 'on'
-		#butts.append( BR() )
-		butts.append( A(current.T('Add / Manage'), _class='btn btn-default', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
-	#else:
-		#butts.append( SPAN((db.v_suggested_recommenders[row.id]).suggested_recommenders) )
+		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	return butts
 
 
 
 
-# Show my recommendation requests
+######################################################################################################################################################################
+# Show my submissions
 @auth.requires_login()
 def my_articles():
 	query = db.t_articles.user_id == auth.user_id
@@ -532,9 +539,8 @@ def my_articles():
 	db.t_articles.article_source.readable = False
 	links = [
 			dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
-			#dict(header=T('Recommender'), body=lambda row: SPAN((db.v_article_recommender[row.id]).recommender)), #getRecommender(auth, db, row)),
-			dict(header=T('Recommender'), body=lambda row: getRecommender(auth, db, row)),
-			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button'), 
+			dict(header=T('Recommender(s)'), body=lambda row: getRecommender(auth, db, row)),
+			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button pci-submitter'), 
 												_target="_blank", 
 												_href=URL(c='user', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
 												_class='button', 
@@ -550,12 +556,6 @@ def my_articles():
 		db.t_articles.upload_timestamp.label = T('Submitted')
 		db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(text)
 		db.t_articles.auto_nb_recommendations.readable = True
-	#elif (request.args[0]=='new') and (request.args[1]=='t_articles'): # in form
-		#db.t_articles.article_source.writable = False
-		#db.t_articles.status.readable = False
-		#db.t_articles.upload_timestamp.readable = False
-		#db.t_articles.last_status_change.readable = False
-		#db.t_articles.auto_nb_recommendations.readable = False
 	else:
 		db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 		
@@ -564,10 +564,9 @@ def my_articles():
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250
 		,paginate=20
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
-		#,orderby=db.t_status_article.priority_level|~db.t_articles.last_status_change
 		,orderby=~db.t_articles.last_status_change
 	)
 	response.view='default/myLayout.html'
@@ -582,6 +581,7 @@ def my_articles():
 
 
 
+######################################################################################################################################################################
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():
@@ -649,6 +649,7 @@ def recommendations():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def my_reviews():
 	pendingOnly = ('pendingOnly' in request.vars) and (request.vars['pendingOnly'] == "True")
@@ -697,7 +698,7 @@ def my_reviews():
 	#links = [dict(header='toto', body=lambda row: row.t_articles.id),]
 	links = [
 			dict(header=T(''), 
-					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-button'), 
+					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-reviewer'), 
 									_href=URL(c='user', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
 									_target="_blank", 
 									_class='button', 
@@ -723,6 +724,7 @@ def my_reviews():
 			 )
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def accept_new_review():
 	if not('reviewId' in request.vars):
@@ -798,6 +800,7 @@ def accept_new_review():
 	)
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def do_accept_new_review():
 	if 'reviewId' not in request.vars:
@@ -835,6 +838,7 @@ def do_accept_new_review():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def decline_new_review():
 	if 'reviewId' not in request.vars:
@@ -854,6 +858,7 @@ def decline_new_review():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def review_completed():
 	if 'reviewId' not in request.vars:
@@ -872,6 +877,7 @@ def review_completed():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def edit_reply():
 	if 'recommId' not in request.vars:
@@ -915,6 +921,7 @@ def edit_reply():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def edit_review():
 	if 'reviewId' not in request.vars:
@@ -982,6 +989,7 @@ def edit_review():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def edit_my_article():
 	if not('articleId' in request.vars):
@@ -1002,7 +1010,7 @@ def edit_my_article():
 	db.t_articles.status.writable=False
 	form = SQLFORM(db.t_articles
 				,articleId
-				,fields=['title', 'authors', 'doi', 'abstract', 'thematics', 'keywords']
+				,fields=['title', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
 				,upload=URL('default', 'download')
 				,deletable=deletable
 				,showid=False
@@ -1024,6 +1032,7 @@ def edit_my_article():
 
 
 
+######################################################################################################################################################################
 @auth.requires_login()
 def new_comment():
 	if not('articleId' in request.vars):

@@ -5,7 +5,7 @@
 
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Recaptcha
+from gluon.tools import Recaptcha, Recaptcha2
 
 from gluon.custom_import import track_changes; track_changes(True)
 from common import *
@@ -32,6 +32,9 @@ if request.global_settings.web2py_version < "2.14.1":
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
 myconf = AppConfig(reload=True)
+scheme=myconf.take('alerts.scheme')
+host=myconf.take('alerts.host')
+port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
@@ -121,11 +124,11 @@ db.define_table('t_thematics',
 auth.settings.extra_fields['auth_user'] = [
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
-	Field('laboratory', type='string', label=T('Laboratory')),
-	Field('institution', type='string', label=T('Institution')),
-	Field('city', type='string', label=T('City')),
-	Field('country', type='string', label=T('Country'), requires=IS_EMPTY_OR(IS_IN_SET(('Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'North Korea','South Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'FYROM', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'))), represent=lambda t,r: t if t else ''),
-	Field('thematics', type='list:string', label=T('Thematic fields'), requires=IS_EMPTY_OR(IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
+	Field('laboratory', type='string', label=SPAN(T('Laboratory'))+SPAN(' * ', _style='color:red;'), requires=IS_NOT_EMPTY()),
+	Field('institution', type='string', label=SPAN(T('Institution'))+SPAN(' * ', _style='color:red;'), requires=IS_NOT_EMPTY()),
+	Field('city', type='string', label=SPAN(T('City'))+SPAN(' * ', _style='color:red;'), requires=IS_NOT_EMPTY()),
+	Field('country', type='string', label=SPAN(T('Country'))+SPAN(' * ', _style='color:red;'), requires=IS_IN_SET(('Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'North Korea','South Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'FYROM', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe')), represent=lambda t,r: t if t else ''),
+	Field('thematics', type='list:string', label=SPAN(T('Thematic fields'))+SPAN(' * ', _style='color:red;'), requires=IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('cv', type='text', length=2097152, label=T('Educational and work background')),
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('last_alert', type='datetime', label=T('Last alert'), writable=False, readable=False),
@@ -137,7 +140,12 @@ db.auth_user._singular = T('User')
 db.auth_user._plural = T('Users')
 db.auth_membership._singular = T('User role')
 db.auth_membership._plural = T('User roles')
-db.auth_user.first_name.label=T('Given name(s)')
+db.auth_user.first_name.label=SPAN(T('Given name(s)'))+SPAN(' * ', _style='color:red;')
+#db.auth_user.first_name.requires=IS_NOT_EMPTY()
+db.auth_user.last_name.label=SPAN(T('Last name'))+SPAN(' * ', _style='color:red;')
+#db.auth_user.last_name.requires=IS_NOT_EMPTY()
+db.auth_user.email.label=SPAN(T('E-mail'))+SPAN(' * ', _style='color:red;')
+#db.auth_user.email.requires=IS_NOT_EMPTY()
 db.auth_user.registration_key.label=T('Registration key')
 db.auth_user.registration_key.writable = db.auth_user.registration_key.readable = auth.has_membership(role='administrator')
 db.auth_user.registration_key.requires=IS_IN_SET(('','blocked'))
@@ -164,7 +172,8 @@ auth.settings.reset_password_requires_verification = True #WARNING set to True i
 auth.settings.create_user_groups = False
 auth.settings.showid = False
 if myconf.get('captcha.private'):
-	auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'), use_ssl=True)
+	#auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'), use_ssl=True) # DEPRECATED
+	auth.settings.captcha = Recaptcha2(request, myconf.get('captcha.public'), myconf.get('captcha.private'))
 	auth.settings.login_captcha = False
 	auth.settings.register_captcha = None
 	auth.settings.retrieve_username_captcha = False
@@ -240,7 +249,8 @@ db.define_table('t_articles',
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, volume, pages)')),
 	Field('doi', type='string', label=T('DOI'), length=512, unique=False, represent=lambda text, row: mkDOI(text) ),
-	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture for which no rights are required')),
+	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
+	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture (png or jpeg format) for which no rights are required')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
 	Field('abstract', type='text', length=2097152, label=T('Abstract'), requires=IS_NOT_EMPTY()), #, widget=ckeditor.widget),
@@ -279,14 +289,18 @@ def deltaStatus(s, f):
 		if o.already_published:
 			if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
-				#do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
+				do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
+				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 			elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
 				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
-				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+				do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
 		else:
 			if o.status == 'Pending' and f['status'] == 'Awaiting consideration':
 				do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+			elif o.status == 'Awaiting consideration' and f['status'] == 'Not considered':
+				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 			elif o.status == 'Awaiting consideration' and f['status'] == 'Under consideration':
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
@@ -294,17 +308,21 @@ def deltaStatus(s, f):
 				do_send_email_to_thank_recommender_preprint(session, auth, db, o['id'])
 			elif o.status == 'Awaiting revision' and f['status'] == 'Under consideration':
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 			elif o.status == 'Under consideration' and (f['status'].startswith('Pre-')): 
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
+				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 			elif o.status in ('Pending', 'Awaiting consideration', 'Under consideration') and f['status']=='Cancelled': 
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 			elif o.status != f['status']:
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
+				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended'):
 					do_send_email_decision_to_reviewer(session, auth, db, o['id'], f['status'])
 					do_send_email_to_requester(session, auth, db, o['id'], f['status'])
@@ -329,7 +347,8 @@ def updArticleThumb(s,f):
 db.define_table('t_recommendations',
 	Field('id', type='id'),
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
-	Field('doi', type='string', label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
+	Field('doi', type='string', length=512, label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
+	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
 	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), requires=IS_NOT_EMPTY()),
 	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''), #, widget=ckeditor.widget),
@@ -342,7 +361,7 @@ db.define_table('t_recommendations',
 	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''), #, widget=ckeditor.widget),
 	Field('reply_pdf', type='upload', uploadfield='reply_pdf_data', label=T('Author\'s Reply as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('reply_pdf_data', type='blob'), #, readable=False),
-	Field('track_change', type='upload', uploadfield='track_change_data', label=T('Tracked changes document')),
+	Field('track_change', type='upload', uploadfield='track_change_data', label=T('Tracked changes document (eg. PDF or Word file)')),
 	Field('track_change_data', type='blob', readable=False),
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 	singular=T("Recommendation"), 
@@ -431,12 +450,12 @@ db.define_table('t_reviews',
 	Field('reviewer_id', type='reference auth_user', ondelete='RESTRICT', label=T('Reviewer')),
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interest with the authors or the content of the article')),
+	Field('review_state', type='string', length=50, label=T('Review status'), default='Pending', requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed', 'Cancelled'))), writable=False),
 	Field('review', type='text', length=2097152, label=T('Review as text (MarkDown)')), #, widget=ckeditor.widget),
 	Field('review_pdf', type='upload', uploadfield='review_pdf_data', label=T('Review as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('review_pdf_data', type='blob', readable=False),
-	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('acceptation_timestamp', type='datetime', label=T('Acceptation timestamp'), writable=False),
-	Field('review_state', type='string', length=50, label=T('Review status'), default='Pending', requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed', 'Cancelled'))), writable=False),
+	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('emailing', type='text', length=2097152, label=T('Emails sent'), readable=False, writable=False),
 	singular=T("Review"), 
 	plural=T("Reviews"),
@@ -459,7 +478,7 @@ def reviewDone(s, f):
 		do_send_email_to_recommenders_review_declined(session, auth, db, o['id'])
 	if o['reviewer_id'] is not None and o['review_state'] == 'Under consideration' and f['review_state'] == 'Completed':
 		do_send_email_to_recommenders_review_closed(session, auth, db, o['id'])
-		#TODO: do_send_email_to_thank_again_reviewer(session, auth, db, o['id'])
+		do_send_email_to_thank_reviewer_after(session, auth, db, o['id'], f) # args: session, auth, db, reviewId, newForm
 	return None
 
 
@@ -496,6 +515,7 @@ db.define_table('t_press_reviews',
 db.t_press_reviews.contributor_id.requires = IS_IN_DB(db((db.auth_user._id==db.auth_membership.user_id) & (db.auth_membership.group_id==db.auth_group._id) & (db.auth_group.role=='recommender')), db.auth_user.id, '%(last_name)s, %(first_name)s')
 db.t_press_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, '%(doi)s')
 
+# WARNING: not to be triggered at each new round
 db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
 def newPressReview(s,i):
 	do_send_email_to_one_contributor(session, auth, db, i)
@@ -513,6 +533,20 @@ db.define_table('t_comments',
 	plural=T("Comments"),
 	format=lambda row: row.user_comment[0:100],
 )
+
+
+#db.define_table('t_images',
+	#Field('id', type='id', readable=False, writable=False),
+	#Field('image_name', type='string', length=512, label=T('Image name'), requires=IS_NOT_EMPTY()),
+	#Field('image', type='upload', uploadfield='image_data', label=T('Image'), requires=IS_IMAGE(extensions=('JPG', 'jpg', 'jpeg', 'PNG', 'png', 'GIF', 'gif'))),
+	#Field('image_data', type='blob', readable=False),
+	#singular=T('Image'), 
+	#plural=T('Images'),
+	#migrate=False,
+#)
+#db.t_images.image.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=200)) if (text is not None and text != '') else ('')
+#db.t_images.url = Field.Virtual('URL', lambda row: URL('default', 'download', scheme=scheme, host=host, port=port, args=row.t_images.image))
+#db.t_images.url2 = Field.Virtual('URL2', lambda row: URL('default', 'download', scheme=scheme, host=host, port=port, args=row.t_images.image_name))
 
 
 ##-------------------------------- Views ---------------------------------

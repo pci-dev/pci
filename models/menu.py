@@ -79,11 +79,18 @@ def _DevMenu():
 
 # default public menu
 def _BaseMenu():
+	showGuideLines = myconf.get('menu.guidelines', False)
 	helpMenu = []
 	aboutMenu = []
 
 	helpMenu += [
 		(T('How does it work?'),  False, URL('about', 'help_generic')),
+	]
+	if showGuideLines:
+		helpMenu += [
+			(T('Submission guidelines'),  False, URL('about', 'help_guidelines')),
+		]
+	helpMenu += [
 		(T('How to ...?'),        False, URL('about', 'help_practical')),
 		(T('FAQs', lazy=False),      False, URL('about', 'faq')),
 		(T('How should you cite an article?', lazy=False), False, URL('about', 'cite')),
@@ -96,10 +103,10 @@ def _BaseMenu():
 			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
 			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),
-			#TODO activate 
+			(T('Thanks to reviewers', lazy=False),  False, URL('about', 'thanks_to_reviewers')),
 			(T('Resources', lazy=False),  False, URL('about', 'resources')),
 			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
-			##TODO: for later use 
+			##TODO: for later use?
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
 		]
 	menuBar = [
@@ -111,9 +118,12 @@ def _BaseMenu():
 	return menuBar
 
 def _ToolsMenu():
-	txtMenuTools = T('Tools')
+	if auth.has_membership(None, None, 'administrator'):
+		myClass = 'pci-admin'
+	else:
+		myClass = 'pci-manager'
 	return [
-		(txtMenuTools, False, '#', [
+		(SPAN(T('Tools'), _class=myClass), False, '#', [
 			(T('Convert PDF to MarkDown'),  False, URL('tools', 'convert_pdf_to_markdown', user_signature=True)),
 			#(T('Convert PDF to HTML'),  False, URL('tools', 'convert_pdf_to_html', user_signature=True)),
 		]),
@@ -121,14 +131,13 @@ def _ToolsMenu():
 
 # Appends administrators menu
 def _AdminMenu():
-	#txtMenuAdmin = IMG(_alt=T('Admin.'), _title=T('Admin.'), _src=URL(c='static',f='images/admin.png'), _class='pci-menuImage')
-	txtMenuAdmin = T('Admin.')
 	return [
-		(txtMenuAdmin, False, '#', [
-			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
-			(T('Resources'),          False, URL('admin', 'manage_resources', user_signature=True)),
-			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
+		(SPAN(T('Admin.'), _class='pci-admin'), False, '#', [
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
+			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
+			#(T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
+			(T('Resources'),         False, URL('admin', 'manage_resources', user_signature=True)),
+			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
 			(T('Email lists'),       False, URL('admin', 'mailing_lists', user_signature=True)),
 			(T('Thematic fields'),   False, URL('admin', 'thematics_list', user_signature=True)),
 			(T('Article status'),    False, URL('admin', 'article_status', user_signature=True)),
@@ -149,7 +158,7 @@ def _AdminMenu():
 def _UserMenu():
 	# prepare 2 submenus
 	myContributionsMenu = []
-	mySollicitationsMenu = []
+	myInvitationsMenu = []
 	nPostprintsOngoing = 0
 	nPreprintsOngoing = 0
 	nRevOngoing = 0
@@ -207,16 +216,16 @@ def _UserMenu():
 		else:
 			classPostprintsOngoing = ''
 		myContributionsMenu.append(LI(_class="divider"))
-		myContributionsMenu.append((SPAN(T('Your recommendations of preprints'), _class=classPreprintsOngoing), False, 
+		myContributionsMenu.append((SPAN(SPAN(T('Your recommendations of preprints'), _class='pci-recommender'), _class=classPreprintsOngoing), False, 
 								URL('recommender', 'my_recommendations', vars=dict(pressReviews=False), user_signature=True)))
 		myContributionsMenu.append(LI(_class="divider"))
-		myContributionsMenu.append((SPAN(T('Your recommendations of postprints'), _class=classPostprintsOngoing), False, 
+		myContributionsMenu.append((SPAN(SPAN(T('Your recommendations of postprints'), _class='pci-recommender'), _class=classPostprintsOngoing), False, 
 								URL('recommender', 'my_recommendations', vars=dict(pressReviews=True), user_signature=True)))
-		myContributionsMenu.append((T('Your co-recommendations of postprints'), False, 
-								URL('recommender', 'my_press_reviews', vars=dict(pendingOnly=False), user_signature=True)))
+		myContributionsMenu.append((SPAN(T('Your co-recommendations'), _class='pci-recommender'), False, 
+								URL('recommender', 'my_co_recommendations', vars=dict(pendingOnly=False), user_signature=True)))
 
 	
-	### sollicitations menu
+	### Invitations menu
 	colorRequests = False
 	# pending reviews, if any
 	nRevPend = db(  (db.t_reviews.reviewer_id == auth.user_id) 
@@ -225,11 +234,11 @@ def _UserMenu():
 					& (db.t_recommendations.article_id == db.t_articles.id) 
 					& (db.t_articles.status == 'Under consideration') 
 			   ).count()
-	txtRevPend = T('Do you agree to review a preprint?')
+	txtRevPend = SPAN(T('Do you agree to review a preprint?'), _class='pci-recommender')
 	if nRevPend > 0:
 		txtRevPend = SPAN(txtRevPend, _class='pci-enhancedMenuItem')
 		colorRequests = True
-	mySollicitationsMenu.append((txtRevPend, False, 
+	myInvitationsMenu.append((txtRevPend, False, 
 							URL('user', 'my_reviews', vars=dict(pendingOnly=True), user_signature=True)))
 	
 	# recommendations
@@ -240,34 +249,27 @@ def _UserMenu():
 								  & (db.t_suggested_recommenders.declined == False)
 								).count()
 		#print('nPreprintsRecomPend=%s' % (nPreprintsRecomPend))
-		txtPreprintsRecomPend = 'Do you agree to initiate a recommendation?'
+		txtPreprintsRecomPend = SPAN('Do you agree to initiate a recommendation?', _class='pci-recommender')
 		if nPreprintsRecomPend > 0:
 			txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
 			colorRequests = True
-		mySollicitationsMenu.append((txtPreprintsRecomPend,False, 
+		myInvitationsMenu.append((txtPreprintsRecomPend,False, 
 								URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
-		mySollicitationsMenu += [
+		myInvitationsMenu += [
 				LI(_class="divider"),
-				(T('Consider preprint submissions'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
+				(SPAN(T('Consider preprint submissions'), _class='pci-recommender'),          False, URL('recommender', 'fields_awaiting_articles', user_signature=True)),
 			]
-	#if nRevTot+nPreprintsOngoing+nPostprintsOngoing > 0:
-		#yourContribsImg = URL(c='static', f='images/your_contribs_enhanced.png')
-	txtContribMenu = SPAN(T('Your contributions'), _class=contribMenuClass)
-	#else:
-		#yourContribsImg = URL(c='static', f='images/your_contribs.png')
-		#txtContribMenu = T('Your contributions')
-	#txtContribMenu = IMG(_title=T('Your contributions'), _alt=T('Your contributions'), _src=yourContribsImg, _class='pci-menuImage')
 	resu = [
-        (txtContribMenu,       False, '#', myContributionsMenu),
+        (SPAN(T('Your contributions'), _class=contribMenuClass),       False, '#', myContributionsMenu),
 	]
 	if colorRequests:
 		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs_enhanced.png'), _class='pci-menuImage')
-		requestsMenuTitle = SPAN(T('Requests for input'), _class='pci-enhancedMenuItem')
+		requestsMenuTitle = SPAN(SPAN(T('Requests for input'), _class='pci-recommender'), _class='pci-enhancedMenuItem')
 	else:
 		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs.png'), _class='pci-menuImage')
-		requestsMenuTitle = SPAN(T('Requests for input'))
+		requestsMenuTitle = SPAN(T('Requests for input'), _class='pci-recommender')
 	if (auth.has_membership(None, None, 'recommender') or ( auth.is_logged_in() and colorRequests ) ):
-		resu.append( (requestsMenuTitle,  False, '#', mySollicitationsMenu) )
+		resu.append( (requestsMenuTitle,  False, '#', myInvitationsMenu) )
 	return resu
 
 
@@ -279,24 +281,24 @@ def _ManagerMenu():
 	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
-		txtPending = SPAN(txtPending, _class='pci-enhancedMenuItem')
+		txtPending = SPAN(SPAN(txtPending, _class='pci-enhancedMenuItem'), _class='pci-manager')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
 	
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes underway') if nbGoing > 1 else T('Recommendation process underway'))
 	if nbGoing>0:
-		txtGoing = SPAN(txtGoing, _class='pci-enhancedMenuItem')
+		txtGoing = SPAN(SPAN(txtGoing, _class='pci-enhancedMenuItem'), _class='pci-manager')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
 		
 	return [
-        (txtMenu, False, '#', [
+        (SPAN(txtMenu, _class='pci-manager'), False, '#', [
 			(txtPending, False, URL('manager', 'pending_articles', user_signature=True)),
 			(txtGoing, False, URL('manager', 'ongoing_articles', user_signature=True)),
-			(T('Recommendation processes completed'),   False, URL('manager', 'completed_articles', user_signature=True)),
-			(T('All articles'),   False, URL('manager', 'all_articles', user_signature=True)),
-			(T('Comments'),   False, URL('manager', 'manage_comments', user_signature=True)),
+			(SPAN(T('Recommendation processes completed'), _class='pci-manager'),   False, URL('manager', 'completed_articles', user_signature=True)),
+			(SPAN(T('All articles'), _class='pci-manager'),   False, URL('manager', 'all_articles', user_signature=True)),
+			(SPAN(T('Comments'), _class='pci-manager'),   False, URL('manager', 'manage_comments', user_signature=True)),
 		]),
 	]
 	
