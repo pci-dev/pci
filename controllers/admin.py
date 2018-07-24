@@ -2,6 +2,7 @@
 
 import re
 import copy
+import random
 
 # sudo pip install tweepy
 #import tweepy
@@ -311,7 +312,141 @@ def manage_resources():
 			)
 
 
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def recap_reviews():
+	runId = str(random.randint(1, 10000))
+	db.executesql('DROP VIEW IF EXISTS _v_%(runId)s;' % locals())
+	db.executesql("""CREATE OR REPLACE VIEW  _v_%(runId)s AS
+	WITH
+	recom AS (
+		SELECT r.article_id, 
+			array_to_string(array_agg(DISTINCT coalesce(ru.first_name,'')||' '||coalesce(ru.last_name,'')), ', ') AS recommenders,
+			max(recommendation_doi) AS recommendation_doi
+		FROM t_recommendations AS r
+		LEFT JOIN auth_user AS ru ON r.recommender_id = ru.id
+		GROUP BY r.article_id
+	)
+	, corecom AS (
+		SELECT r.article_id,
+			array_to_string(array_agg(DISTINCT coalesce(cru.first_name,'')||' '||coalesce(cru.last_name,'')), ', ') AS co_recommenders
+		FROM t_press_reviews AS co
+		LEFT JOIN auth_user AS cru ON co.contributor_id = cru.id
+		LEFT JOIN t_recommendations AS r ON co.recommendation_id = r.id
+		GROUP BY r.article_id
+	)
+	, recomms0 AS (
+		SELECT r.article_id, r.id AS recom_id,
+			rank() OVER (PARTITION BY r.article_id ORDER BY r.id) AS recomm_round, 
+			r.recommendation_state AS decision, 
+			r.recommendation_timestamp::date AS decision_start,
+			r.last_change::date AS decision_last_change
+		FROM t_recommendations AS r
+	)
+	, reviews AS (
+		SELECT article_id, w.recommendation_id AS recomm_id, recomm_round,
+			to_char(rank() OVER (PARTITION BY w.recommendation_id ORDER BY w.id), '00') AS reviewer_num,
+			CASE WHEN anonymously THEN '[ANON] ' ELSE '' END||coalesce(wu.first_name,'')||' '||coalesce(wu.last_name,'') AS reviewer
+		FROM t_reviews AS w
+		LEFT JOIN auth_user AS wu ON w.reviewer_id = wu.id
+		LEFT JOIN recomms0 ON w.recommendation_id = recomms0.recom_id
+		WHERE w.review_state NOT IN ('Pending', 'Declined', 'Cancelled')
+		UNION ALL
+		SELECT article_id, recom_id AS recomm_id, recomm_round,
+			'decision'::varchar AS reviewer_num,
+			decision
+		FROM recomms0
+		UNION ALL
+		SELECT article_id, recom_id AS recomm_id, recomm_round,
+			'00_start'::varchar AS reviewer_num,
+			decision_start::varchar
+		FROM recomms0
+		UNION ALL
+		SELECT article_id, recom_id AS recomm_id, recomm_round,
+			'last_change'::varchar AS reviewer_num,
+			decision_last_change::varchar
+		FROM recomms0
+		UNION ALL
+		SELECT article_id, recom_id AS recomm_id, recomm_round,
+			'supp_info'::varchar AS reviewer_num,
+			''::varchar
+		FROM recomms0
+	)
+	SELECT  CASE WHEN a.already_published THEN 'Postprint' ELSE 'Preprint' END AS type_article,
+		a.title, a.doi AS article_doi, a.id AS article_id,
+		coalesce(au.first_name,'')||' '||coalesce(au.last_name,'') AS submitter,
+		a.upload_timestamp::date AS submission,
+		''::varchar AS first_outcome,
+		coalesce(recom.recommenders, '') AS recommenders,
+		coalesce(corecom.co_recommenders, '') AS co_recommenders,
+		a.status AS article_status, a.last_status_change::date AS article_status_last_change,
+		coalesce(recom.recommendation_doi, '') AS recommendation_doi,
+		''::varchar AS recommendation_info,
+		coalesce(reviews.recomm_round, 1) AS recomm_round, 
+		coalesce(reviews.reviewer_num, ' 01') AS reviewer_num, 
+		coalesce(reviews.reviewer, '') AS reviewer
+	FROM t_articles AS a
+	LEFT JOIN auth_user AS au ON a.user_id = au.id
+	LEFT JOIN recom ON recom.article_id = a.id
+	LEFT JOIN corecom ON corecom.article_id = a.id
+	LEFT JOIN reviews ON reviews.article_id = a.id
+	ORDER BY a.id DESC, recomm_round ASC;""" % locals())
 
+	db.executesql("""SELECT colpivot('_t_%(runId)s', 
+		'SELECT * FROM _v_%(runId)s', 
+		array['type_article', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
+		array['recomm_round', 'reviewer_num'], 
+		'#.reviewer',
+		null
+	);""" % locals())
+
+	# Get columns as header
+	head = TR()
+	cols = db.executesql("""SELECT column_name FROM information_schema.columns WHERE table_name  LIKE '_t_%(runId)s'  ORDER BY ordinal_position;""" % locals())
+	pat = re.compile(r"'(\d+)', '(.*)'")
+	iCol = 0
+	revwCols = []
+	for cc in cols:
+		c = cc[0]
+		patMatch = pat.match(c)
+		if patMatch:
+			revRound = patMatch.group(1)
+			field = patMatch.group(2)
+			rn = re.match(r'^ ?(\d+)$', field)
+			if field == '00_start':
+				field = 'Start'
+			elif rn:
+				rwNum = int(rn.group(1))
+				field = 'Rev._%s' % (rwNum)
+				revwCols.append(iCol)
+			c = SPAN(SPAN('ROUND_#'+revRound+' '), SPAN(field))
+		head.append(TH(c))
+		if iCol in revwCols:
+			head.append(TH(c, SPAN(' quality')))
+			head.append(TH(c, SPAN(' info')))
+		iCol += 1
+	grid = TABLE(_class='pci-AdminReviewsSynthesis')
+	grid.append(head)
+	
+	resu = db.executesql("""SELECT * FROM _t_%(runId)s ORDER BY article_id;""" % locals())
+	for r in resu:
+		row = TR()
+		iCol = 0
+		for (v) in r:
+			row.append(TD(v or ''))
+			if iCol in revwCols:
+				row.append(TD(''))
+				row.append(TD(''))
+			iCol += 1
+		grid.append(row)
+	
+	db.executesql('DROP VIEW IF EXISTS _v_%(runId)s;' % locals())
+	db.executesql('DROP TABLE IF EXISTS _t_%(runId)s;' % locals())
+	response.view='default/myLayout.html'
+	return dict(
+				myText=getText(request, auth, db, '#AdminRecapReviews'),
+				myTitle=getTitle(request, auth, db, '#AdminRecapReviewsTitle'),
+				grid=grid, 
+			)
 
 
 

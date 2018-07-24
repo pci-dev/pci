@@ -19,6 +19,7 @@ echo "http://147.99.65.220:82/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 -
 	-ignore "Name *background.png" \
 	-ignore "Name *workflow.png" \
 	-ignore "Name *datamatrix.*" \
+	-ignore "Name *Map.png" \
 	-sshargs -C  \
 	~/W/web2py/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py/applications/PCiEvolBiol
 
@@ -49,6 +50,13 @@ ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_search_reviewers.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_versionMS.sql  | psql -h gaia2 -U piry pci_evolbiol_test
 # echo "UPDATE help_texts SET contents = regexp_replace(contents, 'font-family *: *optima *;', '', 'ig') WHERE contents ~* 'font-family *: *optima *;';"  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-03-09_colpivot.sql                                 | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "UPDATE help_texts SET contents='Code of conduct' WHERE hashtag LIKE '#EthicsTitle';"  | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "ALTER TABLE public.auth_user ALTER COLUMN alerts SET DEFAULT '||'::character varying;"  | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "ALTER TABLE public.t_articles ADD COLUMN anonymous_submission boolean DEFAULT false;"  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-07-04_SearchArticles.sql  | psql -h gaia2 -U piry pci_evolbiol
+# echo "ALTER TABLE public.t_articles ADD COLUMN cover_letter text;"  | psql -h gaia2 -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | psql -h gaia2 -U piry pci_evolbiol
 
 # Delete local datamatrix
 rm -f $datam

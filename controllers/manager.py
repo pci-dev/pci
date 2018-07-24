@@ -247,9 +247,12 @@ def _manage_articles(statuses, whatNext):
 	
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
-	db.t_articles.user_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
+	db.t_articles.anonymous_submission.readable = False
+	db.t_articles.user_id.represent = lambda text, row: SPAN(DIV(mkAnonymousArticleField(auth, db, row.anonymous_submission, '')), mkUserWithMail(auth, db, text))
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_articles.status.writable = True
+	db.t_articles.cover_letter.readable = True
+	db.t_articles.cover_letter.writable = False
 	db.t_articles.keywords.readable = False
 	db.t_articles.keywords.writable = False
 	db.t_articles.auto_nb_recommendations.readable = False
@@ -299,7 +302,7 @@ def _manage_articles(statuses, whatNext):
 		,searchable=True
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
 		,links=links
 		,orderby=~db.t_articles.last_status_change
 	)
@@ -581,6 +584,8 @@ def edit_article():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	db.t_articles.status.writable=True
 	db.t_articles.user_id.writable=True
+	db.t_articles.cover_letter.readable = True
+	db.t_articles.cover_letter.writable = True
 	form = SQLFORM(db.t_articles
 				,articleId
 				,upload=URL('default', 'download')

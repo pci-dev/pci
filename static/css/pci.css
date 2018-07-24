@@ -310,6 +310,7 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-reviewers-table-div {padding: 8px; border: 2px solid #dddddd; border-radius:16px;}
 .pci-onoffAbstract {background-color:#eeeeee; display:none; margin-top:-8px; padding:16px; border-radius:16px;}
+.pci-onoffCoverLetter {background-color:#eeeeee; display:none; margin-top:-8px; padding:16px; border-radius:16px;}
 
 .pci-li-spacy li {margin-top:8px;}
 .pci-rss-btn {background: none;}
@@ -321,4 +322,9 @@ header{box-shadow:none;} /* Don't remove */
 .pci-submitter   {}
 .pci-public      {}
 
+.pci-AdminReviewsSynthesis {font-size: 8px;}
+.pci-AdminReviewsSynthesis th {border: 1px solid #000; padding: 2px 4px 2px 4px;}
+.pci-AdminReviewsSynthesis td {border: 1px solid #ccc; padding: 2px 4px 2px 4px;}
 
+.pci-mapDiv {width:100%; text-align:center;}
+.pci-mapImg {margin-left:auto; margin-right:auto;}

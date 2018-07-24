@@ -133,7 +133,7 @@ auth.settings.extra_fields['auth_user'] = [
 	Field('alerts', type='list:string', label=T('Alert frequency'), requires=IS_EMPTY_OR(IS_IN_SET(('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), multiple=True)), widget=SQLFORM.widgets.checkboxes.widget),
 	Field('last_alert', type='datetime', label=T('Last alert'), writable=False, readable=False),
 	Field('registration_datetime', type='datetime', default=request.now, label=T('Registration date & time'), writable=False, readable=False),
-	Field('ethical_code_approved', type='boolean', default=False, label=SPAN(' * ', _style='color:red;')+SPAN(T('I agree to comply with the '))+A(T('Code of Ethical Conduct'), _target="_blank", _href=URL('about', 'ethics'))),
+	Field('ethical_code_approved', type='boolean', default=False, label=SPAN(SPAN(' * ', _style='color:red;'), SPAN(T('I agree to comply with the '), A(T('General Terms of Use'), _target="_blank", _href=URL('about', 'gtu')), SPAN(' and the '), A(T('code of conduct'), _target="_blank", _href=URL('about', 'ethics'))))),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user._singular = T('User')
@@ -218,6 +218,7 @@ def updUserThumb(s,f):
 	makeUserThumbnail(auth, db, o.id, size=(150,150))
 	return None
 
+applongname=myconf.take('app.longname')
 
 db.define_table('help_texts',
 	Field('id', type='id'),
@@ -245,10 +246,11 @@ for sa in db(db.t_status_article).select():
 
 db.define_table('t_articles',
 	Field('id', type='id'),
+	Field('anonymous_submission', type='boolean', label=T('I wish an anonymous submission (submitter concealed to recommenders and reviewers)'), default=False),
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
-	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY()),
+	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY(), represent=lambda t,r: ('') if (r.anonymous_submission) else (t)),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, volume, pages)')),
-	Field('doi', type='string', label=T('DOI'), length=512, unique=False, represent=lambda text, row: mkDOI(text) ),
+	Field('doi', type='string', label=T('DOI (or URL)'), length=512, unique=False, represent=lambda text, row: mkDOI(text) ),
 	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
 	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture (png or jpeg format) for which no rights are required')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
@@ -260,9 +262,10 @@ db.define_table('t_articles',
 	Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
-	Field('already_published', type='boolean', label=T('Already published'), default=False),
+	Field('already_published', type='boolean', label=T('Postprint'), default=False),
+	Field('cover_letter', type='text', length=2097152, label=T('Cover letter'), writable=False, readable=False, comment=T('Free text. Indicate in the box above whatever you want. Just be aware that after validation of the submission by the managing board every recommenders, invited reviewers, and reviewers will be able to read the cover letter.')),
 	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and I am acting on behalf of all the authors')),
-	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published and has not been sent for review elsewhere')),
+	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.') % (applongname,applongname) ),
 	Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
@@ -270,6 +273,7 @@ db.define_table('t_articles',
 	migrate=False,
 )
 db.t_articles.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
+db.t_articles.authors.represent = lambda t,r: '[undisclosed]' if(r.anonymous_submission) else (t)
 db.t_articles.upload_timestamp.writable = False
 db.t_articles.last_status_change.writable = False
 db.t_articles.auto_nb_recommendations.writable = False
@@ -450,7 +454,7 @@ db.define_table('t_reviews',
 	Field('reviewer_id', type='reference auth_user', ondelete='RESTRICT', label=T('Reviewer')),
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interest with the authors or the content of the article')),
-	Field('review_state', type='string', length=50, label=T('Review status'), default='Pending', requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed', 'Cancelled'))), writable=False),
+	Field('review_state', type='string', length=50, label=T('Review status'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed', 'Cancelled'))), writable=False),
 	Field('review', type='text', length=2097152, label=T('Review as text (MarkDown)')), #, widget=ckeditor.widget),
 	Field('review_pdf', type='upload', uploadfield='review_pdf_data', label=T('Review as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('review_pdf_data', type='blob', readable=False),

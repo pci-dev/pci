@@ -94,6 +94,14 @@ def mkSimpleDOI(doi):
 	else:
 		return ''
 
+def mkLinkDOI(doi):
+	if (doi is not None) and (doi != ''):
+		if (match('^http', doi)):
+			return doi
+		else:
+			return "https://doi.org/"+sub(r'doi: *', '', doi)
+	else:
+		return ''
 
 
 
@@ -249,12 +257,12 @@ def mkRepresentArticle(auth, db, articleId):
 		if art is not None:
 			submitter = ''
 			sub_repr = ''
-			if art.user_id is not None:
+			if art.user_id is not None and art.anonymous_submission is False:
 				submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 				sub_repr = 'by %s %s,' % (submitter.first_name, submitter.last_name)
 			resu = DIV(
 						SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
-						,H4(art.authors)
+						,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors))
 						,H3(art.title)
 						,BR()+SPAN(art.article_source) if art.article_source else ''
 						,BR()+mkDOI(art.doi) if art.doi else ''
@@ -288,9 +296,7 @@ def mkArticleCell(auth, db, art):
 			whowhen = [SPAN(current.T('See recommendation'))]
 		anchor = DIV(
 					B(art.title),
-					BR(),
-					SPAN(art.authors),
-					BR(),
+					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
 					mkDOI(art.doi),
 					SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else '',
 					(BR()+SPAN(art.article_source) if art.article_source else ''),
@@ -310,9 +316,7 @@ def mkArticleCellNoRecomm(auth, db, art):
 	if art:
 		anchor = DIV(
 					B(art.title),
-					BR(),
-					SPAN(art.authors),
-					BR(),
+					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
 					mkDOI(art.doi),
 					SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else '',
 					(BR()+SPAN(art.article_source) if art.article_source else ''),
@@ -328,9 +332,7 @@ def mkRepresentArticleLight(auth, db, article_id):
 	if art:
 		anchor = DIV(
 					B(art.title),
-					BR(),
-					SPAN(art.authors),
-					BR(),
+					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
 					mkDOI(art.doi),
 					SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else '',
 					(BR()+SPAN(art.article_source) if art.article_source else ''),
@@ -364,7 +366,7 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 						B(recomm.recommendation_title), SPAN(current.T(' by ')), recommenders, mkDOI(recomm.recommendation_doi),
 						P(),
 						SPAN(current.T('A recommendation of ') if (art.already_published) else current.T('A recommendation of the preprint ')), 
-						I(art.title), SPAN(current.T(' by ')), SPAN(art.authors), 
+						I(art.title), SPAN(current.T(' by ')), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), 
 						(SPAN(current.T(' in '))+SPAN(art.article_source) if art.article_source else ''),
 						BR(), 
 						mkDOI(art.doi),
@@ -503,6 +505,14 @@ def mkAnonymousMask(auth, db, anon):
 		return DIV(IMG(_alt='anonymous', _src=URL(c='static',f='images/mask.png')), _style='text-align:center;')
 	else:
 		return ''
+
+
+######################################################################################################################################################################
+def mkAnonymousArticleField(auth, db, anon, value):
+	if anon:
+		return IMG(_alt='anonymous', _src=URL(c='static',f='images/mask.png'))
+	else:
+		return value
 
 
 ######################################################################################################################################################################
@@ -941,7 +951,15 @@ def mkCommentsTree(auth, db, commentId):
 ##WARNING The most important function of the site !!
 ##WARNING Be *VERY* careful with rights management
 def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
-	submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+	class FakeSubmitter(object):
+		id = None
+		first_name = ''
+		last_name = '[undisclosed]'
+	submitter = FakeSubmitter()
+	if (art.anonymous_submission is False):
+		submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+	#if submitter is None:
+		#submitter = FakeSubmitter()
 	allowOpinion = None
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
@@ -952,13 +970,36 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
 					,img
 					,H3(art.title or '')
-					,H4(art.authors or '')
+					,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, (art.authors or '')))
 					,mkDOI(art.doi) if (art.doi) else SPAN('')
 					,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
 					,BR()
-					,SPAN(I(current.T('Submitted by')+' '+(submitter.first_name or '')+' '+(submitter.last_name or '')+' '+(art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')) if submitter else '')
+					,DIV(
+							I(current.T('Submitted by ')),
+							I(mkAnonymousArticleField(auth, db, art.anonymous_submission, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
+							I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
+					) if (art.already_published is False) else ''
 					,(SPAN(art.article_source)+BR() if art.article_source else '')
 				)
+	# Allow to display cover letter if role is manager or above
+	if not(printable) and not(quiet) :
+		if len(art.cover_letter or '')>2:
+			myArticle.append(DIV(A(current.T('Show / Hide Cover letter'), 
+							_onclick="""jQuery(function(){ if ($.cookie('PCiHideCoverLetter') == 'On') {
+													$('DIV.pci-onoffCoverLetter').show(); 
+													$.cookie('PCiHideCoverLetter', 'Off', {expires:365, path:'/'});
+												} else {
+													$('DIV.pci-onoffCoverLetter').hide(); 
+													$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});
+												}
+										})""", _class='btn btn-default'), _class='pci-EditButtons'))
+			myArticle.append(SCRIPT("$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});"))
+			myArticle.append(DIV(B(current.T('Cover letter')), 
+								BR(), 
+								WIKI((art.cover_letter or '')), 
+					_class='pci-bigtext pci-onoffCoverLetter'))
+		else:
+			myArticle.append(DIV(A(current.T('No Cover letter'), _class='btn btn-default disabled'), _class='pci-EditButtons'))
 	if not(printable) and not (quiet):
 		myArticle.append(DIV(A(current.T('Show / Hide Abstract'), 
 						_onclick="""jQuery(function(){ if ($.cookie('PCiHideAbstract') == 'On') {
@@ -1087,13 +1128,17 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		
 		
 		else: ###NOTE: PRE-PRINT ARTICLE
+			# Am I a co-recommender?
+			amICoRecommender = (db((db.t_press_reviews.recommendation_id==recomm.id) & (db.t_press_reviews.contributor_id==auth.user_id)).count() > 0)
+			# Am I a reviewer?
+			amIReviewer = (db((db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.reviewer_id==auth.user_id)).count() > 0)
 			# During recommendation, no one is not allowed to see last (unclosed) recommendation 
 			hideOngoingRecomm = (art.status=='Under consideration') and (iRecomm==nbRecomms)
 			#  ... unless he/she is THE recommender
-			if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id):
+			if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id or amICoRecommender):
 				hideOngoingRecomm = False
-			# or a manager
-			if auth.has_membership(role='manager') and (art.user_id != auth.user_id):
+			# or a manager, provided he/she is reviewer
+			if auth.has_membership(role='manager') and (art.user_id != auth.user_id) and (amIReviewer is False):
 				hideOngoingRecomm = False
 			
 			# Check for reviews
@@ -1125,7 +1170,11 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					hideOngoingReview = False
 				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Completed')): # ...  except the reviewer himself once accepted ...
 					hideOngoingReview = False
+				if (amIReviewer) and (recomm.recommendation_state in ('Recommended', 'Rejected', 'Revision')) and (art.status in ('Recommended', 'Rejected', 'Awaiting revision')): # ...  except as a reviewer himself once decision made up ...
+					hideOngoingReview = False
 				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id) and recommReviewFilledOrNull: # ... or he/she is THE recommender and he/she already filled his/her own review ...
+					hideOngoingReview = False
+				if auth.has_membership(role='recommender') and amICoRecommender and recommReviewFilledOrNull: # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
 					hideOngoingReview = False
 				if auth.has_membership(role='manager') and not(art.user_id==auth.user_id): # ... or a manager
 					hideOngoingReview = False
@@ -1216,7 +1265,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 						,BR()
 						,H4(recomm.recommendation_title)
 						,BR()
-						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (not(hideOngoingRecomm)) else '')
+						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (hideOngoingRecomm is False) else '')
 						,_class='pci-recommendation-div'
 			)
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration'):
@@ -1231,8 +1280,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				myRound.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
 			if recomm.reply_pdf:
 				myRound.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+				if recomm.track_change:
+					myRound.append(BR()) # newline if both links for visibility
 			if recomm.track_change:
-				myRound.append(A(current.T('Downloaded tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+				myRound.append(A(current.T('Download tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
 			if (recomm.reply_pdf or len(recomm.reply or '')>5):
 				reply_filled = True
 			
@@ -1623,68 +1674,71 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 ######################################################################################################################################################################
 def mkUserCard(auth, db, userId, withMail=False):
 	user  = db.auth_user[userId]
-	name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
-	nameTitle  = (user.last_name or '').upper(), ' ', (user.first_name or '')
-	addr  = LI(I( (user.laboratory or ''), ', ', (user.institution or ''), ', ', (user.city or ''), ', ', (user.country or '') ))
-	thema = LI(', '.join(user.thematics))
-	mail  = LI(A(' [%s]' % user.email, _href='mailto:%s' % user.email) if withMail else '')
-	if (user.uploaded_picture is not None and user.uploaded_picture != ''):
-		img = IMG(_alt='avatar', _src=URL('default', 'download', args=user.uploaded_picture), _class='pci-userPicture', _style='float:left;')
-	else:
-		img = IMG(_alt='avatar', _src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture', _style='float:left;')
-	if (user.cv or '') != '':
-		cv = DIV(WIKI(user.cv or ''), _class='pci-bigtext margin', _style='border: 1px solid #f0f0f0;')
-	else:
-		cv = ''
-	rolesQy = db( (db.auth_membership.user_id==userId) & (db.auth_membership.group_id==db.auth_group.id) ).select(db.auth_group.role)
-	rolesList = []
-	for roleRow in rolesQy:
-		rolesList.append(roleRow.role)
-	roles = LI(B(', '.join(rolesList)))
-	# recommendations
-	recomms = []
-	recommsQy = db( 
-				(
-					(db.t_recommendations.recommender_id == userId) | ( (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_press_reviews.contributor_id == userId) )
-				)
-				& (db.t_recommendations.recommendation_state == 'Recommended')
-				& (db.t_recommendations.article_id == db.t_articles.id)
-				& (db.t_articles.status == 'Recommended')
-			).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
-	nbRecomms = len(recommsQy)
-	for row in recommsQy:
-		recomms.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
-	# reviews
-	reviews = []
-	reviewsQy = db(
-				(db.t_reviews.reviewer_id == userId)
-				& ~(db.t_reviews.anonymously == True)
-				& (db.t_reviews.review_state == 'Completed')
-				& (db.t_reviews.recommendation_id == db.t_recommendations.id)
-				#& (db.t_recommendations.recommendation_state == 'Recommended')
-				& (db.t_recommendations.article_id == db.t_articles.id)
-				& (db.t_articles.status == 'Recommended')
-			).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
-	nbReviews = len(reviewsQy)
-	for row in reviewsQy:
-		reviews.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
-	resu = DIV(
-			H2(nameTitle),
-			DIV(
-				img,
+	if user:
+		name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
+		nameTitle  = (user.last_name or '').upper(), ' ', (user.first_name or '')
+		addr  = LI(I( (user.laboratory or ''), ', ', (user.institution or ''), ', ', (user.city or ''), ', ', (user.country or '') ))
+		thema = LI(', '.join(user.thematics))
+		mail  = LI(A(' [%s]' % user.email, _href='mailto:%s' % user.email) if withMail else '')
+		if (user.uploaded_picture is not None and user.uploaded_picture != ''):
+			img = IMG(_alt='avatar', _src=URL('default', 'download', args=user.uploaded_picture), _class='pci-userPicture', _style='float:left;')
+		else:
+			img = IMG(_alt='avatar', _src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture', _style='float:left;')
+		if (user.cv or '') != '':
+			cv = DIV(WIKI(user.cv or ''), _class='pci-bigtext margin', _style='border: 1px solid #f0f0f0;')
+		else:
+			cv = ''
+		rolesQy = db( (db.auth_membership.user_id==userId) & (db.auth_membership.group_id==db.auth_group.id) ).select(db.auth_group.role)
+		rolesList = []
+		for roleRow in rolesQy:
+			rolesList.append(roleRow.role)
+		roles = LI(B(', '.join(rolesList)))
+		# recommendations
+		recomms = []
+		recommsQy = db( 
+					(
+						(db.t_recommendations.recommender_id == userId) | ( (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_press_reviews.contributor_id == userId) )
+					)
+					& (db.t_recommendations.recommendation_state == 'Recommended')
+					& (db.t_recommendations.article_id == db.t_articles.id)
+					& (db.t_articles.status == 'Recommended')
+				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
+		nbRecomms = len(recommsQy)
+		for row in recommsQy:
+			recomms.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+		# reviews
+		reviews = []
+		reviewsQy = db(
+					(db.t_reviews.reviewer_id == userId)
+					& ~(db.t_reviews.anonymously == True)
+					& (db.t_reviews.review_state == 'Completed')
+					& (db.t_reviews.recommendation_id == db.t_recommendations.id)
+					#& (db.t_recommendations.recommendation_state == 'Recommended')
+					& (db.t_recommendations.article_id == db.t_articles.id)
+					& (db.t_articles.status == 'Recommended')
+				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
+		nbReviews = len(reviewsQy)
+		for row in reviewsQy:
+			reviews.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+		resu = DIV(
+				H2(nameTitle),
 				DIV(
-					UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles), 
-					_style='margin-left:120px; margin-bottom:24px; min-height:120px;'),
-			),
-			cv,
-			DIV(
-				H2(current.T('%s %%{recommendation}', symbols=nbRecomms)),
-				TABLE(recomms, _class='pci-lastArticles-table'), 
-				H2(current.T('%s %%{review}', symbols=nbReviews)),
-				TABLE(reviews,_class='pci-lastArticles-table'),
-			),
-			#_style='margin-top:20px; margin-left:auto; margin-right:auto; max-width:60%;',
-			)
+					img,
+					DIV(
+						UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles), 
+						_style='margin-left:120px; margin-bottom:24px; min-height:120px;'),
+				),
+				cv,
+				DIV(
+					H2(current.T('%s %%{recommendation}', symbols=nbRecomms)),
+					TABLE(recomms, _class='pci-lastArticles-table'), 
+					H2(current.T('%s %%{review}', symbols=nbReviews)),
+					TABLE(reviews,_class='pci-lastArticles-table'),
+				),
+				#_style='margin-top:20px; margin-left:auto; margin-right:auto; max-width:60%;',
+				)
+	else:
+		resu = B(current.T('Unavailable'))
 	return resu
 
 
@@ -1772,8 +1826,6 @@ def getRecommender(auth, db, row):
 ######################################################################################################################################################################
 def mkReviewsSubTable(auth, db, recomm):
 	art = db.t_articles[recomm.article_id]
-	nbUnfinishedReviews = db( (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs('Pending', 'Under consideration')) ).count()
-	allowed_to_see_reviews = nbUnfinishedReviews == 0
 	recomm_round = db( (db.t_recommendations.article_id == recomm.article_id) & (db.t_recommendations.id <= recomm.id) ).count()
 	reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
 					  db.t_reviews.reviewer_id
@@ -1782,6 +1834,11 @@ def mkReviewsSubTable(auth, db, recomm):
 					, db.t_reviews.last_change
 					, db.t_reviews._id
 					, orderby=~db.t_reviews.last_change)
+	nbUnfinishedReviews = db( (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs('Pending', 'Under consideration')) ).count()
+	isRecommenderAlsoReviewer = db( (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id) ).count()
+	allowed_to_see_reviews = True
+	if (nbUnfinishedReviews > 0) and (isRecommenderAlsoReviewer == 1):
+		allowed_to_see_reviews = False
 	if len(reviews) > 0:
 		resu = TABLE(TR(TH('Reviewer'), TH('Status'), 
 						TH('Last change'), TH(''), TH('Actions')), _class='table')

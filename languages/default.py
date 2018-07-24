@@ -109,8 +109,6 @@
 'Co-recommendation': 'Co-recommendation',
 'Co-recommendations': 'Co-recommendations',
 'Co-recommenders': 'Co-recommenders',
-'Code of Ethical Conduct': 'Code of Ethical Conduct',
-'Code of ethical conduct': 'Code of ethical conduct',
 'Coded representation': 'Coded representation',
 'Color Class': 'Color Class',
 'Comment': 'Comment',

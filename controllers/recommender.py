@@ -160,7 +160,8 @@ def search_reviewers():
 	temp_db.qy_reviewers.score.readable=False
 	grid = SQLFORM.grid( qy_reviewers
 		,editable = False,deletable = False,create = False,details=False,searchable=False
-		,maxtextlength=250,paginate=100
+		,maxtextlength=250
+		,paginate=1000
 		,csv=csv,exportclasses=expClass
 		,fields=[temp_db.qy_reviewers.num, temp_db.qy_reviewers.score, temp_db.qy_reviewers.uploaded_picture, temp_db.qy_reviewers.first_name, temp_db.qy_reviewers.last_name, temp_db.qy_reviewers.email, temp_db.qy_reviewers.laboratory, temp_db.qy_reviewers.institution, temp_db.qy_reviewers.city, temp_db.qy_reviewers.country, temp_db.qy_reviewers.thematics, temp_db.qy_reviewers.excluded]
 		,links=links
@@ -256,6 +257,7 @@ def _awaiting_articles(myVars):
 		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('already_published', type='boolean'),
+		Field('anonymous_submission', type='boolean'),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -277,6 +279,7 @@ def _awaiting_articles(myVars):
 	
 	temp_db.qy_art.auto_nb_recommendations.readable = False
 	temp_db.qy_art.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
+	temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ''))
 	if len(request.args)==0: # in grid
 		temp_db.qy_art._id.readable = True
 		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
@@ -305,7 +308,7 @@ def _awaiting_articles(myVars):
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
+		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations, temp_db.qy_art.anonymous_submission]
 		,links=links
 		,orderby=temp_db.qy_art.num
 	)
@@ -1052,15 +1055,18 @@ def reviewers():
 		selfFlag = False
 		selfFlagCancelled = False
 		for con in reviewersListSel:
-			if recomm.recommender_id == con.auth_user.id:
-				selfFlag=True
-				if con.t_reviews.review_state == 'Cancelled':
-					selfFlagCancelled = True
-			reviewersIds.append(con.auth_user.id)
-			reviewersList.append(LI(mkUserWithMail(auth, db, con.auth_user.id), ' ',
-								B(T(' (YOU) ')) if con.auth_user.id == recomm.recommender_id else '',
-								I('('+(con.t_reviews.review_state or 'Pending')+')'),
-							))
+			if con.t_reviews.review_state is None: # delete this unfinished review declaration
+				db(db.t_reviews.id==con.t_reviews.id).delete()
+			else:
+				if recomm.recommender_id == con.auth_user.id:
+					selfFlag=True
+					if con.t_reviews.review_state == 'Cancelled':
+						selfFlagCancelled = True
+				reviewersIds.append(con.auth_user.id)
+				reviewersList.append(LI(mkUserWithMail(auth, db, con.auth_user.id), ' ',
+									B(T(' (YOU) ')) if con.auth_user.id == recomm.recommender_id else '',
+									I('('+(con.t_reviews.review_state or '')+')'),
+								))
 		excludeList = ','.join(map(str,reviewersIds))
 		if len(reviewersList)>0:
 			myContents = DIV(
@@ -1134,10 +1140,10 @@ def email_for_registered_reviewer():
 	sender = mkUser(auth, db, auth.user_id).flatten()
 	description = myconf.take('app.description')
 	longname = myconf.take('app.longname')
-	art_authors = art.authors
+	art_authors = '[undisclosed]' if (art.anonymous_submission) else art.authors
 	art_title = art.title
-	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
-	art_doi = (recomm.doi or art.doi)
+	art_doi = mkLinkDOI(recomm.doi or art.doi)
+	#art_doi = (recomm.doi or art.doi)
 	#linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 	linkTarget = URL(c='user', f='recommendations', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
 	default_message = """
@@ -1219,10 +1225,10 @@ def email_for_new_reviewer():
 	host = myconf.take('alerts.host')
 	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	site_url = URL(c='default', f='index', scheme=scheme, host=host, port=port)
-	art_authors = art.authors
+	art_authors = '[Undisclosed]' if (art.anonymous_submission) else art.authors
 	art_title = art.title
-	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
-	art_doi = (recomm.doi or art.doi)
+	art_doi = mkLinkDOI(recomm.doi or art.doi)
+	#art_doi = (recomm.doi or art.doi)
 	default_message = """
 Dear colleague,  
 
@@ -1290,7 +1296,7 @@ Best wishes,
 				redirect(request.env.http_referer)
 		
 		# Create review
-		reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state='Pending')
+		reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state=None) # State will be validated after emailing
 		
 		if nbExistingReviews > 0:
 			session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
@@ -1300,12 +1306,16 @@ Best wishes,
 			if existingUser:
 				try:
 					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
+					#currentReview = db(db.t_reviews.id==reviewId).select().first()
+					#currentReview.update_record(review_state='Pending')
 				except Exception, e:
 					session.flash = (session.flash or '') + T('Email failed.')
 					pass
 			else:
 				try:
 					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], reset_password_key, linkTarget)
+					#currentReview = db(db.t_reviews.id==reviewId).select().first()
+					#currentReview.update_record(review_state='Pending')
 				except Exception, e:
 					session.flash = (session.flash or '') + T('Email failed.')
 					pass
@@ -1357,10 +1367,10 @@ def send_review_reminder():
 	longname = myconf.take('app.longname')
 	contact = myconf.take('contacts.managers')
 	reset_password_key = None
-	art_authors = art.authors
+	art_authors = '[undisclosed]' if (art.anonymous_submission) else art.authors
 	art_title = art.title
-	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
-	art_doi = (recomm.doi or art.doi)
+	art_doi = mkLinkDOI(recomm.doi or art.doi)
+	#art_doi = (recomm.doi or art.doi)
 	if (review.review_state or 'Pending') == 'Pending':
 		default_subject = '%(longname)s reminder: Invitation to review a preprint' % locals()
 		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
@@ -1498,10 +1508,10 @@ def send_review_cancellation():
 	description = myconf.take('app.description')
 	longname = myconf.take('app.longname')
 	contact = myconf.take('contacts.managers')
-	art_authors = art.authors
+	art_authors = '[undisclosed]' if (art.anonymous_submission) else art.authors
 	art_title = art.title
-	#art_doi = mkSimpleDOI(recomm.doi or art.doi)
-	art_doi = (recomm.doi or art.doi)
+	art_doi = mkLinkDOI(recomm.doi or art.doi)
+	#art_doi = (recomm.doi or art.doi)
 	linkTarget = None #URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 	if (review.review_state or 'Pending') == 'Pending':
 		default_subject = '%(longname)s: Cancellation of a review request' % locals()
@@ -1510,7 +1520,7 @@ Dear %(destUser)s,
 
 I invited you to act as a reviewer for a preprint entitled "%(art_title)s" by %(art_authors)s (DOI %(art_doi)s). In the meantime, other colleagues also contacted for this evaluation have agreed to review this preprint. I now have enough reviewers for the evaluation of this preprint and your input is therefore no longer required. Consequently, this preprint no longer appears in your list of requests to act as a reviewer on the %(longname)s webpage.
 
-I apologize for any convenience and wish you all the best.
+I apologize for any inconvenience and wish you all the best.
 
 Best regards,
 
@@ -1850,11 +1860,12 @@ def my_co_recommendations():
 	#db.t_press_reviews.contribution_state.represent = lambda state,row: mkContributionStateDiv(auth, db, state)
 	db.t_recommendations.recommender_id.represent = lambda uid,row: mkUserWithMail(auth, db, uid)
 	db.t_recommendations.article_id.readable = False
+	db.t_articles.already_published.represent = lambda press, row: mkJournalImg(auth, db, press)
 	grid = SQLFORM.grid( query
 		,searchable=False, deletable=False, create=False, editable=False, details=False
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.status, db.t_recommendations.article_id, db.t_recommendations.recommender_id]
+		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.already_published, db.t_articles.status, db.t_articles.last_status_change, db.t_recommendations.article_id, db.t_recommendations.recommender_id]
 		,links=[
 				dict(header=T('Other co-recommenders'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''), 
@@ -1866,7 +1877,7 @@ def my_co_recommendations():
 										)
 					),
 				]
-		,orderby=~db.t_press_reviews.id
+		,orderby=~db.t_articles.last_status_change|~db.t_press_reviews.id
 	)
 	myContents = ''
 	response.view='default/myLayout.html'

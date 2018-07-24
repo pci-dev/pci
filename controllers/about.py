@@ -15,6 +15,16 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 
 
 ######################################################################################################################################################################
+def gtu():
+	response.view='default/info.html' #OK
+	return dict(
+		myTitle=getTitle(request, auth, db, '#GtuTitle'),
+		myText=getText(request, auth, db, '#GtuInfo'),
+		shareable=True,
+	)
+
+
+######################################################################################################################################################################
 def about():
 	response.view='default/info.html' #OK
 	return dict(
@@ -33,14 +43,14 @@ def ethics():
 	message = ''
 	if auth.user_id:
 		if db.auth_user[auth.user_id].ethical_code_approved:
-			message = DIV(B(T('You have agreed to comply with this code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;')
+			message = DIV(B(T('You have agreed to comply with this code of conduct'), _style='color:green;'), _style='text-align:center; margin:32px;')
 		else:
 			myTitle = DIV(
-					H1('Before login, you must agree to comply with the code of ethical conduct'),
+					H1('Before login, you must agree to comply with the code of conduct'),
 					myTitle,
 				)
 			message = FORM(
-					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of ethical conduct'))), _style='padding:16px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of conduct'))), _style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Set in my profile"), _class="btn btn-info"), 
 					_action=URL('about', 'validate_ethics', vars=request.vars),
 					_style='text-align:center;',

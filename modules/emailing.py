@@ -111,7 +111,10 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article and article.user_id is not None:
-		destPerson = mkUser(auth, db, article.user_id)
+		if (article.anonymous_submission):
+			destPerson = '[undisclosed]'
+		else:
+			destPerson = mkUser(auth, db, article.user_id)
 		destAddress = db.auth_user[article.user_id]['email']
 		articleTitle = article.title
 		recommendation = None
@@ -130,6 +133,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 			linkTarget = URL(c='user', f='my_articles', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
 Thank you for your submission, on behalf of all the authors, of your preprint entitled <b>%(articleTitle)s</b>, to <i>%(appdesc)s</i> (<i>%(applongname)s</i>).<p>
+We remind you that this preprint must not be published or submitted for publication elsewhere. If this preprint is sent out for review, you must not submit it to a journal until the evaluation process is complete (ie until it has been rejected or recommended by <i>%(applongname)s</i>).<p>
 If you have not already done so, you can suggest recommenders who could initiate the evaluation of your preprint. A recommender is very similar to a journal editor (responsible for finding reviewers, collecting reviews, and making editorial decisions based on reviews), and may eventually recommend your preprint after one or several rounds of reviews.<p>
 Please remember that <i>%(applongname)s</i> is under no obligation to consider your preprint. We cannot guarantee that your preprint will be reviewed, but all possible efforts will be made to make this possible. By submitting your preprint to <i>%(applongname)s</i>, you agree to wait until a recommender initiates the evaluation process, within a maximum of 20 days. You will be notified by e-mail if a recommender of the <i>%(applongname)s</i> decides to start the peer-review process for your preprint.<p>
 If after one or several rounds of reviews, the <i>%(applongname)s</i> recommender handling your preprint reaches a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i> under the license CC-BY-ND. If recommended by <i>%(applongname)s</i> your preprint would become a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
@@ -146,6 +150,7 @@ Yours sincerely,<p>
 			content = """Dear %(destPerson)s,<p>
 You have submitted, on behalf of all the authors, your preprint entitled <b>%(articleTitle)s</b> to <i>%(applongname)s</i>. We are pleased to inform you that a <i>%(applongname)s</i> recommender has initiated the evaluation process.<p>
 At this stage of the process, your article will be sent to several referees, to ensure that at least two high-quality reviews are obtained. Based on this review, the recommender will reject, recommend or ask you to modify your article and to respond to the questions and points raised by the reviewers. The mean time to this first decision is about 50 days.<p>
+We remind you that this preprint must not be submitted for publication elsewhere until its evaluation by <i>%(applongname)s</i> is complete (ie until your preprint has been rejected or recommended by <i>%(applongname)s</i>).<p>
 If after one or several rounds of review, the <i>%(applongname)s</i> recommender handling your preprint reaches a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i> under the license CC-BY-ND. If recommended by <i>%(applongname)s</i> your preprint would become a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
 Alternatively, if the recommender decides not to recommend your article, the reviews and the decision will be sent to you, but they will not be published or publicly released by <i>%(applongname)s</i>. They will be safely stored in our database, to which only the Managing Board has access. You will be notified by e-mail at each stage in the procedure.<p>
 To view or cancel your recommendation request, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your submitted preprints' in the top menu.<p>
@@ -279,7 +284,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 			recommender_id = myRecomm['recommender_id']
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleTitle = article.title
 			articleDoi = mkDOI(article.doi)
 			tOldStatus = current.T(article.status)
@@ -333,7 +338,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 			recommender_id = myRecomm['recommender_id']
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleTitle = article.title
 			articleDoi = mkDOI(article.doi)
 			tOldStatus = current.T(article.status)
@@ -349,7 +354,7 @@ All preprints must be reviewed by at least two referees. If you have not already
 1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
 2) Click on the 'invite a reviewer' button.<p>
 We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
-Please do not invite reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
+Please do not invite reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of conduct.
 Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
 If you need assistance in any way do not hesitate to ask us.<p>
 We thank you again for initiating and managing this evaluation.<p>
@@ -419,7 +424,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors
+		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: About our request to act as recommender for a preprint' % (applongname)
 		#TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
@@ -474,7 +479,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors
+		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
 		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
@@ -531,7 +536,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 		article = db.t_articles[suggRecomm.article_id]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleDoi = mkDOI(article.doi)
 			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
@@ -590,7 +595,7 @@ Yours sincerely,<p>
 	#article = db.t_articles[articleId]
 	#if article and article.status in ('Awaiting consideration'):
 		#articleTitle = article.title
-		#articleAuthors = article.authors
+		#articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 		#articleDoi = mkDOI(article.doi)
 		#mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
 		#suggestedQy = db.executesql("""SELECT DISTINCT au.*
@@ -657,7 +662,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 			linkTarget = URL(c='user', f='my_reviews', scheme=scheme, host=host, port=port)
 			mySubject = '%s: Review modification' % (applongname)
 			articleTitle = B(article.title )
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			theUser = db.auth_user[rev.reviewer_id]
 			if theUser:
 				recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
@@ -909,7 +914,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review accepted'% (applongname)
@@ -961,7 +966,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review declined' % (applongname)
@@ -1015,7 +1020,7 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 					article = db.t_articles[recomm['article_id']]
 					if article:
 						articleTitle = article.title
-						articleAuthors = article.authors
+						articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 						articleDoi = mkDOI(article.doi)
 						linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 						mySubject = '%(applongname)s: Invitation to review a preprint' % locals()
@@ -1194,7 +1199,10 @@ def do_send_mail_new_user(session, auth, db, userId):
 	if type(user.alerts) is list:
 		alerts = user.alerts
 	else:
-		alerts = [user.alerts]
+		if user.alerts:
+			alerts = [user.alerts]
+		else:
+			alerts = ['[no alerts]']
 	#print thema, alerts
 	if user:
 		destPerson = mkUser(auth, db, userId)
@@ -1214,7 +1222,7 @@ If you wish to submit a preprint, please click on the "Submit a preprint" button
 As a user, you will also receive alerts every %(days)s concerning recommendations in the following fields published on the <i>%(applongname)s</i> web site: %(thematics)s.<p>
 Finally, if you want to become a recommender <i>%(applongname)s</i> - <a href="https://www.youtube.com/watch?v=2BDrPoHGkn0">see video</a> - please contact a current recommender in your field via this link <a href="%(recommurl)s">%(recommurl)s</a>.<p>
 The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of review. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
-New recommenders are nominated by current recommenders, subject to approval from the Managing Board. As indicated in the website, <i>%(applongname)s</i> recommenders can recommend up to five preprints or postprints per year. They are expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, and are eligible for selection as a member of the Managing Board for a period of two years. Finally, they can propose the nomination of new recommenders to the Managing Board.<p>
+New recommenders are nominated by current recommenders, subject to approval from the Managing Board. As indicated in the website, <i>%(applongname)s</i> recommenders can recommend up to five preprints or postprints per year. They are expected to comply with the code of conduct of <i>%(applongname)s</i>, and are eligible for selection as a member of the Managing Board for a period of two years. Finally, they can propose the nomination of new recommenders to the Managing Board.<p>
 Thanks again for your interest and for joining <i>%(applongname)s</i>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1255,7 +1263,7 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 		destPerson = mkUser(auth, db, user.id)
 		destAddress = db.auth_user[user.id]['email']
 		if group.role == 'recommender':
-			thematics = ', '.join(user.thematics)
+			#thematics = ', '.join(user.thematics) if user.thematics and len(user.thematics)>0 else ''
 			days = ', '.join(user.alerts)
 			baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
@@ -1267,7 +1275,7 @@ The role of a recommender is very similar to that of a journal editor (finding r
 A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal. If you decide to recommend a preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (for the preprint recommended, at least). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
 As a recommender of <i>%(applongname)s</i>, <ul>
 <li> You can recommend up to five articles per year. Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a> and in this short <a href="https://youtu.be/u5greO-q8-M">video</a>.
-<li> You will be expected to comply with the code of ethical conduct of <i>%(applongname)s</i>, which can be found here: <a href="%(ethicsurl)s">%(ethicsurl)s</a>
+<li> You will be expected to comply with the code of conduct of <i>%(applongname)s</i>, which can be found here: <a href="%(ethicsurl)s">%(ethicsurl)s</a>
 <li> You are eligible for selection as a member of the Managing Board for a period of two years. 
 <li> You will be notified about new articles recommended by <i>%(applongname)s</i>, according to your requested notification frequency and fields of interest. 
 <li> You will also receive requests to intiate preprint evaluations in your fields of interest with a view to recommending them.
@@ -1336,10 +1344,13 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors
+		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 		articleDoi = mkDOI(article.doi)
 		if article.user_id:
-			submitterPerson = mkUser(auth, db, article.user_id) # submitter
+			if article.anonymous_submission:
+				submitterPerson = '[undisclosed]'
+			else:
+				submitterPerson = mkUser(auth, db, article.user_id) # submitter
 		else:
 			submitterPerson = '?'
 		
@@ -1446,7 +1457,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 		article = db.t_articles[recomm.article_id]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
@@ -1504,7 +1515,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 		article = db.t_articles[articleId]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors
+			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=False))
 			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
@@ -1521,7 +1532,7 @@ All preprints must be reviewed by at least two referees. If you have not already
 1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
 2) Click on the 'choose a reviewer' button.<p>
 We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
-Please do not invite reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of ethical conduct.
+Please do not invite reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of conduct.
 Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
 If you need assistance in any way do not hesitate to ask us.<p>
 We thank you again for initiating and managing this evaluation.<p>
@@ -1567,7 +1578,7 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 			article = db.t_articles[recomm['article_id']]
 			if article:
 				articleTitle = article.title
-				articleAuthors = article.authors
+				articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 				articleDoi = mkDOI(article.doi)
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for agreeing to review a preprint!' % (applongname)
@@ -1636,7 +1647,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 			article = db.t_articles[recomm['article_id']]
 			if article:
 				articleTitle = article.title
-				articleAuthors = article.authors
+				articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 				articleDoi = mkDOI(article.doi)
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for evaluating a preprint' % (applongname)
@@ -1647,7 +1658,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 					content = """Dear %(destPerson)s,<p>
 Thank you for evaluating the preprint by %(articleAuthors)s entitled <b>%(articleTitle)s</b>. Your evaluation has been sent to the recommender (%(recommenderPerson)s) handling this preprint. Your contribution is greatly appreciated.<p>
 You can use this message as proof of your work for <i>%(applongname)s</i> and you can view your review at <a href="%(linkTarget)s">%(linkTarget)s</a>. Your review, together with the other reviews of this preprint, will guide the decision of the recommender (%(recommenderPerson)s) as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ this preprint.<p>
-Remember that if the recommender eventually comes to a favorable conclusion, then all the editorial correspondence (reviews, including yours, the decisions reached by the recommender, and the authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i>, under the license CC-BY-ND. If, after one or several rounds of review, the recommender eventually rejects the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure. If the recommender asks the authors to revise their preprint, he may invite you to evaluate their responses and the changes they have made to the preprint. If required, we therefore hope that you will be willing to take part in a second round of review.<p>
+Remember that if the recommender eventually comes to a favorable conclusion, then all the editorial correspondence (reviews, including yours, the decisions reached by the recommender, and the authors’ replies) and a recommendation text will be published by <i>%(applongname)s</i>, under the license CC-BY-ND. If, after one or several rounds of review, the recommender eventually rejects the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure. If the recommender asks the authors to revise their preprint, he/she may invite you to evaluate their responses and the changes they have made to the preprint. If required, we therefore hope that you will be willing to take part in a second round of review.<p>
 If you decided NOT to remain anonymous, your name will be passed on to the authors and, if the recommender decides to recommend this preprint, your name will be visible and associated with your review on the %(applongname)s website. If you wish to change your mind and remain anonymous, please send a message to %(contactMail)s, to let the members of the Managing Board of <i>%(applongname)s</i> know (they will make the necessary changes).<p>
 In the meantime, thank you again for conducting this evaluation. We really appreciate it.<p>
 Best wishes,<p>
@@ -1701,7 +1712,7 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
 				article = db.t_articles[recomm.article_id]
 				if article:
 					articleTitle = article.title
-					articleAuthors = article.authors
+					articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 					articleDoi = mkDOI(article.doi)
 					articlePrePost = 'postprint' if article.already_published else 'preprint'
 					linkTarget = URL(c='recommender', f='my_co_recommendations', scheme=scheme, host=host, port=port)
@@ -1722,7 +1733,7 @@ Yours sincerely,<p>
 						else:
 							content = """Dear %(destPerson)s,<p>
  A peer-review evaluation of a preprint by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s) is currenlty handled by the recommender %(recommenderPerson)s. This recommender declared you as a co-recommender and, as such, as a co-author of the recommendation if he/she decides to recommend this preprint. The reviews and the recommendation text can be viewed by clicking on this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your co-recommendations' in the top menu.<p>
-We remind you that a preprint is recommended if, and only if it is scientifically valid and of high quality and the code of ethical conduct has been followed. The decision to recommend a preprint must be based on high-quality reviews. We also remind you that, the recommendation text, all the editorial correspondence (reviews, decisions, your recommendation and authors’ replies) will be published by <i>%(applongname)s</i>. Being a co-recommender for this preprint means that you share full responsibility with the recommender for the public recommendation of this preprint.<p>
+We remind you that a preprint is recommended if, and only if it is scientifically valid and of high quality and the code of conduct has been followed. The decision to recommend a preprint must be based on high-quality reviews. We also remind you that, the recommendation text, all the editorial correspondence (reviews, decisions, your recommendation and authors’ replies) will be published by <i>%(applongname)s</i>. Being a co-recommender for this preprint means that you share full responsibility with the recommender for the public recommendation of this preprint.<p>
 If you do not wish to be a co-recommender of this preprint, please contact us as soon as possible. Otherwise, we warmly thank you for this contribution to <i>%(applongname)s</i>.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1762,7 +1773,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	contribs = db(db.t_press_reviews.recommendation_id==recomm.id).select()
 	articleTitle = article.title
-	articleAuthors = article.authors
+	articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
 	articleDoi = mkDOI(article.doi)
 	articlePrePost = 'postprint' if article.already_published else 'preprint'
 	tOldStatus = current.T(article.status)
@@ -1886,7 +1897,7 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 				content = """Dear %(destPerson)s,<p>
 You have agreed to review the preprint entitled <b>%(articleTitle)s</b>.
 The status of this preprint is now: %(articleStatus)s.
-To view your review, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> My reviews' in the top menu.<p>
+To view your review, the reviews of the other referees and the decision taken by the recommender, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or login to the <i>%(applongname)s</i> website and go to 'Your contributions —> My reviews' in the top menu.<p>
 We thank you for the time spent evaluating this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1949,7 +1960,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					myMessage.append(A(link, _href=link))
 				elif linkTarget:
 					myMessage.append(P())
-					if review.review_state == 'Pending':
+					if review.review_state is None or review.review_state == 'Pending' or review.review_state == '':
 						myMessage.append(P(B(current.T('TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:'))))
 						myMessage.append(A(linkTarget, _href=linkTarget))
 					elif review.review_state == 'Under consideration':
@@ -1963,18 +1974,23 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 								subject=subject,
 								message=myRenderedMessage,
 							)
-					if review.emailing:
-						emailing0 = review.emailing
-					else:
-						emailing0 = ''
-					emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
-					emailing += myRenderedMessage
-					emailing += '<hr>'
-					emailing += emailing0
-					review.emailing = emailing
-					review.update_record()
 				except Exception, e:
 					pass
+				if review.emailing:
+					emailing0 = review.emailing
+				else:
+					emailing0 = ''
+				if mail_resu:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+					review.review_state = 'Pending'
+				else:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+					review.review_state = ''
+				emailing += myRenderedMessage
+				emailing += '<hr>'
+				emailing += emailing0
+				review.emailing = emailing
+				review.update_record()
 				if mail_resu:
 					report.append( 'email sent to "%s"' % destPerson.flatten() )
 				else:

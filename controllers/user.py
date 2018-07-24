@@ -57,6 +57,8 @@ def fill_new_article():
 	db.t_articles.already_published.default = False
 	db.t_articles.already_published.readable = False
 	db.t_articles.already_published.writable = False
+	db.t_articles.cover_letter.readable = True
+	db.t_articles.cover_letter.writable = True
 	myScript = """jQuery(document).ready(function(){
 					
 					if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
@@ -114,7 +116,8 @@ def fill_new_article():
 				});
 	"""
 	form = SQLFORM( db.t_articles, keepvalues=True )
-	form.element(_type='submit')['_value'] = T('Send your request')
+	form.element(_type='submit')['_value'] = T('Complete your submission')
+	form.element(_type='submit')['_class'] = 'btn btn-success'
 	if form.process().accepted:
 		articleId=form.vars.id
 		session.flash = T('Article submitted', lazy=False)
@@ -537,6 +540,8 @@ def my_articles():
 	db.t_articles.title.readable = False
 	db.t_articles.authors.readable = False
 	db.t_articles.article_source.readable = False
+	db.t_articles.anonymous_submission.label = T('Anonymous submission')
+	db.t_articles.anonymous_submission.represent = lambda anon,r: mkAnonymousMask(auth, db, anon)
 	links = [
 			dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
 			dict(header=T('Recommender(s)'), body=lambda row: getRecommender(auth, db, row)),
@@ -564,7 +569,7 @@ def my_articles():
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250
 		,paginate=20
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=~db.t_articles.last_status_change
@@ -747,7 +752,6 @@ def accept_new_review():
 	else:
 		myEthical = DIV(
 				FORM(
-					#DIV(B(T('You have agreed to comply with the code of ethical conduct'), _style='color:green;'), _style='text-align:center; margin:32px;'),
 					DIV(
 						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))),
 						DIV(getText(request, auth, db, '#ConflictsForReviewers')), 
@@ -1010,7 +1014,7 @@ def edit_my_article():
 	db.t_articles.status.writable=False
 	form = SQLFORM(db.t_articles
 				,articleId
-				,fields=['title', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
+				,fields=['title', 'anonymous_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
 				,upload=URL('default', 'download')
 				,deletable=deletable
 				,showid=False

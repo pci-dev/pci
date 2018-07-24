@@ -37,6 +37,8 @@ def _DevMenu():
     txtMenu = T('Development')
     return [
         (txtMenu, False, '#', [
+			#(T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
+            #LI(_class="divider"),
             (T('Design'), False, URL('admin', 'default', 'design/%s' % app)),
             LI(_class="divider"),
             (T('Controller'), False,
@@ -100,7 +102,8 @@ def _BaseMenu():
 	aboutMenu += [
 			#LI(_class="divider"),
 			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
-			(T('Code of ethical conduct', lazy=False),      False, URL('about', 'ethics')),
+			(T('General Terms of Use', lazy=False),       False, URL('about', 'gtu')),
+			(T('Code of conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
 			(T('Recommenders', lazy=False),  False, URL('public', 'recommenders')),
 			(T('Thanks to reviewers', lazy=False),  False, URL('about', 'thanks_to_reviewers')),
@@ -136,6 +139,7 @@ def _AdminMenu():
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
 			#(T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
+			(T('Reviews synthesis'),            False, URL('admin', 'recap_reviews', user_signature=True)),
 			(T('Resources'),         False, URL('admin', 'manage_resources', user_signature=True)),
 			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
 			(T('Email lists'),       False, URL('admin', 'mailing_lists', user_signature=True)),

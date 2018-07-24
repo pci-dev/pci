@@ -309,12 +309,18 @@ def viewUserCard():
 		redirect(request.env.http_referer)
 	else:
 		userId = request.vars['userId']
-		hasRoles = (db( (db.auth_membership.user_id==userId) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
-		if not(hasRoles):
-			session.flash = T('Unavailable')
-			redirect(request.env.http_referer)
+		if userId:
+			hasRoles = (db( (db.auth_membership.user_id==userId) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
+			if not(hasRoles):
+				#session.flash = T('Unavailable')
+				#redirect(request.env.http_referer)
+				myContents = B(T('Unavailable'))
+			else:
+				myContents = mkUserCard(auth, db, userId, withMail=False)
 		else:
-			myContents = mkUserCard(auth, db, userId, withMail=False)
+			#session.flash = T('Unavailable')
+			#redirect(request.env.http_referer)
+			myContents = B(T('Unavailable'))
 	response.view='default/info.html'
 	resu = dict(
 				myHelp=getHelp(request, auth, db, '#PublicUserCard'),

@@ -29,6 +29,12 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_search_reviewers.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_versionMS.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # echo "UPDATE help_texts SET contents = regexp_replace(contents, 'font-family *: *optima *;', '', 'ig') WHERE contents ~* 'font-family *: *optima *;';"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-03-09_colpivot.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# echo "UPDATE help_texts SET contents='Code of conduct' WHERE hashtag LIKE '#EthicsTitle';"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# echo "ALTER TABLE public.auth_user ALTER COLUMN alerts SET DEFAULT '||'::character varying;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+echo "ALTER TABLE public.t_articles ADD COLUMN anonymous_submission boolean DEFAULT false;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+echo "ALTER TABLE public.t_articles ADD COLUMN cover_letter text;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 #WARNING: check group!!
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
