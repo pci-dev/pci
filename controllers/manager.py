@@ -213,10 +213,11 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
 	for sr in suggRecomms:
 		exclude.append(str(sr.suggested_recommender_id))
-		if sr.declined:
-			suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+XML(':&nbsp;declined')+BR())
-		else:
-			suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+BR())
+		suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+(XML(':&nbsp;(declined)') if sr.declined else SPAN(''))
+			+BR()
+			+A(T('See emails...'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="blank", _class='btn btn-link pci-smallBtn pci-recommender', _style='margin-bottom:12px;')
+			#+A(T('see emails'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="_blank", _class='btn pci-smallBtn pci-emailing-btn')
+			+BR())
 	myVars = dict(articleId=row.id, whatNext=whatNext)
 	if len(exclude)>0:
 		myVars['exclude'] = ','.join(exclude)
@@ -232,7 +233,28 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 	return butts
 
 
-
+@auth.requires(auth.has_membership(role='manager'))
+def suggested_recommender_emails():
+	srId = request.vars['srId']
+	sr = db.t_suggested_recommenders[srId]
+	if sr is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	myContents = DIV()
+	myContents.append(SPAN(B(T('Suggested recommender: ')), mkUserWithMail(auth, db, sr.suggested_recommender_id)))
+	myContents.append(H2(T('Emails:')))
+	myContents.append(DIV(
+						XML((sr.emailing or '<b>None yet</b>'))
+					   ,_style='margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;'))
+	response.view='default/info.html'
+	return dict(
+					myHelp = getHelp(request, auth, db, '#ManagerSuggestedRecommenderEmails'),
+					myText=getText(request, auth, db, '#ManagerSuggestedRecommenderEmailsText'),
+					myTitle=getTitle(request, auth, db, '#ManagerSuggestedRecommenderEmailsTitle'),
+					myBackButton=mkCloseButton(), 
+					message=myContents, 
+			 )
+	
 
 
 ######################################################################################################################################################################
@@ -281,16 +303,16 @@ def _manage_articles(statuses, whatNext):
 												_class='buttontext btn btn-default pci-button pci-manager', 
 												_title=current.T('View and/or edit review')
 											),
-											A(SPAN(current.T('Email to more'),BR(),T('recommenders')), 
-												_href=URL(c='manager', f='warn_recommenders', vars=dict(mkTFDict(row.thematics), articleId=row.id, qyKeywords=row.keywords, comeback=URL())),
-												_class='button btn btn-info pci-manager', 
-												_title=current.T('Pick up recommenders not already suggested and send them an email')
-											) if (row.status == 'Awaiting consideration' 
-													and row.already_published is False ) else '',
-											A(SPAN(current.T('Set "Not considered"')), 
+											#A(SPAN(current.T('Email to more'),BR(),T('recommenders')), 
+												#_href=URL(c='manager', f='warn_recommenders', vars=dict(mkTFDict(row.thematics), articleId=row.id, qyKeywords=row.keywords, comeback=URL())),
+												#_class='button btn btn-info pci-manager', 
+												#_title=current.T('Pick up recommenders not already suggested and send them an email')
+											#) if (row.status == 'Awaiting consideration' 
+													#and row.already_published is False ) else '',
+											A(SPAN(current.T('Set "Not')), BR(), SPAN(current.T('considered"')), 
 												_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
 												_class='buttontext btn btn-danger pci-button pci-manager', 
-												_title=current.T('Set this preprint as "Not considered"')
+												_title=current.T('Set this preprint as "Not considered"'),
 											) if (row.status == 'Awaiting consideration' 
 													and row.already_published is False 
 													and datetime.datetime.now() - row.upload_timestamp > timedelta(days=not_considered_delay_in_days) ) else '',
@@ -419,7 +441,7 @@ def manage_recommendations():
 		,csv=csv, exportclasses=expClass
 		,paginate=10
 		,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
-		,fields=[db.t_recommendations.doi, db.t_recommendations.ms_version, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_recommendations.track_change, db.t_pdf.pdf]
+		,fields=[db.t_recommendations.doi, db.t_recommendations.ms_version, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_recommendations.track_change, db.t_recommendations.recommender_file, db.t_pdf.pdf]
 		,links=links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
@@ -543,17 +565,24 @@ def suggested_recommenders():
 	if art is None:
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
+	
 	query = (db.t_suggested_recommenders.article_id == articleId)
 	db.t_suggested_recommenders._id.readable = False
+	db.t_suggested_recommenders.email_sent.readable = False
 	db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: mkUserWithMail(auth, db, text)
+	db.t_suggested_recommenders.emailing.readable = True
+	if len(request.args) == 0: # we are in grid
+		db.t_suggested_recommenders.emailing.represent = lambda text, row: DIV(XML(text), _class='pci-emailingTD') if text else ''
+	else:
+		db.t_suggested_recommenders.emailing.represent = lambda text, row: XML(text) if text else ''
 	links = []
 	if art.status == 'Awaiting consideration':
 		links.append(dict(header='', body=lambda row: A(T('Send a reminder'), _class='btn btn-info pci-manager', _href=URL(c='manager', f='send_suggested_recommender_reminder', vars=dict(suggRecommId=row.id))) if not(row.declined) else ''))
 	grid = SQLFORM.grid( query
-		,details=False,editable=False,deletable=True,create=False,searchable=False
+		,details=True,editable=True,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100
 		,csv = csv, exportclasses = expClass
-		,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.email_sent, db.t_suggested_recommenders.declined]
+		,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.t_suggested_recommenders.declined, db.t_suggested_recommenders.email_sent, db.t_suggested_recommenders.emailing]
 		,field_id=db.t_suggested_recommenders.id
 		,links=links
 	)
@@ -674,101 +703,101 @@ def send_suggested_recommender_reminder():
 
 
 
-######################################################################################################################################################################
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
-def warn_recommenders(): 
-	myVars = request.vars
-	qyKw = ''
-	qyTF = []
-	excludeList = []
-	articleId = None
-	comeback = None
-	for myVar in myVars:
-		if isinstance(myVars[myVar], list):
-			myValue = (myVars[myVar])[1]
-		else:
-			myValue = myVars[myVar]
-		if (myVar == 'qyKeywords'):
-			qyKw = myValue
-		elif (re.match('^qy_', myVar) and myValue=='on'):
-			qyTF.append(re.sub(r'^qy_', '', myVar))
-		elif (myVar == 'articleId'):
-			articleId = myValue
-		elif (myVar == 'comeback'):
-			comeback = myValue
-		#elif (myVar == 'exclude'):
-			#excludeList = map(int, myValue.split(','))
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+#######################################################################################################################################################################
+#######################################################################################################################################################################
+#@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+#def warn_recommenders(): 
+	#myVars = request.vars
+	#qyKw = ''
+	#qyTF = []
+	#excludeList = []
+	#articleId = None
+	#comeback = None
+	#for myVar in myVars:
+		#if isinstance(myVars[myVar], list):
+			#myValue = (myVars[myVar])[1]
+		#else:
+			#myValue = myVars[myVar]
+		#if (myVar == 'qyKeywords'):
+			#qyKw = myValue
+		#elif (re.match('^qy_', myVar) and myValue=='on'):
+			#qyTF.append(re.sub(r'^qy_', '', myVar))
+		#elif (myVar == 'articleId'):
+			#articleId = myValue
+		#elif (myVar == 'comeback'):
+			#comeback = myValue
+		##elif (myVar == 'exclude'):
+			##excludeList = map(int, myValue.split(','))
+	#if articleId is None:
+		#raise HTTP(404, "404: "+T('Unavailable'))
+	#art = db.t_articles[articleId]
+	#if art is None:
+		#raise HTTP(404, "404: "+T('Unavailable'))
 
-	#TODO 
-	excludeList.append(art.user_id)
-	excludeList.append(auth.user_id)
-	for sr in db(db.t_suggested_recommenders.article_id == articleId).select(db.t_suggested_recommenders.suggested_recommender_id):
-		excludeList.append(sr.suggested_recommender_id)
+	##TODO 
+	#excludeList.append(art.user_id)
+	#excludeList.append(auth.user_id)
+	#for sr in db(db.t_suggested_recommenders.article_id == articleId).select(db.t_suggested_recommenders.suggested_recommender_id):
+		#excludeList.append(sr.suggested_recommender_id)
 	
-	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-	temp_db = DAL('sqlite:memory')
-	qy_recomm = temp_db.define_table('qy_recomm',
-			Field('id', type='integer'),
-			Field('num', type='integer'),
-			Field('score', type='double', label=T('Score'), default=0),
-			Field('first_name', type='string', length=128, label=T('First name')),
-			Field('last_name', type='string', length=128, label=T('Last name')),
-			Field('email', type='string', length=512, label=T('email')),
-			Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-			Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
-			Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
-			Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
-			Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
-			Field('thematics', type='list:string', label=T('Thematic fields')),
-			Field('excluded', type='boolean', label=T('Excluded')),
-		)
-	qyKwArr = qyKw.split(' ')
-	sfDict = copy.deepcopy(request.vars)
-	sfDict['qyKeywords'] = qyKw
-	searchForm =  mkSearchForm(auth, db, sfDict)
-	if searchForm.process(keepvalues=True).accepted:
-		response.flash = None
-	elif len(qyTF)==0:
-		qyTF = []
-		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-			qyTF.append(thema.keyword)
-	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-	for fr in filtered:
-		if fr['excluded'] is False:
-			qy_recomm.insert(**fr)
+	## We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+	#temp_db = DAL('sqlite:memory')
+	#qy_recomm = temp_db.define_table('qy_recomm',
+			#Field('id', type='integer'),
+			#Field('num', type='integer'),
+			#Field('score', type='double', label=T('Score'), default=0),
+			#Field('first_name', type='string', length=128, label=T('First name')),
+			#Field('last_name', type='string', length=128, label=T('Last name')),
+			#Field('email', type='string', length=512, label=T('email')),
+			#Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+			#Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
+			#Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
+			#Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
+			#Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
+			#Field('thematics', type='list:string', label=T('Thematic fields')),
+			#Field('excluded', type='boolean', label=T('Excluded')),
+		#)
+	#qyKwArr = qyKw.split(' ')
+	#sfDict = copy.deepcopy(request.vars)
+	#sfDict['qyKeywords'] = qyKw
+	#searchForm =  mkSearchForm(auth, db, sfDict)
+	#if searchForm.process(keepvalues=True).accepted:
+		#response.flash = None
+	#elif len(qyTF)==0:
+		#qyTF = []
+		#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+			#qyTF.append(thema.keyword)
+	#filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+	#for fr in filtered:
+		#if fr['excluded'] is False:
+			#qy_recomm.insert(**fr)
 	
-	links = []
-	selectable = [(T('Send email to checked recommenders'), lambda ids: [f_email_article_to_recommenders(articleId, ids, comeback)], 'btn btn-success pci-manager')]
-	temp_db.qy_recomm._id.readable = False
-	temp_db.qy_recomm.uploaded_picture.readable = False
-	temp_db.qy_recomm.num.readable = False
-	temp_db.qy_recomm.score.readable = True
-	temp_db.qy_recomm.excluded.readable = False
-	grid = SQLFORM.grid( qy_recomm
-		,editable = False,deletable = False,create = False,details=False,searchable=False
-		,selectable=selectable
-		,maxtextlength=250,paginate=1000
-		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
-		,links=links
-		,orderby=temp_db.qy_recomm.num
-		,args=request.args
-	)
-	response.view='default/myLayout.html'
-	return dict(
-				myBackButton=mkBackButton(target=comeback) if comeback else '',
-				myHelp=getHelp(request, auth, db, '#UserSearchRecommendersForWarning'),
-				myText=getText(request, auth, db, '#UserSearchRecommendersForWarningText'),
-				myTitle=getTitle(request, auth, db, '#UserSearchRecommendersForWarningTitle'),
-				searchForm=searchForm, 
-				grid=grid, 
-			)
+	#links = []
+	#selectable = [(T('Send email to checked recommenders'), lambda ids: [f_email_article_to_recommenders(articleId, ids, comeback)], 'btn btn-success pci-manager')]
+	#temp_db.qy_recomm._id.readable = False
+	#temp_db.qy_recomm.uploaded_picture.readable = False
+	#temp_db.qy_recomm.num.readable = False
+	#temp_db.qy_recomm.score.readable = True
+	#temp_db.qy_recomm.excluded.readable = False
+	#grid = SQLFORM.grid( qy_recomm
+		#,editable = False,deletable = False,create = False,details=False,searchable=False
+		#,selectable=selectable
+		#,maxtextlength=250,paginate=1000
+		#,csv=csv,exportclasses=expClass
+		#,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
+		#,links=links
+		#,orderby=temp_db.qy_recomm.num
+		#,args=request.args
+	#)
+	#response.view='default/myLayout.html'
+	#return dict(
+				#myBackButton=mkBackButton(target=comeback) if comeback else '',
+				#myHelp=getHelp(request, auth, db, '#UserSearchRecommendersForWarning'),
+				#myText=getText(request, auth, db, '#UserSearchRecommendersForWarningText'),
+				#myTitle=getTitle(request, auth, db, '#UserSearchRecommendersForWarningTitle'),
+				#searchForm=searchForm, 
+				#grid=grid, 
+			#)
 
 
 ######################################################################################################################################################################

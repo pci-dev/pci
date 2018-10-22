@@ -145,7 +145,7 @@ def mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=True):
 						A(SPAN(current.T('Toggle thematic fields'), _class='buttontext btn btn-default pci-public'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', !jQuery(this).prop('checked'));} });", _class="pci-flushright"),
 					),
 					DIV(
-						INPUT(_type='submit', _value=current.T('Search'), _class='btn btn-info pci-public'), _style='text-align:center; margin-top:8px;', 
+						INPUT(_type='submit', _value=current.T('Search'), _class='btn btn-success pci-public'), _style='text-align:center; margin-top:8px;', 
 					),
 					_class="pci-thematicFieldsDiv"),
 			)
@@ -470,12 +470,39 @@ def mkStatusDiv(auth, db, status):
 	return DIV(status_txt, _class='pci-status '+color_class, _title=current.T(hint))
 
 ######################################################################################################################################################################
+# Builds a coloured status label with pre-decision concealed
+def mkStatusDivUser(auth, db, status):
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
+	if status.startswith('Pre-'):
+		status2 = 'Under consideration'
+	else:
+		status2 = status
+	status_txt = (current.T(status2)).upper()
+	color_class = statusArticles[status2]['color_class'] or 'default'
+	hint = statusArticles[status2]['explaination'] or ''
+	return DIV(status_txt, _class='pci-status '+color_class, _title=current.T(hint))
+
+######################################################################################################################################################################
 def mkStatusBigDiv(auth, db, status):
 	if statusArticles is None or len(statusArticles) == 0:
 		mkStatusArticles(db)
 	status_txt = (current.T(status)).upper()
 	color_class = statusArticles[status]['color_class'] or 'default'
 	hint = statusArticles[status]['explaination'] or ''
+	return DIV(status_txt, _class='pci-status-big '+color_class, _title=current.T(hint))
+
+######################################################################################################################################################################
+def mkStatusBigDivUser(auth, db, status):
+	if statusArticles is None or len(statusArticles) == 0:
+		mkStatusArticles(db)
+	if status.startswith('Pre-'):
+		status2 = 'Under consideration'
+	else:
+		status2 = status
+	status_txt = (current.T(status2)).upper()
+	color_class = statusArticles[status2]['color_class'] or 'default'
+	hint = statusArticles[status2]['explaination'] or ''
 	return DIV(status_txt, _class='pci-status-big '+color_class, _title=current.T(hint))
 
 ######################################################################################################################################################################
@@ -635,10 +662,17 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 	else: #NOTE: PRE-PRINT
 		if with_reviewers:
 			namedReviewers = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_reviews.reviewer_id) & (db.t_reviews.anonymously==False) & (db.t_reviews.review_state=='Completed')
+							(db.t_recommendations.article_id==recomm.article_id) 
+							  & (db.t_reviews.recommendation_id==db.t_recommendations.id) 
+							  & (db.auth_user.id==db.t_reviews.reviewer_id) 
+							  & (db.t_reviews.anonymously==False) 
+							  & (db.t_reviews.review_state=='Completed')
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 			na = db(
-							(db.t_recommendations.id==recomm.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.anonymously==True) & (db.t_reviews.review_state=='Completed')
+							(db.t_recommendations.article_id==recomm.article_id) 
+							  & (db.t_reviews.recommendation_id==db.t_recommendations.id) 
+							  & (db.t_reviews.anonymously==True) 
+							  & (db.t_reviews.review_state=='Completed')
 							).count(distinct=db.t_reviews.reviewer_id)
 			na1 = (1 if(na>0) else 0)
 		else:
@@ -956,10 +990,11 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		first_name = ''
 		last_name = '[undisclosed]'
 	submitter = FakeSubmitter()
-	if (art.anonymous_submission is False):
+	hideSubmitter = True
+	qyIsRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommender_id==auth.user_id) ).count()
+	if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (auth.has_membership(role='manager')) ):
 		submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-	#if submitter is None:
-		#submitter = FakeSubmitter()
+		hideSubmitter = False
 	allowOpinion = None
 	###NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
@@ -970,13 +1005,13 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
 					,img
 					,H3(art.title or '')
-					,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, (art.authors or '')))
+					,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
 					,mkDOI(art.doi) if (art.doi) else SPAN('')
 					,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
 					,BR()
 					,DIV(
 							I(current.T('Submitted by ')),
-							I(mkAnonymousArticleField(auth, db, art.anonymous_submission, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
+							I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
 							I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
 					) if (art.already_published is False) else ''
 					,(SPAN(art.article_source)+BR() if art.article_source else '')
@@ -1230,7 +1265,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					tit2 = current.T('Your decision')
 				else:
 					tit2 = current.T('Decision')
-				
+			
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button for recommendation edition
 				#myRound.append(DIV(A(SPAN(current.T('Write or edit your decision / recommendation'), _class='buttontext btn btn-default pci-recommender'), _href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), _class='pci-EditButtons'))
@@ -1268,8 +1303,11 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (hideOngoingRecomm is False) else '')
 						,_class='pci-recommendation-div'
 			)
+			if (hideOngoingRecomm is False and recomm.recommender_file) :
+				truc.append(A(current.T('Download recommender\'s annotations (PDF)'), _href=URL('default', 'download', args=recomm.recommender_file, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+			
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration'):
-				truc.append(TD(A(SPAN(current.T('Invite a reviewer'), _class='btn btn-default pci-recommender'), _href=URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))))
+				truc.append(DIV(A(SPAN(current.T('Invite a reviewer'), _class='btn btn-default pci-recommender'), _href=URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))))
 			truc.append(H3(current.T('Reviews'))+DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else '')
 			myRound.append(truc)
 			
@@ -1324,8 +1362,14 @@ def mkLastRecommendation(auth, db, articleId):
 		return ''
 
 ######################################################################################################################################################################
-def mkSuggestUserArticleToButton(auth, db, row, articleId):
-	anchor = A(SPAN(current.T('Suggest as recommender'), _class='buttontext btn btn-default pci-submitter'), _href=URL(c='user', f='suggest_article_to', vars=dict(articleId=articleId, recommenderId=row['id']), user_signature=True), _class='button')
+def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
+	vars['recommenderId'] = row['id']
+	anchor = A(SPAN(current.T('Suggest as recommender'), _class='buttontext btn btn-default pci-submitter')
+									, _href=URL(c='user', f='suggest_article_to'
+										#, vars=dict(articleId=articleId, recommenderId=row['id'], exclude=excludeList)
+										, vars=vars
+										, user_signature=True)
+										, _class='button')
 	return anchor
 
 
@@ -1935,5 +1979,83 @@ def mkRecommArticleRss(auth, db, row):
 		link = link,
 		description = xdesc.decode('utf-8'),
 		created_on = created_on,
+	 )
+
+
+######################################################################################################################################################################
+  #<link providerId="PCI">
+    #<resource>
+        #<title>Version 3 of this preprint has been peer-reviewed and recommended by Peer Community in Evolutionary Biology</title>
+        #<url>https://dx.doi.org/10.24072/pci.evolbiol.100055</url>
+        #<editor>Charles Baer</editor>
+        #<date>2018-08-08</date>
+        #<reviewers>anonymous and anonymous</reviewers>
+        #<logo>https://peercommunityindotorg.files.wordpress.com/2018/09/small_logo_pour_pdf.png</logo>
+    #</resource>
+    #<doi>10.1101/273367</doi> 
+  #</link>
+def mkRecommArticleRss4bioRxiv(auth, db, row):
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+	if recomm is None: 
+		return None
+	version = recomm.ms_version or ''
+	pci = myconf.take('app.description')
+	title = 'Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s' % locals()
+	url = URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
+	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	n = len(contribsQy)
+	i = 0
+	for contrib in contribsQy:
+		i += 1
+		if (i < n):
+			recommenders += ', '
+		else:
+			recommenders += ' and '
+		recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+	recommendersStr = ''.join(recommenders)
+	
+	reviewers = []
+	reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	if reviewsQy is not None:
+		nR = len(reviewsQy)
+		i = 0
+		for rw in reviewsQy:
+			if rw.reviewer_id:
+				i += 1
+				if (i > 1):
+					if (i < nR):
+						reviewers += ', '
+					else:
+						reviewers += ' and '
+				reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
+	reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	if reviewsQyAnon is not None:
+		nRA = len(reviewsQyAnon)
+		if nRA > 0:
+			if len(reviewers) > 0:
+				reviewers += ' and '
+			if nRA > 1:
+				reviewers += '%s anonymous reviewers' % nRA
+			else:
+				reviewers += 'one anonymous reviewer'
+	reviewersStr = ''.join(reviewers)
+	print(reviewers)
+	
+	local = pytz.timezone ("Europe/Paris")
+	local_dt = local.localize(row.last_status_change, is_dst=None)
+	created_on = local_dt.astimezone (pytz.utc)
+	
+	return dict(
+		title = title.decode('utf-8'),
+		url = url,
+		editor = recommendersStr.decode('utf-8'),
+		reviewers = reviewersStr.decode('utf-8'),
+		date = created_on.strftime('%Y-%m-%d'),
+		logo = XML(URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port)),
+		doi = row.doi,
 	 )
 

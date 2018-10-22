@@ -152,7 +152,7 @@ def _AdminMenu():
 			(T('Send me a test mail'), False, URL('admin', 'testMail')),
 			(T('Test my email alert'), False, URL('alerts', 'testUserRecommendedAlert', vars=dict(userId=auth.user_id))),
 			#(T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
-			#(T('Test tweeter'), False, URL('admin', 'test_tweet')),
+			(T('RSS for bioRxiv'), False, URL('public', 'rss4bioRxiv')),
 			(T('Social networks', lazy=False),      False, URL('about', 'social')),
 		]),
 	]

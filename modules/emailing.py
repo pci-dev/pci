@@ -111,10 +111,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article and article.user_id is not None:
-		if (article.anonymous_submission):
-			destPerson = '[undisclosed]'
-		else:
-			destPerson = mkUser(auth, db, article.user_id)
+		destPerson = mkUser(auth, db, article.user_id)
 		destAddress = db.auth_user[article.user_id]['email']
 		articleTitle = article.title
 		recommendation = None
@@ -284,7 +281,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 			recommender_id = myRecomm['recommender_id']
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			articleAuthors = article.authors
 			articleTitle = article.title
 			articleDoi = mkDOI(article.doi)
 			tOldStatus = current.T(article.status)
@@ -338,7 +335,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 			recommender_id = myRecomm['recommender_id']
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			articleAuthors = article.authors
 			articleTitle = article.title
 			articleDoi = mkDOI(article.doi)
 			tOldStatus = current.T(article.status)
@@ -424,14 +421,17 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+		if article.anonymous_submission:
+			articleAuthors = current.T('[undisclosed]')
+		else:
+			articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: About our request to act as recommender for a preprint' % (applongname)
 		#TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
-		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.declined==False) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.auth_user.ALL)
+		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.declined==False) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
 		for theUser in suggestedQy:
-			destPerson = mkUser(auth, db, theUser['id'])
-			destAddress = db.auth_user[theUser['id']]['email']
+			destPerson = mkUser(auth, db, theUser['auth_user.id'])
+			destAddress = db.auth_user[theUser['auth_user.id']]['auth_user.email']
 			mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
 			#linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
 			#helpurl=URL(c='about', f='help_practical', scheme=scheme, host=host, port=port)
@@ -452,6 +452,22 @@ Yours sincerely,<p>
 						)
 			except:
 				pass
+			
+			suggRecom = db.t_suggested_recommenders[theUser['t_suggested_recommenders.id']]
+			if suggRecom.emailing:
+				emailing0 = suggRecom.emailing
+			else:
+				emailing0 = ''
+			if mail_resu:
+				emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+			else:
+				emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+			emailing += myMessage
+			emailing += '<hr>'
+			emailing += emailing0
+			suggRecom.emailing = emailing
+			suggRecom.update_record()
+			
 			if mail_resu:
 				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
 			else:
@@ -479,7 +495,10 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+		if article.anonymous_submission:
+			articleAuthors = current.T('[undisclosed]')
+		else:
+			articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
 		mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
 		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
@@ -506,11 +525,29 @@ Yours sincerely,<p>
 						)
 			except:
 				pass
+			
+			suggRecom = db.t_suggested_recommenders[theUser['sr_id']]
+			if suggRecom.emailing:
+				emailing0 = suggRecom.emailing
+			else:
+				emailing0 = ''
 			if mail_resu:
-				db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
+				emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+				suggRecom.email_sent = True
+			else:
+				emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+				suggRecom.email_sent = False
+			emailing += myMessage
+			emailing += '<hr>'
+			emailing += emailing0
+			suggRecom.emailing = emailing
+			suggRecom.update_record()
+			
+			if mail_resu:
+				#db.executesql('UPDATE t_suggested_recommenders SET email_sent=true WHERE id=%s', placeholders=[theUser['sr_id']])
 				report.append( 'email sent to suggested recommender %s' % destPerson.flatten() )
 			else:
-				db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
+				#db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
 				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
 		print '\n'.join(report)
@@ -536,7 +573,10 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 		article = db.t_articles[suggRecomm.article_id]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			if article.anonymous_submission:
+				articleAuthors = current.T('[undisclosed]')
+			else:
+				articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
@@ -563,6 +603,20 @@ Yours sincerely,<p>
 							)
 				except:
 					pass
+
+				if suggRecomm.emailing:
+					emailing0 = suggRecomm.emailing
+				else:
+					emailing0 = ''
+				if mail_resu:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+				else:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+				emailing += myMessage
+				emailing += '<hr>'
+				emailing += emailing0
+				suggRecomm.emailing = emailing
+				
 				if mail_resu:
 					suggRecomm.email_sent = True
 					suggRecomm.update_record()
@@ -595,7 +649,7 @@ Yours sincerely,<p>
 	#article = db.t_articles[articleId]
 	#if article and article.status in ('Awaiting consideration'):
 		#articleTitle = article.title
-		#articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+		#articleAuthors = article.authors
 		#articleDoi = mkDOI(article.doi)
 		#mySubject = '%s: Request to act as recommender for a preprint' % (applongname)
 		#suggestedQy = db.executesql("""SELECT DISTINCT au.*
@@ -662,7 +716,10 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 			linkTarget = URL(c='user', f='my_reviews', scheme=scheme, host=host, port=port)
 			mySubject = '%s: Review modification' % (applongname)
 			articleTitle = B(article.title )
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			if article.anonymous_submission:
+				articleAuthors = current.T('[undisclosed]')
+			else:
+				articleAuthors = article.authors
 			theUser = db.auth_user[rev.reviewer_id]
 			if theUser:
 				recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
@@ -914,7 +971,10 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			if article.anonymous_submission:
+				articleAuthors = current.T('[undisclosed]')
+			else:
+				articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review accepted'% (applongname)
@@ -966,7 +1026,10 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 		article = db.t_articles[recomm['article_id']]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			if article.anonymous_submission:
+				articleAuthors = current.T('[undisclosed]')
+			else:
+				articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Request to review declined' % (applongname)
@@ -1020,7 +1083,10 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 					article = db.t_articles[recomm['article_id']]
 					if article:
 						articleTitle = article.title
-						articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+						if article.anonymous_submission:
+							articleAuthors = current.T('[undisclosed]')
+						else:
+							articleAuthors = article.authors
 						articleDoi = mkDOI(article.doi)
 						linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 						mySubject = '%(applongname)s: Invitation to review a preprint' % locals()
@@ -1070,8 +1136,82 @@ Yours sincerely,<p>
 
 
 
-
 ######################################################################################################################################################################
+def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newStatus):
+	report = []
+	mail = getMailer(auth)
+	mail_resu = False
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	article = db.t_articles[articleId]
+	if article:
+		articleTitle = article.title
+		if article.anonymous_submission:
+			articleAuthors = current.T('[undisclosed]')
+		else:
+			articleAuthors = article.authors
+		articleDoi = mkDOI(article.doi)
+		mySubject = '%s: About our request to act as reviewer for a preprint' % (applongname)
+		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+		lastRecomm = db(db.t_recommendations.article_id == article.id).select(orderby=db.t_recommendations.id).last()
+		if lastRecomm:
+			reviewers = db( (db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ('Pending', 'Under consideration', 'Completed')) ).select()
+			for rev in reviewers:
+				destPerson = mkUser(auth, db, rev.reviewer_id)
+				destAddress = db.auth_user[rev.reviewer_id]['email']
+				recommenderPerson = mkUserWithMail(auth, db, lastRecomm.recommender_id)
+				content = """Dear %(destPerson)s,<p>
+The submission of the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> have been cancelled by the author.
+Therefore, the recommendation process is closed. 
+Thanks anyway for your help.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">%(recommenderPerson)s</span>
+""" % locals()
+				try:
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+					mail_resu = mail.send(to=[destAddress],
+								subject=mySubject,
+								message=myMessage,
+							)
+				except:
+					pass
+				
+				if rev.emailing:
+					emailing0 = rev.emailing
+				else:
+					emailing0 = ''
+				if mail_resu:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+				else:
+					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+				emailing += myMessage
+				emailing += '<hr>'
+				emailing += emailing0
+				rev.emailing = emailing
+				rev.review_state = 'Cancelled'
+				rev.update_record()
+
+				if mail_resu:
+					report.append( 'email sent to %s' % destPerson.flatten() )
+				else:
+					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+				time.sleep(mail_sleep)
+		else:
+			print 'do_send_email_to_reviewers_cancellation: Recommendation not found'
+	else:
+		print 'do_send_email_to_reviewers_cancellation: Article not found'
+
+	print '\n'.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
+	else:
+		session.flash += '; ' + '; '.join(report)
+		
+
+
 #def do_send_email_to_reviewer_review_suggested(session, auth, db, reviewId):
 	#report = []
 	#mail = getMailer(auth)
@@ -1344,13 +1484,10 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 	article = db.t_articles[articleId]
 	if article:
 		articleTitle = article.title
-		articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+		articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
 		if article.user_id:
-			if article.anonymous_submission:
-				submitterPerson = '[undisclosed]'
-			else:
-				submitterPerson = mkUser(auth, db, article.user_id) # submitter
+			submitterPerson = mkUser(auth, db, article.user_id) # submitter
 		else:
 			submitterPerson = '?'
 		
@@ -1366,7 +1503,7 @@ Have a nice day!
 		
 		elif newStatus.startswith('Pre-'):
 			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
 			mySubject = '%s: Decision or recommendation requiring validation' % (applongname)
 			linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 			content = """Dear members of the Managing Board,<p>
@@ -1379,7 +1516,7 @@ Have a nice day!
 		
 		elif newStatus=='Under consideration':
 			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-			recommenderPerson = mkUser(auth, db, recomm.recommender_id) # recommender
+			recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
 			linkTarget = URL(c='manager', f='ongoing_articles', scheme=scheme, host=host, port=port)
 			if article.status == 'Awaiting revision':
 				mySubject = '%s: Article resubmitted' % (applongname)
@@ -1457,7 +1594,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 		article = db.t_articles[recomm.article_id]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
@@ -1515,7 +1652,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 		article = db.t_articles[articleId]
 		if article:
 			articleTitle = article.title
-			articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+			articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=False))
 			mySubject = '%s: Thank you for initiating a recommendation!' % (applongname)
@@ -1578,13 +1715,16 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 			article = db.t_articles[recomm['article_id']]
 			if article:
 				articleTitle = article.title
-				articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+				if article.anonymous_submission:
+					articleAuthors = current.T('[undisclosed]')
+				else:
+					articleAuthors = article.authors
 				articleDoi = mkDOI(article.doi)
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for agreeing to review a preprint!' % (applongname)
 				theUser = db.auth_user[rev.reviewer_id]
 				if theUser:
-					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 					destPerson = mkUser(auth, db, rev.reviewer_id)
 					expectedDuration = datetime.timedelta(days=21) # three weeks
 					dueTime = str((datetime.datetime.now() + expectedDuration).date())
@@ -1647,13 +1787,16 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 			article = db.t_articles[recomm['article_id']]
 			if article:
 				articleTitle = article.title
-				articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+				if article.anonymous_submission:
+					articleAuthors = current.T('[undisclosed]')
+				else:
+					articleAuthors = article.authors
 				articleDoi = mkDOI(article.doi)
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for evaluating a preprint' % (applongname)
 				theUser = db.auth_user[rev.reviewer_id]
 				if theUser:
-					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 					destPerson = mkUser(auth, db, rev.reviewer_id)
 					content = """Dear %(destPerson)s,<p>
 Thank you for evaluating the preprint by %(articleAuthors)s entitled <b>%(articleTitle)s</b>. Your evaluation has been sent to the recommender (%(recommenderPerson)s) handling this preprint. Your contribution is greatly appreciated.<p>
@@ -1692,6 +1835,61 @@ Best wishes,<p>
 	else:
 		session.flash += '; ' + '; '.join(report)
 
+######################################################################################################################################################################
+def do_send_email_to_delete_one_contributor(session, auth, db, contribId):
+	report = []
+	mail_resu = False
+	mail = getMailer(auth)
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	managers=myconf.take('contacts.managers')
+	if contribId:
+		contrib = db.t_press_reviews[contribId]
+		if contrib:
+			recomm = db.t_recommendations[contrib.recommendation_id]
+			if recomm:
+				article = db.t_articles[recomm.article_id]
+				if article:
+					articleTitle = article.title
+					if article.anonymous_submission:
+						articleAuthors = current.T('[undisclosed]')
+					else:
+						articleAuthors = article.authors
+					articleDoi = mkDOI(article.doi)
+					articlePrePost = 'postprint' if article.already_published else 'preprint'
+					linkTarget = URL(c='recommender', f='my_co_recommendations', scheme=scheme, host=host, port=port)
+					mySubject = '%(applongname)s: Your co-recommendation of a %(articlePrePost)s' % locals()
+					destPerson = mkUser(auth, db, contrib.contributor_id)
+					destAddress = db.auth_user[contrib.contributor_id]['email']
+					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
+					content = """Dear %(destPerson)s,<p>
+A recommendation text for the %(articlePrePost)s by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s) is under consideration.<p>
+You have been removed from co-recommender of this %(articlePrePost)s.<p>
+Yours sincerely,<p>
+<span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
+""" % locals()
+					try:
+						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[destAddress],
+										subject=mySubject,
+										message=myMessage,
+									)
+					except:
+						pass
+					if mail_resu:
+						report.append( 'email sent to contributor %s' % destPerson.flatten() )
+					else:
+						report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
+					time.sleep(mail_sleep)
+					print '\n'.join(report)
+					if session.flash is None:
+						session.flash = '; '.join(report)
+					else:
+						session.flash += '; ' + '; '.join(report)
+
 
 ######################################################################################################################################################################
 def do_send_email_to_one_contributor(session, auth, db, contribId):
@@ -1712,14 +1910,17 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
 				article = db.t_articles[recomm.article_id]
 				if article:
 					articleTitle = article.title
-					articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
+					if article.anonymous_submission:
+						articleAuthors = current.T('[undisclosed]')
+					else:
+						articleAuthors = article.authors
 					articleDoi = mkDOI(article.doi)
 					articlePrePost = 'postprint' if article.already_published else 'preprint'
 					linkTarget = URL(c='recommender', f='my_co_recommendations', scheme=scheme, host=host, port=port)
 					mySubject = '%(applongname)s: Your co-recommendation of a %(articlePrePost)s' % locals()
 					destPerson = mkUser(auth, db, contrib.contributor_id)
 					destAddress = db.auth_user[contrib.contributor_id]['email']
-					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 					ethicsLink = URL('about', 'ethics', scheme=scheme, host=host, port=port)
 					if article.status in ('Under consideration', 'Pre-recommended'):
 						if article.already_published:
@@ -1771,51 +1972,55 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 	managers=myconf.take('contacts.managers')
 	article = db.t_articles[articleId]
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
-	contribs = db(db.t_press_reviews.recommendation_id==recomm.id).select()
-	articleTitle = article.title
-	articleAuthors = article.authors if (article.anonymous_submission is False) else '[undisclosed]'
-	articleDoi = mkDOI(article.doi)
-	articlePrePost = 'postprint' if article.already_published else 'preprint'
-	tOldStatus = current.T(article.status)
-	tNewStatus = current.T(newStatus)
-	linkTarget = URL(c='recommender', f='my_co_recommendations', scheme=scheme, host=host, port=port)
-	recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
-	mySubject = '%(applongname)s: Your co-recommendation of a %(articlePrePost)s' % locals()
-	for contrib in contribs:
-		destPerson = mkUser(auth, db, contrib.contributor_id)
-		destAddress = db.auth_user[contrib.contributor_id]['email']
-		
-		if newStatus == 'Recommended':
-			linkTarget = URL(c='default', f='index', scheme=scheme, host=host, port=port)
-			content = """Dear %(destPerson)s,<p>
+	if recomm:
+		contribs = db(db.t_press_reviews.recommendation_id==recomm.id).select()
+		articleTitle = article.title
+		if article.anonymous_submission:
+			articleAuthors = current.T('[undisclosed]')
+		else:
+			articleAuthors = article.authors
+		articleDoi = mkDOI(article.doi)
+		articlePrePost = 'postprint' if article.already_published else 'preprint'
+		tOldStatus = current.T(article.status)
+		tNewStatus = current.T(newStatus)
+		linkTarget = URL(c='recommender', f='my_co_recommendations', scheme=scheme, host=host, port=port)
+		recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
+		mySubject = '%(applongname)s: Your co-recommendation of a %(articlePrePost)s' % locals()
+		for contrib in contribs:
+			destPerson = mkUser(auth, db, contrib.contributor_id)
+			destAddress = db.auth_user[contrib.contributor_id]['email']
+			
+			if newStatus == 'Recommended':
+				linkTarget = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+				content = """Dear %(destPerson)s,<p>
 The recommendation for the %(articlePrePost)s by <i>%(articleAuthors)s</i> and entitled <b>%(articleTitle)s</b> (doi %(articleDoi)s) is now published on <i>%(applongname)s</i> website: <a href="%(linkTarget)s">%(linkTarget)s</a>.<p>
 We warmly thank you for co-writing this recommendation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-		
-		else:
-			content = """Dear %(destPerson)s,<p>
+			
+			else:
+				content = """Dear %(destPerson)s,<p>
 You are co-recommender of the article by %(articleAuthors)s entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s).<p>
 The status of this article has changed from "%(tOldStatus)s" to "%(tNewStatus)s".<p>
 You can view the evaluation process by following this link: <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contribtions —> Your co-recommendations' in the top menu.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
-		
-		try:
-			myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-			mail_resu = mail.send(to=[destAddress],
-							subject=mySubject,
-							message=myMessage,
-						)
-		except Exception, e:
-			raise(e)
-		if mail_resu:
-			report.append( 'email sent to contributor %s' % destPerson.flatten() )
-		else:
-			report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
-		time.sleep(mail_sleep)
+			
+			try:
+				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+				mail_resu = mail.send(to=[destAddress],
+								subject=mySubject,
+								message=myMessage,
+							)
+			except Exception, e:
+				raise(e)
+			if mail_resu:
+				report.append( 'email sent to contributor %s' % destPerson.flatten() )
+			else:
+				report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
+			time.sleep(mail_sleep)
 	
 	print '\n'.join(report)
 	if session.flash is None:
@@ -1982,10 +2187,11 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					emailing0 = ''
 				if mail_resu:
 					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
-					review.review_state = 'Pending'
+					if (review.review_state is None):
+						review.review_state = 'Pending'
 				else:
 					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
-					review.review_state = ''
+					#review.review_state = ''
 				emailing += myRenderedMessage
 				emailing += '<hr>'
 				emailing += emailing0

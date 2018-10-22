@@ -219,9 +219,21 @@ def do_delete_article():
 def suggest_article_to():
 	articleId = request.vars['articleId']
 	recommenderId = request.vars['recommenderId']
+	exclude = request.vars['exclude']
+	excludeList = []
+	if exclude:
+		#excludeList = map(int, exclude.split(','))
+		for v in exclude:
+			excludeList.append(int(v))
+	vars = request.vars
 	do_suggest_article_to(auth, db, articleId, recommenderId)
-	redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-
+	excludeList.append(recommenderId)
+	vars['exclude'] = excludeList
+	session.flash = T('Suggester recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
+	#redirect(request.env.http_referer)
+	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+	#redirect(URL(f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
+	redirect(URL(f='search_recommenders', vars=vars, user_signature=True))
 
 
 ######################################################################################################################################################################
@@ -281,7 +293,8 @@ def add_suggested_recommender():
 									LI(mkUser(auth, db, con.auth_user.id),
 									A('Remove', _class='btn btn-warning', _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;'),
 									))
-		excludeList = ','.join(map(str,reviewersIds))
+		#excludeList = ','.join(map(str,reviewersIds))
+		excludeList = reviewersIds
 		if len(recommendersList)>0:
 			myContents = DIV(
 				LABEL(T('Suggested recommenders:')),
@@ -372,7 +385,11 @@ def search_recommenders():
 	excludeList = []
 	articleId = None
 	for myVar in myVars:
-		if isinstance(myVars[myVar], list):
+		if (myVar == 'exclude'):
+			#excludeList = map(int, myValue.split(','))
+			for v in myVars[myVar]:
+				excludeList.append(int(v))
+		elif isinstance(myVars[myVar], list):
 			myValue = (myVars[myVar])[1]
 		else:
 			myValue = myVars[myVar]
@@ -382,8 +399,6 @@ def search_recommenders():
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'articleId'):
 			articleId = myValue
-		elif (myVar == 'exclude'):
-			excludeList = map(int, myValue.split(','))
 	if articleId is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	art = db.t_articles[articleId]
@@ -425,7 +440,7 @@ def search_recommenders():
 				
 		temp_db.qy_recomm._id.readable = False
 		temp_db.qy_recomm.uploaded_picture.readable = False
-		links = [dict(header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id)),]
+		links = [dict(header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),]
 		selectable = None
 		temp_db.qy_recomm.num.readable = False
 		temp_db.qy_recomm.score.readable = False
@@ -440,12 +455,17 @@ def search_recommenders():
 			,orderby=temp_db.qy_recomm.num
 			,args=request.args
 		)
-		myAcceptBtn = DIV(A(SPAN(current.T('I don\'t wish to suggest recommenders now'), _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId)), _class='button'), _style='text-align:center; margin-top:16px;')
+		if len(excludeList) > 1:
+			btnTxt = current.T('Done')
+		else:
+			btnTxt = current.T('I don\'t wish to suggest recommenders now')
+		myAcceptBtn = DIV(A(SPAN(btnTxt, _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId, exclude=excludeList)), _class='button'), _style='text-align:center; margin-top:16px;')
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
 					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
+					myUpperBtn=myAcceptBtn,
 					myAcceptBtn=myAcceptBtn,
 					searchForm=searchForm, 
 					grid=grid, 
@@ -456,10 +476,14 @@ def search_recommenders():
 
 ######################################################################################################################################################################
 def suggest_article_to_all(articleId, recommenderIds):
+	added = []
 	for recommenderId in recommenderIds:
 		do_suggest_article_to(auth, db, articleId, recommenderId)
-	redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	
+		added.append(mkUser(auth, db, recommenderId))
+	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+	session.flash = T('Suggester recommenders %s added.') % (', '.join(added))
+	redirect(request.env.http_referer)
+
 
 
 ######################################################################################################################################################################
@@ -506,10 +530,12 @@ def suggested_recommenders():
 def mkSuggestedRecommendersUserButton(auth, db, row):
 	butts = []
 	suggRecomsTxt = []
-	exclude = [str(auth.user_id)]
+	#exclude = [str(auth.user_id)]
+	excludeList = [auth.user_id]
 	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
 	for sr in suggRecomms:
-		exclude.append(str(sr.suggested_recommender_id))
+		#excludeList.append(str(sr.suggested_recommender_id))
+		excludeList.append(sr.suggested_recommender_id)
 		if sr.declined:
 			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+I(XML('&nbsp;declined'))+BR())
 		else:
@@ -517,7 +543,7 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
 	if row.status in ('Pending', 'Awaiting consideration'):
-		myVars = dict(articleId=row['id'])
+		myVars = dict(articleId=row['id'], exclude=excludeList)
 		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	return butts
 
@@ -532,7 +558,7 @@ def my_articles():
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
 	db.t_articles.auto_nb_recommendations.writable = False
-	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+	db.t_articles.status.represent = lambda text, row: mkStatusDivUser(auth, db, text)
 	db.t_articles.status.writable = False
 	db.t_articles._id.represent = lambda text, row: mkArticleCellNoRecomm(auth, db, row)
 	db.t_articles._id.label = T('Article')
@@ -580,7 +606,7 @@ def my_articles():
 				myHelp = getHelp(request, auth, db, '#UserMyArticles'),
 				myText=getText(request, auth, db, '#UserMyArticlesText'),
 				myTitle=getTitle(request, auth, db, '#UserMyArticlesTitle'),
-				grid=grid, 
+				grid=DIV(grid, _style='max-width:100%; overflow-x:auto;'), 
 			 ) 
 
 
@@ -634,7 +660,7 @@ def recommendations():
 			else:
 				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 					DIV(
-						DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
+						DIV(mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText'),
 						_class='pci-ArticleHeaderIn'
 					))
 			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
@@ -686,7 +712,7 @@ def my_reviews():
 	db.t_articles._id.label = T('Article')
 	db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
 	db.t_recommendations._id.label = T('Recommendation')
-	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+	db.t_articles.status.represent = lambda text, row: mkStatusDivUser(auth, db, text)
 	db.t_reviews.last_change.label = T('Days elapsed')
 	db.t_reviews.last_change.represent = lambda text,row: mkElapsed(text)
 	db.t_reviews.reviewer_id.writable = False

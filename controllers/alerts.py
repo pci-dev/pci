@@ -117,6 +117,7 @@ def testUserRecommendedAlert():
 # function called daily
 #@auth.requires_login()
 def alertUsersLastRecommendations():
+	mailDelay = myconf.take('alerts.delay') or 10
 	conditions = ['client' not in request, auth.has_membership(role='manager')]
 	if any(conditions):
 		my_date = date.today()
@@ -150,5 +151,5 @@ def alertUsersLastRecommendations():
 						user.last_alert = datetime.now()
 						user.update_record()
 						db.commit()
-			sleep(3) # try to avoid mailer black-listing
+			sleep(mailDelay) # try to avoid mailer black-listing
 

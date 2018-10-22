@@ -120,6 +120,7 @@ def search_reviewers():
 		if recommId:
 			recomm = db.t_recommendations[recommId]
 			if recomm:
+				excludeList.append(recomm.recommender_id)
 				art = db.t_articles[recomm.article_id]
 				if art:
 					uid = art.user_id
@@ -357,24 +358,26 @@ def article_details():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	amIAllowed = db( (db.t_recommendations.article_id == articleId) ).count() == 0
-	if not(amIAllowed):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
+	amIAllowed = db(  (( db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
+					| (( db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id) & (db.t_suggested_recommenders.declined == False))
+				).count() > 0
+	if (amIAllowed is False) and (art.status == 'Awaiting consideration') and (auth.has_membership(role='recommender')):
+		amIAllowed = True
+	
+	if amIAllowed:
+		alreadyUnderProcess = (db( (db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id != auth.user_id) ).count() > 0) 
+		
 		if printable:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
+			myTitle = DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 				DIV(
-					#DIV(T(art.status), _class='pci-ArticleText printable'),
 					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
 					_class='pci-ArticleHeaderIn printable'
 				))
 			myUpperBtn = ''
 			response.view='default/recommended_article_printable.html' #OK
 		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+			myTitle = DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
 				DIV(
-					#DIV(T(art.status), _class='pci-ArticleText'),
 					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
 					_class='pci-ArticleHeaderIn'
 				))
@@ -383,8 +386,20 @@ def article_details():
 				_class='button')
 			response.view='default/recommended_articles.html' #OK
 		
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
+		if alreadyUnderProcess:
+			contact = myconf.take('contacts.managers')
+			myContents = DIV(
+				SPAN("Another recommender has already selected this article (DOI: ", mkDOI(art.doi), "), for which you were considering handling the evaluation. If you wish, we can inform the recommender handling this article that you would like to be a co-recommender or a reviewer (which would be much appreciated). If you are willing to help in this way, simply send us a message at: "), 
+				A(contact, _href='mailto:%s' % contact), 
+				SPAN(" stating that you want to become a co-recommender or a reviewer, and we will alert the recommender."),
+				BR(),
+				SPAN("Otherwise, you may",
+				A(T('decline'), _href=URL('recommender', 'decline_new_article_to_recommend', vars=dict(articleId=articleId)), _class="btn btn-info")),
+				SPAN(' this suggestion.'),
+				_class="pci-alreadyUnderProcess")
+		else:
+			myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+			myContents.append(HR())
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
@@ -394,6 +409,8 @@ def article_details():
 					statusTitle=myTitle,
 					myContents=myContents,
 				)
+	else:
+		raise HTTP(403, "403: "+T('Access denied'))
 
 
 
@@ -786,17 +803,23 @@ def recommendations():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art is None:
+		print("Missing article %s" % articleId)
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	amIAllowed = db(
-					(
-						(db.t_recommendations.recommender_id == auth.user_id)
-					  | ( (db.t_press_reviews.contributor_id == auth.user_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) )
-					)
+	# NOTE: 2018-09-05 bug corrected by splitting the query and adding counts; weird but it works
+	countPre = db(
+					(db.t_recommendations.recommender_id == auth.user_id)
 				  & (db.t_recommendations.article_id == articleId) 
-			).count() > 0
+			).count()
+	countPost = db(
+					( (db.t_press_reviews.contributor_id == auth.user_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) )
+				  & (db.t_recommendations.article_id == articleId) 
+			).count()
+	amIAllowed = ((countPre + countPost) > 0)
 	if not(amIAllowed):
+		print("Not allowed: userId=%s, articleId=%s" % (auth.user_id, articleId))
+		print(db._lastsql)
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
@@ -894,11 +917,11 @@ def one_review():
 	db.t_reviews.review.writable = auth.has_membership(role='manager')
 	db.t_reviews.review_state.writable = auth.has_membership(role='manager')
 	db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
+	db.t_reviews.review.represent = lambda text,row: WIKI(text)
 	#db.t_reviews.review_pdf
 	form = SQLFORM(db.t_reviews, record=revId, readonly=True
 					,fields=['reviewer_id', 'no_conflict_of_interest', 'anonymously', 'review', 'review_pdf']
 					,showid=False
-					#,buttons=buttons
 					,upload=URL('default', 'download')
 				)
 	response.view='default/myLayout.html'
@@ -939,7 +962,7 @@ def reviews():
 		db.t_reviews.review_state.writable = auth.has_membership(role='manager')
 		db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
 		db.t_reviews.emailing.writable = False
-		db.t_reviews.emailing.represent = lambda text,row: XML(text)
+		db.t_reviews.emailing.represent = lambda text,row: XML(text) if text else ''
 		db.t_reviews.last_change.writable = True
 		
 		if len(request.args)==0 or (len(request.args)==1 and request.args[0]=='auth_user'): # grid view
@@ -950,7 +973,6 @@ def reviews():
 			selectable = None
 			db.t_reviews.review.represent = lambda text, row: WIKI(text or '')
 			db.t_reviews.emailing.readable = True
-			db.t_reviews.emailing.represent = lambda text, row: WIKI(text or '')
 		
 		query = (db.t_reviews.recommendation_id == recommId)
 		grid = SQLFORM.grid( query
@@ -1772,16 +1794,22 @@ def edit_recommendation():
 			myText=getText(request, auth, db, '#RecommenderEditDecisionText')
 			myHelp=getHelp(request, auth, db, '#RecommenderEditDecision')
 			myTitle=getTitle(request, auth, db, '#RecommenderEditDecisionTitle')
-		#db.t_recommendations.no_conflict_of_interest.writable = not(recomm.no_conflict_of_interest)
+		
+		if isPress:
+			fields = ['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments']
+		else:
+			fields = ['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments', 'recommender_file', 'recommender_file_data']
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
-					,fields=['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments']
+					,fields=fields
 					,showid=False
 					,buttons=buttons
+					,upload=URL('default', 'download')
 				)
 		if isPress is False:
 			form.insert(0, triptyque)
+
 		if form.process().accepted:
 			if form.vars.save:
 				if form.vars.recommender_opinion == 'do_recommend':
@@ -1793,6 +1821,15 @@ def edit_recommendation():
 				recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
 				recomm.recommendation_title = form.vars.recommendation_title
 				recomm.recommendation_comments = form.vars.recommendation_comments
+				# manual bypass:
+				rf = request.vars.recommender_file
+				if rf is not None:
+					if hasattr(rf, 'value'):
+						recomm.recommender_file_data = rf.value
+						recomm.recommender_file = rf
+					elif (hasattr(request.vars, 'recommender_file__delete') and request.vars.recommender_file__delete == 'on'):
+						recomm.recommender_file_data = None
+						recomm.recommender_file = None
 				recomm.update_record()
 				session.flash = T('Recommendation saved', lazy=False)
 				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress)))
@@ -1801,6 +1838,16 @@ def edit_recommendation():
 				recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
 				recomm.recommendation_title = form.vars.recommendation_title
 				recomm.recommendation_comments = form.vars.recommendation_comments
+				recomm.recommender_file = form.vars.recommender_file
+				# manual bypass:
+				rf = request.vars.recommender_file
+				if rf is not None:
+					if hasattr(rf, 'value'):
+						recomm.recommender_file_data = rf.value
+						recomm.recommender_file = rf
+					elif (hasattr(request.vars, 'recommender_file__delete') and request.vars.recommender_file__delete == 'on'):
+						recomm.recommender_file_data = None
+						recomm.recommender_file = None
 				if isPress is False:
 					if form.vars.recommender_opinion == 'do_recommend':
 						recomm.recommendation_state = 'Recommended'

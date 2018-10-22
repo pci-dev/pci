@@ -10,6 +10,8 @@ from helper import *
 from datetime import datetime, timedelta, date
 from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
+from lxml import etree
+
 myconf = AppConfig(reload=True)
 
 # frequently used constants
@@ -146,6 +148,11 @@ def rec():
 	else:
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
+	# NOTE: check id is numeric!
+	if (not articleId.isdigit()):
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+		
 	art = db.t_articles[articleId]
 	if art == None:
 		session.flash = T('Unavailable')
@@ -389,3 +396,62 @@ def rss():
 	d = cache.ram('rss_content', lambda: _rss_cacher(maxArticles), time_expire=timeExpire)
 	return(d)
 
+
+
+#NOTE: custom RSS for bioRxiv
+#<links>
+  #<link providerId="PCI">
+    #<resource>
+        #<title>Version 3 of this preprint has been peer-reviewed and recommended by Peer Community in Evolutionary Biology</title>
+        #<url>https://dx.doi.org/10.24072/pci.evolbiol.100055</url>
+        #<editor>Charles Baer</editor>
+        #<date>2018-08-08</date>
+        #<reviewers>anonymous and anonymous</reviewers>
+        #<logo>https://peercommunityindotorg.files.wordpress.com/2018/09/small_logo_pour_pdf.png</logo>
+    #</resource>
+    #<doi>10.1101/273367</doi> 
+  #</link>
+#</links>
+def rss4bioRxiv():
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	title=myconf.take('app.longname')
+	contact=myconf.take('contacts.managers')
+	managingEditor='%(contact)s (%(title)s contact)' % locals()
+	favicon = XML(URL(c='static', f='images/favicon.png', scheme=scheme, host=host, port=port))
+	response.headers['Content-Type'] = 'application/rss+xml'
+	response.view='rsslayout.rss'
+	query = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_articles.already_published==False)
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, orderby=~db.t_articles.last_status_change)
+	links = etree.Element('links')
+	for row in query:
+		#try:
+			r = mkRecommArticleRss4bioRxiv(auth, db, row)
+			if r:
+				link = etree.Element('link', attrib=dict(providerId='PCI'))
+				resource = etree.SubElement(link, 'resource')
+				title = etree.SubElement(resource, 'title')
+				title.text = r['title']
+				url = etree.SubElement(resource, 'url')
+				url.text = r['url']
+				editor = etree.SubElement(resource, 'editor')
+				editor.text = r['editor']
+				reviewers = etree.SubElement(resource, 'reviewers')
+				reviewers.text = r['reviewers']
+				date = etree.SubElement(resource, 'date')
+				date.text = str(r['date'])
+				logo = etree.SubElement(resource, 'logo')
+				logo.text = str(r['logo'])
+				doi = etree.SubElement(link, 'doi')
+				doi.text = r['doi']
+				links.append(link)
+		#except Exception, e:
+			#raise e
+			#pass
+	return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)
+	

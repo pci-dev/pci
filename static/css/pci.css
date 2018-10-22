@@ -328,3 +328,7 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-mapDiv {width:100%; text-align:center;}
 .pci-mapImg {margin-left:auto; margin-right:auto;}
+
+.pci-emailing-btn {color:blue; background-color:#dddddd;}
+.pci-alreadyUnderProcess {width:66%; text-align:center; margin-left:auto; margin-right:auto; padding:12px; border:4px solid #cccccc; border-radius:16px;}
+.pci-emailingTD {max-height:200px; overflow:auto;}

@@ -246,7 +246,7 @@ for sa in db(db.t_status_article).select():
 
 db.define_table('t_articles',
 	Field('id', type='id'),
-	Field('anonymous_submission', type='boolean', label=T('I wish an anonymous submission (submitter concealed to recommenders and reviewers)'), default=False),
+	Field('anonymous_submission', type='boolean', label=T('I wish an anonymous submission (submitter concealed to reviewers)'), default=False),
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY(), represent=lambda t,r: ('') if (r.anonymous_submission) else (t)),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, volume, pages)')),
@@ -322,6 +322,7 @@ def deltaStatus(s, f):
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
+				do_send_email_to_reviewers_cancellation(session, auth, db, o['id'], f['status'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 			elif o.status != f['status']:
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
@@ -330,6 +331,11 @@ def deltaStatus(s, f):
 				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended'):
 					do_send_email_decision_to_reviewer(session, auth, db, o['id'], f['status'])
 					do_send_email_to_requester(session, auth, db, o['id'], f['status'])
+				if f['status'] in ('Rejected', 'Recommended'):
+					lastRecomm = db( (db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False) ).select(db.t_recommendations.ALL)
+					for lr in lastRecomm:
+						lr.is_closed = True
+						lr.update_record()
 	return None
 
 def newArticle(s, articleId):
@@ -351,7 +357,7 @@ def updArticleThumb(s,f):
 db.define_table('t_recommendations',
 	Field('id', type='id'),
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
-	Field('doi', type='string', length=512, label=T('DOI'), represent=lambda text, row: mkDOI(text) ),
+	Field('doi', type='string', length=512, label=T('DOI (or URL)'), represent=lambda text, row: mkDOI(text) ),
 	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
 	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), requires=IS_NOT_EMPTY()),
@@ -367,6 +373,8 @@ db.define_table('t_recommendations',
 	Field('reply_pdf_data', type='blob'), #, readable=False),
 	Field('track_change', type='upload', uploadfield='track_change_data', label=T('Tracked changes document (eg. PDF or Word file)')),
 	Field('track_change_data', type='blob', readable=False),
+	Field('recommender_file', type='upload', uploadfield='recommender_file_data', label=T('Recommender\'s annotations (PDF)'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
+	Field('recommender_file_data', type='blob', readable=False),
 	format=lambda row: mkRecommendationFormat(auth, db, row),
 	singular=T("Recommendation"), 
 	plural=T("Recommendations"),
@@ -492,8 +500,9 @@ db.define_table('t_suggested_recommenders',
 	Field('id', type='id'),
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
 	Field('suggested_recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Suggested recommender')),
-	Field('email_sent', type='boolean', default=False, label=T('email sent')),
+	Field('email_sent', type='boolean', default=False, label=T('Email sent')),
 	Field('declined', type='boolean', default=False, label=T('Declined')),
+	Field('emailing', type='text', length=2097152, label=T('Emails history'), readable=False, writable=False),
 	singular=T("Suggested recommender"), 
 	plural=T("Suggested recommenders"),
 	migrate=False,
@@ -524,6 +533,10 @@ db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
 def newPressReview(s,i):
 	do_send_email_to_one_contributor(session, auth, db, i)
 
+db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
+def delPressReview(s):
+	pr = s.select().first()
+	do_send_email_to_delete_one_contributor(session, auth, db, pr.id)
 
 db.define_table('t_comments',
 	Field('id', type='id'),

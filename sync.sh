@@ -56,7 +56,9 @@ ssh www-data@gaia2 "find /home/www-data/web2py/applications/PCiEvolBiol -name \\
 # echo "ALTER TABLE public.t_articles ADD COLUMN anonymous_submission boolean DEFAULT false;"  | psql -h gaia2 -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-07-04_SearchArticles.sql  | psql -h gaia2 -U piry pci_evolbiol
 # echo "ALTER TABLE public.t_articles ADD COLUMN cover_letter text;"  | psql -h gaia2 -U piry pci_evolbiol_test
-# cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | psql -h gaia2 -U piry pci_evolbiol
+# cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "ALTER TABLE public.t_recommendations ADD COLUMN recommender_file character varying(512); ALTER TABLE public.t_recommendations ADD COLUMN recommender_file_data bytea;" | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "ALTER TABLE public.t_suggested_recommenders ADD COLUMN emailing text;" | psql -h gaia2 -U piry pci_evolbiol_test
 
 # Delete local datamatrix
 rm -f $datam

@@ -103,7 +103,7 @@ def list_users():
 	fields = [
 			db.auth_user.id, db.auth_user.registration_key, db.auth_user.uploaded_picture, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.registration_datetime, db.auth_user.laboratory, db.auth_user.institution, db.auth_user.city, db.auth_user.country, db.auth_user.thematics, db.auth_user.alerts, 
 			db.auth_membership.user_id, db.auth_membership.group_id,
-			db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.already_published, db.t_articles.status, 
+			db.t_articles.id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.already_published, db.t_articles.status, 
 			db.t_recommendations.id, db.t_recommendations.article_id, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_state, db.t_recommendations.recommendation_title, 
 			db.t_reviews.id, db.t_reviews.recommendation_id, db.t_reviews.review_state, db.t_reviews.review,
 			db.t_press_reviews.id, db.t_press_reviews.recommendation_id,
@@ -112,6 +112,9 @@ def list_users():
 	db.auth_user._id.readable=True
 	db.auth_user._id.represent=lambda i,row: mkUserId(auth, db, i, linked=True)
 	db.t_reviews.recommendation_id.label = T('Article DOI')
+	db.t_articles.anonymous_submission.label = T('Anonymous submission')
+	db.t_articles.anonymous_submission.represent = lambda text,row: mkAnonymousMask(auth, db, text)
+	db.t_articles.already_published.represent = lambda text,row: mkJournalImg(auth, db, text)
 	db.auth_user.registration_key.represent = lambda text,row: SPAN(text, _class="pci-blocked") if (text=='blocked' or text=='disabled') else text
 	grid = SQLFORM.smartgrid(db.auth_user
 				,fields=fields
