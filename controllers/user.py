@@ -532,7 +532,7 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	suggRecomsTxt = []
 	#exclude = [str(auth.user_id)]
 	excludeList = [auth.user_id]
-	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
+	suggRecomms = db(db.t_suggested_recommenders.article_id==row['t_articles.id']).select()
 	for sr in suggRecomms:
 		#excludeList.append(str(sr.suggested_recommender_id))
 		excludeList.append(sr.suggested_recommender_id)
@@ -542,8 +542,8 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
-	if row.status in ('Pending', 'Awaiting consideration'):
-		myVars = dict(articleId=row['id'], exclude=excludeList)
+	if row["t_articles.status"] in ('Pending', 'Awaiting consideration'):
+		myVars = dict(articleId=row['t_articles.id'], exclude=excludeList)
 		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	return butts
 
@@ -573,7 +573,7 @@ def my_articles():
 			dict(header=T('Recommender(s)'), body=lambda row: getRecommender(auth, db, row)),
 			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button pci-submitter'), 
 												_target="_blank", 
-												_href=URL(c='user', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
+												_href=URL(c='user', f='recommendations', vars=dict(articleId=row["t_articles.id"]), user_signature=True), 
 												_class='button', 
 												_title=current.T('View and/or edit article')
 											)

@@ -18,7 +18,7 @@ from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
-from sqlhtml import *
+from gluon.sqlhtml import *
 
 myconf = AppConfig(reload=True)
 
@@ -311,9 +311,13 @@ def mkArticleCell(auth, db, art):
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link
-def mkArticleCellNoRecomm(auth, db, art):
+def mkArticleCellNoRecomm(auth, db, art0):
 	anchor = ''
-	if art:
+	if art0:
+		if ('t_articles' in art0):
+			art = art0.t_articles
+		else:
+			art = art0
 		anchor = DIV(
 					B(art.title),
 					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
@@ -1851,7 +1855,7 @@ def makeResourceThumbnail(auth, db, resourceId, size=(150,150)):
 
 ######################################################################################################################################################################
 def getRecommender(auth, db, row):
-	recomm = db( db.t_recommendations.article_id == row.id ).select(db.t_recommendations.id, db.t_recommendations.recommender_id, orderby=db.t_recommendations.id).last()
+	recomm = db( db.t_recommendations.article_id == row["t_articles.id"] ).select(db.t_recommendations.id, db.t_recommendations.recommender_id, orderby=db.t_recommendations.id).last()
 	if recomm and recomm.recommender_id:
 		#return mkUser(auth, db, recomm.recommender_id)
 		resu = SPAN(mkUser(auth, db, recomm.recommender_id))
@@ -2043,7 +2047,6 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 			else:
 				reviewers += 'one anonymous reviewer'
 	reviewersStr = ''.join(reviewers)
-	print(reviewers)
 	
 	local = pytz.timezone ("Europe/Paris")
 	local_dt = local.localize(row.last_status_change, is_dst=None)

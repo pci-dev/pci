@@ -37,8 +37,8 @@ def _DevMenu():
     txtMenu = T('Development')
     return [
         (txtMenu, False, '#', [
-			#(T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
-            #LI(_class="divider"),
+	    (T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
+            LI(_class="divider"),
             (T('Design'), False, URL('admin', 'default', 'design/%s' % app)),
             LI(_class="divider"),
             (T('Controller'), False,

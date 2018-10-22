@@ -5,7 +5,7 @@
 
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Recaptcha, Recaptcha2
+from gluon.tools import Recaptcha2
 
 from gluon.custom_import import track_changes; track_changes(True)
 from common import *
@@ -571,21 +571,21 @@ db.define_table('v_last_recommendation',
 	Field('id', type='id'), 
 	Field('last_recommendation', type='datetime', label=T('Last recommendation')),
 	Field('days_since_last_recommendation', type='integer', label='Days since last recommendation'),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
 db.define_table('v_suggested_recommenders',
 	Field('id', type='id'),
 	Field('suggested_recommenders', type='text', label=T('Suggested recommenders')),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
 db.define_table('v_article_recommender',
 	Field('id', type='id'),
 	Field('recommender', type='text', label=T('Recommender')),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
@@ -593,7 +593,7 @@ db.define_table('v_article_recommender',
 db.define_table('v_reviewers',
 	Field('id', type='id'),
 	Field('reviewers', type='text', label=T('Reviewers')),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
@@ -601,7 +601,7 @@ db.define_table('v_reviewers',
 db.define_table('v_recommendation_contributors',
 	Field('id', type='id'),
 	Field('contributors', type='text', label=T('Co-recommenders')),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
@@ -609,7 +609,7 @@ db.define_table('v_recommendation_contributors',
 db.define_table('v_roles',
 	Field('id', type='id'),
 	Field('roles', type='string', length=512, label=T('Roles')),
-	writable=False,
+	#writable=False,
 	migrate=False,
 )
 
