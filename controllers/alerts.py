@@ -117,7 +117,7 @@ def testUserRecommendedAlert():
 # function called daily
 #@auth.requires_login()
 def alertUsersLastRecommendations():
-	mailDelay = myconf.take('alerts.delay') or 10
+	mailDelay = float(myconf.take('alerts.delay') or 10.0)
 	conditions = ['client' not in request, auth.has_membership(role='manager')]
 	if any(conditions):
 		my_date = date.today()
