@@ -996,8 +996,11 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	submitter = FakeSubmitter()
 	hideSubmitter = True
 	qyIsRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommender_id==auth.user_id) ).count()
-	if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (auth.has_membership(role='manager')) ):
+	qyIsCoRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.t_press_reviews.contributor_id==auth.user_id) ).count()
+	if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role='manager')) ):
 		submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+		if submitter is None:
+			submitter = FakeSubmitter()
 		hideSubmitter = False
 	allowOpinion = None
 	###NOTE: article facts
@@ -1361,7 +1364,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 def mkLastRecommendation(auth, db, articleId):
 	lastRecomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	if lastRecomm:
-		return lastRecomm.recommendation_title or ''
+		return DIV(lastRecomm.recommendation_title or '', _class='pci-w200Cell')
 	else:
 		return ''
 
@@ -1509,8 +1512,26 @@ def mkCoRecommenders(auth, db, row, goBack=URL()):
 	if art.status == 'Under consideration':
 		myVars = dict(recommId=row['id'], goBack=goBack)
 		butts.append( A(txt, _class='btn btn-default pci-smallBtn pci-recommender', _href=URL(c='recommender', f='add_contributor', vars=myVars, user_signature=True)) )
-	return butts
+	return DIV(butts, _class='pci-w200Cell')
 
+
+######################################################################################################################################################################
+def mkRecommendationFormat2(auth, db, row):
+	recommender = db(db.auth_user.id==row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+	if recommender:
+		recommFmt = SPAN('%s %s' % (recommender.first_name, recommender.last_name))
+	else:
+		recommFmt = ''
+	art = db.t_articles[row.article_id]
+	artRep = mkRepresentArticleLight(auth, db, art.id)
+	anchor = DIV(
+		artRep,BR(),
+		row.recommendation_title,BR(),
+		B(current.T('Recommender:')+' '), recommFmt,BR(),
+		mkDOI(row.doi),
+		_class='pci-RecommendationFormat2'
+	)
+	return anchor
 
 ######################################################################################################################################################################
 def mkRecommendationFormat(auth, db, row):
@@ -1557,7 +1578,7 @@ def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False)
 		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
 		return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port)
 	else:
-		return ''
+		return SPAN('')
 
 ######################################################################################################################################################################
 def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=False):
@@ -1866,7 +1887,7 @@ def getRecommender(auth, db, row):
 			resu.append(BR())
 			for corecommender in corecommenders:
 				resu.append(SPAN(mkUser(auth, db, corecommender.contributor_id))+BR())
-		return(resu)
+		return(DIV(resu, _class='pci-w200Cell'))
 	else:
 		return ''
 

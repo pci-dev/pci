@@ -15,9 +15,10 @@ def rss(feed):
 	def safestr(obj, key, default=''):
 		return safe_encode(obj.get(key,''))
 
-	local = pytz.timezone ("Europe/Paris")
-	local_dt = local.localize(datetime.datetime.now(), is_dst=None)
-	now = local_dt.astimezone (pytz.utc)
+	#local = pytz.timezone ("Europe/Paris")
+	#local_dt = local.localize(datetime.datetime.now(), is_dst=None)
+	#now = local_dt.astimezone (pytz.utc)
+	now = datetime.datetime.utcnow()
 	img = rss2.Image(url=feed.get('image'), title=safestr(feed,'title'), link=safestr(feed,'link'))
 	link = safestr(feed,'link')
 	#thisLink=feed.get('thisLink', link)

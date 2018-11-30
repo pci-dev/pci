@@ -33,6 +33,7 @@ div.w2p_flash.alert {background-color: #ffb26f; background-image:initial; top:90
 /* for paginator duplication on top of grid (see layout.html)*/
 .web2py_paginator {margin-top:5px; margin-bottom:5px;}
 .web2py_counter {width:100%;}
+.web2py_table {max-width:100%;}
 
 /*.tooltip {
 	-webkit-transition: all 150ms ease-in-out;
@@ -110,6 +111,7 @@ header{box-shadow:none;} /* Don't remove */
 
 /* #qy_art-title {width: 33%;} */
 /* #qy_art-id {width: 33%;} */
+#qy_art-abstract {max-width:300px;}
 
 /* #t_articles-doi {width: 120px;} */
 
@@ -205,7 +207,10 @@ header{box-shadow:none;} /* Don't remove */
 .pci-text-button-edit {font-size:8px;}
 .pci-text-title {font-size:36px; font-weight:400; color:#598398; margin-bottom:10px;}
 
-.pci-div4wiki {max-height:200px; overflow:auto;}
+.pci-div4wiki {max-width:400px; max-height:200px; overflow:auto;}
+/* .pci-w200Cell {max-width:180px; overflow:auto; border:1px solid #000000; border-radius:4px; padding:4px;} */
+.pci-w200Cell {max-width:200px; overflow:auto;}
+.pci-RecommendationFormat2 {width:800px; overflow:auto; border:1px solid #aaaaaa; border-radius:4px; padding:4px;}
 
 .pci-alreadyPeerReviewedRadio {}
 

@@ -99,6 +99,8 @@ auth = Auth(db, host_names=myconf.get('host.names'))
 service = Service()
 plugins = PluginManager()
 
+auth.settings.expiration = 10800 # 3h in seconds
+#auth.settings.expiration = 60 # 1min (test)
 
 # -------------------------------------------------------------------------
 # HTML editor as a widget
@@ -199,6 +201,7 @@ More information can be found on the website of """+myconf.get('app.longname')+"
 db.auth_user._before_update.append(lambda s,f: newRegistration(s,f))
 def newRegistration(s,f):
 	o = s.select().first()
+	# BUG: missing key "registration_key" error occurs when password reset and account not confirmed
 	if o.registration_key != '' and f['registration_key'] == '':
 		do_send_mail_new_user(session, auth, db, o.id)
 		do_send_mail_admin_new_user(session, auth, db, o.id)
@@ -413,6 +416,7 @@ db.define_table('t_pdf',
 )
 
 
+
 db.define_table('t_resources',
 	Field('id', type='id', readable=False, writable=False),
 	Field('resource_rank', type='integer', label=T('Rank')),
@@ -439,6 +443,8 @@ def updResourceThumb(s,f):
 	o = s.select().first()
 	makeResourceThumbnail(auth, db, o.id, size=(150,150))
 	return None
+
+
 
 db.define_table('t_supports',
 	Field('id', type='id', readable=False, writable=False),
@@ -537,6 +543,8 @@ db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
 def delPressReview(s):
 	pr = s.select().first()
 	do_send_email_to_delete_one_contributor(session, auth, db, pr.id)
+
+
 
 db.define_table('t_comments',
 	Field('id', type='id'),

@@ -545,7 +545,7 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 	if row["t_articles.status"] in ('Pending', 'Awaiting consideration'):
 		myVars = dict(articleId=row['t_articles.id'], exclude=excludeList)
 		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
-	return butts
+	return DIV(butts, _class='pci-w200Cell')
 
 
 
@@ -724,7 +724,7 @@ def my_reviews():
 	#db.t_reviews.review.readable=False
 	db.t_reviews.review_state.represent = lambda text,row: mkReviewStateDiv(auth, db, text)
 	db.t_reviews.anonymously.represent = lambda anon,row: mkAnonymousMask(auth, db, anon)
-	#db.t_reviews.review.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+	db.t_reviews.review.represent=lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
 	#db.t_reviews.review.label = T('Your review')
 	#links = [dict(header='toto', body=lambda row: row.t_articles.id),]
 	links = [

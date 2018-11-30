@@ -244,13 +244,20 @@ def article_status():
 # PDF management
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def manage_pdf():
+	# Do the complex query in full sql and return valid ids
+	myList = []
+	myQy = db.executesql('SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE p.id IS NULL AND a.status IN (\'Recommended\', \'Pre-recommended\') AND r.recommendation_state LIKE \'Recommended\';')
+	for q in myQy:
+		myList.append(q[0])
+	mySet = db((db.t_recommendations.id.belongs(myList)))
+	db.t_recommendations._format = lambda row: mkRecommendationFormat2(auth, db, row)
+	db.t_pdf.recommendation_id.requires=IS_IN_DB(mySet, 't_recommendations.id', db.t_recommendations._format, orderby=db.t_recommendations.id)
+	db.t_pdf.recommendation_id.widget = SQLFORM.widgets.radio.widget
 	grid = SQLFORM.grid( db.t_pdf
 		,details=False, editable=True, deletable=True, create=True, searchable=False
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
 		,fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf]
-		#,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics]
-		#,links=links
 		,orderby=~db.t_pdf.id
 	)
 	response.view='default/myLayout.html'
@@ -448,7 +455,7 @@ def recap_reviews():
 	return dict(
 				myText=getText(request, auth, db, '#AdminRecapReviews'),
 				myTitle=getTitle(request, auth, db, '#AdminRecapReviewsTitle'),
-				grid=grid, 
+				grid=DIV(grid, _style="width:100%; overflow-x:scroll;"), 
 			)
 
 

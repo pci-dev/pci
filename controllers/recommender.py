@@ -196,9 +196,11 @@ def my_awaiting_articles():
 			  & (db.t_suggested_recommenders.declined == False)
 		)
 	db.t_articles.user_id.writable = False
+	db.t_articles.user_id.represent = lambda userId, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, mkUser(auth, db, userId))
 	#db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 	db.t_articles.auto_nb_recommendations.readable = False
-	#db.t_articles.status.readable = False
+	db.t_articles.anonymous_submission.readable = False
+	db.t_articles.anonymous_submission.writable = False
 	db.t_articles.status.writable = False
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	if len(request.args) == 0: # we are in grid
@@ -218,7 +220,7 @@ def my_awaiting_articles():
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		,fields=[db.t_articles._id, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
+		,fields=[db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
 		,links=[
 			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
 			dict(header=T(''), body=lambda row: mkViewEditArticleRecommenderButton(auth, db, row)),
@@ -257,8 +259,8 @@ def _awaiting_articles(myVars):
 		Field('status', type='string', length=50, default='Pending', label=T('Status')),
 		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-		Field('already_published', type='boolean'),
-		Field('anonymous_submission', type='boolean'),
+		Field('already_published', type='boolean', label=T('Postprint')),
+		Field('anonymous_submission', type='boolean', label=T('Anonymous submission')),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -281,6 +283,7 @@ def _awaiting_articles(myVars):
 	temp_db.qy_art.auto_nb_recommendations.readable = False
 	temp_db.qy_art.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
 	temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ''))
+	temp_db.qy_art.anonymous_submission.represent = lambda anon, row: mkAnonymousMask(auth, db, anon or False)
 	if len(request.args)==0: # in grid
 		temp_db.qy_art._id.readable = True
 		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
@@ -700,7 +703,7 @@ def my_recommendations():
 	db.t_recommendations.last_change.label = T('Last change')
 	db.t_recommendations.last_change.represent = lambda text, row: mkElapsedDays(row.t_recommendations.last_change) if 't_recommendations' in row else mkElapsedDays(row.last_change)
 	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkElapsedDays(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsedDays(row.recommendation_timestamp)
-	db.t_recommendations.article_id.represent = lambda aid, row: mkArticleCellNoRecomm(auth, db, db.t_articles[aid])
+	db.t_recommendations.article_id.represent = lambda aid, row: DIV(mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class='pci-w200Cell')
 	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
 	db.t_recommendations.doi.readable=False
 	db.t_recommendations.last_change.readable=True

@@ -39,6 +39,14 @@ def getMailer(auth):
 	mail.settings.ssl = myconf.get('smtp.ssl', default=False)
 	return mail
 
+# Get list of emails for all users with role 'manager'
+######################################################################################################################################################################
+def get_MB_emails(session, auth, db):
+	managers = []
+	for mm in db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.email):
+		managers.append(mm["email"])
+	return managers
+
 ######################################################################################################################################################################
 # Footer for all mails
 def mkFooter():
@@ -2142,6 +2150,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 	report = []
 	mail_resu = False
 	mail = getMailer(auth)
+	#managers=myconf.take('contacts.managers')
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
@@ -2175,6 +2184,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					myRenderedMessage = render(filename=filename, context=dict(content=XML(myMessage), footer=mkFooter()))
 					mail_resu = mail.send(to=[rev['email']],
 								cc=[cc, replyto],
+								#bcc=managers,
 								reply_to=replyto,
 								subject=subject,
 								message=myRenderedMessage,

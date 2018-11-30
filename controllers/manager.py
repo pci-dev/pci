@@ -196,7 +196,7 @@ def mkRecommenderButton(row):
 			resu.append(BR())
 			for corecommender in corecommenders:
 				resu.append(SPAN(mkUserWithMail(auth, db, corecommender.contributor_id))+BR())
-		return resu
+		return DIV(resu, _class="pci-w200Cell")
 	else:
 		return ''
 
@@ -213,7 +213,7 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
 	for sr in suggRecomms:
 		exclude.append(str(sr.suggested_recommender_id))
-		suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+(XML(':&nbsp;(declined)') if sr.declined else SPAN(''))
+		suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+(XML(' <b>(declined)</b>') if sr.declined else SPAN(''))
 			+BR()
 			+A(T('See emails...'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="blank", _class='btn btn-link pci-smallBtn pci-recommender', _style='margin-bottom:12px;')
 			#+A(T('see emails'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="_blank", _class='btn pci-smallBtn pci-emailing-btn')
@@ -230,7 +230,7 @@ def mkSuggestedRecommendersManagerButton(row, whatNext):
 	#butts.append( BR() )
 	if row.status in ('Awaiting consideration', 'Pending'):
 		butts.append( A(current.T('Add'), _class='btn btn-default pci-manager', _href=URL(c='manager', f='search_recommenders', vars=myVars, user_signature=True)) )
-	return butts
+	return DIV(butts, _class="pci-w200Cell")
 
 
 @auth.requires(auth.has_membership(role='manager'))
@@ -279,7 +279,7 @@ def _manage_articles(statuses, whatNext):
 	db.t_articles.keywords.writable = False
 	db.t_articles.auto_nb_recommendations.readable = False
 	db.t_articles.auto_nb_recommendations.writable = False
-	db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+	db.t_articles._id.represent = lambda text, row: DIV(mkRepresentArticleLight(auth, db, text), _class='pci-w200Cell')
 	db.t_articles._id.label = T('Article')
 	db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(row.upload_timestamp)
 	db.t_articles.upload_timestamp.label = T('Submission date')
