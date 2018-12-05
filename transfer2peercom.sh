@@ -38,6 +38,7 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # echo "ALTER TABLE public.t_recommendations ADD COLUMN recommender_file character varying(512); ALTER TABLE public.t_recommendations ADD COLUMN recommender_file_data bytea;" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # echo "ALTER TABLE public.t_suggested_recommenders ADD COLUMN emailing text;" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 #WARNING: check group!!
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini

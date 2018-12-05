@@ -813,7 +813,8 @@ The review by %(reviewerPerson)s of the preprint entitled <b>%(articleTitle)s</b
 <p>
 You can view and/or upload this review and manage your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.
 <p>
-If all the reviews have now been completed and returned, we now expect you, according to your commitment as a recommender of the preprint, to make a decision within 10 days. If you need more time, please let us know by return mail.
+<b>If all the reviews have now been completed</b> and returned, <b>we now expect you</b>, according to your commitment as a recommender of the preprint, <b>to make a decision within 10 days</b>.
+If you need more time, please let us know by return mail.
 <p>
 We remind you that this decision must be: ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.
 <p>
