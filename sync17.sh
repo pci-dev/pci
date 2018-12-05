@@ -27,7 +27,7 @@ echo "http://147.99.65.220:83/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 -
 
 # rsopt="--verbose --progress --times"
 rsopt="--times --verbose"
-rsync $rsopt ~/W/web2py_2.17.2/applications/pcidev/private/appconfig_gaia2.ini  www-data@gaia2:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/private/appconfig.ini
+rsync $rsopt ~/W/web2py_2.17.2/applications/pcidev/private/appconfig_gaia2.ini     www-data@gaia2:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/private/appconfig.ini
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/background.png                          www-data@gaia2:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/small-background.png                    www-data@gaia2:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/images/Workflow20180314.png             www-data@gaia2:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
