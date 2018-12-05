@@ -369,15 +369,19 @@ Yours sincerely,<p>
 			
 			elif article.status == 'Awaiting revision' and newStatus == 'Under consideration':
 				mySubject = '%s: Revised version' % (applongname)
+				mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
+				deadline = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime('%a %b %d')
 				content = """
-Dear %(destPerson)s,<p>
-You are the recommender handling the preprint by %(articleAuthors)s entitled <b>%(articleTitle)s</b>. The authors have posted their revised version and their replies to your comments and those of the reviewers. They may also have uploaded (as a PDF or Word file) a revised version of their preprint, with the modifications indicated in TrackChanges mode.<p>
-For this second round of evaluation, you must reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. To reach your new decision you may or may not need the help of reviewers. You can invite the same reviewers or another/additional reviewers via the %(applongname)s website:<br>
-1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the %(applongname)s website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<br>
-2) Click on the 'Choose a reviewer' button.<p>
-We strongly advise you to set a deadline of no more than 21 days.<p>
-If, after the second round of evaluation, you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by %(applongname)s under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has a title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference for the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by %(applongname)s.<p>
-We thank you for managing this new round of evaluation.<p>
+Dear %(destPerson)s,
+<p>
+The authors of the preprint entitled <b>%(articleTitle)s</b> and submitted by %(articleAuthors)s have posted their revised version and their replies to your comments and those of the reviewers. They may also have uploaded (as a PDF or Word file) a revised version of their preprint, with the modifications indicated in TrackChanges mode and a clean version of their PDF at this address <a href="%(linkTarget)s">%(linkTarget)s</a>.
+<p>
+For this new round of evaluation, you must reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.
+<p>
+Please send us a message at %(mailManagers)s within one week – i.e. before %(deadline)s – <b>to let us know whether you wish to send it out again for peer review or whether you will make your decision without further review within the next 10 days</b> (and preferentially within a week). If you need more time, please let us know by return mail.
+<p>
+We look forward to your decision. Thanks in advance!
+<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
 """ % locals()
@@ -515,14 +519,23 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			destAddress = db.auth_user[theUser['id']]['email']
 			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
 			content = """Dear %(destPerson)s,<p>
-You have been proposed as recommender for a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
-As <i>%(applongname)s</i> is a very recent initiative requiring as much support as possible, we would be extremely grateful if you would accept the role of recommender for this preprint (unless you do not consider it sufficiently interesting to merit initiation of the evaluation process of course). At this early stage in the project, it is vital that we find recommenders for as many valuable preprints as possible. We understand that this may require a little extra effort from you that you may not have anticipated, but it would provide significant assistance to a deserving initiative.<p>
-The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
-If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
-If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to invite, through the <i>%(applongname)s</i> website, reviewers included in the <i>%(applongname)s</i> database or not already present in this database.<p>
-Details about the recommendation process can be found here <a href="%(helpurl)s">%(helpurl)s</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M">How to start and manage a preprint recommendation</a>.<p>
-Thanks again for your help.<p>
+You have been proposed as recommender for a preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.
+<p>
+<b>Important information before accepting to become the recommender for this preprint:</b>
+The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals. Details about the recommendation process can be found <a href="%(helpurl)s">here</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M"> How to start and manage a preprint recommendation</a>.
+<p>
+Agreeing to become the recommender of this preprint means that <b>you find the preprint interesting</b> and therefore worth sending out for peer-review. Then, you will need to meet the following <b>requirements</b>:<br>
+1- <b>to send invitations to 5-10 potential reviewers within the next 24 hours</b> and then to send reminders and/or new invitations until you find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.<br>
+2- <b>to post your decision</b> or to write your recommendation text <b>within 10 days</b> of receiving the reviews.<br>
+3- <b>to write a recommendation text</b> if you decide to recommend this preprint for <i>%(applongname)s</i> at the end of the evaluation process. Indeed, if after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<br>
+4- <b>to declare that you have no conflict of interest with the authors or the content of the article.</b> Indeed, you should not handle articles written by close colleagues (with whom I have published in the last four years, with whom I have received joint funding in the last four years, or with whom I am currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. See the <a href="%(ethicsurl)s">code of ethical conduct</a>.
+Have in mind that if you do not respect these commitments, the managing board of PCI Evol Biol reserves the right to pass responsibility for the evaluation of this article to someone else.
+<p>
+<i>%(applongname)s</i> is a very recent initiative requiring as much support as possible. At this early stage in the project, it is vital that we find recommenders for as many valuable preprints as possible. We understand that this may require a little extra effort from you that you may not have anticipated, but it would provide significant assistance to a deserving initiative.
+<p>
+Thank you for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>"""  % locals()
 			try:
@@ -796,10 +809,16 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 				destAddress = db.auth_user[recomm.recommender_id]['email']
 				reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
 				content = """Dear %(destPerson)s,<p>
-The review by %(reviewerPerson)s of the preprint entitled <b>%(articleTitle)s</b> is now available.<p>
-You can view and/or upload this review and manage your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.<p>
-We remind you that the goal of the evaluation is to reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a full article that may be used and cited, just like ‘classic’ articles published in journals.<p>
-If after one or several rounds of reviews, you decide to recommend a preprint, you will need to write “recommendation” that will have its own DOI and will be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing at least the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) relating to the preprint will also be published by <i>%(applongname)s</i>.<p>
+The review by %(reviewerPerson)s of the preprint entitled <b>%(articleTitle)s</b> is now available.
+<p>
+You can view and/or upload this review and manage your recommendation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(applongname)s</i> website and going to 'Your contributions —> Your recommendations of preprints' in the top menu.
+<p>
+If all the reviews have now been completed and returned, we now expect you, according to your commitment as a recommender of the preprint, to make a decision within 10 days. If you need more time, please let us know by return mail.
+<p>
+We remind you that this decision must be: ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.
+<p>
+If you decide to recommend this preprint, you will need to write a "recommendation" that will have its own DOI and will be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing, at least, the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) relating to the preprint will also be published by <i>%(applongname)s</i>.
+<p>
 We thank you again for managing this evaluation.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(applongname)s</i></span>
@@ -1669,16 +1688,16 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 			if theUser:
 				destPerson = mkUser(auth, db, theUser.id)
 				content = """Dear %(destPerson)s,<p>
-You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.<p>
-We remind you that the role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews) and may eventually lead to recommendation of the preprint after one or several rounds of review. The evaluation should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(applongname)s</i> is a complete article that may be used and cited just like a ‘classic’ article published in a journal.<p>
-If after one or several rounds of review you decide to recommend this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least to the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(applongname)s</i>.<p>
-As you have agreed to handle this preprint, you will manage its evaluation until you reach a final decision (recommend or reject).<p>
-All preprints must be reviewed by at least two referees. If you have not already done so, you need to invite reviewers (either from the <i>%(applongname)s</i> database or not included in this database). You can invite potential reviewers to review the preprint via the <i>%(applongname)s</i> website:<p>
-1) Using this link <a href="%(linkTarget)s">%(linkTarget)s</a> - you can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and<p>
-2) Click on the 'choose a reviewer' button.<p>
-We strongly advise you to invite at least five potential reviewers to review the preprint, and to set a deadline of no more than three weeks. Your first decision (reject, recommend or revise) should ideally be reached within 50 days (J+50)</b>
-Please do not invite reviewers for whom there might be a conflict of interest. Indeed, researchers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the evaluation - see the code of conduct.
-Details about the recommendation process can be found by watching this short video on how to start and manage a preprint recommendation <a href="https://youtu.be/u5greO-q8-M">video</a>.<p>
+You have agreed to be the recommender handling the preprint by %(articleAuthors)s and entitled <b>%(articleTitle)s</b> (DOI %(articleDoi)s). Thank you very much for your contribution.
+<p>
+<b>We remind you that you have agreed to send out 5-10 invitations to review this preprint within the next 24 h</b>, and to send out reminders and/or new invitations, over a period of one week if necessary, until you manage to find at least two reviewers willing to review this preprint within three weeks. We thank you in advance for respecting this commitment.
+<p>
+Invitations to review can be sent using this link <a href="%(linkTarget)s">%(linkTarget)s</a> – You can also log onto the <i>%(applongname)s</i> website and go to 'Your contributions —> Your recommendations of preprints' in the top menu, and click on the 'choose a reviewer' button.
+<p>
+The reviews you receive should guide your decision – <b>within 10 days of receiving the last review</b> – as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.
+<p>
+If your decision is to ‘Recommend’ this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by <i>%(applongname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (to the recommended preprint at the very least). All editorial correspondence (reviews, your decisions, authors' replies) relating to the preprint will also be published by <i>%(applongname)s</i>.
+<p>
 If you need assistance in any way do not hesitate to ask us.<p>
 We thank you again for initiating and managing this evaluation.<p>
 Yours sincerely,<p>

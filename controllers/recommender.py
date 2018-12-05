@@ -430,30 +430,73 @@ def accept_new_article_to_recommend():
 	if ethics_not_signed:
 		redirect(URL(c='about', f='ethics'))
 	else:
+		longname = myconf.take('app.longname')
 		myEthical = DIV(
 				FORM(
 					DIV(
-						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
-						DIV(getText(request, auth, db, '#ConflictsForRecommenders')), 
-						_style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
+						UL(
+							LI(INPUT(_type="checkbox", _name="interesting", _id="interesting", _value="yes", value=False), B(T('I find the preprint interesting')), SPAN(T(' and therefore worth sending out for peer-review.'))),
+							LI(INPUT(_type="checkbox", _name="invitations", _id="invitations", _value="yes", value=False), B(T('I agree to send invitations to 5-10 potential reviewers within the next 24 hours')), SPAN(T(' and then to send reminders and/or new invitations until I find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.'))),
+							LI(INPUT(_type="checkbox", _name="ten_days", _id="ten_days", _value="yes", value=False), B(T('I agree to post my decision')), SPAN(T(' or to write my recommendation text ')), B(T('within 10 days')), SPAN(T(' of receiving the reviews.'))),
+							LI(INPUT(_type="checkbox", _name="recomm_text", _id="recomm_text", _value="yes", value=False), B(T('I agree to write a recommendation text')), SPAN(T(' if I decide to recommend this preprint for %s at the end of the evaluation process.') % longname)),
+							LI(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), B(T('I declare that I have no conflict of interest with the authors or the content of the article: ')), SPAN(T('I should not handle articles written by close colleagues (with whom I have published in the last four years, with whom I have received joint funding in the last four years, or with whom I am currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. See the code of ethical conduct.'))), 
+							LI(INPUT(_type="checkbox", _name="commitments", _id="commitments", _value="yes", value=False), I(T('I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.') % longname)),
+							_style="list-style-type:none;"),
+						_class='pci-ChecksList',
+					),
+					DIV(
+						INPUT(_type='submit', _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), 
+						_style='text-align:center;',
+					),
 					hidden=dict(articleId=articleId, ethics_approved=True),
 					_action=URL('recommender', 'do_accept_new_article_to_recommend'),
-					_style='text-align:center;',
 				),
-				_class="pci-embeddedEthic",
+				#_class="pci-embeddedEthic",
 			)
 		myScript = SCRIPT("""
 			jQuery(document).ready(function(){
-				
-				if(jQuery('#no_conflict_of_interest').prop('checked')) {
+				if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
 					jQuery(':submit').prop('disabled', false);
 				} else {
 					jQuery(':submit').prop('disabled', true);
 				}
-				
 				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked')) {
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				jQuery('#interesting').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				jQuery('#invitations').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				jQuery('#ten_days').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				jQuery('#recomm_text').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
+						jQuery(':submit').prop('disabled', false);
+					} else {
+						jQuery(':submit').prop('disabled', true);
+					}
+				});
+				jQuery('#commitments').change(function(){
+					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
 						jQuery(':submit').prop('disabled', false);
 					} else {
 						jQuery(':submit').prop('disabled', true);
