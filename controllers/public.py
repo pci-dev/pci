@@ -182,11 +182,12 @@ def rec():
 		else:
 			btnSHCtxt = T('Show user comments')
 		myUpperBtn = DIV(
+						A('test', _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=articleId))),
 						IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
 						A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
-						pdf if pdf else '',
-						_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
-						_class='button'),
+							pdf if pdf else '',
+							_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=True, reviews=with_reviews, comments=with_comments), user_signature=True),
+							_class='button'),
 						(A(SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
 							_href=URL(c='public', f='rec', vars=dict(articleId=articleId, printable=printable, reviews=not(with_reviews), comments=with_comments), user_signature=True),
 							_class='button')) if (nbReviews>0) else '',
@@ -218,7 +219,6 @@ def rec():
 				myUpperBtn=myUpperBtn,
 				shareButtons=True,
 			)
-
 
 
 def managers():

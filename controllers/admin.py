@@ -3,6 +3,9 @@
 import re
 import copy
 import random
+import os
+import datetime
+import tempfile
 
 # sudo pip install tweepy
 #import tweepy
@@ -457,6 +460,239 @@ def recap_reviews():
 				myTitle=getTitle(request, auth, db, '#AdminRecapReviewsTitle'),
 				grid=DIV(grid, _style="width:100%; overflow-x:scroll;"), 
 			)
+
+
+
+
+######################################################################################################################################################################
+def recommLatex(articleId):
+	art = db.t_articles[articleId]
+	if art == None:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+
+	template = """
+\\documentclass[a4paper]{article}
+\\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
+\\usepackage{marginnote}
+\\reversemarginpar  %% sets margin notes to the left
+\\usepackage{lipsum} %% Required to insert dummy text
+\\usepackage{calc}
+\\usepackage{siunitx}
+\\usepackage{xpatch}
+%%\\usepackage[none]{hyphenat} %% use only if there is a problem 
+%% Use Unicode characters
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+%% Clean citations with biblatex
+\\usepackage[
+backend=biber,
+natbib=true,
+sortcites=true,
+defernumbers=true,
+style=authoryear-comp,
+maxnames=99,
+maxcitenames=2,
+uniquename=init,
+giveninits=true,
+terseinits=true, %% change to 'false' for initials like L. D.
+url=false,
+dashed=false
+]{biblatex}
+\\DeclareNameAlias{default}{family-given}
+\\DeclareNameAlias{sortname}{family-given}
+\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
+\\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
+\\renewbibmacro{in:}{%%
+  \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
+\\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
+\\AtEveryBibitem{\\ifentrytype{article}{\\clearfield{number}}{}} %% don't print issue numbers
+\\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
+\\preto\\fullcite{\\AtNextCite{\\defcounter{maxnames}{99}}} %% print all authors when using \\fullcite
+\\xpretobibmacro{date+extrayear}{\\setunit{\\addperiod\space}}{}{} %% add a dot after last author (requires package xpatch)
+\\usepackage{csquotes}
+\\RequirePackage[english]{babel} %% must be called after biblatex
+\\addbibresource{%(bibfile)s}
+\\DeclareBibliographyCategory{ignore}
+\\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
+
+%% Clickable references. Use \\url{www.example.com} or \\href{www.example.com}{description} to add a clicky url
+\\usepackage{nameref}
+\\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
+\\urlstyle{same}
+
+%% Include figures
+\\usepackage{graphbox} %% loads graphicx ppackage with extended options for vertical alignment of figures
+
+%% Improve typesetting in LaTex
+\\usepackage{microtype}
+\\DisableLigatures[f]{encoding = *, family = * }
+
+%% Text layout and font (Open Sans)
+\\setlength{\\parindent}{0.4cm}
+\\linespread{1.2}
+\\RequirePackage[default,scale=0.90]{opensans}
+
+%% Defining document colors
+\\usepackage{xcolor}
+\\definecolor{darkgray}{HTML}{808080}
+\\definecolor{mediumgray}{HTML}{6D6E70}
+\\definecolor{ligthgray}{HTML}{d9d9d9}
+\\definecolor{pciblue}{HTML}{74adca}
+\\definecolor{opengreen}{HTML}{77933c}
+
+%% Use adjustwidth environment to exceed text width
+\\usepackage{changepage}
+
+%% Headers and footers
+\\usepackage{fancyhdr}  %% custom headers/footers
+\\usepackage{lastpage}  %% number of page in the document
+\\pagestyle{fancy}  %% enables customization of headers/footers
+\\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
+\\renewcommand{\\headrulewidth}{\\ifnum\\thepage=1 0.5pt \\else 0pt \\fi} %% header ruler only on first page
+\\renewcommand{\\footrulewidth}{0.5pt}
+\\lhead{\\includegraphics[width=13.5cm]{%(logo)s}}  %% full logo on first page 
+\\chead{}
+\\rhead{}
+\\lfoot{\\scriptsize \\textsc{\\color{mediumgray}%(applongname)s}}
+\\cfoot{}
+\\rfoot{}
+
+\\begin{document}
+\\vspace*{0.5cm}
+\\newcommand{\\preprinttitle}{%(title)s}
+\\newcommand{\\preprintauthors}{%(authors)s}
+
+\\newcommand{\\whodidit}{%(whoDidIt)s}
+\\newcommand{\\DOI}{%(doi)s}
+\\newcommand{\\DOIlink}{\\href{%(doiLink)s}{\\DOI}}
+
+\\begin{flushleft}
+\\baselineskip=30pt
+\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
+\\\\
+\\large\\textnormal{\\color{pciblue}RESEARCH ARTICLE}}
+{\\Huge\\fontseries{sb}\\selectfont{\\preprinttitle}}
+\\end{flushleft}
+\\vspace*{0.75cm}
+%% Author(s)
+\\begin{flushleft}
+\\Large\\preprintauthors\\\\
+\\vspace*{0.75cm}
+%% Citation
+\\noindent
+\\fcolorbox{lightgray}{lightgray}{
+\\parbox{\\textwidth - 2\\fboxsep}{
+\\raggedright\\normalsize\\textbf{Cite as:}\\newline
+\\fullcite{preprint}}}\\\\
+\\vspace*{1.75cm}
+%% Recommendation box
+\\fcolorbox{pciblue}{pciblue}{
+\\parbox{\\textwidth - 2\\fboxsep}{
+\\vspace{0.25cm}
+\\large \\textbf{Peer-reviewed and recommended by \\href{%(siteUrl)s}{%(applongname)s}}
+\\vspace{0.5cm}\\newline
+\\normalsize
+\\textbf{Recommendation DOI:} \\space \\DOIlink
+%%\\newline
+%%\\textbf{Published:} \\space \\today
+\\newline
+\\textbf{Recommender(s):} \\space \\whodidit
+\\newline
+
+\\vspace{0.25cm}}}
+
+\\end{flushleft}
+
+\\end{document}
+
+"""
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname = myconf.take('app.description')
+	logo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'background.png'))
+	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_blue.png'))
+	title = art.title
+	authors = art.authors
+	whoDidIt = SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten()
+	reviewers = ""
+	doi = art.doi
+	doiLink = mkLinkDOI(art.doi)
+	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+	fd, bibfile = tempfile.mkstemp(suffix='.bib')
+	print bibfile
+	bib = recommBibtex(articleId)
+	with os.fdopen(fd, 'w') as tmp:
+		tmp.write(bib)
+	resu = template % locals()
+	return(resu)
+
+def recommBibtex(articleId):
+	art = db.t_articles[articleId]
+	if art == None:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+
+	lastRecomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
+	template = """@article{recommendation,
+title = {%(title)s},
+doi = {%(doi)s},
+journal = {%(applongname)s},
+author = {%(whoDidIt)s},
+year = {%(year)s},
+eid = {%(eid)s},
+},
+@article{preprint,
+title = {%(Atitle)s},
+doi = {%(Adoi)s},
+author = {%(Aauthors)s},
+year = {%(Ayear)s},
+}"""
+	title = lastRecomm.recommendation_title
+	doi = lastRecomm.doi
+	applongname = myconf.take('app.description')
+	whoDidIt = SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten()
+	year = art.last_status_change.year
+	pat = re.search('\\.(?P<num>\d+)$', doi)
+	if pat:
+		eid = pat.group('num') or ''
+	else:
+		eid = ''
+	Atitle = art.title
+	Adoi = art.doi
+	Aauthors = art.authors
+	Ayear = year
+	resu = template % locals()
+	return(resu)
+
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def rec_as_latex():
+	if ('articleId' in request.vars):
+		articleId = request.vars['articleId']
+	elif ('id' in request.vars):
+		articleId = request.vars['id']
+	else:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	# NOTE: check id is numeric!
+	if (not articleId.isdigit()):
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	
+	bib = recommBibtex(articleId)
+	latFP = recommLatex(articleId)
+	message = DIV(
+			H2('BibTex:'),
+			PRE(bib), 
+			H2('Front page:'),
+			PRE(latFP),
+		)
+	response.view='default/info.html'
+	return(dict(message=message))
 
 
 
