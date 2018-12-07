@@ -1010,6 +1010,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		img = ''
 	myArticle = DIV(
 					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
+					,DIV(A(current.T('Publishing tools'), _target='blank', _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info'), _style='text-align:right;') if (auth.has_membership(role='administrator') or auth.has_membership(role='developper')) else ''
 					,img
 					,H3(art.title or '')
 					,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))

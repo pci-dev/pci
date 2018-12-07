@@ -484,6 +484,10 @@ def recommLatex(articleId):
 %% Use Unicode characters
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{filecontents}
+\\begin{filecontents}{\\jobname.bib}
+%(bib)s
+\\end{filecontents}
 %% Clean citations with biblatex
 \\usepackage[
 backend=biber,
@@ -512,7 +516,7 @@ dashed=false
 \\xpretobibmacro{date+extrayear}{\\setunit{\\addperiod\space}}{}{} %% add a dot after last author (requires package xpatch)
 \\usepackage{csquotes}
 \\RequirePackage[english]{babel} %% must be called after biblatex
-\\addbibresource{%(bibfile)s}
+\\addbibresource{\\jobname.bib}
 \\DeclareBibliographyCategory{ignore}
 \\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
 
@@ -621,7 +625,6 @@ dashed=false
 	doiLink = mkLinkDOI(art.doi)
 	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	fd, bibfile = tempfile.mkstemp(suffix='.bib')
-	print bibfile
 	bib = recommBibtex(articleId)
 	with os.fdopen(fd, 'w') as tmp:
 		tmp.write(bib)
@@ -642,7 +645,7 @@ journal = {%(applongname)s},
 author = {%(whoDidIt)s},
 year = {%(year)s},
 eid = {%(eid)s},
-},
+}
 @article{preprint,
 title = {%(Atitle)s},
 doi = {%(Adoi)s},
@@ -690,6 +693,8 @@ def rec_as_latex():
 			PRE(bib), 
 			H2('Front page:'),
 			PRE(latFP),
+			H2('Recommendation:'),
+			# TODO!
 		)
 	response.view='default/info.html'
 	return(dict(message=message))

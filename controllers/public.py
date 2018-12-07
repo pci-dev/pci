@@ -182,7 +182,6 @@ def rec():
 		else:
 			btnSHCtxt = T('Show user comments')
 		myUpperBtn = DIV(
-						A('test', _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=articleId))),
 						IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
 						A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
 							pdf if pdf else '',
