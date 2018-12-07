@@ -16,6 +16,7 @@ echo "http://147.99.65.220:83/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 -
 	-ignore "Name .git" \
 	-ignore "Name sessions" \
 	-ignore "Name errors" \
+	-ignore "Name tmp" \
 	-ignore "Name *background.png" \
 	-ignore "Name *workflow.png" \
 	-ignore "Name *datamatrix.*" \

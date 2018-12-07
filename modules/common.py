@@ -1010,7 +1010,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		img = ''
 	myArticle = DIV(
 		DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
-		,DIV(A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info'), _style='text-align:right;') if (auth.has_membership(role='administrator') or auth.has_membership(role='developper')) else ''
+		,DIV(
+			A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
+			,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
+			,_style='text-align:right;') if (not art.already_published and (auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
 		,img
 		,H3(art.title or '')
 		,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
@@ -2061,11 +2064,13 @@ def mkRecommendersString(auth, db, recomm):
 def mkRecommendersAffiliations(auth, db, recomm):
 	affiliations = []
 	theUser = db.auth_user[recomm.recommender_id]
-	affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	if theUser:
+		affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
 	for contrib in contribsQy:
 		theUser = db.auth_user[contrib.contributor_id]
-		affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+		if theUser:
+			affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 	return(affiliations)
 
 ######################################################################################################################################################################

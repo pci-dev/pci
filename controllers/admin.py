@@ -483,10 +483,16 @@ def recommLatex(articleId):
 %% Use Unicode characters
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+%%\\usepackage{textcomp}
 \\usepackage{filecontents}
-%%\\begin{filecontents}{\\jobname.bib}
-%% ( bib ) s
-%%\\end{filecontents}
+\\begin{filecontents}{\\jobname.bib}
+%(bib)s
+\\end{filecontents}
+%% Clean unsupported unicode chars
+\\DeclareUnicodeCharacter{B0}{\\textdegree}
+\\DeclareUnicodeCharacter{A0}{ }
+\\DeclareUnicodeCharacter{AD}{\\-}
+
 %% Clean citations with biblatex
 \\usepackage[
 backend=biber,
@@ -497,13 +503,13 @@ citestyle=numeric-comp,
 maxnames=99,
 maxcitenames=2,
 uniquename=init,
-giveninits=true,
+%%giveninits=true,
 terseinits=true, %% change to 'false' for initials like L. D.
 url=false,
 ]{biblatex}
 \\DeclareNameAlias{default}{family-given}
 \\DeclareNameAlias{sortname}{family-given}
-\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
+%%\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
 \\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
 \\renewbibmacro{in:}{%%
   \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
@@ -512,8 +518,8 @@ url=false,
 \\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
 \\usepackage{csquotes}
 \\RequirePackage[english]{babel} %% must be called after biblatex
-%%\\addbibresource{\\jobname.bib}
-\\addbibresource{%(bibfile)s}
+\\addbibresource{\\jobname.bib}
+%%\\addbibresource{%% ( bibfile ) s}
 \\DeclareBibliographyCategory{ignore}
 \\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
 
@@ -523,7 +529,8 @@ url=false,
 \\urlstyle{same}
 
 %% Include figures
-\\usepackage{graphbox} %% loads graphicx ppackage with extended options for vertical alignment of figures
+%%\\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
+\\usepackage{graphicx}
 
 %% Line numbers
 %%\\usepackage[right]{lineno}
@@ -576,10 +583,10 @@ url=false,
 \\newcommand{\\reviewers}{%(reviewers)s}
 \\newcommand{\\DOI}{%(doi)s}
 \\newcommand{\\DOIlink}{\\href{%(doiLink)s}{\\DOI}}
-
 \\begin{flushleft}
 \\baselineskip=30pt
-\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
+%%\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
+\\marginpar{\\includegraphics[width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
 \\\\
 \\large\\textnormal{\\color{opengreen}RECOMMENDATION}}
 {\\Huge
@@ -609,7 +616,8 @@ url=false,
 \\vspace*{3cm}
 %%\\textnormal{\\copyright \\space \\number\\year \\space \\recommender}\\\\ %% update if there are more than one recommender
 \\vspace*{0.2cm}
-\\includegraphics[align=c,width=0.4cm]{%(ccPng)s} \\includegraphics[align=c,width=0.4cm]{%(byPng)s} \\includegraphics[align=c,width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
+%%\\includegraphics[align=c,width=0.4cm]{%(ccPng)s} \\includegraphics[align=c,width=0.4cm]{%(byPng)s} \\includegraphics[align=c,width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
+\\includegraphics[width=0.4cm]{%(ccPng)s} \\includegraphics[width=0.4cm]{%(byPng)s} \\includegraphics[width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
 \\vspace*{0.2cm}
 \\textnormal{This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License.}
 }
@@ -630,8 +638,6 @@ url=false,
 \\vspace*{0.5cm}
 
 %%%% RECOMMENDATION %%%%
-%% use \\emph{} for italics and \\cite{} to cite a reference
-%% use \\\\ to mark the end of paragraph and starting of a new one
 %(recommendation)s
 
 
@@ -677,18 +683,27 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 		cpt += 1
 	reviewers = latex_escape(mkReviewersString(auth, db, articleId))
 	title = latex_escape(lastRecomm.recommendation_title)
-	datePub = latex_escape((datetime.date.today()).strftime('%a %b %d'))
-	emailRecomm = latex_escape(db.auth_user[lastRecomm.recommender_id].email)
+	datePub = latex_escape((datetime.date.today()).strftime('%A %B %d %Y'))
+	firstRecomm = db.auth_user[lastRecomm.recommender_id]
+	if firstRecomm:
+		emailRecomm = latex_escape(firstRecomm.email)
+	else:
+		emailRecomm = ''
 	doi = latex_escape(art.doi)
 	doiLink = mkLinkDOI(art.doi)
 	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	bib = recommBibtex(articleId)
 	#fd, bibfile = tempfile.mkstemp(suffix='.bib')
-	bibfile = "/tmp/sample.bib"
-	with open(bibfile, 'w') as tmp:
-		tmp.write(bib)
+	#bibfile = "/tmp/sample.bib"
+	#with open(bibfile, 'w') as tmp:
+		#tmp.write(bib)
+		#tmp.close()
+	recommendation = lastRecomm.recommendation_comments
+	#recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space
+	with open('/tmp/laRecomm.txt', 'w') as tmp:
+		tmp.write(recommendation)
 		tmp.close()
-	recommendation = (render(lastRecomm.recommendation_comments))[0]
+	recommendation = (render(recommendation))[0]
 	resu = template % locals()
 	return(resu)
 
@@ -755,7 +770,8 @@ dashed=false
 \\urlstyle{same}
 
 %% Include figures
-\\usepackage{graphbox} %% loads graphicx ppackage with extended options for vertical alignment of figures
+%%\\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
+\\usepackage{graphicx}
 
 %% Improve typesetting in LaTex
 \\usepackage{microtype}
@@ -802,7 +818,8 @@ dashed=false
 
 \\begin{flushleft}
 \\baselineskip=30pt
-\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
+%%\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
+\\marginpar{\\includegraphics[width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
 \\\\
 \\large\\textnormal{\\color{pciblue}RESEARCH ARTICLE}}
 {\\Huge\\fontseries{sb}\\selectfont{\\preprinttitle}}
@@ -919,7 +936,6 @@ def rec_as_latex():
 	else:
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
-	# NOTE: check id is numeric!
 	if (not articleId.isdigit()):
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
@@ -937,6 +953,59 @@ def rec_as_latex():
 		)
 	response.view='default/info.html'
 	return(dict(message=message))
+
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def rec_as_pdf():
+	if ('articleId' in request.vars):
+		articleId = request.vars['articleId']
+	elif ('id' in request.vars):
+		articleId = request.vars['id']
+	else:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	if (not articleId.isdigit()):
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	
+	#bib = recommBibtex(articleId)
+	#latFP = frontPageLatex(articleId)
+	latRec = recommLatex(articleId)
+	#message = DIV(
+			#H2('BibTex:'),
+			#PRE(bib), 
+			#H2('Front page:'),
+			#PRE(latFP),
+			#H2('Recommendation:'),
+			#PRE(latRec),
+		#)
+	#response.view='default/info.html'
+	#return(dict(message=message))
+	cwd = os.getcwd()
+	os.chdir(os.path.join(request.folder, "tmp"))
+	texfile = "recomm.tex"
+	with open(texfile, 'w') as tmp:
+		tmp.write(latRec)
+		tmp.close()
+	cmd = "pdflatex recomm ; biber recomm ; pdflatex recomm"
+	os.system(cmd)
+	pdffile = 'recomm.pdf'
+	if os.path.isfile(pdffile):
+		with open(pdffile, 'rb') as tmp:
+			pdf = tmp.read()
+			tmp.close()
+		os.remove(texfile)
+		os.remove(pdffile)
+		os.chdir(cwd)
+		response.headers['Content-Type']='application/pdf'
+		return(pdf)
+	else:
+		os.chdir(cwd)
+		session.flash = T('Failed :-(')
+		redirect(request.env.http_referer)
+		
 
 
 
