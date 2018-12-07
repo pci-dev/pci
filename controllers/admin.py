@@ -14,6 +14,7 @@ from gluon.contrib.markdown import WIKI
 from common import *
 from emailing import *
 from helper import *
+from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -470,6 +471,234 @@ def recommLatex(articleId):
 	if art == None:
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
+	template = """
+\\documentclass[a4paper]{article}
+\\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
+\\usepackage{marginnote}
+\\reversemarginpar  %% sets margin notes to the left
+\\usepackage{lipsum} %% Required to insert dummy text
+\\usepackage{calc}
+\\usepackage{siunitx}
+%%\\usepackage[none]{hyphenat} %% use only if there is a problem 
+%% Use Unicode characters
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{filecontents}
+%%\\begin{filecontents}{\\jobname.bib}
+%% ( bib ) s
+%%\\end{filecontents}
+%% Clean citations with biblatex
+\\usepackage[
+backend=biber,
+natbib=true,
+sortcites=true,
+defernumbers=true,
+citestyle=numeric-comp,
+maxnames=99,
+maxcitenames=2,
+uniquename=init,
+giveninits=true,
+terseinits=true, %% change to 'false' for initials like L. D.
+url=false,
+]{biblatex}
+\\DeclareNameAlias{default}{family-given}
+\\DeclareNameAlias{sortname}{family-given}
+\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
+\\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
+\\renewbibmacro{in:}{%%
+  \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
+\\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
+\\AtEveryBibitem{\\ifentrytype{article}{\\clearfield{number}}{}} %% don't print issue numbers
+\\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
+\\usepackage{csquotes}
+\\RequirePackage[english]{babel} %% must be called after biblatex
+%%\\addbibresource{\\jobname.bib}
+\\addbibresource{%(bibfile)s}
+\\DeclareBibliographyCategory{ignore}
+\\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
+
+%% Clickable references. Use \\url{www.example.com} or \\href{www.example.com}{description} to add a clicky url
+\\usepackage{nameref}
+\\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
+\\urlstyle{same}
+
+%% Include figures
+\\usepackage{graphbox} %% loads graphicx ppackage with extended options for vertical alignment of figures
+
+%% Line numbers
+%%\\usepackage[right]{lineno}
+
+%% Improve typesetting in LaTex
+\\usepackage{microtype}
+\\DisableLigatures[f]{encoding = *, family = * }
+
+%% Text layout and font (Open Sans)
+\\setlength{\\parindent}{0.4cm}
+\\linespread{1.2}
+\\RequirePackage[default,scale=0.90]{opensans}
+
+%% Defining document colors
+\\usepackage{xcolor}
+\\definecolor{darkgray}{HTML}{808080}
+\\definecolor{mediumgray}{HTML}{6D6E70}
+\\definecolor{ligthgray}{HTML}{d9d9d9}
+\\definecolor{pciblue}{HTML}{74adca}
+\\definecolor{opengreen}{HTML}{77933c}
+
+%% Use adjustwidth environment to exceed text width
+\\usepackage{changepage}
+
+%% Adjust caption style
+\\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
+
+%% Headers and footers
+\\usepackage{fancyhdr}  %% custom headers/footers
+\\usepackage{lastpage}  %% number of page in the document
+\\pagestyle{fancy}  %% enables customization of headers/footers
+\\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
+\\renewcommand{\\headrulewidth}{\\ifnum\\thepage=1 0.5pt \\else 0pt \\fi} %% header ruler only on first page
+\\renewcommand{\\footrulewidth}{0.5pt}
+\\lhead{\\ifnum\\thepage=1 \\includegraphics[width=13.5cm]{%(logo)s} \\else \\includegraphics[width=5cm]{%(smalllogo)s} \\fi}  %% full logo on first page, then small logo on subsequent pages 
+\\chead{}
+\\rhead{}
+\\lfoot{\\scriptsize \\textsc{\\color{mediumgray}%(applongname)s}}
+\\cfoot{}
+\\rfoot{}
+\\begin{document}
+\\vspace*{0.5cm}
+\\newcommand{\\preprinttitle}{%(Atitle)s}
+\\newcommand{\\preprintauthors}{%(Aauthors)s}
+\\newcommand{\\recommendationtitle}{%(title)s}
+\\newcommand{\\datepub}{%(datePub)s}
+\\newcommand{\\email}{%(emailRecomm)s}
+\\newcommand{\\recommenders}{%(recommenders)s}
+\\newcommand{\\affiliations}{%(affiliations)s}
+\\newcommand{\\reviewers}{%(reviewers)s}
+\\newcommand{\\DOI}{%(doi)s}
+\\newcommand{\\DOIlink}{\\href{%(doiLink)s}{\\DOI}}
+
+\\begin{flushleft}
+\\baselineskip=30pt
+\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
+\\\\
+\\large\\textnormal{\\color{opengreen}RECOMMENDATION}}
+{\\Huge
+\\fontseries{sb}\\selectfont{\\recommendationtitle}}
+\\end{flushleft}
+\\vspace*{0.75cm}
+%% Author(s)  %% update if multiple recommenders
+\\begin{flushleft}
+\\Large
+\\recommenders
+
+%% Margin information
+\\marginpar{\\raggedright
+\\scriptsize\\textbf{Cite as:}\\space
+\\fullcite{recommendation}\\\\
+\\vspace*{0.5cm}
+\\textbf{Published:} \datepub\\\\
+\\vspace*{0.5cm}
+\\textbf{Based on reviews by:}\\\\
+\\reviewers\\\\
+\\vspace*{0.5cm}
+\\textbf{Correspondence:}\\\\
+\\href{mailto:\\email}{\\email}\\\\
+%%\\vspace*{0.5cm} %% remove line if no ORCID
+%%\\textbf{ORCID:}\\\\ %% remove line if no ORCID
+%%\\href{https://orcid.org/\\ORCID}{\\ORCID}\\ %% remove line if no ORCID / Add \\space (initials) if multiple recommenders
+\\vspace*{3cm}
+%%\\textnormal{\\copyright \\space \\number\\year \\space \\recommender}\\\\ %% update if there are more than one recommender
+\\vspace*{0.2cm}
+\\includegraphics[align=c,width=0.4cm]{%(ccPng)s} \\includegraphics[align=c,width=0.4cm]{%(byPng)s} \\includegraphics[align=c,width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
+\\vspace*{0.2cm}
+\\textnormal{This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License.}
+}
+\\end{flushleft}
+\\bigskip
+
+%% Affiliation(s)
+{\\raggedright \\affiliations}
+
+%% Recommended preprint box
+\\begin{flushleft}
+\\noindent
+\\fcolorbox{lightgray}{lightgray}{
+\\parbox{\\textwidth - 2\\fboxsep}{
+\\raggedright\\large{\\fontseries{sb}\\selectfont{A recommendation of}}\\
+\\small \\fullcite{preprint}}}
+\\end{flushleft}
+\\vspace*{0.5cm}
+
+%%%% RECOMMENDATION %%%%
+%% use \\emph{} for italics and \\cite{} to cite a reference
+%% use \\\\ to mark the end of paragraph and starting of a new one
+%(recommendation)s
+
+
+\\printbibliography[notcategory=ignore]
+\\section*{Appendix}
+Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
+\\end{document}
+
+"""
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname = latex_escape(myconf.take('app.description'))
+	logo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'background.png'))
+	smalllogo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'small-background.png'))
+	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_green.png'))
+	ccPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'cc_large.png'))
+	byPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'by_large.png'))
+	ndPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'nd_large.png'))
+	Atitle = latex_escape(art.title)
+	Aauthors = latex_escape(art.authors)
+	lastRecomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
+	recommds = mkRecommendersList(auth, db, lastRecomm)
+	n = len(recommds)
+	recommenders = '\n'
+	cpt = 1
+	for r in recommds:
+		recommenders += latex_escape(r)
+		recommenders += '\\textsuperscript{%d}' % cpt
+		if (cpt > 1 and cpt < n-1):
+			recommenders += ', '
+		elif (cpt < n):
+			recommenders += ' and '
+		recommenders += '\n'
+		cpt += 1
+	affil = mkRecommendersAffiliations(auth, db, lastRecomm)
+	affiliations = '\n'
+	cpt = 1
+	for a in affil:
+		affiliations += '\\textsuperscript{%d}' % cpt
+		affiliations += latex_escape(a)
+		affiliations += '\\\\\n'
+		cpt += 1
+	reviewers = latex_escape(mkReviewersString(auth, db, articleId))
+	title = latex_escape(lastRecomm.recommendation_title)
+	datePub = latex_escape((datetime.date.today()).strftime('%a %b %d'))
+	emailRecomm = latex_escape(db.auth_user[lastRecomm.recommender_id].email)
+	doi = latex_escape(art.doi)
+	doiLink = mkLinkDOI(art.doi)
+	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
+	bib = recommBibtex(articleId)
+	#fd, bibfile = tempfile.mkstemp(suffix='.bib')
+	bibfile = "/tmp/sample.bib"
+	with open(bibfile, 'w') as tmp:
+		tmp.write(bib)
+		tmp.close()
+	recommendation = (render(lastRecomm.recommendation_comments))[0]
+	resu = template % locals()
+	return(resu)
+
+
+######################################################################################################################################################################
+def frontPageLatex(articleId):
+	art = db.t_articles[articleId]
+	if art == None:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
 
 	template = """
 \\documentclass[a4paper]{article}
@@ -581,14 +810,16 @@ dashed=false
 \\vspace*{0.75cm}
 %% Author(s)
 \\begin{flushleft}
-\\Large\\preprintauthors\\\\
+\\Large\\preprintauthors\\
+\\
 \\vspace*{0.75cm}
 %% Citation
 \\noindent
 \\fcolorbox{lightgray}{lightgray}{
 \\parbox{\\textwidth - 2\\fboxsep}{
 \\raggedright\\normalsize\\textbf{Cite as:}\\newline
-\\fullcite{preprint}}}\\\\
+\\fullcite{preprint}}}\\
+\\
 \\vspace*{1.75cm}
 %% Recommendation box
 \\fcolorbox{pciblue}{pciblue}{
@@ -624,12 +855,18 @@ dashed=false
 	doi = art.doi
 	doiLink = mkLinkDOI(art.doi)
 	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
-	fd, bibfile = tempfile.mkstemp(suffix='.bib')
 	bib = recommBibtex(articleId)
-	with os.fdopen(fd, 'w') as tmp:
+	#fd, bibfile = tempfile.mkstemp(suffix='.bib')
+	#with os.fdopen(fd, 'w') as tmp:
+		#tmp.write(bib)
+		#tmp.close()
+	bibfile = "/tmp/sample.bib"
+	with open(bibfile, 'w') as tmp:
 		tmp.write(bib)
+		tmp.close()
 	resu = template % locals()
 	return(resu)
+
 
 def recommBibtex(articleId):
 	art = db.t_articles[articleId]
@@ -646,25 +883,26 @@ author = {%(whoDidIt)s},
 year = {%(year)s},
 eid = {%(eid)s},
 }
+
 @article{preprint,
 title = {%(Atitle)s},
 doi = {%(Adoi)s},
 author = {%(Aauthors)s},
 year = {%(Ayear)s},
 }"""
-	title = lastRecomm.recommendation_title
-	doi = lastRecomm.doi
-	applongname = myconf.take('app.description')
-	whoDidIt = SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten()
+	title = latex_escape(lastRecomm.recommendation_title)
+	doi = latex_escape(lastRecomm.doi)
+	applongname = latex_escape(myconf.take('app.description'))
+	whoDidIt = latex_escape(SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
 	year = art.last_status_change.year
 	pat = re.search('\\.(?P<num>\d+)$', doi)
 	if pat:
 		eid = pat.group('num') or ''
 	else:
 		eid = ''
-	Atitle = art.title
-	Adoi = art.doi
-	Aauthors = art.authors
+	Atitle = latex_escape(art.title)
+	Adoi = latex_escape(art.doi)
+	Aauthors = latex_escape(art.authors)
 	Ayear = year
 	resu = template % locals()
 	return(resu)
@@ -687,14 +925,15 @@ def rec_as_latex():
 		redirect(URL('public', 'recommended_articles', user_signature=True))
 	
 	bib = recommBibtex(articleId)
-	latFP = recommLatex(articleId)
+	latFP = frontPageLatex(articleId)
+	latRec = recommLatex(articleId)
 	message = DIV(
 			H2('BibTex:'),
 			PRE(bib), 
 			H2('Front page:'),
 			PRE(latFP),
 			H2('Recommendation:'),
-			# TODO!
+			PRE(latRec),
 		)
 	response.view='default/info.html'
 	return(dict(message=message))

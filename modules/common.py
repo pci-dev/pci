@@ -1009,21 +1009,21 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	else:
 		img = ''
 	myArticle = DIV(
-					DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
-					,DIV(A(current.T('Publishing tools'), _target='blank', _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info'), _style='text-align:right;') if (auth.has_membership(role='administrator') or auth.has_membership(role='developper')) else ''
-					,img
-					,H3(art.title or '')
-					,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
-					,mkDOI(art.doi) if (art.doi) else SPAN('')
-					,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
-					,BR()
-					,DIV(
-							I(current.T('Submitted by ')),
-							I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
-							I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
-					) if (art.already_published is False) else ''
-					,(SPAN(art.article_source)+BR() if art.article_source else '')
-				)
+		DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
+		,DIV(A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info'), _style='text-align:right;') if (auth.has_membership(role='administrator') or auth.has_membership(role='developper')) else ''
+		,img
+		,H3(art.title or '')
+		,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
+		,mkDOI(art.doi) if (art.doi) else SPAN('')
+		,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
+		,BR()
+		,DIV(
+				I(current.T('Submitted by ')),
+				I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
+				I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
+		) if (art.already_published is False) else ''
+		,(SPAN(art.article_source)+BR() if art.article_source else '')
+	)
 	# Allow to display cover letter if role is manager or above
 	if not(printable) and not(quiet) :
 		if len(art.cover_letter or '')>2:
@@ -2008,6 +2008,66 @@ def mkRecommArticleRss(auth, db, row):
 	 )
 
 
+def mkReviewersString(auth, db, articleId):
+	reviewers = []
+	reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == articleId) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	if reviewsQy is not None:
+		nR = len(reviewsQy)
+		i = 0
+		for rw in reviewsQy:
+			if rw.reviewer_id:
+				i += 1
+				if (i > 1):
+					if (i < nR):
+						reviewers += ', '
+					else:
+						reviewers += ' and '
+				reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
+	reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == articleId) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	if reviewsQyAnon is not None:
+		nRA = len(reviewsQyAnon)
+		if nRA > 0:
+			if len(reviewers) > 0:
+				reviewers += ' and '
+			if nRA > 1:
+				reviewers += '%s anonymous reviewers' % nRA
+			else:
+				reviewers += 'one anonymous reviewer'
+	reviewersStr = ''.join(reviewers)
+	return(reviewersStr)
+
+def mkRecommendersList(auth, db, recomm):
+	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	for contrib in contribsQy:
+		recommenders.append(mkUser(auth, db, contrib.contributor_id).flatten())
+	return(recommenders)
+
+def mkRecommendersString(auth, db, recomm):
+	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	n = len(contribsQy)
+	i = 0
+	for contrib in contribsQy:
+		i += 1
+		if (i < n):
+			recommenders += ', '
+		else:
+			recommenders += ' and '
+		recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+	recommendersStr = ''.join(recommenders)
+	return(recommendersStr)
+
+def mkRecommendersAffiliations(auth, db, recomm):
+	affiliations = []
+	theUser = db.auth_user[recomm.recommender_id]
+	affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	for contrib in contribsQy:
+		theUser = db.auth_user[contrib.contributor_id]
+		affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	return(affiliations)
+
 ######################################################################################################################################################################
   #<link providerId="PCI">
     #<resource>
@@ -2031,44 +2091,46 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 	pci = myconf.take('app.description')
 	title = 'Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s' % locals()
 	url = URL(c='public', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
-	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
-	n = len(contribsQy)
-	i = 0
-	for contrib in contribsQy:
-		i += 1
-		if (i < n):
-			recommenders += ', '
-		else:
-			recommenders += ' and '
-		recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
-	recommendersStr = ''.join(recommenders)
+	#recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	#contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	#n = len(contribsQy)
+	#i = 0
+	#for contrib in contribsQy:
+		#i += 1
+		#if (i < n):
+			#recommenders += ', '
+		#else:
+			#recommenders += ' and '
+		#recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+	#recommendersStr = ''.join(recommenders)
+	recommendersStr = mkRecommendersString(auth, db,recomm)
 	
-	reviewers = []
-	reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
-	if reviewsQy is not None:
-		nR = len(reviewsQy)
-		i = 0
-		for rw in reviewsQy:
-			if rw.reviewer_id:
-				i += 1
-				if (i > 1):
-					if (i < nR):
-						reviewers += ', '
-					else:
-						reviewers += ' and '
-				reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
-	reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
-	if reviewsQyAnon is not None:
-		nRA = len(reviewsQyAnon)
-		if nRA > 0:
-			if len(reviewers) > 0:
-				reviewers += ' and '
-			if nRA > 1:
-				reviewers += '%s anonymous reviewers' % nRA
-			else:
-				reviewers += 'one anonymous reviewer'
-	reviewersStr = ''.join(reviewers)
+	#reviewers = []
+	#reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	#if reviewsQy is not None:
+		#nR = len(reviewsQy)
+		#i = 0
+		#for rw in reviewsQy:
+			#if rw.reviewer_id:
+				#i += 1
+				#if (i > 1):
+					#if (i < nR):
+						#reviewers += ', '
+					#else:
+						#reviewers += ' and '
+				#reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
+	#reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	#if reviewsQyAnon is not None:
+		#nRA = len(reviewsQyAnon)
+		#if nRA > 0:
+			#if len(reviewers) > 0:
+				#reviewers += ' and '
+			#if nRA > 1:
+				#reviewers += '%s anonymous reviewers' % nRA
+			#else:
+				#reviewers += 'one anonymous reviewer'
+	#reviewersStr = ''.join(reviewers)
+	reviewersStr = mkReviewersString(auth, db, row.id)
 	
 	local = pytz.timezone ("Europe/Paris")
 	local_dt = local.localize(row.last_status_change, is_dst=None)
