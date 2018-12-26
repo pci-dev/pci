@@ -6,6 +6,7 @@ import random
 import os
 import datetime
 import tempfile
+import shutil
 
 # sudo pip install tweepy
 #import tweepy
@@ -466,7 +467,8 @@ def recap_reviews():
 
 
 ######################################################################################################################################################################
-def recommLatex(articleId):
+def recommLatex(articleId, tmpDir, withHistory=False):
+	print '******************************************************', withHistory
 	art = db.t_articles[articleId]
 	if art == None:
 		session.flash = T('Unavailable')
@@ -479,10 +481,12 @@ def recommLatex(articleId):
 \\usepackage{lipsum} %% Required to insert dummy text
 \\usepackage{calc}
 \\usepackage{siunitx}
+\\usepackage{pdfpages}
 %%\\usepackage[none]{hyphenat} %% use only if there is a problem 
 %% Use Unicode characters
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{newunicodechar}
 %%\\usepackage{textcomp}
 \\usepackage{filecontents}
 \\begin{filecontents}{\\jobname.bib}
@@ -492,6 +496,8 @@ def recommLatex(articleId):
 \\DeclareUnicodeCharacter{B0}{\\textdegree}
 \\DeclareUnicodeCharacter{A0}{ }
 \\DeclareUnicodeCharacter{AD}{\\-}
+\\DeclareUnicodeCharacter{20AC}{\\euro}
+\\newunicodechar{−}{--}
 
 %% Clean citations with biblatex
 \\usepackage[
@@ -640,10 +646,13 @@ url=false,
 %%%% RECOMMENDATION %%%%
 %(recommendation)s
 
-
 \\printbibliography[notcategory=ignore]
 \\section*{Appendix}
 Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
+
+%%%% HISTORY %%%%
+%(history)s
+
 \\end{document}
 
 """
@@ -699,11 +708,81 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 		#tmp.write(bib)
 		#tmp.close()
 	recommendation = lastRecomm.recommendation_comments
-	#recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space
-	with open('/tmp/laRecomm.txt', 'w') as tmp:
-		tmp.write(recommendation)
-		tmp.close()
+	#recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space ::: replaced by latex command DO NOT UNCOMMENT!
+	#with open('/tmp/laRecomm.txt', 'w') as tmp:
+		#tmp.write(recommendation)
+		#tmp.close()
 	recommendation = (render(recommendation))[0]
+	
+	# NOTE: Standard string for using \includepdf for external documents
+	incpdfcmd = '\\includepdf[pages={-},scale=.7,pagecommand={},offset=0mm -20mm]{%s}\n'
+	history = ''
+	if (withHistory and art.already_published is False):
+		history = '\\clearpage\\section*{Review process}\n'
+		allRecomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+		nbRecomms = len(allRecomms)
+		iRecomm = 0
+		roundNb = nbRecomms+1
+		for recomm in allRecomms:
+			iRecomm += 1
+			roundNb -= 1
+			x = latex_escape('Revision round #%s' % roundNb)
+			history += '\\subsection*{%s}\n' % x
+			#roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+			whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+			# Decision if not last recomm
+			if iRecomm > 1:
+				history += '\\subsubsection*{Decision by %s}\n' % SPAN(whoDidIt).flatten()
+				x = latex_escape(recomm.recommendation_title)
+				history += '{\\bf %s}\\par\n' % x
+				x = (render(recomm.recommendation_comments))[0]
+				history += x + '\n\n\n'
+				
+			# Check for reviews
+			reviews = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Completed') ).select(orderby=~db.t_reviews.id)
+			if len(reviews) > 0:
+				history += '\\subsubsection*{Reviews}\n'
+				history += '\\begin{itemize}\n'
+				for review in reviews:
+					# display the review
+					if review.anonymously:
+						x = latex_escape(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
+						history += '\\item{%s}\\par\n' % x
+					else:
+						x = latex_escape(current.T('Reviewed by')+' '+mkUser(auth, db, review.reviewer_id, linked=False).flatten()+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
+						history += '\\item{%s}\\par\n' % x
+					if len(review.review or '')>2:
+						x = (render(review.review))[0]
+						history += x + '\n\n\n'
+						if review.review_pdf:
+							x = os.path.join(tmpDir, 'review_%d.pdf' % review.id)
+							with open(x, 'w') as tmp:
+								tmp.write(review.review_pdf_data)
+								tmp.close()
+							history += incpdfcmd % x
+					elif review.review_pdf:
+						x = os.path.join(tmpDir, 'review_%d.pdf' % review.id)
+						with open(x, 'w') as tmp:
+							tmp.write(review.review_pdf_data)
+							tmp.close()
+						history += incpdfcmd % x
+					else:
+						pass
+				history += '\\end{itemize}\n'
+			
+			# Author's reply
+			if len(recomm.reply) > 2 or recomm.reply_pdf: 
+				history += '\\subsubsection*{Authors\' reply}\n'
+			if len(recomm.reply) > 2: 
+				x = (render(recomm.reply))[0]
+				history += x + '\n\n\n'
+			if recomm.reply_pdf: 
+				x = os.path.join(tmpDir, 'reply_%d.pdf' % recomm.id)
+				with open(x, 'w') as tmp:
+					tmp.write(recomm.reply_pdf_data)
+					tmp.close()
+				history += incpdfcmd % x
+			
 	resu = template % locals()
 	return(resu)
 
@@ -742,14 +821,14 @@ style=authoryear-comp,
 maxnames=99,
 maxcitenames=2,
 uniquename=init,
-giveninits=true,
+%%giveninits=true,
 terseinits=true, %% change to 'false' for initials like L. D.
 url=false,
 dashed=false
 ]{biblatex}
 \\DeclareNameAlias{default}{family-given}
 \\DeclareNameAlias{sortname}{family-given}
-\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
+%%\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
 \\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
 \\renewbibmacro{in:}{%%
   \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
@@ -867,7 +946,7 @@ dashed=false
 	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_blue.png'))
 	title = art.title
 	authors = art.authors
-	whoDidIt = SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten()
+	whoDidIt = latex_escape(SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
 	reviewers = ""
 	doi = art.doi
 	doiLink = mkLinkDOI(art.doi)
@@ -939,10 +1018,10 @@ def rec_as_latex():
 	if (not articleId.isdigit()):
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
-	
+	withHistory = ('withHistory' in request.vars)
 	bib = recommBibtex(articleId)
 	latFP = frontPageLatex(articleId)
-	latRec = recommLatex(articleId)
+	latRec = recommLatex(articleId, withHistory)
 	message = DIV(
 			H2('BibTex:'),
 			PRE(bib), 
@@ -953,7 +1032,6 @@ def rec_as_latex():
 		)
 	response.view='default/info.html'
 	return(dict(message=message))
-
 
 
 ######################################################################################################################################################################
@@ -970,39 +1048,78 @@ def rec_as_pdf():
 		session.flash = T('Unavailable')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
 	
-	#bib = recommBibtex(articleId)
-	#latFP = frontPageLatex(articleId)
-	latRec = recommLatex(articleId)
-	#message = DIV(
-			#H2('BibTex:'),
-			#PRE(bib), 
-			#H2('Front page:'),
-			#PRE(latFP),
-			#H2('Recommendation:'),
-			#PRE(latRec),
-		#)
-	#response.view='default/info.html'
-	#return(dict(message=message))
+	tmpDir = tempfile.mkdtemp()
 	cwd = os.getcwd()
-	os.chdir(os.path.join(request.folder, "tmp"))
+	os.chdir(tmpDir)
+	art = db.t_articles[articleId]
+	withHistory = ('withHistory' in request.vars)
+	latRec = recommLatex(articleId, tmpDir, withHistory)
 	texfile = "recomm.tex"
 	with open(texfile, 'w') as tmp:
 		tmp.write(latRec)
 		tmp.close()
-	cmd = "pdflatex recomm ; biber recomm ; pdflatex recomm"
+	biber = myconf.take('config.biber')
+	pdflatex = myconf.take('config.pdflatex')
+	cmd = "%(pdflatex)s recomm ; %(biber)s recomm ; %(pdflatex)s recomm" % locals()
 	os.system(cmd)
 	pdffile = 'recomm.pdf'
 	if os.path.isfile(pdffile):
 		with open(pdffile, 'rb') as tmp:
 			pdf = tmp.read()
 			tmp.close()
-		os.remove(texfile)
-		os.remove(pdffile)
 		os.chdir(cwd)
+		shutil.rmtree(tmpDir)
 		response.headers['Content-Type']='application/pdf'
+		response.headers['Content-Disposition'] = 'inline; filename="{0}_recommendation.pdf"'.format(art.title)
 		return(pdf)
 	else:
 		os.chdir(cwd)
+		#shutil.rmtree(tmpDir) ## For further examination
+		session.flash = T('Failed :-(')
+		redirect(request.env.http_referer)
+
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def fp_as_pdf():
+	if ('articleId' in request.vars):
+		articleId = request.vars['articleId']
+	elif ('id' in request.vars):
+		articleId = request.vars['id']
+	else:
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	if (not articleId.isdigit()):
+		session.flash = T('Unavailable')
+		redirect(URL('public', 'recommended_articles', user_signature=True))
+	
+	art = db.t_articles[articleId]
+	latFP = frontPageLatex(articleId)
+	tmpDir = tempfile.mkdtemp()
+	cwd = os.getcwd()
+	os.chdir(tmpDir)
+	texfile = "frontpage.tex"
+	with open(texfile, 'w') as tmp:
+		tmp.write(latFP)
+		tmp.close()
+	biber = myconf.take('config.biber')
+	pdflatex = myconf.take('config.pdflatex')
+	cmd = "%(pdflatex)s frontpage ; %(biber)s frontpage ; %(pdflatex)s frontpage" % locals()
+	os.system(cmd)
+	pdffile = 'frontpage.pdf'
+	if os.path.isfile(pdffile):
+		with open(pdffile, 'rb') as tmp:
+			pdf = tmp.read()
+			tmp.close()
+		os.chdir(cwd)
+		shutil.rmtree(tmpDir)
+		response.headers['Content-Type']='application/pdf'
+		response.headers['Content-Disposition'] = 'inline; filename="{0}_frontpage.pdf"'.format(art.title)
+		return(pdf)
+	else:
+		os.chdir(cwd)
+		shutil.rmtree(tmpDir)
 		session.flash = T('Failed :-(')
 		redirect(request.env.http_referer)
 		

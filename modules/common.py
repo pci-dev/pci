@@ -1011,9 +1011,12 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	myArticle = DIV(
 		DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
 		,DIV(
-			A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
+			 A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
+			,A(current.T('PDF Front page'), _href=URL(c='admin', f='fp_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
 			,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
-			,_style='text-align:right;') if (not art.already_published and (auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
+			,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
+			,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
+		) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
 		,img
 		,H3(art.title or '')
 		,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))

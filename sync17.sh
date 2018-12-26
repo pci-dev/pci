@@ -25,6 +25,7 @@ echo "http://147.99.65.220:83/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 -
 	~/W/web2py_2.17.2/applications/pcidev   ssh://www-data@gaia2//home/www-data/web2py_2.17.2/applications/PCiEvolBiol
 
 # echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | psql -h gaia2 -U piry pci_evolbiol_test
+# echo "update auth_user set email = lower(email) where email ~ '[A-Z]';"| psql -h gaia2 -U piry pci_evolbiol_test
 
 # rsopt="--verbose --progress --times"
 rsopt="--times --verbose"

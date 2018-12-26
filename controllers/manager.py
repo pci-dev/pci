@@ -11,7 +11,7 @@ import os
 #import tweepy
 
 import codecs
-import html2text
+#import html2text
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *

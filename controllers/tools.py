@@ -11,10 +11,10 @@ import os
 #import tweepy
 
 import codecs
-import html2text
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *
+from html2text import *
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
