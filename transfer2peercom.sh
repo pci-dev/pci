@@ -45,6 +45,7 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/background.png             peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/small-background.png       peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/workflow1.png              peercom@peercom-front1:$dir_name/static/images
+# rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/sponsors_banner.png                                peercom@peercom-front1:$dir_name/static/images
 
 ssh peercom@peercom-front1 "chgrp www-data $dir_name/private/appconfig.ini ; chmod 640 $dir_name/private/appconfig.ini ; find $dir_name -name \\*.pyc -ls ; find $dir_name -name \\*.pyc -exec rm {} \\; ; touch $dir_name/../wsgihandler.py"
 

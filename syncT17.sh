@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-ip="147.99.64.4"
+ip="147.99.64.107"
 
 # RSS link as datamatrix
 datam="/home/piry/Documents/Labo/PCiEvolBiol/RSS_datamatrix.png"
@@ -37,6 +37,7 @@ rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/background.png                       
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/images/favicon.*			   www-data@$ip:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/small-background.png                    www-data@$ip:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/images/Workflow20180314.png             www-data@$ip:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
+rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/sponsors_banner.png                     www-data@$ip:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 rsync $rsopt $datam                                                                www-data@$ip:/home/www-data/web2py_2.17.2/applications/PCiEvolBiol/static/images
 
 ssh www-data@$ip "find /home/www-data/web2py_2.17.2/applications/PCiEvolBiol -name \\*.pyc -exec rm {} \\; ; touch /home/www-data/web2py_2.17.2/wsgihandler.py"

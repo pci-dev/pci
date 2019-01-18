@@ -9,6 +9,7 @@ from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 description = myconf.take('app.description')
 appname = myconf.take('app.name')
+shortname = myconf.take('app.name')
 longname = myconf.take('app.longname')
 contact = myconf.take('contacts.managers')
 
