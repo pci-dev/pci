@@ -12,6 +12,7 @@ from helper import *
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
+parallelSubmission = myconf.get('config.parallel_submission', default=False)
 
 
 
