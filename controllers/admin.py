@@ -152,15 +152,52 @@ def list_users():
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def mailing_lists():
 	content = DIV()
+	content.append(H1(T("Roles:")))
+	contentDiv = DIV(_style="padding-left:32px;")
 	for theRole in db(db.auth_group.role).select():
-		content.append(H1(theRole.role))
+		contentDiv.append(H2(theRole.role))
 		emails = []
 		query = db( (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == theRole.id) ).select(db.auth_user.email, orderby=db.auth_user.email)
 		for user in query:
 			if user.email:
 				emails.append(user.email)
 		list_emails = ', '.join(emails)
-		content.append(list_emails)
+		contentDiv.append(list_emails)
+	content.append(contentDiv)
+	
+	# Special searches: authors
+	content.append(H1(T("Authors:")))
+	emails = []
+	query = db( (db.auth_user._id == db.t_articles.user_id) ).select(db.auth_user.email, groupby=db.auth_user.email)
+	for user in query:
+		if user.email:
+			emails.append(user.email)
+	list_emails = ', '.join(emails)
+	content.append(list_emails)
+	
+	# Special searches: reviewers
+	content.append(H1(T("Reviewers:")))
+	emails = []
+	query = db( (db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(['Under consideration', 'Completed'])) ).select(db.auth_user.email, groupby=db.auth_user.email)
+	for user in query:
+		if user.email:
+			emails.append(user.email)
+	list_emails = ', '.join(emails)
+	content.append(list_emails)
+	
+	# Other users
+	content.append(H1(T("Others:")))
+	emails = []
+	query = db.executesql("""SELECT DISTINCT auth_user.email FROM auth_user 
+				WHERE auth_user.id NOT IN (SELECT DISTINCT auth_membership.user_id FROM auth_membership) 
+				AND auth_user.id NOT IN (SELECT DISTINCT t_articles.user_id FROM t_articles WHERE t_articles.user_id IS NOT NULL) 
+				AND auth_user.id NOT IN (SELECT DISTINCT t_reviews.reviewer_id FROM t_reviews WHERE t_reviews.reviewer_id IS NOT NULL AND review_state IN ('Under consideration', 'Completed')) 
+				AND auth_user.email IS NOT NULL;""")
+	for user_email in query:
+		emails.append(user_email[0])
+	list_emails = ', '.join(emails)
+	content.append(list_emails)
+	
 	response.view='default/myLayout.html'
 	return dict(
 				myText=getText(request, auth, db, '#EmailsListsUsersText'),
