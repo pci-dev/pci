@@ -1183,6 +1183,20 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			if auth.has_membership(role='manager') and (art.user_id != auth.user_id) and (amIReviewer is False):
 				hideOngoingRecomm = False
 			
+			if (((recomm.reply is not None) and (len(recomm.reply) > 0)) or recomm.reply_pdf is not None):
+				myRound.append(HR())
+				myRound.append(DIV(B(current.T('Author\'s Reply:'))))
+			if ((recomm.reply is not None) and (len(recomm.reply) > 0)):
+				myRound.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
+			if recomm.reply_pdf:
+				myRound.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+				if recomm.track_change:
+					myRound.append(BR()) # newline if both links for visibility
+			if recomm.track_change:
+				myRound.append(A(current.T('Download tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+			if (recomm.reply_pdf or len(recomm.reply or '')>5):
+				reply_filled = True
+			
 			# Check for reviews
 			existOngoingReview = False
 			myReviews = DIV()
@@ -1317,20 +1331,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				truc.append(DIV(A(SPAN(current.T('Invite a reviewer'), _class='btn btn-default pci-recommender'), _href=URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))))
 			truc.append(H3(current.T('Reviews'))+DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else '')
 			myRound.append(truc)
-			
-			if (((recomm.reply is not None) and (len(recomm.reply) > 0)) or recomm.reply_pdf is not None):
-				myRound.append(HR())
-				myRound.append(DIV(B(current.T('Author\'s Reply:'))))
-			if ((recomm.reply is not None) and (len(recomm.reply) > 0)):
-				myRound.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
-			if recomm.reply_pdf:
-				myRound.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
-				if recomm.track_change:
-					myRound.append(BR()) # newline if both links for visibility
-			if recomm.track_change:
-				myRound.append(A(current.T('Download tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
-			if (recomm.reply_pdf or len(recomm.reply or '')>5):
-				reply_filled = True
 			
 		myContents.append( H2(current.T('Round #%s') % (roundNb)) )
 		if myRound and (recomm.is_closed or art.status == 'Awaiting revision' or art.user_id != auth.user_id):
