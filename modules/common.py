@@ -7,6 +7,7 @@ from re import sub, match
 from copy import deepcopy
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
+from collections import OrderedDict
 
 import io
 from PIL import Image
@@ -203,8 +204,8 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	if withImg:
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 			img += [IMG(_alt='article picture', _src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
-	if row.already_published is False:
-		img += [DIV(SPAN(current.T('PREPRINT'), _class='pci-preprintTagText'), _class='pci-preprintTag')]
+	#if row.already_published is False:
+		#img += [DIV(SPAN(current.T('PREPRINT'), _class='pci-preprintTagText'), _class='pci-preprintTag')]
 	resu.append(
 			TD( img, 
 				_style='vertical-align:top; text-align:left;', # deprecated .. to be removed 
@@ -736,7 +737,6 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		host=False
 		port=False
 	
-	myMeta = dict()
 	myContents = DIV(_class=('pci-article-div-printable' if printable else 'pci-article-div'))
 	## NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
@@ -757,6 +757,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 					,DIV(altmetric, _style='margin-top:12px;')
 					,_class='pci-recommOfArticle'
 				)
+	#myArticle = IFRAME( _src=mkLinkDOI(art.doi), _class='pci-recommOfArticle')
 	
 	recomGreen=DIV(
 				DIV(
@@ -765,6 +766,86 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				))
 	myContents.append(P())
 	myContents.append(recomGreen)
+	
+	# Last recommendation
+	lastRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=~db.t_recommendations.id).last()
+
+	# PDF (if any)
+	pdfQ = db(db.t_pdf.recommendation_id == lastRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
+	if len(pdfQ) > 0:
+		pdfLink = URL('public', 'rec', vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
+		pdf = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_alt='pdf', _src=URL('static', 'images/application-pdf.png'))), _href=pdfLink, _class='btn btn-info pci-public')
+	else:
+		pdfLink = None
+		pdf = None
+
+	# METADATA
+	desc = ('A recommendation of: ' if art.already_published else 'A recommendation of the preprint: ')+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+	whoDidItMeta = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False)
+	citeNum = ''
+	recomm_altmetric = ''
+	if lastRecomm.recommendation_doi:
+		citeNumSearch = re.search('([0-9]+$)', lastRecomm.recommendation_doi, re.IGNORECASE)
+		if citeNumSearch:
+			citeNum = citeNumSearch.group(1)
+		citeRef = mkDOI(lastRecomm.recommendation_doi)
+		if printable:
+			recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', lastRecomm.recommendation_doi))
+		else:
+			recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', lastRecomm.recommendation_doi))
+	citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
+	citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+
+	# META headers
+	myMeta = OrderedDict()
+	myMeta['citation_title'] = lastRecomm.recommendation_title
+	if len(whoDidItMeta)>0:
+		# Trick for multiple entries (see globals.py:464)
+		for wdi in whoDidItMeta:
+			myMeta['citation_author_%s' % wdi] = OrderedDict([('name', 'citation_author'), ('content', wdi)])
+	myMeta['citation_journal_title'] = myconf.take("app.description")
+	myMeta['citation_publication_date'] = (lastRecomm.last_change.date()).strftime('%Y/%m/%d')
+	myMeta['citation_online_date'] = (lastRecomm.last_change.date()).strftime('%Y/%m/%d')
+	myMeta['citation_journal_abbrev'] = myconf.take("app.name")
+	myMeta['citation_issn'] = myconf.take("app.issn")
+	myMeta['citation_volume'] = '1'
+	myMeta['citation_publisher'] = 'Peer Community In'
+	if lastRecomm.recommendation_doi:
+		myMeta['citation_doi'] = sub(r'doi: *', '', lastRecomm.recommendation_doi) # for altmetrics
+	if citeNum:
+		myMeta['citation_firstpage'] = citeNum
+	myMeta['citation_abstract'] = desc
+	if pdfLink:
+		myMeta['citation_pdf_url'] = pdfLink
+
+	#myMeta['og:title'] = lastRecomm.recommendation_title
+	#myMeta['description'] = desc
+
+	# Dublin Core fields
+	myMeta['DC.title'] = lastRecomm.recommendation_title
+	if len(whoDidItMeta)>0:
+		myMeta['DC.creator'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+	myMeta['DC.issued'] = lastRecomm.last_change.date()
+	#myMeta['DC.date'] = lastRecomm.last_change.date()
+	myMeta['DC.description'] = desc
+	myMeta['DC.publisher'] = myconf.take("app.description")
+	myMeta['DC.relation.ispartof'] = myconf.take("app.description")
+	if lastRecomm.recommendation_doi:
+		myMeta['DC.identifier'] = myMeta['citation_doi']
+	if citeNum:
+		myMeta['DC.citation.spage'] = citeNum
+	myMeta['DC.language'] = 'en'
+	myMeta['DC.rights'] = '(C) %s, %d' % (myconf.take("app.description"), lastRecomm.last_change.date().year)
+	
+	
+	whoDidItCite = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+	cite = DIV(
+				SPAN(B('Cite this recommendation as:'), 
+				BR(), SPAN(whoDidItCite), ' ', lastRecomm.last_change.strftime('(%Y)'), ' ', lastRecomm.recommendation_title, '. ', I(myconf.take('app.description')+', '+(citeNum or '')+'. '), 
+				citeRef, 
+			), _class='pci-citation')
+
+	
 	
 	## NOTE: recommendations counting
 	if with_reviews:
@@ -775,84 +856,24 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	recommRound = len(recomms)
 	leftShift=0
 	headerDone = False
-	pdf = None
+	
 	for recomm in recomms:
 		
-		pdfQ = db(db.t_pdf.recommendation_id == recomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
-		if len(pdfQ) > 0:
-			pdf = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_alt='pdf', _src=URL('static', 'images/application-pdf.png'))), _href=URL('default', 'download', args=pdfQ[0]['pdf']), _class='btn btn-info pci-public')
-		
-		whoDidItTxt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=True, linked=not(printable), host=host, port=port, scheme=scheme)
-		whoDidItCite = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 		whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=True, linked=not(printable), as_items=False, host=host, port=port, scheme=scheme)
-		whoDidItMeta = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, as_list=True, as_items=False, host=host, port=port, scheme=scheme)
-
-		# METADATA
-		desc = ('A recommendation of: ' if art.already_published else 'A recommendation of the preprint: ')+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
-		myMeta['DC.issued'] = recomm.last_change.date()
-		myMeta['DC.date'] = recomm.last_change.date()
-		myMeta['citation_publication_date'] = recomm.last_change.date()
-		myMeta['citation_online_date'] = recomm.last_change.date()
-		myMeta['DC.rights'] = '(C) '+myconf.take("app.description")+', '+str(recomm.last_change.date().year)
-		myMeta['DC.publisher'] = myconf.take("app.description")
-		myMeta['citation_publisher'] = myconf.take("app.description")
-		myMeta['DC.relation.ispartof'] = myconf.take("app.description")
-		myMeta['citation_journal_title'] = myconf.take("app.description")
-		myMeta['citation_journal_abbrev'] = myconf.take("app.name")
-		myMeta['citation_issn'] = myconf.take("app.issn")
-		myMeta['DC.language'] = 'en'
-		myMeta['DC.title'] = recomm.recommendation_title
-		myMeta['og:title'] = recomm.recommendation_title
-		myMeta['description'] = desc
-		myMeta['DC.description'] = desc
-		myMeta['citation_abstract'] = desc
-		if recomm.recommendation_doi:
-			myMeta['citation_doi'] = sub(r'doi: *', '', recomm.recommendation_doi) # for altmetrics
-			myMeta['DC.identifier'] = myMeta['citation_doi']
-		if len(whoDidItMeta)>0:
-			myMeta['DC.creator'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
-			myMeta['citation_author'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
-		
-		
-		if recomm.recommendation_doi:
-			citeNumSearch = re.search('([0-9]+$)', recomm.recommendation_doi, re.IGNORECASE)
-			if citeNumSearch:
-				citeNum = citeNumSearch.group(1)
-				myMeta['citation_firstpage'] = citeNum
-			else:
-				citeNum = recomm.recommendation_doi
-			citeRef = mkDOI(recomm.recommendation_doi)
-			if printable:
-				recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', recomm.recommendation_doi))
-			else:
-				recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', recomm.recommendation_doi))
-		else:
-			citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
-			citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
-			citeNum = ''
-			recomm_altmetric = ''
-		if recomm.recommendation_state == 'Recommended':
-			cite = DIV(
-						SPAN(B('Cite this recommendation as:'), 
-						BR(), SPAN(whoDidItCite), ' ', recomm.last_change.strftime('(%Y)'), ' ', recomm.recommendation_title, '. ', I(myconf.take('app.description')+', '+citeNum+'. '), 
-						citeRef, 
-					), _class='pci-citation')
-		else:
-			cite = ''
 			
 		## NOTE: POST-PRINT ARTICLE
 		if art.already_published and not(headerDone):
 			myContents.append(
 				DIV(recomm_altmetric
-					,cite
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
-					,H4(SPAN(current.T(' by ')), SPAN(whoDidIt))
+					,H4(SPAN(whoDidIt))
 					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					,SPAN('A recommendation of:', _class='pci-recommOf')
 					,DIV(myArticle, _class='pci-recommOfDiv')
 					,DIV( 
 							I(recomm.last_change.strftime('Recommended: %d %B %Y')) if recomm.last_change else ''
 					)
+					,cite
 					,HR()
 					,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 					, _class='pci-recommendation-div'
@@ -910,16 +931,16 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				reply = ''
 			if not(headerDone):
 				myContents.append( DIV(recomm_altmetric
-						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
-						,H4(current.T(' by '), SPAN(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-						,SPAN('A recommendation of the preprint:', _class='pci-recommOf')
-						,DIV(myArticle, _class='pci-recommOfDiv')
+						,H4(SPAN(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
+						#,SPAN('A recommendation of the preprint:', _class='pci-recommOf')
+						,DIV(SPAN('References', _class='pci-recommOf'), BR(), myArticle, _class='pci-recommOfDiv')
 						,DIV( 
 							  I(art.upload_timestamp.strftime('Submitted: %d %B %Y')) if art.upload_timestamp else ''
 							 ,', '
 							 ,I(recomm.last_change.strftime('Recommended: %d %B %Y')) if recomm.last_change else ''
 						)
+						,cite
 						,HR()
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
@@ -969,6 +990,8 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	nbReviews = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
 	return dict(myContents=myContents, pdf=pdf, nbReviews=(nbReviews+(nbRecomms-1)), myMeta=myMeta)
 
+
+
 ######################################################################################################################################################################
 def mkCommentsTree(auth, db, commentId):
 	comment = db.t_comments[commentId]
@@ -1010,13 +1033,14 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 		img = ''
 	myArticle = DIV(
 		DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
-		,DIV(
-			 A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
-			,A(current.T('PDF Front page'), _href=URL(c='admin', f='fp_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
-			,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
-			,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
-			,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
-		) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
+		# NOTE: publishing tools not ready yet...
+		#,DIV(
+			 #A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
+			#,A(current.T('PDF Front page'), _href=URL(c='admin', f='fp_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
+			#,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
+			#,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
+			#,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
+		#) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
 		,img
 		,H3(art.title or '')
 		,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
@@ -1028,6 +1052,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
 				I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
 		) if (art.already_published is False) else ''
+		,(B('Parallel submission') if art.parallel_submission else '')
 		,(SPAN(art.article_source)+BR() if art.article_source else '')
 	)
 	# Allow to display cover letter if role is manager or above
@@ -1190,6 +1215,20 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			if auth.has_membership(role='manager') and (art.user_id != auth.user_id) and (amIReviewer is False):
 				hideOngoingRecomm = False
 			
+			if (((recomm.reply is not None) and (len(recomm.reply) > 0)) or recomm.reply_pdf is not None):
+				myRound.append(HR())
+				myRound.append(DIV(B(current.T('Author\'s Reply:'))))
+			if ((recomm.reply is not None) and (len(recomm.reply) > 0)):
+				myRound.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
+			if recomm.reply_pdf:
+				myRound.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+				if recomm.track_change:
+					myRound.append(BR()) # newline if both links for visibility
+			if recomm.track_change:
+				myRound.append(A(current.T('Download tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
+			if (recomm.reply_pdf or len(recomm.reply or '')>5):
+				reply_filled = True
+			
 			# Check for reviews
 			existOngoingReview = False
 			myReviews = DIV()
@@ -1324,20 +1363,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				truc.append(DIV(A(SPAN(current.T('Invite a reviewer'), _class='btn btn-default pci-recommender'), _href=URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))))
 			truc.append(H3(current.T('Reviews'))+DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else '')
 			myRound.append(truc)
-			
-			if (((recomm.reply is not None) and (len(recomm.reply) > 0)) or recomm.reply_pdf is not None):
-				myRound.append(HR())
-				myRound.append(DIV(B(current.T('Author\'s Reply:'))))
-			if ((recomm.reply is not None) and (len(recomm.reply) > 0)):
-				myRound.append(DIV(WIKI(recomm.reply or ''), _class='pci-bigtext margin'))
-			if recomm.reply_pdf:
-				myRound.append(A(current.T('Download author\'s reply (PDF file)'), _href=URL('default', 'download', args=recomm.reply_pdf, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
-				if recomm.track_change:
-					myRound.append(BR()) # newline if both links for visibility
-			if recomm.track_change:
-				myRound.append(A(current.T('Download tracked changes file'), _href=URL('default', 'download', args=recomm.track_change, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
-			if (recomm.reply_pdf or len(recomm.reply or '')>5):
-				reply_filled = True
 			
 		myContents.append( H2(current.T('Round #%s') % (roundNb)) )
 		if myRound and (recomm.is_closed or art.status == 'Awaiting revision' or art.user_id != auth.user_id):
