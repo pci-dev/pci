@@ -203,8 +203,8 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	if withImg:
 		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 			img += [IMG(_alt='article picture', _src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _class='pci-articlePicture')]
-	if row.already_published is False:
-		img += [DIV(SPAN(current.T('PREPRINT'), _class='pci-preprintTagText'), _class='pci-preprintTag')]
+	#if row.already_published is False:
+		#img += [DIV(SPAN(current.T('PREPRINT'), _class='pci-preprintTagText'), _class='pci-preprintTag')]
 	resu.append(
 			TD( img, 
 				_style='vertical-align:top; text-align:left;', # deprecated .. to be removed 
