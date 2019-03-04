@@ -369,7 +369,7 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 			anchor = DIV(
 						B(recomm.recommendation_title), SPAN(current.T(' by ')), recommenders, mkDOI(recomm.recommendation_doi),
 						P(),
-						SPAN(current.T('A recommendation of ') if (art.already_published) else current.T('A recommendation of the preprint ')), 
+						SPAN(current.T('A recommendation of ')), 
 						I(art.title), SPAN(current.T(' by ')), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), 
 						(SPAN(current.T(' in '))+SPAN(art.article_source) if art.article_source else ''),
 						BR(), 
@@ -788,7 +788,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		whoDidItMeta = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, as_list=True, as_items=False, host=host, port=port, scheme=scheme)
 
 		# METADATA
-		desc = ('A recommendation of: ' if art.already_published else 'A recommendation of the preprint: ')+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+		desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
 		myMeta['DC.issued'] = recomm.last_change.date()
 		myMeta['DC.date'] = recomm.last_change.date()
 		myMeta['citation_publication_date'] = recomm.last_change.date()
@@ -913,7 +913,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,cite
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(current.T(' by '), SPAN(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-						,SPAN('A recommendation of the preprint:', _class='pci-recommOf')
+						,SPAN('A recommendation of:', _class='pci-recommOf')
 						,DIV(myArticle, _class='pci-recommOfDiv')
 						,DIV( 
 							  I(art.upload_timestamp.strftime('Submitted: %d %B %Y')) if art.upload_timestamp else ''
