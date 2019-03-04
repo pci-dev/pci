@@ -370,7 +370,7 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 			anchor = DIV(
 						B(recomm.recommendation_title), SPAN(current.T(' by ')), recommenders, mkDOI(recomm.recommendation_doi),
 						P(),
-						SPAN(current.T('A recommendation of ') if (art.already_published) else current.T('A recommendation of the preprint ')), 
+						SPAN(current.T('A recommendation of ')), 
 						I(art.title), SPAN(current.T(' by ')), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), 
 						(SPAN(current.T(' in '))+SPAN(art.article_source) if art.article_source else ''),
 						BR(), 
@@ -780,7 +780,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 		pdf = None
 
 	# METADATA
-	desc = ('A recommendation of: ' if art.already_published else 'A recommendation of the preprint: ')+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+	desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
 	whoDidItMeta = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False)
 	citeNum = ''
 	recomm_altmetric = ''
