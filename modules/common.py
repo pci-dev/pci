@@ -936,7 +936,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,H3('Revision round #%s' % recommRound)
 						,SPAN(I(recomm.last_change.strftime('%Y-%m-%d')+' ')) if recomm.last_change else ''
 						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-						#,DIV(SPAN('A recommendation of the preprint:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+						#,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(I(current.T('Preprint DOI:')+' '), mkDOI(recomm.doi), BR()) if ((recomm.doi or '')!='') else ''
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
