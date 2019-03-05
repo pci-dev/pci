@@ -2003,11 +2003,11 @@ def mkRecommArticleRss(auth, db, row):
 	desc.append(BR())
 
 	what = SPAN()
-	if (row.already_published):
-		what.append(B(u'Article '))
-	else:
-		what.append(B(u'Preprint '))
-	what.append(CAT(SPAN(u'recommended by '), SPAN(whoDidIt)))
+	#if (row.already_published):
+		#what.append(B(u'Article '))
+	#else:
+		#what.append(B(u'Preprint '))
+	what.append(CAT(SPAN(u'Recommended by '), SPAN(whoDidIt)))
 	what.append(' ')
 	what.append(A(current.T('view'), _href=link))
 	desc.append(what)
