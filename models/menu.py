@@ -112,9 +112,16 @@ def _BaseMenu():
 			##TODO: for later use?
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
 		]
+	
+	recommendationsMenu = [
+			(T(u'🔍 Search articles'), False, URL('public', 'recommended_articles')),
+			(T('All recommended articles'), False, URL('public', 'all_recommended_articles')),
+		]
+	
 	menuBar = [
 		(T('Home'),       False, URL('default', 'index')),
-		(T(u'🔍 Search'), False, URL('public', 'recommended_articles')),
+		#(T(u'🔍 Search'), False, URL('public', 'recommended_articles')),
+		(T('Articles'),      False, '#', recommendationsMenu),
 		(T('About'),      False, '#', aboutMenu),
 		(T('Help'),       False, '#', helpMenu),
 	]
