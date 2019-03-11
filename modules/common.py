@@ -61,6 +61,7 @@ def mkTopPanel(myconf, auth, inSearch=False):
 						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
 						LABEL(current.T(' or ')),
 						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"),
+						A(current.T('Lost password?'), _href=URL(c='default', f='user', args=['request_reset_password'], vars=dict(_next="/pcidev/default/index")), _class="pci-lostPassword"),
 						_style='text-align:left;',
 					))
 	if auth.has_membership('recommender'):
@@ -262,17 +263,17 @@ def mkRepresentArticle(auth, db, articleId):
 				submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
 				sub_repr = 'by %s %s,' % (submitter.first_name, submitter.last_name)
 			resu = DIV(
-						SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
-						,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors))
-						,H3(art.title)
-						,BR()+SPAN(art.article_source) if art.article_source else ''
-						,BR()+mkDOI(art.doi) if art.doi else ''
-						,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
-						,BR()
-						,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '') if art.keywords else ''
-						,BR()+B(current.T('Abstract'))+BR()+DIV(WIKI(art.abstract or ''), _class='pci-bigtext') if art.abstract else ''
-						, _class='pci-article-div'
-					)
+				SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
+				,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors))
+				,H3(art.title)
+				,BR()+SPAN(art.article_source) if art.article_source else ''
+				,BR()+mkDOI(art.doi) if art.doi else ''
+				,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
+				,BR()
+				,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '') if art.keywords else ''
+				,BR()+B(current.T('Abstract'))+BR()+DIV(WIKI(art.abstract or ''), _class='pci-bigtext') if art.abstract else ''
+				, _class='pci-article-div'
+			)
 	return resu
 
 
@@ -285,7 +286,6 @@ def mkArticleCell(auth, db, art):
 		recomm = db( (db.t_recommendations.article_id==art.id) ).select(orderby=db.t_recommendations.id).last()
 		if recomm is not None and recomm.recommender_id is not None:
 			whowhen = [SPAN(current.T('See recommendation by '), mkUser(auth, db, recomm.recommender_id))]
-			#if art.already_published:
 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
 			if len(contrQy) > 0:
 				whowhen.append(SPAN(current.T(' with ')))
@@ -933,8 +933,10 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				myContents.append( DIV(recomm_altmetric
 						,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else T('Recommendation'))
 						,H4(SPAN(whoDidIt)) #mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-						#,SPAN('A recommendation of the preprint:', _class='pci-recommOf')
-						,DIV(SPAN('References', _class='pci-recommOf'), BR(), myArticle, _class='pci-recommOfDiv')
+						,SPAN('A recommendation of:', _class='pci-recommOf')
+						,DIV(
+							#SPAN('References', _class='pci-recommOf'), BR(), 
+							myArticle, _class='pci-recommOfDiv')
 						,DIV( 
 							  I(art.upload_timestamp.strftime('Submitted: %d %B %Y')) if art.upload_timestamp else ''
 							 ,', '
@@ -957,7 +959,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 						,H3('Revision round #%s' % recommRound)
 						,SPAN(I(recomm.last_change.strftime('%Y-%m-%d')+' ')) if recomm.last_change else ''
 						#,SPAN(SPAN(current.T('Recommendation:')+' '), mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-						#,DIV(SPAN('A recommendation of the preprint:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
+						#,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
 						,DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext')
 						,DIV(I(current.T('Preprint DOI:')+' '), mkDOI(recomm.doi), BR()) if ((recomm.doi or '')!='') else ''
 						,DIV(myReviews, _class='pci-reviews') if len(myReviews) > 0 else ''
@@ -2102,18 +2104,19 @@ def mkRecommendersAffiliations(auth, db, recomm):
 	return(affiliations)
 
 ######################################################################################################################################################################
-  #<link providerId="PCI">
-    #<resource>
-        #<title>Version 3 of this preprint has been peer-reviewed and recommended by Peer Community in Evolutionary Biology</title>
-        #<url>https://dx.doi.org/10.24072/pci.evolbiol.100055</url>
-        #<editor>Charles Baer</editor>
-        #<date>2018-08-08</date>
-        #<reviewers>anonymous and anonymous</reviewers>
-        #<logo>https://peercommunityindotorg.files.wordpress.com/2018/09/small_logo_pour_pdf.png</logo>
-    #</resource>
-    #<doi>10.1101/273367</doi> 
-  #</link>
 def mkRecommArticleRss4bioRxiv(auth, db, row):
+	## Template:
+	#<link providerId="PCI">
+	#<resource>
+		#<title>Version 3 of this preprint has been peer-reviewed and recommended by Peer Community in Evolutionary Biology</title>
+		#<url>https://dx.doi.org/10.24072/pci.evolbiol.100055</url>
+		#<editor>Charles Baer</editor>
+		#<date>2018-08-08</date>
+		#<reviewers>anonymous and anonymous</reviewers>
+		#<logo>https://peercommunityindotorg.files.wordpress.com/2018/09/small_logo_pour_pdf.png</logo>
+	#</resource>
+	#<doi>10.1101/273367</doi> 
+	#</link>
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
@@ -2178,4 +2181,38 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 		logo = XML(URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port)),
 		doi = row.doi,
 	 )
+
+
+######################################################################################################################################################################
+def mkRecommCitation(auth, db, myRecomm):
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	whoDidItCite = mkWhoDidIt4Recomm(auth, db, myRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+	citeNum = ''
+	if myRecomm.recommendation_doi:
+		citeNumSearch = re.search('([0-9]+$)', myRecomm.recommendation_doi, re.IGNORECASE)
+		if citeNumSearch:
+			citeNum = citeNumSearch.group(1)
+	citeRecomm = SPAN(SPAN(whoDidItCite), ' ', myRecomm.last_change.strftime('(%Y)'), ' ', myRecomm.recommendation_title, '. ', I(applongname)+', '+citeNum, SPAN(' '), mkDOI(myRecomm.recommendation_doi))
+	return citeRecomm
+
+
+
+######################################################################################################################################################################
+def mkArticleCitation(auth, db, myRecomm):
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	
+	myArticle = db( (db.t_articles.id == myRecomm.article_id) ).select().last()
+	
+	version = myRecomm.ms_version or ''
+	journal = 'Version %(version)s of this preprint has been peer-reviewed and recommended by %(applongname)s' % locals()
+	citeArticle = SPAN(
+		SPAN(myArticle.authors), ' ', myArticle.last_status_change.strftime('(%Y)'), ' ', myArticle.title, '. Version ', version, ' of this preprint has been peer-reviewed and recommended by ', applongname, '.  ', mkDOI(myArticle.doi)
+	)
+	return citeArticle
 
