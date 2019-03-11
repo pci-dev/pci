@@ -221,7 +221,9 @@ def updUserThumb(s,f):
 	makeUserThumbnail(auth, db, o.id, size=(150,150))
 	return None
 
-applongname=myconf.take('app.longname')
+applongname = myconf.take('app.longname')
+parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
+
 
 db.define_table('help_texts',
 	Field('id', type='id'),
@@ -269,6 +271,7 @@ db.define_table('t_articles',
 	Field('cover_letter', type='text', length=2097152, label=T('Cover letter'), writable=False, readable=False, comment=T('Free text. Indicate in the box above whatever you want. Just be aware that after validation of the submission by the managing board every recommenders, invited reviewers, and reviewers will be able to read the cover letter.')),
 	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and I am acting on behalf of all the authors')),
 	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.') % (applongname,applongname) ),
+	Field('parallel_submission', type='boolean', label=T('Parallel submission'), default=False, writable=parallelSubmissionAllowed, readable=parallelSubmissionAllowed, represent=lambda p,r:SPAN('//', _class="pci-parallelSubmission") if p else ''),
 	Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
 	format='%(title)s (%(authors)s)',
 	singular=T("Article"), 
