@@ -39,13 +39,15 @@
     <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
 
     <!-- http://panzi.github.io/SocialSharePrivacy/ -->
-    <script src="{{=URL('static','js/jquery.cookies.js')}}"></script>
+    <script type="text/javascript" src="https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.cookies.js"></script>
     <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
     {{if 'shareable' in globals():}}
-		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=True, scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
+<!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
+		<script type="application/x-social-share-privacy-settings">{"path_prefix":"https://panzi.github.io/SocialSharePrivacy/", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
 		{{pass}}
     {{if 'shareButtons' in globals():}}
-		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=True, scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
+<!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
+		<script type="application/x-social-share-privacy-settings">{"path_prefix":"https://panzi.github.io/SocialSharePrivacy/", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
 		<link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
 		{{pass}}
 	
@@ -162,7 +164,8 @@
 		</div>
 	</footer>
     {{if 'shareButtons' in globals() or 'shareable' in globals():}}
-		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script>
+<!-- 		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script> -->
+		<script type="text/javascript">(function () {var s = document.createElement('script');var t = document.getElementsByTagName('script')[0];s.type = 'text/javascript';s.async = true;s.src = 'https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js';t.parentNode.insertBefore(s, t);})();</script>
 		{{pass}}
 
 <!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
