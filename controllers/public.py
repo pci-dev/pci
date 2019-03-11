@@ -52,7 +52,7 @@ def recommended_articles():
 		if r:
 			myRows.append(r)
 	grid = DIV(DIV(
-				DIV(T('%s records found')%(n), _class='pci-nResults'),
+				DIV(T('%s articles found')%(n), _class='pci-nResults'),
 				TABLE(
 					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
 					TBODY(myRows),
@@ -65,6 +65,32 @@ def recommended_articles():
 				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
 				myText=getText(request, auth, db, '#RecommendedArticlesText'),
 				myHelp=getHelp(request, auth, db, '#RecommendedArticles'),
+				shareable=True,
+			)
+
+
+def all_recommended_articles():
+	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
+	myRows = []
+	for row in allR:
+		r = mkRecommArticleRow(auth, db, Storage(row), withImg=True, withScore=False, withDate=True)
+		if r:
+			myRows.append(r)
+	n = len(allR)
+	grid = DIV(DIV(
+				DIV(T('%s articles found')%(n), _class='pci-nResults'),
+				TABLE(
+					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
+					TBODY(myRows),
+				_class='web2py_grid pci-lastArticles-table'), 
+			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
+	response.view='default/myLayout.html'
+	return dict(
+				grid=grid, 
+				#searchForm=searchForm, 
+				myTitle=getTitle(request, auth, db, '#AllRecommendedArticlesTitle'),
+				myText=getText(request, auth, db, '#AllRecommendedArticlesText'),
+				myHelp=getHelp(request, auth, db, '#AllRecommendedArticles'),
 				shareable=True,
 			)
 
@@ -119,6 +145,7 @@ def last_recomms():
 					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('public', 'last_recomms', vars=myVarsNext, user_signature=True)),
 					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
 				),
+				A(current.T('See all recommendations'), _href=URL('public', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
 				_style='text-align:center;'
 			),
 			_class='pci-lastArticles-div',
@@ -140,7 +167,11 @@ def rec():
 		with_comments = True
 	else:
 		with_comments = False
-		
+	if 'asPDF' in request.vars and request.vars['asPDF']=='True':
+		as_pdf = True
+	else:
+		as_pdf = False
+	
 	if ('articleId' in request.vars):
 		articleId = request.vars['articleId']
 	elif ('id' in request.vars):
@@ -161,6 +192,14 @@ def rec():
 	elif art.status != 'Recommended':
 		session.flash = T('Forbidden access')
 		redirect(URL('public', 'recommended_articles', user_signature=True))
+
+	if (as_pdf):
+		pdfQ = db( (db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id) ).select(db.t_pdf.id, db.t_pdf.pdf)
+		if len(pdfQ) > 0:
+			redirect(URL('default', 'download', args=pdfQ[0]['pdf']))
+		else:
+			session.flash = T('Unavailable')
+			redirect(redirect(request.env.http_referer))
 
 	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
 	myContents = myFeaturedRecommendation['myContents']
@@ -207,11 +246,12 @@ def rec():
 	if len(response.title)>64:
 		response.title = response.title[:64]+'...'
 	if len(myMeta)>0:
-		for k in myMeta:
-			if type(myMeta[k]) is list:
-				response.meta[k] = ' ; '.join(myMeta[k]) # syntax as in: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
-			else:
-				response.meta[k] = myMeta[k]
+		response.meta = myMeta
+		#for k in myMeta:
+			#if type(myMeta[k]) is list:
+				#response.meta[k] = ' ; '.join(myMeta[k]) # syntax as in: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+			#else:
+				#response.meta[k] = myMeta[k]
 	return dict(
 				statusTitle=myTitle,
 				myContents=myContents,
@@ -250,7 +290,6 @@ def managers():
 
 def recommenders():
 	myVars = request.vars
-	#print(request.vars)
 	qyKw = ''
 	qyTF = []
 	excludeList = []
@@ -265,7 +304,6 @@ def recommenders():
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
 	searchForm = mkSearchForm(auth, db, myVars)
-	#print(qyTF, qyKwArr)
 	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
 	else:
