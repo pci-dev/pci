@@ -11,8 +11,8 @@ from helper import *
 # frequently used constants
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.take('config.trgm_limit') or 0.4
-parallelSubmission = myconf.get('config.parallel_submission', default=False)
+trgmLimit = myconf.get('config.trgm_limit', default=0.4)
+parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
 
 
@@ -60,61 +60,85 @@ def fill_new_article():
 	db.t_articles.already_published.writable = False
 	db.t_articles.cover_letter.readable = True
 	db.t_articles.cover_letter.writable = True
+	db.t_articles.parallel_submission.label = T('This preprint is (or will be) also submitted to a journal')
 	myScript = """jQuery(document).ready(function(){
-					
-					if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-						jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-					} else {
-						jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-					}
-					
-					if(jQuery('#t_articles_already_published').prop('checked')) {
-						jQuery('#t_articles_article_source__row').show();
-					} else {
-						jQuery('#t_articles_article_source__row').hide();
-						jQuery(':submit').prop('disabled', true);
-					}
-					
-					if(jQuery('#t_articles_already_published').length) jQuery(':submit').prop('disabled', false);
-					
-					if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-					
-					jQuery('#t_articles_picture_rights_ok').change(function(){
-								if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-									jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-								} else {
-									jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-									jQuery('#t_articles_uploaded_picture').val('');
-								}
-					});
-					
-					jQuery('#t_articles_already_published').change(function(){
-								if(jQuery('#t_articles_already_published').prop('checked')) {
-									jQuery('#t_articles_article_source__row').show();
-								} else {
-									jQuery('#t_articles_article_source__row').hide();
-								}
-					});
-					
-					jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
-								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-									jQuery(':submit').prop('disabled', false);
-								} else {
-									jQuery(':submit').prop('disabled', true);
-								}
-					});
-					jQuery('#t_articles_i_am_an_author').change(function(){
-								if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-									jQuery(':submit').prop('disabled', false);
-								} else {
-									jQuery(':submit').prop('disabled', true);
-								}
-					});
-				});
+		
+		if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
+			jQuery('#t_articles_uploaded_picture').prop('disabled', false);
+		} else {
+			jQuery('#t_articles_uploaded_picture').prop('disabled', true);
+		}
+		
+		if(jQuery('#t_articles_already_published').prop('checked')) {
+			jQuery('#t_articles_article_source__row').show();
+		} else {
+			jQuery('#t_articles_article_source__row').hide();
+			jQuery(':submit').prop('disabled', true);
+		}
+		
+		if(jQuery('#t_articles_already_published').length) jQuery(':submit').prop('disabled', false);
+		
+		if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+			jQuery('#t_articles_parallel_submission').prop('disabled', true);
+		}
+		
+		if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
+			jQuery(':submit').prop('disabled', false);
+		} else {
+			jQuery(':submit').prop('disabled', true);
+		}
+		
+		jQuery('#t_articles_picture_rights_ok').change(function(){
+			if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
+				jQuery('#t_articles_uploaded_picture').prop('disabled', false);
+			} else {
+				jQuery('#t_articles_uploaded_picture').prop('disabled', true);
+				jQuery('#t_articles_uploaded_picture').val('');
+			}
+		});
+		
+		jQuery('#t_articles_already_published').change(function(){
+			if(jQuery('#t_articles_already_published').prop('checked')) {
+				jQuery('#t_articles_article_source__row').show();
+			} else {
+				jQuery('#t_articles_article_source__row').hide();
+			}
+		});
+		
+		jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
+			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+				jQuery('#t_articles_parallel_submission').prop('checked', false);
+				jQuery('#t_articles_parallel_submission').prop('disabled', true);
+			} else {
+				jQuery('#t_articles_parallel_submission').prop('disabled', false);
+			}
+			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
+				jQuery(':submit').prop('disabled', false);
+			} else {
+				jQuery(':submit').prop('disabled', true);
+			}
+		});
+		jQuery('#t_articles_i_am_an_author').change(function(){
+			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
+				jQuery(':submit').prop('disabled', false);
+			} else {
+				jQuery(':submit').prop('disabled', true);
+			}
+		});
+		jQuery('#t_articles_parallel_submission').change(function(){
+			if(jQuery('#t_articles_parallel_submission').prop('checked')) {
+				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked', false);
+				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', true);
+			} else {
+				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', false);
+			}
+			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
+				jQuery(':submit').prop('disabled', false);
+			} else {
+				jQuery(':submit').prop('disabled', true);
+			}
+		});
+	});
 	"""
 	form = SQLFORM( db.t_articles, keepvalues=True )
 	form.element(_type='submit')['_value'] = T('Complete your submission')
@@ -137,6 +161,120 @@ def fill_new_article():
 				form=form, 
 				myFinalScript = SCRIPT(myScript),
 			 ) 
+
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def edit_my_article():
+	if not('articleId' in request.vars):
+		session.flash = T('Unavailable')
+		redirect(URL('my_articles', user_signature=True))
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	if art == None:
+		session.flash = T('Unavailable')
+		redirect(URL('my_articles', user_signature=True))
+	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+	elif art.status not in ('Pending', 'Awaiting revision'):
+		session.flash = T('Forbidden access')
+		redirect(URL('my_articles', user_signature=True))
+	#deletable = (art.status == 'Pending')
+	deletable = False
+	db.t_articles.status.readable=False
+	db.t_articles.status.writable=False
+	if parallelSubmissionAllowed and art.status == 'Pending':
+		db.t_articles.parallel_submission.label = T('This preprint is (or will be) also submitted to a journal')
+		fields = ['title', 'anonymous_submission', 'is_not_reviewed_elsewhere', 'parallel_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
+		myScript = """jQuery(document).ready(function(){
+						
+			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+				jQuery('#t_articles_parallel_submission').prop('disabled', true);
+			}
+			
+			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
+				jQuery(':submit').prop('disabled', false);
+			} else {
+				jQuery(':submit').prop('disabled', true);
+			}
+			
+			jQuery('#t_articles_picture_rights_ok').change(function(){
+				if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
+					jQuery('#t_articles_uploaded_picture').prop('disabled', false);
+				} else {
+					jQuery('#t_articles_uploaded_picture').prop('disabled', true);
+					jQuery('#t_articles_uploaded_picture').val('');
+				}
+			});
+			
+			jQuery('#t_articles_already_published').change(function(){
+				if(jQuery('#t_articles_already_published').prop('checked')) {
+					jQuery('#t_articles_article_source__row').show();
+				} else {
+					jQuery('#t_articles_article_source__row').hide();
+				}
+			});
+			
+			jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
+				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
+					jQuery('#t_articles_parallel_submission').prop('checked', false);
+					jQuery('#t_articles_parallel_submission').prop('disabled', true);
+				} else {
+					jQuery('#t_articles_parallel_submission').prop('disabled', false);
+				}
+				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+			});
+			jQuery('#t_articles_i_am_an_author').change(function(){
+				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+			});
+			jQuery('#t_articles_parallel_submission').change(function(){
+				if(jQuery('#t_articles_parallel_submission').prop('checked')) {
+					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked', false);
+					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', true);
+				} else {
+					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', false);
+				}
+				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
+					jQuery(':submit').prop('disabled', false);
+				} else {
+					jQuery(':submit').prop('disabled', true);
+				}
+			});
+		});
+		"""
+	else:
+		fields = ['title', 'anonymous_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
+		myScript = ''
+	form = SQLFORM(db.t_articles
+				,articleId
+				,fields=fields
+				,upload=URL('default', 'download')
+				,deletable=deletable
+				,showid=False
+			)
+	form.element(_type='submit')['_value'] = T("Save")
+	if form.process().accepted:
+		response.flash = T('Article saved', lazy=False)
+		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+	elif form.errors:
+		response.flash = T('Form has errors', lazy=False)
+	response.view='default/myLayout.html'
+	return dict(
+				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
+				myText=getText(request, auth, db, '#UserEditArticleText'),
+				myTitle=getTitle(request, auth, db, '#UserEditArticleTitle'),
+				form=form,
+				myFinalScript = SCRIPT(myScript),
+			)
+
 
 
 
@@ -591,12 +729,16 @@ def my_articles():
 	else:
 		db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 		
+	if parallelSubmissionAllowed:
+		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+	else:
+		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
 	grid = SQLFORM.grid( query
 		,searchable=False, details=False, editable=False, deletable=False, create=False
 		,csv=csv, exportclasses=expClass
 		,maxtextlength=250
 		,paginate=20
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		,fields=fields
 		,links=links
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=~db.t_articles.last_status_change
@@ -1017,49 +1159,6 @@ def edit_review():
 				form=form,
 				myFinalScript=SCRIPT(myScript),
 			)
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def edit_my_article():
-	if not('articleId' in request.vars):
-		session.flash = T('Unavailable')
-		redirect(URL('my_articles', user_signature=True))
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('my_articles', user_signature=True))
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	elif art.status not in ('Pending', 'Awaiting revision'):
-		session.flash = T('Forbidden access')
-		redirect(URL('my_articles', user_signature=True))
-	#deletable = (art.status == 'Pending')
-	deletable = False
-	db.t_articles.status.readable=False
-	db.t_articles.status.writable=False
-	form = SQLFORM(db.t_articles
-				,articleId
-				,fields=['title', 'anonymous_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
-				,upload=URL('default', 'download')
-				,deletable=deletable
-				,showid=False
-			)
-	form.element(_type='submit')['_value'] = T("Save")
-	if form.process().accepted:
-		response.flash = T('Article saved', lazy=False)
-		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
-	elif form.errors:
-		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
-	return dict(
-				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
-				myText=getText(request, auth, db, '#UserEditArticleText'),
-				myTitle=getTitle(request, auth, db, '#UserEditArticleTitle'),
-				form=form,
-			)
-
 
 
 
