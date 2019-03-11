@@ -3,11 +3,11 @@
 src_name="/home/piry/W/web2py_2.17.2/applications/pcidev/"
 dir_name="/var/www/peercommunityin/web2py217/applications/PCIEvolBiol"
 db_name="pci_evolbiol"
+db_test="pci_evolbiol_test"
 rsopts="--verbose --progress --times --usermap=peercom:www-data"
 
 datam="static/images/RSS_datamatrix.png"
 echo "https://evolbiol.peercommunityin.org/public/rss" | dmtxwrite --encoding=b --module=4 --output=$datam
-
 
 # # TRANSFER HELP TABLE  gaia2 --> peercom
 # pg_dump  -h gaia2 -p 5432 -U piry -F p --data-only --table=help_texts pci_evolbiol_test > helpTexts_of_gaia2.sql
@@ -47,7 +47,14 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/workflow1.png              peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/sponsors_banner.png                                peercom@peercom-front1:$dir_name/static/images
 
+
 ssh peercom@peercom-front1 "chgrp www-data $dir_name/private/appconfig.ini ; chmod 640 $dir_name/private/appconfig.ini ; find $dir_name -name \\*.pyc -ls ; find $dir_name -name \\*.pyc -exec rm {} \\; ; touch $dir_name/../wsgihandler.py"
 
 echo "http://localhost:8000/pcidev/public/rss" | dmtxwrite --encoding=b --module=4 --output=$datam
+
+# WARNING: rapatrie les help officiels vers le test local
+ssh peercom@peercom-front1 "pg_dump -h mydb1 -p 5432 -U peercom -d $db_name --format=plain --data-only --table=help_texts" > helpTextsOfficiels.sql
+echo "TRUNCATE help_texts;" | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
+cat helpTextsOfficiels.sql  | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
+rm helpTextsOfficiels.sql
 

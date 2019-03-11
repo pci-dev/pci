@@ -29,6 +29,9 @@ unison -auto \
 
 # echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | psql -h $ip -U piry pci_evolbiol_test
 # echo "update auth_user set email = lower(email) where email ~ '[A-Z]';"| psql -h $ip -U piry pci_evolbiol_test
+# echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;" | psql -h $ip -U piry pci_evolbiol_test
+# cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | psql -h $ip -U piry pci_evolbiol_test
+
 
 # rsopt="--verbose --progress --times"
 rsopt="--times --verbose"
