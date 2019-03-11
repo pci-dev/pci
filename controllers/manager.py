@@ -24,7 +24,8 @@ from emailing import filename, mail_sleep
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get('config.trgm_limit') or 0.4
-not_considered_delay_in_days = 20
+parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
+not_considered_delay_in_days = myconf.get('config.unconsider_limit_days', default=20)
 
 
 ######################################################################################################################################################################
@@ -319,12 +320,16 @@ def _manage_articles(statuses, whatNext):
 										)
 					),
 			]
+	if (parallelSubmissionAllowed):
+		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.parallel_submission, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
+	else:
+		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
 	grid = SQLFORM.grid(  query
 		,details=False, editable=False, deletable=False, create=False
 		,searchable=True
 		,maxtextlength=250, paginate=20
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
+		,fields=fields
 		,links=links
 		,orderby=~db.t_articles.last_status_change
 	)
