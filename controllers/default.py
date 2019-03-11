@@ -49,10 +49,10 @@ def index():
 		#myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
 		
 	nbMax = db( 
-					(db.t_articles.status=='Recommended') 
-				  & (db.t_recommendations.article_id==db.t_articles.id) 
-				  & (db.t_recommendations.recommendation_state=='Recommended')
-			).count()
+			  (db.t_articles.status=='Recommended') 
+			& (db.t_recommendations.article_id==db.t_articles.id) 
+			& (db.t_recommendations.recommendation_state=='Recommended')
+		).count()
 	myVars = copy.deepcopy(request.vars)
 	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
 	myVarsNext = copy.deepcopy(myVars)
@@ -162,7 +162,9 @@ def user():
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			if suite:
 				auth.settings.reset_password_next = suite
+	
 	form = auth()
+	
 	response.view='default/myLayoutBot.html'
 	return dict(
 		myTitle=myTitle,
