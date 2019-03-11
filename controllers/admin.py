@@ -256,6 +256,23 @@ def thematics_list():
 
 
 ######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def allRecommCitations():
+	allRecomms = db( (db.t_articles.status == 'Recommended') & (db.t_recommendations.article_id==db.t_articles.id)  & (db.t_recommendations.recommendation_state=='Recommended') ).select(db.t_recommendations.ALL, orderby=db.t_recommendations.last_change)
+	grid = OL()
+	for myRecomm in allRecomms:
+		grid.append(LI(mkRecommCitation(auth, db, myRecomm), BR(), B('Recommends: '), mkArticleCitation(auth, db, myRecomm), P()))
+	response.view='default/myLayout.html'
+	return dict( grid=grid, 
+			myTitle=getTitle(request, auth, db, '#allRecommCitationsTextTitle'),
+			myText=getText(request, auth, db, '#allRecommCitationsTextText'),
+			myHelp=getHelp(request, auth, db, '#allRecommCitationsHelpTexts'),
+		 )
+
+
+
+
+######################################################################################################################################################################
 # Lists article status
 # writable by developpers only!!
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
