@@ -112,9 +112,16 @@ def _BaseMenu():
 			##TODO: for later use?
 			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
 		]
+	
+	recommendationsMenu = [
+			(T(u'🔍 Search articles'), False, URL('public', 'recommended_articles')),
+			(T('All recommended articles'), False, URL('public', 'all_recommended_articles')),
+		]
+	
 	menuBar = [
 		(T('Home'),       False, URL('default', 'index')),
-		(T(u'🔍 Search'), False, URL('public', 'recommended_articles')),
+		#(T(u'🔍 Search'), False, URL('public', 'recommended_articles')),
+		(T('Articles'),      False, '#', recommendationsMenu),
 		(T('About'),      False, '#', aboutMenu),
 		(T('Help'),       False, '#', helpMenu),
 	]
@@ -139,6 +146,7 @@ def _AdminMenu():
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
 			#(T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
+			(T('All recommendation citations'),  False, URL('admin', 'allRecommCitations', user_signature=True)),
 			(T('Reviews synthesis'),            False, URL('admin', 'recap_reviews', user_signature=True)),
 			(T('Resources'),         False, URL('admin', 'manage_resources', user_signature=True)),
 			(T('Recommendation PDF files'),              False, URL('admin', 'manage_pdf', user_signature=True)),
