@@ -15,6 +15,7 @@ from helper import *
 myconf = AppConfig(reload=True)
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
+parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
@@ -216,11 +217,15 @@ def my_awaiting_articles():
 	else: # we are in grid's form
 		db.t_articles._id.readable = False
 		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
+	if parallelSubmissionAllowed:
+		fields = [db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
+	else:
+		fields = [db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
 	grid = SQLFORM.grid( query
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		,fields=[db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
+		,fields=fields
 		,links=[
 			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
 			dict(header=T(''), body=lambda row: mkViewEditArticleRecommenderButton(auth, db, row)),
@@ -261,6 +266,7 @@ def _awaiting_articles(myVars):
 		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 		Field('already_published', type='boolean', label=T('Postprint')),
 		Field('anonymous_submission', type='boolean', label=T('Anonymous submission')),
+		Field('parallel_submission', type='boolean', label=T('Parallel submission')),
 	)
 	myVars = request.vars
 	qyKw = ''
@@ -284,6 +290,7 @@ def _awaiting_articles(myVars):
 	temp_db.qy_art.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
 	temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ''))
 	temp_db.qy_art.anonymous_submission.represent = lambda anon, row: mkAnonymousMask(auth, db, anon or False)
+	temp_db.qy_art.parallel_submission.represent = lambda p,r:SPAN('//', _class="pci-parallelSubmission") if p else ''
 	if len(request.args)==0: # in grid
 		temp_db.qy_art._id.readable = True
 		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
@@ -308,11 +315,15 @@ def _awaiting_articles(myVars):
 	links = []
 	#links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
 	links.append(dict(header=T(''), body=lambda row: mkViewEditArticleRecommenderButton(auth, db, row)))
+	if parallelSubmissionAllowed:
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
+	else:
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
 		,csv=csv,exportclasses=expClass
-		,fields=[temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations, temp_db.qy_art.anonymous_submission]
+		,fields=fields
 		,links=links
 		,orderby=temp_db.qy_art.num
 	)
