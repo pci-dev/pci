@@ -2013,11 +2013,11 @@ def mkRecommArticleRss(auth, db, row):
 	desc.append(BR())
 
 	what = SPAN()
-	if (row.already_published):
-		what.append(B(u'Article '))
-	else:
-		what.append(B(u'Preprint '))
-	what.append(CAT(SPAN(u'recommended by '), SPAN(whoDidIt)))
+	#if (row.already_published):
+		#what.append(B(u'Article '))
+	#else:
+		#what.append(B(u'Preprint '))
+	what.append(CAT(SPAN(u'Recommended by '), SPAN(whoDidIt)))
 	what.append(' ')
 	what.append(A(current.T('view'), _href=link))
 	desc.append(what)
@@ -2067,6 +2067,68 @@ def mkReviewersString(auth, db, articleId):
 			else:
 				reviewers += 'one anonymous reviewer'
 	reviewersStr = ''.join(reviewers)
+	return(reviewersStr)
+
+def mkRecommendersList(auth, db, recomm):
+	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	for contrib in contribsQy:
+		recommenders.append(mkUser(auth, db, contrib.contributor_id).flatten())
+	return(recommenders)
+
+def mkRecommendersString(auth, db, recomm):
+	recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	n = len(contribsQy)
+	i = 0
+	for contrib in contribsQy:
+		i += 1
+		if (i < n):
+			recommenders += ', '
+		else:
+			recommenders += ' and '
+		recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+	recommendersStr = ''.join(recommenders)
+	return(recommendersStr)
+
+def mkRecommendersAffiliations(auth, db, recomm):
+	affiliations = []
+	theUser = db.auth_user[recomm.recommender_id]
+	if theUser:
+		affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
+	for contrib in contribsQy:
+		theUser = db.auth_user[contrib.contributor_id]
+		if theUser:
+			affiliations.append(('%s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+	return(affiliations)
+
+	recommendersStr = mkRecommendersString(auth, db,recomm)
+	#reviewers = []
+	reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == articleId) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	#if reviewsQy is not None:
+		#nR = len(reviewsQy)
+		#i = 0
+		#for rw in reviewsQy:
+			#if rw.reviewer_id:
+				#i += 1
+				#if (i > 1):
+					#if (i < nR):
+						#reviewers += ', '
+					#else:
+						#reviewers += ' and '
+				#reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
+	reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == articleId) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
+	#if reviewsQyAnon is not None:
+		#nRA = len(reviewsQyAnon)
+		#if nRA > 0:
+			#if len(reviewers) > 0:
+				#reviewers += ' and '
+			#if nRA > 1:
+				#reviewers += '%s anonymous reviewers' % nRA
+			#else:
+				#reviewers += 'one anonymous reviewer'
+	#reviewersStr = ''.join(reviewers)
 	return(reviewersStr)
 
 def mkRecommendersList(auth, db, recomm):
