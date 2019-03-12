@@ -61,7 +61,7 @@ def mkFooter():
 	baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
 	profileurl=URL(c='default', f='user', args=('login'), vars=dict(_next=URL(c='default', f='user', args=('profile'))), scheme=scheme, host=host, port=port)
 	return XML("""<div style="background-color:#f0f0f0; padding:8px; margin-top:8px; margin-left:8px; margin-right:8px;"> 
-<i>%(appname)s</i> is a community of the parent project Peer Community In. 
+<i>%(appname)s</i> is one of the communities of the parent project Peer Community In. 
 It is a community of researchers in %(appthematics)s dedicated to the recommendation of preprints publicly available from open archives (such as bioRxiv, arXiv, PaleorXiv, etc.), based on a high-quality peer-review process.
 This project was driven by a desire to establish a free, transparent and public scientific publication system based on the review and recommendation of preprints. More information can be found on the website of <i>%(appname)s</i>&nbsp;  (<a href="%(baseurl)s">%(baseurl)s</a>).<br>
 In case of any questions or queries, please use the following e-mail: <a href="mailto:%(contact)s">%(contact)s</a>.<br>
@@ -78,6 +78,7 @@ def do_send_email_to_test(session, auth, db, userId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
@@ -116,6 +117,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	unconsider_limit_days=myconf.get('config.unconsider_limit_days', default=20)
 	recomm_limit_days=myconf.get('config.recomm_limit_days', default=50)
@@ -369,6 +371,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
@@ -423,6 +426,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	recomm_limit_days=myconf.get('config.recomm_limit_days', default=50)
 	article = db.t_articles[articleId]
@@ -569,6 +573,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
@@ -587,6 +592,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 			mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
 			#linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
 			#helpurl=URL(c='about', f='help_practical', scheme=scheme, host=host, port=port)
+			# TODO: parallel submission
 			content = """Dear %(destPerson)s,<p>
 You have been suggested as recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s).
 This preprint has also attracted the attention of another <i>%(appname)s</i> recommender, who has initiated its evaluation. Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(appname)s</i> webpage.<p>
@@ -643,6 +649,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
@@ -728,6 +735,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	suggRecomm = db.t_suggested_recommenders[suggRecommId]
 	if suggRecomm:
@@ -867,6 +875,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
@@ -933,6 +942,7 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
@@ -991,6 +1001,7 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
@@ -1037,6 +1048,7 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
@@ -1083,6 +1095,7 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	press = db.t_press_reviews[pressId]
 	recomm = db.t_recommendations[press.recommendation_id]
@@ -1131,6 +1144,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
@@ -1186,6 +1200,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	recomm = db.t_recommendations[rev.recommendation_id]
@@ -1241,6 +1256,7 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	for rev in db( (db.t_reviews.id.belongs(reviewsList)) & (db.t_reviews.review_state==None) ).select():
 		if rev and rev.review_state is None:
@@ -1312,6 +1328,7 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	article = db.t_articles[articleId]
 	if article:
@@ -1387,6 +1404,7 @@ Yours sincerely,<p>
 	#host=myconf.take('alerts.host')
 	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	#applongname=myconf.take('app.longname')
+	#appname=myconf.take('app.name')
 	#appdesc=myconf.take('app.description')
 	#rev = db.t_reviews[reviewId]
 	#if rev and rev.review_state is None:
@@ -1452,6 +1470,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	admins = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'administrator') ).select(db.auth_user.ALL)
 	dest = []
@@ -1497,6 +1516,7 @@ def do_send_mail_new_user(session, auth, db, userId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	parallel_submission_allowed=myconf.get('config.parallel_submission', default=False)
 	user = db.auth_user[userId]
@@ -1578,6 +1598,7 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	user = db.auth_user[db.auth_membership[membershipId].user_id]
 	group = db.auth_group[db.auth_membership[membershipId].group_id]
@@ -1625,7 +1646,6 @@ Yours sincerely,<p>
 			content = """Dear %(destPerson)s,<p>
 You have recently joined the Managing Board of <i>%(appname)s</i>. We thank you warmly for agreeing to join the Board and for your time and support for this community.<p>
 The members of the Managing Board of <i>%(appname)s</i> are responsible for accepting/rejecting new recommenders. They also deal with any problems arising between authors and the recommenders who have evaluated/recommended their articles. They detect and deal with dysfunctions of <i>%(appname)s</i>, and may exclude recommenders, if necessary. They also rapidly check the quality of formatting and deontology for the reviews and recommendations published by <i>%(appname)s</i>. Finally, members of the Managing Board of <i>%(appname)s</i> are members of the non-profit organization “Peer Community in”. This non-profit organization is responsible for the creation and functioning of the various Peer Communities in….<p>
-The Managing Board of <i>%(appname)s</i> consists of six individuals randomly chosen from the recommenders of this community. Half of the Managing Board is replaced each year. The founders of <i>%(appname)s</i> are also members of the Managing Board, during its first two years of existence. After this period, the Managing Board will have only six members.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>
 """ % locals()
@@ -1661,6 +1681,7 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	managers = db( (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == 'manager') ).select(db.auth_user.ALL)
 	article = db.t_articles[articleId]
@@ -1770,6 +1791,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	recomm = db.t_recommendations[recommId]
 	if recomm:
@@ -1829,6 +1851,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	if articleId:
 		article = db.t_articles[articleId]
@@ -1911,6 +1934,7 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	rev = db.t_reviews[reviewId]
 	if rev:
@@ -1982,6 +2006,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	contactMail = myconf.take('contacts.managers')
 	rev = db.t_reviews[reviewId]
@@ -2048,6 +2073,7 @@ def do_send_email_to_delete_one_contributor(session, auth, db, contribId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	managers=myconf.take('contacts.managers')
 	if contribId:
@@ -2104,6 +2130,7 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	managers=myconf.take('contacts.managers')
 	if contribId:
@@ -2172,6 +2199,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	managers=myconf.take('contacts.managers')
 	article = db.t_articles[articleId]
@@ -2241,6 +2269,7 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	destPerson = mkUser(auth, db, userId)
 	destAddress = db.auth_user[userId]['email']
@@ -2287,6 +2316,7 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
 	if recomm:
@@ -2370,6 +2400,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
+	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
 	review = db.t_reviews[reviewId]
 	if review:
@@ -2387,7 +2418,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 					myMessage.append(P())
 					myMessage.append(P(B(current.T('Please, follow this link in order to validate your account:'))))
 					myMessage.append(A(link, _href=link))
-				if linkTarget:
+				elif linkTarget:
 					myMessage.append(P())
 					if review.review_state is None or review.review_state == 'Pending' or review.review_state == '':
 						myMessage.append(P(B(current.T('TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:'))))

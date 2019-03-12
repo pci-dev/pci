@@ -1308,6 +1308,7 @@ def email_for_new_reviewer():
 	art_title = art.title
 	art_doi = mkLinkDOI(recomm.doi or art.doi)
 	#art_doi = (recomm.doi or art.doi)
+	# TODO: parallel submission
 	default_message = """
 Dear colleague,  
 
@@ -1455,6 +1456,7 @@ def send_review_reminder():
 		linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 		if len(reviewer.reset_password_key or '')>0: # even not logged in yet
 			reset_password_key = reviewer.reset_password_key
+			# TODO: parallel submission
 			default_message = """
 Dear %(destUser)s,
 
@@ -1481,6 +1483,7 @@ Best wishes,
 %(sender)s
 """ % locals()
 		else:
+			# TODO: parallel submission
 			default_message = """
 Dear %(destUser)s,
 

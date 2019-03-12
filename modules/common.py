@@ -61,7 +61,7 @@ def mkTopPanel(myconf, auth, inSearch=False):
 						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
 						LABEL(current.T(' or ')),
 						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"),
-						A(current.T('Lost password?'), _href=URL(c='default', f='user', args=['request_reset_password'], vars=dict(_next="/pcidev/default/index")), _class="pci-lostPassword"),
+						#A(current.T('Lost password?'), _href=URL(c='default', f='user', args=['request_reset_password'], vars=dict(_next="/pcidev/default/index")), _class="pci-lostPassword"),
 						_style='text-align:left;',
 					))
 	if auth.has_membership('recommender'):
