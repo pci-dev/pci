@@ -574,12 +574,18 @@ def mkCloseButton():
 # builds names list (recommender, co-recommenders, reviewers)
 def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
 	whoDidIt = []
+	#mainRecommenders = db(
+						#(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
+					#).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+	#coRecommenders = db(
+						#(db.t_recommendations.article_id==article.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+						#).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 	mainRecommenders = db(
-						(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
-					).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+			(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id) & (db.t_recommendations.recommendation_state == 'Recommended')
+		).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 	coRecommenders = db(
-						(db.t_recommendations.article_id==article.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
-						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+			(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommendation_state == 'Recommended') & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+		).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
 	allRecommenders = mainRecommenders | coRecommenders
 	if article.already_published: #NOTE: POST-PRINT
 		nr = len(allRecommenders)

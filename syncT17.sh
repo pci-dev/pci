@@ -31,6 +31,7 @@ unison -auto \
 # echo "update auth_user set email = lower(email) where email ~ '[A-Z]';"| psql -h $ip -U piry pci_evolbiol_test
 # echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;" | psql -h $ip -U piry pci_evolbiol_test
 # cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | psql -h $ip -U piry pci_evolbiol_test
+cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | psql -h $ip -U piry pci_evolbiol_test
 
 
 # rsopt="--verbose --progress --times"

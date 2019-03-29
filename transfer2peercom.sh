@@ -46,6 +46,7 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;"| ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 #WARNING: check group!!
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
