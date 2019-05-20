@@ -116,7 +116,10 @@ def _BaseMenu():
 	recommendationsMenu = [
 			(T(u'🔍 Search articles'), False, URL('public', 'recommended_articles')),
 			(T('All recommended articles'), False, URL('public', 'all_recommended_articles')),
-		]
+	]
+	tracking = myconf.get('config.tracking', default=False)
+	if tracking:
+		recommendationsMenu.append((T('Progress log'), False, URL('public', 'tracking')))
 	
 	menuBar = [
 		(T('Home'),       False, URL('default', 'index')),

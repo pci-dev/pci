@@ -134,7 +134,7 @@ def user():
 	myBottomText = ''
 	myContent = ''
 	myScript = ''
-	print(request.args)
+	#print(request.args)
 	
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False

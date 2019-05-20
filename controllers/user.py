@@ -912,6 +912,8 @@ def accept_new_review():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if rev['reviewer_id'] != auth.user_id:
 		raise HTTP(403, "403: "+T('Forbidden'))
+	isParallel = db((db.t_recommendations.id==rev['recommendation_id']) & (db.t_recommendations.article_id==db.t_articles.id)).select(db.t_articles.parallel_submission).last()
+
 	_next = None
 	if '_next' in request.vars:
 		_next = request.vars['_next']
@@ -919,13 +921,17 @@ def accept_new_review():
 	if ethics_not_signed:
 		redirect(URL(c='about', f='ethics', vars=dict(_next=URL('user', 'accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''))))
 	else:
+		if (isParallel):
+			due_time = myconf.get('config.review_due_time_for_parallel_submission', default='three weeks')
+		else:
+			due_time = myconf.get('config.review_due_time_for_exclusive_submission', default='three weeks')
 		myEthical = DIV(
 				FORM(
 					DIV(
 						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))),
 						DIV(getText(request, auth, db, '#ConflictsForReviewers')), 
 						_style='padding:16px;'),
-					DIV(SPAN(INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes", value=False), LABEL('I agree to post my review within three weeks')), _style='padding:16px;'),
+					DIV(SPAN(INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes", value=False), LABEL('I agree to post my review within %s' % due_time)), _style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
 					hidden=dict(reviewId=reviewId, ethics_approved=True),
 					_action=URL('user', 'do_accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''),

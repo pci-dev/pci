@@ -343,4 +343,9 @@ header{box-shadow:none;} /* Don't remove */
 
 .pci-lostPassword {font-size:10px; margin-left:12px;}
 
+.pci-tracking {width:67%; margin-left:auto; margin-right:auto;}
+.pci-trackStatus {font-size:18px; font-weight:bold;}
+/* .pci-trackItem {padding:8px; border:4px solid #cccccc; border-radius:16px; margin:4px;} */
+.pci-trackItem {padding:8px;}
+
 

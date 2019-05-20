@@ -119,6 +119,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 	applongname=myconf.take('app.longname')
 	appname=myconf.take('app.name')
 	appdesc=myconf.take('app.description')
+	contact=myconf.take('contacts.managers')
 	unconsider_limit_days=myconf.get('config.unconsider_limit_days', default=20)
 	recomm_limit_days=myconf.get('config.recomm_limit_days', default=50)
 	article = db.t_articles[articleId]
@@ -284,11 +285,11 @@ Yours sincerely,<p>
 				#if citeNumSearch:
 					#citeNum = citeNumSearch.group(1)
 			#myCitation = SPAN(SPAN(whoDidItCite), ' ', lastRecomm.last_change.strftime('(%Y)'), ' ', lastRecomm.recommendation_title, '. ', I(appname)+', '+citeNum).flatten()
-			myRefArticle = mkArticleCitation(auth, db, myRecomm)
-			myRefRecomm  = mkRecommCitation(auth, db, myRecomm)
+			myRefArticle = mkArticleCitation(auth, db, lastRecomm)
+			myRefRecomm  = mkRecommCitation(auth, db, lastRecomm)
 			linkRecomm = URL(c='public', f='rec', vars=dict(id=articleId))
 			doiRecomm = mkLinkDOI(lastRecomm.recommendation_doi)
-			recommVersion = lastRecomm.version
+			recommVersion = lastRecomm.ms_version
 			whoDidIt1 = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False)
 			whoDidIt2 = mkReviewersString(auth, db, articleId)
 			content = """Dear %(destPerson)s,<p>
@@ -667,6 +668,10 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
 			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
+			if article.parallel_submission:
+				addNote = "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appname)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appname)s after reviewers have written their reports, we will post the reviewers' reports on the %(appname)s website as recognition of the reviewers' work and in order to enable critical discussion.<p>" % locals()
+			else:
+				addNote = ""
 			content = """Dear %(destPerson)s,<p>
 You have been suggested as recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging on to the <i>%(appname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.
 <p>
@@ -674,14 +679,12 @@ You have been suggested as recommender for a preprint entitled <b>%(articleTitle
 The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(appname)s</i> is an article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals. Details about the recommendation process can be found <a href="%(helpurl)s">here</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M"> How to start and manage a preprint recommendation</a>.
 <p>
 Agreeing to become the recommender for this preprint means that <b>you find the preprint interesting</b> and therefore worth sending out for peer-review. Then, you will need to meet the following <b>requirements</b>:<br>
-1- <b>to send invitations to 5-10 potential reviewers within the next 24 hours</b> and then to send reminders and/or new invitations until you find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.
-
-<br>
+1- <b>to send invitations to 5-10 potential reviewers within the next 24 hours</b> and then to send reminders and/or new invitations until you find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.<br>
 2- <b>to post your decision</b> or to write your recommendation text <b>within 10 days</b> of receiving the reviews.<br>
 3- <b>to write a recommendation text</b> if you decide to recommend this preprint for <i>%(appname)s</i> at the end of the evaluation process. Indeed, if after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(appname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing, at least, the preprint being recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(appname)s</i>.<br>
 4- <b>to declare that you have no conflict of interest with the authors or the content of the article.</b> Indeed, you should not handle articles written by close colleagues (with whom I have published in the last four years, with whom I have received joint funding in the last four years, or with whom I am currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. See the <a href="%(ethicsurl)s">code of ethical conduct</a>.
 Bear in mind that if you do not respect these commitments, the managing board of <i>%(appname)s</i> reserves the right to pass responsibility for the evaluation of this article to someone else.
-<p>
+<p>%(addNote)s
 Thank you for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>"""  % locals()

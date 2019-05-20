@@ -21,6 +21,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 
+######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
 	myVars = request.vars
@@ -69,6 +70,7 @@ def recommended_articles():
 			)
 
 
+######################################################################################################################################################################
 def all_recommended_articles():
 	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
 	myRows = []
@@ -96,6 +98,7 @@ def all_recommended_articles():
 
 
 
+######################################################################################################################################################################
 @cache.action(time_expire=30, cache_model=cache.ram, quick='V')
 def last_recomms():
 	if 'maxArticles' in request.vars:
@@ -153,6 +156,7 @@ def last_recomms():
 
 
 
+######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
 	if 'printable' in request.vars and request.vars['printable']=='True':
@@ -260,6 +264,7 @@ def rec():
 			)
 
 
+######################################################################################################################################################################
 def managers():
 	query = db( (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role.belongs('manager', 'administrator')) ).select(db.auth_user.ALL, distinct=db.auth_user.last_name|db.auth_user.id, orderby=db.auth_user.last_name|db.auth_user.id)
 	myRows = []
@@ -288,6 +293,7 @@ def managers():
 
 
 
+######################################################################################################################################################################
 def recommenders():
 	myVars = request.vars
 	qyKw = ''
@@ -346,6 +352,7 @@ def recommenders():
 
 
 
+######################################################################################################################################################################
 def viewUserCard():
 	myContents = ''
 	if not('userId' in request.vars):
@@ -374,6 +381,7 @@ def viewUserCard():
 	return resu
 
 
+######################################################################################################################################################################
 # sub function called by cache.ram below
 def _rss_cacher(maxArticles):
 	scheme=myconf.take('alerts.scheme')
@@ -422,6 +430,7 @@ def _rss_cacher(maxArticles):
 
 
 
+######################################################################################################################################################################
 #WARNING - DO NOT ACTIVATE cache.action 
 def rss():
 	#maxArticles = int(myconf.take('rss.number') or "20")
@@ -435,6 +444,7 @@ def rss():
 
 
 
+######################################################################################################################################################################
 #NOTE: custom RSS for bioRxiv
 #<links>
   #<link providerId="PCI">
@@ -460,7 +470,7 @@ def rss4bioRxiv():
 	response.headers['Content-Type'] = 'application/rss+xml'
 	response.view='rsslayout.rss'
 	query = db( 
-					(db.t_articles.status=='Recommended') 
+				    (db.t_articles.status=='Recommended') 
 				  & (db.t_articles.already_published==False)
 				  & (db.t_recommendations.article_id==db.t_articles.id) 
 				  & (db.t_recommendations.recommendation_state=='Recommended')
@@ -492,3 +502,67 @@ def rss4bioRxiv():
 			#pass
 	return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)
 	
+
+######################################################################################################################################################################
+def tracking():
+	tracking = myconf.get('config.tracking', default=False)
+	if tracking is False:
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+	else:
+		myContents = TABLE(_class='web2py_grid pci-tracking pci-lastArticles-table') # 
+		
+		query = db(db.t_articles.already_published==False).select(orderby=~db.t_articles.last_status_change)
+		
+		for myArticle in query:
+			tr = mkTrackRow(auth, db, myArticle)
+			if tr:
+				myContents.append(TR(TD(tr), _class='pci-lastArticles-row'))
+		
+		response.view='default/myLayout.html'
+		resu = dict(
+			myHelp=getHelp(request, auth, db, '#Tracking'),
+			myTitle=getTitle(request, auth, db, '#TrackingTitle'),
+			myText=getText(request, auth, db, '#TrackingText'),
+			grid = myContents
+				)
+		return resu
+
+
+######################################################################################################################################################################
+def pubReviews():
+	myContents = DIV()
+	tracking = myconf.get('config.tracking', default=False)
+	if tracking is False:
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+	elif ('articleId' in request.vars):
+		articleId = request.vars['articleId']
+	elif ('id' in request.vars):
+		articleId = request.vars['id']
+	else:
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+	# NOTE: check id is numeric!
+	if (not articleId.isdigit()):
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+		
+	art = db.t_articles[articleId]
+	if art is None:
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+	elif art.status != 'Cancelled':
+		session.flash = T('Unavailable')
+		redirect(redirect(request.env.http_referer))
+	else:
+		myContents = DIV(reviewsOfCancelled(auth, db, art))
+	
+	response.view='default/myLayout.html'
+	resu = dict(
+			myHelp=getHelp(request, auth, db, '#TrackReviews'),
+			myTitle=getTitle(request, auth, db, '#TrackReviewsTitle'),
+			myText=getText(request, auth, db, '#TrackReviewsText'),
+			grid = myContents
+		)
+	return resu
