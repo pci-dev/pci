@@ -31,7 +31,7 @@ if request.global_settings.web2py_version < "2.14.1":
 # -------------------------------------------------------------------------
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
-myconf = AppConfig(reload=True)
+myconf=AppConfig(reload=True)
 scheme=myconf.take('alerts.scheme')
 host=myconf.take('alerts.host')
 port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
@@ -99,16 +99,10 @@ auth = Auth(db, host_names=myconf.get('host.names'))
 service = Service()
 plugins = PluginManager()
 
-#if auth and auth.settings and auth.settings.expiration:
 auth.settings.expiration = 10800 # 3h in seconds
+auth.settings.host = host
 #auth.settings.keep_session_onlogin=False
 #auth.settings.logout_next = ''
-
-# -------------------------------------------------------------------------
-# HTML editor as a widget
-#from plugin_ckeditor import CKEditor
-#ckeditor = CKEditor(db)     
-#ckeditor.define_tables()
 
 
 # -------------------------------------------------------------------------
@@ -197,7 +191,9 @@ The Managing Board of """+myconf.get('app.longname')+"""
 """+myconf.get('app.longname')+""" is one of the communities of the parent project Peer Community In... .
 It is a community of researchers in """+myconf.get('app.thematics')+""" dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. 
 This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. 
-More information can be found on the website of """+myconf.get('app.longname')+""": """+URL(c='default', f='index', scheme=True, host=True)
+More information can be found on the website of """+myconf.get('app.longname')+""": """+URL(c='default', f='index', scheme=scheme, host=host, port=port)
+
+
 
 #db.auth_user._after_insert.append(lambda f, id: newUser(f, id))
 db.auth_user._before_update.append(lambda s,f: newRegistration(s,f))
@@ -231,7 +227,7 @@ db.define_table('help_texts',
 	Field('id', type='id'),
 	Field('hashtag', type='string', length=128, label=T('Hashtag'), default='#'),
 	Field('lang', type='string', length=10, label=T('Language'), default='default'),
-	Field('contents', type='text', length=1048576, label=T('Contents')), #, widget=ckeditor.widget),
+	Field('contents', type='text', length=1048576, label=T('Contents')), 
 	format='%(hashtag)s',
 	migrate=False,
 )
@@ -257,12 +253,12 @@ db.define_table('t_articles',
 	Field('title', type='string', length=1024, label=T('Title'), requires=IS_NOT_EMPTY()),
 	Field('authors', type='string', length=4096, label=T('Authors'), requires=IS_NOT_EMPTY(), represent=lambda t,r: ('') if (r.anonymous_submission) else (t)),
 	Field('article_source', type='string', length=1024, label=T('Source (journal, year, volume, pages)')),
-	Field('doi', type='string', label=T('DOI (or URL)'), length=512, unique=False, represent=lambda text, row: mkDOI(text) ),
-	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
+	Field('doi', type='string', label=T('Manuscript most recent DOI (or URL)'), length=512, unique=False, represent=lambda text, row: mkDOI(text) ),
+	Field('ms_version', type='string', length=1024, label=T('Manuscript most recent version'), default=''),
 	Field('picture_rights_ok', type='boolean', label=T('I wish to add a small picture (png or jpeg format) for which no rights are required')),
 	Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
 	Field('picture_data', type='blob'),
-	Field('abstract', type='text', length=2097152, label=T('Abstract'), requires=IS_NOT_EMPTY()), #, widget=ckeditor.widget),
+	Field('abstract', type='text', length=2097152, label=T('Abstract'), requires=IS_NOT_EMPTY()),
 	Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Submitter')),
 	Field('status', type='string', length=50, default='Pending', label=T('Article status')),
@@ -270,7 +266,7 @@ db.define_table('t_articles',
 	Field('thematics', type='list:string', label=T('Thematic fields'), requires=[IS_IN_DB(db, db.t_thematics.keyword, '%(keyword)s', multiple=True), IS_NOT_EMPTY()], widget=SQLFORM.widgets.checkboxes.widget),
 	Field('keywords', type='string', length=4096, label=T('Keywords')),
 	Field('already_published', type='boolean', label=T('Postprint'), default=False),
-	Field('cover_letter', type='text', length=2097152, label=T('Cover letter'), writable=False, readable=False, comment=T('Free text. Indicate in the box above whatever you want. Just be aware that after validation of the submission by the managing board every recommenders, invited reviewers, and reviewers will be able to read the cover letter.')),
+	Field('cover_letter', type='text', length=2097152, label=T('Cover letter'), writable=False, readable=False, comment=T('Free text. Indicate in the box above whatever you want. Just be aware that after validation of the submission by the managing board every recommender, invited reviewers, and reviewers will be able to read the cover letter.')),
 	Field('i_am_an_author', type='boolean', label=T('I am an author of the article and I am acting on behalf of all the authors')),
 	Field('is_not_reviewed_elsewhere', type='boolean', label=T('This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.') % (applongname,applongname) ),
 	Field('parallel_submission', type='boolean', label=T('Parallel submission'), default=False, writable=parallelSubmissionAllowed, readable=parallelSubmissionAllowed, represent=lambda p,r:SPAN('//', _class="pci-parallelSubmission") if p else ''),
@@ -298,15 +294,18 @@ def deltaStatus(s, f):
 	if 'status' in f:
 		o = s.select().first()
 		#print(o.status + " --> " +f['status'])
-		if o.already_published:
-			if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
+		if o.already_published: # POSTPRINTS
+			#if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
+				#do_send_email_to_managers(session, auth, db, o['id'], f['status'])
+				#do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
+				#do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
+			#elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
+			if o.status != f['status']:
 				do_send_email_to_managers(session, auth, db, o['id'], f['status'])
 				do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
 				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
-			elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
-				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
-				do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
-		else:
+				
+		else: # PREPRINTS
 			if o.status == 'Pending' and f['status'] == 'Awaiting consideration':
 				do_send_email_to_suggested_recommenders(session, auth, db, o['id'])
 				do_send_email_to_requester(session, auth, db, o['id'], f['status'])
@@ -339,7 +338,7 @@ def deltaStatus(s, f):
 				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended'):
 					do_send_email_decision_to_reviewer(session, auth, db, o['id'], f['status'])
 					do_send_email_to_requester(session, auth, db, o['id'], f['status'])
-				if f['status'] in ('Rejected', 'Recommended'):
+				if f['status'] in ('Rejected', 'Recommended', 'Awaiting revision'):
 					lastRecomm = db( (db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False) ).select(db.t_recommendations.ALL)
 					for lr in lastRecomm:
 						lr.is_closed = True
@@ -365,18 +364,18 @@ def updArticleThumb(s,f):
 db.define_table('t_recommendations',
 	Field('id', type='id'),
 	Field('article_id', type='reference t_articles', ondelete='RESTRICT', label=T('Article')),
-	Field('doi', type='string', length=512, label=T('DOI (or URL)'), represent=lambda text, row: mkDOI(text) ),
-	Field('ms_version', type='string', length=1024, label=T('Version'), default=''),
+	Field('doi', type='string', length=512, label=T('Manuscript DOI (or URL) for the round'), represent=lambda text, row: mkDOI(text) ),
+	Field('ms_version', type='string', length=1024, label=T('Manuscript version for the round'), default=''),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
 	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), requires=IS_NOT_EMPTY()),
-	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''), #, widget=ckeditor.widget),
+	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''),
 	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommendation_state', type='string', length=50, label=T('Recommendation state'),  requires=IS_EMPTY_OR(IS_IN_SET(('Ongoing', 'Recommended', 'Rejected', 'Revision', 'Awaiting revision')))),
 	Field('recommendation_timestamp', type='datetime', default=request.now, label=T('Recommendation start'), writable=False, requires=IS_NOT_EMPTY()),
 	Field('last_change', type='datetime', default=request.now, label=T('Last change'), writable=False),
 	Field('is_closed', type='boolean', label=T('Closed'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I/we declare that I/we have no conflict of interest with the authors or the content of the article')),
-	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''), #, widget=ckeditor.widget),
+	Field('reply', type='text', length=2097152, label=T('Author\'s Reply'), default=''), 
 	Field('reply_pdf', type='upload', uploadfield='reply_pdf_data', label=T('Author\'s Reply as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('reply_pdf_data', type='blob'), #, readable=False),
 	Field('track_change', type='upload', uploadfield='track_change_data', label=T('Tracked changes document (eg. PDF or Word file)')),
@@ -474,7 +473,7 @@ db.define_table('t_reviews',
 	Field('anonymously', type='boolean', label=T('Anonymously'), default=False),
 	Field('no_conflict_of_interest', type='boolean', label=T('I declare that I have no conflict of interest with the authors or the content of the article')),
 	Field('review_state', type='string', length=50, label=T('Review status'), requires=IS_EMPTY_OR(IS_IN_SET(('Pending', 'Under consideration', 'Declined', 'Completed', 'Cancelled'))), writable=False),
-	Field('review', type='text', length=2097152, label=T('Review as text (MarkDown)')), #, widget=ckeditor.widget),
+	Field('review', type='text', length=2097152, label=T('Review as text (MarkDown)')),
 	Field('review_pdf', type='upload', uploadfield='review_pdf_data', label=T('Review as PDF'), requires=IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension='pdf'))),
 	Field('review_pdf_data', type='blob', readable=False),
 	Field('acceptation_timestamp', type='datetime', label=T('Acceptation timestamp'), writable=False),
@@ -556,7 +555,7 @@ db.define_table('t_comments',
 	Field('article_id', type='reference t_articles', ondelete='CASCADE', label=T('Article')),
 	Field('parent_id', type='reference t_comments', ondelete='CASCADE', label=T('Reply to')),
 	Field('user_id', type='reference auth_user', ondelete='RESTRICT', label=T('Author')),
-	Field('user_comment', type='text', length=65536, label=T('Comment'), requires=IS_NOT_EMPTY()), #, widget=ckeditor.widget),
+	Field('user_comment', type='text', length=65536, label=T('Comment'), requires=IS_NOT_EMPTY()),
 	Field('comment_datetime', type='datetime', default=request.now, label=T('Date & time'), writable=False),
 	migrate=False,
 	singular=T("Comment"), 

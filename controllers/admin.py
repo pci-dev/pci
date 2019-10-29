@@ -10,15 +10,24 @@ import shutil
 
 # sudo pip install tweepy
 #import tweepy
-
 from gluon.contrib.markdown import WIKI
-from common import *
-from emailing import *
-from helper import *
+import common
+#reload(common) # force reload
+#from common import *
+
+import emailing
+#reload(emailing) # force reload
+#from emailing import *
+
+import helper
+#reload(helper) # force reload
+#from helper import *
+
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
+
 
 # frequently used constants
 csv = False # no export allowed
@@ -82,7 +91,7 @@ def resizeUserImages(ids):
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def set_as_recommender(ids):
 	# get recommender group id
-	recommRoleId = (db(db.auth_group.role == "recommender").select(db.auth_group.id).last())["id"]
+	recommRoleId = (db(db.auth_group.role == 'recommender').select(db.auth_group.id).last())["id"]
 	for myId in ids:
 		# check not already recommender
 		isAlreadyRecommender = db((db.auth_membership.user_id==myId) & (db.auth_membership.group_id==recommRoleId)).count()
@@ -1218,3 +1227,28 @@ def fp_as_pdf():
 				#myTitle=getTitle(request, auth, db, '#AdministrateTestTweetTitle'),
 				#message=message,
 			 #)
+
+######################################################################################################################################################################
+## Restart daemon
+#@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+#def restart_daemon():
+	#import signal, os
+	##kill -1 `cat /var/run/apache2/apache2.pid`
+	#if 'APACHE_PID_FILE' in os.environ:
+		##cmd = 'kill -1 `cat %s`' % os.environ['APACHE_PID_FILE']
+		#cmd = '/usr/sbin/apachectl -k graceful'
+		#print(cmd)
+		#os.system(cmd)
+		#session.flash = T('Restart signal sent to apache')
+	##if 'mod_wsgi.process_group' in os.environ:
+		##if os.environ['mod_wsgi.process_group'] != '':
+			##os.kill(os.getpid(), signal.SIGINT)
+			##session.flash = T('Signal sent to mod_wsgi')
+		##else:
+			##session.flash = T('Variable "mod_wsgi.process_group" empty')
+	#else:
+		##print(os.environ)
+		##session.flash = T('No environment variable "mod_wsgi.process_group" found')
+		#session.flash = T('No environment variable "APACHE_PID_FILE" found')
+	#redirect(request.env.http_referer)
+

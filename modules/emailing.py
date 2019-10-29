@@ -21,9 +21,13 @@ from gluon.custom_import import track_changes; track_changes(True)
 from common import *
 import socket
 
+from uuid import uuid4
+from contextlib import closing
+import shutil
+
 myconf = AppConfig(reload=True)
 
-mail_sleep = 1.0 # in seconds
+mail_sleep = 1.5 # in seconds
 
 # common view for all emails
 filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
@@ -71,6 +75,7 @@ If you wish to modify your profile or the fields and frequency of alerts, please
 ######################################################################################################################################################################
 # TEST MAIL
 def do_send_email_to_test(session, auth, db, userId):
+	print 'Entering test mail'
 	mail = getMailer(auth)
 	report = []
 	mail_resu = False
@@ -95,7 +100,9 @@ This is a test message; please ignore.<p>""" % locals()
 					message=myMessage,
 				)
 	except Exception, e :
-		print "%s" % traceback.format_exc()
+		#print "%s" % traceback.format_exc()
+		traceback.print_exc()
+		pass
 	if mail_resu:
 		report.append( 'email sent to %s' % destPerson.flatten() )
 	else:
@@ -290,10 +297,12 @@ Yours sincerely,<p>
 			linkRecomm = URL(c='public', f='rec', vars=dict(id=articleId))
 			doiRecomm = mkLinkDOI(lastRecomm.recommendation_doi)
 			recommVersion = lastRecomm.ms_version
-			whoDidIt1 = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False)
+			recommsList = SPAN(mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False)).flatten()
+			print(recommsList)
+			whoDidIt1 = ''.join(recommsList)
 			whoDidIt2 = mkReviewersString(auth, db, articleId)
 			content = """Dear %(destPerson)s,<p>
-We are pleased to inform you that the peer-review process concerning your article entitled <b>%(articleTitle)s</b> has reached a favorable conclusion. A recommendation text written by the recommender has now been published by <i>%(appname)s</i>. The editorial correspondence (reviews, author’s responses and recommender’ decisions) has also been published by <i>%(appname)s</i>. The recommendation text and the editorial correspondence are shown below.<p>
+We are pleased to inform you that the peer-review process concerning your article entitled <b>%(articleTitle)s</b> has reached a favorable conclusion. A recommendation text written by the recommender has now been published by <i>%(appname)s</i>. The editorial correspondence (reviews, author’s responses and recommender’s decisions) has also been published by <i>%(appname)s</i>. The recommendation text and the editorial correspondence are shown below.<p>
 Because it has been reviewed and recommended, the reference of your article has changed and is now:<p>
 %(myRefArticle)s<p>
 <p>
@@ -306,18 +315,17 @@ And there: %(linkTarget)s<p>
 Do not hesitate to share the news as much as possible: social networks if you are on them, mailing, websites, CV, quotation, etc...<p>
 <p>
 If you intend to submit your article to a journal, we strongly advise you to include the following statement in the cover letter:<p>
-"This manuscript has not been submitted for publication in another journal, but has already been peer-reviewed and recommended by <i>%(appname)s</i>. %(whoDidIt1)s evaluated this manuscript and %(whoDidIt2)s recommended it based on these reviews. The reviewers and the recommender have no conflict of interests with us or with the content of the manuscript. The reviews and the recommendation text are publicly available at the following address: %(doiRecomm)s"<p>
+"This manuscript has not been submitted for publication in another journal, but has already been peer-reviewed and recommended by <i>%(appname)s</i>. %(whoDidIt2)s reviewed this manuscript and %(whoDidIt1)s recommended it based on these reviews. The reviewers and the recommender have no conflict of interests with us or with the content of the manuscript. The reviews and the recommendation text are publicly available at the following address: %(doiRecomm)s"<p>
 If you want to fully play the game and support the work already done by PCI, you can add the following:<p>
-"If you consider that PCI's evaluation and recommendation are not of sufficient quality to make a decision, please let me know and I will cancel my submission. Indeed, as my manuscript has already received an in-depth peer-review, and been modified accordingly, I am not willing to wait for a new round of reviews. I therefore hope that you will make your decision to publish this work on the basis of PCI's evaluation alone, without further peer-review"<p>
+"If you consider that PCI's evaluation and recommendation are not of sufficient quality to make a decision, please let me know and I will cancel my submission. Indeed, as my manuscript has already received an in-depth peer-review evaluation, and been modified accordingly, I am not willing to wait for a new round of reviews. I therefore hope that you will make your decision to publish this work on the basis of PCI's evaluation alone, without further peer-review"<p>
 If the journal is a PCI-friendly journal (cf list there https://peercommunityin.org/who-supports-peer-community-in/), you may also add this sentence to the cover letter:
 "For your information, the Editor-in-Chief has indicated that the journal's editorial board will consider submissions of PCI recommended articles and will use the reviews and recommendations performed by PCI for its own review process, when possible."<p>
 In the case of an anonymous review, you may add the following to the cover letter:<p>
 "If you would like to know the identity of anonymous PCI reviewers of the manuscript, simply send a message requesting this information to <a href="mailto:%(contact)s">%(contact)s</a>. The managing board of <i>%(appname)s</i> will provide you with this information, if the reviewer concerned agrees."<p>
-<b>In order to reach a better referencing and greater visibility of your recommended article, we suggest you to make the following modifications and then to post a new version of your article on the open archive:<b><p>
+<b>In order to reach a better referencing and greater visibility of your recommended article, we suggest you to make the following modifications and then to post a new version of your article on the open archive:</b><p>
 1) Add the following sentence in the acknowledgements: "Version %(recommVersion)s of this article has been peer-reviewed and recommended by <i>%(appname)s</i> (%(doiRecomm)s)";<p>
 2) Remove line numbering from the article and ensure that tables and figures are located in the main text, not at the end of the manuscript;<p>
-Please be careful to correctly update all text in these templates (doi, authors’ names, address, title, date, …). In the "cite as" box, indicate that version %(recommVersion)s of the article has been peer reviewed and recommended by <i>%(appname)s</i>. The Recommender is %(whoDidIt2)s, the reviewers are %(whoDidIt1)s. The DOI of the recommendation is %(doiRecomm)s<p>
-3) Use templates (word docx templates and a latex template) to format your article in a PCI style, <a href="https://peercommunityin.org/templates"> here</a>.
+3) Use templates (word docx templates and a latex template) to format your article in a PCI style, <a href="https://peercommunityin.org/templates"> here</a>. Please be careful to correctly update all text in these templates (doi, authors’ names, address, title, date, …). In the "cite as" box, indicate that version %(recommVersion)s of the article has been peer reviewed and recommended by <i>%(appname)s</i>. The recommender is %(whoDidIt1)s, the reviewers are %(whoDidIt2)s. The DOI of the recommendation is %(doiRecomm)s.<p>
 Doing so is very important because it would:<p>
 - indicate to readers that, unlike many other articles in this server, your article has been peer-reviewed and recommended<p>
 - make visible this information in Google Scholar search (which is quite important).<p>
@@ -422,6 +430,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	#print 'do_send_email_to_recommender_status_changed'
 	report = []
 	mail = getMailer(auth)
+	attach = []
 	mail_resu = False
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
@@ -431,10 +440,11 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 	appdesc=myconf.take('app.description')
 	recomm_limit_days=myconf.get('config.recomm_limit_days', default=50)
 	article = db.t_articles[articleId]
-	if article:
+	if article is not None:
 		linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
-		for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
-			recommender_id = myRecomm['recommender_id']
+		for myRecomm0 in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
+			recommender_id = myRecomm0.recommender_id
+			myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id==recommender_id)).select().last()
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
 			articleAuthors = article.authors
@@ -479,14 +489,53 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 #Yours sincerely,<p>
 #<span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span><p>
 #""" % locals()
-			
 			if article.status == 'Awaiting revision' and newStatus == 'Under consideration':
 				mySubject = '%s: Revised version' % (appname)
 				mailManagers = A(myconf.take('contacts.managers'), _href='mailto:'+myconf.take('contacts.managers'))
 				deadline = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime('%a %b %d')
+				# NOTE: include answer & track-change (append to "attach")
+				closedRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id==recommender_id) & (db.t_recommendations.is_closed==True)).select(orderby=db.t_recommendations.id).last()
+				# write fields to temp files
+				directory = os.path.join(os.path.dirname(__file__), '..', 'tmp', 'attachments')
+				if not os.path.exists(directory):
+					os.makedirs(directory)
+				if closedRecomm:
+					if closedRecomm.reply is not None and closedRecomm.reply != '':
+						tmpR0 = os.path.join(directory, "Answer_%d.txt" % closedRecomm.id)
+						f0=open(tmpR0, 'w+')
+						f0.write(closedRecomm.reply)
+						f0.close()					
+						attach.append(mail.Attachment(tmpR0, content_id='Answer'))
+						try:
+							os.unlink(tmpR0)
+						except:
+							print('unable to delete temp file %s' % tmpR0)
+							pass
+					if closedRecomm.reply_pdf is not None and closedRecomm.reply_pdf != '':
+						(fnR1, stream) = db.t_recommendations.reply_pdf.retrieve(closedRecomm.reply_pdf)
+						tmpR1 = os.path.join(directory, str(uuid4()))
+						with closing(stream) as src, closing(open(tmpR1, 'wb')) as dest:
+							shutil.copyfileobj(src, dest)
+						attach.append(mail.Attachment(tmpR1, fnR1))
+						try:
+							os.unlink(tmpR1)
+						except:
+							print('unable to delete temp file %s' % tmpR1)
+							pass
+					if closedRecomm.track_change is not None and closedRecomm.track_change != '':
+						(fnTr, stream) = db.t_recommendations.track_change.retrieve(closedRecomm.track_change)
+						tmpTr = os.path.join(directory, str(uuid4()))
+						with closing(stream) as src, closing(open(tmpTr, 'wb')) as dest:
+							shutil.copyfileobj(src, dest)
+						attach.append(mail.Attachment(tmpTr, fnTr))
+						try:
+							os.unlink(tmpTr)
+						except:
+							print('unable to delete temp file %s' % tmpTr)
+							pass
 				content = """Dear %(destPerson)s,
 <p>
-The authors of the preprint entitled <b>%(articleTitle)s</b> and submitted by %(articleAuthors)s have posted their revised version and their replies to your comments and those of the reviewers. They may also have uploaded (as a PDF or Word file) a revised version of their preprint, with the modifications indicated in TrackChanges mode and a clean version of their PDF at this address <a href="%(linkTarget)s">%(linkTarget)s</a>.
+The authors of the preprint entitled <b>%(articleTitle)s</b> and submitted by %(articleAuthors)s have posted their revised version and their replies to your comments and those of the reviewers. They may also have uploaded (as a PDF or Word file) a revised version of their preprint, with the modifications indicated in TrackChanges mode and a clean version of their PDF at this address <a href="%(linkTarget)s">%(linkTarget)s</a> (see also attachments in this email).
 <p>
 For this new round of evaluation, you must reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the article.
 <p>
@@ -503,25 +552,18 @@ We look forward to your decision. Thanks in advance!
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>
 """ % locals()
-			elif article.status == 'Recommended':
+			elif newStatus == 'Recommended':
 				mySubject = '%s: Article recommended' % (appname)
-				#whoDidItCite = mkWhoDidIt4Recomm(auth, db, myRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
-				#citeNum = ''
-				#if myRecomm.recommendation_doi:
-					#citeNumSearch = re.search('([0-9]+$)', myRecomm.recommendation_doi, re.IGNORECASE)
-					#if citeNumSearch:
-						#citeNum = citeNumSearch.group(1)
-				#citeRecomm = SPAN(SPAN(whoDidItCite), ' ', myRecomm.last_change.strftime('(%Y)'), ' ', myRecomm.recommendation_title, '. ', I(appname)+', '+citeNum).flatten()
-				citeRecomm = mkRecommCitation(auth, db, myRecomm).flatten()
-				citeArticle  = mkArticleCitation(auth, db, myRecomm).flatten()
+				myRefRecomm = mkRecommCitation(auth, db, myRecomm).flatten()
+				myRefArticle  = mkArticleCitation(auth, db, myRecomm).flatten()
 				linkRecomm = URL(c='public', f='rec', vars=dict(id=article.id))
 				doiRecomm = mkLinkDOI(myRecomm.recommendation_doi)
 				content = """Dear %(destPerson)s,
 Your recommendation - along with the reviews - is now posted on the <i>%(appname)s</i> website.<p>
 The reference of your recommendation is:<p>
-%(citeRecomm)s<p>
+%(myRefRecomm)s<p>
 The reference of the recommended article is:<p>
-%(citeArticle)s<p>
+%(myRefArticle)s<p>
 You can find it there: %(doiRecomm)s<p>
 And there: %(linkRecomm)s<p>
 Do not hesitate to share the news as much as possible: social networks if you are on them, mailing, websites, CV, quotation, etc...<p>
@@ -544,10 +586,18 @@ Yours sincerely,<p>
 """ % locals()
 			try:
 				myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-				mail_resu = mail.send(to=[destAddress],
-							subject=mySubject,
-							message=myMessage,
-						)
+				if len(attach) > 0:
+					mail_resu = mail.send(to=[destAddress],
+								subject=mySubject,
+								message=myMessage,
+								attachments=attach,
+							)
+					# NOTE: delete attachment files -> see below
+				else:
+					mail_resu = mail.send(to=[destAddress],
+								subject=mySubject,
+								message=myMessage,
+							)
 			except:
 				pass
 			if mail_resu: 
@@ -566,7 +616,7 @@ Yours sincerely,<p>
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
 def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId):
-	print 'do_send_email_to_suggested_recommenders_useless'
+	#print 'do_send_email_to_suggested_recommenders_useless'
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -584,7 +634,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 		else:
 			articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
-		mySubject = '%s: About our request to act as recommender for a preprint' % (appname)
+		mySubject = '%s: About our request to act as a recommender for a preprint' % (appname)
 		#TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
 		suggestedQy = db( (db.t_suggested_recommenders.article_id==articleId) & (db.t_suggested_recommenders.suggested_recommender_id!=auth.user_id) & (db.t_suggested_recommenders.declined==False) & (db.t_suggested_recommenders.suggested_recommender_id==db.auth_user.id) ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
 		for theUser in suggestedQy:
@@ -595,7 +645,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 			#helpurl=URL(c='about', f='help_practical', scheme=scheme, host=host, port=port)
 			# TODO: parallel submission
 			content = """Dear %(destPerson)s,<p>
-You have been suggested as recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s).
+You have been suggested as a recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s).
 This preprint has also attracted the attention of another <i>%(appname)s</i> recommender, who has initiated its evaluation. Consequently, this preprint no longer appears in your list of requests to act as a recommender on the <i>%(appname)s</i> webpage.<p>
 If you would still like to participate in the evaluation of this preprint, please send us an e-mail at %(mailManagers)s.
 We will inform the recommender handling the evaluation process of your willingness to participate and he/she may then contact you.<p>
@@ -660,7 +710,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 		else:
 			articleAuthors = article.authors
 		articleDoi = mkDOI(article.doi)
-		mySubject = '%s: Request to act as recommender for a preprint' % (appname)
+		mySubject = '%s: Request to act as a recommender for a preprint' % (appname)
 		suggestedQy = db.executesql('SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;', placeholders=[article.id], as_dict=True)
 		for theUser in suggestedQy:
 			destPerson = mkUser(auth, db, theUser['id'])
@@ -673,7 +723,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			else:
 				addNote = ""
 			content = """Dear %(destPerson)s,<p>
-You have been suggested as recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging on to the <i>%(appname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.
+You have been suggested as a recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging on to the <i>%(appname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.
 <p>
 <b>Important information before accepting to become the recommender for this preprint:</b>
 The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(appname)s</i> is an article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals. Details about the recommendation process can be found <a href="%(helpurl)s">here</a>. You can also watch this short video: <a href="https://youtu.be/u5greO-q8-M"> How to start and manage a preprint recommendation</a>.
@@ -753,12 +803,12 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 			linkTarget=URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port)
 			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
 			theUser = db.auth_user[suggRecomm.suggested_recommender_id]
-			mySubject = '%s: Request to act as recommender for a preprint (reminder)' % (appname)
+			mySubject = '%s: Request to act as a recommender for a preprint (reminder)' % (appname)
 			if theUser:
 				destPerson = mkUser(auth, db, theUser['id'])
 				destAddress = db.auth_user[theUser['id']]['email']
 				content = """Dear %(destPerson)s,<p>
-A few days ago, you were suggested as recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging on to the <i>%(appname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
+A few days ago, you were suggested as a recommender for a preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s (DOI %(articleDoi)s). You can obtain information about this request and accept or decline this invitation by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging on to the <i>%(appname)s</i> website and going to 'Requests for input —> Do you agree to initiate a recommendation?' in the top menu.<p>
 The role of a recommender is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by <i>%(appname)s</i> is an article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.<p>
 If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by <i>%(appname)s</i> under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing, at least, the preprint being recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by <i>%(appname)s</i>.<p>
 If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. to recommend or reject this preprint). You will be able to invite, through the <i>%(appname)s</i> website, reviewers included in the <i>%(appname)s</i> database or from your own network.<p>
@@ -900,7 +950,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 				content = """Dear %(destPerson)s,<p>
 %(recommenderPerson)s, the recommender managing the evaluation process for the preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s has made your review concerning this preprint available for modification.<p>
 You can now access this review, and edit it if necessary.<p>
-You can view and edit your reviews by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(appame)s</i> website and going to 'Your contributions —> My reviews' in the top menu.<p>
+You can view and edit your reviews by following this link <a href="%(linkTarget)s">%(linkTarget)s</a> or by logging onto the <i>%(appname)s</i> website and going to 'Your contributions —> My reviews' in the top menu.<p>
 We thank you again for agreeing to review this preprint.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>
@@ -939,6 +989,7 @@ Yours sincerely,<p>
 # Do send email to recommender when a review is closed
 def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 	report = []
+	attach = []
 	mail = getMailer(auth)
 	mail_resu = False
 	scheme=myconf.take('alerts.scheme')
@@ -957,6 +1008,33 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 			mySubject = '%s: Review completed' % (appname)
 			theUser = db.auth_user[recomm.recommender_id]
 			if theUser:
+				directory = os.path.join(os.path.dirname(__file__), '..', 'tmp', 'attachments')
+				if not os.path.exists(directory):
+					os.makedirs(directory)
+				revText = ''
+				if rev.review is not None and rev.review != '':
+					revText = XML(WIKI(rev.review))
+					tmpR0 = os.path.join(directory, "Review_%d.html" % rev.id)
+					f0=open(tmpR0, 'w+')
+					f0.write(revText.flatten())
+					f0.close()					
+					attach.append(mail.Attachment(tmpR0, content_id='Review'))
+					try:
+						os.unlink(tmpR0)
+					except:
+						print('unable to delete temp file %s' % tmpR0)
+						pass
+				if rev.review_pdf is not None and rev.review_pdf != '':
+					(fnR1, stream) = db.t_reviews.review_pdf.retrieve(rev.review_pdf)
+					tmpR1 = os.path.join(directory, str(uuid4()))
+					with closing(stream) as src, closing(open(tmpR1, 'wb')) as dest:
+						shutil.copyfileobj(src, dest)
+					attach.append(mail.Attachment(tmpR1, fnR1))
+					try:
+						os.unlink(tmpR1)
+					except:
+						print('unable to delete temp file %s' % tmpR1)
+						pass
 				destPerson = mkUser(auth, db, recomm.recommender_id)
 				destAddress = db.auth_user[recomm.recommender_id]['email']
 				reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
@@ -977,11 +1055,18 @@ Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>
 """ % locals()
 				try:
-					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-					mail_resu = mail.send(to=[destAddress],
-								subject=mySubject,
-								message=myMessage,
-							)
+					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter(), revText=revText))
+					if len(attach) > 0:
+						mail_resu = mail.send(to=[destAddress],
+									subject=mySubject,
+									message=myMessage,
+									attachments=attach,
+								)
+					else:
+						mail_resu = mail.send(to=[destAddress],
+									subject=mySubject,
+									message=myMessage,
+						)
 				except:
 					pass
 				if mail_resu:
@@ -1709,7 +1794,10 @@ Have a nice day!
 		
 		elif newStatus.startswith('Pre-'):
 			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-			recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
+			if recomm is not None:
+				recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
+			else:
+				recommenderPerson = '?'
 			mySubject = '%s: Decision or recommendation requiring validation' % (appname)
 			linkTarget = URL(c='manager', f='pending_articles', scheme=scheme, host=host, port=port)
 			content = """Dear members of the Managing Board,<p>
@@ -1722,7 +1810,10 @@ Have a nice day!
 		
 		elif newStatus=='Under consideration':
 			recomm = db( (db.t_recommendations.article_id == articleId) ).select(orderby=db.t_recommendations.id).last()
-			recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
+			if recomm is not None:
+				recommenderPerson = mkUser(auth, db, recomm.recommender_id) or '' # recommender
+			else:
+				recommenderPerson = '?'
 			linkTarget = URL(c='manager', f='ongoing_articles', scheme=scheme, host=host, port=port)
 			if article.status == 'Awaiting revision':
 				mySubject = '%s: Article resubmitted' % (appname)
@@ -1974,20 +2065,23 @@ Yours sincerely,<p>
 """ % locals()
 					try:
 						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[theUser['email']],
+									subject=mySubject,
+									message=myMessage,
+								)
 						if newForm['emailing']:
 							emailing0 = newForm['emailing']
 						else:
 							emailing0= ''
-						emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+						if mail_resu:
+							emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+						else:
+							emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
 						emailing += myMessage
 						emailing += '<hr>'
 						emailing += emailing0
 						newForm['emailing'] = emailing
 						#rev.update_record()
-						mail_resu = mail.send(to=[theUser['email']],
-									subject=mySubject,
-									message=myMessage,
-								)
 					except Exception, e:
 						raise(e)
 					if mail_resu:
@@ -2041,20 +2135,23 @@ Best wishes,<p>
 
 					try:
 						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[theUser['email']],
+									subject=mySubject,
+									message=myMessage,
+								)
 						if newForm['emailing']:
 							emailing0 = newForm['emailing']
 						else:
 							emailing0= ''
-						emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+						if mail_resu:
+							emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+						else:
+							emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
 						emailing += myMessage
 						emailing += '<hr>'
 						emailing += emailing0
 						newForm['emailing'] = emailing
 						#rev.update_record()
-						mail_resu = mail.send(to=[theUser['email']],
-									subject=mySubject,
-									message=myMessage,
-								)
 					except Exception, e:
 						raise(e)
 					if mail_resu:
@@ -2223,7 +2320,11 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 		mySubject = '%(appname)s: Your co-recommendation of a %(articlePrePost)s' % locals()
 		for contrib in contribs:
 			destPerson = mkUser(auth, db, contrib.contributor_id)
-			destAddress = db.auth_user[contrib.contributor_id]['email']
+			dest = db.auth_user[contrib.contributor_id]
+			if dest:
+				destAddress = dest['email']
+			else:
+				destAddress = ''
 			
 			if newStatus == 'Recommended':
 				linkTarget = URL(c='default', f='index', scheme=scheme, host=host, port=port)
@@ -2343,7 +2444,7 @@ def do_send_email_decision_to_reviewer(session, auth, db, articleId, newStatus):
 					linkRecomm = URL(c='public', f='rec', vars=dict(id=article.id), scheme=scheme, host=host, port=port)
 					content = """Dear %(destPerson)s,<p>
 The article that you kindly reviewed for <i>%(appname)s</i> is now recommended. The recommendation of this article - along with your reviews - is now posted on the posted on the <i>%(appname)s</i> website.<p>
-The reference of your recommendation is:<p>
+The reference of the recommendation is:<p>
 %(myRefRecomm)s<p>
 The reference of the recommended article is:<p>
 %(myRefArticle)s<p>
@@ -2373,7 +2474,12 @@ Yours sincerely,<p>
 						emailing0 = review.emailing
 					else:
 						emailing0= ''
-					emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+					#emailing = '<h2>'+str(datetime.datetime.now())+'</h2>'
+					if mail_resu:
+						emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+					else:
+						emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+						#review.review_state = ''
 					emailing += myMessage
 					emailing += '<hr>'
 					emailing += emailing0
@@ -2415,12 +2521,13 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 				myMessage = DIV(WIKI(message))
 				if reset_password_key:
 					if linkTarget:
-						link = URL(c='default', f='user', args='reset_password', vars=dict(key=reset_password_key, _next=linkTarget), scheme=scheme, host=host, port=port)
+						link = URL(a=None, c='default', f='user', args='reset_password', vars=dict(key=reset_password_key, _next=linkTarget), scheme=scheme, host=host, port=port)
 					else:
-						link = URL(c='default', f='user', args='reset_password', vars=dict(key=reset_password_key), scheme=scheme, host=host, port=port)
+						link = URL(a=None, c='default', f='user', args='reset_password', vars=dict(key=reset_password_key), scheme=scheme, host=host, port=port)
 					myMessage.append(P())
-					myMessage.append(P(B(current.T('Please, follow this link in order to validate your account:'))))
+					myMessage.append(P(B(current.T('TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:'))))
 					myMessage.append(A(link, _href=link))
+					myMessage.append(P(B(current.T('THEN GO TO "Requests for input —> Do you agree to review a preprint?" IN THE TOP MENU'))))
 				elif linkTarget:
 					myMessage.append(P())
 					if review.review_state is None or review.review_state == 'Pending' or review.review_state == '':
@@ -2466,4 +2573,47 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 		session.flash = '; '.join(report)
 	else:
 		session.flash += '; ' + '; '.join(report)
+
+
+
+######################################################################################################################################################################
+# RESET PASSWORD EMAIL
+def do_send_email_to_reset_password(session, auth, db, userId):
+	mail = getMailer(auth)
+	report = []
+	mail_resu = False
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	applongname=myconf.take('app.longname')
+	appdesc=myconf.take('app.description')
+	destPerson = mkUser(auth, db, userId)
+	destAddress = db.auth_user[userId]['email']
+	fkey = db.auth_user[userId]['reset_password_key']
+	mySubject = "%s: Password changed" % (applongname)
+	siteName = I(applongname)
+	linkTarget = URL(c='default', f='user', args=['reset_password'], scheme=scheme, host=host, port=port, vars=dict(key=fkey)) # default/user/reset_password?key=1561727068-2946ea7b-54fe-4caa-87af-9c5e459b3487.
+	linkTargetA = A(linkTarget, _href=linkTarget)
+	content = """
+Dear %(destPerson)s,<p>
+You asked for a password reset. Please follow the link below:<p>
+%(linkTargetA)s""" % locals()
+	try:
+		myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+		mail_resu = mail.send(to=[destAddress],
+					subject=mySubject,
+					message=myMessage,
+				)
+	except Exception, e :
+		print "Traceback: %s" % traceback.format_exc()
+	if mail_resu:
+		report.append( 'email sent to %s' % destPerson.flatten() )
+	else:
+		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+	print ''.join(report)
+	if session.flash is None:
+		session.flash = '; '.join(report)
+	else:
+		session.flash += '; ' + '; '.join(report)
+
 

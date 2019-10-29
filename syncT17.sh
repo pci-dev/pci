@@ -1,6 +1,9 @@
 #!/bin/bash -x
 
 ip="147.99.64.107"
+db="pci_evolbiol_test"
+
+rm -f /home/piry/W/web2py_2.17.2/applications/pcidev/tmp/attachments/*
 
 # RSS link as datamatrix
 datam="/home/piry/Documents/Labo/PCiEvolBiol/RSS_datamatrix.png"
@@ -27,11 +30,21 @@ unison -auto \
 	-sshargs -C  \
 	~/W/web2py_2.17.2/applications/pcidev   ssh://www-data@$ip//home/www-data/web2py_2.17.2/applications/PCiEvolBiol
 
-# echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | psql -h $ip -U piry pci_evolbiol_test
-# echo "update auth_user set email = lower(email) where email ~ '[A-Z]';"| psql -h $ip -U piry pci_evolbiol_test
-# echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;" | psql -h $ip -U piry pci_evolbiol_test
-# cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | psql -h $ip -U piry pci_evolbiol_test
-# cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | psql -h $ip -U piry pci_evolbiol_test
+# echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | psql -h $ip -U piry $db
+# echo "update auth_user set email = lower(email) where email ~ '[A-Z]';"| psql -h $ip -U piry $db
+# echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;" | psql -h $ip -U piry $db
+# cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | psql -h $ip -U piry $db
+# cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | psql -h $ip -U piry $db
+
+## Cancelled
+# echo "UPDATE auth_group SET role='editor' WHERE role ILIKE 'recommender';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'A recommender', 'An editor') WHERE contents ~ 'A recommender';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'a recommender', 'an editor') WHERE contents ~ 'a recommender';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'Recommender', 'Editor') WHERE contents ~ 'Recommender';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'recommender', 'editor') WHERE contents ~ 'recommender';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'RECOMMENDER', 'EDITOR') WHERE contents ~ 'RECOMMENDER';" | psql -h $ip -U piry $db
+# echo "UPDATE help_texts SET contents=replace(contents, 'editors playing the role of editors who', 'editors who') WHERE contents ~ 'editors playing the role of editors who';" | psql -h $ip -U piry $db
+# echo "UPDATE auth_group SET role='recommender' WHERE role ILIKE 'editor';" | psql -h $ip -U piry $db
 
 
 # rsopt="--verbose --progress --times"

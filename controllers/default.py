@@ -7,6 +7,7 @@ import copy
 from gluon.contrib.markdown import WIKI
 from common import *
 from helper import *
+from gluon.utils import web2py_uuid
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -122,12 +123,34 @@ def user():
 	to decorate functions that need access control
 	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
 	"""
+	
 	if '_next' in request.vars:
 		suite = request.vars['_next']
+		if len(suite)<4:
+			suite = None
 	else:
 		suite = None
 	if isinstance(suite, list):
 		suite = suite[1]
+	
+	if 'key' in request.vars:
+		vkey = request.vars['key']
+	else:
+		vkey = None
+	if isinstance(vkey, list):
+		vkey = vkey[1]
+	if (vkey==''):
+		vkey = None
+	
+	if '_formkey' in request.vars:
+		fkey = request.vars['_formkey']
+	else:
+		fkey = None
+	if isinstance(fkey, list):
+		fkey = fkey[1]
+	if (fkey==''):
+		fkey = None
+	
 	myHelp = ''
 	myTitle = ''
 	myText = ''
@@ -138,8 +161,9 @@ def user():
 	
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
-	
 	if request.args and len(request.args)>0:
+		#print(request.args)
+		
 		if request.args[0] == 'login':
 			myHelp = getHelp(request, auth, db, '#LogIn')
 			myTitle = getTitle(request, auth, db, '#LogInTitle')
@@ -162,13 +186,33 @@ def user():
 			myBottomText = getText(request, auth, db, '#ProfileBottomText')
 			if suite:
 				auth.settings.profile_next = suite
+		
+		elif request.args[0] == 'request_reset_password':
+			myHelp = getHelp(request, auth, db, '#ResetPassword')
+			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
+			myText = getText(request, auth, db, '#ResetPasswordText')
+		        user = db(db.auth_user.email==request.vars['email']).select().last()
+			if ((fkey is not None) and (user is not None)):
+				reset_password_key = str(int(time.time())) + '-' + web2py_uuid()
+				user.update_record(reset_password_key = reset_password_key)
+				do_send_email_to_reset_password(session, auth, db, user.id)
+				if suite:
+					redirect(URL('default', 'index', vars=dict(_next=suite))) # squeeze normal functions
+				else:
+					redirect(URL('default', 'index')) # squeeze normal functions
+			if suite:
+				auth.settings.request_reset_password_next = suite
+			
 		elif request.args[0] == 'reset_password':
 			myHelp = getHelp(request, auth, db, '#ResetPassword')
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
+			user = db(db.auth_user.reset_password_key==vkey).select().last()
+			if ((vkey is not None) and (suite is not None) and (user is None)):
+				redirect(suite)
 			if suite:
 				auth.settings.reset_password_next = suite
-	
+
 	form = auth()
 		
 	response.view='default/myLayoutBot.html'

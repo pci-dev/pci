@@ -533,7 +533,7 @@ def mkContributionStateDiv(auth, db, state):
 
 ######################################################################################################################################################################
 def mkAnonymousMask(auth, db, anon):
-	if anon:
+	if anon is True:
 		return DIV(IMG(_alt='anonymous', _src=URL(c='static',f='images/mask.png')), _style='text-align:center;')
 	else:
 		return ''
@@ -541,7 +541,7 @@ def mkAnonymousMask(auth, db, anon):
 
 ######################################################################################################################################################################
 def mkAnonymousArticleField(auth, db, anon, value):
-	if anon:
+	if anon is True:
 		return IMG(_alt='anonymous', _src=URL(c='static',f='images/mask.png'))
 	else:
 		return value
@@ -549,7 +549,7 @@ def mkAnonymousArticleField(auth, db, anon, value):
 
 ######################################################################################################################################################################
 def mkJournalImg(auth, db, press):
-	if press:
+	if press is True:
 		return DIV(IMG(_alt='published', _src=URL(c='static',f='images/journal.png')), _style='text-align:center;')
 	else:
 		return ''
@@ -644,91 +644,94 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 ######################################################################################################################################################################
 def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_items=False, linked=False, host=False, port=False, scheme=False):
 	whoDidIt = []
-	article = db( db.t_articles.id==recomm.article_id ).select(db.t_articles.already_published).last()
-	
-	mainRecommenders = db(
-						(db.t_recommendations.id==recomm.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
-					).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
-	coRecommenders = db(
-						(db.t_recommendations.id==recomm.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
+	if recomm is None or (not hasattr(recomm, 'article_id')) or recomm.article_id is None:
+		return whoDidIt
+	else:
+		article = db( db.t_articles.id==recomm.article_id ).select(db.t_articles.already_published).last()
+		
+		mainRecommenders = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_recommendations.recommender_id == db.auth_user.id)
 						).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
-	allRecommenders = mainRecommenders | coRecommenders
-
-	if article.already_published: #NOTE: POST-PRINT
-		nr = len(allRecommenders)
-		ir=0
-		for theUser in allRecommenders:
-			ir += 1
-			if as_items:
-				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
-			elif as_list:
-				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
-			else:
-				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
-				if ir == nr-1 and ir>=1:
-					whoDidIt.append(current.T(' and '))
-				elif ir < nr:
-					whoDidIt.append(', ')
-	
-	else: #NOTE: PRE-PRINT
-		if with_reviewers:
-			namedReviewers = db(
-							(db.t_recommendations.article_id==recomm.article_id) 
-							  & (db.t_reviews.recommendation_id==db.t_recommendations.id) 
-							  & (db.auth_user.id==db.t_reviews.reviewer_id) 
-							  & (db.t_reviews.anonymously==False) 
-							  & (db.t_reviews.review_state=='Completed')
+		coRecommenders = db(
+							(db.t_recommendations.id==recomm.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.auth_user.id==db.t_press_reviews.contributor_id)
 							).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
-			na = db(
-							(db.t_recommendations.article_id==recomm.article_id) 
-							  & (db.t_reviews.recommendation_id==db.t_recommendations.id) 
-							  & (db.t_reviews.anonymously==True) 
-							  & (db.t_reviews.review_state=='Completed')
-							).count(distinct=db.t_reviews.reviewer_id)
-			na1 = (1 if(na>0) else 0)
-		else:
-			namedReviewers = []
-			na = 0
-		nr = len(allRecommenders)
-		nw = len(namedReviewers)
-		ir = 0
-		for theUser in allRecommenders:
-			ir += 1
-			if as_items:
-				whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
-			elif as_list:
-				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
-			else:
-				whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
-				if ir == nr-1 and ir >= 1:
-					whoDidIt.append(current.T(' and '))
-				elif ir < nr:
-					whoDidIt.append(', ')
-		if nr > 0 and as_items is False: 
-			if nw+na > 0:
-				whoDidIt.append(current.T(' based on reviews by '))
-			elif nw+na == 1:
-				whoDidIt.append(current.T(' based on review by '))
-		iw = 0
-		for theUser in namedReviewers:
-			iw += 1
-			if as_list:
-				whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
-			else:
-				whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
-				if as_items is False:
-					if iw == nw+na1-1 and iw >= 1:
+		allRecommenders = mainRecommenders | coRecommenders
+
+		if article.already_published: #NOTE: POST-PRINT
+			nr = len(allRecommenders)
+			ir=0
+			for theUser in allRecommenders:
+				ir += 1
+				if as_items:
+					whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+				elif as_list:
+					whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
+				else:
+					whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+					if ir == nr-1 and ir>=1:
 						whoDidIt.append(current.T(' and '))
-					elif iw < nw+na1:
+					elif ir < nr:
 						whoDidIt.append(', ')
-		#if nw > 0 and na > 0 and as_items is False:
-			#whoDidIt.append(current.T(' and '))
-		if not as_list:
-			if na > 1:
-				whoDidIt.append(current.T('%d anonymous reviewers') % (na))
-			elif na == 1:
-				whoDidIt.append(current.T('%d anonymous reviewer') % (na))
-	
+		
+		else: #NOTE: PRE-PRINT
+			if with_reviewers:
+				namedReviewers = db(
+								(db.t_recommendations.article_id==recomm.article_id) 
+								& (db.t_reviews.recommendation_id==db.t_recommendations.id) 
+								& (db.auth_user.id==db.t_reviews.reviewer_id) 
+								& (db.t_reviews.anonymously==False) 
+								& (db.t_reviews.review_state=='Completed')
+								).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+				na = db(
+								(db.t_recommendations.article_id==recomm.article_id) 
+								& (db.t_reviews.recommendation_id==db.t_recommendations.id) 
+								& (db.t_reviews.anonymously==True) 
+								& (db.t_reviews.review_state=='Completed')
+								).count(distinct=db.t_reviews.reviewer_id)
+				na1 = (1 if(na>0) else 0)
+			else:
+				namedReviewers = []
+				na = 0
+			nr = len(allRecommenders)
+			nw = len(namedReviewers)
+			ir = 0
+			for theUser in allRecommenders:
+				ir += 1
+				if as_items:
+					whoDidIt.append(LI(mkUserWithAffil_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme)))
+				elif as_list:
+					whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
+				else:
+					whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+					if ir == nr-1 and ir >= 1:
+						whoDidIt.append(current.T(' and '))
+					elif ir < nr:
+						whoDidIt.append(', ')
+			if nr > 0 and as_items is False: 
+				if nw+na > 0:
+					whoDidIt.append(current.T(' based on reviews by '))
+				elif nw+na == 1:
+					whoDidIt.append(current.T(' based on review by '))
+			iw = 0
+			for theUser in namedReviewers:
+				iw += 1
+				if as_list:
+					whoDidIt.append('%s %s' % (theUser.first_name, theUser.last_name))
+				else:
+					whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+					if as_items is False:
+						if iw == nw+na1-1 and iw >= 1:
+							whoDidIt.append(current.T(' and '))
+						elif iw < nw+na1:
+							whoDidIt.append(', ')
+			#if nw > 0 and na > 0 and as_items is False:
+				#whoDidIt.append(current.T(' and '))
+			if not as_list:
+				if na > 1:
+					whoDidIt.append(current.T('%d anonymous reviewers') % (na))
+				elif na == 1:
+					whoDidIt.append(current.T('%d anonymous reviewer') % (na))
+		
 	return whoDidIt
 
 
@@ -789,6 +792,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
 	whoDidItMeta = mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False)
 	citeNum = ''
+	citeRef = None
 	recomm_altmetric = ''
 	if lastRecomm.recommendation_doi:
 		citeNumSearch = re.search('([0-9]+$)', lastRecomm.recommendation_doi, re.IGNORECASE)
@@ -799,8 +803,11 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 			recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', lastRecomm.recommendation_doi))
 		else:
 			recomm_altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % sub(r'doi: *', '', lastRecomm.recommendation_doi))
-	citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
-	citeRef = A(citeUrl, _href=citeUrl)+SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+	if citeRef:
+		citeUrl = citeRef
+	else:
+		citeUrl = URL(c='public', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
+		citeRef = A(citeUrl, _href=citeUrl) # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
 
 	# META headers
 	myMeta = OrderedDict()
@@ -873,7 +880,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 				DIV(recomm_altmetric
 					,H2(recomm.recommendation_title if ((recomm.recommendation_title or '') != '') else current.T('Recommendation'))
 					,H4(SPAN(whoDidIt))
-					,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
+					#,I(recomm.last_change.strftime('%Y-%m-%d'))+BR() if recomm.last_change else ''
 					,SPAN('A recommendation of:', _class='pci-recommOf')
 					,DIV(myArticle, _class='pci-recommOfDiv')
 					,DIV( 
@@ -1017,7 +1024,7 @@ def mkCommentsTree(auth, db, commentId):
 
 
 ######################################################################################################################################################################
-##WARNING The most important function of the site !!
+##WARNING The most sensitive function of the whole website!!
 ##WARNING Be *VERY* careful with rights management
 def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
 	class FakeSubmitter(object):
@@ -1192,6 +1199,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 										#_title=current.T('Click here to close the recommendation process of this article and send it to the managing board')
 									),
 								_class='pci-EditButtons-centered'))
+					else:
+						myRound.append(DIV(SPAN(I(current.T('Recommendation text too short for allowing submission'), _class='buttontext btn btn-success pci-recommender disabled')), _class='pci-EditButtons-centered'))
 				else:
 					# otherwise button for adding co-recommender(s)
 					myRound.append(DIV(
@@ -1215,7 +1224,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			# Am I a reviewer?
 			amIReviewer = (db((db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.reviewer_id==auth.user_id)).count() > 0)
 			# During recommendation, no one is not allowed to see last (unclosed) recommendation 
-			hideOngoingRecomm = (art.status=='Under consideration') and (iRecomm==nbRecomms)
+			hideOngoingRecomm = ((art.status=='Under consideration') or (art.status.startswith('Pre-'))) and (iRecomm==nbRecomms)
 			#  ... unless he/she is THE recommender
 			if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id or amICoRecommender):
 				hideOngoingRecomm = False
@@ -1262,17 +1271,24 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			for review in reviews:
 				# No one is allowd to see ongoing reviews ...
 				hideOngoingReview = True
-				if (art.user_id == auth.user_id) and (recomm.is_closed or art.status=='Awaiting revision'): # ... except the author for a closed decision/recommendation ...
+				# ... but:
+				# ... the author for a closed decision/recommendation ...
+				if (art.user_id == auth.user_id) and (recomm.is_closed or art.status=='Awaiting revision'): 
 					hideOngoingReview = False
-				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Completed')): # ...  except the reviewer himself once accepted ...
+				# ...  the reviewer himself once accepted ...
+				if (review.reviewer_id == auth.user_id) and (review.review_state in ('Under consideration', 'Completed')): 
 					hideOngoingReview = False
-				if (amIReviewer) and (recomm.recommendation_state in ('Recommended', 'Rejected', 'Revision')) and (art.status in ('Recommended', 'Rejected', 'Awaiting revision')): # ...  except as a reviewer himself once decision made up ...
+				# ...  a reviewer himself once the decision made up ...
+				if (amIReviewer) and (recomm.recommendation_state in ('Recommended', 'Rejected', 'Revision')) and recomm.is_closed and (art.status in ('Under consideration', 'Recommended', 'Rejected', 'Awaiting revision')): 
 					hideOngoingReview = False
-				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id) and recommReviewFilledOrNull: # ... or he/she is THE recommender and he/she already filled his/her own review ...
+				# ... or he/she is THE recommender and he/she already filled his/her own review ...
+				if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id) and recommReviewFilledOrNull: 
 					hideOngoingReview = False
-				if auth.has_membership(role='recommender') and amICoRecommender and recommReviewFilledOrNull: # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
+				# ... or he/she is A CO-recommender and he/she already filled his/her own review ...
+				if auth.has_membership(role='recommender') and amICoRecommender and recommReviewFilledOrNull: 
 					hideOngoingReview = False
-				if auth.has_membership(role='manager') and not(art.user_id==auth.user_id): # ... or a manager
+				# ... or a manager, unless submitter or reviewer
+				if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not amIReviewer: 
 					hideOngoingReview = False
 				#print "hideOngoingReview=%s" % (hideOngoingReview)
 				
@@ -1346,23 +1362,23 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					allowOpinion = -1
 				
 			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
-			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
-				myRound.append(DIV(A(SPAN(current.T('Write, edit or upload your reply to recommender'), 
+			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet) and (iRecomm+1==nbRecomms):
+				myRound.append(DIV(A(SPAN(current.T('Write, edit or upload your reply to the recommender'), 
 											_class='buttontext btn btn-info pci-submitter'), 
 											_href=URL(c='user', f='edit_reply', vars=dict(recommId=recomm.id), user_signature=True)),
 										_class='pci-EditButtons'))
 			
 			truc = DIV( H3(tit2)
-						#,SPAN(I(current.T('by ')+' '+(recommender.first_name if recommender else None or '')+' '+(recommender.last_name if recommender else None or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
-						,I(SPAN(current.T('by ')), SPAN(whoDidIt), SPAN(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
-						,BR()
-						,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)) if (recomm.doi) else SPAN('')
-						,SPAN(' '+current.T('version')+' ', recomm.ms_version) if (recomm.ms_version) else SPAN('')
-						,BR()
-						,H4(recomm.recommendation_title)
-						,BR()
-						,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (hideOngoingRecomm is False) else '')
-						,_class='pci-recommendation-div'
+				#,SPAN(I(current.T('by ')+' '+(recommender.first_name if recommender else None or '')+' '+(recommender.last_name if recommender else None or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
+				,I(SPAN(current.T('by ')), SPAN(whoDidIt), SPAN(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else ''))
+				,BR()
+				,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)) if (recomm.doi) else SPAN('')
+				,SPAN(' '+current.T('version')+' ', recomm.ms_version) if (recomm.ms_version) else SPAN('')
+				,BR()
+				,H4(recomm.recommendation_title) if (hideOngoingRecomm is False) else ''
+				,BR()
+				,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (hideOngoingRecomm is False) else '')
+				,_class='pci-recommendation-div'
 			)
 			if (hideOngoingRecomm is False and recomm.recommender_file) :
 				truc.append(A(current.T('Download recommender\'s annotations (PDF)'), _href=URL('default', 'download', args=recomm.recommender_file, scheme=scheme, host=host, port=port), _style='margin-bottom: 64px;'))
@@ -2243,7 +2259,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 	return dict(
 		title = title.decode('utf-8'),
 		url = url,
-		editor = recommendersStr.decode('utf-8'),
+		recommender = recommendersStr.decode('utf-8'),
 		reviewers = reviewersStr.decode('utf-8'),
 		date = created_on.strftime('%Y-%m-%d'),
 		logo = XML(URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port)),
@@ -2253,36 +2269,54 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 
 ######################################################################################################################################################################
 def mkRecommCitation(auth, db, myRecomm):
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#scheme=myconf.take('alerts.scheme')
+	#host=myconf.take('alerts.host')
+	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
-	whoDidItCite = mkWhoDidIt4Recomm(auth, db, myRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	citeNum = ''
+	doi = ''
+	if myRecomm is None or not hasattr(myRecomm, 'recommendation_doi'):
+		return SPAN('?')
+	whoDidItCite = mkWhoDidIt4Recomm(auth, db, myRecomm, with_reviewers=False, linked=False)
 	if myRecomm.recommendation_doi:
 		citeNumSearch = re.search('([0-9]+$)', myRecomm.recommendation_doi, re.IGNORECASE)
 		if citeNumSearch:
-			citeNum = citeNumSearch.group(1)
-	citeRecomm = SPAN(SPAN(whoDidItCite), ' ', myRecomm.last_change.strftime('(%Y)'), ' ', myRecomm.recommendation_title, '. ', I(applongname)+', '+citeNum, SPAN(' '), mkDOI(myRecomm.recommendation_doi))
+			citeNum = ', '+citeNumSearch.group(1)
+		doi = SPAN('DOI: ', mkDOI(myRecomm.recommendation_doi))
+	citeRecomm = SPAN(
+		SPAN(whoDidItCite), ' ', 
+		myRecomm.last_change.strftime('(%Y)'), ' ', 
+		myRecomm.recommendation_title, '. ', 
+		I(applongname)+citeNum, SPAN(' '), 
+		doi
+	)
 	return citeRecomm
 
 
 
 ######################################################################################################################################################################
 def mkArticleCitation(auth, db, myRecomm):
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	
+	#scheme=myconf.take('alerts.scheme')
+	#host=myconf.take('alerts.host')
+	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
 	
-	myArticle = db( (db.t_articles.id == myRecomm.article_id) ).select().last()
-	
-	version = myRecomm.ms_version or ''
-	journal = 'Version %(version)s of this preprint has been peer-reviewed and recommended by %(applongname)s' % locals()
-	citeArticle = SPAN(
-		SPAN(myArticle.authors), ' ', myArticle.last_status_change.strftime('(%Y)'), ' ', myArticle.title, '. Version ', version, ' of this preprint has been peer-reviewed and recommended by ', applongname, '.  ', mkDOI(myArticle.doi)
-	)
-	return citeArticle
+	if myRecomm is None or not hasattr(myRecomm, 'article_id'):
+		return SPAN('?')
+	else:
+		art = db( (db.t_articles.id == myRecomm.article_id) ).select().last()
+		artSrc = art.article_source or ''
+		version = myRecomm.ms_version or ''
+		citeArticle = SPAN(
+			SPAN(art.authors), ' ', 
+			art.title, '. ', 
+			SPAN(art.last_status_change.strftime('%Y, ')), 
+			artSrc, '. ', 
+			I('Version ', version, ' peer-reviewed and recommended by ', applongname, '.'), 
+			' DOI: ', mkDOI(art.doi)
+		)
+		return citeArticle
 
 
 ######################################################################################################################################################################

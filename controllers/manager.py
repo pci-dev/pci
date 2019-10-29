@@ -126,7 +126,10 @@ def do_reject_article():
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def all_articles():
-	resu = _manage_articles(None, 'all_articles')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	resu = _manage_articles(None, URL('manager', 'all_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerAllArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerAllArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageAllArticlesHelp')
@@ -138,7 +141,10 @@ def all_articles():
 # Display pending articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def pending_articles():
-	resu = _manage_articles(['Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected'], 'pending_articles')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	resu = _manage_articles(['Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected'], URL('manager', 'pending_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerPendingArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerPendingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManagePendingValidations')
@@ -150,7 +156,10 @@ def pending_articles():
 # Display ongoing articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def ongoing_articles():
-	resu = _manage_articles(['Awaiting consideration', 'Under consideration', 'Awaiting revision'], 'ongoing_articles')
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	resu = _manage_articles(['Awaiting consideration', 'Under consideration', 'Awaiting revision'], URL('manager', 'ongoing_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerOngoingArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerOngoingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageOngoingArticles')
@@ -162,8 +171,11 @@ def ongoing_articles():
 # Display completed articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
 def completed_articles():
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	db.t_articles.status.label = T('Outcome')
-	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected', 'Not considered'], 'completed_articles')
+	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected', 'Not considered'], URL('manager', 'completed_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerCompletedArticlesText')
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerCompletedArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageCompletedArticles')
@@ -289,10 +301,14 @@ def _manage_articles(statuses, whatNext):
 	#else: # we are in grid's form
 		#db.t_articles.abstract.represent=lambda text, row: WIKI(text)
 
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	links = []
 	if whatNext != 'completed_articles':
-		links += [ dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersManagerButton(row, '%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host,
-           request.env.request_uri)) ), ]
+		#back2 = '%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
+		back2 = URL(re.sub(r'.*/([^/]+)$', '\\1', request.env.request_uri), scheme=scheme, host=host, port=port)
+		links += [ dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersManagerButton(row, back2) ), ]
 	links += [
 				dict(header=T('Recommenders'), body=lambda row: mkRecommenderButton(row)),
 				dict(header=T('Recommendation title'), body=lambda row: mkLastRecommendation(auth, db, row.id)),
@@ -456,6 +472,7 @@ def manage_recommendations():
 	myContents = mkRepresentArticle(auth, db, articleId)
 	response.view='default/myLayout.html'
 	return dict(
+				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
 				myText=getText(request, auth, db, '#ManageRecommendationsText'),
 				myTitle=getTitle(request, auth, db, '#ManageRecommendationsTitle'),
@@ -523,11 +540,7 @@ def search_recommenders():
 				
 		links = [
 					dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
-					dict(header='',         body=lambda row: '' if row.excluded else A(SPAN(current.T('Suggest'), _class='btn btn-default pci-manager'), 
-																							_href=URL(c='manager', f='suggest_article_to', 
-																									vars=dict(articleId=articleId, recommenderId=row['id'], whatNext=whatNext), 
-																									user_signature=True), 
-																						_class='button')),
+					dict(header='', body=lambda row: '' if row.excluded else A(SPAN(current.T('Suggest'), _class='btn btn-default pci-manager'), _href=URL(c='manager', f='suggest_article_to', vars=dict(articleId=articleId, recommenderId=row['id'], whatNext=whatNext), user_signature=True), 										_class='button')),
 			]
 		temp_db.qy_recomm._id.readable = False
 		temp_db.qy_recomm.uploaded_picture.readable = False
@@ -615,7 +628,8 @@ def edit_article():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art == None:
-		raise HTTP(404, "404: "+T('Unavailable'))
+		#raise HTTP(404, "404: "+T('Unavailable'))
+		redirect(URL('manager','all_articles')) # it may have been deleted, so that's normal!
 	db.t_articles.status.writable=True
 	db.t_articles.user_id.writable=True
 	db.t_articles.cover_letter.readable = True

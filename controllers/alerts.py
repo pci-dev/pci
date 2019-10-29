@@ -32,7 +32,7 @@ def _mkArticleRowForEmail(row, odd):
 
 # dummy tests
 # TEST MAIL
-#@auth.requires_login()
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def _do_send_email_to_test(userId):
 	mail = getMailer(auth)
 	report = []
@@ -61,24 +61,22 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 
 
 
+@auth.requires(auth.has_membership(role='developper'))
 def test_flash():
 	session.flash = 'Coucou !'
 	redirect(request.env.http_referer)
 
 
-#@auth.requires(auth.user_id==1)
-#@auth.requires_login()
+@auth.requires(auth.has_membership(role='developper'))
 def test_mail_piry():
 	if 'client' not in request:
 		_do_send_email_to_test(1)
 
 
-#@auth.requires_login()
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def testUserRecommendedAlert():
 	if 'userId' in request.vars:
 		userId = request.vars['userId']
-	#auth.basic()
-	#if auth.user:
 	conditions = ['client' not in request, auth.user]
 	if any(conditions):
 		if userId:
@@ -117,6 +115,7 @@ def testUserRecommendedAlert():
 # function called daily
 #@auth.requires_login()
 def alertUsersLastRecommendations():
+	print('Starting cron alerts...')
 	mailDelay = float(myconf.take('alerts.delay') or 10.0)
 	conditions = ['client' not in request, auth.has_membership(role='manager')]
 	if any(conditions):

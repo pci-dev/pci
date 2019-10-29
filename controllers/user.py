@@ -368,7 +368,7 @@ def suggest_article_to():
 	do_suggest_article_to(auth, db, articleId, recommenderId)
 	excludeList.append(recommenderId)
 	vars['exclude'] = excludeList
-	session.flash = T('Suggester recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
+	session.flash = T('Suggested recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
 	#redirect(request.env.http_referer)
 	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 	#redirect(URL(f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
@@ -430,7 +430,7 @@ def add_suggested_recommender():
 			else:
 				recommendersList.append(
 									LI(mkUser(auth, db, con.auth_user.id),
-									A('Remove', _class='btn btn-warning', _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;'),
+									A('Remove', _class='btn btn-warning', _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;') if (art.status=='Pending') else '',
 									))
 		#excludeList = ','.join(map(str,reviewersIds))
 		excludeList = reviewersIds
@@ -497,7 +497,7 @@ def recommenders():
 		grid = SQLFORM.grid( query
 			,details=False
 			,editable=False
-			,deletable=article.status in ('Pending', 'Awaiting consideration')
+			,deletable=article.status in ('Pending')
 			,create=False
 			,searchable=False
 			,maxtextlength = 250,paginate=100
@@ -620,7 +620,7 @@ def suggest_article_to_all(articleId, recommenderIds):
 		do_suggest_article_to(auth, db, articleId, recommenderId)
 		added.append(mkUser(auth, db, recommenderId))
 	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	session.flash = T('Suggester recommenders %s added.') % (', '.join(added))
+	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
 	redirect(request.env.http_referer)
 
 
@@ -637,7 +637,7 @@ def suggested_recommenders():
 	if art is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id or art.status not in ('Pending', 'Awaiting consideration'):
+	if art.user_id != auth.user_id or art.status not in ('Pending'):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
@@ -681,7 +681,7 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
 	if len(suggRecomsTxt)>0:
 		butts += suggRecomsTxt
-	if row["t_articles.status"] in ('Pending', 'Awaiting consideration'):
+	if row["t_articles.status"] in ('Pending','Awaiting consideration'):
 		myVars = dict(articleId=row['t_articles.id'], exclude=excludeList)
 		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
 	return DIV(butts, _class='pci-w200Cell')

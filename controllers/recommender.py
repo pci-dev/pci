@@ -26,7 +26,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 def new_submission():
 	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
 	if ethics_not_signed:
-		redirect(URL(c='about', f='ethics', _next=URL()))
+		redirect(URL(c='about', f='ethics', vars=dict(_next=URL())))
 	else:
 		c = getText(request, auth, db, '#ConflictsForRecommenders')
 		myEthical = DIV(
@@ -61,11 +61,11 @@ def new_submission():
 			});
 			""")
 
-
 	myText = DIV(
 				getText(request, auth, db, '#NewRecommendationInfo'),
 				myEthical,
 			)
+
 	response.view='default/info.html'
 	return dict(
 		myText = myText,
@@ -450,7 +450,7 @@ def accept_new_article_to_recommend():
 							LI(INPUT(_type="checkbox", _name="invitations", _id="invitations", _value="yes", value=False), B(T('I agree to send invitations to 5-10 potential reviewers within the next 24 hours')), SPAN(T(' and then to send reminders and/or new invitations until I find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.'))),
 							LI(INPUT(_type="checkbox", _name="ten_days", _id="ten_days", _value="yes", value=False), B(T('I agree to post my decision')), SPAN(T(' or to write my recommendation text ')), B(T('within 10 days')), SPAN(T(' of receiving the reviews.'))),
 							LI(INPUT(_type="checkbox", _name="recomm_text", _id="recomm_text", _value="yes", value=False), B(T('I agree to write a recommendation text')), SPAN(T(' if I decide to recommend this preprint for %s at the end of the evaluation process.') % longname)),
-							LI(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), B(T('I declare that I have no conflict of interest with the authors or the content of the article: ')), SPAN(T('I should not handle articles written by close colleagues (with whom I have published in the last four years, with whom I have received joint funding in the last four years, or with whom I am currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. ')), A(T('See the code of ethical conduct.'), _href=URL(c='about', f='ethics'))), 
+							LI(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), B(T('I declare that I have no conflict of interest with the authors or the content of the article: ')), SPAN(T('I should not handle articles written by close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. ')), A(T('See the code of ethical conduct.'), _href=URL(c='about', f='ethics'))), 
 							LI(INPUT(_type="checkbox", _name="commitments", _id="commitments", _value="yes", value=False), I(T('I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.') % longname)),
 							_style="list-style-type:none;"),
 						_class='pci-ChecksList',
@@ -577,7 +577,7 @@ def recommend_article():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		recomm.is_closed=True
+		# recomm.is_closed=True # No: recomm closed when validated by managers
 		recomm.recommendation_state = 'Recommended'
 		recomm.update_record()
 		art = db.t_articles[recomm.article_id]
@@ -713,7 +713,12 @@ def mkViewEditRecommendationsRecommenderButton(auth, db, row):
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def my_recommendations():
-	goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
+	goBack = URL(re.sub(r'.*/([^/]+)$', '\\1', request.env.request_uri), scheme=scheme, host=host, port=port)
+
 	isPress = ( ('pressReviews' in request.vars) and (request.vars['pressReviews']=='True') )
 	if isPress: ## NOTE: POST-PRINTS
 		query = ( (db.t_recommendations.recommender_id == auth.user_id) 
@@ -809,7 +814,7 @@ def direct_submission():
 		redirect(request.env.http_referer)
 	noConflict = False
 	if 'no_conflict_of_interest' in request.vars:
-		if request.vars['no_conflict_of_interest']:
+		if request.vars['no_conflict_of_interest']=='yes':
 			noConflict = True
 	db.t_articles.user_id.default = None
 	db.t_articles.user_id.writable = False
@@ -836,7 +841,7 @@ def direct_submission():
 				});
 	"""
 	fields = ['title', 'authors', 'article_source', 'doi', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords', 'picture_data']
-	form = SQLFORM( db.t_articles, fields=fields, keepvalues=True, submit_button=T('Continue...') )
+	form = SQLFORM( db.t_articles, fields=fields, keepvalues=True, submit_button=T('Continue...'), hidden=dict(no_conflict_of_interest= 'yes' if noConflict else 'no') )
 	if form.process().accepted:
 		articleId=form.vars.id
 		recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=form.vars.doi, recommendation_state='Ongoing', no_conflict_of_interest=noConflict)
@@ -876,7 +881,7 @@ def recommendations():
 	amIAllowed = ((countPre + countPost) > 0)
 	if not(amIAllowed):
 		print("Not allowed: userId=%s, articleId=%s" % (auth.user_id, articleId))
-		print(db._lastsql)
+		#print(db._lastsql)
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
@@ -1238,7 +1243,7 @@ The evaluation process should guide the decision as to whether to ‘Revise’, 
 
 If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure. 
 
-Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
 
 Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the %(longname)s website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
 
@@ -1322,7 +1327,7 @@ The evaluation process should guide the decision as to whether to ‘Revise’, 
 
 If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
 
-Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
 
 Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by validating your account on the website of %(longname)s (link below). Once you have entered a new password and logged onto the website, then go to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
 
@@ -1352,6 +1357,13 @@ Best wishes,
 		existingUser = db(db.auth_user.email.upper() == request.vars['reviewer_email'].upper()).select().last()
 		if existingUser:
 			new_user_id = existingUser.id
+			# NOTE: update reset_password_key if not empty with a fresh new one
+			if existingUser.reset_password_key is not None and existingUser.reset_password_key != '':
+				max_time = time.time()
+				#NOTE adapt long-delay key for invitation
+				reset_password_key = str((15*24*60*60)+int(max_time)) + '-' + web2py_uuid()
+				existingUser.update_record(reset_password_key=reset_password_key)
+				existingUser = None
 			nbExistingReviews = db( (db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == new_user_id) ).count()
 		else:
 			# create user
@@ -1367,7 +1379,8 @@ Best wishes,
 				# reset password link
 				new_user = db.auth_user(new_user_id)
 				max_time = time.time()
-				reset_password_key = str(int(max_time)) + '-' + web2py_uuid()
+				#NOTE adapt long-delay key for invitation
+				reset_password_key = str((15*24*60*60)+int(max_time)) + '-' + web2py_uuid()
 				new_user.update_record(reset_password_key=reset_password_key)
 				nbExistingReviews = 0
 				session.flash = T('User "%(reviewer_email)s" created.') % (request.vars)
@@ -1472,7 +1485,7 @@ The evaluation process should guide the decision as to whether to ‘Revise’, 
 
 If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
 
-Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
 
 Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by validating your account on the website of %(longname)s (link below). Once you have entered a new password and logged onto the website, then go to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
 
@@ -1499,7 +1512,7 @@ The evaluation process should guide the decision as to whether to ‘Revise’, 
 
 If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.
 
-Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
+Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
 
 Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the %(longname)s website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
 
@@ -1829,17 +1842,18 @@ def edit_recommendation():
 		nbCoRecomm = db(db.t_press_reviews.recommendation_id == recommId).count()
 		isPress = art.already_published
 		triptyque = DIV(DIV(H3(current.T('Your decision')),
-						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_recommend', _checked=(recomm.recommendation_state=='Recommended')), current.T('I recommend this preprint'), _class='pci-radio pci-recommend btn-success'),
-						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_revise', _checked=(recomm.recommendation_state=='Revision')), current.T('This preprint merits a revision'), _class='pci-radio pci-review btn-default'),
-						SPAN(INPUT(_name='recommender_opinion', _type='radio', _value='do_reject', _checked=(recomm.recommendation_state=='Rejected')), current.T('I reject this preprint'), _class='pci-radio pci-reject btn-warning'),
+						SPAN(INPUT(_id='opinion_recommend', _name='recommender_opinion', _type='radio', _value='do_recommend', _checked=(recomm.recommendation_state=='Recommended')), current.T('I recommend this preprint'), _class='pci-radio pci-recommend btn-success'),
+						SPAN(INPUT(_id='opinion_revise', _name='recommender_opinion', _type='radio', _value='do_revise', _checked=(recomm.recommendation_state=='Revision')), current.T('This preprint merits a revision'), _class='pci-radio pci-review btn-default'),
+						SPAN(INPUT(_id='opinion_reject', _name='recommender_opinion', _type='radio', _value='do_reject', _checked=(recomm.recommendation_state=='Rejected')), current.T('I reject this preprint'), _class='pci-radio pci-reject btn-warning'),
+						# TEST # SPAN(INPUT(_id='opinion_none', _name='recommender_opinion', _type='radio', _value='none', _checked=(recomm.recommendation_state=='?')), current.T('I still hesitate'), _class='pci-radio btn-default'),
 						_style="padding:8px; margin-bottom:12px;"
 					), _style='text-align:center;')
 		buttons = [	INPUT(_type='Submit', _name='save',      _class='btn btn-info', _value='Save'), ]
 		if isPress:
-			buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
+			#buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
+			db.t_recommendations.no_conflict_of_interest.writable = False
 		else:
 			buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your decision')]
-		#db.t_recommendations.recommendation_state.default = 'Recommended'
 		db.t_recommendations.recommendation_state.readable = False
 		db.t_recommendations.recommendation_state.writable = False
 		if isPress:
@@ -1859,6 +1873,7 @@ def edit_recommendation():
 			fields = ['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments']
 		else:
 			fields = ['no_conflict_of_interest', 'recommendation_title', 'recommendation_comments', 'recommender_file', 'recommender_file_data']
+		
 		form = SQLFORM(db.t_recommendations
 					,record=recomm
 					,deletable=False
@@ -1878,7 +1893,9 @@ def edit_recommendation():
 					recomm.recommendation_state = 'Revision'
 				elif form.vars.recommender_opinion == 'do_reject':
 					recomm.recommendation_state = 'Rejected'
-				recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
+				print form.vars.no_conflict_of_interest
+				if form.vars.no_conflict_of_interest:
+					recomm.no_conflict_of_interest = True
 				recomm.recommendation_title = form.vars.recommendation_title
 				recomm.recommendation_comments = form.vars.recommendation_comments
 				# manual bypass:
@@ -1926,13 +1943,23 @@ def edit_recommendation():
 				redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=isPress)))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
-		myScript = """jQuery(document).ready(function(){
+		
+		if isPress is False:
+			myScript = """jQuery(document).ready(function(){
 							jQuery('#t_recommendations_no_conflict_of_interest').click(function(){
-								jQuery(':submit[name=terminate]').prop('disabled', !jQuery('#t_recommendations_no_conflict_of_interest').prop('checked'));
+								jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked'))));
 							});
-							jQuery(':submit[name=terminate]').prop('disabled', !jQuery('#t_recommendations_no_conflict_of_interest').prop('checked'));
+							jQuery('input[type=radio][name=recommender_opinion]').change(function(){
+								jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked'))));
+							});
+							jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked')) ));
 						});
-		"""
+			"""
+		else:
+			myScript = """jQuery(document).ready(function(){
+							jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') ));
+						});
+			"""
 		response.view='default/myLayout.html'
 		return dict(
 					form=form,
@@ -1967,6 +1994,7 @@ def my_co_recommendations():
 	#db.t_press_reviews.contribution_state.represent = lambda state,row: mkContributionStateDiv(auth, db, state)
 	db.t_recommendations.recommender_id.represent = lambda uid,row: mkUserWithMail(auth, db, uid)
 	db.t_recommendations.article_id.readable = False
+	#db.t_articles.already_published.represent = lambda press, row: 'TRUE' if press else 'FALSE'
 	db.t_articles.already_published.represent = lambda press, row: mkJournalImg(auth, db, press)
 	grid = SQLFORM.grid( query
 		,searchable=False, deletable=False, create=False, editable=False, details=False

@@ -4,6 +4,8 @@ src_name="/home/piry/W/web2py_2.17.2/applications/pci_stable/"
 dir_name="/var/www/peercommunityin/web2py217/applications/PCIEvolBiol"
 db_name="pci_evolbiol"
 db_test="pci_evolbiol_test"
+ip="mydb1"
+db=$db_name
 
 rsopts="--verbose --progress --times --usermap=peercom:www-data"
 
@@ -48,6 +50,15 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 # cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
+## CANCELLED
+# echo "UPDATE auth_group SET role='editor' WHERE role ILIKE 'recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'A recommender', 'An editor') WHERE contents ~ 'A recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'a recommender', 'an editor') WHERE contents ~ 'a recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'Recommender', 'Editor') WHERE contents ~ 'Recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'recommender', 'editor') WHERE contents ~ 'recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'RECOMMENDER', 'EDITOR') WHERE contents ~ 'RECOMMENDER';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+# echo "UPDATE help_texts SET contents=replace(contents, 'editors playing the role of editors who', 'editors who') WHERE contents ~ 'editors playing the role of editors who';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
+
 #WARNING: check group!!
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/background.png             peercom@peercom-front1:$dir_name/static/images
@@ -55,14 +66,13 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/workflow1.png              peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/Labo/PCiEvolBiol/sponsors_banner.png                                peercom@peercom-front1:$dir_name/static/images
 
-
 ssh peercom@peercom-front1 "chgrp www-data $dir_name/private/appconfig.ini ; chmod 640 $dir_name/private/appconfig.ini ; find $dir_name -name \\*.pyc -ls ; find $dir_name -name \\*.pyc -exec rm {} \\; ; touch $dir_name/../wsgihandler.py"
 
 echo "http://localhost:8000/pcidev/public/rss" | dmtxwrite --encoding=b --module=4 --output=$datam
 
-# WARNING: rapatrie les help officiels vers le test local
-ssh peercom@peercom-front1 "pg_dump -h mydb1 -p 5432 -U peercom -d $db_name --format=plain --data-only --table=help_texts" > helpTextsOfficiels.sql
-echo "TRUNCATE help_texts;" | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
-cat helpTextsOfficiels.sql  | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
-rm helpTextsOfficiels.sql
+# # WARNING: rapatrie les help officiels vers le test local
+# ssh peercom@peercom-front1 "pg_dump -h mydb1 -p 5432 -U peercom -d $db_name --format=plain --data-only --table=help_texts" > helpTextsOfficiels.sql
+# echo "TRUNCATE help_texts;" | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
+# cat helpTextsOfficiels.sql  | psql -h cbgp-pci-test.supagro.inra.fr -U piry $db_test 
+# rm helpTextsOfficiels.sql
 
