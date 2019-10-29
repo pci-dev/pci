@@ -517,7 +517,7 @@ def tracking():
 		for myArticle in query:
 			tr = mkTrackRow(auth, db, myArticle)
 			if tr:
-				myContents.append(TR(TD(tr), _class='pci-lastArticles-row'))
+				myContents.append(TR(tr, _class='pci-lastArticles-row'))
 		
 		response.view='default/myLayout.html'
 		resu = dict(

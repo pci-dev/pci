@@ -2326,7 +2326,7 @@ def mkTrackRow(auth, db, myArticle):
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	applongname=myconf.take('app.longname')
-	track = None
+	trackR = track = None
 	nbReviews = db( (db.t_recommendations.article_id == myArticle.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs('Under consideration', 'Completed')) ).count(distinct=db.t_reviews.id)
 	if nbReviews > 0 :
 		track = DIV(_class='pci-trackItem')
@@ -2339,25 +2339,33 @@ def mkTrackRow(auth, db, myArticle):
 			authors = '[anonymous submission]'
 		else:
 			authors = myArticle.authors
-			
+		
+		# pci-status
 		if myArticle.status == 'Recommended':
-			txt = DIV(SPAN(current.T(' is')), SPAN(current.T('RECOMMENDED'), _class='pci-trackStatus pci-status success'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', SPAN(current.T('See recommendations and reviews '), ' ', A('here', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id))), '.')))
+			#txt = DIV(SPAN(current.T(' is')), SPAN(current.T('RECOMMENDED'), _class='pci-trackStatus success'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
+			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
 			
-		elif myArticle.status == 'Rejected':
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, ')'))
+		#elif myArticle.status == 'Rejected':
+			#txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, ')'))
 			
 		elif myArticle.status == 'Cancelled':
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, '). '), SPAN(current.T('See reviews'), ' ', A('here', _href=URL('public', 'pubReviews', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id))), '.'))
+			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', firstDate, ' ➜ ', lastDate, '). '), A('See reviews', _href=URL('public', 'pubReviews', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-default'))
 			
-		elif myArticle.status == 'Under consideration' or myArticle.status == 'Awaiting revision' or myArticle.status == 'Pre-recommended' or myArticle.status == 'Pre-rejected' or myArticle.status == 'Pre-revision':
-			txt = DIV(SPAN(current.T(' is')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status info'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
+		elif myArticle.status == 'Under consideration' or myArticle.status == 'Pre-recommended' or myArticle.status == 'Pre-rejected' or myArticle.status == 'Pre-revision':
+			txt = DIV(SPAN(current.T(' is')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus info'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
+			
+		elif myArticle.status == 'Awaiting revision' :
+			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
+
 		else:
 			return(None)
 		track.append(DIV(B(title)))
 		track.append(DIV(SPAN(authors)))
 		track.append(DIV(link))
 		track.append(txt)
-	return(track)
+	
+		trackR = [TD(IMG(_src=URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port), _class='pci-trackImg')), TD(track)]
+	return(trackR)
 
 
 ######################################################################################################################################################################
