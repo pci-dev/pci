@@ -2343,7 +2343,7 @@ def mkTrackRow(auth, db, myArticle):
 		# pci-status
 		if myArticle.status == 'Recommended':
 			#txt = DIV(SPAN(current.T(' is')), SPAN(current.T('RECOMMENDED'), _class='pci-trackStatus success'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
+			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendation and reviews', _href=URL('public', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
 			
 		#elif myArticle.status == 'Rejected':
 			#txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, ')'))
