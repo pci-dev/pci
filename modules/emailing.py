@@ -26,6 +26,7 @@ from contextlib import closing
 import shutil
 
 myconf = AppConfig(reload=True)
+parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
 mail_sleep = 1.5 # in seconds
 
@@ -162,6 +163,9 @@ Yours sincerely,<p>
 <span style="padding-left:1in;">The Managing Board of <i>%(appname)s</i></span>
 """ % locals()
 			else:
+				parallelText = ""
+				if parallelSubmissionAllowed:
+					parallelText += """Please note that if you abandon the process with %(appname)s after reviewers have contributed their time toward evaluation and before the end of the evaluation, we will post the reviewers' reports on the %(appname)s website as recognition of their work and in order to enable critical discussion.<p>"""
 				content = """Dear %(destPerson)s,<p>
 Thank you for your submission, on behalf of all the authors, of your preprint entitled <b>%(articleTitle)s</b>, to <i>%(appdesc)s</i> (<i>%(appname)s</i>).<p>
 We remind you that this preprint must not be published or submitted for publication elsewhere. If this preprint is sent out for review, you must not submit it to a journal until the evaluation process is complete (ie until it has been rejected or recommended by <i>%(appname)s</i>).<p>
@@ -169,6 +173,7 @@ If you have not already done so, you need to suggest recommenders who could init
 Please remember that <i>%(appname)s</i> is under no obligation to consider your preprint. We cannot guarantee that your preprint will be reviewed, but all possible efforts will be made to make this possible. By submitting your preprint to <i>%(appname)s</i>, you agree to wait until a recommender initiates the evaluation process, within a maximum of %(unconsider_limit_days)s days. You will be notified by e-mail if a recommender of the <i>%(appname)s</i> decides to start the peer-review process for your preprint.<p>
 If after one or several rounds of reviews, the <i>%(appname)s</i> recommender handling your preprint reaches a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by <i>%(appname)s</i> under the license CC-BY-ND. If recommended by <i>%(appname)s</i> your preprint would become an article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.<p>
 Alternatively, if the recommender decides not to recommend your article, the reviews and the decision will be sent to you, but they will not be published or publicly released by <i>%(appname)s</i>. They will be safely stored in our database, to which only the Managing Board has access. You will be notified by e-mail at each stage in the procedure.<p>
+%(parallelText)s
 To view or cancel your recommendation request, please follow this link <a href="%(linkTarget)s">%(linkTarget)s</a> or logging onto the <i>%(appname)s</i> website and go to 'Your contributions —> Your submitted preprints' in the top menu.<p>
 We thank you again for your submission.<p>
 Yours sincerely,<p>
@@ -2121,13 +2126,20 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 				linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
 				mySubject = '%s: Thank you for evaluating a preprint' % (appname)
 				theUser = db.auth_user[rev.reviewer_id]
+				parallelText = ""
+				if parallelSubmissionAllowed:
+					parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.<p>"""
+					if art.parallel_submission:
+						parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.<p>"""
 				if theUser:
 					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''
 					destPerson = mkUser(auth, db, rev.reviewer_id)
 					content = """Dear %(destPerson)s,<p>
 Thank you for evaluating the preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s. Your evaluation has been sent to the recommender (%(recommenderPerson)s) handling this preprint. Your contribution is greatly appreciated.<p>
 You can use this message as proof of your work for <i>%(appname)s</i> and you can view your review at <a href="%(linkTarget)s">%(linkTarget)s</a>. Your review, together with the other reviews of this preprint, will guide the decision of the recommender (%(recommenderPerson)s) as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ this preprint.<p>
-Remember that if the recommender eventually comes to a favorable conclusion, all of the editorial correspondence (reviews, including yours, the decisions reached by the recommender, and the authors’ replies) and a recommendation text will be published by <i>%(appname)s</i>, under the license CC-BY-ND. If, after one or several rounds of review, the recommender eventually rejects the preprint, the editorial correspondence will be sent to the authors but will NOT be published. You will be notified by e-mail at each stage in the procedure. If the recommender asks the authors to revise their preprint, he/she may invite you to evaluate their responses and the changes they have made to the preprint. If required, we therefore hope that you will be willing to take part in a second round of review.<p>
+Remember that if the recommender eventually comes to a favorable conclusion, all of the editorial correspondence (reviews, including yours, the decisions reached by the recommender, and the authors’ replies) and a recommendation text will be published by <i>%(appname)s</i>, under the license CC-BY-ND. If, after one or several rounds of review, the recommender eventually rejects the preprint, the editorial correspondence will be sent to the authors but will NOT be published. You will be notified by e-mail at each stage in the procedure.<p>
+%(parallelText)s
+If the recommender asks the authors to revise their preprint, he/she may invite you to evaluate their responses and the changes they have made to the preprint. If required, we therefore hope that you will be willing to take part in a second round of review.<p>
 If you decided NOT to remain anonymous, your name will be passed on to the authors and, if the recommender decides to recommend this preprint, your name will be visible and associated with your review on the %(appname)s website. If you wish to change your mind and remain anonymous, please send a message to %(contactMail)s, to let the members of the Managing Board know (they will make the necessary changes).<p>
 In the meantime, thank you again for conducting this evaluation. We really appreciate it.<p>
 Best wishes,<p>
