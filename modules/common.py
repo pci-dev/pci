@@ -1362,7 +1362,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					allowOpinion = -1
 				
 			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
-			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet) and (iRecomm+1==nbRecomms):
+			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet) and (iRecomm==nbRecomms):
 				myRound.append(DIV(A(SPAN(current.T('Write, edit or upload your reply to the recommender'), 
 											_class='buttontext btn btn-info pci-submitter'), 
 											_href=URL(c='user', f='edit_reply', vars=dict(recommId=recomm.id), user_signature=True)),

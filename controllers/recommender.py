@@ -1230,6 +1230,11 @@ def email_for_registered_reviewer():
 	#art_doi = (recomm.doi or art.doi)
 	#linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 	linkTarget = URL(c='user', f='recommendations', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
+	parallelText = ""
+	if parallelSubmissionAllowed:
+		parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n""" % locals()
+		if art.parallel_submission:
+			parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n""" % locals()
 	default_message = """
 Dear %(destUser)s,
 
@@ -1242,7 +1247,7 @@ If you have already reviewed a previous version of this MS, please consider this
 The evaluation process should guide the decision as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like any ‘classic’ article published in a peer-reviewed journals.
 
 If I eventually reach a favorable conclusion, all the editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by %(longname)s, under the license CC-BY-ND. If after one or several rounds of review, I eventually reject the preprint, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure. 
-
+%(parallelText)s
 Note that to avoid any conflict of interests you should not accept to evaluate this preprint if the authors are close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or family members, friends, or anyone for whom bias might affect the nature of your evaluation.
 
 Please let me know as soon as possible whether you are willing to accept my invitation to review this article, or whether you would prefer to decline, by clicking on the link below or by logging onto the %(longname)s website and going to 'Requests for input —> Do you agree to review a preprint?' in the top menu.
@@ -1316,9 +1321,9 @@ def email_for_new_reviewer():
 	# NOTE: 4 parallel submission
 	parallelText = ""
 	if parallelSubmissionAllowed:
-		parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n"""
+		parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n""" % locals()
 		if art.parallel_submission:
-			parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n"""
+			parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n""" % locals()
 	
 	default_message = """
 Dear colleague,  
@@ -1476,9 +1481,9 @@ def send_review_reminder():
 		# NOTE: parallel submission
 		parallelText = ""
 		if parallelSubmissionAllowed:
-			parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n"""
+			parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n""" % locals()
 			if art.parallel_submission:
-				parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n"""
+				parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n""" % locals()
 		if len(reviewer.reset_password_key or '')>0: # even not logged in yet
 			reset_password_key = reviewer.reset_password_key
 			default_message = """

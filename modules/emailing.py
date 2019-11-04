@@ -449,7 +449,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 		linkTarget = URL(c='recommender', f='my_recommendations', scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published))
 		for myRecomm0 in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
 			recommender_id = myRecomm0.recommender_id
-			myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id==recommender_id)).select().last()
+			myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id==recommender_id)).select(orderby=db.t_recommendations.id).last()
 			destPerson = mkUser(auth, db, recommender_id)
 			destAddress = db.auth_user[myRecomm.recommender_id]['email']
 			articleAuthors = article.authors
@@ -538,8 +538,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 						except:
 							print('unable to delete temp file %s' % tmpTr)
 							pass
-				content = """Dear %(destPerson)s,
-<p>
+				content = """Dear %(destPerson)s,<p>
 The authors of the preprint entitled <b>%(articleTitle)s</b> and submitted by %(articleAuthors)s have posted their revised version and their replies to your comments and those of the reviewers. They may also have uploaded (as a PDF or Word file) a revised version of their preprint, with the modifications indicated in TrackChanges mode and a clean version of their PDF at this address <a href="%(linkTarget)s">%(linkTarget)s</a> (see also attachments in this email).
 <p>
 For this new round of evaluation, you must reach a decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the article.
@@ -563,7 +562,7 @@ Yours sincerely,<p>
 				myRefArticle  = mkArticleCitation(auth, db, myRecomm).flatten()
 				linkRecomm = URL(c='public', f='rec', vars=dict(id=article.id))
 				doiRecomm = mkLinkDOI(myRecomm.recommendation_doi)
-				content = """Dear %(destPerson)s,
+				content = """Dear %(destPerson)s,<p>
 Your recommendation - along with the reviews - is now posted on the <i>%(appname)s</i> website.<p>
 The reference of your recommendation is:<p>
 %(myRefRecomm)s<p>
