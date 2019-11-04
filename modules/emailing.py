@@ -165,7 +165,7 @@ Yours sincerely,<p>
 			else:
 				parallelText = ""
 				if parallelSubmissionAllowed:
-					parallelText += """Please note that if you abandon the process with %(appname)s after reviewers have contributed their time toward evaluation and before the end of the evaluation, we will post the reviewers' reports on the %(appname)s website as recognition of their work and in order to enable critical discussion.<p>"""
+					parallelText += """Please note that if you abandon the process with %(appname)s after reviewers have contributed their time toward evaluation and before the end of the evaluation, we will post the reviewers' reports on the %(appname)s website as recognition of their work and in order to enable critical discussion.<p>""" % locals()
 				content = """Dear %(destPerson)s,<p>
 Thank you for your submission, on behalf of all the authors, of your preprint entitled <b>%(articleTitle)s</b>, to <i>%(appdesc)s</i> (<i>%(appname)s</i>).<p>
 We remind you that this preprint must not be published or submitted for publication elsewhere. If this preprint is sent out for review, you must not submit it to a journal until the evaluation process is complete (ie until it has been rejected or recommended by <i>%(appname)s</i>).<p>
