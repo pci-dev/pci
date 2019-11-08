@@ -314,6 +314,7 @@ def _ManagerMenu():
         (SPAN(txtMenu, _class='pci-manager'), False, '#', [
 			(txtPending, False, URL('manager', 'pending_articles', user_signature=True)),
 			(txtGoing, False, URL('manager', 'ongoing_articles', user_signature=True)),
+			(SPAN(T('Recommenders\' tasks underway')),  False, URL('manager', 'all_recommendations', user_signature=True)),
 			(SPAN(T('Recommendation processes completed'), _class='pci-manager'),   False, URL('manager', 'completed_articles', user_signature=True)),
 			(SPAN(T('All articles'), _class='pci-manager'),   False, URL('manager', 'all_articles', user_signature=True)),
 			(SPAN(T('Comments'), _class='pci-manager'),   False, URL('manager', 'manage_comments', user_signature=True)),

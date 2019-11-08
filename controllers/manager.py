@@ -932,3 +932,79 @@ The Managing Board of %(longname)s""" % locals()
 		myBackButton=mkBackButton(),
 	)
 
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def all_recommendations():
+	scheme = myconf.take('alerts.scheme')
+	host = myconf.take('alerts.host')
+	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
+	goBack = URL(re.sub(r'.*/([^/]+)$', '\\1', request.env.request_uri), scheme=scheme, host=host, port=port)
+
+	isPress = ( ('pressReviews' in request.vars) and (request.vars['pressReviews']=='True') )
+	if isPress: ## NOTE: POST-PRINTS
+		query = (  (db.t_recommendations.article_id == db.t_articles.id) 
+				& (db.t_articles.already_published == True)
+			)
+		myTitle=getTitle(request, auth, db, '#AdminAllRecommendationsPostprintTitle')
+		myText=getText(request, auth, db, '#AdminAllRecommendationsPostprintText')
+		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]
+		links = [
+				dict(header=T('Co-recommenders'), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
+				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			]
+		db.t_recommendations.article_id.label = T('Postprint')
+	else: ## NOTE: PRE-PRINTS
+		query = (  (db.t_recommendations.article_id == db.t_articles.id) 
+				& (db.t_articles.already_published == False)
+				& (db.t_articles.status == 'Under consideration')
+			)
+		myTitle=getTitle(request, auth, db, '#AdminAllRecommendationsPreprintTitle')
+		myText=getText(request, auth, db, '#AdminAllRecommendationsPreprintText')
+		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
+		links = [
+				dict(header=T('Co-recommenders'),    body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
+				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+			]
+		db.t_recommendations.article_id.label = T('Preprint')
+		
+	db.t_recommendations.recommender_id.writable = False
+	db.t_recommendations.doi.writable = False
+	#db.t_recommendations.article_id.readable = False
+	db.t_recommendations.article_id.writable = False
+	db.t_recommendations._id.readable = False
+	#db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+	db.t_recommendations.recommender_id.readable = False
+	db.t_recommendations.recommendation_state.readable = False
+	db.t_recommendations.is_closed.readable = False
+	db.t_recommendations.is_closed.writable = False
+	db.t_recommendations.recommendation_timestamp.label = T('Started')
+	db.t_recommendations.last_change.label = T('Last change')
+	db.t_recommendations.last_change.represent = lambda text, row: mkElapsedDays(row.t_recommendations.last_change) if 't_recommendations' in row else mkElapsedDays(row.last_change)
+	db.t_recommendations.recommendation_timestamp.represent = lambda text, row: mkElapsedDays(row.t_recommendations.recommendation_timestamp) if 't_recommendations' in row else mkElapsedDays(row.recommendation_timestamp)
+	db.t_recommendations.article_id.represent = lambda aid, row: DIV(mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class='pci-w200Cell')
+	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+	db.t_recommendations.doi.readable=False
+	db.t_recommendations.last_change.readable=True
+	db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+	grid = SQLFORM.grid( query
+		,searchable=False, create=False, deletable=False, editable=False, details=False
+		,maxtextlength=500,paginate=10
+		,csv=csv, exportclasses=expClass
+		,fields=fields
+		,links=links
+		,orderby=~db.t_recommendations.last_change
+	)
+	response.view='default/myLayout.html'
+	return dict(
+				#myBackButton=mkBackButton(), 
+				myHelp = getHelp(request, auth, db, '#AdminAllRecommendations'),
+				myTitle=myTitle, 
+				myText=myText,
+				grid=grid, 
+			 )
+
+

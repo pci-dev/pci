@@ -1997,7 +1997,7 @@ def mkReviewsSubTable(auth, db, recomm):
 		if (myRev.review_state == 'Completed'): nbCompleted += 1
 		if (myRev.review_state == 'Under consideration'): nbOnGoing += 1
 	myVars = dict(recommId=recomm['id'])
-	if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration'):
+	if not(recomm.is_closed) and ((recomm.recommender_id == auth.user_id) or auth.has_membership(role='manager') or auth.has_membership(role='administrator')) and (art.status == 'Under consideration'):
 		buts = TR()
 		buts.append(TD(A(SPAN(current.T('Invite a reviewer'), _class='btn btn-default pci-recommender'), _href=URL(c='recommender', f='reviewers', vars=myVars))))
 		buts.append(TD())
@@ -2467,5 +2467,8 @@ def reviewsOfCancelled(auth, db, art):
 	#nbReviews = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
 	return(myContents)
 
+######################################################################################################################################################################
+def mkViewEditRecommendationsRecommenderButton(auth, db, row):
+	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
 

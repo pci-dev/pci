@@ -706,12 +706,9 @@ def suggest_collaboration_to():
 
 
 
-######################################################################################################################################################################
-def mkViewEditRecommendationsRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
+@auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))
 def my_recommendations():
 	scheme = myconf.take('alerts.scheme')
 	host = myconf.take('alerts.host')
@@ -1558,7 +1555,7 @@ Best regards
 %(sender)s
 """ % locals()
 	
-	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 	form = SQLFORM.factory(
 			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
