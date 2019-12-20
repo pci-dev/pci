@@ -27,40 +27,9 @@ rsync $rsopts --stats --recursive --perms --links --update --delete --delete-bef
 	$src_name \
 	peercom@peercom-front1:$dir_name
 
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-09-18_modifs_fonctions.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-11-13_auto_last_change_recommendation_trigger_function.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-11-27_search_recommenders.sql                               | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-11-29_search_reviewers.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-06_resources.sql                                         | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-08_search_recommenders.sql                               | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2017-12-14_trigger_reviews.sql                                   | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_search_reviewers.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2018-01-26_versionMS.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "UPDATE help_texts SET contents = regexp_replace(contents, 'font-family *: *optima *;', '', 'ig') WHERE contents ~* 'font-family *: *optima *;';"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2018-03-09_colpivot.sql                                  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "UPDATE help_texts SET contents='Code of conduct' WHERE hashtag LIKE '#EthicsTitle';"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE public.auth_user ALTER COLUMN alerts SET DEFAULT '||'::character varying;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE public.t_articles ADD COLUMN anonymous_submission boolean DEFAULT false;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE public.t_articles ADD COLUMN cover_letter text;"  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2018-07-23_auto_last_change_recommendation_trigger_function.sql  | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE public.t_recommendations ADD COLUMN recommender_file character varying(512); ALTER TABLE public.t_recommendations ADD COLUMN recommender_file_data bytea;" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE public.t_suggested_recommenders ADD COLUMN emailing text;" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "UPDATE help_texts SET contents='Details about the process of evaluation & recommendation can be found  [here](../about/help_generic).' WHERE hashtag LIKE '#AcceptPreprintInfoText';" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# echo "ALTER TABLE t_articles ADD COLUMN parallel_submission boolean DEFAULT false;"| ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/W/Labo/PCiEvolBiol/2019-02-25_SearchArticles.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-# cat /home/piry/Documents/Labo/PCiEvolBiol/trigReviews.sql | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
-
-## CANCELLED
-# echo "UPDATE auth_group SET role='editor' WHERE role ILIKE 'recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'A recommender', 'An editor') WHERE contents ~ 'A recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'a recommender', 'an editor') WHERE contents ~ 'a recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'Recommender', 'Editor') WHERE contents ~ 'Recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'recommender', 'editor') WHERE contents ~ 'recommender';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'RECOMMENDER', 'EDITOR') WHERE contents ~ 'RECOMMENDER';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
-# echo "UPDATE help_texts SET contents=replace(contents, 'editors playing the role of editors who', 'editors who') WHERE contents ~ 'editors playing the role of editors who';" | ssh peercom@peercom-front1 "psql -h $ip -U piry $db"
 
 #WARNING: check group!!
-# rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
+rsync $rsopt /home/piry/W/web2py/applications/pcidev/private/peercom_appconfig.ini            peercom@peercom-front1:$dir_name/private/appconfig.ini
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/background.png             peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/small-background.png       peercom@peercom-front1:$dir_name/static/images
 # rsync $rsopt /home/piry/W/web2py/applications/pcidev/static/images/workflow1.png              peercom@peercom-front1:$dir_name/static/images

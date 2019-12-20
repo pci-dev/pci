@@ -1222,9 +1222,9 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			# Am I a co-recommender?
 			amICoRecommender = (db((db.t_press_reviews.recommendation_id==recomm.id) & (db.t_press_reviews.contributor_id==auth.user_id)).count() > 0)
 			# Am I a reviewer?
-			amIReviewer = (db((db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.reviewer_id==auth.user_id)).count() > 0)
+			amIReviewer = (db((db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) & (db.t_reviews.reviewer_id==auth.user_id)).count() > 0)
 			# During recommendation, no one is not allowed to see last (unclosed) recommendation 
-			hideOngoingRecomm = ((art.status=='Under consideration') or (art.status.startswith('Pre-'))) and (iRecomm==nbRecomms)
+			hideOngoingRecomm = ((art.status=='Under consideration') or (art.status.startswith('Pre-'))) and not(recomm.is_closed) #(iRecomm==1)
 			#  ... unless he/she is THE recommender
 			if auth.has_membership(role='recommender') and (recomm.recommender_id==auth.user_id or amICoRecommender):
 				hideOngoingRecomm = False
@@ -1340,8 +1340,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			else:
 				if recomm.recommender_id == auth.user_id:
 					tit2 = current.T('Your decision')
-				else:
+				elif recomm.is_closed:
 					tit2 = current.T('Decision')
+				else:
+					tit2 = ''
 			
 			if not(recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == 'Under consideration') and not(printable) and not (quiet):
 				# recommender's button for recommendation edition
@@ -1350,7 +1352,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					myRound.append(DIV(A(SPAN(current.T('Write or edit your decision / recommendation'), _class='btn btn-default pci-recommender'), 
 											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id)))))
 				else:
-					myRound.append(DIV(A(SPAN(current.T('Write your decision / recommendation'), # once two or more reviews are completed'), 
+					myRound.append(DIV(A(SPAN(current.T('Write your decision / recommendation'), 
 								_title=current.T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.'),
 								_style='white-space:normal;', _class='btn btn-default pci-recommender disabled'), _style='width:300px;')))
 				
@@ -1362,7 +1364,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					allowOpinion = -1
 				
 			#if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
-			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet) and (iRecomm==nbRecomms):
+			if (art.user_id==auth.user_id) and (art.status=='Awaiting revision') and not(printable) and not (quiet) and (iRecomm==1):
 				myRound.append(DIV(A(SPAN(current.T('Write, edit or upload your reply to the recommender'), 
 											_class='buttontext btn btn-info pci-submitter'), 
 											_href=URL(c='user', f='edit_reply', vars=dict(recommId=recomm.id), user_signature=True)),
@@ -1375,7 +1377,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				,SPAN(current.T('Manuscript:')+' ', mkDOI(recomm.doi)) if (recomm.doi) else SPAN('')
 				,SPAN(' '+current.T('version')+' ', recomm.ms_version) if (recomm.ms_version) else SPAN('')
 				,BR()
-				,H4(recomm.recommendation_title) if (hideOngoingRecomm is False) else ''
+				,H4(recomm.recommendation_title or '') if (hideOngoingRecomm is False) else ''
 				,BR()
 				,(DIV(WIKI(recomm.recommendation_comments or ''), _class='pci-bigtext margin') if (hideOngoingRecomm is False) else '')
 				,_class='pci-recommendation-div'

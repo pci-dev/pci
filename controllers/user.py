@@ -296,10 +296,10 @@ def article_revised():
 		#print 'article_revised'
 		art.status = 'Under consideration'
 		art.update_record()
-		last_recomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
+		last_recomm = db(db.t_recommendations.article_id==art.id).select(orderby=db.t_recommendations.id).last()
 		last_recomm.is_closed = True
 		last_recomm.update_record()
-		newRecomm = db.t_recommendations.validate_and_insert(article_id=articleId, recommender_id=last_recomm.recommender_id, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=last_recomm.recommendation_title)
+		newRecomm = db.t_recommendations.insert(article_id=art.id, recommender_id=last_recomm.recommender_id, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=None)
 		# propagate co-recommenders
 		corecommenders = db(db.t_press_reviews.recommendation_id==last_recomm.id).select(db.t_press_reviews.contributor_id)
 		if len(corecommenders) > 0 :

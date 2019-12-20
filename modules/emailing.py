@@ -1909,7 +1909,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 				parallelText = ""
 				if parallelSubmissionAllowed:
 					parallelText += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.<p>"""
-					if art.parallel_submission:
+					if article.parallel_submission:
 						parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.<p>"""
 				if theUser:
 					recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ''

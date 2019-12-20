@@ -367,7 +367,7 @@ db.define_table('t_recommendations',
 	Field('doi', type='string', length=512, label=T('Manuscript DOI (or URL) for the round'), represent=lambda text, row: mkDOI(text) ),
 	Field('ms_version', type='string', length=1024, label=T('Manuscript version for the round'), default=''),
 	Field('recommender_id', type='reference auth_user', ondelete='RESTRICT', label=T('Recommender')),
-	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title'), requires=IS_NOT_EMPTY()),
+	Field('recommendation_title', type='string', length=1024, label=T('Recommendation title')),
 	Field('recommendation_comments', type='text', length=2097152, label=T('Recommendation'), default=''),
 	Field('recommendation_doi', type='string', length=512, label=T('Recommendation DOI'), represent=lambda text, row: mkDOI(text) ),
 	Field('recommendation_state', type='string', length=50, label=T('Recommendation state'),  requires=IS_EMPTY_OR(IS_IN_SET(('Ongoing', 'Recommended', 'Rejected', 'Revision', 'Awaiting revision')))),
@@ -387,7 +387,7 @@ db.define_table('t_recommendations',
 	plural=T("Recommendations"),
 	migrate=False,
 )
-db.t_recommendations.recommender_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(first_name)s %(last_name)s')
+db.t_recommendations.recommender_id.requires = IS_IN_DB(db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == 'recommender')), db.auth_user.id, '%(first_name)s %(last_name)s %(email)s')
 db.t_recommendations._after_insert.append(lambda s,i: newRecommendation(s,i))
 #db.t_recommendations._after_update.append(lambda s,f: closedRecommendation(s,f))
 
