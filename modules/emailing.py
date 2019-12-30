@@ -1291,45 +1291,46 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
 		if lastRecomm:
 			reviewers = db( (db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ('Pending', 'Under consideration', 'Completed')) ).select()
 			for rev in reviewers:
-				destPerson = mkUser(auth, db, rev.reviewer_id)
-				destAddress = db.auth_user[rev.reviewer_id]['email']
-				recommenderPerson = mkUserWithMail(auth, db, lastRecomm.recommender_id)
-				content = """Dear %(destPerson)s,<p>
+				if rev is not None and rev.reviewer_id is not None:
+					destPerson = mkUser(auth, db, rev.reviewer_id)
+					destAddress = db.auth_user[rev.reviewer_id]['email']
+					recommenderPerson = mkUserWithMail(auth, db, lastRecomm.recommender_id)
+					content = """Dear %(destPerson)s,<p>
 The submission of the preprint entitled <b>%(articleTitle)s</b> by %(articleAuthors)s has been cancelled by the author.
 Therefore, the recommendation process is closed. 
 Thank you anyway for your help.<p>
 Yours sincerely,<p>
 <span style="padding-left:1in;">%(recommenderPerson)s</span>
 """ % locals()
-				try:
-					myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
-					mail_resu = mail.send(to=[destAddress],
-								subject=mySubject,
-								message=myMessage,
-							)
-				except:
-					pass
-				
-				if rev.emailing:
-					emailing0 = rev.emailing
-				else:
-					emailing0 = ''
-				if mail_resu:
-					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
-				else:
-					emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
-				emailing += myMessage
-				emailing += '<hr>'
-				emailing += emailing0
-				rev.emailing = emailing
-				rev.review_state = 'Cancelled'
-				rev.update_record()
+					try:
+						myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+						mail_resu = mail.send(to=[destAddress],
+									subject=mySubject,
+									message=myMessage,
+								)
+					except:
+						pass
+					
+					if rev.emailing:
+						emailing0 = rev.emailing
+					else:
+						emailing0 = ''
+					if mail_resu:
+						emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="green">SENT</font></h2>'
+					else:
+						emailing = '<h2>'+str(datetime.datetime.now())+' -- <font color="red">NOT SENT</font></h2>'
+					emailing += myMessage
+					emailing += '<hr>'
+					emailing += emailing0
+					rev.emailing = emailing
+					rev.review_state = 'Cancelled'
+					rev.update_record()
 
-				if mail_resu:
-					report.append( 'email sent to %s' % destPerson.flatten() )
-				else:
-					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-				time.sleep(mail_sleep)
+					if mail_resu:
+						report.append( 'email sent to %s' % destPerson.flatten() )
+					else:
+						report.append( 'email NOT SENT to %s' % destPerson.flatten() )
+					time.sleep(mail_sleep)
 		else:
 			print 'do_send_email_to_reviewers_cancellation: Recommendation not found'
 	else:

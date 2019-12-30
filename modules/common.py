@@ -2473,4 +2473,13 @@ def reviewsOfCancelled(auth, db, art):
 def mkViewEditRecommendationsRecommenderButton(auth, db, row):
 	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
+######################################################################################################################################################################
+def mkViewEditRecommendationsManagerButton(auth, db, row):
+	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='manager', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
+#A(SPAN(current.T('Check & Edit')), 
+#_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
+#_target="_blank", 
+#_class='buttontext btn btn-default pci-button pci-manager', 
+#_title=current.T('View and/or edit review')
+#)

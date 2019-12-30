@@ -299,7 +299,7 @@ def article_revised():
 		last_recomm = db(db.t_recommendations.article_id==art.id).select(orderby=db.t_recommendations.id).last()
 		last_recomm.is_closed = True
 		last_recomm.update_record()
-		newRecomm = db.t_recommendations.insert(article_id=art.id, recommender_id=last_recomm.recommender_id, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=None)
+		newRecomm = db.t_recommendations.insert(article_id=art.id, recommender_id=last_recomm.recommender_id, no_conflict_of_interest=last_recomm.no_conflict_of_interest, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=None)
 		# propagate co-recommenders
 		corecommenders = db(db.t_press_reviews.recommendation_id==last_recomm.id).select(db.t_press_reviews.contributor_id)
 		if len(corecommenders) > 0 :

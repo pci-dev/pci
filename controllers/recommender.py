@@ -1162,7 +1162,10 @@ def reviewers():
 							A(SPAN(current.T('Choose a reviewer outside %s database')%(longname), _class='btn btn-default'), _href=URL(c='recommender', f='email_for_new_reviewer', vars=dict(recommId=recommId))),
 							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
 						)
-		myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))), _style='margin-top:16px; text-align:center;')
+		if auth.user_id == recomm.recommender_id:
+			myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))), _style='margin-top:16px; text-align:center;')
+		else:
+			myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='manager', f='all_recommendations')), _style='margin-top:16px; text-align:center;')
 		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderAddReviewers'),
@@ -1256,7 +1259,8 @@ Yours sincerely,
 %(sender)s
 """ % locals()
 	default_subject = '%(longname)s: Invitation to review a preprint' % locals()
-	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	#replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 	form = SQLFORM.factory(
 			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
@@ -1346,7 +1350,8 @@ Best wishes,
 %(sender)s
 """ % locals()
 	default_subject = '%(longname)s: Invitation to review a preprint' % locals()
-	replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	#replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+	replyto = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 	replyto_address = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 	form = SQLFORM.factory(
 			Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
@@ -1573,7 +1578,10 @@ Best regards
 		except Exception, e:
 			session.flash = (session.flash or '') + T('Email failed.')
 			raise e #TODO pass
-		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		if auth.user_id == recomm.recommender_id:
+			redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		else:
+			redirect(URL(c='manager', f='all_recommendations'))
 		
 	response.view='default/myLayout.html'
 	return dict(
@@ -1655,7 +1663,10 @@ Best regards,
 		except Exception, e:
 			session.flash = (session.flash or '') + T('Email failed.')
 			raise e
-		redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		if auth.user_id == recomm.recommender_id:
+			redirect(URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False)))
+		else:
+			redirect(URL(c='manager', f='all_recommendations'))
 		
 	response.view='default/myLayout.html'
 	return dict(
@@ -1906,7 +1917,7 @@ def edit_recommendation():
 					recomm.recommendation_state = 'Revision'
 				elif form.vars.recommender_opinion == 'do_reject':
 					recomm.recommendation_state = 'Rejected'
-				print form.vars.no_conflict_of_interest
+				#print form.vars.no_conflict_of_interest
 				if form.vars.no_conflict_of_interest:
 					recomm.no_conflict_of_interest = True
 				recomm.recommendation_title = form.vars.recommendation_title

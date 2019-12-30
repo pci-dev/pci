@@ -967,7 +967,8 @@ def all_recommendations():
 		links = [
 				dict(header=T('Co-recommenders'),    body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
-				dict(header=T(''),                   body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				#dict(header=T('Actions'),            body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+				dict(header=T('Actions'),            body=lambda row: mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 			]
 		db.t_recommendations.article_id.label = T('Preprint')
 		
@@ -977,7 +978,7 @@ def all_recommendations():
 	db.t_recommendations.article_id.writable = False
 	db.t_recommendations._id.readable = False
 	#db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
-	db.t_recommendations.recommender_id.readable = False
+	db.t_recommendations.recommender_id.readable = True
 	db.t_recommendations.recommendation_state.readable = False
 	db.t_recommendations.is_closed.readable = False
 	db.t_recommendations.is_closed.writable = False
