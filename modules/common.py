@@ -1820,17 +1820,36 @@ def mkUserCard(auth, db, userId, withMail=False):
 		for roleRow in rolesQy:
 			rolesList.append(roleRow.role)
 		roles = LI(B(', '.join(rolesList)))
-		# recommendations
-		recomms = []
-		recommsQy = db( 
-					(
-						(db.t_recommendations.recommender_id == userId) | ( (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_press_reviews.contributor_id == userId) )
-					)
-					& (db.t_recommendations.recommendation_state == 'Recommended')
-					& (db.t_recommendations.article_id == db.t_articles.id)
-					& (db.t_articles.status == 'Recommended')
-				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
+		# recommendations ## Patch SP 2020-01-06
+		recommsQy0sql = """
+			SELECT t_articles.id
+			FROM t_articles
+			JOIN t_recommendations ON (
+				t_recommendations.article_id = t_articles.id
+				AND t_recommendations.recommendation_state = 'Recommended'
+				AND t_recommendations.id IN (
+					SELECT DISTINCT recommendation_id FROM t_press_reviews WHERE t_press_reviews.contributor_id = %(userId)s
+					UNION
+					SELECT id FROM t_recommendations WHERE recommender_id = %(userId)s
+				)
+			)
+			WHERE t_articles.status = 'Recommended'
+			ORDER BY t_articles.last_status_change DESC
+		""" % locals()
+		recommsQy0 = []
+		for t in db.executesql(recommsQy0sql):
+			recommsQy0.append(t[0])
+		#recommsQy = db( 
+					#(
+						#(db.t_recommendations.recommender_id == userId) | ( (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_press_reviews.contributor_id == userId) )
+					#)
+					#& (db.t_recommendations.recommendation_state == 'Recommended')
+					#& (db.t_recommendations.article_id == db.t_articles.id)
+					#& (db.t_articles.status == 'Recommended')
+				#).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
+		recommsQy = db(db.t_articles.id.belongs(recommsQy0) ).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
 		nbRecomms = len(recommsQy)
+		recomms = []
 		for row in recommsQy:
 			recomms.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
 		# reviews
