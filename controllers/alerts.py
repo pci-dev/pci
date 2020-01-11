@@ -4,8 +4,8 @@
 import re
 
 #from gluon.contrib.markdown import WIKI
-from common import *
-from emailing import *
+from app_modules.common import *
+from app_modules.emailing import *
 from datetime import date, datetime
 import calendar
 from time import sleep
@@ -15,7 +15,7 @@ from time import sleep
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
-filename = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
+mail_layout = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
 
 #auth.settings.allow_basic_login = True
 
@@ -48,7 +48,7 @@ def _do_send_email_to_test(userId):
 Dear %(destPerson)s,<p>
 This is a test mail; please ignore.<p>
 You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>""" % locals()
-	myMessage = render(filename=filename, context=dict(content=XML(content), footer=mkFooter()))
+	myMessage = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter()))
 	mail_resu = mail.send(to=[destAddress],
 					subject=mySubject,
 					message=myMessage,

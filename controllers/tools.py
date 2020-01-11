@@ -12,15 +12,17 @@ import os
 
 import codecs
 from gluon.contrib.markdown import WIKI
-from common import *
-from helper import *
-from html2text import *
+from app_modules.common import *
+from app_modules.helper import *
+from imported_modules.html2text import *
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def convert_pdf_to_markdown():
+	response.view='default/myLayout.html'
+
 	form = SQLFORM.factory(
 		Field('up_file', label=T("PDF File:"), type='upload', uploadfolder='uploads', requires=IS_UPLOAD_FILENAME(extension='pdf')),
 		upload=URL('download')
@@ -62,7 +64,6 @@ def convert_pdf_to_markdown():
 		#form[0][0][0].append(HR())
 		form[0].append(DIV(TEXTAREA(value=XML(myText), _class='pci-converted-pdf-area'), _class='form-group'))
 
-	response.view='default/myLayout.html'
 	return dict(
 			form=form, 
 			myTitle=getTitle(request, auth, db, '#ConvertPDFTitle'),

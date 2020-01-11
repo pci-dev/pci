@@ -1,53 +1,83 @@
 # -*- coding: utf-8 -*-
+from app_modules.helper import *
 
-import re
-from gluon.custom_import import track_changes; track_changes(True) # reimport module if changed; disable in production
-from gluon.contrib.markdown import WIKI
-from common import *
-from helper import *
+######################################################################################################################################################################
+def help_generic():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#GenericHelpTitle'),
+		myText=getText(request, auth, db, '#GenericHelpInfo'),
+		shareable=True,
+	)
 
-csv = True # export allowed
-expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
+######################################################################################################################################################################
+def help_guidelines():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#GuidelinesHelpTitle'),
+		myText=getText(request, auth, db, '#GuidelinesHelpInfo'),
+	)
+
+######################################################################################################################################################################
+def help_practical():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#PracticalHelpTitle'),
+		myText=getText(request, auth, db, '#PracticalHelpInfo'),
+	)
+
+######################################################################################################################################################################
+def faq():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#FAQTitle'),
+		myText=getText(request, auth, db, '#FAQInfo'),
+		shareable=True,
+	)
+
+######################################################################################################################################################################
+def cite():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#CiteTitle'),
+		myText=getText(request, auth, db, '#CiteInfo'),
+		shareable=True,
+	)
+
+#  (gab) is this used ?
+
+# ######################################################################################################################################################################
+# def help_user():
+# 	response.view='default/info.html'
+# 	return dict(
+# 		myTitle=getTitle(request, auth, db, '#UserHelpTitle'),
+# 		myText=getText(request, auth, db, '#UserHelpInfo'),
+# 	)
 
 
-@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
-def help_texts():
-	if session.back:
-		redirect_url = session.back
-	else:
-		redirect_url = URL()
-	db.help_texts.lang.writable = False
-	db.help_texts.hashtag.writable = auth.has_membership(role='developper')
-	db.help_texts.contents.represent = lambda text, row: WIKI(text or '')
-	db.help_texts._id.readable=False
-	db.help_texts._id.writable=False
-	grid = SQLFORM.grid( db.help_texts
-				,create=auth.has_membership(role='developper')
-				,deletable=False
-				,paginate=100, maxtextlength=4096
-				,csv=csv, exportclasses=expClass
-				,orderby=db.help_texts.hashtag
-			)
-	if grid.update_form and grid.update_form.process().accepted:
-		if redirect_url:
-			redirect(redirect_url)
-		session.back = None
-	else:
-		session.back = request.env.http_referer
-	response.view='default/myLayout.html'
-	return dict(grid=grid, 
-			myTitle=getTitle(request, auth, db, '#HelpTextTitle'),
-			myText=getText(request, auth, db, '#HelpTextText'),
-			myHelp=getHelp(request, auth, db, '#AdministrateHelpTexts'),
-		 )
+# ######################################################################################################################################################################
+# def help_recommender():
+# 	response.view='default/info.html'
+# 	return dict(
+# 		myTitle=getTitle(request, auth, db, '#RecommenderHelpTitle'),
+# 		myText=getText(request, auth, db, '#RecommenderHelpInfo'),
+# 	)
 
 
-@auth.requires(auth.has_membership(role='developper'))
-def transfer_help():
-	db.help_texts.truncate()
-	texts = dbHelp( (dbHelp.help_texts.language=='default') & (dbHelp.help_texts.contents!='') & (dbHelp.help_texts.contents!=None) ).select()
-	for t in texts:
-		db.help_texts.insert(lang='default', hashtag=t.hashtag, contents=t.contents)
-	response.view='default/myLayout.html'
-	return None
 
+# ######################################################################################################################################################################
+# def help_manager():
+# 	response.view='default/info.html'
+# 	return dict(
+# 		myTitle=getTitle(request, auth, db, '#ManagerHelpTitle'),
+# 		myText=getText(request, auth, db, '#ManagerHelpInfo'),
+# 	)
+
+
+# ######################################################################################################################################################################
+# def help_admin():
+# 	response.view='default/info.html'
+# 	return dict(
+# 		myTitle=getTitle(request, auth, db, '#AdministratorHelpTitle'),
+# 		myText=getText(request, auth, db, '#AdministratorHelpInfo'),
+# 	)

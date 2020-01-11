@@ -8,9 +8,10 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
 
 from gluon.custom_import import track_changes; track_changes(True)
-from common import *
-from emailing import *
-from helper import *
+
+from app_modules.common import *
+from app_modules.emailing import *
+from app_modules.helper import *
 
 def pprint(*args): print args
 
@@ -336,7 +337,7 @@ def deltaStatus(s, f):
 				do_send_email_to_recommender_status_changed(session, auth, db, o['id'], f['status'])
 				do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
 				if f['status'] in ('Awaiting revision', 'Rejected', 'Recommended'):
-					do_send_email_decision_to_reviewer(session, auth, db, o['id'], f['status'])
+					do_send_email_decision_to_reviewers(session, auth, db, o['id'], f['status'])
 					do_send_email_to_requester(session, auth, db, o['id'], f['status'])
 				if f['status'] in ('Rejected', 'Recommended', 'Awaiting revision'):
 					lastRecomm = db( (db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False) ).select(db.t_recommendations.ALL)

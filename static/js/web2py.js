@@ -171,7 +171,17 @@
             doc.on('click', '.w2p_flash', function () {
                 var t = $(this);
                 if (t.css('top') == '0px') t.slideUp('slow');
-                else t.fadeOut();
+
+                // else t.fadeOut();
+                // (gab) custom disapear
+                else {
+                    t.addClass('custom-disappear');
+                    setTimeout(function (){
+                        t.hide()
+                    }, 500)
+                }
+                // (gab) end custom disapear replacing:
+
             });
             doc.on('keyup', 'input.integer', function () {
                 var nvalue = this.value.reverse().replace(/[^0-9\-]|\-(?=.)/g, '').reverse();
@@ -562,9 +572,25 @@
             var flash = $('.w2p_flash');
             web2py.hide_flash();
             flash.html(message).addClass(status);
-            if (flash.html()) flash.append('<span id="closeflash"> &times; </span>').slideDown();
+            // (gab) replace remove alert animation :
+            // if (flash.html()) flash.append('<span id="closeflash"> &times; </span>').slideDown();
+            if (flash.html()){
+                flash.append('<span id="closeflash"> &times; </span>').show();
+
+                // (gab) auto dismiss after 5s
+                setTimeout(function (){
+                    flash.addClass('custom-disappear');
+                    setTimeout(function (){
+                        flash.hide()
+                    }, 500)                
+                }, 5000)
+            } 
+
+            
         },
         hide_flash: function () {
+            // (gab) replace remove alert animation :
+            // $('.w2p_flash').fadeOut(0).html('');
             $('.w2p_flash').fadeOut(0).html('');
         },
         show_if_handler: function (target) {

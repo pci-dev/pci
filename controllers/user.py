@@ -5,8 +5,10 @@ import copy
 import datetime
 
 from gluon.contrib.markdown import WIKI
-from common import *
-from helper import *
+from app_modules.common import *
+from app_modules.helper import *
+
+from app_modules import user_module
 
 # frequently used constants
 csv = False # no export allowed
@@ -14,10 +16,9 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 trgmLimit = myconf.get('config.trgm_limit', default=0.4)
 parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
-
-
 ######################################################################################################################################################################
 def new_submission():
+	response.view='default/info.html'
 	if auth.user:
 		button = A(current.T("Submit your preprint"), 
 					_href=URL('user', 'fill_new_article', user_signature=True), 
@@ -34,16 +35,45 @@ def new_submission():
 				_style='margin-top:16px; text-align:center;',
 			)
 		)
-	response.view='default/info.html' #OK
 	return dict(
 		myText = myText,
+		myTitle=getTitle(request, auth, db, '#UserBeforeSubmissionTitle')
 	)
 
 
+######################################################################################################################################################################
+def viewUserCard():
+	response.view='default/info.html'
+
+	myContents = ''
+	if not('userId' in request.vars):
+		session.flash = T('Unavailable')
+		redirect(request.env.http_referer)
+	else:
+		userId = request.vars['userId']
+		if userId:
+			hasRoles = (db( (db.auth_membership.user_id==userId) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
+			if not(hasRoles):
+				#session.flash = T('Unavailable')
+				#redirect(request.env.http_referer)
+				myContents = B(T('Unavailable'))
+			else:
+				myContents = mkUserCard(auth, db, userId, withMail=False)
+		else:
+			#session.flash = T('Unavailable')
+			#redirect(request.env.http_referer)
+			myContents = B(T('Unavailable'))
+	resu = dict(
+				myHelp=getHelp(request, auth, db, '#PublicUserCard'),
+				myTitle=getTitle(request, auth, db, '#PublicUserCardTitle'),
+				myText = myContents
+			)
+	return resu
 
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
+	response.view='default/myLayout.html'
 	db.t_articles.article_source.writable = False
 	db.t_articles.ms_version.writable = True
 	db.t_articles.status.readable = False
@@ -153,7 +183,6 @@ def fill_new_article():
 		redirect(URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserSubmitNewArticle'),
 				myTitle=getTitle(request, auth, db, '#UserSubmitNewArticleTitle'),
@@ -167,6 +196,7 @@ def fill_new_article():
 ######################################################################################################################################################################
 @auth.requires_login()
 def edit_my_article():
+	response.view='default/myLayout.html'
 	if not('articleId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(URL('my_articles', user_signature=True))
@@ -266,7 +296,6 @@ def edit_my_article():
 		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
 				myText=getText(request, auth, db, '#UserEditArticleText'),
@@ -277,109 +306,12 @@ def edit_my_article():
 
 
 
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def article_revised():
-	articleId = request.vars['articleId']
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if not((art.user_id == auth.user_id or auth.has_membership(role='manager')) and art.status == 'Awaiting revision'):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		#print 'article_revised'
-		art.status = 'Under consideration'
-		art.update_record()
-		last_recomm = db(db.t_recommendations.article_id==art.id).select(orderby=db.t_recommendations.id).last()
-		last_recomm.is_closed = True
-		last_recomm.update_record()
-		newRecomm = db.t_recommendations.insert(article_id=art.id, recommender_id=last_recomm.recommender_id, no_conflict_of_interest=last_recomm.no_conflict_of_interest, doi=art.doi, ms_version=art.ms_version, is_closed=False, recommendation_state='Ongoing', recommendation_title=None)
-		# propagate co-recommenders
-		corecommenders = db(db.t_press_reviews.recommendation_id==last_recomm.id).select(db.t_press_reviews.contributor_id)
-		if len(corecommenders) > 0 :
-			# NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
-			db.t_press_reviews._after_insert = []
-			for corecommender in corecommenders:
-				db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
-		redirect(URL(f='my_articles', user_signature=True))
-
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def do_cancel_article():
-	articleId = request.vars['articleId']
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		art.status = 'Cancelled'
-		art.update_record()
-		session.flash = T('Preprint submission cancelled')
-		redirect(URL(f='my_articles', user_signature=True))
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def do_delete_article():
-	articleId = request.vars['articleId']
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		db(db.t_articles.id == articleId).delete()
-		session.flash = T('Preprint submission deleted')
-		redirect(URL(f='my_articles', user_signature=True))
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def suggest_article_to():
-	articleId = request.vars['articleId']
-	recommenderId = request.vars['recommenderId']
-	exclude = request.vars['exclude']
-	excludeList = []
-	if exclude:
-		#excludeList = map(int, exclude.split(','))
-		for v in exclude:
-			excludeList.append(int(v))
-	vars = request.vars
-	do_suggest_article_to(auth, db, articleId, recommenderId)
-	excludeList.append(recommenderId)
-	vars['exclude'] = excludeList
-	session.flash = T('Suggested recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
-	#redirect(request.env.http_referer)
-	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	#redirect(URL(f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
-	redirect(URL(f='search_recommenders', vars=vars, user_signature=True))
-
-
 ######################################################################################################################################################################
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
 @auth.requires_login()
 def suggested_recommenders():
+	response.view='default/myLayout.html'
 	write_auth = auth.has_membership('administrator') or auth.has_membership('developper')
 	query = (db.t_suggested_recommenders.article_id == request.vars['articleId'])
 	db.t_suggested_recommenders._id.readable = False
@@ -389,7 +321,6 @@ def suggested_recommenders():
 		,csv = csv, exportclasses = expClass
 		,fields=[db.t_suggested_recommenders.suggested_recommender_id]
 	)
-	response.view='default/myLayout.html'
 	return dict(
 				myBackButton = mkBackButton(),
 				myTitle=getTitle(request, auth, db, '#SuggestedRecommendersTitle'),
@@ -400,20 +331,12 @@ def suggested_recommenders():
 	
 
 
-######################################################################################################################################################################
-@auth.requires_login()
-def del_suggested_recommender():
-	suggId = request.vars['suggId']
-	if suggId:
-		if db( (db.t_suggested_recommenders.id==suggId) & (db.t_articles.id==db.t_suggested_recommenders.article_id) & (db.t_articles.user_id==auth.user_id) ).count() > 0:
-			db( (db.t_suggested_recommenders.id==suggId) ).delete()
-	redirect(request.env.http_referer)
-
-
 
 ######################################################################################################################################################################
 @auth.requires_login()
 def add_suggested_recommender():
+	response.view='default/myLayout.html'
+
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if (art.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
@@ -430,7 +353,7 @@ def add_suggested_recommender():
 			else:
 				recommendersList.append(
 									LI(mkUser(auth, db, con.auth_user.id),
-									A('Remove', _class='btn btn-warning', _href=URL(c='user', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;') if (art.status=='Pending') else '',
+									A('Remove', _class='btn btn-warning', _href=URL(c='user_actions', f='del_suggested_recommender', vars=dict(suggId=con.t_suggested_recommenders.id)), _title=T('Delete'), _style='margin-left:8px;') if (art.status=='Pending') else '',
 									))
 		#excludeList = ','.join(map(str,reviewersIds))
 		excludeList = reviewersIds
@@ -454,7 +377,6 @@ def add_suggested_recommender():
 								_href=URL(c='user', f='my_articles', user_signature=True)),
 							_style='margin-top:16px; text-align:center;'
 						)
-		response.view='default/myLayout.html'
 		return dict(
 					myTitle=getTitle(request, auth, db, '#UserAddSuggestedRecommenderTitle'),
 					myText=getText(request, auth, db, '#UserAddSuggestedRecommenderText'),
@@ -471,7 +393,9 @@ def add_suggested_recommender():
 ######################################################################################################################################################################
 @auth.requires_login()
 def recommenders():
+	response.view='default/myLayout.html'
 	articleId = request.vars['articleId']
+	
 	article = db.t_articles[articleId]
 	if (article.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
 		session.flash = auth.not_authorized()
@@ -504,7 +428,7 @@ def recommenders():
 			,csv = csv, exportclasses = expClass
 			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
 		)
-		response.view='default/myLayout.html'
+
 		return dict(
 					myTitle=getTitle(request, auth, db, '#UserManageRecommendersTitle'),
 					myText=getText(request, auth, db, '#UserManageRecommendersText'),
@@ -518,7 +442,9 @@ def recommenders():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders(): 
+	response.view='default/myLayout.html'
 	myVars = request.vars
+
 	qyKw = ''
 	qyTF = []
 	excludeList = []
@@ -538,6 +464,8 @@ def search_recommenders():
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'articleId'):
 			articleId = myValue
+
+
 	if articleId is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	art = db.t_articles[articleId]
@@ -599,7 +527,6 @@ def search_recommenders():
 		else:
 			btnTxt = current.T('I don\'t wish to suggest recommenders now')
 		myAcceptBtn = DIV(A(SPAN(btnTxt, _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId, exclude=excludeList)), _class='button'), _style='text-align:center; margin-top:16px;')
-		response.view='default/myLayout.html'
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
 					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
@@ -614,23 +541,13 @@ def search_recommenders():
 
 
 ######################################################################################################################################################################
-def suggest_article_to_all(articleId, recommenderIds):
-	added = []
-	for recommenderId in recommenderIds:
-		do_suggest_article_to(auth, db, articleId, recommenderId)
-		added.append(mkUser(auth, db, recommenderId))
-	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
-	redirect(request.env.http_referer)
-
-
-
-######################################################################################################################################################################
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
 @auth.requires_login()
 def suggested_recommenders():
+	response.view='default/myLayout.html'
 	articleId = request.vars['articleId']
+
 	if articleId is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	art = db.t_articles[articleId]
@@ -654,7 +571,6 @@ def suggested_recommenders():
 			,fields=[db.t_suggested_recommenders.id, db.t_suggested_recommenders.suggested_recommender_id, db.auth_user.thematics]
 			,field_id=db.t_suggested_recommenders.id
 		)
-		response.view='default/myLayout.html'
 		return dict(
 					#myBackButton=mkBackButton(),
 					myHelp = getHelp(request, auth, db, '#UserSuggestedRecommenders'),
@@ -665,34 +581,14 @@ def suggested_recommenders():
 
 
 
-######################################################################################################################################################################
-def mkSuggestedRecommendersUserButton(auth, db, row):
-	butts = []
-	suggRecomsTxt = []
-	#exclude = [str(auth.user_id)]
-	excludeList = [auth.user_id]
-	suggRecomms = db(db.t_suggested_recommenders.article_id==row['t_articles.id']).select()
-	for sr in suggRecomms:
-		#excludeList.append(str(sr.suggested_recommender_id))
-		excludeList.append(sr.suggested_recommender_id)
-		if sr.declined:
-			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+I(XML('&nbsp;declined'))+BR())
-		else:
-			suggRecomsTxt.append(mkUser(auth, db, sr.suggested_recommender_id)+BR())
-	if len(suggRecomsTxt)>0:
-		butts += suggRecomsTxt
-	if row["t_articles.status"] in ('Pending','Awaiting consideration'):
-		myVars = dict(articleId=row['t_articles.id'], exclude=excludeList)
-		butts.append( A(current.T('Add / Manage'), _class='btn btn-default pci-submitter', _href=URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True)) )
-	return DIV(butts, _class='pci-w200Cell')
-
-
 
 
 ######################################################################################################################################################################
 # Show my submissions
 @auth.requires_login()
 def my_articles():
+	response.view='default/myLayout.html'
+
 	query = db.t_articles.user_id == auth.user_id
 	db.t_articles.user_id.default = auth.user_id
 	db.t_articles.user_id.writable = False
@@ -708,7 +604,7 @@ def my_articles():
 	db.t_articles.anonymous_submission.label = T('Anonymous submission')
 	db.t_articles.anonymous_submission.represent = lambda anon,r: mkAnonymousMask(auth, db, anon)
 	links = [
-			dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersUserButton(auth, db, row)),
+			dict(header=T('Suggested recommenders'), body=lambda row: user_module.mkSuggestedRecommendersUserButton(auth, db, row)),
 			dict(header=T('Recommender(s)'), body=lambda row: getRecommender(auth, db, row)),
 			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button pci-submitter'), 
 												_target="_blank", 
@@ -743,7 +639,6 @@ def my_articles():
 		,left=db.t_status_article.on(db.t_status_article.status==db.t_articles.status)
 		,orderby=~db.t_articles.last_status_change
 	)
-	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#UserMyArticles'),
@@ -759,7 +654,56 @@ def my_articles():
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():
-	printable = 'printable' in request.vars
+	response.view='default/recommended_articles.html'
+	printable = False
+
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	# NOTE: security hole possible by changing manually articleId value
+	revCpt = 0
+	if art.user_id == auth.user_id:
+		revCpt += 1 # NOTE: checkings owner rights.
+	# NOTE: checking reviewer rights
+	revCpt += db( (db.t_recommendations.article_id==articleId) & (db.t_recommendations.id==db.t_reviews.recommendation_id) & (db.t_reviews.reviewer_id==auth.user_id) ).count()
+	if revCpt == 0:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+		myContents.append(HR())
+		if art.status == 'Recommended':
+			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+				DIV(
+					DIV(I(T('Recommended article')), _class='pci-ArticleText'),
+					_class='pci-ArticleHeaderIn recommended'
+				))
+		else:
+			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+				DIV(
+					DIV(mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText'),
+					_class='pci-ArticleHeaderIn'
+				))
+		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
+			_href=URL(c="user", f='recommendations_printable', vars=dict(articleId=articleId), user_signature=True),
+			_class='button')
+		
+		response.title = (art.title or myconf.take('app.longname'))
+		return dict(
+					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
+					myCloseButton=mkCloseButton(),
+					myUpperBtn=myUpperBtn,
+					statusTitle=myTitle,
+					myContents=myContents,
+				)
+
+@auth.requires_login()
+def recommendations_printable():
+	response.view='default/recommended_article_printable.html'
+	printable = True
+
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	if art is None:
@@ -778,38 +722,20 @@ def recommendations():
 		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
 		myContents.append(HR())
 		
-		if printable:
-			if art.status == 'Recommended':
-				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-						DIV(
-							DIV(T('Recommended article'), _class='pci-ArticleText printable'),
-							_class='pci-ArticleHeaderIn recommended printable'
-						))
-			else:
-				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
+		if art.status == 'Recommended':
+			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						#DIV(def my_, _class='pci-ArticleText printable'),
-						_class='pci-ArticleHeaderIn printable'
+						DIV(T('Recommended article'), _class='pci-ArticleText printable'),
+						_class='pci-ArticleHeaderIn recommended printable'
 					))
-			myUpperBtn = ''
-			response.view='default/recommended_article_printable.html' #OK
 		else:
-			if art.status == 'Recommended':
-				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-					DIV(
-						DIV(I(T('Recommended article')), _class='pci-ArticleText'),
-						_class='pci-ArticleHeaderIn recommended'
-					))
-			else:
-				myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-					DIV(
-						DIV(mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText'),
-						_class='pci-ArticleHeaderIn'
-					))
-			myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-				_href=URL(c="user", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
-				_class='button')
-			response.view='default/recommended_articles.html' #OK
+			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
+				DIV(
+					#DIV(def my_, _class='pci-ArticleText printable'),
+					_class='pci-ArticleHeaderIn printable'
+				))
+		myUpperBtn = ''
+
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		return dict(
@@ -826,6 +752,8 @@ def recommendations():
 ######################################################################################################################################################################
 @auth.requires_login()
 def my_reviews():
+	response.view='default/myLayout.html'
+
 	pendingOnly = ('pendingOnly' in request.vars) and (request.vars['pendingOnly'] == "True")
 	if pendingOnly:
 		query = (
@@ -888,7 +816,6 @@ def my_reviews():
 		,links=links
 		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
-	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#UserMyReviews'),
@@ -901,6 +828,8 @@ def my_reviews():
 ######################################################################################################################################################################
 @auth.requires_login()
 def accept_new_review():
+	response.view='default/info.html'
+
 	if not('reviewId' in request.vars):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
@@ -934,7 +863,7 @@ def accept_new_review():
 					DIV(SPAN(INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes", value=False), LABEL('I agree to post my review within %s' % due_time)), _style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"), 
 					hidden=dict(reviewId=reviewId, ethics_approved=True),
-					_action=URL('user', 'do_accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''),
+					_action=URL('user_actions', 'do_accept_new_review', vars=dict(reviewId=reviewId) if reviewId else ''),
 					_style='text-align:center;',
 				),
 				_class="pci-embeddedEthic",
@@ -971,97 +900,20 @@ def accept_new_review():
 			getText(request, auth, db, '#AcceptReviewInfoText'),
 			myEthical,
 		)
-	response.view='default/info.html' #OK
 	return dict(
 		myText=myText,
 		myTitle=myTitle,
 		myFinalScript = myScript,
 	)
 
-
-######################################################################################################################################################################
-@auth.requires_login()
-def do_accept_new_review():
-	if 'reviewId' not in request.vars:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	reviewId = request.vars['reviewId']
-	if isinstance(reviewId, list):
-		reviewId = reviewId[1]
-	theUser = db.auth_user[auth.user_id]
-	if 'ethics_approved' in request.vars and theUser.ethical_code_approved is False:
-		theUser.ethical_code_approved = True
-		theUser.update_record()
-	if not(theUser.ethical_code_approved):
-		raise HTTP(403, "403: "+T('ERROR: Ethical code not approved'))
-	if 'no_conflict_of_interest' not in request.vars:
-		raise HTTP(403, "403: "+T('ERROR: Value "no conflict of interest" missing'))
-	noConflict = request.vars['no_conflict_of_interest']
-	if noConflict != "yes":
-		raise HTTP(403, "403: "+T('ERROR: No conflict of interest not checked'))
-	rev = db.t_reviews[reviewId]
-	if rev is None:
-		raise HTTP(404, "404: "+T('ERROR: Review unavailable'))
-	if rev.reviewer_id != auth.user_id:
-		raise HTTP(403, "403: "+T('ERROR: Forbidden access'))
-	rev.review_state = 'Under consideration'
-	rev.no_conflict_of_interest = True
-	rev.acceptation_timestamp = datetime.datetime.now()
-	rev.update_record()
-	# email to recommender sent at database level
-	recomm = db.t_recommendations[rev.recommendation_id]
-	redirect(URL(c='user', f='recommendations', vars=dict(articleId=recomm.article_id)))
-	#redirect(URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), user_signature=True))
-
-
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def decline_new_review():
-	if 'reviewId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	reviewId = request.vars['reviewId']
-	rev = db.t_reviews[reviewId]
-	if rev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	if rev.reviewer_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_reviews')
-	#db(db.t_reviews.id==reviewId).delete()
-	rev.review_state = 'Declined'
-	rev.update_record()
-	# email to recommender sent at database level
-	redirect(URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), user_signature=True))
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def review_completed():
-	if 'reviewId' not in request.vars:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	reviewId = request.vars['reviewId']
-	rev = db.t_reviews[reviewId]
-	if rev is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	if rev.reviewer_id != auth.user_id:
-		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_reviews')
-	rev.review_state = 'Completed'
-	rev.update_record()
-	# email to recommender sent at database level
-	redirect('my_reviews')
-
-
-
 ######################################################################################################################################################################
 @auth.requires_login()
 def edit_reply():
+	response.view='default/myLayout.html'
 	if 'recommId' not in request.vars:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	recommId = request.vars['recommId']
+
 	recomm = db.t_recommendations[recommId]
 	if recomm is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
@@ -1083,13 +935,12 @@ def edit_reply():
 	if form.process().accepted:
 		if request.vars.completed:
 			session.flash = T('Reply completed', lazy=False)
-			redirect(URL(c='user', f='article_revised', vars=dict(articleId=art.id), user_signature=True))
+			redirect(URL(c='user_actions', f='article_revised', vars=dict(articleId=art.id), user_signature=True))
 		else:
 			session.flash = T('Reply saved', lazy=False)
 			redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserEditReply'),
 				#myBackButton = mkBackButton(),
@@ -1103,9 +954,11 @@ def edit_reply():
 ######################################################################################################################################################################
 @auth.requires_login()
 def edit_review():
+	response.view='default/myLayout.html'
 	if 'reviewId' not in request.vars:
 		raise HTTP(404, "404: "+T('ID Unavailable'))
 	reviewId = request.vars['reviewId']
+
 	review = db.t_reviews[reviewId]
 	if review is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
@@ -1138,7 +991,7 @@ def edit_review():
 				session.flash = T('Review saved', lazy=False)
 				redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 			elif form.vars.terminate:
-				redirect(URL(c='user', f='review_completed', vars=dict(reviewId=review.id), user_signature=True))
+				redirect(URL(c='user_actions', f='review_completed', vars=dict(reviewId=review.id), user_signature=True))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
 	myScript = """jQuery(document).ready(function(){
@@ -1156,7 +1009,6 @@ def edit_review():
 					});
 				});
 	"""
-	response.view='default/myLayout.html'
 	return dict(
 				myHelp=getHelp(request, auth, db, '#UserEditReview'),
 				myBackButton=mkBackButton(),
@@ -1171,16 +1023,20 @@ def edit_review():
 ######################################################################################################################################################################
 @auth.requires_login()
 def new_comment():
+	response.view='default/myLayout.html'
+
 	if not('articleId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(URL('my_articles', user_signature=True))
 	articleId = request.vars['articleId']
+
 	if 'parentId' in request.vars:
 		parentId = request.vars['parentId']
 		fields = ['article_id', 'parent_id', 'user_comment']
 	else:
 		parentId = None
 		fields = ['article_id', 'user_comment']
+
 	db.t_comments.user_id.default = auth.user_id
 	db.t_comments.user_id.readable = False
 	db.t_comments.user_id.writable = False
@@ -1192,16 +1048,17 @@ def new_comment():
 				,fields=fields
 				,showid=False
 			)
+
 	if form.process().accepted:
 		response.flash = T('Article saved', lazy=False)
-		redirect(URL(c='public', f='rec', vars=dict(id=articleId, comments=True), user_signature=True))
+		redirect(URL(c='articles', f='rec', vars=dict(id=articleId, comments=True), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
+
 	return dict(
-				myHelp=getHelp(request, auth, db, '#UserComment'),
-				myText=getText(request, auth, db, '#UserCommentText'),
-				myTitle=getTitle(request, auth, db, '#UserCommentTitle'),
-				form=form,
-			)
+		myHelp=getHelp(request, auth, db, '#UserComment'),
+		myText=getText(request, auth, db, '#UserCommentText'),
+		myTitle=getTitle(request, auth, db, '#UserCommentTitle'),
+		form=form,
+	)
 	

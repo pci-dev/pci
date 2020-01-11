@@ -5,8 +5,8 @@ import re
 import copy
 
 from gluon.contrib.markdown import WIKI
-from common import *
-from helper import *
+from app_modules.common import *
+from app_modules.helper import *
 from gluon.utils import web2py_uuid
 
 # -------------------------------------------------------------------------
@@ -31,6 +31,8 @@ def loading():
 
 # Home page (public)
 def index():
+	response.view='default/index.html'
+
 	#NOTE: do not delete: kept for later use
 	#thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
 	#options = [OPTION('--- All thematic fields ---', _value='')]
@@ -70,7 +72,7 @@ def index():
 	myScript = SCRIPT("""window.onload=function() {
 	ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
 	if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
-}""" % (URL('public', 'last_recomms', vars=myVars, user_signature=True)), 
+}""" % (URL('articles', 'last_recomms', vars=myVars, user_signature=True)), 
 				_type='text/javascript'
 		)
 	
@@ -79,7 +81,6 @@ def index():
 		#if theUser.ethical_code_approved is False:
 			#redirect(URL('about','ethics'))
 
-	response.view='default/index.html'
 	if request.user_agent().is_mobile:
 		return dict(
 			#smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
@@ -108,21 +109,23 @@ def index():
 
 
 def user():
-	"""
-	exposes:
-	http://..../[app]/default/user/login
-	http://..../[app]/default/user/logout
-	http://..../[app]/default/user/register
-	http://..../[app]/default/user/profile
-	http://..../[app]/default/user/retrieve_password
-	http://..../[app]/default/user/change_password
-	http://..../[app]/default/user/bulk_register
-	use @auth.requires_login()
-		@auth.requires_membership('group name')
-		@auth.requires_permission('read','table name',record_id)
-	to decorate functions that need access control
-	also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
-	"""
+	response.view='default/myLayoutBot.html'
+
+	# """
+	# exposes:
+	# http://..../[app]/default/user/login
+	# http://..../[app]/default/user/logout
+	# http://..../[app]/default/user/register
+	# http://..../[app]/default/user/profile
+	# http://..../[app]/default/user/retrieve_password
+	# http://..../[app]/default/user/change_password
+	# http://..../[app]/default/user/bulk_register
+	# use @auth.requires_login()
+	# 	@auth.requires_membership('group name')
+	# 	@auth.requires_permission('read','table name',record_id)
+	# to decorate functions that need access control
+	# also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
+	# """
 	
 	if '_next' in request.vars:
 		suite = request.vars['_next']
@@ -215,7 +218,6 @@ def user():
 
 	form = auth()
 		
-	response.view='default/myLayoutBot.html'
 	return dict(
 		myTitle=myTitle,
 		myText=myText,
@@ -226,6 +228,7 @@ def user():
 	)
 
 
+# (gab) is this used ?
 @cache.action()
 def download():
 	"""
@@ -236,6 +239,7 @@ def download():
 
 
 
+# (gab) is this used ?
 def call():
 	"""
 	exposes services. for example:

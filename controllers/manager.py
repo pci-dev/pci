@@ -13,14 +13,19 @@ import os
 import codecs
 #import html2text
 from gluon.contrib.markdown import WIKI
-from common import *
-from helper import *
+
+from app_modules.common import *
+from app_modules.helper import *
+
+from app_modules import manager_module
+from app_modules import common_tools
+
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
 # frequently used constants
-from emailing import filename, mail_sleep
+from app_modules.emailing import mail_layout, mail_sleep
 csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get('config.trgm_limit') or 0.4
@@ -29,99 +34,7 @@ not_considered_delay_in_days = myconf.get('config.unconsider_limit_days', defaul
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def do_validate_article():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	if art.status == 'Pending':
-		art.status = 'Awaiting consideration'
-		art.update_record()
-		session.flash = T('Request now available to recommenders')
-	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-
-
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def do_cancel_article():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		#art.status = 'Cancelled' #TEST
-		art.status = 'Rejected'
-		art.update_record()
-	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def do_recommend_article():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	if art.status == 'Pre-recommended':
-		art.status = 'Recommended'
-		art.update_record()
-		redirect(URL(c='public', f='rec', vars=dict(id=art.id), user_signature=True))
-	else:
-		redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def do_revise_article():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	if art.status == 'Pre-revision':
-		art.status = 'Awaiting revision'
-		art.update_record()
-	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def do_reject_article():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	if art.status == 'Pre-rejected':
-		art.status = 'Rejected'
-		art.update_record()
-	redirect(URL(c='manager', f='recommendations', vars=dict(articleId=articleId), user_signature=True))
-
-
-
-
+## Menu Routes
 ######################################################################################################################################################################
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role='manager'))
@@ -182,99 +95,12 @@ def completed_articles():
 	return resu
 
 
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def suggest_article_to():
-	articleId = request.vars['articleId']
-	whatNext = request.vars['whatNext']
-	recommenderId = request.vars['recommenderId']
-	db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
-	redirect(whatNext)
-
-
-
-
-
-######################################################################################################################################################################
-def mkRecommenderButton(row):
-	last_recomm = db( db.t_recommendations.article_id==row.id ).select(orderby=db.t_recommendations.id).last()
-	if last_recomm:
-		resu = SPAN(mkUserWithMail(auth, db, last_recomm.recommender_id))
-		corecommenders = db(db.t_press_reviews.recommendation_id==last_recomm.id).select(db.t_press_reviews.contributor_id)
-		if len(corecommenders) > 0:
-			resu.append(BR())
-			resu.append(B(current.T('Co-recommenders:')))
-			resu.append(BR())
-			for corecommender in corecommenders:
-				resu.append(SPAN(mkUserWithMail(auth, db, corecommender.contributor_id))+BR())
-		return DIV(resu, _class="pci-w200Cell")
-	else:
-		return ''
-
-
-
-######################################################################################################################################################################
-def mkSuggestedRecommendersManagerButton(row, whatNext):
-	if row.already_published:
-		return ''
-	butts = []
-	suggRecomsTxt = []
-	exclude = [str(auth.user_id)]
-	#sr = db.v_suggested_recommenders[row.id].suggested_recommenders
-	suggRecomms = db(db.t_suggested_recommenders.article_id==row.id).select()
-	for sr in suggRecomms:
-		exclude.append(str(sr.suggested_recommender_id))
-		suggRecomsTxt.append(mkUserWithMail(auth, db, sr.suggested_recommender_id)+(XML(' <b>(declined)</b>') if sr.declined else SPAN(''))
-			+BR()
-			+A(T('See emails...'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="blank", _class='btn btn-link pci-smallBtn pci-recommender', _style='margin-bottom:12px;')
-			#+A(T('see emails'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="_blank", _class='btn pci-smallBtn pci-emailing-btn')
-			+BR())
-	myVars = dict(articleId=row.id, whatNext=whatNext)
-	if len(exclude)>0:
-		myVars['exclude'] = ','.join(exclude)
-	if len(suggRecomsTxt)>0: 
-		butts.append(DIV(suggRecomsTxt))
-		if row.status in ('Awaiting consideration', 'Pending'):
-			butts.append( A(current.T('Manage'), _class='btn btn-default pci-manager', _href=URL(c='manager', f='suggested_recommenders', vars=myVars)) )
-	#for thema in row.thematics:
-		#myVars['qy_'+thema] = 'on'
-	#butts.append( BR() )
-	if row.status in ('Awaiting consideration', 'Pending'):
-		butts.append( A(current.T('Add'), _class='btn btn-default pci-manager', _href=URL(c='manager', f='search_recommenders', vars=myVars, user_signature=True)) )
-	return DIV(butts, _class="pci-w200Cell")
-
-
-@auth.requires(auth.has_membership(role='manager'))
-def suggested_recommender_emails():
-	srId = request.vars['srId']
-	sr = db.t_suggested_recommenders[srId]
-	if sr is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	myContents = DIV()
-	myContents.append(SPAN(B(T('Suggested recommender: ')), mkUserWithMail(auth, db, sr.suggested_recommender_id)))
-	myContents.append(H2(T('Emails:')))
-	myContents.append(DIV(
-						XML((sr.emailing or '<b>None yet</b>'))
-					   ,_style='margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;'))
-	response.view='default/info.html'
-	return dict(
-					myHelp = getHelp(request, auth, db, '#ManagerSuggestedRecommenderEmails'),
-					myText=getText(request, auth, db, '#ManagerSuggestedRecommenderEmailsText'),
-					myTitle=getTitle(request, auth, db, '#ManagerSuggestedRecommenderEmailsTitle'),
-					myBackButton=mkCloseButton(), 
-					message=myContents, 
-			 )
-	
-
-
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
-######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def _manage_articles(statuses, whatNext):
+	response.view='default/myLayout.html'
+
 	if statuses:
 		query = (db.t_articles.status.belongs(statuses))
 	else:
@@ -308,9 +134,9 @@ def _manage_articles(statuses, whatNext):
 	if whatNext != 'completed_articles':
 		#back2 = '%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
 		back2 = URL(re.sub(r'.*/([^/]+)$', '\\1', request.env.request_uri), scheme=scheme, host=host, port=port)
-		links += [ dict(header=T('Suggested recommenders'), body=lambda row: mkSuggestedRecommendersManagerButton(row, back2) ), ]
+		links += [ dict(header=T('Suggested recommenders'), body=lambda row: manager_module.mkSuggestedRecommendersManagerButton(row, back2, auth, db) ), ]
 	links += [
-				dict(header=T('Recommenders'), body=lambda row: mkRecommenderButton(row)),
+				dict(header=T('Recommenders'), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
 				dict(header=T('Recommendation title'), body=lambda row: mkLastRecommendation(auth, db, row.id)),
 				dict(header=T('Actions'), 
 						body=lambda row: DIV(
@@ -327,7 +153,7 @@ def _manage_articles(statuses, whatNext):
 											#) if (row.status == 'Awaiting consideration' 
 													#and row.already_published is False ) else '',
 											A(SPAN(current.T('Set "Not')), BR(), SPAN(current.T('considered"')), 
-												_href=URL(c='manager', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
+												_href=URL(c='manager_actions', f='set_not_considered', vars=dict(articleId=row.id), user_signature=True), 
 												_class='buttontext btn btn-danger pci-button pci-manager', 
 												_title=current.T('Set this preprint as "Not considered"'),
 											) if (row.status == 'Awaiting consideration' 
@@ -349,7 +175,6 @@ def _manage_articles(statuses, whatNext):
 		,links=links
 		,orderby=~db.t_articles.last_status_change
 	)
-	response.view='default/myLayout.html'
 	return dict(
 				myText=getText(request, auth, db, '#ManagerArticlesText'),
 				myTitle=getTitle(request, auth, db, '#ManagerArticlesTitle'),
@@ -357,50 +182,99 @@ def _manage_articles(statuses, whatNext):
 			)
 
 
-
 ######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='manager'))
+def suggested_recommender_emails():
+	response.view='default/info.html'
+
+	srId = request.vars['srId']
+	sr = db.t_suggested_recommenders[srId]
+	if sr is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	myContents = DIV()
+	myContents.append(SPAN(B(T('Suggested recommender: ')), mkUserWithMail(auth, db, sr.suggested_recommender_id)))
+	myContents.append(H2(T('Emails:')))
+	myContents.append(DIV(
+						XML((sr.emailing or '<b>None yet</b>'))
+					   ,_style='margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;'))
+	return dict(
+					myHelp = getHelp(request, auth, db, '#ManagerSuggestedRecommenderEmails'),
+					myText=getText(request, auth, db, '#ManagerSuggestedRecommenderEmailsText'),
+					myTitle=getTitle(request, auth, db, '#ManagerSuggestedRecommenderEmailsTitle'),
+					myBackButton=mkCloseButton(), 
+					message=myContents, 
+			 )
+	
+
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def recommendations():
-	printable = 'printable' in request.vars
+	response.view='default/recommended_articles.html'
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
+	printable = False
+
+	
 	if art is None:
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
-	if printable:
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-					DIV(
-						DIV(T('Recommended article'), _class='pci-ArticleText printable'),
-						_class='pci-ArticleHeaderIn recommended printable'
-					))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
-					_class='pci-ArticleHeaderIn printable'
-				))
-		myUpperBtn = ''
-		response.view='default/recommended_article_printable.html' #OK
+
+	if art.status == 'Recommended':
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+			DIV(
+				DIV(I(T('Recommended article')), _class='pci-ArticleText'),
+				_class='pci-ArticleHeaderIn recommended'
+			))
 	else:
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(I(T('Recommended article')), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn recommended'
-				))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn'
-				))
-		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-			_href=URL(c="manager", f='recommendations', vars=dict(articleId=articleId, printable=True), user_signature=True),
-			_class='button')
-		response.view='default/recommended_articles.html' #OK
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+			DIV(
+				DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
+				_class='pci-ArticleHeaderIn'
+			))
+	myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
+		_href=URL(c="manager", f='recommendations_printable', vars=dict(articleId=articleId), user_signature=True),
+		_class='button')
+
+	myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+	myContents.append(HR())
+		
+	response.title = (art.title or myconf.take('app.longname'))
+	return dict(
+				myCloseButton=mkCloseButton(),
+				statusTitle=myTitle,
+				myContents=myContents,
+				myUpperBtn=myUpperBtn,
+				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
+			)
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='manager'))
+def recommendations_printable():
+	response.view='default/recommended_article_printable.html'
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	printable = True
+
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
 	
+	if art.status == 'Recommended':
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
+				DIV(
+					DIV(T('Recommended article'), _class='pci-ArticleText printable'),
+					_class='pci-ArticleHeaderIn recommended printable'
+				))
+	else:
+		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
+			DIV(
+				DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
+				_class='pci-ArticleHeaderIn printable'
+			))
+	myUpperBtn = ''
+
 	myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
 	myContents.append(HR())
 		
@@ -415,14 +289,12 @@ def recommendations():
 
 
 
-
-
-
 ######################################################################################################################################################################
 # Allow management of article recommendations
-######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def manage_recommendations():
+	response.view='default/myLayout.html'
+
 	if not('articleId' in request.vars):
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
@@ -470,7 +342,6 @@ def manage_recommendations():
 		grid.element(_title="Add record to database")[0] = T('Manually add new round')
 		grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
 	myContents = mkRepresentArticle(auth, db, articleId)
-	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
@@ -480,12 +351,11 @@ def manage_recommendations():
 				grid=grid,
 			)
 
-
-
-######################################################################################################################################################################
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def search_recommenders():
+	response.view='default/myLayout.html'
+
 	myVars = request.vars
 	qyKw = ''
 	qyTF = []
@@ -540,7 +410,7 @@ def search_recommenders():
 				
 		links = [
 					dict(header=T('Days since last recommendation'), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
-					dict(header='', body=lambda row: '' if row.excluded else A(SPAN(current.T('Suggest'), _class='btn btn-default pci-manager'), _href=URL(c='manager', f='suggest_article_to', vars=dict(articleId=articleId, recommenderId=row['id'], whatNext=whatNext), user_signature=True), 										_class='button')),
+					dict(header='', body=lambda row: '' if row.excluded else A(SPAN(current.T('Suggest'), _class='btn btn-default pci-manager'), _href=URL(c='manager_actions', f='suggest_article_to', vars=dict(articleId=articleId, recommenderId=row['id'], whatNext=whatNext), user_signature=True), 										_class='button')),
 			]
 		temp_db.qy_recomm._id.readable = False
 		temp_db.qy_recomm.uploaded_picture.readable = False
@@ -556,7 +426,6 @@ def search_recommenders():
 			,orderby=temp_db.qy_recomm.num
 			,args=request.args
 		)
-		response.view='default/myLayout.html'
 		return dict(
 					myBackButton=mkBackButton(target=whatNext),
 					myHelp=getHelp(request, auth, db, '#ManagerSearchRecommenders'),
@@ -571,9 +440,10 @@ def search_recommenders():
 ######################################################################################################################################################################
 # Display suggested recommenders for a submitted article
 # Logged users only (submission)
-######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def suggested_recommenders():
+	response.view='default/myLayout.html'
+
 	articleId = request.vars['articleId']
 	whatNext = request.vars['whatNext']
 	if articleId is None:
@@ -595,7 +465,7 @@ def suggested_recommenders():
 		db.t_suggested_recommenders.emailing.represent = lambda text, row: XML(text) if text else ''
 	links = []
 	if art.status == 'Awaiting consideration':
-		links.append(dict(header='', body=lambda row: A(T('Send a reminder'), _class='btn btn-info pci-manager', _href=URL(c='manager', f='send_suggested_recommender_reminder', vars=dict(suggRecommId=row.id))) if not(row.declined) else ''))
+		links.append(dict(header='', body=lambda row: A(T('Send a reminder'), _class='btn btn-info pci-manager', _href=URL(c='manager_actions', f='send_suggested_recommender_reminder', vars=dict(suggRecommId=row.id))) if not(row.declined) else ''))
 	grid = SQLFORM.grid( query
 		,details=True,editable=True,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100
@@ -604,7 +474,6 @@ def suggested_recommenders():
 		,field_id=db.t_suggested_recommenders.id
 		,links=links
 	)
-	response.view='default/myLayout.html'
 	return dict(
 					#myBackButton=mkBackButton(target=URL(c='manager',f='pending_articles')), 
 					myBackButton=mkBackButton(target=whatNext), 
@@ -615,13 +484,11 @@ def suggested_recommenders():
 				)
 
 
-
-
-
-######################################################################################################################################################################
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def edit_article():
+	response.view='default/myLayout.html'
+
 	if not('articleId' in request.vars):
 		session.flash = T('Unavailable')
 		redirect(request.env.http_referer)
@@ -645,7 +512,6 @@ def edit_article():
 		redirect(URL(c='manager', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
-	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton = mkBackButton(),
 				myHelp = getHelp(request, auth, db, '#ManagerEditArticle'),
@@ -654,13 +520,11 @@ def edit_article():
 				form = form,
 			)
 
-
-
-
-######################################################################################################################################################################
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def manage_comments():
+	response.view='default/myLayout.html'
+
 	db.t_comments.parent_id.label=T('Parent comment')
 	grid = SQLFORM.smartgrid(db.t_comments
 					,create=False
@@ -671,7 +535,6 @@ def manage_comments():
 					,paginate=25
 					,orderby=~db.t_comments.comment_datetime
 			)
-	response.view='default/myLayout.html'
 	return dict(
 				myText=getText(request, auth, db, '#ManageCommentsText'),
 				myTitle=getTitle(request, auth, db, '#ManageCommentsTitle'),
@@ -680,154 +543,12 @@ def manage_comments():
 			 )
 
 
-######################################################################################################################################################################
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def resizeArticleImages(ids):
-	for articleId in ids:
-		makeArticleThumbnail(auth, db, articleId, size=(150,150))
 
-
-
-
-######################################################################################################################################################################
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def set_not_considered():
-	if not('articleId' in request.vars):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	if art.status == 'Awaiting consideration':
-		session.flash = T('Article set "Not considered"')
-		art.status = 'Not considered'
-		art.update_record()
-	redirect(request.env.http_referer)
-
-
-######################################################################################################################################################################
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def send_suggested_recommender_reminder():
-	if ('suggRecommId' in request.vars):
-		suggRecommId = request.vars['suggRecommId']
-		do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecommId)
-	else:
-		session.flash = T('Unavailable')
-	redirect(request.env.http_referer)
-
-
-
-#######################################################################################################################################################################
-#######################################################################################################################################################################
-#@auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
-#def warn_recommenders(): 
-	#myVars = request.vars
-	#qyKw = ''
-	#qyTF = []
-	#excludeList = []
-	#articleId = None
-	#comeback = None
-	#for myVar in myVars:
-		#if isinstance(myVars[myVar], list):
-			#myValue = (myVars[myVar])[1]
-		#else:
-			#myValue = myVars[myVar]
-		#if (myVar == 'qyKeywords'):
-			#qyKw = myValue
-		#elif (re.match('^qy_', myVar) and myValue=='on'):
-			#qyTF.append(re.sub(r'^qy_', '', myVar))
-		#elif (myVar == 'articleId'):
-			#articleId = myValue
-		#elif (myVar == 'comeback'):
-			#comeback = myValue
-		##elif (myVar == 'exclude'):
-			##excludeList = map(int, myValue.split(','))
-	#if articleId is None:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-	#art = db.t_articles[articleId]
-	#if art is None:
-		#raise HTTP(404, "404: "+T('Unavailable'))
-
-	##TODO 
-	#excludeList.append(art.user_id)
-	#excludeList.append(auth.user_id)
-	#for sr in db(db.t_suggested_recommenders.article_id == articleId).select(db.t_suggested_recommenders.suggested_recommender_id):
-		#excludeList.append(sr.suggested_recommender_id)
-	
-	## We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-	#temp_db = DAL('sqlite:memory')
-	#qy_recomm = temp_db.define_table('qy_recomm',
-			#Field('id', type='integer'),
-			#Field('num', type='integer'),
-			#Field('score', type='double', label=T('Score'), default=0),
-			#Field('first_name', type='string', length=128, label=T('First name')),
-			#Field('last_name', type='string', length=128, label=T('Last name')),
-			#Field('email', type='string', length=512, label=T('email')),
-			#Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-			#Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
-			#Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
-			#Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
-			#Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
-			#Field('thematics', type='list:string', label=T('Thematic fields')),
-			#Field('excluded', type='boolean', label=T('Excluded')),
-		#)
-	#qyKwArr = qyKw.split(' ')
-	#sfDict = copy.deepcopy(request.vars)
-	#sfDict['qyKeywords'] = qyKw
-	#searchForm =  mkSearchForm(auth, db, sfDict)
-	#if searchForm.process(keepvalues=True).accepted:
-		#response.flash = None
-	#elif len(qyTF)==0:
-		#qyTF = []
-		#for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-			#qyTF.append(thema.keyword)
-	#filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-	#for fr in filtered:
-		#if fr['excluded'] is False:
-			#qy_recomm.insert(**fr)
-	
-	#links = []
-	#selectable = [(T('Send email to checked recommenders'), lambda ids: [f_email_article_to_recommenders(articleId, ids, comeback)], 'btn btn-success pci-manager')]
-	#temp_db.qy_recomm._id.readable = False
-	#temp_db.qy_recomm.uploaded_picture.readable = False
-	#temp_db.qy_recomm.num.readable = False
-	#temp_db.qy_recomm.score.readable = True
-	#temp_db.qy_recomm.excluded.readable = False
-	#grid = SQLFORM.grid( qy_recomm
-		#,editable = False,deletable = False,create = False,details=False,searchable=False
-		#,selectable=selectable
-		#,maxtextlength=250,paginate=1000
-		#,csv=csv,exportclasses=expClass
-		#,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
-		#,links=links
-		#,orderby=temp_db.qy_recomm.num
-		#,args=request.args
-	#)
-	#response.view='default/myLayout.html'
-	#return dict(
-				#myBackButton=mkBackButton(target=comeback) if comeback else '',
-				#myHelp=getHelp(request, auth, db, '#UserSearchRecommendersForWarning'),
-				#myText=getText(request, auth, db, '#UserSearchRecommendersForWarningText'),
-				#myTitle=getTitle(request, auth, db, '#UserSearchRecommendersForWarningTitle'),
-				#searchForm=searchForm, 
-				#grid=grid, 
-			#)
-
-
-######################################################################################################################################################################
-######################################################################################################################################################################
-def f_email_article_to_recommenders(articleId, ids, comeback):
-	redirect(URL(c='manager', f='email_article_to_recommenders', vars=dict(articleId=articleId, ids=ids, comeback=comeback)))
-
-######################################################################################################################################################################
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def email_article_to_recommenders():
+	response.view='default/myLayout.html'
+
 	if 'articleId' in request.vars and request.vars['articleId']:
 		articleId = request.vars['articleId']
 		art = db.t_articles[articleId]
@@ -835,6 +556,7 @@ def email_article_to_recommenders():
 		ids = request.vars['ids']
 	if 'comeback' in request.vars and request.vars['comeback']:
 		comeback = request.vars['comeback']
+
 	if art is None or ids is None or len(ids)==0:
 		raise HTTP(404, "404: "+T('Unavailable'))
 	else:
@@ -851,32 +573,7 @@ def email_article_to_recommenders():
 		linkTarget = URL(c='recommender', f='article_details', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
 		linkHelp = URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
 		default_subject='%(longname)s: Preprint available for recommenders' % locals()
-		default_message = """Dear recommender of %(longname)s,
-
-We would like to inform you that the following preprint has recently been submitted to %(longname)s and still requires a recommender to handle its evaluation. You have declared keywords in your profile that match those of this submission, this is why you receive this message.
-
-* Title : %(art_title)s
-* By: %(art_authors)s
-* DOI: %(art_doi)s
-
-You can obtain information about this submission and accept or decline to handle the evaluation of the preprint by following this link:
-%(linkTarget)s 
-or by going to the %(longname)s website, logging in, and going to 'Requests for input —> Consider preprint submissions' in the top menu.
-
-The role of a recommender for %(longname)s is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.
-
-If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by %(longname)s under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by %(longname)s.
-
-If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to invite, through the %(longname)s website, reviewers included in the %(longname)s database or not already present in this database.
-
-Details about the recommendation process can be found here: %(linkHelp)s. 
-You can also watch this short video: https://youtu.be/u5greO-q8-M
-
-Thanks again for your help.
-
-Yours sincerely,
-
-The Managing Board of %(longname)s""" % locals()
+		default_message = common_tools.get_template('text', 'default_preprint_avalaible_for_recommenders.txt') % locals()
 
 	report = []
 	selRec = []
@@ -897,7 +594,7 @@ The Managing Board of %(longname)s""" % locals()
 		response.flash = None
 		mySubject = request.vars['subject']
 		myContent = request.vars['message']
-		myMessage = render(filename=filename, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
+		myMessage = render(filename=mail_layout, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
 		for rid in ids:
 			destPerson = mkUserWithMail(auth, db, rid)
 			destAddress = db.auth_user[rid].email
@@ -922,7 +619,6 @@ The Managing Board of %(longname)s""" % locals()
 		else:
 			redirect(request.env.http_referer)
 
-	response.view='default/myLayout.html'
 	return dict(
 		content=content,
 		form=form,
@@ -937,6 +633,8 @@ The Managing Board of %(longname)s""" % locals()
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager') or auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def all_recommendations():
+	response.view='default/myLayout.html'
+
 	scheme = myconf.take('alerts.scheme')
 	host = myconf.take('alerts.host')
 	port = myconf.take('alerts.port', cast=lambda v: takePort(v) )
@@ -999,7 +697,6 @@ def all_recommendations():
 		,links=links
 		,orderby=~db.t_recommendations.last_change
 	)
-	response.view='default/myLayout.html'
 	return dict(
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#AdminAllRecommendations'),
@@ -1007,5 +704,3 @@ def all_recommendations():
 				myText=myText,
 				grid=grid, 
 			 )
-
-

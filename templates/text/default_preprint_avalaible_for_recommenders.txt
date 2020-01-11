@@ -1,0 +1,26 @@
+Dear recommender of %(longname)s,
+
+We would like to inform you that the following preprint has recently been submitted to %(longname)s and still requires a recommender to handle its evaluation. You have declared keywords in your profile that match those of this submission, this is why you receive this message.
+
+* Title : %(art_title)s
+* By: %(art_authors)s
+* DOI: %(art_doi)s
+
+You can obtain information about this submission and accept or decline to handle the evaluation of the preprint by following this link:
+%(linkTarget)s 
+or by going to the %(longname)s website, logging in, and going to 'Requests for input —> Consider preprint submissions' in the top menu.
+
+The role of a recommender for %(longname)s is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.
+
+If after one or several rounds of review, you decide to recommend this preprint, you will need to write a “recommendation” that will have its own DOI and be published by %(longname)s under the license CC-BY-ND. The recommendation is a short article, similar to a News & Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (at least the reference of the preprint recommended). All the editorial correspondence (reviews, your decisions, authors’ replies) will also be published by %(longname)s.
+
+If you agree to handle this preprint, you will be responsible for managing the evaluation process until you reach a final decision (i.e. recommend or reject this preprint). You will be able to invite, through the %(longname)s website, reviewers included in the %(longname)s database or not already present in this database.
+
+Details about the recommendation process can be found here: %(linkHelp)s. 
+You can also watch this short video: https://youtu.be/u5greO-q8-M
+
+Thanks again for your help.
+
+Yours sincerely,
+
+The Managing Board of %(longname)s

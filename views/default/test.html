@@ -10,7 +10,9 @@
 	{{pass}}
 
 <!-- <div class="pci-myLogo"></div> -->
+{{block header}}
 <a href="{{=URL(c='default', f='index')}}"><img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo"></a>
+{{end}}
 
 
 {{if 'myTitle' in locals():}}
@@ -43,5 +45,3 @@ href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2F147.99.65.220%3A
 
 <p>
 <a class="twitter-follow-button" href="https://twitter.com/PCIEvolBiol" data-size="large">Follow @PCIEvolBiol</a>
-
-
