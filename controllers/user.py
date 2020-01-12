@@ -9,6 +9,7 @@ from app_modules.common import *
 from app_modules.helper import *
 
 from app_modules import user_module
+from app_modules import common_tools
 
 # frequently used constants
 csv = False # no export allowed
@@ -91,85 +92,8 @@ def fill_new_article():
 	db.t_articles.cover_letter.readable = True
 	db.t_articles.cover_letter.writable = True
 	db.t_articles.parallel_submission.label = T('This preprint is (or will be) also submitted to a journal')
-	myScript = """jQuery(document).ready(function(){
-		
-		if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-			jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-		} else {
-			jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-		}
-		
-		if(jQuery('#t_articles_already_published').prop('checked')) {
-			jQuery('#t_articles_article_source__row').show();
-		} else {
-			jQuery('#t_articles_article_source__row').hide();
-			jQuery(':submit').prop('disabled', true);
-		}
-		
-		if(jQuery('#t_articles_already_published').length) jQuery(':submit').prop('disabled', false);
-		
-		if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-			jQuery('#t_articles_parallel_submission').prop('disabled', true);
-		}
-		
-		if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-			jQuery(':submit').prop('disabled', false);
-		} else {
-			jQuery(':submit').prop('disabled', true);
-		}
-		
-		jQuery('#t_articles_picture_rights_ok').change(function(){
-			if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-				jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-			} else {
-				jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-				jQuery('#t_articles_uploaded_picture').val('');
-			}
-		});
-		
-		jQuery('#t_articles_already_published').change(function(){
-			if(jQuery('#t_articles_already_published').prop('checked')) {
-				jQuery('#t_articles_article_source__row').show();
-			} else {
-				jQuery('#t_articles_article_source__row').hide();
-			}
-		});
-		
-		jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
-			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-				jQuery('#t_articles_parallel_submission').prop('checked', false);
-				jQuery('#t_articles_parallel_submission').prop('disabled', true);
-			} else {
-				jQuery('#t_articles_parallel_submission').prop('disabled', false);
-			}
-			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-				jQuery(':submit').prop('disabled', false);
-			} else {
-				jQuery(':submit').prop('disabled', true);
-			}
-		});
-		jQuery('#t_articles_i_am_an_author').change(function(){
-			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-				jQuery(':submit').prop('disabled', false);
-			} else {
-				jQuery(':submit').prop('disabled', true);
-			}
-		});
-		jQuery('#t_articles_parallel_submission').change(function(){
-			if(jQuery('#t_articles_parallel_submission').prop('checked')) {
-				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked', false);
-				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', true);
-			} else {
-				jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', false);
-			}
-			if((jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) & jQuery('#t_articles_i_am_an_author').prop('checked')) {
-				jQuery(':submit').prop('disabled', false);
-			} else {
-				jQuery(':submit').prop('disabled', true);
-			}
-		});
-	});
-	"""
+	myScript = common_tools.get_template('script','fill_new_article.js')
+
 	form = SQLFORM( db.t_articles, keepvalues=True )
 	form.element(_type='submit')['_value'] = T('Complete your submission')
 	form.element(_type='submit')['_class'] = 'btn btn-success'
@@ -216,73 +140,12 @@ def edit_my_article():
 	if parallelSubmissionAllowed and art.status == 'Pending':
 		db.t_articles.parallel_submission.label = T('This preprint is (or will be) also submitted to a journal')
 		fields = ['title', 'anonymous_submission', 'is_not_reviewed_elsewhere', 'parallel_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
-		myScript = """jQuery(document).ready(function(){
-						
-			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-				jQuery('#t_articles_parallel_submission').prop('disabled', true);
-			}
-			
-			if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
-				jQuery(':submit').prop('disabled', false);
-			} else {
-				jQuery(':submit').prop('disabled', true);
-			}
-			
-			jQuery('#t_articles_picture_rights_ok').change(function(){
-				if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-					jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-				} else {
-					jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-					jQuery('#t_articles_uploaded_picture').val('');
-				}
-			});
-			
-			jQuery('#t_articles_already_published').change(function(){
-				if(jQuery('#t_articles_already_published').prop('checked')) {
-					jQuery('#t_articles_article_source__row').show();
-				} else {
-					jQuery('#t_articles_article_source__row').hide();
-				}
-			});
-			
-			jQuery('#t_articles_is_not_reviewed_elsewhere').change(function(){
-				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked')) {
-					jQuery('#t_articles_parallel_submission').prop('checked', false);
-					jQuery('#t_articles_parallel_submission').prop('disabled', true);
-				} else {
-					jQuery('#t_articles_parallel_submission').prop('disabled', false);
-				}
-				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-			});
-			jQuery('#t_articles_i_am_an_author').change(function(){
-				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-			});
-			jQuery('#t_articles_parallel_submission').change(function(){
-				if(jQuery('#t_articles_parallel_submission').prop('checked')) {
-					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked', false);
-					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', true);
-				} else {
-					jQuery('#t_articles_is_not_reviewed_elsewhere').prop('disabled', false);
-				}
-				if(jQuery('#t_articles_is_not_reviewed_elsewhere').prop('checked') | jQuery('#t_articles_parallel_submission').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-			});
-		});
-		"""
+		myScript = common_tools.get_template('script','edit_my_article.js')
+
 	else:
 		fields = ['title', 'anonymous_submission', 'authors', 'doi', 'ms_version', 'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords']
 		myScript = ''
+
 	form = SQLFORM(db.t_articles
 				,articleId
 				,fields=fields
@@ -290,7 +153,9 @@ def edit_my_article():
 				,deletable=deletable
 				,showid=False
 			)
+
 	form.element(_type='submit')['_value'] = T("Save")
+
 	if form.process().accepted:
 		response.flash = T('Article saved', lazy=False)
 		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
@@ -868,32 +733,7 @@ def accept_new_review():
 				),
 				_class="pci-embeddedEthic",
 			)
-		myScript = SCRIPT("""
-			jQuery(document).ready(function(){
-				
-				if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-				
-				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				
-				jQuery('#due_time').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#due_time').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-			});
-			""")
+		myScript = SCRIPT(common_tools.get_template('script', 'accept_new_review.js'))
 
 	myTitle = getTitle(request, auth, db, '#AcceptReviewInfoTitle')
 	myText = DIV(
@@ -994,21 +834,9 @@ def edit_review():
 				redirect(URL(c='user_actions', f='review_completed', vars=dict(reviewId=review.id), user_signature=True))
 		elif form.errors:
 			response.flash = T('Form has errors', lazy=False)
-	myScript = """jQuery(document).ready(function(){
-					if(jQuery('#t_reviews_no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-					jQuery('#t_reviews_no_conflict_of_interest').change(function(){
-								if(jQuery('#t_reviews_no_conflict_of_interest').prop('checked')) {
-									jQuery(':submit').prop('disabled', false);
-								} else {
-									jQuery(':submit').prop('disabled', true);
-								}
-					});
-				});
-	"""
+			
+	myScript = common_tools.get_template('script', 'edit_review.js')
+
 	return dict(
 				myHelp=getHelp(request, auth, db, '#UserEditReview'),
 				myBackButton=mkBackButton(),

@@ -47,24 +47,7 @@ def new_submission():
 				),
 				_class="pci-embeddedEthic",
 			)
-		myScript = SCRIPT("""
-			jQuery(document).ready(function(){
-				
-				if(jQuery('#no_conflict_of_interest').prop('checked')) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-				
-				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked')) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-			});
-			""")
+		myScript = SCRIPT(common_tools.get_template('script', 'new_submission.js'))
 
 	myText = DIV(
 				getText(request, auth, db, '#NewRecommendationInfo'),
@@ -464,57 +447,7 @@ def accept_new_article_to_recommend():
 				),
 				#_class="pci-embeddedEthic",
 			)
-		myScript = SCRIPT("""
-			jQuery(document).ready(function(){
-				if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-					jQuery(':submit').prop('disabled', false);
-				} else {
-					jQuery(':submit').prop('disabled', true);
-				}
-				jQuery('#no_conflict_of_interest').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				jQuery('#interesting').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				jQuery('#invitations').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				jQuery('#ten_days').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				jQuery('#recomm_text').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-				jQuery('#commitments').change(function(){
-					if(jQuery('#no_conflict_of_interest').prop('checked') & jQuery('#interesting').prop('checked') & jQuery('#invitations').prop('checked') & jQuery('#ten_days').prop('checked') & jQuery('#recomm_text').prop('checked') & jQuery('#commitments').prop('checked') ) {
-						jQuery(':submit').prop('disabled', false);
-					} else {
-						jQuery(':submit').prop('disabled', true);
-					}
-				});
-			});
-			""")
+		myScript = SCRIPT(common_tools.get_template('script', 'accept_new_article_to_recommend.js'))
 
 	myTitle = getTitle(request, auth, db, '#AcceptPreprintInfoTitle')
 	myText = DIV(
@@ -1475,14 +1408,7 @@ def contributions():
 							#_style='margin-top:16px; text-align:center;'
 						#)
 		# This script renames the "Add record" button
-		myScript = SCRIPT("""$(function() { 
-						$('span').filter(function(i) {
-								return $(this).attr("title") ? $(this).attr("title").indexOf('"""+T("Add record to database")+"""') != -1 : false;
-							})
-							.each(function(i) {
-								$(this).text('"""+T("Add a contributor")+"""').attr("title", '"""+T("Add a new contributor to this recommendation")+"""');
-							});
-						})""",
+		myScript = SCRIPT(common_tools.get_template('script', 'contributions.js'),
 						_type='text/javascript')
 		return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderContributionsToPressReviews'),
@@ -1619,21 +1545,10 @@ def edit_recommendation():
 			response.flash = T('Form has errors', lazy=False)
 		
 		if isPress is False:
-			myScript = """jQuery(document).ready(function(){
-							jQuery('#t_recommendations_no_conflict_of_interest').click(function(){
-								jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked'))));
-							});
-							jQuery('input[type=radio][name=recommender_opinion]').change(function(){
-								jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked'))));
-							});
-							jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') & ($('#opinion_recommend').prop('checked') | $('#opinion_revise').prop('checked') | $('#opinion_reject').prop('checked')) ));
-						});
-			"""
+			myScript = common_tools.get_template('script', 'edit_recommendation.js')
 		else:
-			myScript = """jQuery(document).ready(function(){
-							jQuery(':submit[name=terminate]').prop('disabled', ! (jQuery('#t_recommendations_no_conflict_of_interest').prop('checked') ));
-						});
-			"""
+			myScript = common_tools.get_template('script', 'edit_recommendation_is_press.js')
+
 		return dict(
 					form=form,
 					myText=myText,
