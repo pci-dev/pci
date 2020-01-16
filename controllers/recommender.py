@@ -13,6 +13,7 @@ from app_modules.helper import *
 
 from app_modules import recommender_module
 from app_modules import common_tools
+from app_modules import new_common
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -64,7 +65,7 @@ def new_submission():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
-	response.view='default/myLayout.html'
+	response.view='default/list_layout.html'
 
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
@@ -103,6 +104,7 @@ def search_reviewers():
 			excludeList = map(int, myValue.split(','))
 		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
+
 	if 'recommId' in request.vars:
 		recommId = request.vars['recommId']
 		if recommId:
@@ -114,14 +116,17 @@ def search_reviewers():
 					uid = art.user_id
 					if uid:
 						excludeList.append(uid)
+						
 	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars, allowBlank=True)
+	searchForm = new_common.getSearchForm(auth, db, myVars, allowBlank=True)
 	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
 	else:
 		qyTF = []
 		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 			qyTF.append(thema.keyword)
+
+
 	filtered = db.executesql('SELECT * FROM search_reviewers(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	for fr in filtered:
 		qy_reviewers.insert(**fr)
@@ -227,7 +232,7 @@ def my_awaiting_articles():
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role='recommender'))
 def _awaiting_articles(myVars):
-	response.view='default/myLayout.html'
+	response.view='default/list_layout.html'
 
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
@@ -264,8 +269,11 @@ def _awaiting_articles(myVars):
 		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
-	searchForm =  mkSearchForm(auth, db, myVars, allowBlank=True)
+
+	search = new_common.getSearchForm(auth, db, myVars)
+
 	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
+	
 	for fr in filtered:
 		qy_art.insert(**fr)
 	
@@ -314,8 +322,10 @@ def _awaiting_articles(myVars):
 				#myTitle=T('Articles requiring a recommender'), 
 				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
 				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
-				searchForm=searchForm, 
 				grid=grid, 
+
+				searchableList = True,
+				search = search
 			)
 
 

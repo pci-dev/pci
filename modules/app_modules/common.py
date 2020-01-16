@@ -22,8 +22,8 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 
 myconf = AppConfig(reload=True)
-
-minimal_number_of_corecommenders = 0
+######################################################################################################################################################################
+# End New common modules
 
 ######################################################################################################################################################################
 def takePort(p):
@@ -104,81 +104,6 @@ def mkLinkDOI(doi):
 			return "https://doi.org/"+sub(r'doi: *', '', doi)
 	else:
 		return ''
-
-
-
-######################################################################################################################################################################
-# Builds common search form (fuzzy + thematic fields)
-def mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=True):
-	if withThematics:
-		# number of columns of thematic fields
-		nCol = 5
-		# count requested thematic fields
-		if myVars is None:
-			myVars = dict()
-		ntf = 0
-		for myVar in myVars:
-			if (match('^qy_', myVar)):
-				ntf += 1
-		# process thematic fields
-		tab = []
-		r = []
-		c = 1
-		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-			if ntf==0:
-				f = INPUT(_name='qy_'+thema.keyword, _type='checkbox', value=True, keepvalues=True)
-			else:
-				f = INPUT(_name='qy_'+thema.keyword, _type='checkbox', value=('qy_'+thema.keyword in myVars), keepvalues=True)
-			r.append(TD(f, thema.keyword, _class='pci-thematicFieldsCheck'))
-			c += 1
-			if (c % nCol) == 0:
-				tab.append(TR(deepcopy(r)))
-				r = []
-				c = 1
-		tab.append(deepcopy(r))
-		
-		themaDiv = DIV(
-				BR(),
-				LABEL(current.T('in thematic fields:')), 
-				DIV(
-					TABLE(tab, _class='pci-thematicFieldsTable'),
-					SPAN(
-						A(SPAN(current.T('Check all thematic fields'), _class='buttontext btn btn-default pci-public'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', true);} });", _class="pci-flushright"),
-						A(SPAN(current.T('Toggle thematic fields'), _class='buttontext btn btn-default pci-public'), _onclick="jQuery('input[type=checkbox]').each(function(k){if (this.name.match('^qy_')) {jQuery(this).prop('checked', !jQuery(this).prop('checked'));} });", _class="pci-flushright"),
-					),
-					DIV(
-						INPUT(_type='submit', _value=current.T('Search'), _class='btn btn-success pci-public'), _style='text-align:center; margin-top:8px;', 
-					),
-					_class="pci-thematicFieldsDiv"),
-			)
-	else:
-		themaDiv = INPUT(_type='submit', _value=current.T('Search'), _class='btn btn-warning pci-public searchFormInline')
-		
-	
-	# process searched words
-	kwVal = None
-	if 'qyKeywords' in myVars:
-		kwVal = myVars['qyKeywords']
-		if isinstance(kwVal, list):
-			kwVal = kwVal[1]
-
-	# build form
-	form = FORM(SPAN(current.T('Leave search field blank for no filtering on words'), _style='color:#e0e0e0;')+BR() if allowBlank else '',
-				LABEL(current.T('Search for'), _style='margin-right:12px;'),
-				INPUT(_name='qyKeywords', value=kwVal, keepvalues=True, _class=('searchField' if withThematics else 'searchFieldInline')), 
-				themaDiv,
-				_class='' if withThematics else 'form-inline',
-				_name='searchForm',
-				_action=(URL(c='articles', f='recommended_articles', user_signature=True)) if not(withThematics) else '',
-			)
-	if withThematics:
-		return form
-	else:
-		return DIV(form, _class='searchFormDivInline')
-
-
-
-
 
 
 ######################################################################################################################################################################
@@ -392,82 +317,6 @@ def mkTFDict(tfArray):
 	for tf in tfArray:
 		resu['qy_'+tf] = 'on'
 	return resu
-
-######################################################################################################################################################################
-#def mkViewArticle4ReviewButton(auth, db, row):
-	#anchor = ''
-	#recomm = db.t_recommendations[row.recommendation_id]
-	#if recomm:
-		#art = db.t_articles[recomm.article_id]
-		#if art:
-			#anchor = DIV(
-						#B(art.title),
-						#BR(),
-						#SPAN(art.authors),
-						#BR(),
-						#mkDOI(art.doi),
-					#)
-	#return anchor
-
-
-
-######################################################################################################################################################################
-## Builds a search button for recommenders matching keywords
-#def mkSearchRecommendersManagerButton(auth, db, row):
-	##if statusArticles is None or len(statusArticles) == 0:
-		##mkStatusArticles(db)
-	#anchor = ''
-	#if row['status'] == 'Awaiting consideration' or row['status'] == 'Pending':
-		#myVars = dict(articleId=row['id'])
-		#for thema in row['thematics']:
-			#myVars['qy_'+thema] = 'on'
-		##NOTE: useful or useless? 
-		##myVars['qyKeywords'] = ' '.join(row['thematics'])
-		#anchor = A(SPAN('+ '+current.T('Suggest'),BR(),current.T('recommenders'), _class='buttontext btn btn-default'), _href=URL(c='manager', f='search_recommenders', vars=myVars, user_signature=True), _class='button')
-	#return anchor
-
-
-
-######################################################################################################################################################################
-## Builds a search button for recommenders matching keywords
-#def mkSearchRecommendersUserButton(auth, db, row):
-	##if statusArticles is None or len(statusArticles) == 0:
-		##mkStatusArticles(db)
-	#anchor = ''
-	#if row['status'] == 'Awaiting consideration' or row['status'] == 'Pending':
-		#myVars = dict(articleId=row['id'])
-		#for thema in row['thematics']:
-			#myVars['qy_'+thema] = 'on'
-		##NOTE: useful or useless? 
-		##myVars['qyKeywords'] = ' '.join(row['thematics'])
-		#anchor = A(SPAN('+ '+current.T('Suggest'),BR(),current.T('recommenders'), _class='buttontext btn btn-default'), _href=URL(c='user', f='recommenders', vars=myVars, user_signature=True), _class='button')
-	#return anchor
-
-
-
-######################################################################################################################################################################
-## Builds a search button for reviewers matching keywords
-#def mkSearchReviewersButton(auth, db, row):
-	##if statusArticles is None or len(statusArticles) == 0:
-		##mkStatusArticles(db)
-	#anchor = ''
-	#article = db.t_articles[row['article_id']]
-	#if article and article['status'] == 'Under consideration':
-		#myVars = dict(recommId=row['id'])
-		#for thema in article['thematics']:
-			#myVars['qy_'+thema] = 'on'
-		##NOTE: useful or useless? 
-		##myVars['qyKeywords'] = ' '.join(article['thematics'])
-		#if article['already_published'] and row['auto_nb_agreements']==0:
-			#myVars['4press'] = 'on'
-			#anchor = A(SPAN('+ '+current.T('Add'),BR(),current.T('contributors'), _class='buttontext btn btn-default'), _href=URL(c='recommender', f='search_reviewers', vars=myVars, user_signature=True), _class='button')
-		#elif article['already_published'] is False:
-			#myVars['4review'] = 'on'
-			#anchor = A(SPAN('+ '+current.T('Add'),BR(),current.T('reviewers'), _class='buttontext btn btn-default'), _href=URL(c='recommender', f='search_reviewers', vars=myVars, user_signature=True), _class='button')
-	#return anchor
-
-
-
 
 ######################################################################################################################################################################
 # Builds a coloured status label
@@ -732,7 +581,7 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 		
 	return whoDidIt
 
-
+# (gab) TOO BIG FUNCTION (need) 
 ######################################################################################################################################################################
 def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False, with_comments=False, fullURL=True):
 	if fullURL:

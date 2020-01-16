@@ -83,7 +83,6 @@ def index():
 
 	if request.user_agent().is_mobile:
 		return dict(
-			#smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myTopPanel=mkTopPanel(myconf, auth),
@@ -95,7 +94,6 @@ def index():
 		)
 	else:
 		return dict(
-			#smallSearch=mkSearchForm(auth, db, myVars, allowBlank=True, withThematics=False),
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myTopPanel=mkTopPanel(myconf, auth),

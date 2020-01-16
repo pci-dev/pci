@@ -19,7 +19,7 @@ from app_modules.helper import *
 
 from app_modules import manager_module
 from app_modules import common_tools
-
+from app_modules import new_common
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -354,7 +354,7 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def search_recommenders():
-	response.view='default/myLayout.html'
+	response.view='default/list_layout.html'
 
 	myVars = request.vars
 	qyKw = ''
@@ -372,6 +372,7 @@ def search_recommenders():
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'exclude'):
 			excludeList = map(int, myValue.split(','))
+
 	whatNext = request.vars['whatNext']
 	articleId = request.vars['articleId']
 	if articleId is None:
@@ -397,13 +398,16 @@ def search_recommenders():
 		)
 		temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href='mailto:'+text)
 		qyKwArr = qyKw.split(' ')
-		searchForm = mkSearchForm(auth, db, myVars)
+
+		searchForm = new_common.getSearchForm(auth, db, myVars)
+
 		if searchForm.process(keepvalues=True).accepted:
 			response.flash = None
 		else:
 			qyTF = []
 			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 				qyTF.append(thema.keyword)
+
 		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 		for fr in filtered:
 			qy_recomm.insert(**fr)
@@ -432,7 +436,7 @@ def search_recommenders():
 					myText=getText(request, auth, db, '#ManagerSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#ManagerSearchRecommendersTitle'),
 					grid=grid,
-					searchForm=searchForm, 
+					searchForm = searchForm
 				)
 
 

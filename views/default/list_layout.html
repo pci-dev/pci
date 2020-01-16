@@ -1,0 +1,44 @@
+{{extend 'layout.html'}}
+<script>window.onload = function() {if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();}</script>
+
+{{if 'myBackButton' in locals():}}
+	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
+	{{pass}}
+	
+{{if 'myText' in locals():}}
+  {{=myText}}
+  {{pass}}
+
+{{if 'myHelp#TODO' in locals():}}
+  {{=myHelp}}
+  {{pass}}
+
+
+{{if 'searchForm' in locals():}}
+	<div style="display:flex; justify-content: center;">	
+		{{=searchForm}}
+	</div>
+{{pass}}
+
+{{if 'content' in locals():}}
+	<div>
+		{{=content}}
+	</div>
+{{pass}}
+
+{{if 'myUpperBtn' in locals():}}
+	{{=myUpperBtn}}
+{{pass}}
+
+	
+<div>
+	{{=grid}}
+</div>
+
+{{if 'myAcceptBtn' in locals():}}
+	{{=myAcceptBtn}}
+{{pass}}
+
+{{if 'myFinalScript' in locals():}}
+	{{=myFinalScript}}
+{{pass}}

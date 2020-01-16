@@ -93,10 +93,6 @@ def getTitle(request, auth, db, myHashtag, myLanguage='default'):
 	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
 		r0 = A(current.T('edit title'), _href=URL(c='custom_help_text', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit pci-admin')
 
-	# (gab) 
-	if c != '':
-		c = ' - ' + c
-
 	if c != '' and (auth.has_membership(role='administrator') or auth.has_membership(role='developper')):
 		return DIV(
 				DIV(r0, _class='pci-text-buttons'), 

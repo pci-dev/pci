@@ -10,6 +10,7 @@ from app_modules.helper import *
 
 from app_modules import user_module
 from app_modules import common_tools
+from app_modules import new_common
 
 # frequently used constants
 csv = False # no export allowed
@@ -359,13 +360,14 @@ def search_recommenders():
 				Field('excluded', type='boolean', label=T('Excluded')),
 			)
 		qyKwArr = qyKw.split(' ')
-		searchForm =  mkSearchForm(auth, db, myVars)
+		searchForm = new_common.getSearchForm(auth, db, myVars)
 		if searchForm.process(keepvalues=True).accepted:
 			response.flash = None
 		else:
 			qyTF = []
 			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 				qyTF.append(thema.keyword)
+
 		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 		for fr in filtered:
 			qy_recomm.insert(**fr)

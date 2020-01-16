@@ -5,12 +5,15 @@ import copy
 
 from gluon.storage import Storage
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
-from app_modules.helper import *
+
 from datetime import datetime, timedelta, date
 from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
+
+from app_modules.common import *
+from app_modules.helper import *
+from app_modules import new_common
 
 myconf = AppConfig(reload=True)
 
@@ -20,70 +23,14 @@ expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_wit
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
-######################################################################################################################################################################
-@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
-def last_recomms():
-	if 'maxArticles' in request.vars:
-		maxArticles = int(request.vars['maxArticles'])
-	else:
-		maxArticles = 10
-	myVars = copy.deepcopy(request.vars)
-	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
-	myVarsNext = copy.deepcopy(myVars)
-	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
-
-	query = None
-	#if 'qyThemaSelect' in request.vars:
-		#thema = request.vars['qyThemaSelect']
-		#if thema and len(thema)>0:
-			#query = db( 
-					#(db.t_articles.status=='Recommended') 
-				  #& (db.t_recommendations.article_id==db.t_articles.id) 
-				  #& (db.t_recommendations.recommendation_state=='Recommended')
-				  #& (db.t_articles.thematics.contains(thema)) 
-				#).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	if query is None:
-		query = db( 
-					(db.t_articles.status=='Recommended') 
-				  & (db.t_recommendations.article_id==db.t_articles.id) 
-				  & (db.t_recommendations.recommendation_state=='Recommended')
-			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	myRows = []
-	for row in query:
-		r = mkRecommArticleRow(auth, db, row, withDate=True)
-		if r:
-			myRows.append(r)
-	
-	if len(myRows) == 0:
-		return DIV(I(T('Coming soon...')))
-	
-	if len(myRows) < maxArticles:
-		moreState = ' disabled'
-	else:
-		moreState = ''
-	return DIV(
-			TABLE(
-				TBODY(myRows), 
-				_class='web2py_grid pci-lastArticles-table'), 
-			DIV(
-				A(current.T('More...'), _id='moreLatestBtn',
-					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
-					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
-				),
-				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
-				_style='text-align:center;'
-			),
-			_class='pci-lastArticles-div',
-		)
-
 
 ######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
-	response.view='default/myLayout.html'
+	response.view='default/list_layout.html'
 
 	myVars = request.vars
-	qyKw = ''
+	qyKwArr = []
 	qyTF = []
 	myVars2 = {}
 	for myVar in myVars:
@@ -94,36 +41,42 @@ def recommended_articles():
 		if (myVar == 'qyKeywords'):
 			qyKw = myValue
 			myVars2[myVar] = myValue
+			qyKwArr = qyKw.split(' ')
 		elif (myVar == 'qyThemaSelect') and myValue:
 			qyTF=[myValue]
 			myVars2['qy_'+myValue] = True
 		elif (re.match('^qy_', myVar) and myValue=='on' and not('qyThemaSelect' in myVars)):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 			myVars2[myVar] = myValue
-	qyKwArr = qyKw.split(' ')
 
-	searchForm =  mkSearchForm(auth, db, myVars2)
 	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Recommended', trgmLimit, True], as_dict=True)
-	n = len(filtered)
+	
+	totalArticles = len(filtered)
 	myRows = []
 	for row in filtered:
 		r = mkRecommArticleRow(auth, db, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
+			
 	grid = DIV(DIV(
-				DIV(T('%s articles found')%(n), _class='pci-nResults'),
+				DIV(T('%s articles found')%(totalArticles), _class='pci-nResults'),
 				TABLE(
 					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
 					TBODY(myRows),
 				_class='web2py_grid pci-lastArticles-table'), 
 			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
+
+
+	searchForm = new_common.getSearchForm(auth, db, myVars2)
+	
 	return dict(
 				grid=grid, 
-				searchForm=searchForm, 
 				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
 				myText=getText(request, auth, db, '#RecommendedArticlesText'),
 				myHelp=getHelp(request, auth, db, '#RecommendedArticles'),
 				shareable=True,
+				searchableList = True,
+				searchForm = searchForm
 			)
 
 
@@ -398,3 +351,62 @@ def pubReviews():
 			grid = myContents
 		)
 	return resu
+
+
+
+
+######################################################################################################################################################################
+@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
+def last_recomms():
+	if 'maxArticles' in request.vars:
+		maxArticles = int(request.vars['maxArticles'])
+	else:
+		maxArticles = 10
+	myVars = copy.deepcopy(request.vars)
+	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
+	myVarsNext = copy.deepcopy(myVars)
+	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
+
+	query = None
+	#if 'qyThemaSelect' in request.vars:
+		#thema = request.vars['qyThemaSelect']
+		#if thema and len(thema)>0:
+			#query = db( 
+					#(db.t_articles.status=='Recommended') 
+				  #& (db.t_recommendations.article_id==db.t_articles.id) 
+				  #& (db.t_recommendations.recommendation_state=='Recommended')
+				  #& (db.t_articles.thematics.contains(thema)) 
+				#).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	if query is None:
+		query = db( 
+					(db.t_articles.status=='Recommended') 
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
+	myRows = []
+	for row in query:
+		r = mkRecommArticleRow(auth, db, row, withDate=True)
+		if r:
+			myRows.append(r)
+	
+	if len(myRows) == 0:
+		return DIV(I(T('Coming soon...')))
+	
+	if len(myRows) < maxArticles:
+		moreState = ' disabled'
+	else:
+		moreState = ''
+	return DIV(
+			TABLE(
+				TBODY(myRows), 
+				_class='web2py_grid pci-lastArticles-table'), 
+			DIV(
+				A(current.T('More...'), _id='moreLatestBtn',
+					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
+					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
+				),
+				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
+				_style='text-align:center;'
+			),
+			_class='pci-lastArticles-div',
+		)

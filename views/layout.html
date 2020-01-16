@@ -29,6 +29,9 @@
 
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci0.css')}}"/>
+
+    <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
+
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
@@ -36,7 +39,7 @@
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     <!-- Favicons -->
-	{{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+	  {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
 
     <!-- http://panzi.github.io/SocialSharePrivacy/ -->
@@ -112,17 +115,17 @@
     {{block header}}
     {{end}}
     <!-- Main ========================================= -->
-
-    {{if response.view=='default/myLayout.html' or response.view=='default/info.html' or response.view=='default/myLayoutBot.html':}}  
+    <!-- Title -->
+    {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
     <div id="pci-small-header">
       <a  href="{{=URL(c='default', f='index')}}">
         <img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo">
       </a>
-      {{if 'myTitle' in locals():}}
+     
     	<div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
-      {{pass}}
     </div>      
     {{pass}}
+
     <!-- Begin page content -->
     <div class="container-fluid main-container" id="main-content">
       {{if left_sidebar_enabled:}}

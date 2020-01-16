@@ -1,0 +1,45 @@
+.pci2-search-form {
+    width: 100%;
+    max-width: 900px;
+}
+
+.pci2-thematics-div {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: #f7f9fb;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.pci2-thematics-list {
+    display: grid;
+    max-width: 900px;
+    grid-template-columns: repeat(auto-fit, 220px);
+}
+
+.pci2-thematics-button {
+    margin: 5px 0;
+    margin-right: 7.5px;
+}
+
+.pci2-search-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.pci2-search-input-div {
+    flex: 1;
+}
+
+.pci2-search-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 7.5px;
+}
+
+.pci2-search-button {
+    font-weight: bold;
+    margin-left: 5px;
+}

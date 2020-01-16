@@ -5,6 +5,7 @@ import re
 from gluon.custom_import import track_changes; track_changes(True) # reimport module if changed; disable in production
 #from app_modules.common import mkPanel
 from app_modules.helper import *
+from app_modules import new_common
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -13,6 +14,27 @@ csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 
 
+
+######################################################################################################################################################################
+## Actions
+######################################################################################################################################################################
+@auth.requires_login()
+def validate_ethics():
+	theUser = db.auth_user[auth.user_id]
+	if 'ethics_approved' in request.vars:
+		theUser.ethical_code_approved = True
+		theUser.update_record()
+	_next = None
+	if '_next' in request.vars:
+		_next = request.vars['_next']
+	if _next:
+		redirect(_next)
+	else:
+		redirect(URL('default','index'))
+
+
+######################################################################################################################################################################
+## Routes
 ######################################################################################################################################################################
 def ethics():
 	response.view='default/info.html'
@@ -40,24 +62,6 @@ def ethics():
 		message=message,
 		shareable=True,
 	)
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def validate_ethics():
-	theUser = db.auth_user[auth.user_id]
-	if 'ethics_approved' in request.vars:
-		theUser.ethical_code_approved = True
-		theUser.update_record()
-	_next = None
-	if '_next' in request.vars:
-		_next = request.vars['_next']
-	if _next:
-		redirect(_next)
-	else:
-		redirect(URL('default','index'))
-
-
 
 
 
@@ -158,7 +162,7 @@ def resources():
 
 ######################################################################################################################################################################
 def recommenders():
-	response.view='default/myLayout.html'
+	response.view='default/list_layout.html'
 
 	myVars = request.vars
 	qyKw = ''
@@ -174,13 +178,15 @@ def recommenders():
 		elif (re.match('^qy_', myVar) and myValue == 'on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
-	searchForm = mkSearchForm(auth, db, myVars)
+	
+	searchForm = new_common.getSearchForm(auth, db, myVars)
 	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
 	else:
 		qyTF = []
 		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 			qyTF.append(thema.keyword)
+	
 	filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s) ORDER BY last_name, first_name;', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	myRows = []
 	my1 = ''

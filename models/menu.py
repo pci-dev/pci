@@ -101,7 +101,7 @@ def _BaseMenu():
 		articleMenu.append((T('Progress log'), False, URL('articles', 'tracking')))
 	
 	menuBar = [
-		(T('Home'),       isHomeActive, URL('default', 'index')),
+		((SPAN(_class='glyphicon glyphicon-home', _style="margin-right: 7.5px"), T('Home')),       isHomeActive, URL('default', 'index')),
 		#(T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
 		(T('Articles'),      isArticleActive, '#', articleMenu),
 	]
@@ -120,7 +120,7 @@ def _AboutMenu():
 
 	aboutMenu += [
 			#LI(_class="divider"),
-			(T('About', lazy=False)+appName,       False, URL('about', 'about')),
+			(T('About', lazy=False)+appName, False, URL('about', 'about')),
 			(T('General Terms of Use', lazy=False),       False, URL('about', 'gtu')),
 			(T('Code of conduct', lazy=False),      False, URL('about', 'ethics')),
 			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
