@@ -24,10 +24,53 @@
 <!-- 	<H1 style="background:red; padding:8px; margin-bottom:12px; border-radius:16px;">Maintenance scheduled today... Please, don't use it for the moment!<br>Sorry for any inconvenience...</H1> -->
 <!-- 	{{pass}} -->
 
+<div style="margin-top:20px; margin-bottom:20px; text-align:center;">
+  {{if auth.user:}}
+  <a
+    href="{{=URL('user', 'new_submission', user_signature=True)}}"
+    class="btn btn-success pci-public"
+  >
+    {{=T("Submit a preprint")}}
+  </a>
 
-{{if 'myTopPanel' in locals():}}
-	{{=myTopPanel}}
-	{{pass}}
+  {{else:}}
+  <a
+  	href="{{=URL('user', 'new_submission', user_signature=True)}}"
+  	class="btn btn-success pci-public"
+    >
+  	{{=T("Submit a preprint")}}
+    </a>
+    <label>{{=T(' or ')}}</label>
+    <a
+  	href="{{=URL(c='default', f='user', args=['login'])}}"
+  	class="btn btn-default"
+    >
+  	{{=T('Log in')}}
+    </a>
+    <a
+  	href="{{=URL(c='default', f='user', args=['register'])}}"
+  	class="btn btn-info"
+    >
+  	{{=T('Register')}}
+    </a>
+  {{pass}} 
+
+  {{if auth.has_membership('recommender'):}}
+  <a
+  	href="{{=URL('recommender', 'new_submission', user_signature=True)}}"
+  	class="btn btn-info pci-recommender"
+  >
+  	{{=T("Recommend a postprint")}}
+  </a>
+  <a
+  	href="{{=URL('recommender', 'all_awaiting_articles', user_signature=True)}}"
+  	class="btn btn-default pci-recommender"
+  >
+  	{{=T("Submitted preprints requiring a recommender")}}
+  </a>
+  {{pass}}
+</div>  
+
 
 {{if 'myText' in locals():}}
 	<div>{{=myText}}</div>

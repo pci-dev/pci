@@ -214,6 +214,7 @@
 'Id': 'Id',
 'in': 'in',
 'in thematic fields:': 'in thematic fields:',
+'Search in thematic fields': 'Search in thematic fields',
 'Initiate a recommendation': 'Initiate a recommendation',
 'Initiate the recommendation of an article': 'Initiate the recommendation of an article',
 'Institution': 'Institution',

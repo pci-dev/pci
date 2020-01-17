@@ -235,7 +235,7 @@ def _UserMenu():
 	nRevTot = 0
 	revClass = ''
 	contribMenuClass = ''
-
+	notificationPin = ''
 	# reviews
 	# (gab) proposition :
 
@@ -254,6 +254,7 @@ def _UserMenu():
 	if nRevPend > 0:
 		txtRevPend = SPAN(txtRevPend, _class='pci-enhancedMenuItem')
 		contribMenuClass = 'pci-enhancedMenuItem'
+		# notificationPin = DIV(nRevPend,_class='pci2-notif-pin')
 
 	myContributionsMenu.append((txtRevPend, False, URL('user', 'my_reviews', vars=dict(pendingOnly=True), user_signature=True)))
 	myContributionsMenu.append((T('Submit a preprint'), False, URL('user', 'new_submission', user_signature=True)))
@@ -279,10 +280,14 @@ def _UserMenu():
 		revClass = 'pci-enhancedMenuItem'
 		contribMenuClass = 'pci-enhancedMenuItem'
 	if nRevTot>0:
-		myContributionsMenu.append((SPAN(T('Your reviews'), _class=revClass), False, URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True)))
+		myContributionsMenu.append((
+			SPAN(T('Your reviews'), _class=revClass),
+			False,
+			URL('user', 'my_reviews', vars=dict(pendingOnly=False), user_signature=True))
+		)
 
 	return [
-        (SPAN(T('Your contributions'), _class=contribMenuClass), isActive, '#', myContributionsMenu),
+        (SPAN(T('Your contributions'), notificationPin, _class=contribMenuClass), isActive, '#', myContributionsMenu),
 	]
 
 def _RecommendationMenu():

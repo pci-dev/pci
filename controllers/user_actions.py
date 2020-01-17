@@ -35,7 +35,7 @@ def do_cancel_article():
 		art.status = 'Cancelled'
 		art.update_record()
 		session.flash = T('Preprint submission cancelled')
-		redirect(URL(f='my_articles', user_signature=True))
+		redirect(URL(c='user', f='my_articles', user_signature=True))
 
 
 
@@ -59,9 +59,9 @@ def suggest_article_to():
 	vars['exclude'] = excludeList
 	session.flash = T('Suggested recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
 	#redirect(request.env.http_referer)
-	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	#redirect(URL(f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
-	redirect(URL(f='search_recommenders', vars=vars, user_signature=True))
+	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+	#redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
+	redirect(URL(c='user', f='search_recommenders', vars=vars, user_signature=True))
 
 
 
@@ -105,7 +105,7 @@ def article_revised():
 			db.t_press_reviews._after_insert = []
 			for corecommender in corecommenders:
 				db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
-		redirect(URL(f='my_articles', user_signature=True))
+		redirect(URL(c='user', f='my_articles', user_signature=True))
 
 
 ######################################################################################################################################################################
@@ -154,7 +154,7 @@ def decline_new_review():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if rev.reviewer_id != auth.user_id:
 		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_reviews')
+		redirect(URL(c='user', f='my_reviews'))
 	#db(db.t_reviews.id==reviewId).delete()
 	rev.review_state = 'Declined'
 	rev.update_record()
@@ -174,11 +174,11 @@ def review_completed():
 		raise HTTP(404, "404: "+T('Unavailable'))
 	if rev.reviewer_id != auth.user_id:
 		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_reviews')
+		redirect(URL(c='user', f='my_reviews'))
 	rev.review_state = 'Completed'
 	rev.update_record()
 	# email to recommender sent at database level
-	redirect('my_reviews')
+	redirect(URL(c='user', f='my_reviews'))
 
 
 
@@ -201,7 +201,7 @@ def do_delete_article():
 	else:
 		db(db.t_articles.id == articleId).delete()
 		session.flash = T('Preprint submission deleted')
-		redirect(URL(f='my_articles', user_signature=True))
+		redirect(URL(c='user', f='my_articles', user_signature=True))
 
 
 ######################################################################################################################################################################
@@ -210,6 +210,6 @@ def suggest_article_to_all(articleId, recommenderIds):
 	for recommenderId in recommenderIds:
 		do_suggest_article_to(auth, db, articleId, recommenderId)
 		added.append(mkUser(auth, db, recommenderId))
-	#redirect(URL(f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
 	redirect(request.env.http_referer)

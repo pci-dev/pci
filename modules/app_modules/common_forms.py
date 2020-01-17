@@ -45,11 +45,29 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
    			BUTTON(current.T('Search'), _type='submit', _class='btn btn-success pci2-search-button'),
 			_class='pci2-search-div'
   		),
-		B(current.T('in thematic fields:')),
+		DIV(
+			A(
+				SPAN(current.T('Search in thematic fields'), _style="flex:1"),
+				I('',_class='glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate'),
+				_class='pci2-thematic-link',
+				_onclick='''
+					if( jQuery(".pci2-thematics-div" ).hasClass("pci2-panel-closed")) { 
+						jQuery(".pci2-thematics-div").removeClass("pci2-panel-closed") 						
+						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate") 
+						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate-reversed") 
+					} else {
+						jQuery(".pci2-thematics-div").addClass("pci2-panel-closed") 						
+						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate-reversed") 
+						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate") 
+					} 
+				'''
+			),
+			_class='pci2-thematic-link-div'
+		),
 		DIV(
     		DIV(
 				thematicsList,
-    			_class='pci2-thematics-list'
+    			_class='pci2-thematics-list pci2-panel-closed'
 			),
     		DIV(
     			BUTTON(
@@ -65,7 +83,7 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
     		  		_onclick='jQuery("input[type=checkbox]").each(function(k){if (this.name.match("^qy_")) {jQuery(this).prop("checked", !jQuery(this).prop("checked"));} });'
 				)
 			),
-			_class='pci2-thematics-div'
+			_class='pci2-thematics-div pci2-panel-closed'
 		),
 		_class='pci2-search-form'
 	)

@@ -1290,7 +1290,7 @@ header {
 }
 
 .pci-lastArticles-div {
-	animation: fadeinTop 0.7s ease;
+	animation: fadeFormTop 0.7s ease;
 }
 
 .navbar-default .caret {
@@ -1315,7 +1315,7 @@ header {
 	}
 }
 
-@keyframes fadeinTop {
+@keyframes fadeFormTop {
 	from {
 		opacity: 0;
 		transform: translateY(-10px);

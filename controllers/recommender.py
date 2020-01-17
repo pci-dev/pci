@@ -13,7 +13,7 @@ from app_modules.helper import *
 
 from app_modules import recommender_module
 from app_modules import common_tools
-from app_modules import new_common
+from app_modules import common_forms
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -118,7 +118,7 @@ def search_reviewers():
 						excludeList.append(uid)
 						
 	qyKwArr = qyKw.split(' ')
-	searchForm = new_common.getSearchForm(auth, db, myVars, allowBlank=True)
+	searchForm = common_forms.getSearchForm(auth, db, myVars, allowBlank=True)
 	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
 	else:
@@ -270,7 +270,7 @@ def _awaiting_articles(myVars):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
 
-	search = new_common.getSearchForm(auth, db, myVars)
+	search = common_forms.getSearchForm(auth, db, myVars)
 
 	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
 	

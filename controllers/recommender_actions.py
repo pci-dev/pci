@@ -85,7 +85,7 @@ def do_accept_new_article_to_recommend():
 		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId)))
 	else:
 		session.flash = T('Article no more available', lazy=False)
-		redirect('my_awaiting_articles')
+		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recommId)))
 
 
 ######################################################################################################################################################################

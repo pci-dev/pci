@@ -5,7 +5,7 @@ import re
 from gluon.custom_import import track_changes; track_changes(True) # reimport module if changed; disable in production
 #from app_modules.common import mkPanel
 from app_modules.helper import *
-from app_modules import new_common
+from app_modules import common_forms
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -179,7 +179,7 @@ def recommenders():
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
 	
-	searchForm = new_common.getSearchForm(auth, db, myVars)
+	searchForm = common_forms.getSearchForm(auth, db, myVars)
 	if searchForm.process(keepvalues=True).accepted:
 		response.flash = None
 	else:

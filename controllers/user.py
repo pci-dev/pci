@@ -10,7 +10,7 @@ from app_modules.helper import *
 
 from app_modules import user_module
 from app_modules import common_tools
-from app_modules import new_common
+from app_modules import common_forms
 
 # frequently used constants
 csv = False # no export allowed
@@ -159,7 +159,7 @@ def edit_my_article():
 
 	if form.process().accepted:
 		response.flash = T('Article saved', lazy=False)
-		redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+		redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
 	return dict(
@@ -360,7 +360,7 @@ def search_recommenders():
 				Field('excluded', type='boolean', label=T('Excluded')),
 			)
 		qyKwArr = qyKw.split(' ')
-		searchForm = new_common.getSearchForm(auth, db, myVars)
+		searchForm = common_forms.getSearchForm(auth, db, myVars)
 		if searchForm.process(keepvalues=True).accepted:
 			response.flash = None
 		else:
@@ -762,7 +762,7 @@ def edit_reply():
 	art = db.t_articles[recomm.article_id]
 	if not ((art.user_id == auth.user_id or auth.has_membership(role='manager')) and (art.status == 'Awaiting revision')):
 		session.flash = T('Unauthorized', lazy=False)
-		redirect('my_articles')
+		redirect(URL(c='user', f='my_articles'))
 	db.t_recommendations.reply_pdf.label=T('OR Upload your reply as PDF file')
 	form = SQLFORM(db.t_recommendations
 				,record=recommId
@@ -780,7 +780,7 @@ def edit_reply():
 			redirect(URL(c='user_actions', f='article_revised', vars=dict(articleId=art.id), user_signature=True))
 		else:
 			session.flash = T('Reply saved', lazy=False)
-			redirect(URL(f='recommendations', vars=dict(articleId=art.id), user_signature=True))
+			redirect(URL(c='user', f='recommendations', vars=dict(articleId=art.id), user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
 	return dict(

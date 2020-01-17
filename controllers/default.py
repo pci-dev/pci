@@ -85,7 +85,6 @@ def index():
 		return dict(
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
-			myTopPanel=mkTopPanel(myconf, auth),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
 			myBottomPanel=DIV(myPanel, _class='tweeterBottomPanel'),
@@ -96,7 +95,6 @@ def index():
 		return dict(
 			myTitle=getTitle(request, auth, db, '#HomeTitle'),
 			myText=getText(request, auth, db, '#HomeInfo'),
-			myTopPanel=mkTopPanel(myconf, auth),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
 			panel=DIV(myPanel, _class='tweeterPanel'),

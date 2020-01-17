@@ -4,6 +4,7 @@
 }
 
 .pci2-thematics-div {
+    animation: 0.5s fadeFormTop ease;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -11,6 +12,47 @@
     border-radius: 5px;
     padding: 5px 10px;
 }
+
+.pci2-panel-closed {
+    display: none;
+}
+
+.glyphicon-rotate {
+    animation: rotate180deg 0.4s ease forwards;
+}
+
+.glyphicon-rotate-reversed {
+    animation: rotate180degReversed 0.4s ease forwards;
+}
+
+.pci2-thematic-link-div {
+    display: flex;
+    flex-direction: row
+}
+
+.pci2-thematic-link {
+    width: 100%;
+    padding: 0 5px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    text-decoration: none !important;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-selec: none;
+    color: #29abe0;
+    cursor: pointer;
+}
+
+.pci2-thematic-link:hover {
+    color: #6ac9ee;
+}
+
+.pci2-thematic-link .glyphicon{
+    display: flex;
+    align-items: center;
+}
+
 
 .pci2-thematics-list {
     display: grid;
@@ -42,4 +84,215 @@
 .pci2-search-button {
     font-weight: bold;
     margin-left: 5px;
+}
+
+div.w2p_flash.alert {
+    animation: alertAppear 0.35s;
+    /* show in front of navbar */
+    z-index: 1001;
+    /* override w2p opacity: 0.9 !important */
+    opacity: 1 !important;
+
+    background-color: #3e3f3a;
+    border: 0px;
+    border-bottom: 4px solid #0977ad;
+    color: #eee;
+    font-weight: bold;
+
+    background-image: initial;
+    top: 75px;
+    right: 15px;
+    border-radius: 2.5px;
+    padding: 12px;
+}
+
+div.w2p_flash.alert.pci-warning-alert {
+    border-bottom: 4px solid #ffbb00;
+}
+
+div.w2p_flash.alert.custom-disappear {
+    animation: alertDisappear 0.5s forwards;
+}
+
+#pci-home-header {
+    animation: fadefromLeft 0.7s ease;
+}
+
+#pci-small-header {
+    animation: fadefromLeft 0.7s ease;
+    margin: 0 15px;
+    display: flex;
+    flex-direction: row;
+}
+
+#pci-small-header>a {
+    margin: 0 15px;
+}
+
+.pci-myTitleText-gab {
+    display: flex;
+    flex: 1;
+}
+
+.pci-myTitleText-gab>.pci-infotextbox {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.pci-myTitleText-gab .pci-text-buttons {
+    justify-content: flex-end;
+    /* align-content: flex-end; */
+    text-align: right;
+    display: flex;
+    flex-direction: row;
+    /* position: absolute; */
+    /* width: auto; */
+}
+
+/* .pci-text-title {
+	margin-bottom: 11px;
+} */
+
+.pci-text-title-neg-margin {
+    margin-bottom: 0px;
+}
+
+
+.main-container {
+    animation: animOpacity 1s ease;
+}
+
+.footer {
+    opacity: 0;
+    animation: animOpacity 0.7s ease 0.4s forwards;
+}
+
+.pci-lastArticles-div {
+    animation: fadeFormTop 0.7s ease;
+}
+
+.navbar-default .caret {
+    margin: 0 5px !important;
+}
+
+.navbar-collapse {
+    padding: 0 15px !important;
+}
+/* 
+.dropdown-toggle, .dropdown-toggle>span{
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.pci2-notif-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    height: 20px;
+    min-width: 20px;
+    border-radius: 10px;
+    padding-left: 5px;
+    padding-right: 7px;
+    margin-left: 5px;
+    
+    background: #b92929;
+    color: white;
+    line-height: 10px;
+    font-size: 10px;
+} */
+
+/* override boostrap margin to avoid scrollX when navbar has not a .container-fluid child */
+@media (min-width: 768px) {
+    .navbar-right {
+        margin-right: 0px;
+    }
+}
+
+@keyframes animOpacity {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeFormTop {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadefromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes alertAppear {
+    0% {
+        transform: translateX(300px);
+    }
+
+    80% {
+        transform: translateX(-20px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes alertDisappear {
+    0% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-20px);
+    }
+
+    100% {
+        transform: translateX(300px);
+    }
+}
+
+
+@keyframes rotate180deg {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-180deg);
+    }
+}
+
+@keyframes rotate180degReversed {
+    from {
+        transform: rotate(-180deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
 }

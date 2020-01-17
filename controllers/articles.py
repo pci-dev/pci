@@ -13,7 +13,7 @@ from lxml import etree
 
 from app_modules.common import *
 from app_modules.helper import *
-from app_modules import new_common
+from app_modules import common_forms
 
 myconf = AppConfig(reload=True)
 
@@ -67,7 +67,7 @@ def recommended_articles():
 			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
 
 
-	searchForm = new_common.getSearchForm(auth, db, myVars2)
+	searchForm = common_forms.getSearchForm(auth, db, myVars2)
 	
 	return dict(
 				grid=grid, 
