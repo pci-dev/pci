@@ -21,6 +21,8 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
+from app_modules import common_html_snippets
+
 myconf = AppConfig(reload=True)
 ######################################################################################################################################################################
 # End New common modules
@@ -122,7 +124,7 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 	if recomm is None: 
 		return None
 	
-	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
+	whoDidIt = getRecommAndReviewAuthors(auth, db, row, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
 	
 	img = []
 	if withDate:
@@ -426,7 +428,7 @@ def mkCloseButton():
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
+def getRecommAndReviewAuthors(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
 	whoDidIt = []
 	mainRecommenders = db(
 			(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id) & (db.t_recommendations.recommendation_state == 'Recommended')
@@ -1646,7 +1648,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 
 
 ######################################################################################################################################################################
-def mkUserCard(auth, db, userId, withMail=False):
+def mkUserCard(auth, db, response, userId, withMail=False):
 	user  = db.auth_user[userId]
 	if user:
 		name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
@@ -1698,7 +1700,9 @@ def mkUserCard(auth, db, userId, withMail=False):
 		nbRecomms = len(recommsQy)
 		recomms = []
 		for row in recommsQy:
-			recomms.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+			recomms.append(
+				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+			)
 		# reviews
 		reviews = []
 		reviewsQy = db(
@@ -1712,7 +1716,10 @@ def mkUserCard(auth, db, userId, withMail=False):
 				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
 		nbReviews = len(reviewsQy)
 		for row in reviewsQy:
-			reviews.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+			reviews.append(
+				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+			)
+			
 		resu = DIV(
 				H2(nameTitle),
 				DIV(
@@ -1724,12 +1731,19 @@ def mkUserCard(auth, db, userId, withMail=False):
 				cv,
 				DIV(
 					H2(current.T('%s %%{recommendation}', symbols=nbRecomms)),
-					TABLE(recomms, _class='pci-lastArticles-table'), 
+					DIV(
+						recomms, 
+						_class='pci2-articles-list'
+					),
 					H2(current.T('%s %%{review}', symbols=nbReviews)),
-					TABLE(reviews,_class='pci-lastArticles-table'),
+					DIV(
+						reviews, 
+						_class='pci2-articles-list'
+					),
 				),
-				#_style='margin-top:20px; margin-left:auto; margin-right:auto; max-width:60%;',
-				)
+					_class='pci2-flex-column pci2-flex-center'
+				
+			)
 	else:
 		resu = B(current.T('Unavailable'))
 	return resu
@@ -1894,7 +1908,7 @@ def mkRecommArticleRss(auth, db, row):
 		img = IMG(_alt='article picture', _src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style='padding:8px;')
 	else: img = None
 	link = URL(c='articles', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+	whoDidIt = getRecommAndReviewAuthors(auth, db, row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	desc = DIV()
 	article = DIV(CENTER( I(row.title), BR(), SPAN(row.authors), BR(), mkDOI(row.doi) ), _style='border:2px solid #cccccc; margin-bottom:8px; font-size:larger;')
 	desc.append(article)

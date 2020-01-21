@@ -21,88 +21,17 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
+from app_modules import common_small_html
+
+myconf = AppConfig(reload=True)
+
+
 ######################################################################################################################################################################
 # A Trier
-######################################################################################################################################################################
-# Builds the right-panel for home page
-
 
 ######################################################################################################################################################################
-def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=False, fullURL=False):
-	if fullURL:
-		scheme=myconf.take('alerts.scheme')
-		host=myconf.take('alerts.host')
-		port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	else:
-		scheme=False
-		host=False
-		port=False
-	resu = []
-	# Recommender name(s)
-	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	if recomm is None: 
-		return None
-	
-	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
-	
-	img = []
-	if withDate:
-		img += [DIV(SPAN(mkLastChange(row.last_status_change), _class='pci-lastArticles-date'), _class='pci-lastArticles-date-div')]
-	if withImg:
-		if (row.uploaded_picture is not None and row.uploaded_picture != ''):
-			img += [
-				IMG(
-					_alt='article picture', 
-					_src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture),
-					_class='pci-articlePicture'
-				)
-			]
-	#if row.already_published is False:
-		#img += [DIV(SPAN(current.T('PREPRINT'), _class='pci-preprintTagText'), _class='pci-preprintTag')]
-	resu.append(
-			TD( img, 
-				_class='pci-lastArticles-leftcell',
-				_onclick="window.open('%s')" % URL(c='articles', f='rec', vars=dict(id=row.id, reviews=True), scheme=scheme, host=host, port=port),
-			))
-
-	shortTxt = recomm.recommendation_comments or ''
-	if len(shortTxt)>500:
-		shortTxt = shortTxt[0:500] + '...'
-	
-	if row.authors and len(row.authors)>500:
-		authors = row.authors[:500]+'...'
-	else:
-		authors = row.authors or ''
-	resu.append(
-				TD(
-					SPAN(row.title, _style='font-weight: bold; font-size:18px;'), BR(),
-					SPAN(authors), BR(),
-					mkDOI(row.doi), P(),
-					DIV(
-						I(SPAN('Recommended by '), SPAN(whoDidIt), BR(),
-							SPAN((recomm.recommendation_title or 'Read...'), _target='blank', _style="font-size:16px;"),# color:green;"),
-						),
-						DIV(WIKI(shortTxt), _class='pci-shortTxt'),
-						A(current.T('More'), _target='blank', 
-							_href=URL(c='articles', f='rec', vars=dict(id=row.id, reviews=True), scheme=scheme, host=host, port=port),
-							_class='btn btn-success pci-public pci-smallBtn',
-						),
-						_style='margin-right: 10px; margin-left: 0px; padding-left:10px; border-left:1px solid #cccccc;',
-					),
-					_class='pci-lastArticles-cell',
-				),
-			)
-	
-	if withScore:
-			resu.append(TD(row.score or '', _class='pci-lastArticles-date'))
-	return TR(resu, _class='pci-lastArticles-row')
-
-
-
-
-
-######################################################################################################################################################################
-# Builds a html representation of an article
+# Builds a html representation of an article 
+# (gab) only used on manager/manage_recommendation (move in view)
 def mkRepresentArticle(auth, db, articleId):
 	resu = ''
 	if articleId:
@@ -130,35 +59,37 @@ def mkRepresentArticle(auth, db, articleId):
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITH recommendations link
-def mkArticleCell(auth, db, art):
-	anchor = ''
-	if art:
-		# Recommender name(s)
-		recomm = db( (db.t_recommendations.article_id==art.id) ).select(orderby=db.t_recommendations.id).last()
-		if recomm is not None and recomm.recommender_id is not None:
-			whowhen = [SPAN(current.T('See recommendation by '), mkUser(auth, db, recomm.recommender_id))]
-			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
-			if len(contrQy) > 0:
-				whowhen.append(SPAN(current.T(' with ')))
-			for ic in range(0, len(contrQy)):
-				whowhen.append(mkUser(auth, db, contrQy[ic].contributor_id))
-				if ic < len(contrQy)-1:
-					whowhen.append(', ')
-		else:
-			whowhen = [SPAN(current.T('See recommendation'))]
-		anchor = DIV(
-					B(art.title),
-					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-					mkDOI(art.doi),
-					SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else '',
-					(BR()+SPAN(art.article_source) if art.article_source else ''),
-					A(whowhen, 
-								_href=URL(c='articles', f='rec', vars=dict(id=art.id)),
-								_target='blank',
-								_style="color:green;margin-left:12px;",
-						),
-				)
-	return anchor
+# # (gab) unused ?
+
+# def mkArticleCell(auth, db, art):
+# 	anchor = ''
+# 	if art:
+# 		# Recommender name(s)
+# 		recomm = db( (db.t_recommendations.article_id==art.id) ).select(orderby=db.t_recommendations.id).last()
+# 		if recomm is not None and recomm.recommender_id is not None:
+# 			whowhen = [SPAN(current.T('See recommendation by '), mkUser(auth, db, recomm.recommender_id))]
+# 			contrQy = db( (db.t_press_reviews.recommendation_id==recomm.id) ).select(orderby=db.t_press_reviews.id)
+# 			if len(contrQy) > 0:
+# 				whowhen.append(SPAN(current.T(' with ')))
+# 			for ic in range(0, len(contrQy)):
+# 				whowhen.append(mkUser(auth, db, contrQy[ic].contributor_id))
+# 				if ic < len(contrQy)-1:
+# 					whowhen.append(', ')
+# 		else:
+# 			whowhen = [SPAN(current.T('See recommendation'))]
+# 		anchor = DIV(
+# 					B(art.title),
+# 					DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+# 					mkDOI(art.doi),
+# 					SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else '',
+# 					(BR()+SPAN(art.article_source) if art.article_source else ''),
+# 					A(whowhen, 
+# 								_href=URL(c='articles', f='rec', vars=dict(id=art.id)),
+# 								_target='blank',
+# 								_style="color:green;margin-left:12px;",
+# 						),
+# 				)
+# 	return anchor
 
 
 ######################################################################################################################################################################
@@ -218,7 +149,7 @@ def mkRepresentRecommendationLight(auth, db, recommId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
+def getRecommAndReviewAuthors(auth, db, article, with_reviewers=False, linked=False, host=False, port=False, scheme=False):
 	whoDidIt = []
 	mainRecommenders = db(
 			(db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommender_id == db.auth_user.id) & (db.t_recommendations.recommendation_state == 'Recommended')
@@ -232,7 +163,7 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 		ir=0
 		for theUser in allRecommenders:
 			ir += 1
-			whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+			whoDidIt.append(common_small_html.mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 			if ir == nr-1 and ir>=1:
 				whoDidIt.append(current.T(' and '))
 			elif ir < nr:
@@ -256,7 +187,7 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 		ir = 0
 		for theUser in allRecommenders:
 			ir += 1
-			whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+			whoDidIt.append(common_small_html.mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
 			if ir == nr-1 and ir >= 1:
 				whoDidIt.append(current.T(' and '))
 			elif ir < nr:
@@ -269,7 +200,7 @@ def mkWhoDidIt4Article(auth, db, article, with_reviewers=False, linked=False, ho
 		iw = 0
 		for theUser in namedReviewers:
 			iw += 1
-			whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+			whoDidIt.append(common_small_html.mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
 			if iw == nw+na1-1 and iw >= 1:
 				whoDidIt.append(current.T(' and '))
 			elif iw < nw+na1:
@@ -379,7 +310,7 @@ def mkFeaturedRecommendation(auth, db, art, printable=False, with_reviews=False,
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
-		port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+		port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	else:
 		scheme=False
 		host=False
@@ -1181,7 +1112,9 @@ def mkUserCard(auth, db, userId, withMail=False):
 		nbRecomms = len(recommsQy)
 		recomms = []
 		for row in recommsQy:
-			recomms.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+			recomms.append(
+				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+			)
 		# reviews
 		reviews = []
 		reviewsQy = db(
@@ -1195,7 +1128,9 @@ def mkUserCard(auth, db, userId, withMail=False):
 				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
 		nbReviews = len(reviewsQy)
 		for row in reviewsQy:
-			reviews.append(mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=True, fullURL=False))
+			reviews.append(
+				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+			)
 		resu = DIV(
 				H2(nameTitle),
 				DIV(
@@ -1289,7 +1224,7 @@ def mkReviewsSubTable(auth, db, recomm):
 def mkRecommArticleRss(auth, db, row):
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
 		return None
@@ -1297,7 +1232,7 @@ def mkRecommArticleRss(auth, db, row):
 		img = IMG(_alt='article picture', _src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style='padding:8px;')
 	else: img = None
 	link = URL(c='articles', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-	whoDidIt = mkWhoDidIt4Article(auth, db, row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+	whoDidIt = getRecommAndReviewAuthors(auth, db, row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	desc = DIV()
 	article = DIV(CENTER( I(row.title), BR(), SPAN(row.authors), BR(), mkDOI(row.doi) ), _style='border:2px solid #cccccc; margin-bottom:8px; font-size:larger;')
 	desc.append(article)
@@ -1419,7 +1354,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 	#</link>
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	recomm = db( (db.t_recommendations.article_id==row.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
 		return None
@@ -1487,7 +1422,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 def mkRecommCitation(auth, db, myRecomm):
 	#scheme=myconf.take('alerts.scheme')
 	#host=myconf.take('alerts.host')
-	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	applongname=myconf.take('app.longname')
 	citeNum = ''
 	doi = ''
@@ -1515,7 +1450,7 @@ def mkArticleCitation(auth, db, myRecomm):
 	
 	#scheme=myconf.take('alerts.scheme')
 	#host=myconf.take('alerts.host')
-	#port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	#port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	applongname=myconf.take('app.longname')
 	
 	if myRecomm is None or not hasattr(myRecomm, 'article_id'):
@@ -1540,7 +1475,7 @@ def mkArticleCitation(auth, db, myRecomm):
 def mkTrackRow(auth, db, myArticle):
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	applongname=myconf.take('app.longname')
 	trackR = track = None
 	nbReviews = db( (db.t_recommendations.article_id == myArticle.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs('Under consideration', 'Completed')) ).count(distinct=db.t_reviews.id)
@@ -1596,7 +1531,7 @@ def mkTrackRow(auth, db, myArticle):
 def reviewsOfCancelled(auth, db, art):
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 	applongname=myconf.take('app.longname')
 	track = None
 	printable = False

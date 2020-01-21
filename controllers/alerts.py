@@ -13,21 +13,13 @@ from time import sleep
 #import socket
 #host=socket.getfqdn()
 from gluon.contrib.appconfig import AppConfig
-myconf = AppConfig(reload=True)
 
+from app_modules import common_html_snippets
+
+myconf = AppConfig(reload=True)
 mail_layout = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
 
 #auth.settings.allow_basic_login = True
-
-
-def _mkArticleRowForEmail(row, odd):
-	resu = mkRecommArticleRow(auth, db, row, withImg=False, withScore=False, withDate=True, fullURL=True)
-	if odd:
-		return TR(resu)
-	else:
-		return TR(resu, _style='background-color:#f7f7f7;')
-		
-
 
 
 # dummy tests
@@ -92,7 +84,10 @@ def testUserRecommendedAlert():
 						myRows = []
 						odd = True
 						for row in query:
-							myRows.append(_mkArticleRowForEmail(Storage(row), odd))
+							myRows.append(
+								common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
+							)
+
 							odd = not(odd)
 						msgContents = DIV(
 									TABLE(
@@ -102,6 +97,7 @@ def testUserRecommendedAlert():
 									)
 						if len(myRows)>0:
 							alert_new_recommendations(session, auth, db, userId, msgContents)
+							# (gab) ArticleRowCard need mail template styles
 				
 			redirect(request.env.http_referer)
 		else:
@@ -137,16 +133,19 @@ def alertUsersLastRecommendations():
 					myRows = []
 					odd = True
 					for row in query:
-						myRows.append(_mkArticleRowForEmail(Storage(row), odd))
+						myRows.append(
+							common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
+						)
 						odd = not(odd)
 					msgContents = DIV(
-								TABLE(
-									TBODY(myRows), 
-									_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
+									DIV(
+										myRows, 
+										_style='width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;'
 									), 
 								)
 					if len(myRows)>0:
 						alert_new_recommendations(session, auth, db, userId, msgContents)
+						# (gab) ArticleRowCard need mail template styles
 						user.last_alert = datetime.now()
 						user.update_record()
 						db.commit()

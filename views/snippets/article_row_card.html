@@ -1,0 +1,32 @@
+<div 
+  class="pci2-flex-row pci2-article-row" 
+>
+  <div class="pci2-flex-column  pci2-article-left-div">
+    <i>{{=articleDate}}</i>
+    <div class="pci2-flex-center pci2-flex-grow pci2-article-image-div" onclick="window.open('{{=articleUrl}}')">
+      {{=articleImg}}
+    </div>
+    {{if isAlreadyPublished:}}
+    <div class="pci-preprintTag">
+      <span class="pci-preprintTagText">{{=T('PREPRINT')}}</span>
+    </div>
+    {{pass}}
+  </div>
+  <div class="pci2-flex-column ">
+    <div class="pci2-flex-column">
+        <h3>{{=articleTitle}}</h3>
+        <span class="pci2-article-infos">{{=articleAuthor}}</span>
+        <span class="pci2-article-infos">{{=articleDoi}}</span>
+    </div>
+    <div class="pci2-flex-column pci2-article-recommendation-div">
+        <i>{{=T('Recommended by ')}} {{=recommendationAuthors}}</i>
+        <h4>{{=recommendationTitle}}</h4>
+        <span>{{=recommendationShortText}}</span>
+        <div>
+          <a  href="{{=articleUrl}}" target="_blank" class="btn btn-success pci-public pci-smallBtn">
+            {{=current.T('More')}}
+          </a>
+        </div>
+    </div>
+  </div>
+</div>

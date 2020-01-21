@@ -155,9 +155,10 @@ header {
 
 /* body{font-family: FS Albert Web Regular,Arial,sans-serif;} */
 
-#pci-home-header {
+/* (gab) removed to center image in a col-md-9 div (because of tweeter div)  */
+/* #pci-home-header {
 	width: 100%;
-}
+} */
 
 #pci-home-header img {
 	width: calc(100% - 450px);
@@ -683,10 +684,14 @@ header {
 	padding: 4px;
 	/* border: 1px solid #eeeeee; */
 	border-radius: 8px;
-	max-width: 30cm;
+	max-width: 1200px;
 	min-height: 70vh;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+#lastRecommendationsDiv h3 {
+	margin-top:0;
 }
 
 #lastRecommendationsDiv>form>h3 {
@@ -698,7 +703,7 @@ header {
 	padding: 4px;
 	/* border: 1px solid #eeeeee; */
 	border-radius: 8px;
-	max-width: 30cm;
+	max-width: 1200px;
 	margin-left: auto;
 	margin-right: auto;
 }

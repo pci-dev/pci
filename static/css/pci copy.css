@@ -163,10 +163,6 @@ header {
 
 /* body{font-family: FS Albert Web Regular,Arial,sans-serif;} */
 
-#pci-home-header {
-	width: 100%;
-}
-
 #pci-home-header img {
 	width: calc(100% - 450px);
 	min-width: 300px;

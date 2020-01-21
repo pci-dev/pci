@@ -395,7 +395,7 @@ def recommBibtex(articleId):
 	title = latex_escape(lastRecomm.recommendation_title)
 	doi = latex_escape(lastRecomm.doi)
 	applongname = latex_escape(myconf.take('app.description'))
-	whoDidIt = latex_escape(SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
+	whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
 	year = art.last_status_change.year
 	pat = re.search('\\.(?P<num>\d+)$', doi)
 	if pat:
@@ -570,7 +570,7 @@ dashed=false
 	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_blue.png'))
 	title = art.title
 	authors = art.authors
-	whoDidIt = latex_escape(SPAN(mkWhoDidIt4Article(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
+	whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
 	reviewers = ""
 	doi = art.doi
 	doiLink = mkLinkDOI(art.doi)

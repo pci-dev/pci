@@ -60,7 +60,7 @@ def viewUserCard():
 				#redirect(request.env.http_referer)
 				myContents = B(T('Unavailable'))
 			else:
-				myContents = mkUserCard(auth, db, userId, withMail=False)
+				myContents = mkUserCard(auth, db, response, userId, withMail=False)
 		else:
 			#session.flash = T('Unavailable')
 			#redirect(request.env.http_referer)

@@ -14,6 +14,7 @@ from lxml import etree
 from app_modules.common import *
 from app_modules.helper import *
 from app_modules import common_forms
+from app_modules import common_html_snippets
 
 myconf = AppConfig(reload=True)
 
@@ -54,17 +55,20 @@ def recommended_articles():
 	totalArticles = len(filtered)
 	myRows = []
 	for row in filtered:
-		r = mkRecommArticleRow(auth, db, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 			
-	grid = DIV(DIV(
-				DIV(T('%s articles found')%(totalArticles), _class='pci-nResults'),
-				TABLE(
-					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
-					TBODY(myRows),
-				_class='web2py_grid pci-lastArticles-table'), 
-			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
+	grid = DIV(
+				DIV(
+					DIV(T('%s articles found')%(totalArticles), _class='pci-nResults'),
+					DIV(
+						myRows, 
+						_class='pci2-articles-list'
+					), 
+					_class='pci-lastArticles-div'
+				), 
+			_class='searchRecommendationsDiv')
 
 
 	searchForm = common_forms.getSearchForm(auth, db, myVars2)
@@ -87,17 +91,21 @@ def all_recommended_articles():
 	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
 	myRows = []
 	for row in allR:
-		r = mkRecommArticleRow(auth, db, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 	n = len(allR)
-	grid = DIV(DIV(
+
+	grid = DIV(
+			DIV(
 				DIV(T('%s articles found')%(n), _class='pci-nResults'),
-				TABLE(
-					#THEAD(TR(TH(T('Score')), TH(T('Recommendation')), TH(T('Article')), _class='pci-lastArticles-row')),
-					TBODY(myRows),
-				_class='web2py_grid pci-lastArticles-table'), 
-			_class='pci-lastArticles-div'), _class='searchRecommendationsDiv')
+				DIV(
+					myRows, 
+					_class='pci2-articles-list'
+				), 
+				_class='pci-lastArticles-div'
+			), 
+			_class='searchRecommendationsDiv')
 	return dict(
 				grid=grid, 
 				#searchForm=searchForm, 
@@ -385,7 +393,7 @@ def last_recomms():
 			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
 	myRows = []
 	for row in query:
-		r = mkRecommArticleRow(auth, db, row, withDate=True)
+		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
 		if r:
 			myRows.append(r)
 	
@@ -397,9 +405,9 @@ def last_recomms():
 	else:
 		moreState = ''
 	return DIV(
-			TABLE(
-				TBODY(myRows), 
-				_class='web2py_grid pci-lastArticles-table'), 
+			DIV(
+				myRows, 
+				_class='pci2-articles-list'), 
 			DIV(
 				A(current.T('More...'), _id='moreLatestBtn',
 					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
