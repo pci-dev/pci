@@ -65,7 +65,7 @@ def new_submission():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
-	response.view='default/list_layout.html'
+	response.view='default/gab_list_layout.html'
 
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
@@ -232,7 +232,7 @@ def my_awaiting_articles():
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role='recommender'))
 def _awaiting_articles(myVars):
-	response.view='default/list_layout.html'
+	response.view='default/gab_list_layout.html'
 
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')

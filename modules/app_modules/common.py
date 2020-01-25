@@ -21,7 +21,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-from app_modules import common_html_snippets
+import common_html_snippets
 
 myconf = AppConfig(reload=True)
 ######################################################################################################################################################################

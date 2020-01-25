@@ -162,7 +162,7 @@ def resources():
 
 ######################################################################################################################################################################
 def recommenders():
-	response.view='default/list_layout.html'
+	response.view='default/gab_list_layout.html'
 
 	myVars = request.vars
 	qyKw = ''

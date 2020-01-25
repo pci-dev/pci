@@ -21,7 +21,8 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-from app_modules import common_small_html
+import common_small_html
+import common_html_snippets
 
 myconf = AppConfig(reload=True)
 
@@ -1057,100 +1058,6 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 	return TR(resu, _class='pci-UsersTable-row')
 
 
-
-# (gab) need to replace by a view
-######################################################################################################################################################################
-def mkUserCard(auth, db, userId, withMail=False):
-	user  = db.auth_user[userId]
-	if user:
-		name  = LI(B( (user.last_name or '').upper(), ' ', (user.first_name or '') ))
-		nameTitle  = (user.last_name or '').upper(), ' ', (user.first_name or '')
-		addr  = LI(I( (user.laboratory or ''), ', ', (user.institution or ''), ', ', (user.city or ''), ', ', (user.country or '') ))
-		thema = LI(', '.join(user.thematics))
-		mail  = LI(A(' [%s]' % user.email, _href='mailto:%s' % user.email) if withMail else '')
-		if (user.uploaded_picture is not None and user.uploaded_picture != ''):
-			img = IMG(_alt='avatar', _src=URL('default', 'download', args=user.uploaded_picture), _class='pci-userPicture', _style='float:left;')
-		else:
-			img = IMG(_alt='avatar', _src=URL(c='static',f='images/default_user.png'), _class='pci-userPicture', _style='float:left;')
-		if (user.cv or '') != '':
-			cv = DIV(WIKI(user.cv or ''), _class='pci-bigtext margin', _style='border: 1px solid #f0f0f0;')
-		else:
-			cv = ''
-		rolesQy = db( (db.auth_membership.user_id==userId) & (db.auth_membership.group_id==db.auth_group.id) ).select(db.auth_group.role)
-		rolesList = []
-		for roleRow in rolesQy:
-			rolesList.append(roleRow.role)
-		roles = LI(B(', '.join(rolesList)))
-		# recommendations ## Patch SP 2020-01-06
-		recommsQy0sql = """
-			SELECT t_articles.id
-			FROM t_articles
-			JOIN t_recommendations ON (
-				t_recommendations.article_id = t_articles.id
-				AND t_recommendations.recommendation_state = 'Recommended'
-				AND t_recommendations.id IN (
-					SELECT DISTINCT recommendation_id FROM t_press_reviews WHERE t_press_reviews.contributor_id = %(userId)s
-					UNION
-					SELECT id FROM t_recommendations WHERE recommender_id = %(userId)s
-				)
-			)
-			WHERE t_articles.status = 'Recommended'
-			ORDER BY t_articles.last_status_change DESC
-		""" % locals()
-		recommsQy0 = []
-		for t in db.executesql(recommsQy0sql):
-			recommsQy0.append(t[0])
-		#recommsQy = db( 
-					#(
-						#(db.t_recommendations.recommender_id == userId) | ( (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_press_reviews.contributor_id == userId) )
-					#)
-					#& (db.t_recommendations.recommendation_state == 'Recommended')
-					#& (db.t_recommendations.article_id == db.t_articles.id)
-					#& (db.t_articles.status == 'Recommended')
-				#).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
-		recommsQy = db(db.t_articles.id.belongs(recommsQy0) ).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
-		nbRecomms = len(recommsQy)
-		recomms = []
-		for row in recommsQy:
-			recomms.append(
-				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
-			)
-		# reviews
-		reviews = []
-		reviewsQy = db(
-					(db.t_reviews.reviewer_id == userId)
-					& ~(db.t_reviews.anonymously == True)
-					& (db.t_reviews.review_state == 'Completed')
-					& (db.t_reviews.recommendation_id == db.t_recommendations.id)
-					#& (db.t_recommendations.recommendation_state == 'Recommended')
-					& (db.t_recommendations.article_id == db.t_articles.id)
-					& (db.t_articles.status == 'Recommended')
-				).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change)
-		nbReviews = len(reviewsQy)
-		for row in reviewsQy:
-			reviews.append(
-				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
-			)
-		resu = DIV(
-				H2(nameTitle),
-				DIV(
-					img,
-					DIV(
-						UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles), 
-						_style='margin-left:120px; margin-bottom:24px; min-height:120px;'),
-				),
-				cv,
-				DIV(
-					H2(current.T('%s %%{recommendation}', symbols=nbRecomms)),
-					TABLE(recomms, _class='pci-lastArticles-table'), 
-					H2(current.T('%s %%{review}', symbols=nbReviews)),
-					TABLE(reviews,_class='pci-lastArticles-table'),
-				),
-				#_style='margin-top:20px; margin-left:auto; margin-right:auto; max-width:60%;',
-				)
-	else:
-		resu = B(current.T('Unavailable'))
-	return resu
 
 
 

@@ -28,7 +28,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 ######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
-	response.view='default/list_layout.html'
+	response.view='default/gab_list_layout.html'
 
 	myVars = request.vars
 	qyKwArr = []

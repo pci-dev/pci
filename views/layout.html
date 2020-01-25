@@ -123,7 +123,13 @@
         <img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo">
       </a>
      
-    	<div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
+      {{if 'uneditableTitle' in locals():}}
+        <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
+          {{=H1(myTitle, _style="margin: 0")}}
+        </div>
+      {{else:}}
+        <div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
+      {{pass}}
     </div>      
     {{pass}}
 

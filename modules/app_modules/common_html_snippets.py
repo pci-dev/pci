@@ -21,8 +21,9 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-from app_modules import common_small_html
-from app_modules import common_html
+import common_small_html
+import common_html
+import common_tools
 
 myconf = AppConfig(reload=True)
 
@@ -44,7 +45,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
 		host=False
 		port=False
 
-	# Recommender name(s)
+	# Get Recommendation
 	recomm = db( (db.t_recommendations.article_id==article.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if recomm is None: 
 		return None
@@ -63,15 +64,11 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
 					_class='pci-articlePicture'
 				)
 		
-	recommShortText = recomm.recommendation_comments or ''
-	if len(recommShortText)>500:
-		recommShortText = recommShortText[0:500] + '...'
+	recommShortText = common_tools.getShortText(recomm.recommendation_comments, 500) or ''
 	
-	if article.authors and len(article.authors)>500:
-		authors = article.authors[:500]+'...'
-	else:
-		authors = article.authors or ''
+	authors = common_tools.getShortText(article.authors, 500) or ''
 	
+	# (gab) Where do i need to place this ?
 	# if withScore:
 	# 		resu.append(TD(row.score or '', _class='pci-lastArticles-date'))
 	

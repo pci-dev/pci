@@ -1,3 +1,7 @@
+.pci2-full-width {
+    width: 100%;
+}
+
 .pci2-flex-row {
     display: flex;
     flex-direction: row;
@@ -14,7 +18,29 @@
     align-items: center;
 }
 
+.pci2-align-items-start {
+    align-items: flex-start;
+}
+
 .pci2-flex-grow {
     display: flex;
     flex-grow: 1;
+}
+
+.pci2-show-under-tablet {
+    display: none;
+}
+
+@media screen and (max-width: 960px) {
+    .pci2-column-under-tablet {
+        flex-direction: column;
+    }
+
+    .pci2-show-under-tablet {
+        display: flex;
+    }
+
+    .pci2-hide-under-tablet {
+        display: none;
+    }
 }

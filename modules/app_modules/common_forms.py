@@ -47,7 +47,7 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
   		),
 		DIV(
 			A(
-				SPAN(current.T('Search in thematic fields'), _style="flex:1"),
+				SPAN(current.T('Filter by thematic fields'), _class='pci2-flex-grow'),
 				I('',_class='glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate'),
 				_class='pci2-thematic-link',
 				_onclick='''
