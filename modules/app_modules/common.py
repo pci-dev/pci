@@ -21,7 +21,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-import common_html_snippets
+import common_snippets
 
 myconf = AppConfig(reload=True)
 ######################################################################################################################################################################
@@ -1701,7 +1701,7 @@ def mkUserCard(auth, db, response, userId, withMail=False):
 		recomms = []
 		for row in recommsQy:
 			recomms.append(
-				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+				common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
 			)
 		# reviews
 		reviews = []
@@ -1717,7 +1717,7 @@ def mkUserCard(auth, db, response, userId, withMail=False):
 		nbReviews = len(reviewsQy)
 		for row in reviewsQy:
 			reviews.append(
-				common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+				common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
 			)
 			
 		resu = DIV(

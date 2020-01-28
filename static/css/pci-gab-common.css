@@ -18,8 +18,16 @@
     align-items: center;
 }
 
-.pci2-align-items-start {
+.pci2-align-items-start{ 
     align-items: flex-start;
+}
+
+.pci2-align-items-end{ 
+    align-items: flex-end;
+}
+
+.pci2-justify-center {
+    justify-content: center;
 }
 
 .pci2-flex-grow {
@@ -42,5 +50,16 @@
 
     .pci2-hide-under-tablet {
         display: none;
+    }
+
+    .pci2-center-under-tablet {
+        justify-content: center;
+        display: flex;
+        align-items: center;
+    }
+
+    .pci2-align-items-center-under-tablet{
+        justify-content: center;
+        align-items: center;
     }
 }

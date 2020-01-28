@@ -12,7 +12,7 @@ from app_modules import user_module
 from app_modules import common_tools
 from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_html_snippets
+from app_modules import common_snippets
 
 
 # frequently used constants
@@ -117,7 +117,7 @@ def viewUserCard():
 					recomms = []
 					for row in recommsQy:
 						recomms.append(
-							common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+							common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
 						)
 			
 					# reviews
@@ -135,7 +135,7 @@ def viewUserCard():
 					nbReviews = len(reviewsQy)
 					for row in reviewsQy:
 						reviews.append(
-							common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
+							common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False)
 						)
 					
 					resu = dict(

@@ -10,26 +10,11 @@
 
 {{if 'userName' in locals():}}
   <div
-    class="pci2-flex-row  pci2-column-under-tablet pci2-align-items-start"
+    class="pci2-flex-row pci2-column-under-tablet pci2-align-items-start"
   >
     <div class="pci2-flex-center pci2-show-under-tablet pci2-full-width">
       <div class="pci2-flex-column pci2-flex-center">
-        <div>
-          {{=userAvatar}}
-        </div>
-        {{=H2(userName, _class="pci2-main-color-text text-center")}}
-        <div class="pci2-full-width">
-          {{=userInfosList}}
-        </div>
-        <div class="pci2-user-stats-div">
-          <h3>{{=totalUserRecommendations}}</h3>
-          <h3>{{=totalUserReviews}}</h3>
-        </div>
-        {{if len(userCv) > 0:}} 
-          <div class="pci2-user-cv-div">
-            {{=DIV((userCv), _class='pci2-user-cv')}}
-          </div>
-        {{pass}}
+          {{include 'snippets/user_infos.html'}}
       </div>
     </div>
 
@@ -43,7 +28,7 @@
       {{pass}}
       <!-- Reviews -->
       {{if len(reviewsList) > 0:}}
-      <div>
+      <div class="pci2-article-list-titled">
         <h2>{{=totalUserReviews}}</h2>
         <div>{{=reviewsList}}</div>
       </div>
@@ -53,22 +38,7 @@
 
     <!-- (gab) REPEATED -->
     <div class="pci2-flex-column pci2-flex-center pci2-hide-under-tablet pci2-user-infos-right-div">
-      <div>
-        {{=userAvatar}}
-      </div>
-      {{=H2(userName, _class="pci2-main-color-text text-center")}}
-      <div class="pci2-full-width">
-        {{=userInfosList}}
-      </div>
-      <div class="pci2-user-stats-div">
-        <h3>{{=totalUserRecommendations}}</h3>
-        <h3>{{=totalUserReviews}}</h3>
-      </div>
-      {{if len(userCv) > 0:}} 
-        <div class="pci2-user-cv-div">
-          {{=DIV((userCv), _class='pci2-user-cv')}}
-        </div>
-      {{pass}}
+      {{include 'snippets/user_infos.html'}}
     </div>
   </div>  
 {{pass}}

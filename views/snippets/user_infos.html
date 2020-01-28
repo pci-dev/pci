@@ -1,0 +1,20 @@
+<div>
+  {{=userAvatar}}
+</div>
+
+{{=H2(userName, _class="pci2-main-color-text text-center")}}
+
+<div class="pci2-full-width">
+  {{=userInfosList}}
+</div>
+
+<div class="pci2-user-stats-div">
+  <h3>{{=totalUserRecommendations}}</h3>
+  <h3>{{=totalUserReviews}}</h3>
+</div>
+
+{{if len(userCv) > 0:}}
+  <div class="pci2-user-cv-div">
+    {{=DIV((userCv), _class='pci2-user-cv')}}
+  </div>
+{{pass}}

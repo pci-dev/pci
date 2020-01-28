@@ -14,7 +14,7 @@ from lxml import etree
 from app_modules.common import *
 from app_modules.helper import *
 from app_modules import common_forms
-from app_modules import common_html_snippets
+from app_modules import common_snippets
 
 myconf = AppConfig(reload=True)
 
@@ -55,7 +55,7 @@ def recommended_articles():
 	totalArticles = len(filtered)
 	myRows = []
 	for row in filtered:
-		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 			
@@ -91,7 +91,7 @@ def all_recommended_articles():
 	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
 	myRows = []
 	for row in allR:
-		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 	n = len(allR)
@@ -294,28 +294,31 @@ def rec_printable():
 
 ######################################################################################################################################################################
 def tracking():
-	response.view='default/myLayout.html'
+	response.view='default/gab_list_layout.html'
 
 	tracking = myconf.get('config.tracking', default=False)
 	if tracking is False:
 		session.flash = T('Unavailable')
 		redirect(redirect(request.env.http_referer))
 	else:
-		myContents = TABLE(_class='web2py_grid pci-tracking pci-lastArticles-table') # 
+		article_list = DIV(_class='pci2-articles-list') 
 		
-		query = db(db.t_articles.already_published==False).select(orderby=~db.t_articles.last_status_change)
+		query_already_published_articles = db(db.t_articles.already_published==False).select(orderby=~db.t_articles.last_status_change)
 		
-		for myArticle in query:
-			tr = mkTrackRow(auth, db, myArticle)
-			if tr:
-				myContents.append(TR(tr, _class='pci-lastArticles-row'))
+		for article in query_already_published_articles:
+			article_html_card = common_snippets.getArticleTrackcRowCard(auth, db, response, article)
+			if article_html_card:
+				article_list.append(article_html_card)
 		
 		resu = dict(
 			myHelp=getHelp(request, auth, db, '#Tracking'),
 			myTitle=getTitle(request, auth, db, '#TrackingTitle'),
 			myText=getText(request, auth, db, '#TrackingText'),
-			grid = myContents
+			grid = DIV(
+					article_list,
+					_class='pci2-flex-center'
 				)
+		)
 		return resu
 
 
@@ -375,7 +378,7 @@ def last_recomms():
 	myVarsNext = copy.deepcopy(myVars)
 	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
 
-	query = None
+	queryRecommendedArticles = None
 	#if 'qyThemaSelect' in request.vars:
 		#thema = request.vars['qyThemaSelect']
 		#if thema and len(thema)>0:
@@ -385,29 +388,52 @@ def last_recomms():
 				  #& (db.t_recommendations.recommendation_state=='Recommended')
 				  #& (db.t_articles.thematics.contains(thema)) 
 				#).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	if query is None:
-		query = db( 
-					(db.t_articles.status=='Recommended') 
-				  & (db.t_recommendations.article_id==db.t_articles.id) 
-				  & (db.t_recommendations.recommendation_state=='Recommended')
-			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	myRows = []
-	for row in query:
-		r = common_html_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+	if queryRecommendedArticles is None:
+		queryRecommendedArticles = db( 
+			(db.t_articles.status=='Recommended') 
+		  	& (db.t_recommendations.article_id==db.t_articles.id) 
+		  	& (db.t_recommendations.recommendation_state=='Recommended')
+		).iterselect(
+			db.t_articles.id, 
+			db.t_articles.title, 
+			db.t_articles.authors, 
+			db.t_articles.article_source, 
+			db.t_articles.doi, 
+			db.t_articles.picture_rights_ok, 
+			db.t_articles.uploaded_picture, 
+			db.t_articles.abstract, 
+			db.t_articles.upload_timestamp, 
+			db.t_articles.user_id, 
+			db.t_articles.status, 
+			db.t_articles.last_status_change, 
+			db.t_articles.thematics, 
+			db.t_articles.keywords, 
+			db.t_articles.already_published, 
+			db.t_articles.i_am_an_author, 
+			db.t_articles.is_not_reviewed_elsewhere, 
+			db.t_articles.auto_nb_recommendations, 
+			limitby=(0, maxArticles), 
+			orderby=~db.t_articles.last_status_change
+		)
+
+	recommendedArticlesList = []
+	for row in queryRecommendedArticles:
+		r = common_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
 		if r:
-			myRows.append(r)
+			recommendedArticlesList.append(r)
 	
-	if len(myRows) == 0:
+	if len(recommendedArticlesList) == 0:
 		return DIV(I(T('Coming soon...')))
 	
-	if len(myRows) < maxArticles:
+	if len(recommendedArticlesList) < maxArticles:
 		moreState = ' disabled'
 	else:
 		moreState = ''
 	return DIV(
 			DIV(
-				myRows, 
-				_class='pci2-articles-list'), 
+				recommendedArticlesList, 
+				_class='pci2-articles-list'
+			), 
 			DIV(
 				A(current.T('More...'), _id='moreLatestBtn',
 					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),

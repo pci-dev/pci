@@ -22,7 +22,7 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 
 import common_small_html
-import common_html_snippets
+import common_snippets
 
 myconf = AppConfig(reload=True)
 
@@ -1375,62 +1375,6 @@ def mkArticleCitation(auth, db, myRecomm):
 			' DOI: ', mkDOI(art.doi)
 		)
 		return citeArticle
-
-
-######################################################################################################################################################################
-# Tracking of submissions / reviews for CNeuro
-def mkTrackRow(auth, db, myArticle):
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
-	applongname=myconf.take('app.longname')
-	trackR = track = None
-	nbReviews = db( (db.t_recommendations.article_id == myArticle.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs('Under consideration', 'Completed')) ).count(distinct=db.t_reviews.id)
-	if nbReviews > 0 :
-		track = DIV(_class='pci-trackItem')
-		lastRecomm = db( (db.t_recommendations.article_id == myArticle.id) ).select(orderby=db.t_recommendations.id).last()
-		link = mkDOI(myArticle.doi)
-		firstDate = myArticle.upload_timestamp.strftime('%Y-%m-%d')
-		lastDate = myArticle.last_status_change.strftime('%Y-%m-%d')
-		title = myArticle.title
-		if (myArticle.anonymous_submission):
-			authors = '[anonymous submission]'
-		else:
-			authors = myArticle.authors
-		
-		# pci-status
-		if myArticle.status == 'Recommended':
-			#txt = DIV(SPAN(current.T(' is')), SPAN(current.T('RECOMMENDED'), _class='pci-trackStatus success'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('articles', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
-			txt = DIV(
-					SPAN(current.T(' was')), 
-					SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'),
-					SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'),
-					'. ', 
-					A('See recommendation and reviews', _href=
-						URL('articles', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success'))
-					)
-			
-		#elif myArticle.status == 'Rejected':
-			#txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, ')'))
-			
-		elif myArticle.status == 'Cancelled':
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', firstDate, ' ➜ ', lastDate, '). '), A('See reviews', _href=URL('public', 'pubReviews', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-default'))
-			
-		elif myArticle.status == 'Under consideration' or myArticle.status == 'Pre-recommended' or myArticle.status == 'Pre-rejected' or myArticle.status == 'Pre-revision':
-			txt = DIV(SPAN(current.T(' is')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus info'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
-			
-		elif myArticle.status == 'Awaiting revision' :
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
-
-		else:
-			return(None)
-		track.append(DIV(B(title, _style="font-size:14px")))
-		track.append(DIV(SPAN(authors)))
-		track.append(DIV(link))
-		track.append(txt)
-	
-		trackR = [TD(IMG(_src=URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port), _class='pci-trackImg')), TD(track)]
-	return(trackR)
 
 
 ######################################################################################################################################################################
