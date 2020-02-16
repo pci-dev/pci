@@ -15,6 +15,9 @@ from app_modules.common import *
 from app_modules.helper import *
 from app_modules import common_forms
 from app_modules import common_snippets
+from app_modules import common_html
+from app_modules import common_tools
+
 
 myconf = AppConfig(reload=True)
 
@@ -118,7 +121,7 @@ def all_recommended_articles():
 ######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
-	response.view='default/recommended_articles.html'
+	response.view='default/gab_recommended_articles.html'
 	printable = False
 
 	if 'reviews' in request.vars and request.vars['reviews']=='True':
@@ -163,13 +166,29 @@ def rec():
 			session.flash = T('Unavailable')
 			redirect(redirect(request.env.http_referer))
 
-	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
-	myContents = myFeaturedRecommendation['myContents']
-	nbReviews = myFeaturedRecommendation['nbReviews']
-	pdf = myFeaturedRecommendation['pdf']
-	myMeta = myFeaturedRecommendation['myMeta']
+	# Set Page tite
+	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+	if finalRecomm:
+		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
+	else:
+		response.title = myconf.take('app.longname')
+	response.title = common_tools.getShortText(response.title, 64)
 	
 
+	# PDF (if any)
+	pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
+	if len(pdf_query) > 0:
+		pdfLink = URL('articles', 'rec', vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
+		pdf = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_alt='pdf', _src=URL('static', 'images/application-pdf.png'))), _href=pdfLink, _class='btn btn-info pci-public')
+	else:
+		pdfLink = None
+		pdf = None
+
+	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
+	nbRevs = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
+	nbReviews = (nbRevs + (nbRecomms-1))
+	
+	# Top Buttons
 	if with_reviews:
 		btnSHRtxt = T('Hide reviews')
 	else:
@@ -178,43 +197,59 @@ def rec():
 		btnSHCtxt = T('Hide user comments')
 	else:
 		btnSHCtxt = T('Show user comments')
+	
+	toggleReviewButton = (A(
+			SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
+			_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
+			_class='button')
+		) if (nbReviews>0) else ''
+
+	toggleCommentButton = A(
+			SPAN(btnSHCtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
+			_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+			_class='button'
+		)
+
 	myUpperBtn = DIV(
-					IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"),
+					
 					A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
 						pdf if pdf else '',
 						_href=URL(c='articles', f='rec_printable', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), user_signature=True),
 						_class='button'),
-					(A(SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-						_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
-						_class='button')) if (nbReviews>0) else '',
-					(A(SPAN(btnSHCtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-						_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-						_class='button')),
+					toggleReviewButton,
+					toggleCommentButton,
 					mkCloseButton(),
 					_class="pci-ArticleTopButtons",
 				)
-	myTitle=None
 	
-	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	if finalRecomm:
-		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
-	else:
-		response.title = myconf.take('app.longname')
-	if len(response.title)>64:
-		response.title = response.title[:64]+'...'
-	if len(myMeta)>0:
-		response.meta = myMeta
-		#for k in myMeta:
-			#if type(myMeta[k]) is list:
-				#response.meta[k] = ' ; '.join(myMeta[k]) # syntax as in: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
-			#else:
-				#response.meta[k] = myMeta[k]
+	# Recommendation Header and Metadata
+	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink)
+	recommHeaderHtml = recommendationHeader['headerHtml']
+	recommMetadata = recommendationHeader['recommMetadata']
+
+	if len(recommMetadata)>0:
+		response.meta = recommMetadata
+	
+	reviewRounds = None
+	if with_reviews:
+		# Get review rounds tree
+		reviewRounds = DIV(common_snippets.getReviewRoundsHtml(auth, db, response, art.id))
+
+	commentsTreeAndForm = None
+	if with_comments:
+		commentsTreeAndForm = common_snippets.getRecommCommentListAndForm(auth, db, response, art.id, request.vars['replyTo'])
+
 	return dict(
-				statusTitle=myTitle,
-				myContents=myContents,
 				myUpperBtn=myUpperBtn,
+				toggleReviewButton = toggleReviewButton,
+				toggleCommentButton = toggleCommentButton,
 				shareButtons=True,
+
+				recommHeaderHtml = recommHeaderHtml,
+				reviewRounds = reviewRounds,
+				commentsTreeAndForm = commentsTreeAndForm,
 			)
+
 			
 def rec_printable():
 	response.view='default/recommended_article_printable.html'

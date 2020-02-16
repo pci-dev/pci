@@ -576,17 +576,7 @@
             // if (flash.html()) flash.append('<span id="closeflash"> &times; </span>').slideDown();
             if (flash.html()){
                 flash.append('<span id="closeflash"> &times; </span>').show();
-
-                // (gab) auto dismiss after 5s
-                setTimeout(function (){
-                    flash.addClass('custom-disappear');
-                    setTimeout(function (){
-                        flash.hide()
-                    }, 500)                
-                }, 5000)
-            } 
-
-            
+            }             
         },
         hide_flash: function () {
             // (gab) replace remove alert animation :

@@ -943,45 +943,45 @@ def edit_review():
 
 
 
-######################################################################################################################################################################
-@auth.requires_login()
-def new_comment():
-	response.view='default/myLayout.html'
+# ######################################################################################################################################################################
+# @auth.requires_login()
+# def new_comment():
+# 	response.view='default/myLayout.html'
 
-	if not('articleId' in request.vars):
-		session.flash = T('Unavailable')
-		redirect(URL('my_articles', user_signature=True))
-	articleId = request.vars['articleId']
+# 	if not('articleId' in request.vars):
+# 		session.flash = T('Unavailable')
+# 		redirect(URL('my_articles', user_signature=True))
+# 	articleId = request.vars['articleId']
 
-	if 'parentId' in request.vars:
-		parentId = request.vars['parentId']
-		fields = ['article_id', 'parent_id', 'user_comment']
-	else:
-		parentId = None
-		fields = ['article_id', 'user_comment']
+# 	if 'parentId' in request.vars:
+# 		parentId = request.vars['parentId']
+# 		fields = ['article_id', 'parent_id', 'user_comment']
+# 	else:
+# 		parentId = None
+# 		fields = ['article_id', 'user_comment']
 
-	db.t_comments.user_id.default = auth.user_id
-	db.t_comments.user_id.readable = False
-	db.t_comments.user_id.writable = False
-	db.t_comments.article_id.default = articleId
-	db.t_comments.article_id.writable = False
-	db.t_comments.parent_id.default = parentId
-	db.t_comments.parent_id.writable = False
-	form = SQLFORM(db.t_comments
-				,fields=fields
-				,showid=False
-			)
+# 	db.t_comments.user_id.default = auth.user_id
+# 	db.t_comments.user_id.readable = False
+# 	db.t_comments.user_id.writable = False
+# 	db.t_comments.article_id.default = articleId
+# 	db.t_comments.article_id.writable = False
+# 	db.t_comments.parent_id.default = parentId
+# 	db.t_comments.parent_id.writable = False
+# 	form = SQLFORM(db.t_comments
+# 				,fields=fields
+# 				,showid=False
+# 			)
 
-	if form.process().accepted:
-		response.flash = T('Article saved', lazy=False)
-		redirect(URL(c='articles', f='rec', vars=dict(id=articleId, comments=True), user_signature=True))
-	elif form.errors:
-		response.flash = T('Form has errors', lazy=False)
+# 	if form.process().accepted:
+# 		response.flash = T('Article saved', lazy=False)
+# 		redirect(URL(c='articles', f='rec', vars=dict(id=articleId, comments=True), user_signature=True))
+# 	elif form.errors:
+# 		response.flash = T('Form has errors', lazy=False)
 
-	return dict(
-		myHelp=getHelp(request, auth, db, '#UserComment'),
-		myText=getText(request, auth, db, '#UserCommentText'),
-		myTitle=getTitle(request, auth, db, '#UserCommentTitle'),
-		form=form,
-	)
+# 	return dict(
+# 		myHelp=getHelp(request, auth, db, '#UserComment'),
+# 		myText=getText(request, auth, db, '#UserCommentText'),
+# 		myTitle=getTitle(request, auth, db, '#UserCommentTitle'),
+# 		form=form,
+# 	)
 	

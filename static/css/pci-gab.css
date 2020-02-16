@@ -111,7 +111,7 @@
 
 /* Article Recommendation row */
 .pci2-article-image-div {
-    width: 150px;
+    min-width: 150px;
 }
 
 .pci2-article-image-div>img {
@@ -170,10 +170,135 @@
     font-size: 12px;
 }
 
+/* Article Reccom Page */
+
+
+.pci2-recomm-article-h2 {
+    margin-top: 5px;
+}
+
+.pci2-signle-toggle-button {
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+/* Recommendation Header */
+.pci2-recommendation-green-banner {
+    background: #1ca01c;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.pci2-recommendation-green-banner h2 {
+    margin: 0
+}
+
+.pci2-recomm-title {
+    margin: 20px 0 10px;
+}
+
+.pci2-recomm-title h1 {
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.pci2-recomm-title i {
+    margin: 0;
+    font-size: 16px
+}
+
+.pci2-article-row-short {
+    margin-bottom: 10px;
+    padding: 20px;
+}
+
+.pci2-article-left-div-short {
+    margin-right: 20px;
+}
+
+.pci2-recomm-date {
+    margin-bottom: 10px;
+}
+
+.pci2-recomm-text {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #598398;
+}
+
+
+/* Review Rounds */
+.pci2-round-recomm-text {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+}
+
+.pci2-round-review-sub-title {
+    margin-top: 20px;
+    font-weight: bold
+}
+
+/* Comment Tree And Form */
+.pci2-comment-tree-div {
+    margin-bottom: 20px
+}
+
+.pci2-comment-form-replyto-label b {
+    margin-right: 5px;
+}
+
+.pci2-comment-form-replyto-label i {
+    color: #888
+}
+
+.pci2-comment-form .btn-success {
+    margin: 5px 0;
+}
+
+.pci2-comment-form textarea {
+    resize: none;
+    height: 130px;
+}
+
+
+/* Comment Tree */
+.pci2-comment-div {
+    margin-top: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 16px;
+    border-left: 1px solid #cccccc;
+}
+
+.pci2-comment-infos {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #aaa;
+    font-style: italic;
+}
+
+.pci2-comment-text {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.pci2-comment-reply-link {
+    margin-top: 5px;
+    /* make link lighter than user profile link */
+    opacity: 0.75;
+}
+
+
 
 /* User Profile */
-.pci2-user-infos-right-div{
-    max-width: 350px; margin-left: 25px;
+.pci2-user-infos-right-div {
+    max-width: 350px;
+    margin-left: 25px;
 }
 
 .pci2-user-cv {
@@ -205,11 +330,11 @@
     margin-bottom: 15px;
 }
 
-.pci2-article-list-titled{
+.pci2-article-list-titled {
     margin-bottom: 10px;
 }
 
-.pci2-article-list-titled h2{
+.pci2-article-list-titled h2 {
     margin-top: 0;
 }
 
@@ -312,6 +437,8 @@ div.w2p_flash.alert.custom-disappear {
     padding: 0 15px !important;
 }
 
+
+
 /* 
 .dropdown-toggle, .dropdown-toggle>span{
     display: flex !important;
@@ -345,6 +472,7 @@ div.w2p_flash.alert.custom-disappear {
         margin-right: 0px;
     }
 }
+
 
 @keyframes animOpacity {
     from {

@@ -1,0 +1,38 @@
+<!-- divider to separate review rounds -->
+{{if isLastRecomm == False :}}
+<hr/>
+{{pass}}
+
+<!-- Indent more for each rounds -->
+<div style="padding-left: {{=indentationLeft}}px">
+
+  <!-- do not show round decision if this is the last decision (already shown in recommendation_header.html) -->
+  {{if isLastRecomm == False :}}
+    <h3>Revision round #{{=roundNumber}}</h3>
+    <span>{{=lastChanges}}</span>
+    <div class="pci2-round-recomm-text">{{=recommendationText}}</div>
+    <p>{{=preprintDoi}}</p>
+  {{pass}} 
+
+  {{for review in reviewsList:}}
+    <h4 class="pci2-round-review-sub-title">{{=review['authorAndDate']}}</h4>
+    
+    {{if review['text'] is not None:}}
+      {{=review['text']}}
+    {{pass}}
+    
+    {{if review['pdfLink'] is not None:}}
+      {{=review['pdfLink']}}
+    {{pass}}
+  {{pass}}
+    
+  {{if authorsReply is not None:}}
+    <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
+    {{=authorsReply}}
+
+    {{if authorsReplyPdfLink is not None:}}
+      {{=authorsReplyPdfLink}}
+    {{pass}}
+  {{pass}}
+
+</div>

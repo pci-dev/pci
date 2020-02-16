@@ -28,6 +28,7 @@ import shutil
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
+# (gab) pu in app.ini 
 mail_sleep = 1.5 # in seconds
 
 # common view for all emails

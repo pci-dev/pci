@@ -1,0 +1,15 @@
+<div class="pci2-comment-div">
+  <span class="pci2-comment-infos">
+    {{=userLink}}, {{=commentDate}}
+  </span>
+  
+  <div class="pci2-comment-text">
+    {{=SPAN(commentText)}}
+  </div>
+
+  <div class="pci2-comment-reply-link">
+    {{=replyToLink}} 
+  </div>
+  
+  {{=DIV(childrenDiv) if len(childrenDiv)>0 else ''}}
+</div>
