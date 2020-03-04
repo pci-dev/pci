@@ -374,7 +374,7 @@ def mkReviewStateDiv(auth, db, state):
 	elif state == 'Under consideration': color_class = 'info'
 	elif state == 'Completed': color_class = 'success'
 	else: color_class = 'default'
-	return DIV(state_txt, _class='pci-status '+color_class)
+	return DIV(state_txt, _class='cyp-review-state pci-status '+color_class)
 
 ######################################################################################################################################################################
 def mkContributionStateDiv(auth, db, state):
@@ -1039,8 +1039,12 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				myRound.append(DIV(A(SPAN(current.T('Write or edit your decision / recommendation'), _class='buttontext btn btn-default pci-recommender'), 
 											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 										_class='pci-EditButtons'))
+				
 				# recommender's button allowing recommendation submission, provided there are co-recommenders
-				if len(contributors) >= minimal_number_of_corecommenders:
+				
+				# (gab) minimal_number_of_corecommenders is not defiend ! => set it to 0
+				# if len(contributors) >= minimal_number_of_corecommenders:
+				if len(contributors) >= 0:
 					if len(recomm.recommendation_comments)>50:
 						myRound.append(DIV(
 									A(SPAN(current.T('Send your recommendation to the managing board for validation'), _class='buttontext btn btn-success pci-recommender'), 
@@ -1145,9 +1149,9 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					if (review.review_state=='Pending'):
 						# reviewer's buttons in order to accept/decline pending review
 						myReviews.append(DIV(
-										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-success pci-reviewer'), 
+										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-main-action pci-reviewer pci2-bouncing-button'), 
 											_href=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review.id), user_signature=True), _class='button'),
-										A(SPAN(current.T('No thanks, I\'d rather not'), _class='buttontext btn btn-warning pci-reviewer'), 
+										A(SPAN(current.T('No thanks, I\'d rather not'), _class='buttontext btn btn-default pci-reviewer'), 
 											_href=URL(c='user_actions', f='decline_new_review', vars=dict(reviewId=review.id), user_signature=True), _class='button'),
 										_class='pci-opinionform'
 									))
@@ -1156,7 +1160,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				
 				if (review.reviewer_id==auth.user_id) and (review.review_state == 'Under consideration') and (art.status == 'Under consideration') and not(printable) and not(quiet):
 					# reviewer's buttons in order to edit/complete pending review
-					myReviews.append(DIV(A(SPAN(current.T('Write, edit or upload your review'), _class='buttontext btn btn-default pci-reviewer'), _href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True)), _class='pci-EditButtons'))
+					myReviews.append(DIV(A(SPAN(current.T('Write, edit or upload your review'), _class=''), _href=URL(c='user', f='edit_review', vars=dict(reviewId=review.id), user_signature=True), _class='btn btn-main-action pci-reviewer' )))
 				
 				if not(hideOngoingReview):
 					# display the review
@@ -2324,11 +2328,11 @@ def reviewsOfCancelled(auth, db, art):
 
 ######################################################################################################################################################################
 def mkViewEditRecommendationsRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
+	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
 ######################################################################################################################################################################
 def mkViewEditRecommendationsManagerButton(auth, db, row):
-	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _target="_blank", _href=URL(c='manager', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
+	return A(SPAN(current.T('Check & Edit'), _class='buttontext btn btn-default pci-button'), _href=URL(c='manager', f='recommendations', vars=dict(articleId=row.article_id)), _class='button', _title=current.T('View and/or edit article'))
 
 #A(SPAN(current.T('Check & Edit')), 
 #_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 

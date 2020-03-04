@@ -567,7 +567,6 @@ def my_articles():
 			dict(header=T('Suggested recommenders'), body=lambda row: user_module.mkSuggestedRecommendersUserButton(auth, db, row)),
 			dict(header=T('Recommender(s)'), body=lambda row: getRecommender(auth, db, row)),
 			dict(header='', body=lambda row: A(SPAN(current.T('View / Edit'), _class='buttontext btn btn-default pci-button pci-submitter'), 
-												_target="_blank", 
 												_href=URL(c='user', f='recommendations', vars=dict(articleId=row["t_articles.id"]), user_signature=True), 
 												_class='button', 
 												_title=current.T('View and/or edit article')
@@ -762,7 +761,6 @@ def my_reviews():
 			dict(header=T(''), 
 					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-reviewer'), 
 									_href=URL(c='user', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
-									_target="_blank", 
 									_class='button', 
 									_title=current.T('View and/or edit review')
 									) if row.t_reviews.review_state in ('Pending', 'Under consideration', 'Completed') else ''

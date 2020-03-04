@@ -176,7 +176,7 @@ def decline_new_article_to_recommend():
 		sug_rec.declined = True
 		sug_rec.update_record()
 		db.commit()
-	redirect(URL('my_awaiting_articles'))
+	redirect(URL(c='recommender',f='my_awaiting_articles'))
 
 
 ######################################################################################################################################################################

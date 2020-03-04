@@ -46,14 +46,15 @@
     <!-- http://panzi.github.io/SocialSharePrivacy/ -->
     <script type="text/javascript" src="https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.cookies.js"></script>
     <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
+
     {{if 'shareable' in globals():}}
 <!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
-		<script type="application/x-social-share-privacy-settings">{"path_prefix":"https://panzi.github.io/SocialSharePrivacy/", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
+		  <script type="application/x-social-share-privacy-settings">{"path_prefix":"http://panzi.github.io/SocialSharePrivacy/","layout":"line","services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"gplus":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}}}</script>
 		{{pass}}
     {{if 'shareButtons' in globals():}}
 <!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
-		<script type="application/x-social-share-privacy-settings">{"path_prefix":"https://panzi.github.io/SocialSharePrivacy/", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script>
-		<link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
+      <script type="application/x-social-share-privacy-settings">{"path_prefix":"http://panzi.github.io/SocialSharePrivacy/","layout":"line","services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"gplus":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}}}</script>
+      <link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
 		{{pass}}
 	
     {{block head}}{{end}}
@@ -202,7 +203,8 @@
     <script type="text/javascript">
       var header_height = 0;
       var footer_height = document.getElementById("footer").offsetHeight;
-      
+      var small_header_height;
+
       if(document.getElementById("pci-small-header")) {
         small_header_height = document.getElementById("pci-small-header").offsetHeight;
       }
@@ -213,7 +215,6 @@
 
       var footer_height = document.getElementById("main-content").setAttribute('style', 'min-height: calc(100vh - ' + margin_content + 'px)');
 
-      
     </script>
 <!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
 	</body>

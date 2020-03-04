@@ -141,8 +141,7 @@ def _manage_articles(statuses, whatNext):
 				dict(header=T('Actions'), 
 						body=lambda row: DIV(
 											A(SPAN(current.T('Check & Edit')), 
-												_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True), 
-												_target="_blank", 
+												_href=URL(c='manager', f='recommendations', vars=dict(articleId=row.id), user_signature=True),
 												_class='buttontext btn btn-default pci-button pci-manager', 
 												_title=current.T('View and/or edit review')
 											),

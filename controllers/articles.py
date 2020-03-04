@@ -17,6 +17,7 @@ from app_modules import common_forms
 from app_modules import common_snippets
 from app_modules import common_html
 from app_modules import common_tools
+from app_modules import common_small_html
 
 
 myconf = AppConfig(reload=True)
@@ -121,22 +122,17 @@ def all_recommended_articles():
 ######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
-	response.view='default/gab_recommended_articles.html'
-	printable = False
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
 
-	if 'reviews' in request.vars and request.vars['reviews']=='True':
-		with_reviews = True
-	else:
-		with_reviews = False
-	if 'comments' in request.vars and request.vars['comments']=='True':
-		with_comments = True
-	else:
-		with_comments = False
-	if 'asPDF' in request.vars and request.vars['asPDF']=='True':
-		as_pdf = True
-	else:
-		as_pdf = False
-	
+	with_reviews = 'reviews' in request.vars and request.vars['reviews']=='True'
+	# with_reviews = True
+	with_comments = 'comments' in request.vars and request.vars['comments']=='True'
+	# with_comments = True
+	as_pdf = 'asPDF' in request.vars and request.vars['asPDF']=='True'
+
+	# security : Is content avalaible ? 
 	if ('articleId' in request.vars):
 		articleId = request.vars['articleId']
 	elif ('id' in request.vars):
@@ -144,12 +140,14 @@ def rec():
 	else:
 		session.flash = T('Unavailable')
 		redirect(URL('articles', 'recommended_articles', user_signature=True))
+	
 	# NOTE: check id is numeric!
 	if (not articleId.isdigit()):
 		session.flash = T('Unavailable')
 		redirect(URL('articles', 'recommended_articles', user_signature=True))
 		
 	art = db.t_articles[articleId]
+
 	if art == None:
 		session.flash = T('Unavailable')
 		redirect(URL('articles', 'recommended_articles', user_signature=True))
@@ -157,7 +155,7 @@ def rec():
 	elif art.status != 'Recommended':
 		session.flash = T('Forbidden access')
 		redirect(URL('articles', 'recommended_articles', user_signature=True))
-
+	
 	if (as_pdf):
 		pdfQ = db( (db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id) ).select(db.t_pdf.id, db.t_pdf.pdf)
 		if len(pdfQ) > 0:
@@ -166,7 +164,8 @@ def rec():
 			session.flash = T('Unavailable')
 			redirect(redirect(request.env.http_referer))
 
-	# Set Page tite
+
+	# Set Page title
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	if finalRecomm:
 		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
@@ -175,55 +174,12 @@ def rec():
 	response.title = common_tools.getShortText(response.title, 64)
 	
 
-	# PDF (if any)
-	pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
-	if len(pdf_query) > 0:
-		pdfLink = URL('articles', 'rec', vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
-		pdf = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_alt='pdf', _src=URL('static', 'images/application-pdf.png'))), _href=pdfLink, _class='btn btn-info pci-public')
-	else:
-		pdfLink = None
-		pdf = None
-
 	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
 	nbRevs = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
 	nbReviews = (nbRevs + (nbRecomms-1))
 	
-	# Top Buttons
-	if with_reviews:
-		btnSHRtxt = T('Hide reviews')
-	else:
-		btnSHRtxt = T('Show reviews')
-	if with_comments:
-		btnSHCtxt = T('Hide user comments')
-	else:
-		btnSHCtxt = T('Show user comments')
-	
-	toggleReviewButton = (A(
-			SPAN(btnSHRtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-			_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
-			_class='button')
-		) if (nbReviews>0) else ''
-
-	toggleCommentButton = A(
-			SPAN(btnSHCtxt, _class='buttontext btn btn-default  pci-ArticleTopButton'), 
-			_href=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-			_class='button'
-		)
-
-	myUpperBtn = DIV(
-					
-					A(SPAN(T('Printable page'), _class='buttontext btn btn-info  pci-ArticleTopButton'), 
-						pdf if pdf else '',
-						_href=URL(c='articles', f='rec_printable', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), user_signature=True),
-						_class='button'),
-					toggleReviewButton,
-					toggleCommentButton,
-					mkCloseButton(),
-					_class="pci-ArticleTopButtons",
-				)
-	
 	# Recommendation Header and Metadata
-	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink)
+	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm)
 	recommHeaderHtml = recommendationHeader['headerHtml']
 	recommMetadata = recommendationHeader['recommMetadata']
 
@@ -237,14 +193,19 @@ def rec():
 
 	commentsTreeAndForm = None
 	if with_comments:
-		commentsTreeAndForm = common_snippets.getRecommCommentListAndForm(auth, db, response, art.id, request.vars['replyTo'])
+		# Get user comments list and form
+		commentsTreeAndForm = common_snippets.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars['replyTo'])
 
+	response.view='default/gab_public_article_recommendation.html'
 	return dict(
-				myUpperBtn=myUpperBtn,
-				toggleReviewButton = toggleReviewButton,
-				toggleCommentButton = toggleCommentButton,
+				withReviews=with_reviews,
+				withComments=with_comments,
+				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
+				toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+				printableUrl=URL(c='articles', f='rec_printable', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), user_signature=True),
+				currentUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), host=host, scheme=scheme, port=port),
 				shareButtons=True,
-
+				nbReviews = nbReviews,
 				recommHeaderHtml = recommHeaderHtml,
 				reviewRounds = reviewRounds,
 				commentsTreeAndForm = commentsTreeAndForm,

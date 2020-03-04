@@ -1,5 +1,34 @@
 .pci2-main-color-text {
-    color: #598398;
+    color: #598398 !important;
+}
+
+.pci2-hover-main-color {
+    color: #3eaede !important;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.pci2-hover-main-color .glyphicon{
+    color: #3eaede !important;
+}
+
+.pci2-hover-main-color hr{
+    border-top: 1px solid #3eaede;
+}
+
+.pci2-hover-main-color:not(.disabled):hover {
+    opacity: 1;
+}
+
+.pci2-hover-main-color.disabled {
+    cursor: default;
+    opacity: 0.3;
+}
+
+.pci2-main-color-hr {
+    border-top: 1px solid #598398;
+    opacity: 0.5;
 }
 
 .pci2-search-form {
@@ -174,8 +203,14 @@
 
 
 .pci2-recomm-article-h2 {
-    margin-top: 5px;
+    margin: 0;
+    color: #888;
 }
+
+.pci2-recomm-article-h2 .glyphicon {
+    color: #598398 !important;
+}
+
 
 .pci2-signle-toggle-button {
     margin-top: 20px;
@@ -185,13 +220,14 @@
 /* Recommendation Header */
 .pci2-recommendation-green-banner {
     background: #1ca01c;
-    color: white;
-    padding: 15px;
-    border-radius: 5px;
-}
+    color: #fff;
 
-.pci2-recommendation-green-banner h2 {
-    margin: 0
+    white-space: initial;
+    font-size: 32px;
+	text-align: center;    
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
 }
 
 .pci2-recomm-title {
@@ -225,7 +261,13 @@
     padding: 15px;
     margin: 10px 0;
     border-radius: 5px;
-    border: 1px solid #598398;
+    border: 1px solid #eee;
+}
+
+.pci2-abstract-div {
+    animation: 0.5s fadeFormTop ease;
+    font-style: italic;
+    color: #888;
 }
 
 
@@ -465,8 +507,135 @@ div.w2p_flash.alert.custom-disappear {
     line-height: 10px;
     font-size: 10px;
 } */
-
 /* override boostrap margin to avoid scrollX when navbar has not a .container-fluid child */
+
+.pci2-altmetric {
+    margin-top: 10px;
+}
+
+.btn {
+    border-radius: 5px;
+    font-weight: bold;
+    padding: 4px 15px;
+}
+
+.btn-main-action {
+    background: #fcc24d;
+    font-family: Arial;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.btn-main-action:hover {
+    background: #e0a838;
+}
+
+
+.pci2-bouncing-button {
+    animation: bouncingButton 3.5s infinite;
+}
+
+.pci2-bouncing-button:hover {
+    animation: none;
+}
+
+
+.pci2-facebook-link {
+    color: #999;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.pci2-twitter-link {
+    margin-left: 25px;
+    color: #999;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.pci2-facebook-link:hover,
+.pci2-facebook-link:focus {
+    color: #3b5998;
+    text-decoration: none;
+}
+
+.pci2-twitter-link:hover,
+.pci2-twitter-link:focus {
+    color: #1DA1F2;
+    text-decoration: none;
+}
+
+.pci2-facebook-link:hover .pci2-social-icon,
+.pci2-facebook-link:focus .pci2-social-icon {
+    fill: #3b5998;
+}
+
+.pci2-twitter-link:hover .pci2-social-icon,
+.pci2-twitter-link:focus .pci2-social-icon {
+    fill: #1DA1F2;
+}
+
+.pci2-social-icon {
+    margin: 10px;
+    margin-right: 0px;
+    fill: #ccc;
+    transition: 0.3s;
+}
+
+.pci2-facebook-link .pci2-social-icon {
+    margin-left: 7.5px;
+}
+
+.pci2-twitter-link .pci2-social-icon {
+    margin-left: 5px;
+}
+
+
+.pci2-tool-link,
+.pci2-tool-link-right {
+    color: #999;
+    font-weight: bold;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+
+.pci2-tool-link .glyphicon {
+    font-size: 32px;
+    margin: 10px;
+    margin-left: 0px;
+    color: #ccc;
+    transition: 0.3s;
+}
+
+.pci2-tool-link-right .glyphicon {
+    font-size: 32px;
+    margin: 10px;
+    margin-right: 0px;
+    color: #ccc;
+    transition: 0.3s;
+}
+
+
+.pci2-tool-link-right:hover,
+.pci2-tool-link-right:focus,
+.pci2-tool-link:hover,
+.pci2-tool-link:focus {
+    color: #3eaede;
+    text-decoration: none;
+}
+
+.pci2-tool-link-right:hover .glyphicon,
+.pci2-tool-link-right:focus .glyphicon,
+.pci2-tool-link:hover .glyphicon,
+.pci2-tool-link:focus .glyphicon {
+    color: #3eaede;
+}
+
+
+
+
+
 @media (min-width: 768px) {
     .navbar-right {
         margin-right: 0px;
@@ -554,5 +723,36 @@ div.w2p_flash.alert.custom-disappear {
 
     to {
         transform: rotate(0deg);
+    }
+}
+
+
+@keyframes bouncingButton {
+    0% {
+        transform: scale(1);
+    }
+
+    4% {
+        transform: scale(1.05);
+    }
+
+    8% {
+        transform: scale(0.95);
+    }
+
+    14% {
+        transform: scale(1.02);
+    }
+
+    17% {
+        transform: scale(0.98);
+    }
+
+    20% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
     }
 }

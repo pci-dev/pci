@@ -1606,7 +1606,6 @@ def my_co_recommendations():
 				dict(header=T(''), 
 						body=lambda row: A(SPAN(current.T('View'), _class='btn btn-default pci-button'), 
 										_href=URL(c='recommender', f='recommendations', vars=dict(articleId=row.t_articles.id)), 
-										_target="_blank", 
 										_class='button', 
 										_title=current.T('View this co-recommendation')
 										)

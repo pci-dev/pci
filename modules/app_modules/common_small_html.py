@@ -279,7 +279,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 	resu = SPAN('')
 	if userId is not None:
 		if linked:
-			resu = A(str(userId), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
+			resu = A(str(userId), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
 		else:
 			resu = SPAN(str(userId))
 	return resu
@@ -288,7 +288,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
 	if theUser:
 		if linked:
-			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
+			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)), _class="cyp-user-profile-link")
 		else:
 			resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
 	else:

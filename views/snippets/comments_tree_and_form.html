@@ -1,5 +1,4 @@
-<div style="margin-bottom: 20px" >
-  <h2 style="margin-top: 5px;">{{=T('User comments')}}</h2>
+<div class="pci2-comment-tree-div">
   {{=commentsTree}}
 </div>
 
@@ -8,9 +7,9 @@
     <div id="comments-form-anchor" class="pci2-comment-form">
     
         {{if commentForm.custom.widget.parent_id:}}
-          <div class="pci2-flex-row">
-            <b style="margin-right: 5px;">Reply to : </b>
-            <i style="color: #888">                
+          <div class="pci2-flex-row pci2-comment-form-replyto-label">
+            <b>Reply to : </b>
+            <i>                
               {{=commentForm.custom.widget.parent_id}}
             </i>
           </div>
@@ -22,7 +21,7 @@
       </div>
     
       <div class="pci2-full-width pci2-flex-row pci2-justify-end">
-        <button type="submit" class="btn btn-success" style="margin: 5px 0">
+        <button type="submit" class="btn btn-success">
           Submit  
         </button>
       </div>  

@@ -157,7 +157,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
 
 ######################################################################################################################################################################
-def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, fullURL=True):
+def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, fullURL=True):
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
@@ -173,8 +173,16 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, f
 	else:
 		article_img = ''
 	
+	recomm_altmetric = ''
+	if finalRecomm.recommendation_doi:
+		recomm_altmetric = XML(
+				'''
+					<div class='text-right altmetric-embed pci2-altmetric'  data-badge-type='donut' data-badge-details='left' data-hide-no-mentions='true' data-doi='%s'></div>
+				''' % sub(r'doi: *', '', finalRecomm.recommendation_doi)
+			)
+
 	doi = sub(r'doi: *', '', (art.doi or ''))
-	altmetric = XML("<div class='altmetric-embed' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
+	article_altmetric = XML("<div class='altmetric-embed pci2-altmetric' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 
 	headerContent = dict()
 	headerContent.update([
@@ -182,8 +190,10 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, f
 		('articleImg', article_img),
 		('articleTitle', art.title or ''),
 		('articleAuthor', art.authors or ''),
+		('articleAbstract', art.abstract or ''),
 		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
-		('altmetric', altmetric),
+		('recomm_altmetric', recomm_altmetric),
+		('article_altmetric', article_altmetric),
 		('isRecommended', True)
 	])
 	
@@ -206,12 +216,21 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, f
 	
 	recommAuthors = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	cite = DIV(
-				SPAN(B('Cite this recommendation as:'), 
+				SPAN(B('Cite this recommendation as:', _class="pci2-main-color-text"), 
 				BR(), SPAN(recommAuthors), ' ', finalRecomm.last_change.strftime('(%Y)'), ' ', finalRecomm.recommendation_title, '. ', I(myconf.take('app.description')+', '+(citeNum or '')+'. '), 
 				citeRef, 
 			), _class='pci-citation')
 
 	whoDidRecomm = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=True, linked=True, as_items=False, host=host, port=port, scheme=scheme)
+	
+		# PDF (if any)
+	pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
+	if len(pdf_query) > 0:
+		pdfUrl = URL('articles', 'rec', vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
+		pdfLink = A(SPAN(current.T('PDF recommendation'), ' ', IMG(_alt='pdf', _src=URL('static', 'images/application-pdf.png'))), _href=pdfUrl, _class='btn btn-info pci-public')
+	else:
+		pdfUrl = None
+		pdfLink = None
 
 	headerContent.update([
 			('recommTitle', finalRecomm.recommendation_title if ((finalRecomm.recommendation_title or '') != '') else current.T('Recommendation')),
@@ -221,10 +240,12 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, f
 				', ',
 				I(finalRecomm.last_change.strftime('Recommended: %d %B %Y')) if finalRecomm.last_change else '')
 			),
+			('cite', cite),
 			('recommText', WIKI(finalRecomm.recommendation_comments or '')),
-			('cite', cite)
+			('pdfLink', pdfLink)
 		])
 	
+
 	
 	headerHtml = XML(
 			response.render(
@@ -233,10 +254,57 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, pdfLink, f
 			)
 		) 
 
-	# Get METADATA
-	recommMetadata = common_tools.getRecommendationMetadata(auth, db, art, finalRecomm, citeNum, citeUrl, citeRef, pdfLink, scheme, host, port)
+	# Get METADATA (see next function)
+	recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfLink, citeNum, scheme, host, port)
 
 	return dict(headerHtml=headerHtml, recommMetadata=recommMetadata)
+
+def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
+	desc = 'A recommendation of: '+(art.authors or '')+' '+(art.title or '')+' '+(art.doi or '')
+	whoDidItMeta = common_html.mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False)
+	
+	# META headers
+	myMeta = OrderedDict()
+	myMeta['citation_title'] = lastRecomm.recommendation_title
+	if len(whoDidItMeta)>0:
+		# Trick for multiple entries (see globals.py:464)
+		for wdi in whoDidItMeta:
+			myMeta['citation_author_%s' % wdi] = OrderedDict([('name', 'citation_author'), ('content', wdi)])
+	myMeta['citation_journal_title'] = myconf.take("app.description")
+	myMeta['citation_publication_date'] = (lastRecomm.last_change.date()).strftime('%Y/%m/%d')
+	myMeta['citation_online_date'] = (lastRecomm.last_change.date()).strftime('%Y/%m/%d')
+	myMeta['citation_journal_abbrev'] = myconf.take("app.name")
+	myMeta['citation_issn'] = myconf.take("app.issn")
+	myMeta['citation_volume'] = '1'
+	myMeta['citation_publisher'] = 'Peer Community In'
+	if lastRecomm.recommendation_doi:
+		myMeta['citation_doi'] = sub(r'doi: *', '', lastRecomm.recommendation_doi) # for altmetrics
+	if citeNum:
+		myMeta['citation_firstpage'] = citeNum
+	myMeta['citation_abstract'] = desc
+	if pdfLink:
+		myMeta['citation_pdf_url'] = pdfLink
+
+	#myMeta['og:title'] = lastRecomm.recommendation_title
+	#myMeta['description'] = desc
+
+	# Dublin Core fields
+	myMeta['DC.title'] = lastRecomm.recommendation_title
+	if len(whoDidItMeta)>0:
+		myMeta['DC.creator'] = ' ; '.join(whoDidItMeta) # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+	myMeta['DC.issued'] = lastRecomm.last_change.date()
+	#myMeta['DC.date'] = lastRecomm.last_change.date()
+	myMeta['DC.description'] = desc
+	myMeta['DC.publisher'] = myconf.take("app.description")
+	myMeta['DC.relation.ispartof'] = myconf.take("app.description")
+	if lastRecomm.recommendation_doi:
+		myMeta['DC.identifier'] = myMeta['citation_doi']
+	if citeNum:
+		myMeta['DC.citation.spage'] = citeNum
+	myMeta['DC.language'] = 'en'
+	myMeta['DC.rights'] = '(C) %s, %d' % (myconf.take("app.description"), lastRecomm.last_change.date().year)
+
+	return myMeta
 
 ######################################################################################################################################################################
 def getReviewRoundsHtml(auth, db, response, articleId): 
@@ -329,49 +397,54 @@ def getReviewRoundsHtml(auth, db, response, articleId):
 
 
 ######################################################################################################################################################################
-def getRecommCommentListAndForm(auth, db, response, articleId, parentId):
+def getRecommCommentListAndForm(auth, db, response, session, articleId, with_reviews=False, parentId=None):
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
+
 	isLoggedIn = False
 	scrollToCommentForm = False
 
 	if auth.user_id is not None:
 		isLoggedIn = True
 
-
 	# Create New Comment Form
-	if parentId is not None:
-		# Scroll to comment form if 'replyTo' se in request.vars (see jquery in 'snippets/comments_tree_and_form.html')
-		scrollToCommentForm = True
-		fields = ['parent_id', 'user_comment']
-	else: 
-		fields = ['user_comment']
+	commentForm = None
+	if isLoggedIn:
+		if parentId is not None:
+			# Scroll to comment form if 'replyTo' se in request.vars (see jquery in 'snippets/comments_tree_and_form.html')
+			scrollToCommentForm = True
+			fields = ['parent_id', 'user_comment']
+		else: 
+			fields = ['user_comment']
 
+		db.t_comments.user_id.default = auth.user_id
+		db.t_comments.user_id.readable = False
+		db.t_comments.user_id.writable = False
+		db.t_comments.article_id.default = articleId
+		db.t_comments.article_id.writable = False
+		db.t_comments.parent_id.default = parentId
+		db.t_comments.parent_id.writable = False
 
-	db.t_comments.user_id.default = auth.user_id
-	db.t_comments.user_id.readable = False
-	db.t_comments.user_id.writable = False
-	db.t_comments.article_id.default = articleId
-	db.t_comments.article_id.writable = False
-	db.t_comments.parent_id.default = parentId
-	db.t_comments.parent_id.writable = False
+		commentForm = SQLFORM(db.t_comments
+			,fields = fields
+			,showid = False
+		)
 
-	commentForm = SQLFORM(db.t_comments
-		,fields = fields
-		,showid = False
-	)
-
-	if commentForm.process().accepted:
-		response.flash = current.T('Comment saved', lazy=False)
-	elif commentForm.errors:
-		response.flash = current.T('Form has errors', lazy=False)
+		if commentForm.process().accepted:
+			session.flash = current.T('Comment saved', lazy=False)
+			redirect(URL(c='articles', f='rec', vars=dict(id=articleId, comments=True, reviews=with_reviews)))
+		elif commentForm.errors:
+			response.flash = current.T('Form has errors', lazy=False)
 
 	# Get comments tree
 	commentsTree = DIV()
 	commentsQy = db( (db.t_comments.article_id == articleId) & (db.t_comments.parent_id==None) ).select(orderby=db.t_comments.comment_datetime)
 	if len(commentsQy) > 0:
 		for comment in commentsQy:
-			commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id))
+			commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id, with_reviews))
 	else:
-		commentsTree.append(SPAN(current.T('No user comments yet')))
+		commentsTree.append(DIV(SPAN(current.T('No user comments yet')), _style="margin-top: 15px"))
 
  	snippetVars = dict(
 	 	isLoggedIn = isLoggedIn,
@@ -388,13 +461,13 @@ def getRecommCommentListAndForm(auth, db, response, articleId, parentId):
 	)
 
 ######################################################################################################################################################################
-def getCommentsTreeHtml(auth, db, response, commentId): 
+def getCommentsTreeHtml(auth, db, response, commentId, with_reviews=False): 
 	comment = db.t_comments[commentId]
 	childrenDiv = []
 	children = db(db.t_comments.parent_id==comment.id).select(orderby=db.t_comments.comment_datetime)
 
 	for child in children:
-		childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id))
+		childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id, with_reviews))
 
 	snippetVars = dict(
 		userLink = common_small_html.mkUser_U(auth, db, comment.user_id, linked=True),
@@ -402,7 +475,7 @@ def getCommentsTreeHtml(auth, db, response, commentId):
 		commentText = comment.user_comment or '',
 		replyToLink = A(
 				current.T('Reply...'), 
-				_href=URL(c='articles', f='rec', vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id)),
+				_href=URL(c='articles', f='rec', vars=dict(articleId=comment.article_id, comments=True, reviews=with_reviews,replyTo=comment.id)),
 				_style="margin: 0"
 			) if auth.user else '',
 		childrenDiv = childrenDiv

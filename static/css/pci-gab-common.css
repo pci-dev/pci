@@ -32,6 +32,11 @@
     align-items: flex-start;
 }
 
+.pci2-align-items-center{ 
+    display: flex; 
+    align-items: center;
+}
+
 .pci2-align-items-end{ 
     display: flex; 
     align-items: flex-end;

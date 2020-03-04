@@ -475,7 +475,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 											_href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recomm.id), user_signature=True)), 
 										_class='pci-EditButtons'))
 				# recommender's button allowing recommendation submission, provided there are co-recommenders
-				if len(contributors) >= minimal_number_of_corecommenders:
+
+				# (gab) minimal_number_of_corecommenders is not defiend ! => set it to 0
+				# if len(contributors) >= minimal_number_of_corecommenders:
+				if len(contributors) >= 0:
 					if len(recomm.recommendation_comments)>50:
 						myRound.append(DIV(
 									A(SPAN(current.T('Send your recommendation to the managing board for validation'), _class='buttontext btn btn-success pci-recommender'), 

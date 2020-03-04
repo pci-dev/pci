@@ -23,7 +23,7 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 ## Recommender Module
 #######################################################################################################################################################################
 def mkViewEditArticleRecommenderButton(auth, db, row):
-	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button pci-recommender'), _target="_blank", _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id)), _class='button')
+	return A(SPAN(current.T('View'), _class='buttontext btn btn-default pci-button pci-recommender'), _href=URL(c='recommender', f='article_details', vars=dict(articleId=row.id)), _class='button')
 
 
 ######################################################################################################################################################################

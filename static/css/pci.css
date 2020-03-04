@@ -299,47 +299,74 @@ header {
 
 .pci-status {
 	box-sizing: unset;
-	width: 100px;
-	white-space: initial;
-	padding: 8px;
+	width: 125px;
+	/* white-space: initial; */
+	padding: 5px;
 	font-size: 11px;
 	text-align: left;
+	font-weight: bold;
+	border-radius: 5px;
 }
 
 .pci-status-big {
 	white-space: initial;
-	padding: 8px;
-	font-size: 32px;
+	font-size: 28px;
 	text-align: center;
+	padding: 10px;
+	border-radius: 5px;
 }
 
-.pci-status.warning,
 .pci-status-big.warning {
+	background: #ffbf00;
+	color: #fff;
+}
+
+.pci-status.warning {
 	color: #ffbf00;
 }
 
-.pci-status.good,
 .pci-status-big.good {
-	color: #b9f20d;
+	background: #9fd10a;
+	color: #fff;
 }
 
-.pci-status.success,
+.pci-status.good {
+	color: #9fd10a;
+}
+
 .pci-status-big.success {
+	background: #089108;
+	color: #fff;
+}
+
+.pci-status.success {
 	color: #089108;
 }
 
-.pci-status.info,
 .pci-status-big.info {
+	background: #0db9f2;
+	color: #fff;
+}
+
+.pci-status.info {
 	color: #0db9f2;
 }
 
-.pci-status.danger,
 .pci-status-big.danger {
+	background: #e61919;
+	color: #fff;
+}
+
+.pci-status.danger {
 	color: #e61919;
 }
 
-.pci-status.default,
 .pci-status-big.default {
+	background: #BBBBBB;
+	color: #666;
+}
+
+.pci-status.default {
 	color: #BBBBBB;
 }
 
@@ -691,7 +718,7 @@ header {
 }
 
 #lastRecommendationsDiv h3 {
-	margin-top:0;
+	margin-top: 0;
 }
 
 #lastRecommendationsDiv>form>h3 {
@@ -1018,7 +1045,7 @@ header {
 
 .pci-citation {
 	font-size: 10px;
-	border-left: 1px solid black;
+	border-left: 1px solid #598398;
 	padding-left: 8px;
 	margin-top: 8px;
 	margin-bottom: 8px;
@@ -1223,4 +1250,3 @@ header {
 .pci-trackImg {
 	width: 100px;
 }
-

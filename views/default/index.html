@@ -23,75 +23,75 @@
 
 <div style="margin-top:20px; margin-bottom:20px; text-align:center;">
   {{if auth.user:}}
-  <a
-    href="{{=URL('user', 'new_submission', user_signature=True)}}"
-    class="btn btn-success pci-public"
-  >
-    {{=T("Submit a preprint")}}
-  </a>
-
-  {{else:}}
-  <a
-  	href="{{=URL('user', 'new_submission', user_signature=True)}}"
-  	class="btn btn-success pci-public"
+    <a
+      href="{{=URL('user', 'new_submission', user_signature=True)}}"
+      class="btn btn-success pci-public"
     >
-  	{{=T("Submit a preprint")}}
+      {{=T("Submit a preprint")}}
+    </a>
+
+    {{else:}}
+    <a
+    	href="{{=URL('user', 'new_submission', user_signature=True)}}"
+    	class="btn btn-success pci-public"
+      >
+    	{{=T("Submit a preprint")}}
     </a>
     <a
-  	href="{{=URL(c='default', f='user', args=['login'])}}"
-  	class="btn btn-default"
+    	href="{{=URL(c='default', f='user', args=['login'])}}"
+      class="btn btn-default"
+      id="cyp-login-button"
     >
-  	{{=T('Log in')}}
+    	{{=T('Log in')}}
     </a>
     <label>{{=T(' or ')}}</label>
     <a
-  	href="{{=URL(c='default', f='user', args=['register'])}}"
-  	class="btn btn-info"
+    	href="{{=URL(c='default', f='user', args=['register'])}}"
+    	class="btn btn-info"
     >
-  	{{=T('Register')}}
+    	{{=T('Register')}}
     </a>
   {{pass}} 
 
   {{if auth.has_membership('recommender'):}}
-  <a
-  	href="{{=URL('recommender', 'new_submission', user_signature=True)}}"
-  	class="btn btn-info pci-recommender"
-  >
-  	{{=T("Recommend a postprint")}}
-  </a>
-  <a
-  	href="{{=URL('recommender', 'all_awaiting_articles', user_signature=True)}}"
-  	class="btn btn-default pci-recommender"
-  >
-  	{{=T("Submitted preprints requiring a recommender")}}
-  </a>
+    <a
+    	href="{{=URL('recommender', 'new_submission', user_signature=True)}}"
+    	class="btn btn-info pci-recommender"
+    >
+    	{{=T("Recommend a postprint")}}
+    </a>
+    <a
+    	href="{{=URL('recommender', 'all_awaiting_articles', user_signature=True)}}"
+    	class="btn btn-default pci-recommender"
+    >
+    	{{=T("Submitted preprints requiring a recommender")}}
+    </a>
   {{pass}}
 </div>  
 
 {{if 'myTitle' in locals():}}
-<div class="pci-myTitleText">{{=myTitle}}</div>
+  <div class="pci-myTitleText">{{=myTitle}}</div>
 {{pass}}
 
 {{if 'myText' in locals():}}
 	<div>{{=myText}}</div>
-	{{pass}}
+{{pass}}
 
 
 <div class="pci-leftOfPanel">
-{{if 'message' in locals():}}
-	<h2>{{=message}}</h2>
+  {{if 'message' in locals():}}
+  	<h2>{{=message}}</h2>
+  {{pass}}
+
+  {{if 'content' in locals():}}
+	  {{=content}}
 	{{pass}}
 
-{{if 'content' in locals():}}
-	{{=content}}
-	{{pass}}
-
-<div id="lastRecommendationsDiv">
-{{if 'form' in locals():}}
-	{{=form}}
-	{{pass}}
-</div>
-
+  <div id="lastRecommendationsDiv">
+    {{if 'form' in locals():}}
+    	{{=form}}
+	  {{pass}}
+  </div>
 </div>
 
 {{if 'panel' in locals() and panel:}}
