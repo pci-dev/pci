@@ -6,3 +6,4 @@ sessions/*
 static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/*.ini
+node_modules
