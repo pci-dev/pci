@@ -112,6 +112,56 @@ def social():
 	)
 
 
+
+
+######################################################################################################################################################################
+def gtu():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#GtuTitle'),
+		myText=getText(request, auth, db, '#GtuInfo'),
+		shareable=True,
+	)
+
+
+######################################################################################################################################################################
+def about():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#AboutTitle'),
+		myText=getText(request, auth, db, '#AboutInfo'),
+		shareable=True,
+	)
+
+
+######################################################################################################################################################################
+def contact():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#ContactTitle'),
+		myText=getText(request, auth, db, '#ContactInfo'),
+		shareable=True,
+	)
+
+
+######################################################################################################################################################################
+def buzz():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#BuzzTitle'),
+		myText=getText(request, auth, db, '#BuzzInfo'),
+		shareable=True,
+	)
+
+######################################################################################################################################################################
+def thanks_to_reviewers():
+	response.view='default/info.html'
+	return dict(
+		myTitle=getTitle(request, auth, db, '#ThanksToReviewersTitle'),
+		myText=getText(request, auth, db, '#ThanksToReviewersInfo'),
+	)
+
+
 ######################################################################################################################################################################
 def supports():
 	response.view='default/info.html'
@@ -135,7 +185,6 @@ def supports():
 		shareable=True,
 	)
 
-
 ######################################################################################################################################################################
 def resources():
 	response.view='default/info.html'
@@ -158,7 +207,6 @@ def resources():
 		myText=TABLE(myTable, _class='pci-resources'),
 		shareable=True,
 	)
-
 
 ######################################################################################################################################################################
 def recommenders():
@@ -218,55 +266,6 @@ def recommenders():
 				grid=grid, 
 			)
 	return resu
-
-######################################################################################################################################################################
-def gtu():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#GtuTitle'),
-		myText=getText(request, auth, db, '#GtuInfo'),
-		shareable=True,
-	)
-
-
-######################################################################################################################################################################
-def about():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#AboutTitle'),
-		myText=getText(request, auth, db, '#AboutInfo'),
-		shareable=True,
-	)
-
-
-######################################################################################################################################################################
-def contact():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#ContactTitle'),
-		myText=getText(request, auth, db, '#ContactInfo'),
-		shareable=True,
-	)
-
-
-######################################################################################################################################################################
-def buzz():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#BuzzTitle'),
-		myText=getText(request, auth, db, '#BuzzInfo'),
-		shareable=True,
-	)
-
-######################################################################################################################################################################
-def thanks_to_reviewers():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#ThanksToReviewersTitle'),
-		myText=getText(request, auth, db, '#ThanksToReviewersInfo'),
-	)
-
-
 
 
 # (gab) is this unused ? i put it in about from public

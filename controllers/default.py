@@ -156,20 +156,22 @@ def user():
 	myBottomText = ''
 	myContent = ''
 	myScript = ''
-	#print(request.args)
+
+	form = auth()
+	form.element(_type='submit')['_class']='btn btn-success'
 	
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
 	if request.args and len(request.args)>0:
-		#print(request.args)
 		
 		if request.args[0] == 'login':
 			myHelp = getHelp(request, auth, db, '#LogIn')
 			myTitle = getTitle(request, auth, db, '#LogInTitle')
 			myText = getText(request, auth, db, '#LogInText')
-			myContent = DIV(A(T('Lost password?'), _href=URL(c='default', f='user', args=['request_reset_password']), _class="buttontext btn btn-info"), _class="pci-infotextbox")
+			form.add_button(T('Lost password?'), URL(c='default', f='user', args=['request_reset_password']), _class='btn btn-default')
 			if suite:
 				auth.settings.login_next = suite
+
 		elif request.args[0] == 'register':
 			myHelp = getHelp(request, auth, db, '#CreateAccount')
 			myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
@@ -212,8 +214,7 @@ def user():
 			if suite:
 				auth.settings.reset_password_next = suite
 
-	form = auth()
-		
+	
 	return dict(
 		myTitle=myTitle,
 		myText=myText,

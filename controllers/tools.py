@@ -49,7 +49,7 @@ def convert_pdf_to_markdown():
 				print('html2text successed on file "%s"'%(hf_name))
 		# if fails fallback to pandoc
 		except Exception as e:
-			print str(e)
+			print(str(e))
 			print('html2text failed on file "%s", switch to pandoc' %(hf_name))
 			cmd = 'pandoc --smart --normalize --columns=9999 -t markdown "%s"' % (hf_name)
 			with os.popen(cmd) as messages:

@@ -162,9 +162,34 @@ def _manage_articles(statuses, whatNext):
 					),
 			]
 	if (parallelSubmissionAllowed):
-		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.parallel_submission, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
+		fields = [
+			db.t_articles.uploaded_picture, 
+			db.t_articles._id, 
+			db.t_articles.status, 
+			db.t_articles.already_published, 
+			db.t_articles.parallel_submission, 
+			db.t_articles.upload_timestamp, 
+			db.t_articles.last_status_change, 
+			db.t_articles.auto_nb_recommendations,
+			db.t_articles.user_id, 
+			db.t_articles.thematics, 
+			db.t_articles.keywords, 
+			db.t_articles.anonymous_submission
+		]
 	else:
-		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.already_published, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.user_id, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.anonymous_submission]
+		fields = [
+			db.t_articles.uploaded_picture, 
+			db.t_articles._id, 
+			db.t_articles.status,
+			db.t_articles.already_published, 
+			db.t_articles.upload_timestamp, 
+			db.t_articles.last_status_change,
+			db.t_articles.auto_nb_recommendations, 
+			db.t_articles.user_id,
+			db.t_articles.thematics, 
+			db.t_articles.keywords, 
+			db.t_articles.anonymous_submission
+		]
 	grid = SQLFORM.grid(  query
 		,details=False, editable=False, deletable=False, create=False
 		,searchable=True
