@@ -6,8 +6,8 @@ from gluon.html import *
 
 from collections import OrderedDict
 
-import common_html
-import common_small_html
+from app_modules import common_html
+from app_modules import common_small_html
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -15,7 +15,7 @@ myconf = AppConfig(reload=True)
 ######################################################################################################################################################################
 # (gab)
 def get_template(folderName, templateName):
-	with open(os.path.join(os.path.dirname(__file__), '../../templates', folderName, templateName), 'r') as myfile:
+	with open(os.path.join(os.path.dirname(__file__), '../../templates', folderName, templateName), encoding='utf-8') as myfile:
   		data = myfile.read()
 	return data
 

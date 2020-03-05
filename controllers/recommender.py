@@ -96,12 +96,13 @@ def search_reviewers():
 			myValue = (myVars[myVar])[1]
 		else:
 			myValue = myVars[myVar]
+
 		if (myVar == 'qyKeywords'):
 			qyKw = myValue
 		elif (myVar == 'myGoal'):
 			myGoal = myValue
 		elif (myVar == 'exclude'):
-			excludeList = map(int, myValue.split(','))
+			excludeList += myValue.split(',')
 		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 
@@ -125,7 +126,6 @@ def search_reviewers():
 		qyTF = []
 		for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 			qyTF.append(thema.keyword)
-
 
 	filtered = db.executesql('SELECT * FROM search_reviewers(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 	for fr in filtered:
@@ -981,7 +981,7 @@ def email_for_registered_reviewer():
 	if form.process().accepted:
 		try:
 			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
-		except Exception, e:
+		except Exception as e:
 			session.flash = (session.flash or '') + T('Email failed.')
 			raise e
 		redirect(URL(c='recommender', f='reviewers', vars=dict(recommId=recomm.id)))
@@ -1096,7 +1096,7 @@ def email_for_new_reviewer():
 					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
 					#currentReview = db(db.t_reviews.id==reviewId).select().first()
 					#currentReview.update_record(review_state='Pending')
-				except Exception, e:
+				except Exception as e:
 					session.flash = (session.flash or '') + T('Email failed.')
 					pass
 			else:
@@ -1104,7 +1104,7 @@ def email_for_new_reviewer():
 					do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], reset_password_key, linkTarget)
 					#currentReview = db(db.t_reviews.id==reviewId).select().first()
 					#currentReview.update_record(review_state='Pending')
-				except Exception, e:
+				except Exception as e:
 					session.flash = (session.flash or '') + T('Email failed.')
 					pass
 		
@@ -1196,7 +1196,7 @@ def send_review_reminder():
 	if form.process().accepted:
 		try:
 			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], reset_password_key, linkTarget)
-		except Exception, e:
+		except Exception as e:
 			session.flash = (session.flash or '') + T('Email failed.')
 			raise e #TODO pass
 		if auth.user_id == recomm.recommender_id:
@@ -1273,7 +1273,7 @@ def send_review_cancellation():
 		try:
 			review.update_record(review_state='Cancelled')
 			do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto_address, myconf.take('contacts.managers'), request.vars['subject'], request.vars['message'], None, linkTarget)
-		except Exception, e:
+		except Exception as e:
 			session.flash = (session.flash or '') + T('Email failed.')
 			raise e
 		if auth.user_id == recomm.recommender_id:

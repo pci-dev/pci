@@ -190,7 +190,7 @@ def user():
 			myHelp = getHelp(request, auth, db, '#ResetPassword')
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
-		        user = db(db.auth_user.email==request.vars['email']).select().last()
+			user = db(db.auth_user.email==request.vars['email']).select().last()
 			if ((fkey is not None) and (user is not None)):
 				reset_password_key = str(int(time.time())) + '-' + web2py_uuid()
 				user.update_record(reset_password_key = reset_password_key)

@@ -49,7 +49,7 @@ You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
 		report.append( 'email to %s sent' % destPerson.flatten() )
 	else:
 		report.append( 'email to %s NOT SENT' % destPerson.flatten() )
-	print ''.join(report)
+	print(''.join(report))
 
 
 

@@ -9,11 +9,11 @@
     transition: 0.3s;
 }
 
-.pci2-hover-main-color .glyphicon{
+.pci2-hover-main-color .glyphicon {
     color: #3eaede !important;
 }
 
-.pci2-hover-main-color hr{
+.pci2-hover-main-color hr {
     border-top: 1px solid #3eaede;
 }
 
@@ -224,7 +224,7 @@
 
     white-space: initial;
     font-size: 32px;
-	text-align: center;    
+    text-align: center;
     padding: 10px;
     width: 100%;
     border-radius: 5px;
@@ -577,17 +577,17 @@ div.w2p_flash.alert.custom-disappear {
 
 .pci2-social-icon {
     margin: 10px;
-    margin-right: 0px;
+    margin-left: 0px;
     fill: #ccc;
     transition: 0.3s;
 }
 
 .pci2-facebook-link .pci2-social-icon {
-    margin-left: 7.5px;
+    margin-right: 7.5px;
 }
 
 .pci2-twitter-link .pci2-social-icon {
-    margin-left: 5px;
+    margin-right: 5px;
 }
 
 
@@ -603,7 +603,9 @@ div.w2p_flash.alert.custom-disappear {
 .pci2-tool-link .glyphicon {
     font-size: 32px;
     margin: 10px;
-    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 2px;
+
     color: #ccc;
     transition: 0.3s;
 }
@@ -612,6 +614,7 @@ div.w2p_flash.alert.custom-disappear {
     font-size: 32px;
     margin: 10px;
     margin-right: 0px;
+
     color: #ccc;
     transition: 0.3s;
 }

@@ -45,23 +45,23 @@ def do_cancel_article():
 ######################################################################################################################################################################
 @auth.requires_login()
 def suggest_article_to():
-	articleId = request.vars['articleId']
-	recommenderId = request.vars['recommenderId']
+	articleId = int(request.vars['articleId'])
+	recommenderId = int(request.vars['recommenderId'])
 	exclude = request.vars['exclude']
 	excludeList = []
 	if exclude:
 		#excludeList = map(int, exclude.split(','))
 		for v in exclude:
 			excludeList.append(int(v))
-	vars = request.vars
+	myVars = request.vars
 	do_suggest_article_to(auth, db, articleId, recommenderId)
 	excludeList.append(recommenderId)
-	vars['exclude'] = excludeList
+	myVars['exclude'] = excludeList
 	session.flash = T('Suggested recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
 	#redirect(request.env.http_referer)
 	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 	#redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
-	redirect(URL(c='user', f='search_recommenders', vars=vars, user_signature=True))
+	redirect(URL(c='user', f='search_recommenders', vars=myVars, user_signature=True))
 
 
 
@@ -91,7 +91,7 @@ def article_revised():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		#print 'article_revised'
+		#print('article_revised')
 		art.status = 'Under consideration'
 		art.update_record()
 		last_recomm = db(db.t_recommendations.article_id==art.id).select(orderby=db.t_recommendations.id).last()

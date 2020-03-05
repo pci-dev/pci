@@ -32,7 +32,7 @@ def convert_pdf_to_markdown():
 		f = request.vars['up_file']
 		# create temp file from in-memory file contents
 		ff = tempfile.NamedTemporaryFile(delete=False, suffix=f.filename)
-		#print "ff.name:", ff.name
+		#print("ff.name:"), ff.name
 		ff.write(f.value)
 		ff.close() # file is not immediately deleted because we used delete=False
 		cmd = 'pdftohtml -enc UTF-8 -noframes "%s"' % (ff.name) ; print(cmd) ; os.system(cmd)
@@ -48,7 +48,7 @@ def convert_pdf_to_markdown():
 				myText = html2text.html2text(myHtml)
 				print('html2text successed on file "%s"'%(hf_name))
 		# if fails fallback to pandoc
-		except Exception, e:
+		except Exception as e:
 			print str(e)
 			print('html2text failed on file "%s", switch to pandoc' %(hf_name))
 			cmd = 'pandoc --smart --normalize --columns=9999 -t markdown "%s"' % (hf_name)
@@ -84,7 +84,7 @@ def convert_pdf_to_markdown():
 		#f = request.vars['up_file']
 		## create temp file from in-memory file contents
 		#ff = tempfile.NamedTemporaryFile(delete=False, suffix=f.filename)
-		##print "ff.name:", ff.name
+		##print("ff.name:"), ff.name
 		#ff.write(f.value)
 		#ff.close() # file is not immediately deleted because we used delete=False
 		#cmd = 'pdftohtml -enc UTF-8 -nomerge -noframes "%s"' % (ff.name) ; print(cmd) ; os.system(cmd)

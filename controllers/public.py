@@ -49,7 +49,7 @@ def _rss_cacher(maxArticles):
 				myRows.append(r)
 				if most_recent is None or row.last_status_change > most_recent:
 					most_recent = row.last_status_change
-		except Exception, e:
+		except Exception as e:
 			#raise e
 			pass
 	if len(myRows) == 0:
@@ -138,7 +138,7 @@ def rss4bioRxiv():
 				doi = etree.SubElement(link, 'doi')
 				doi.text = r['doi']
 				links.append(link)
-		#except Exception, e:
+		#except Exception as e:
 			#raise e
 			#pass
 	return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)

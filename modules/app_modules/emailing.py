@@ -34,7 +34,7 @@ mail_sleep = 1.5 # in seconds
 # common view for all emails
 mail_layout = os.path.join(os.path.dirname(__file__), '../../views/mail', 'mail.html')
 def get_mail_template(templateName):
-	with open(os.path.join(os.path.dirname(__file__), '../../templates/mail', templateName), 'r') as myfile:
+	with open(os.path.join(os.path.dirname(__file__), '../../templates/mail', templateName), encoding='utf-8') as myfile:
   		data = myfile.read()
 	return data
 
@@ -99,8 +99,8 @@ def do_send_email_to_test(session, auth, db, userId):
 					subject=mySubject,
 					message=myMessage,
 				)
-	except Exception, e :
-		#print "%s" % traceback.format_exc()
+	except Exception as e:
+		#print("%s") % traceback.format_exc()
 		traceback.print_exc()
 		pass
 
@@ -111,7 +111,7 @@ def do_send_email_to_test(session, auth, db, userId):
 		session.flash_status = 'warning'
 		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 
-	print ''.join(report)
+	# print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -233,7 +233,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
 			report.append( 'email sent to submitter %s' % destPerson.flatten() )
 		else:
 			report.append( 'email NOT SENT to submitter %s' % destPerson.flatten() )
-	print ''.join(report)
+	print(''.join(report))
 	if session.flash is None:
 		session.flash = '\n'.join(report)
 	else:
@@ -279,7 +279,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
-	print ''.join(report)
+	print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -289,7 +289,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
 def do_send_email_to_recommender_status_changed(session, auth, db, articleId, newStatus):
-	#print 'do_send_email_to_recommender_status_changed'
+	#print('do_send_email_to_recommender_status_changed')
 	report = []
 	mail = getMailer(auth)
 	attach = []
@@ -394,7 +394,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
-	print ''.join(report)
+	print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -405,7 +405,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
 def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId):
-	#print 'do_send_email_to_suggested_recommenders_useless'
+	#print('do_send_email_to_suggested_recommenders_useless')
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -463,7 +463,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 			else:
 				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
-		print '\n'.join(report)
+		print('\n'.join(report))
 		if session.flash is None:
 			session.flash = '; '.join(report)
 		else:
@@ -473,7 +473,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
 def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
-	print 'do_send_email_to_suggested_recommenders'
+	print('do_send_email_to_suggested_recommenders')
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -539,7 +539,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 				#db.executesql('UPDATE t_suggested_recommenders SET email_sent=false WHERE id=%s', placeholders=[theUser['sr_id']])
 				report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
-		print '\n'.join(report)
+		print('\n'.join(report))
 		if session.flash is None:
 			session.flash = '; '.join(report)
 		else:
@@ -548,7 +548,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Individual reminder for previous message
 def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecommId):
-	print 'do_send_reminder_email_to_suggested_recommenders'
+	print('do_send_reminder_email_to_suggested_recommenders')
 	report = []
 	mail = getMailer(auth)
 	mail_resu = False
@@ -608,7 +608,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 					report.append( 'email NOT SENT to suggested recommender %s' % destPerson.flatten() )
 
 				time.sleep(mail_sleep)
-				print '\n'.join(report)
+				print('\n'.join(report))
 				if session.flash is None:
 					session.flash = '; '.join(report)
 				else:
@@ -669,7 +669,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
 					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -752,7 +752,7 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
 					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
 					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -793,7 +793,7 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
 				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -837,7 +837,7 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
 				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -880,7 +880,7 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
 				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -932,7 +932,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -982,7 +982,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 				report.append( 'email sent to %s' % destPerson.flatten() )
 			else:
 				report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1040,14 +1040,14 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
 							report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 						time.sleep(mail_sleep)
 					else:
-						print 'do_send_email_to_reviewers_review_suggested: Article not found'
+						print('do_send_email_to_reviewers_review_suggested: Article not found')
 				else:
-					print 'do_send_email_to_reviewers_review_suggested: recommender = reviewer'
+					print('do_send_email_to_reviewers_review_suggested: recommender = reviewer')
 			else:
-				print 'do_send_email_to_reviewers_review_suggested: Recommendation not found'
+				print('do_send_email_to_reviewers_review_suggested: Recommendation not found')
 		else:
-			print 'do_send_email_to_reviewers_review_suggested: Review not found'
-	print '\n'.join(report)
+			print('do_send_email_to_reviewers_review_suggested: Review not found')
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1117,11 +1117,11 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
 						report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 					time.sleep(mail_sleep)
 		else:
-			print 'do_send_email_to_reviewers_cancellation: Recommendation not found'
+			print('do_send_email_to_reviewers_cancellation: Recommendation not found')
 	else:
-		print 'do_send_email_to_reviewers_cancellation: Article not found'
+		print('do_send_email_to_reviewers_cancellation: Article not found')
 
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1166,7 +1166,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 		report.append( 'email sent to administrators' )
 	else:
 		report.append( 'email NOT SENT to administrators' )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1226,7 +1226,7 @@ def do_send_mail_new_user(session, auth, db, userId):
 			report.append( 'email sent to new user %s' % destPerson.flatten() )
 		else:
 			report.append( 'email NOT SENT to new user %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1295,7 +1295,7 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 			
 		else:
 			return
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1381,14 +1381,14 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 							subject=mySubject,
 							message=myMessage,
 						)
-			except Exception, e:
+			except Exception as e:
 				raise(e)
 			if mail_resu:
 				report.append( 'email sent to manager '+(manager.email or '') )
 			else:
 				report.append( 'email NOT SENT to manager '+(manager.email or '') )
 			time.sleep(mail_sleep)
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1437,7 +1437,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
 					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1485,7 +1485,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 					report.append( 'email sent to %s' % destPerson.flatten() )
 				else:
 					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1548,13 +1548,13 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
 						emailing += emailing0
 						newForm['emailing'] = emailing
 						#rev.update_record()
-					except Exception, e:
+					except Exception as e:
 						raise(e)
 					if mail_resu:
 						report.append( 'email sent to %s' % destPerson.flatten() )
 					else:
 						report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1617,13 +1617,13 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
 						emailing += emailing0
 						newForm['emailing'] = emailing
 						#rev.update_record()
-					except Exception, e:
+					except Exception as e:
 						raise(e)
 					if mail_resu:
 						report.append( 'email sent to %s' % destPerson.flatten() )
 					else:
 						report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1676,7 +1676,7 @@ def do_send_email_to_delete_one_contributor(session, auth, db, contribId):
 					else:
 						report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
 					time.sleep(mail_sleep)
-					print '\n'.join(report)
+					print('\n'.join(report))
 					if session.flash is None:
 						session.flash = '; '.join(report)
 					else:
@@ -1736,7 +1736,7 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
 							report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
 							
 						time.sleep(mail_sleep)
-						print '\n'.join(report)
+						print('\n'.join(report))
 						if session.flash is None:
 							session.flash = '; '.join(report)
 						else:
@@ -1793,7 +1793,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 								subject=mySubject,
 								message=myMessage,
 							)
-			except Exception, e:
+			except Exception as e:
 				raise(e)
 			if mail_resu:
 				report.append( 'email sent to contributor %s' % destPerson.flatten() )
@@ -1801,7 +1801,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
 				report.append( 'email NOT SENT to contributor %s' % destPerson.flatten() )
 			time.sleep(mail_sleep)
 	
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1835,11 +1835,11 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 			pass
 		if mail_resu:
 			report.append( 'email sent to %s' % destPerson.flatten() )
-			print 'INFO automatic alert email sent to %s' % destPerson.flatten() 
+			print('INFO automatic alert email sent to %s') % destPerson.flatten() 
 		else:
 			report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-			print 'INFO automatic alert email NOT SENT to %s' % destPerson.flatten() 
-		#print '\n'.join(report)
+			print('INFO automatic alert email NOT SENT to %s') % destPerson.flatten() 
+		#print('\n'.join(report))
 	if session:
 		if session.flash is None:
 			session.flash = '; '.join(report)
@@ -1911,7 +1911,7 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
 				else:
 					report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 				time.sleep(mail_sleep)
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -1964,7 +1964,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 								subject=subject,
 								message=myRenderedMessage,
 							)
-				except Exception, e:
+				except Exception as e:
 					pass
 				if review.emailing:
 					emailing0 = review.emailing
@@ -1987,7 +1987,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
 				else:
 					report.append( 'email NOT SENT to "%s"' % destPerson.flatten() )
 				time.sleep(mail_sleep)
-	print '\n'.join(report)
+	print('\n'.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:
@@ -2020,13 +2020,13 @@ def do_send_email_to_reset_password(session, auth, db, userId):
 					subject=mySubject,
 					message=myMessage,
 				)
-	except Exception, e :
-		print "Traceback: %s" % traceback.format_exc()
+	except Exception as e:
+		print("Traceback: %s" % traceback.format_exc())
 	if mail_resu:
 		report.append( 'email sent to %s' % destPerson.flatten() )
 	else:
 		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-	print ''.join(report)
+	print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
 	else:

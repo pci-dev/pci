@@ -13,7 +13,7 @@ from app_modules.common import *
 from app_modules.emailing import *
 from app_modules.helper import *
 
-def pprint(*args): print args
+# def pprint(*args): print args
 
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too

@@ -50,7 +50,7 @@ def set_as_recommender(ids, auth, db):
 
 ######################################################################################################################################################################
 def recommLatex(articleId, tmpDir, withHistory=False):
-	print '******************************************************', withHistory
+	print('******************************************************', withHistory)
 	art = db.t_articles[articleId]
 	if art == None:
 		session.flash = T('Unavailable')

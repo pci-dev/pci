@@ -21,9 +21,9 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-import common_small_html
-import common_html
-import common_tools
+from app_modules import common_small_html
+from app_modules import common_html
+from app_modules import common_tools
 
 myconf = AppConfig(reload=True)
 
@@ -445,9 +445,9 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
 			commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id, with_reviews))
 	else:
 		commentsTree.append(DIV(SPAN(current.T('No user comments yet')), _style="margin-top: 15px"))
-
- 	snippetVars = dict(
-	 	isLoggedIn = isLoggedIn,
+	
+	snippetVars = dict(
+		isLoggedIn = isLoggedIn,
 		scrollToCommentForm = scrollToCommentForm,
 		commentForm = commentForm,
 		commentsTree = commentsTree

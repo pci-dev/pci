@@ -21,9 +21,9 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-import common_small_html
-import common_snippets
-import common_tools
+from app_modules import common_small_html
+from app_modules import common_snippets
+from app_modules import common_tools
 
 myconf = AppConfig(reload=True)
 
@@ -577,7 +577,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 				# ... or a manager, unless submitter or reviewer
 				if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not amIReviewer: 
 					hideOngoingReview = False
-				#print "hideOngoingReview=%s" % (hideOngoingReview)
+				#print("hideOngoingReview=%s") % (hideOngoingReview)
 				
 				if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status=='Under consideration') and not(printable) and not(quiet):
 					if (review.review_state=='Pending'):
