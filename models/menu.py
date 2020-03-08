@@ -37,7 +37,9 @@ def _DevMenu():
     txtMenu = T('Development')
     return [
         (txtMenu, False, '#', [
-	    (T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
+	    	(T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
+			(T('TEST: Redirection'),  False, URL('admin', 'testRedir', user_signature=True)),
+
             #LI(_class="divider"),
             #(T('Restart daemon'), False, URL('admin', 'restart_daemon')),
             LI(_class="divider"),
@@ -126,11 +128,11 @@ def _ToolsMenu():
 	if auth.has_membership(None, None, 'administrator') or auth.has_membership(None, None, 'developper'):
 		toolMenu += [
 			LI(_class="divider"),
-			(T('Send me a test mail'), False, URL('admin_actions', 'testMail')),
-			(T('Test my email alert'), False, URL('alerts', 'testUserRecommendedAlert', vars=dict(userId=auth.user_id))),
+			(T('Send me a test mail'), False, URL('admin_actions', 'testMail', user_signature=True)),
+			(T('Test my email alert'), False, URL('alerts', 'testUserRecommendedAlert', vars=dict(userId=auth.user_id), user_signature=True)),
 			#(T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
-			(T('RSS for bioRxiv'), False, URL('public', 'rss4bioRxiv')),
-			(T('Social networks', lazy=False),      False, URL('about', 'social'))
+			(T('RSS for bioRxiv'), False, URL('public', 'rss4bioRxiv', user_signature=True)),
+			(T('Social networks', lazy=False),      False, URL('about', 'social', user_signature=True))
 		]
 
 	return [
@@ -159,7 +161,7 @@ def _AdminMenu():
 			(T('Article status'),    False, URL('admin', 'article_status', user_signature=True)),
 			(T('Help texts'),        False, URL('custom_help_text',  'help_texts', user_signature=True)),
 			LI(_class="divider"),
-			(T('Send email alerts manually'), False, URL('alerts', 'alertUsersLastRecommendations')),		
+			(T('Send email alerts manually'), False, URL('alerts', 'alertUsersLastRecommendations', user_signature=True)),		
 		]),
 	]
 

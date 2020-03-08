@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from collections import OrderedDict
 
+from furl import furl
+import time
+
 import io
 from PIL import Image
 
@@ -2112,11 +2115,11 @@ def mkRecommCitation(auth, db, myRecomm):
 	citeRecomm = SPAN(
 		SPAN(whoDidItCite), ' ', 
 		myRecomm.last_change.strftime('(%Y)'), ' ', 
-		myRecomm.recommendation_title, '. ', 
+		(myRecomm.recommendation_title or ''), '. ', 
 		I(applongname)+citeNum, SPAN(' '), 
 		doi
 	)
-	return citeRecomm
+	return citeRecomm or ''
 
 
 
@@ -2314,3 +2317,7 @@ def mkViewEditRecommendationsManagerButton(auth, db, row):
 #_class='buttontext btn btn-default pci-button pci-manager', 
 #_title=current.T('View and/or edit review')
 #)
+
+######################################################################################################################################################################
+def saltUrl(u):
+	return '%s' % furl(u).add({'salt':int(100*time.time())})

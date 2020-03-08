@@ -3,6 +3,7 @@
 import os
 from re import sub, match
 from gluon.html import *
+import gluon.http
 
 from collections import OrderedDict
 
@@ -24,3 +25,10 @@ def getShortText(text, length):
 		text = text[0:length] + '...'
 	return text
 	
+######################################################################################################################################################################
+def pci_redirect(url):
+	print("sURL:")
+	print(surl)
+	scr = HTML(HEAD(XML('<meta http-equiv="Cache-control" content="no-cache">'), SCRIPT('document.location.href="%s"'%surl, _type='text/javascript')))
+	print(scr)
+	raise HTTP(200, scr)

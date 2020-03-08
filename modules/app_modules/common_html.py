@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from collections import OrderedDict
 
+from furl import furl
+import time
+
 import io
 from PIL import Image
 
@@ -1036,11 +1039,11 @@ def mkRecommCitation(auth, db, myRecomm):
 	citeRecomm = SPAN(
 		SPAN(whoDidItCite), ' ', 
 		myRecomm.last_change.strftime('(%Y)'), ' ', 
-		myRecomm.recommendation_title, '. ', 
+		(myRecomm.recommendation_title or ''), '. ', 
 		I(applongname)+citeNum, SPAN(' '), 
 		doi
 	)
-	return citeRecomm
+	return citeRecomm or ''
 
 
 

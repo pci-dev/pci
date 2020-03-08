@@ -29,10 +29,10 @@ expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidd
 trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
 def testMail():
+	print('starting test mail')
 	do_send_email_to_test(session, auth, db, auth.user_id)
 	redirect(request.env.http_referer)
 

@@ -106,6 +106,7 @@ def rss4bioRxiv():
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	title=myconf.take('app.longname')
+	provider=myconf.take('app.name') or 'PCI'
 	contact=myconf.take('contacts.managers')
 	managingEditor='%(contact)s (%(title)s contact)' % locals()
 	favicon = XML(URL(c='static', f='images/favicon.png', scheme=scheme, host=host, port=port))
@@ -121,7 +122,7 @@ def rss4bioRxiv():
 		#try:
 			r = mkRecommArticleRss4bioRxiv(auth, db, row)
 			if r:
-				link = etree.Element('link', attrib=dict(providerId='PCI'))
+				link = etree.Element('link', attrib=dict(providerId=provider))
 				resource = etree.SubElement(link, 'resource')
 				title = etree.SubElement(resource, 'title')
 				title.text = r['title']
@@ -139,6 +140,50 @@ def rss4bioRxiv():
 				doi.text = r['doi']
 				links.append(link)
 		#except Exception as e:
+			#raise e
+			#pass
+	return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)
+
+def rss4altmetric():
+	scheme=myconf.take('alerts.scheme')
+	host=myconf.take('alerts.host')
+	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
+	title=myconf.take('app.longname')
+	provider=myconf.take('app.name') or 'PCI'
+	contact=myconf.take('contacts.managers')
+	managingEditor='%(contact)s (%(title)s contact)' % locals()
+	favicon = XML(URL(c='static', f='images/favicon.png', scheme=scheme, host=host, port=port))
+	response.headers['Content-Type'] = 'application/rss+xml'
+	response.view='rsslayout.rss'
+	query = db( 
+				    (db.t_articles.status=='Recommended') 
+				  & (db.t_articles.already_published==False)
+				  & (db.t_recommendations.article_id==db.t_articles.id) 
+				  & (db.t_recommendations.recommendation_state=='Recommended')
+			).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, orderby=~db.t_articles.last_status_change)
+	links = etree.Element('links')
+	for row in query:
+		#try:
+			r = mkRecommArticleRss4bioRxiv(auth, db, row)
+			if r:
+				link = etree.Element('link', attrib=dict(providerId=provider))
+				resource = etree.SubElement(link, 'resource')
+				title = etree.SubElement(resource, 'title')
+				title.text = r['title']
+				url = etree.SubElement(resource, 'link')
+				url.text = r['url']
+				editor = etree.SubElement(resource, 'recommender')
+				editor.text = r['recommender']
+				reviewers = etree.SubElement(resource, 'reviewers')
+				reviewers.text = r['reviewers']
+				date = etree.SubElement(resource, 'date')
+				date.text = str(r['date'])
+				logo = etree.SubElement(resource, 'logo')
+				logo.text = str(r['logo'])
+				doi = etree.SubElement(link, 'doi')
+				doi.text = r['doi']
+				links.append(link)
+		#except Exception, e:
 			#raise e
 			#pass
 	return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)

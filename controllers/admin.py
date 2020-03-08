@@ -18,6 +18,7 @@ from app_modules.emailing import *
 from app_modules.helper import *
 
 from app_modules import admin_module
+from app_modules import common_tools
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -455,3 +456,10 @@ def rec_as_latex():
 			PRE(latRec),
 		)
 	return(dict(message=message))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='administrator') or auth.has_membership(role='developper'))
+def testRedir():
+	session.flash = 'redirect!'
+	url = URL('default', 'index', user_signature=True) #, scheme=scheme, host=host, port=port)
+	redirect(url)

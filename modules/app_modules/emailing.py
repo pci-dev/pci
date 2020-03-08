@@ -8,6 +8,7 @@ from re import sub, match
 import datetime
 from dateutil.relativedelta import *
 import traceback
+from pprint import pprint
 
 from gluon import current
 from gluon.tools import Auth
@@ -104,7 +105,6 @@ def do_send_email_to_test(session, auth, db, userId):
 				)
 	except Exception as e:
 		#print("%s") % traceback.format_exc()
-		traceback.print_exc()
 		pass
 
 	session.flash_status = ''
@@ -113,7 +113,9 @@ def do_send_email_to_test(session, auth, db, userId):
 	else:
 		session.flash_status = 'warning'
 		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
-
+		pprint(vars(mail))
+		traceback.print_exc()
+		
 	# print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)
