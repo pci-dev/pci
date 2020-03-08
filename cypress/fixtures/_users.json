@@ -1,0 +1,38 @@
+{
+  "admin": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  },
+  "developper": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  },
+  "manager": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  },
+  "recommender": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  },
+  "co_recommender": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  },
+  "normal_user": {
+    "firstname": "",
+    "lastname": "",
+    "mail": "",
+    "password": ""
+  }
+}
