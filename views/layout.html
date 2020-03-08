@@ -97,9 +97,8 @@
         {{pass}}
         <ul class="nav navbar-nav navbar-right">
           {{if response.help_about_menu:}}
-          {{=MENU(response.help_about_menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
+            {{=MENU(response.help_about_menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
           {{pass}}
-          {{='auth' in globals() and auth.navbar('Welcome',mode='dropdown') or ''}}
         </ul>
       </div>
     </nav>
@@ -206,6 +205,12 @@
 
       var footer_height = document.getElementById("main-content").setAttribute('style', 'min-height: calc(100vh - ' + margin_content + 'px)');
 
+    </script>
+
+    <script type="text/javascript">
+      if(document.getElementById('delete_record')){
+        document.getElementById('delete_record').insertAdjacentHTML('afterend','<i class="glyphicon glyphicon-trash">')
+      }
     </script>
 <!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
 	</body>

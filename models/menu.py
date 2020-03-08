@@ -84,8 +84,10 @@ def _DevMenu():
 # default public menu
 def _BaseMenu():
 	ctr = request.controller
+	fct = request.function
+	
 	isHomeActive = False
-	if ctr == 'default':
+	if ctr == 'default' and fct != 'user':
 		isHomeActive = True
 	isArticleActive = False
 	if ctr == 'articles':
@@ -101,72 +103,11 @@ def _BaseMenu():
 		articleMenu.append((T('Progress log'), False, URL('articles', 'tracking')))
 	
 	menuBar = [
-		((SPAN(_class='glyphicon glyphicon-home', _style="margin-right: 7.5px"), T('Home')),       isHomeActive, URL('default', 'index')),
+		((SPAN(_class='glyphicon glyphicon-home'), T('Home')),       isHomeActive, URL('default', 'index')),
 		#(T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
 		(T('Articles'),      isArticleActive, '#', articleMenu),
 	]
 	return menuBar
-
-
-def _AboutMenu():
-	ctr = request.controller
-	isActive = False
-	if ctr == 'about':
-		isActive = True
-
-	showGuideLines = myconf.get('menu.guidelines', False)
-
-	aboutMenu = []
-
-	aboutMenu += [
-			#LI(_class="divider"),
-			(T('About', lazy=False)+appName, False, URL('about', 'about')),
-			(T('General Terms of Use', lazy=False),       False, URL('about', 'gtu')),
-			(T('Code of conduct', lazy=False),      False, URL('about', 'ethics')),
-			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
-			(T('Recommenders', lazy=False),  False, URL('about', 'recommenders')),
-			# (gab) added this cause use nowhere
-			(T('Managers', lazy=False),  False, URL('about', 'managers')),
-			(T('Thanks to reviewers', lazy=False),  False, URL('about', 'thanks_to_reviewers')),
-			(T('Resources', lazy=False),  False, URL('about', 'resources')),
-			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
-			##TODO: for later use?
-			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
-		]
-
-	return [
-		(T('About'), isActive, '#', aboutMenu)
-	]
-
-
-def _HelpMenu():
-	ctr = request.controller
-	isActive = False
-	if ctr == 'help':
-		isActive = True
-
-	showGuideLines = myconf.get('menu.guidelines', False)
-
-	helpMenu = []
-
-	helpMenu += [
-		(T('How does it work?'),  False, URL('help', 'help_generic')),
-	]
-
-	if showGuideLines:
-		helpMenu += [
-			(T('Submission guidelines'),  False, URL('help', 'help_guidelines')),
-		]
-
-	helpMenu += [
-		(T('How to ...?'), False, URL('help', 'help_practical')),
-		(T('FAQs', lazy=False), False, URL('help', 'faq')),
-		(T('How should you cite an article?', lazy=False), False, URL('help', 'cite')),
-	]
-	
-	return [
-		(T('Help'), isActive, '#', helpMenu)
-	]
 
 def _ToolsMenu():
 	ctr = request.controller
@@ -404,10 +345,104 @@ def _ManagerMenu():
 			(SPAN(T('All articles'), _class='pci-manager'),   False, URL('manager', 'all_articles', user_signature=True)),
 			(SPAN(T('Comments'), _class='pci-manager'),   False, URL('manager', 'manage_comments', user_signature=True)),
 		]),
+	]	
+
+
+def _AboutMenu():
+	ctr = request.controller
+	isActive = False
+	if ctr == 'about':
+		isActive = True
+
+	showGuideLines = myconf.get('menu.guidelines', False)
+
+	aboutMenu = []
+
+	aboutMenu += [
+			#LI(_class="divider"),
+			(T('About', lazy=False)+appName, False, URL('about', 'about')),
+			(T('General Terms of Use', lazy=False),       False, URL('about', 'gtu')),
+			(T('Code of conduct', lazy=False),      False, URL('about', 'ethics')),
+			(T('Supporting organisations', lazy=False),      False, URL('about', 'supports')),
+			(T('Recommenders', lazy=False),  False, URL('about', 'recommenders')),
+			# (gab) added this cause use nowhere
+			(T('Managers', lazy=False),  False, URL('about', 'managers')),
+			(T('Thanks to reviewers', lazy=False),  False, URL('about', 'thanks_to_reviewers')),
+			(T('Resources', lazy=False),  False, URL('about', 'resources')),
+			(T('Contact & credits', lazy=False),      False, URL('about', 'contact')),
+			##TODO: for later use?
+			##(T('They talk about', lazy=False)+appName,      False, URL('about', 'buzz')),
+		]
+
+	return [
+		(T('About'), isActive, '#', aboutMenu)
+	]
+
+
+def _HelpMenu():
+	ctr = request.controller
+	isActive = False
+	if ctr == 'help':
+		isActive = True
+
+	showGuideLines = myconf.get('menu.guidelines', False)
+
+	helpMenu = []
+
+	helpMenu += [
+		(T('How does it work?'),  False, URL('help', 'help_generic')),
+	]
+
+	if showGuideLines:
+		helpMenu += [
+			(T('Submission guidelines'),  False, URL('help', 'help_guidelines')),
+		]
+
+	helpMenu += [
+		(T('How to ...?'), False, URL('help', 'help_practical')),
+		(T('FAQs', lazy=False), False, URL('help', 'faq')),
+		(T('How should you cite an article?', lazy=False), False, URL('help', 'cite')),
 	]
 	
+	return [
+		(T('Help'), isActive, '#', helpMenu)
+	]
 
 
+def _AccountMenu():
+	ctr = request.controller
+	fct = request.function
+	isActive = False
+	if ctr == 'default' and fct == 'user':
+		isActive = True
+	
+	txtMenu = T('Log in')
+	auth_menu = []
+
+	if auth.is_logged_in():
+		txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), auth.user.first_name)
+
+		hasPublicProfilePage = (db( (db.auth_membership.user_id==auth.user.id) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
+
+		if hasPublicProfilePage:
+			auth_menu += [
+				(SPAN(I(_class="glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='user', f='viewUserCard', vars=dict(userId=auth.user.id))),
+				LI(_class="divider")
+			]
+
+		auth_menu += [
+			(SPAN(I( _class="glyphicon glyphicon-user"), T('Profile')), False, URL('default', 'user/profile', user_signature=True)),
+			(SPAN(I(_class="glyphicon glyphicon-lock"), T('Change password')), False, URL('default', 'user/change_password', user_signature=True)),
+			LI(_class="divider"),
+			(SPAN(I(_class="glyphicon glyphicon-off"), T('Log out')), False, URL('default', 'user/logout', user_signature=True))
+		]
+	else:
+		auth_menu += [
+			(SPAN(I(_class="glyphicon glyphicon-log-in"), T('Log in')), False, URL('default', 'user/login', user_signature=True)),
+			(SPAN(I(_class="glyphicon glyphicon-edit"), T('Sign up')), False, URL('default', 'user/register', user_signature=True))
+		]
+
+	return [(SPAN(txtMenu, _class='pci-manager'), isActive, '#', auth_menu)]
 
 response.menu = _BaseMenu()
 response.footer_menu = _BaseMenu()
@@ -441,6 +476,7 @@ response.footer_menu += _HelpMenu()
 
 response.help_about_menu = _AboutMenu()
 response.help_about_menu += _HelpMenu()
+response.help_about_menu += _AccountMenu()
 
 
 # set the language
