@@ -53,7 +53,7 @@ Cypress.Commands.add("pciLogout", () => {
 
 Cypress.Commands.add(
   "pciCheckArticleStatus",
-  (user, role, step, status, articleTitle) => {
+  (test, user, role, step, status, articleTitle) => {
     cy.clearCookies();
     cy.pciLogin(user);
 
@@ -130,7 +130,7 @@ Cypress.Commands.add(
     } else {
       if (Cypress.env("withScreenshots")) {
         cy.wait(500);
-        let folder_name = role;
+        let folder_name = test + "/" + role;
         if (role === "suggested_reviewer") folder_name = "reviewer";
         if (role === "suggested_recommender") folder_name = "recommender";
         cy.screenshot(folder_name + "/" + step + " - " + role);

@@ -1,6 +1,7 @@
 describe("Preprint recommended in one round", () => {
   const articleTitle = "articleTest" + new Date().toLocaleString();
   const recommTitle = "recommendationTest" + new Date().toLocaleString();
+  const currentTest = "preprint_1_round_recommendation"
 
   let submitter;
   let manager;
@@ -133,6 +134,7 @@ describe("Preprint recommended in one round", () => {
   describe("1 - Prepint validated => check status : SUBMISSION PENDING VALIDATION", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "1-Prepint validated",
@@ -143,6 +145,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "1-Prepint validated",
@@ -217,6 +220,7 @@ describe("Preprint recommended in one round", () => {
   describe("2 - Submission validated => check status : PREPRINT REQUIRING A RECOMMENDER", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "2-Submission validated",
@@ -227,6 +231,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "2-Submission validated",
@@ -237,6 +242,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> recommender : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         recommender,
         "suggested_recommender",
         "2-Submission validated",
@@ -387,6 +393,7 @@ describe("Preprint recommended in one round", () => {
   describe("3 - Review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "3-Review invitations sent",
@@ -397,6 +404,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "3-Review invitations sent",
@@ -407,6 +415,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> recommender : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         recommender,
         "recommender",
         "3-Review invitations sent",
@@ -417,6 +426,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 1 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_1,
         "suggested_reviewer",
         "3-Review invitations sent",
@@ -427,6 +437,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 2 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_2,
         "suggested_reviewer",
         "3-Review invitations sent",
@@ -630,6 +641,7 @@ describe("Preprint recommended in one round", () => {
   describe("4 - Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "4-Reviews submitted",
@@ -640,6 +652,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "4-Reviews submitted",
@@ -650,6 +663,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> recommender : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         recommender,
         "recommender",
         "4-Reviews submitted",
@@ -660,6 +674,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 1 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_1,
         "reviewer",
         "4-Reviews submitted",
@@ -670,6 +685,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 2 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_2,
         "reviewer",
         "4-Reviews submitted",
@@ -752,6 +768,7 @@ describe("Preprint recommended in one round", () => {
   describe("5 - Recommendation sent => Verify article status : RECOMMENDATION PENDING VALIDATION", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "5-Recommendation sent",
@@ -762,6 +779,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "5-Recommendation sent",
@@ -772,6 +790,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> recommender : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         recommender,
         "recommender",
         "5-Recommendation sent",
@@ -782,6 +801,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 1 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_1,
         "reviewer",
         "5-Recommendation sent",
@@ -792,6 +812,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 2 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_2,
         "reviewer",
         "5-Recommendation sent",
@@ -862,6 +883,7 @@ describe("Preprint recommended in one round", () => {
   describe("6 - RECOMMENDED => check status : RECOMMENDED", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         submitter,
         "submitter",
         "6-RECOMMENDED",
@@ -872,6 +894,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> manager : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         manager,
         "manager",
         "6-RECOMMENDED",
@@ -882,6 +905,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> recommender : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         recommender,
         "recommender",
         "6-RECOMMENDED",
@@ -892,6 +916,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 1 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_1,
         "reviewer",
         "6-RECOMMENDED",
@@ -902,6 +927,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> reviewer 2 : article correct status", () => {
       cy.pciCheckArticleStatus(
+        currentTest,
         reviewer_2,
         "reviewer",
         "6-RECOMMENDED",
@@ -923,6 +949,7 @@ describe("Preprint recommended in one round", () => {
     describe("DELETED => check article not exist", () => {
       it("=> submitter : article not exist", () => {
         cy.pciCheckArticleStatus(
+          currentTest,
           submitter,
           "submitter",
           "",
@@ -933,6 +960,7 @@ describe("Preprint recommended in one round", () => {
 
       it("=> recommender : article not exist", () => {
         cy.pciCheckArticleStatus(
+          currentTest,
           recommender,
           "recommender",
           "",
@@ -943,6 +971,7 @@ describe("Preprint recommended in one round", () => {
 
       it("=> manager : article not exist", () => {
         cy.pciCheckArticleStatus(
+          currentTest,
           manager,
           "manager",
           "",
@@ -953,6 +982,7 @@ describe("Preprint recommended in one round", () => {
 
       it("=> reviewer 1 : article not exist", () => {
         cy.pciCheckArticleStatus(
+          currentTest,
           reviewer_1,
           "reviewer",
           "",
@@ -963,6 +993,7 @@ describe("Preprint recommended in one round", () => {
 
       it("=> reviewer 2 : article not exist", () => {
         cy.pciCheckArticleStatus(
+          currentTest,
           reviewer_2,
           "reviewer",
           "",
