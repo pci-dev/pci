@@ -32,18 +32,18 @@ Cypress.Commands.add("pciLogin", user => {
   cy.get("#cyp-login-button").click();
 
   // fill  and submit login form
-  cy.get("#auth_user_email").type(user.mail);
-  cy.get("#auth_user_password").type(user.password);
+  cy.get("#auth_user_email").typeFast(user.mail);
+  cy.get("#auth_user_password").typeFast(user.password);
 
   cy.get("input[type=submit]").click();
 
   // check if profile menu exist
-  cy.contains(".dropdown-toggle", "Welcome ").should("exist");
+  cy.contains(".dropdown-toggle", user.firstname).should("exist");
 });
 
 Cypress.Commands.add("pciLogout", () => {
-  cy.contains(".dropdown-toggle", "Welcome ").should("exist");
-  cy.contains(".dropdown-toggle", "Welcome ").click();
+  cy.contains(".dropdown-toggle", ".glyphicon-user").should("exist");
+  cy.contains(".dropdown-toggle", ".glyphicon-user").click();
 
   cy.contains("a", "Log Out").click();
 
@@ -53,8 +53,7 @@ Cypress.Commands.add("pciLogout", () => {
 
 Cypress.Commands.add(
   "pciCheckArticleStatus",
-  (user, role, status, articleTitle) => {
-    
+  (user, role, step, status, articleTitle) => {
     cy.clearCookies();
     cy.pciLogin(user);
 
@@ -63,38 +62,82 @@ Cypress.Commands.add(
         cy.contains(".dropdown-toggle", "Manage").click();
         cy.contains("a", "All articles").click();
 
+        if (status != "not.exist")
+          cy.contains("a", "Check & Edit")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
 
       case "recommender":
         cy.contains(".dropdown-toggle", "Your Recommendations").click();
         cy.contains("a", "Your recommendations of preprints").click();
+
+        if (status != "not.exist")
+          cy.contains("a", "Check & Edit")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
 
       case "suggested_recommender":
         cy.contains(".dropdown-toggle", "Your Recommendations").click();
         cy.contains("a", "requests to handle a preprint").click();
+
+        if (status != "not.exist")
+          cy.contains("a", "View")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
 
       case "reviewer":
         cy.contains(".dropdown-toggle", "Your contributions").click();
         cy.contains("a", "Your reviews").click();
+
+        if (status != "not.exist")
+          cy.contains("a", "View / Edit")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
 
       case "suggested_reviewer":
         cy.contains(".dropdown-toggle", "Your contributions").click();
         cy.contains("a", "invitations to review a preprint").click();
+
+        if (status != "not.exist")
+          cy.contains("a", "Accept or decline")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
 
       case "submitter":
         cy.contains(".dropdown-toggle", "Your contributions").click();
         cy.contains("a", "Your submitted preprints").click();
+
+        if (status != "not.exist")
+          cy.contains("a", "View / Edit")
+            .first()
+            .click();
+        // cy.screenshot()
         break;
     }
 
     if (status == "not.exist") {
       cy.contains("tr", articleTitle).should("not.exist");
     } else {
-      cy.get(".pci-status")
+      if (Cypress.env("withScreenshots")) {
+        cy.wait(500);
+        let folder_name = role;
+        if (role === "suggested_reviewer") folder_name = "reviewer";
+        if (role === "suggested_recommender") folder_name = "recommender";
+        cy.screenshot(folder_name + "/" + step + " - " + role);
+        cy.wait(500);
+      }
+
+      cy.get(".pci-status-big")
         .first()
         .should("contain", status);
     }
@@ -124,3 +167,15 @@ Cypress.Commands.add("pciDeleteWithTestLastArticle", articleTitle => {
 
   cy.contains("tr", articleTitle).should("not.exist");
 });
+
+Cypress.Commands.add(
+  "typeFast",
+  {
+    prevSubject: true
+  },
+  (subject, text) => {
+    cy.wrap(subject)
+      .invoke("val", text)
+      .trigger("change");
+  }
+);

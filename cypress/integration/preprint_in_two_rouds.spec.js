@@ -1,4 +1,4 @@
-describe("Preprint post", () => {
+describe("Preprint recommended in two round", () => {
   const articleTitle = "articleTest" + new Date().toLocaleString();
   const recommTitle = "recommendationTest" + new Date().toLocaleString();
 
@@ -28,8 +28,6 @@ describe("Preprint post", () => {
       "session_id_welcome"
     );
   });
-
-  //######################################################################################################################################
   describe("Submitter : Preprint submission", () => {
     before(() => {
       // log as normal_user
@@ -37,23 +35,23 @@ describe("Preprint post", () => {
       cy.pciLogin(submitter);
     });
 
-    it("Should have a disclaimer", () => {
+    it("Should show a disclaimer before submission", () => {
       cy.contains(".btn-success", "Submit a preprint").click();
 
       cy.contains(".btn-success", "Submit your preprint").should("exist");
       cy.contains(".btn-success", "Submit your preprint").click();
     });
 
-    it("Should send submission form", () => {
+    it("Should submit form with bad title", () => {
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_articles_title").type("Tototototototot totoo");
-        cy.get("#t_articles_authors").type(
+        cy.get("#t_articles_title").typeFast("Tototototototot totoo");
+        cy.get("#t_articles_authors").typeFast(
           submitter.firstname + " " + submitter.lastname
         );
-        cy.get("#t_articles_doi").type(datas.url);
-        cy.get("#t_articles_abstract").type("Abstract " + datas.long_text, { delay: 0 });
-        cy.get("#t_articles_keywords").type(datas.small_text);
-        cy.get("#t_articles_cover_letter").type("Cover " + datas.long_text, { delay: 0 });
+        cy.get("#t_articles_doi").typeFast(datas.doi);
+        cy.get("#t_articles_abstract").typeFast("Abstract " + datas.long_text);
+        cy.get("#t_articles_keywords").typeFast(datas.small_text);
+        cy.get("#t_articles_cover_letter").typeFast("Cover " + datas.long_text);
       });
 
       cy.get('input[name="thematics"]')
@@ -69,32 +67,34 @@ describe("Preprint post", () => {
       cy.contains(".w2p_flash", "Article submitted").should("exist");
     });
 
-    it("Should search for suggested recommender with no result", () => {
+    it("Should search for suggested recommender and have no result", () => {
       cy.contains("a", "Suggest recommenders").click();
 
       // search nonsense string to expect no result
-      cy.get('input[name="qyKeywords"]').type("zuklshlkjehrlkjaherlkjahr");
+      cy.get('input[name="qyKeywords"]').typeFast("zuklshlkjehrlkjaherlkjahr");
       cy.get(".pci2-search-button").click();
 
       cy.contains("a", "Suggest as recommender").should("not.exist");
     });
 
-    it("Should use search to suggest recommender", () => {
+    it("Should search and suggest recommender", () => {
       cy.get('input[name="qyKeywords"]').clear();
 
-      cy.get('input[name="qyKeywords"]').type(recommender.firstname);
+      cy.get('input[name="qyKeywords"]').typeFast(recommender.firstname);
       cy.get(".pci2-search-button").click();
       cy.contains("a", "Suggest as recommender").should("exist");
 
       cy.contains("a", "Suggest as recommender").click();
+    });
 
+    it("=> mail sent to recommender", () => {
       cy.wait(500);
       cy.contains(".w2p_flash", "Suggested recommender").should("exist");
-
-      cy.contains("a", "Done").click();
     });
 
     it("Should have a suggested recommender", () => {
+      cy.contains("a", "Done").click();
+
       cy.contains("li>span", recommender.firstname).should("exist");
       cy.contains("a", "Remove").should("exist");
     });
@@ -107,7 +107,7 @@ describe("Preprint post", () => {
         .should("contain", "SUBMISSION PENDING VALIDATION");
     });
 
-    it("Should be able to edit article before managing board validation", () => {
+    it("Should be able to edit submission and set correct title before validation", () => {
       cy.contains("a", "View / Edit")
         .first()
         .click();
@@ -116,11 +116,37 @@ describe("Preprint post", () => {
 
       cy.get("#t_articles_title").clear();
 
-      cy.get("#t_articles_title").type(articleTitle);
+      cy.fixture("fake_datas").then(datas => {
+        cy.get("#t_articles_title").typeFast(
+          articleTitle + " " + datas.small_text
+        );
+      });
 
       cy.get("input[type=submit]").click();
 
       cy.contains("h3", articleTitle).should("exist");
+    });
+  });
+
+  describe("1 - Prepint validated => check status : SUBMISSION PENDING VALIDATION", () => {
+    it("=> submitter : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        submitter,
+        "submitter",
+        "1-Prepint validated",
+        "SUBMISSION PENDING VALIDATION",
+        articleTitle
+      );
+    });
+
+    it("=> manager : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        manager,
+        "manager",
+        "1-Prepint validated",
+        "SUBMISSION PENDING VALIDATION",
+        articleTitle
+      );
     });
   });
 
@@ -131,7 +157,7 @@ describe("Preprint post", () => {
       cy.pciLogin(manager);
     });
 
-    it("Should have 'Pending validations' enhanced menu", () => {
+    it("Should show 'Pending validations' enhanced menu", () => {
       cy.contains(".pci-enhancedMenuItem", "Manage").should("exist");
       cy.contains(".dropdown-toggle", "Manage").click();
 
@@ -149,7 +175,7 @@ describe("Preprint post", () => {
         .should("contain", "SUBMISSION PENDING VALIDATION");
     });
 
-    it("Should validate submission", () => {
+    it("Should validate the submission", () => {
       cy.contains("a", "Check & Edit")
         .first()
         .click();
@@ -163,7 +189,7 @@ describe("Preprint post", () => {
       );
     });
 
-    it("Should article have status 'PREPRINT REQUIRING A RECOMMENDER'", () => {
+    it("Should article under status 'PREPRINT REQUIRING A RECOMMENDER'", () => {
       cy.contains(".pci-status-big", "PREPRINT REQUIRING A RECOMMENDER").should(
         "exist"
       );
@@ -186,11 +212,12 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("=> Verify article status : PREPRINT REQUIRING A RECOMMENDER", () => {
+  describe("2 - Submission validated => check status : PREPRINT REQUIRING A RECOMMENDER", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "2-Submission validated",
         "PREPRINT REQUIRING A RECOMMENDER",
         articleTitle
       );
@@ -200,6 +227,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         manager,
         "manager",
+        "2-Submission validated",
         "PREPRINT REQUIRING A RECOMMENDER",
         articleTitle
       );
@@ -209,6 +237,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         recommender,
         "suggested_recommender",
+        "2-Submission validated",
         "PREPRINT REQUIRING A RECOMMENDER",
         articleTitle
       );
@@ -216,14 +245,14 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("Recommender : Accept to recommend and invite reviewers", () => {
+  describe("Recommender : ROUND 1 - Accept to recommend and invite reviewers", () => {
     before(() => {
       // log as normal_user
 
       cy.pciLogin(recommender);
     });
 
-    it("Should have 'Request to handle a preprint' enhanced menu", () => {
+    it("Should show 'Request to handle a preprint' enhanced menu", () => {
       cy.contains(".pci-enhancedMenuItem", "Your Recommendations").should(
         "exist"
       );
@@ -244,7 +273,7 @@ describe("Preprint post", () => {
         .should("contain", "PREPRINT REQUIRING A RECOMMENDER");
     });
 
-    it("Should accept to recommend", () => {
+    it("Should accept to recommend the preprint", () => {
       cy.contains("a", "View")
         .first()
         .click();
@@ -260,7 +289,9 @@ describe("Preprint post", () => {
 
       cy.get("input[type=submit]").should("not.have.attr", "disabled");
       cy.get("input[type=submit]").click();
+    });
 
+    it("=> mail sent to manager, submitter and recommender", () => {
       cy.wait(500);
       cy.contains(".w2p_flash", "email sent to manager").should("exist");
       cy.contains(".w2p_flash", "email sent to submitter").should("exist");
@@ -276,7 +307,7 @@ describe("Preprint post", () => {
         "Choose a reviewer from PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').type(reviewer_1.firstname);
+      cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
       cy.get(".pci2-search-button").click();
 
       cy.contains("a", "Add").should("exist");
@@ -286,7 +317,9 @@ describe("Preprint post", () => {
       cy.contains("a", "Add").click();
 
       cy.get("input[type=submit]").click();
+    });
 
+    it("=> mail sent to reviewer 1", () => {
       cy.wait(500);
       cy.contains(
         ".w2p_flash",
@@ -300,7 +333,7 @@ describe("Preprint post", () => {
         "Choose a reviewer from PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').type(reviewer_2.firstname);
+      cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);
       cy.get(".pci2-search-button").click();
 
       cy.contains("a", "Add").should("exist");
@@ -310,7 +343,9 @@ describe("Preprint post", () => {
       cy.contains("a", "Add").click();
 
       cy.get("input[type=submit]").click();
+    });
 
+    it("=> mail sent to reviewer 2", () => {
       cy.wait(500);
       cy.contains(
         ".w2p_flash",
@@ -324,19 +359,20 @@ describe("Preprint post", () => {
         "Choose a reviewer outside PCI Evol Biol DEV database"
       ).click();
 
-      cy.get("#no_table_reviewer_first_name").type("Titi");
-      cy.get("#no_table_reviewer_last_name").type("Toto");
-      cy.get("#no_table_reviewer_email").type("ratalatapouet@toto.com");
+      cy.get("#no_table_reviewer_first_name").typeFast("Titi");
+      cy.get("#no_table_reviewer_last_name").typeFast("Toto");
+      cy.get("#no_table_reviewer_email").typeFast("ratalatapouet@toto.com");
 
       cy.get("input[type=submit]").click();
+    });
 
+    it("=> mail sent to reviewer outside PCI db", () => {
       cy.wait(500);
       cy.contains(".w2p_flash", 'email sent to "Titi Toto"').should("exist");
     });
 
     it("Should show article under status 'RECOMMENDATION PROCESS UNDERWAY'", () => {
       cy.contains("a", "Done").click();
-
       cy.contains("tr", articleTitle).should("exist");
 
       cy.get(".pci-status")
@@ -346,11 +382,12 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("=> Verify article status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("3 - Review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "3-Review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -360,6 +397,17 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         manager,
         "manager",
+        "3-Review invitations sent",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "3-Review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -369,6 +417,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "suggested_reviewer",
+        "3-Review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -378,6 +427,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "suggested_reviewer",
+        "3-Review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -385,14 +435,14 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("Reviewer 1 : Accept and submit review", () => {
+  describe("Reviewer 1 : ROUND 1 - Accept and submit review", () => {
     before(() => {
       // log as normal_user
 
       cy.pciLogin(reviewer_1);
     });
 
-    it("Should have 'Request to handle a preprint' enhanced menu", () => {
+    it("Should show 'Request to handle a preprint' enhanced menu", () => {
       cy.contains(".pci-enhancedMenuItem", "Your contributions").should(
         "exist"
       );
@@ -446,7 +496,7 @@ describe("Preprint post", () => {
       cy.contains("a", "Write, edit or upload your review").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_reviews_review").type("Review 1 " + datas.long_text);
+        cy.get("#t_reviews_review").typeFast("Review 1 " + datas.long_text);
       });
 
       cy.get('input[name="terminate"]').click();
@@ -480,7 +530,7 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("Reviewer 2 : Accept and submit review", () => {
+  describe("Reviewer 2 : ROUND 1 - Accept and submit review", () => {
     before(() => {
       // log as normal_user
 
@@ -541,7 +591,7 @@ describe("Preprint post", () => {
       cy.contains("a", "Write, edit or upload your review").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_reviews_review").type("Review 2 " + datas.long_text);
+        cy.get("#t_reviews_review").typeFast("Review 2 " + datas.long_text);
       });
 
       cy.get('input[name="terminate"]').click();
@@ -575,7 +625,60 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("Recommender : Write recommendation decision => Need revision ", () => {
+  describe("4 - Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+    it("=> submitter : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        submitter,
+        "submitter",
+        "4-Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> manager : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        manager,
+        "manager",
+        "4-Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "4-Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> reviewer 1 : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        reviewer_1,
+        "reviewer",
+        "4-Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> reviewer 2 : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        reviewer_2,
+        "reviewer",
+        "4-Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+  });
+
+  //######################################################################################################################################
+  describe("Recommender : ROUND 1 - Write recommendation decision 'Need revision'", () => {
     before(() => {
       // log as normal_user
 
@@ -613,8 +716,10 @@ describe("Preprint post", () => {
       cy.get("#opinion_revise").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_recommendations_recommendation_title").type(recommTitle);
-        cy.get("#t_recommendations_recommendation_comments").type(
+        cy.get("#t_recommendations_recommendation_title").typeFast(
+          recommTitle + " " + datas.small_text
+        );
+        cy.get("#t_recommendations_recommendation_comments").typeFast(
           "Final recomm " + datas.long_text
         );
       });
@@ -642,11 +747,12 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("=> Verify article status : REQUEST OF REVISION PENDING VALIDATION", () => {
+  describe("5 - Round #1 decision sent => check status : REQUEST OF REVISION PENDING VALIDATION", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "5-Round1 decision sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -656,6 +762,17 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         manager,
         "manager",
+        "5-Round1 decision sent",
+        "REQUEST OF REVISION PENDING VALIDATION",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "5-Round1 decision sent",
         "REQUEST OF REVISION PENDING VALIDATION",
         articleTitle
       );
@@ -665,6 +782,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "reviewer",
+        "5-Round1 decision sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -674,6 +792,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "reviewer",
+        "5-Round1 decision sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -681,7 +800,7 @@ describe("Preprint post", () => {
   });
 
   //##################################################################################################################################
-  describe("Manager : Validate recommendation decistion", () => {
+  describe("Manager : ROUND 1 - Validate recommendation decistion ", () => {
     before(() => {
       // log as manager
 
@@ -738,11 +857,12 @@ describe("Preprint post", () => {
   });
 
   //##################################################################################################################################
-  describe("=> Verify article status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("6 - Round #1 decision validatied => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "6-Round1 decision validatied",
         "AWAITING REVISION",
         articleTitle
       );
@@ -752,6 +872,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         recommender,
         "recommender",
+        "6-Round1 decision validatied",
         "AWAITING REVISION",
         articleTitle
       );
@@ -761,6 +882,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "reviewer",
+        "6-Round1 decision validatied",
         "AWAITING REVISION",
         articleTitle
       );
@@ -770,6 +892,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "reviewer",
+        "6-Round1 decision validatied",
         "AWAITING REVISION",
         articleTitle
       );
@@ -777,7 +900,7 @@ describe("Preprint post", () => {
   });
 
   //##################################################################################################################################
-  describe("Submitter : Submit author's reply for round 1", () => {
+  describe("Submitter : ROUND 1 - Submit author's reply for round 1", () => {
     before(() => {
       // log as normal_user
       cy.pciLogin(submitter);
@@ -814,7 +937,7 @@ describe("Preprint post", () => {
       ).click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_recommendations_reply").type(
+        cy.get("#t_recommendations_reply").typeFast(
           "Author's reply " + datas.long_text
         );
       });
@@ -832,11 +955,10 @@ describe("Preprint post", () => {
     });
   });
 
-
   //##################################################################################################################################
   //# ROUND 2
   //##################################################################################################################################
-  describe("ROUND 2 - Recommender : Re-invite reviewers", () => {
+  describe("Recommender : ROUND 2 - Re-invite reviewers for round 2", () => {
     before(() => {
       // log as normal_user
 
@@ -874,7 +996,7 @@ describe("Preprint post", () => {
         "Choose a reviewer from PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').type(reviewer_1.firstname);
+      cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
       cy.get(".pci2-search-button").click();
 
       cy.contains("a", "Add").should("exist");
@@ -898,7 +1020,7 @@ describe("Preprint post", () => {
         "Choose a reviewer from PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').type(reviewer_2.firstname);
+      cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);
       cy.get(".pci2-search-button").click();
 
       cy.contains("a", "Add").should("exist");
@@ -928,11 +1050,12 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("=> Verify article status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("7 - Round #2 review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "7-Round2 review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -942,6 +1065,17 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         manager,
         "manager",
+        "7-Round2 review invitations sent",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "7-Round2 review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -951,6 +1085,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "suggested_reviewer",
+        "7-Round2 review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -960,6 +1095,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "suggested_reviewer",
+        "7-Round2 review invitations sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -967,7 +1103,7 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("ROUND 2 - Reviewer 1 : Accept and submit review", () => {
+  describe("Reviewer 1 : ROUND 2 - Accept and submit review", () => {
     before(() => {
       // log as normal_user
 
@@ -1028,7 +1164,7 @@ describe("Preprint post", () => {
       cy.contains("a", "Write, edit or upload your review").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_reviews_review").type("Review 1 " + datas.long_text);
+        cy.get("#t_reviews_review").typeFast("Review 1 " + datas.long_text);
       });
 
       cy.get('input[name="terminate"]').click();
@@ -1062,7 +1198,7 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("ROUND 2 - Reviewer 2 : Accept and submit review", () => {
+  describe("Reviewer 2 : ROUND 2 - Accept and submit review", () => {
     before(() => {
       // log as normal_user
 
@@ -1123,7 +1259,7 @@ describe("Preprint post", () => {
       cy.contains("a", "Write, edit or upload your review").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_reviews_review").type("Review 2 " + datas.long_text);
+        cy.get("#t_reviews_review").typeFast("Review 2 " + datas.long_text);
       });
 
       cy.get('input[name="terminate"]').click();
@@ -1157,7 +1293,60 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("ROUND 2 - Recommender : Write recommendation decision => Validation", () => {
+  describe("8 - Round #2 Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+    it("=> submitter : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        submitter,
+        "submitter",
+        "8-Round2 Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> manager : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        manager,
+        "manager",
+        "8-Round2 Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "8-Round2 Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> reviewer 1 : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        reviewer_1,
+        "reviewer",
+        "8-Round2 Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+
+    it("=> reviewer 2 : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        reviewer_2,
+        "reviewer",
+        "8-Round2 Reviews submitted",
+        "RECOMMENDATION PROCESS UNDERWAY",
+        articleTitle
+      );
+    });
+  });
+
+  //######################################################################################################################################
+  describe("Recommender : ROUND 2 - Write recommendation decision 'Validation'", () => {
     before(() => {
       // log as normal_user
 
@@ -1195,8 +1384,10 @@ describe("Preprint post", () => {
       cy.get("#opinion_recommend").click();
 
       cy.fixture("fake_datas").then(datas => {
-        cy.get("#t_recommendations_recommendation_title").type(recommTitle);
-        cy.get("#t_recommendations_recommendation_comments").type(
+        cy.get("#t_recommendations_recommendation_title").typeFast(
+          recommTitle + " " + datas.small_text
+        );
+        cy.get("#t_recommendations_recommendation_comments").typeFast(
           "Recomm " + datas.long_text
         );
       });
@@ -1224,11 +1415,12 @@ describe("Preprint post", () => {
   });
 
   //######################################################################################################################################
-  describe("=> Verify article status : RECOMMENDATION PENDING VALIDATION", () => {
+  describe("9 - Round #2 Recommendation sent => Verify article status : RECOMMENDATION PENDING VALIDATION", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "9-Round2 Recommendation sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -1238,6 +1430,17 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         manager,
         "manager",
+        "9-Round2 Recommendation sent",
+        "RECOMMENDATION PENDING VALIDATION",
+        articleTitle
+      );
+    });
+
+    it("=> recommender : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        recommender,
+        "recommender",
+        "9-Round2 Recommendation sent",
         "RECOMMENDATION PENDING VALIDATION",
         articleTitle
       );
@@ -1247,6 +1450,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "reviewer",
+        "9-Round2 Recommendation sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -1256,6 +1460,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "reviewer",
+        "9-Round2 Recommendation sent",
         "RECOMMENDATION PROCESS UNDERWAY",
         articleTitle
       );
@@ -1263,7 +1468,7 @@ describe("Preprint post", () => {
   });
 
   //##################################################################################################################################
-  describe(" ROUND 2 - Manager : Validate recommendation", () => {
+  describe(" Manager : ROUND 2 - Validate recommendation", () => {
     before(() => {
       // log as manager
 
@@ -1320,11 +1525,22 @@ describe("Preprint post", () => {
   });
 
   //##################################################################################################################################
-  describe("=> Verify article status : RECOMMENDED", () => {
+  describe("10 - RECOMMENDED => check status : RECOMMENDED", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         submitter,
         "submitter",
+        "10-RECOMMENDED",
+        "RECOMMENDED",
+        articleTitle
+      );
+    });
+
+    it("=> manager : article correct status", () => {
+      cy.pciCheckArticleStatus(
+        manager,
+        "manager",
+        "10-RECOMMENDED",
         "RECOMMENDED",
         articleTitle
       );
@@ -1334,6 +1550,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         recommender,
         "recommender",
+        "10-RECOMMENDED",
         "RECOMMENDED",
         articleTitle
       );
@@ -1343,6 +1560,7 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_1,
         "reviewer",
+        "10-RECOMMENDED",
         "RECOMMENDED",
         articleTitle
       );
@@ -1352,59 +1570,72 @@ describe("Preprint post", () => {
       cy.pciCheckArticleStatus(
         reviewer_2,
         "reviewer",
+        "10-RECOMMENDED",
         "RECOMMENDED",
         articleTitle
       );
     });
   });
 
-  //##################################################################################################################################
-  describe("Manager : Delete preprint", () => {
-    it("Should delete article", () => {
-      cy.pciDeleteWithTestLastArticle(articleTitle);
-    });
-  });
-
-  //##################################################################################################################################
-  describe("=> Verify article status : not exist", () => {
-    it("=> submitter : article not exist", () => {
-      cy.pciCheckArticleStatus(
-        submitter,
-        "submitter",
-        "not.exist",
-        articleTitle
-      );
+  if (!Cypress.env("keepArticle")) {
+    //##################################################################################################################################
+    describe("Manager : Delete preprint", () => {
+      it("Should delete article", () => {
+        cy.pciDeleteWithTestLastArticle(articleTitle);
+      });
     });
 
-    it("=> recommender : article not exist", () => {
-      cy.pciCheckArticleStatus(
-        recommender,
-        "recommender",
-        "not.exist",
-        articleTitle
-      );
-    });
+    //##################################################################################################################################
+    describe("DELETED => check article not exist", () => {
+      it("=> submitter : article not exist", () => {
+        cy.pciCheckArticleStatus(
+          submitter,
+          "submitter",
+          "",
+          "not.exist",
+          articleTitle
+        );
+      });
 
-    it("=> manager : article not exist", () => {
-      cy.pciCheckArticleStatus(manager, "manager", "not.exist", articleTitle);
-    });
+      it("=> recommender : article not exist", () => {
+        cy.pciCheckArticleStatus(
+          recommender,
+          "recommender",
+          "",
+          "not.exist",
+          articleTitle
+        );
+      });
 
-    it("=> reviewer 1 : article not exist", () => {
-      cy.pciCheckArticleStatus(
-        reviewer_1,
-        "reviewer",
-        "not.exist",
-        articleTitle
-      );
-    });
+      it("=> manager : article not exist", () => {
+        cy.pciCheckArticleStatus(
+          manager,
+          "manager",
+          "",
+          "not.exist",
+          articleTitle
+        );
+      });
 
-    it("=> reviewer 2 : article not exist", () => {
-      cy.pciCheckArticleStatus(
-        reviewer_2,
-        "reviewer",
-        "not.exist",
-        articleTitle
-      );
+      it("=> reviewer 1 : article not exist", () => {
+        cy.pciCheckArticleStatus(
+          reviewer_1,
+          "reviewer",
+          "",
+          "not.exist",
+          articleTitle
+        );
+      });
+
+      it("=> reviewer 2 : article not exist", () => {
+        cy.pciCheckArticleStatus(
+          reviewer_2,
+          "reviewer",
+          "",
+          "not.exist",
+          articleTitle
+        );
+      });
     });
-  });
+  }
 });

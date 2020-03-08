@@ -1,6 +1,10 @@
 {
-    "projectId": "14nb1h",
     "viewportWidth": 1920,
     "viewportHeight": 1080,
-    "video": false
+    "watchForFileChanges": false,
+    "video": false,
+    "env": {
+        "withScreenshots": false,
+        "keepArticle": false
+    }
 }
