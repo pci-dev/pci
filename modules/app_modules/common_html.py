@@ -32,34 +32,6 @@ myconf = AppConfig(reload=True)
 # A Trier
 
 ######################################################################################################################################################################
-# Builds a html representation of an article 
-# (gab) only used on manager/manage_recommendation (move in view)
-def mkRepresentArticle(auth, db, articleId):
-	resu = ''
-	if articleId:
-		art = db.t_articles[articleId]
-		if art is not None:
-			submitter = ''
-			sub_repr = ''
-			if art.user_id is not None and art.anonymous_submission is False:
-				submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
-				sub_repr = 'by %s %s,' % (submitter.first_name, submitter.last_name)
-			resu = DIV(
-				SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
-				,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors))
-				,H3(art.title)
-				,BR()+SPAN(art.article_source) if art.article_source else ''
-				,BR()+common_small_html.mkDOI(art.doi) if art.doi else ''
-				,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
-				,BR()
-				,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '') if art.keywords else ''
-				,BR()+B(current.T('Abstract'))+BR()+DIV(WIKI(art.abstract or ''), _class='pci-bigtext') if art.abstract else ''
-				, _class='pci-article-div'
-			)
-	return resu
-
-
-######################################################################################################################################################################
 # Builds a nice representation of an article WITH recommendations link
 # # (gab) unused ?
 
@@ -311,111 +283,115 @@ def mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, as_list=False, as_
 ##WARNING The most sensitive function of the whole website!!
 ##WARNING Be *VERY* careful with rights management
 def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
-	class FakeSubmitter(object):
-		id = None
-		first_name = ''
-		last_name = '[undisclosed]'
-	submitter = FakeSubmitter()
-	hideSubmitter = True
-	qyIsRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommender_id==auth.user_id) ).count()
-	qyIsCoRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.t_press_reviews.contributor_id==auth.user_id) ).count()
-	if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role='manager')) ):
-		submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-		if submitter is None:
-			submitter = FakeSubmitter()
-		hideSubmitter = False
-	allowOpinion = None
-	###NOTE: article facts
-	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		img = DIV(IMG(_alt='article picture', _src=URL('default', 'download', args=art.uploaded_picture, scheme=scheme, host=host, port=port), _style='max-width:150px; max-height:150px;'))
-	else:
-		img = ''
-	myArticle = DIV(
-		DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
-		# NOTE: publishing tools not ready yet...
-		#,DIV(
-			 #A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
-			#,A(current.T('PDF Front page'), _href=URL(c='admin', f='fp_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
-			#,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
-			#,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
-			#,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
-		#) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
-		,img
-		,H3(art.title or '')
-		,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
-		,common_small_html.mkDOI(art.doi) if (art.doi) else SPAN('')
-		,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
-		,BR()
-		,DIV(
-				I(current.T('Submitted by ')),
-				I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
-				I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
-		) if (art.already_published is False) else ''
-		,(B('Parallel submission') if art.parallel_submission else '')
-		,(SPAN(art.article_source)+BR() if art.article_source else '')
-	)
-	# Allow to display cover letter if role is manager or above
-	if not(printable) and not(quiet) :
-		if len(art.cover_letter or '')>2:
-			myArticle.append(DIV(A(current.T('Show / Hide Cover letter'), 
-							_onclick="""jQuery(function(){ if ($.cookie('PCiHideCoverLetter') == 'On') {
-													$('DIV.pci-onoffCoverLetter').show(); 
-													$.cookie('PCiHideCoverLetter', 'Off', {expires:365, path:'/'});
-												} else {
-													$('DIV.pci-onoffCoverLetter').hide(); 
-													$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});
-												}
-										})""", _class='btn btn-default'), _class='pci-EditButtons'))
-			myArticle.append(SCRIPT("$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});"))
-			myArticle.append(DIV(B(current.T('Cover letter')), 
-								BR(), 
-								WIKI((art.cover_letter or '')), 
-					_class='pci-bigtext pci-onoffCoverLetter'))
-		else:
-			myArticle.append(DIV(A(current.T('No Cover letter'), _class='btn btn-default disabled'), _class='pci-EditButtons'))
-	if not(printable) and not (quiet):
-		myArticle.append(DIV(A(current.T('Show / Hide Abstract'), 
-						_onclick="""jQuery(function(){ if ($.cookie('PCiHideAbstract') == 'On') {
-												$('DIV.pci-onoffAbstract').show(); 
-												$.cookie('PCiHideAbstract', 'Off', {expires:365, path:'/'});
-											} else {
-												$('DIV.pci-onoffAbstract').hide(); 
-												$.cookie('PCiHideAbstract', 'On', {expires:365, path:'/'});
-											}
-									})""", _class='btn btn-default pci-public'), _class='pci-EditButtons'))
-		myArticle.append(SCRIPT("$.cookie('PCiHideAbstract', 'On', {expires:365, path:'/'});"))
-		myArticle.append(DIV(B(current.T('Abstract')), 
-							BR(), 
-							WIKI((art.abstract or '')), 
-							SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else ''),
-				_class='pci-bigtext pci-onoffAbstract'))
-	else:
-		myArticle.append(
-			DIV(B(current.T('Abstract')), 
-							BR(), 
-							WIKI((art.abstract or '')), 
-							SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else ''),
-				_class='pci-bigtext')
-			)
-	if ((art.user_id == auth.user_id) and (art.status in ('Pending', 'Awaiting revision'))) and not(printable) and not (quiet):
-		# author's button allowing article edition
-		myArticle.append(DIV(A(SPAN(current.T('Edit article'), _class='buttontext btn btn-info pci-submitter'), 
-								_href=URL(c='user', f='edit_my_article', vars=dict(articleId=art.id), user_signature=True)), 
-							_class='pci-EditButtons'))
-	if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
-		# manager's button allowing article edition
-		myArticle.append(DIV(A(SPAN(current.T('Manage this request'), _class='buttontext btn btn-info pci-manager'), 
-								_href=URL(c='manager', f='edit_article', vars=dict(articleId=art.id), user_signature=True)), 
-							_class='pci-EditButtons'))
-	myContents = DIV(myArticle, _class=('pci-article-div-printable' if printable else 'pci-article-div'))
+	# class FakeSubmitter(object):
+	# 	id = None
+	# 	first_name = ''
+	# 	last_name = '[undisclosed]'
+	# submitter = FakeSubmitter()
+	# hideSubmitter = True
+	# qyIsRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommender_id==auth.user_id) ).count()
+	# qyIsCoRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.t_press_reviews.contributor_id==auth.user_id) ).count()
+	# if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role='manager')) ):
+	# 	submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+	# 	if submitter is None:
+	# 		submitter = FakeSubmitter()
+	# 	hideSubmitter = False
+	# allowOpinion = None
+	# ###NOTE: article facts
+	# if (art.uploaded_picture is not None and art.uploaded_picture != ''):
+	# 	img = DIV(IMG(_alt='article picture', _src=URL('default', 'download', args=art.uploaded_picture, scheme=scheme, host=host, port=port), _style='max-width:150px; max-height:150px;'))
+	# else:
+	# 	img = ''
+	# myArticle = DIV(
+	# 	DIV(XML("<div class='altmetric-embed' data-badge-type='donut' data-doi='%s'></div>" % sub(r'doi: *', '', (art.doi or ''))), _style='text-align:right;')
+	# 	# NOTE: publishing tools not ready yet...
+	# 	#,DIV(
+	# 		 #A(current.T('Publishing tools'), _href=URL(c='admin', f='rec_as_latex', vars=dict(articleId=art.id)), _class='btn btn-info')
+	# 		#,A(current.T('PDF Front page'), _href=URL(c='admin', f='fp_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
+	# 		#,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
+	# 		#,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
+	# 		#,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
+	# 	#) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
+	# 	,img
+	# 	,H3(art.title or '')
+	# 	,H4(mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or '')))
+	# 	,common_small_html.mkDOI(art.doi) if (art.doi) else SPAN('')
+	# 	,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
+	# 	,BR()
+	# 	,DIV(
+	# 			I(current.T('Submitted by ')),
+	# 			I(mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
+	# 			I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
+	# 	) if (art.already_published is False) else ''
+	# 	,(B('Parallel submission') if art.parallel_submission else '')
+	# 	,(SPAN(art.article_source)+BR() if art.article_source else '')
+	# )
+	# # Allow to display cover letter if role is manager or above
+	# if not(printable) and not(quiet) :
+	# 	if len(art.cover_letter or '')>2:
+	# 		myArticle.append(DIV(A(current.T('Show / Hide Cover letter'), 
+	# 						_onclick="""jQuery(function(){ if ($.cookie('PCiHideCoverLetter') == 'On') {
+	# 												$('DIV.pci-onoffCoverLetter').show(); 
+	# 												$.cookie('PCiHideCoverLetter', 'Off', {expires:365, path:'/'});
+	# 											} else {
+	# 												$('DIV.pci-onoffCoverLetter').hide(); 
+	# 												$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});
+	# 											}
+	# 									})""", _class='btn btn-default'), _class='pci-EditButtons'))
+	# 		myArticle.append(SCRIPT("$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});"))
+	# 		myArticle.append(DIV(B(current.T('Cover letter')), 
+	# 							BR(), 
+	# 							WIKI((art.cover_letter or '')), 
+	# 				_class='pci-bigtext pci-onoffCoverLetter'))
+	# 	else:
+	# 		myArticle.append(DIV(A(current.T('No Cover letter'), _class='btn btn-default disabled'), _class='pci-EditButtons'))
+	# if not(printable) and not (quiet):
+	# 	myArticle.append(DIV(A(current.T('Show / Hide Abstract'), 
+	# 					_onclick="""jQuery(function(){ if ($.cookie('PCiHideAbstract') == 'On') {
+	# 											$('DIV.pci-onoffAbstract').show(); 
+	# 											$.cookie('PCiHideAbstract', 'Off', {expires:365, path:'/'});
+	# 										} else {
+	# 											$('DIV.pci-onoffAbstract').hide(); 
+	# 											$.cookie('PCiHideAbstract', 'On', {expires:365, path:'/'});
+	# 										}
+	# 								})""", _class='btn btn-default pci-public'), _class='pci-EditButtons'))
+	# 	myArticle.append(SCRIPT("$.cookie('PCiHideAbstract', 'On', {expires:365, path:'/'});"))
+	# 	myArticle.append(DIV(B(current.T('Abstract')), 
+	# 						BR(), 
+	# 						WIKI((art.abstract or '')), 
+	# 						SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else ''),
+	# 			_class='pci-bigtext pci-onoffAbstract'))
+	# else:
+	# 	myArticle.append(
+	# 		DIV(B(current.T('Abstract')), 
+	# 						BR(), 
+	# 						WIKI((art.abstract or '')), 
+	# 						SPAN(I(current.T('Keywords:')+' '+art.keywords)+BR() if art.keywords else ''),
+	# 			_class='pci-bigtext')
+	# 		)
+	# myArticle = DIV()
+	# if ((art.user_id == auth.user_id) and (art.status in ('Pending', 'Awaiting revision'))) and not(printable) and not (quiet):
+	# 	# author's button allowing article edition
+	# 	myArticle.append(DIV(A(SPAN(current.T('Edit article'), _class='buttontext btn btn-info pci-submitter'), 
+	# 							_href=URL(c='user', f='edit_my_article', vars=dict(articleId=art.id), user_signature=True)), 
+	# 						_class='pci-EditButtons'))
+	# if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
+	# 	# manager's button allowing article edition
+	# 	myArticle.append(DIV(A(SPAN(current.T('Manage this request'), _class='buttontext btn btn-info pci-manager'), 
+	# 							_href=URL(c='manager', f='edit_article', vars=dict(articleId=art.id), user_signature=True)), 
+	# 						_class='pci-EditButtons'))
+	# myContents = DIV(myArticle, _class=('pci-article-div-printable' if printable else 'pci-article-div'))
+	myContents = DIV('', _class=('pci-article-div-printable' if printable else 'pci-article-div'))
 	
 	###NOTE: recommendations counting
 	recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
 	nbRecomms = len(recomms)
 	myButtons = DIV()
-	if nbRecomms > 0 and auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
-		# manager's button allowing recommendations management
-		myButtons.append(DIV(A(SPAN(current.T('Manage recommendations'), _class='buttontext btn btn-info pci-manager'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=art.id), user_signature=True)), _class='pci-EditButtons'))
+	# if nbRecomms > 0 and auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
+	# 	# manager's button allowing recommendations management
+	# 	myButtons.append(DIV(A(SPAN(current.T('Manage recommendations'), _class='buttontext btn btn-info pci-manager'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=art.id), user_signature=True)), _class='pci-EditButtons'))
+	
+	
 	if len(recomms)==0 and auth.has_membership(role='recommender') and not(art.user_id==auth.user_id) and art.status=='Awaiting consideration' and not(printable) and not(quiet):
 		# suggested or any recommender's button for recommendation consideration
 		btsAccDec = [A(SPAN(current.T('Click here before starting the evaluation process'), _class='buttontext btn btn-success pci-recommender'), 

@@ -158,7 +158,6 @@ def user():
 	myScript = ''
 
 	form = auth()
-	form.element(_type='submit')['_class']='btn btn-success'
 	
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
@@ -168,7 +167,11 @@ def user():
 			myHelp = getHelp(request, auth, db, '#LogIn')
 			myTitle = getTitle(request, auth, db, '#LogInTitle')
 			myText = getText(request, auth, db, '#LogInText')
-			form.add_button(T('Lost password?'), URL(c='default', f='user', args=['request_reset_password']), _class='btn btn-default')
+			form.add_button(T('Lost password?'), URL(c='default', f='user', args=['request_reset_password']), _class="pci2-lost-password-link" )
+			# green color for submit button form 
+			form.element(_type='submit')['_class']='btn btn-success'
+			# display "Lost password?" under login button
+			form.element('#submit_record__row .col-sm-9')['_class']='pci2-flex-column pci2-flex-center'
 			if suite:
 				auth.settings.login_next = suite
 
@@ -178,13 +181,16 @@ def user():
 			myText = getText(request, auth, db, '#ProfileText')
 			myBottomText = getText(request, auth, db, '#ProfileBottomText')
 			db.auth_user.ethical_code_approved.requires=IS_IN_SET(['on'])
+			form.element(_type='submit')['_class']='btn btn-success'
 			if suite:
 				auth.settings.register_next = suite
+				
 		elif request.args[0] == 'profile':
 			myHelp = getHelp(request, auth, db, '#Profile')
 			myTitle = getTitle(request, auth, db, '#ProfileTitle')
 			myText = getText(request, auth, db, '#ProfileText')
 			myBottomText = getText(request, auth, db, '#ProfileBottomText')
+			form.element(_type='submit')['_class']='btn btn-success'
 			if suite:
 				auth.settings.profile_next = suite
 		
@@ -193,6 +199,7 @@ def user():
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			user = db(db.auth_user.email==request.vars['email']).select().last()
+			form.element(_type='submit')['_class']='btn btn-success'
 			if ((fkey is not None) and (user is not None)):
 				reset_password_key = str(int(time.time())) + '-' + web2py_uuid()
 				user.update_record(reset_password_key = reset_password_key)
@@ -209,12 +216,15 @@ def user():
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			user = db(db.auth_user.reset_password_key==vkey).select().last()
+			form.element(_type='submit')['_class']='btn btn-success'
 			if ((vkey is not None) and (suite is not None) and (user is None)):
 				redirect(suite)
 			if suite:
 				auth.settings.reset_password_next = suite
 
-	
+		elif request.args[0] == 'change_password':
+			form.element(_type='submit')['_class']='btn btn-success'
+
 	return dict(
 		myTitle=myTitle,
 		myText=myText,

@@ -401,7 +401,7 @@ def recommenders():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders(): 
-	response.view='default/myLayout.html'
+	response.view='default/gab_list_layout.html'
 	myVars = request.vars
 
 	qyKw = ''
@@ -487,11 +487,16 @@ def search_recommenders():
 		else:
 			btnTxt = current.T('I don\'t wish to suggest recommenders now')
 		myAcceptBtn = DIV(A(SPAN(btnTxt, _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId, exclude=excludeList)), _class='button'), _style='text-align:center; margin-top:16px;')
+		
+		myUpperBtn = ''
+		if len(grid) >= 10:
+			myUpperBtn = myAcceptBtn
+
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
 					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
-					myUpperBtn=myAcceptBtn,
+					myUpperBtn=myUpperBtn,
 					myAcceptBtn=myAcceptBtn,
 					searchForm=searchForm, 
 					grid=grid, 
@@ -585,9 +590,9 @@ def my_articles():
 		db.t_articles.doi.represent = lambda text, row: mkDOI(text)
 		
 	if parallelSubmissionAllowed:
-		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.auto_nb_recommendations]
 	else:
-		fields = [db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.upload_timestamp, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations]
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles.uploaded_picture, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.title, db.t_articles.anonymous_submission, db.t_articles.authors, db.t_articles.article_source, db.t_articles.abstract, db.t_articles.doi, db.t_articles.ms_version, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.auto_nb_recommendations]
 	grid = SQLFORM.grid( query
 		,searchable=False, details=False, editable=False, deletable=False, create=False
 		,csv=csv, exportclasses=expClass
@@ -613,7 +618,6 @@ def my_articles():
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():
-	response.view='default/recommended_articles.html'
 	printable = False
 
 	articleId = request.vars['articleId']
@@ -631,30 +635,26 @@ def recommendations():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+		myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
 		myContents.append(HR())
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(I(T('Recommended article')), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn recommended'
-				))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn'
-				))
-		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-			_href=URL(c="user", f='recommendations_printable', vars=dict(articleId=articleId), user_signature=True),
-			_class='button')
-		
+			
 		response.title = (art.title or myconf.take('app.longname'))
+
+		# New recommendation function (WIP)
+		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art,  True)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, quiet=False)
+		
+		response.view='default/recommended_articles.html'
+		
 		return dict(
+					recommHeaderHtml = recommHeaderHtml,
+					recommStatusHeader = recommStatusHeader,
+
 					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
 					myCloseButton=mkCloseButton(),
-					myUpperBtn=myUpperBtn,
-					statusTitle=myTitle,
+					# myUpperBtn=myUpperBtn,
+					# statusTitle=myTitle,
 					myContents=myContents,
 				)
 
@@ -684,8 +684,8 @@ def recommendations_printable():
 		if art.status == 'Recommended':
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						DIV(T('Recommended article'), _class='pci-ArticleText printable'),
-						_class='pci-ArticleHeaderIn recommended printable'
+						DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
+						_class='pci-ArticleHeaderIn'
 					))
 		else:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),

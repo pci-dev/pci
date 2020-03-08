@@ -441,7 +441,7 @@ header {
 
 /* .pci-printable-div {width:99vw; margin-left: auto; margin-right:auto;} */
 .pci-article-div {
-	max-width: 20cm;
+	max-width: 800px;
 	margin: auto;
 }
 
@@ -457,7 +457,7 @@ header {
 
 .pci-recommendation-title {
 	/*background-color: #089108;*/
-	max-width: 20cm;
+	max-width: 800px;
 	height: 100%;
 	text-align: center;
 	padding: 16px;
@@ -480,7 +480,7 @@ header {
 
 #pci-ArticleHeader {
 	min-height: 80px;
-	max-width: 20cm;
+	max-width: 800px;
 	margin: auto;
 	margin-bottom: 8px;
 }
@@ -564,7 +564,7 @@ header {
 
 .pci-statusTitleText {
 	width: 100%;
-	max-width: 20cm;
+	max-width: 800px;
 	font-size: 24pt;
 }
 
@@ -579,7 +579,7 @@ header {
 }
 
 .pci-bigtext.margin {
-	border-left: 1px solid #c0c0c0;
+	border-left: 1px solid #eee;
 	padding: 8px;
 }
 
@@ -909,7 +909,7 @@ header {
 }
 
 .pci-comment {
-	border-left: 1px solid #c0c0c0;
+	border-left: 1px solid #eee;
 	padding: 8px;
 }
 
@@ -951,7 +951,7 @@ header {
 }
 
 .pci-socialDiv {
-	max-width: 20cm;
+	max-width: 800px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -1054,7 +1054,7 @@ header {
 .pci-shareLine {
 	margin-top: 8px;
 	padding: 12px;
-	max-width: 20cm;
+	max-width: 800px;
 	margin: auto;
 }
 

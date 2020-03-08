@@ -20,6 +20,8 @@ from app_modules.helper import *
 from app_modules import manager_module
 from app_modules import common_tools
 from app_modules import common_forms
+from app_modules import common_html
+from app_modules import common_snippets
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -163,13 +165,13 @@ def _manage_articles(statuses, whatNext):
 			]
 	if (parallelSubmissionAllowed):
 		fields = [
+			db.t_articles.last_status_change, 
+			db.t_articles.status, 
 			db.t_articles.uploaded_picture, 
 			db.t_articles._id, 
-			db.t_articles.status, 
+			db.t_articles.upload_timestamp, 
 			db.t_articles.already_published, 
 			db.t_articles.parallel_submission, 
-			db.t_articles.upload_timestamp, 
-			db.t_articles.last_status_change, 
 			db.t_articles.auto_nb_recommendations,
 			db.t_articles.user_id, 
 			db.t_articles.thematics, 
@@ -178,12 +180,12 @@ def _manage_articles(statuses, whatNext):
 		]
 	else:
 		fields = [
+			db.t_articles.last_status_change,
+			db.t_articles.status,
 			db.t_articles.uploaded_picture, 
 			db.t_articles._id, 
-			db.t_articles.status,
-			db.t_articles.already_published, 
 			db.t_articles.upload_timestamp, 
-			db.t_articles.last_status_change,
+			db.t_articles.already_published, 
 			db.t_articles.auto_nb_recommendations, 
 			db.t_articles.user_id,
 			db.t_articles.thematics, 
@@ -245,31 +247,22 @@ def recommendations():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 
-	if art.status == 'Recommended':
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-			DIV(
-				DIV(I(T('Recommended article')), _class='pci-ArticleText'),
-				_class='pci-ArticleHeaderIn recommended'
-			))
-	else:
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-			DIV(
-				DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
-				_class='pci-ArticleHeaderIn'
-			))
-	myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-		_href=URL(c="manager", f='recommendations_printable', vars=dict(articleId=articleId), user_signature=True),
-		_class='button')
-
-	myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+	myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
 	myContents.append(HR())
 		
 	response.title = (art.title or myconf.take('app.longname'))
+
+	# New recommendation function (WIP)
+	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, True)
+	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, quiet=False)
+	
 	return dict(
+				recommHeaderHtml = recommHeaderHtml,
+				recommStatusHeader = recommStatusHeader,
+
 				myCloseButton=mkCloseButton(),
-				statusTitle=myTitle,
 				myContents=myContents,
-				myUpperBtn=myUpperBtn,
 				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
 			)
 
@@ -288,8 +281,8 @@ def recommendations_printable():
 	if art.status == 'Recommended':
 		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 				DIV(
-					DIV(T('Recommended article'), _class='pci-ArticleText printable'),
-					_class='pci-ArticleHeaderIn recommended printable'
+					DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
+					_class='pci-ArticleHeaderIn'
 				))
 	else:
 		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
@@ -327,14 +320,15 @@ def manage_recommendations():
 	if art is None:
 		session.flash = T('Unavailable')
 		redirect(request.env.http_referer)
-	query = db.t_recommendations.article_id == articleId
+
+	query = (db.t_recommendations.article_id == articleId)
 	db.t_recommendations.recommender_id.default = auth.user_id
 	db.t_recommendations.article_id.default = articleId
 	db.t_recommendations.article_id.writable = False
 	db.t_recommendations.last_change.writable = False
 	db.t_recommendations.doi.represent = lambda text, row: mkDOI(text)
 	db.t_pdf.pdf.represent = lambda text, row: A(IMG(_src=URL('static', 'images/application-pdf.png')), _href=URL('default', 'download', args=text)) if text else ''
-	db.t_recommendations._id.readable = False
+	db.t_recommendations._id.readable = True
 	if len(request.args) == 0: # in grid
 		db.t_recommendations.recommender_id.represent = lambda id, row: mkUserWithMail(auth, db, id)
 		db.t_recommendations.recommendation_state.represent = lambda state, row: mkContributionStateDiv(auth, db, (state or ''))
@@ -357,15 +351,22 @@ def manage_recommendations():
 		,maxtextlength=1000
 		,csv=csv, exportclasses=expClass
 		,paginate=10
-		,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
-		,fields=[db.t_recommendations.doi, db.t_recommendations.ms_version, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_recommendations.track_change, db.t_recommendations.recommender_file, db.t_pdf.pdf]
+		# (gab) WARNING since python 3.8 this throw error, DKW
+		# ,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
+		,fields=[db.t_recommendations.id, db.t_recommendations.doi, db.t_recommendations.ms_version, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id, db.t_recommendations.recommendation_comments, db.t_recommendations.reply, db.t_recommendations.reply_pdf, db.t_recommendations.track_change, db.t_recommendations.recommender_file, db.t_pdf.pdf]
 		,links=links
 		,orderby=~db.t_recommendations.recommendation_timestamp
 	)
 	if grid.element(_title="Add record to database"):
 		grid.element(_title="Add record to database")[0] = T('Manually add new round')
 		grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
-	myContents = mkRepresentArticle(auth, db, articleId)
+	myContents = DIV(
+		DIV(
+			common_snippets.getArticleInfosCard(auth, db, response, art, False), _class="pci2-content-900px"
+		),
+		_class="pci2-full-width pci2-flex-center"
+	)
+	
 	return dict(
 				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
@@ -395,7 +396,7 @@ def search_recommenders():
 		elif (re.match('^qy_', myVar) and myValue=='on'):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 		elif (myVar == 'exclude'):
-			excludeList = map(int, myValue.split(','))
+			excludeList += myValue.split(',')
 
 	whatNext = request.vars['whatNext']
 	articleId = request.vars['articleId']
@@ -432,6 +433,7 @@ def search_recommenders():
 			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
 				qyTF.append(thema.keyword)
 
+		excludeList = [int(numeric_string) for numeric_string in excludeList]
 		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 		for fr in filtered:
 			qy_recomm.insert(**fr)
@@ -494,6 +496,7 @@ def suggested_recommenders():
 	links = []
 	if art.status == 'Awaiting consideration':
 		links.append(dict(header='', body=lambda row: A(T('Send a reminder'), _class='btn btn-info pci-manager', _href=URL(c='manager_actions', f='send_suggested_recommender_reminder', vars=dict(suggRecommId=row.id))) if not(row.declined) else ''))
+
 	grid = SQLFORM.grid( query
 		,details=True,editable=True,deletable=True,create=False,searchable=False
 		,maxtextlength = 250,paginate=100
@@ -502,6 +505,7 @@ def suggested_recommenders():
 		,field_id=db.t_suggested_recommenders.id
 		,links=links
 	)
+
 	return dict(
 					#myBackButton=mkBackButton(target=URL(c='manager',f='pending_articles')), 
 					myBackButton=mkBackButton(target=whatNext), 
@@ -676,7 +680,7 @@ def all_recommendations():
 			)
 		myTitle=getTitle(request, auth, db, '#AdminAllRecommendationsPostprintTitle')
 		myText=getText(request, auth, db, '#AdminAllRecommendationsPostprintText')
-		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]
+		fields = [db.t_recommendations.last_change, db.t_articles.status, db.t_recommendations._id, db.t_recommendations.article_id, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.is_closed]
 		links = [
 				dict(header=T('Co-recommenders'), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
@@ -689,7 +693,7 @@ def all_recommendations():
 			)
 		myTitle=getTitle(request, auth, db, '#AdminAllRecommendationsPreprintTitle')
 		myText=getText(request, auth, db, '#AdminAllRecommendationsPreprintText')
-		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
+		fields = [db.t_recommendations.last_change, db.t_articles.status, db.t_recommendations._id, db.t_recommendations.article_id, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
 		links = [
 				dict(header=T('Co-recommenders'),    body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),

@@ -14,6 +14,8 @@ from app_modules.helper import *
 from app_modules import recommender_module
 from app_modules import common_tools
 from app_modules import common_forms
+from app_modules import common_html
+from app_modules import common_snippets
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -205,9 +207,9 @@ def my_awaiting_articles():
 		db.t_articles._id.readable = False
 		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
 	if parallelSubmissionAllowed:
-		fields = [db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
 	else:
-		fields = [db.t_articles._id, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id, db.t_articles.upload_timestamp, db.t_articles.last_status_change, db.t_articles.auto_nb_recommendations, db.t_articles.status]
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
 	grid = SQLFORM.grid( query
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
@@ -307,9 +309,9 @@ def _awaiting_articles(myVars):
 	#links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
 	links.append(dict(header=T(''), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
 	if parallelSubmissionAllowed:
-		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
 	else:
-		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.upload_timestamp, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.auto_nb_recommendations]
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
@@ -373,22 +375,8 @@ def article_details():
 		alreadyUnderProcess = (db( (db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id != auth.user_id) ).count() > 0) 
 		
 		if printable:
-			myTitle = DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
-					_class='pci-ArticleHeaderIn printable'
-				))
-			myUpperBtn = ''
 			response.view='default/recommended_article_printable.html'
 		else:
-			myTitle = DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn'
-				))
-			myUpperBtn = A(SPAN(T('Printable page'), _class='pci-ArticleTopButton buttontext btn btn-info'), 
-				_href=URL(c="user", f='recommendations', vars=dict(articleId=articleId, printable=True)),
-				_class='button')
 			response.view='default/recommended_articles.html'
 		
 		if alreadyUnderProcess:
@@ -403,17 +391,26 @@ def article_details():
 				SPAN(' this suggestion.'),
 				_class="pci-alreadyUnderProcess")
 		else:
-			myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+			myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
 			myContents.append(HR())
 		
 		response.title = (art.title or myconf.take('app.longname'))
+
+
+		# New recommendation function (WIP)
+		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, True)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, quiet=False)
+
 		return dict(
-					myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
-					myCloseButton=mkCloseButton(),
-					myUpperBtn=myUpperBtn,
-					statusTitle=myTitle,
-					myContents=myContents,
-				)
+				recommHeaderHtml = recommHeaderHtml,
+				recommStatusHeader = recommStatusHeader,
+	
+				myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
+				myCloseButton=mkCloseButton(),
+				# statusTitle=myTitle,
+				myContents=myContents,
+			)
 	else:
 		raise HTTP(403, "403: "+T('Access denied'))
 
@@ -490,7 +487,7 @@ def my_recommendations():
 			)
 		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPostprintTitle')
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPostprintText')
-		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed]
+		fields = [db.t_recommendations.last_change, db.t_articles.status, db.t_recommendations._id, db.t_recommendations.article_id, db.t_recommendations.recommendation_timestamp, db.t_recommendations.doi, db.t_recommendations.is_closed]
 		links = [
 				dict(header=T('Co-recommenders'), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T(''),             body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
@@ -503,7 +500,7 @@ def my_recommendations():
 			)
 		myTitle=getTitle(request, auth, db, '#RecommenderMyRecommendationsPreprintTitle')
 		myText=getText(request, auth, db, '#RecommenderMyRecommendationsPreprintText')
-		fields = [db.t_recommendations._id, db.t_recommendations.article_id, db.t_articles.status, db.t_recommendations.doi, db.t_recommendations.recommendation_timestamp, db.t_recommendations.last_change, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
+		fields = [db.t_recommendations.last_change, db.t_articles.status, db.t_recommendations._id, db.t_recommendations.article_id, db.t_recommendations.recommendation_timestamp, db.t_recommendations.doi, db.t_recommendations.is_closed, db.t_recommendations.recommendation_state, db.t_recommendations.is_closed, db.t_recommendations.recommender_id]
 		links = [
 				dict(header=T('Co-recommenders'),    body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if 't_recommendations' in row else row, goBack)),
 				dict(header=T('Reviews'),            body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
@@ -634,33 +631,24 @@ def recommendations():
 		redirect(request.env.http_referer)
 	else:
 
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(T('Recommended article'), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn recommended'
-				))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn'
-				))
-		myUpperBtn = A(SPAN(T('Printable page'), _class='buttontext btn btn-info'), 
-			_href=URL(c="recommender", f='recommendations_printable', vars=dict(articleId=articleId)),
-			_class='button')
-
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
+		myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
 		myContents.append(HR())
 		
 		response.title = (art.title or myconf.take('app.longname'))
+
+		
+		# New recommendation function (WIP)
+		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, True)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, quiet=False)
+
 		return dict(
-					myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
-					myCloseButton=mkCloseButton(),
-					myUpperBtn=myUpperBtn,
-					statusTitle=myTitle,
-					myContents=myContents,
-				)
+				recommHeaderHtml = recommHeaderHtml,
+				recommStatusHeader = recommStatusHeader,
+				myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
+				myCloseButton=mkCloseButton(),
+				myContents=myContents,
+			)
 
 def recommendations_printable():
 	response.view='default/recommended_article_printable.html'
@@ -693,8 +681,8 @@ def recommendations_printable():
 		if art.status == 'Recommended':
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
 					DIV(
-						DIV(T('Recommended article'), _class='pci-ArticleText'),
-						_class='pci-ArticleHeaderIn recommended printable'
+						DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
+					_class='pci-ArticleHeaderIn'
 					))
 		else:
 			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
@@ -1600,7 +1588,7 @@ def my_co_recommendations():
 		,searchable=False, deletable=False, create=False, editable=False, details=False
 		,maxtextlength=500,paginate=10
 		,csv=csv, exportclasses=expClass
-		,fields=[db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.already_published, db.t_articles.status, db.t_articles.last_status_change, db.t_recommendations.article_id, db.t_recommendations.recommender_id]
+		,fields=[db.t_articles.last_status_change, db.t_articles.status, db.t_articles.uploaded_picture, db.t_recommendations._id, db.t_articles._id, db.t_articles.already_published, db.t_recommendations.article_id, db.t_recommendations.recommender_id]
 		,links=[
 				dict(header=T('Other co-recommenders'), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
 				dict(header=T(''), 

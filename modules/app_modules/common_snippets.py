@@ -155,9 +155,115 @@ def getArticleTrackcRowCard(auth, db, response, article):
 	else:
 		return None
 
+######################################################################################################################################################################
+def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, quiet=True):
+	recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+	nbRecomms = len(recomms)
+
+	if userDiv:
+		statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText')
+	else:
+		statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText')
+
+	myTitle = DIV(
+				IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
+				DIV(
+					statusDiv,
+					_class='pci-ArticleHeaderIn'
+				))
+
+	# author's button allowing article edition
+	allowEditArticle = False
+	if ((art.user_id == auth.user_id) and (art.status in ('Pending', 'Awaiting revision'))) and not (quiet):
+		allowEditArticle = True
+
+	# manager buttons
+	allowManageRecomms = False
+	if nbRecomms > 0 and auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not (quiet):
+		allowManageRecomms = True
+
+	allowManageRequest = False
+	if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not (quiet):
+		allowManageRequest = True
+	
+	
+	snippetVars = dict(
+		statusTitle = myTitle,
+		allowEditArticle = allowEditArticle,
+		allowManageRecomms = allowManageRecomms,
+		allowManageRequest = allowManageRequest,
+		articleId = art.id,
+		printableUrl = URL(c=controller_name, f='recommendations_printable', vars=dict(articleId=art.id), user_signature=True)
+	)
+
+	return XML(
+			response.render(
+				'snippets/edit_recomm_buttons.html',
+				snippetVars
+			)
+		) 
+
 
 ######################################################################################################################################################################
-def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, fullURL=True):
+def getArticleInfosCard(auth, db, response, art, with_cover_letter=True, submittedBy=True):
+	## NOTE: article facts
+	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
+		article_img = IMG(_alt='picture', _src=URL('default', 'download', args=art.uploaded_picture))
+	else:
+		article_img = ''
+	
+	doi = sub(r'doi: *', '', (art.doi or ''))
+	article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
+
+	articleContent = dict()
+	articleContent.update([
+		('articleVersion', SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''),
+		('articleImg', article_img),
+		('articleTitle', art.title or ''),
+		('articleAuthor', art.authors or ''),
+		('articleAbstract', WIKI(art.abstract) or ''),
+		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
+		('article_altmetric', article_altmetric),
+		('isRecommended', True)
+	])
+
+	if with_cover_letter:
+		articleContent.update([
+			('coverLetter', WIKI(art.cover_letter) or '')
+		])
+
+	if submittedBy:
+		class FakeSubmitter(object):
+			id = None
+			first_name = ''
+			last_name = '[undisclosed]'
+
+		submitter = FakeSubmitter()
+		hideSubmitter = True
+		qyIsRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommender_id==auth.user_id) ).count()
+		qyIsCoRecommender = db( (db.t_recommendations.article_id==art.id) & (db.t_press_reviews.recommendation_id==db.t_recommendations.id) & (db.t_press_reviews.contributor_id==auth.user_id) ).count()
+		if ( (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role='manager')) ):
+			submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+			if submitter is None:
+				submitter = FakeSubmitter()
+			hideSubmitter = False
+
+		articleContent.update([
+			('submittedBy', DIV(
+				I(current.T('Submitted by ')),
+				I(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or '')+' '+(submitter.last_name or ''))),
+				I(art.upload_timestamp.strftime(' %Y-%m-%d %H:%M') if art.upload_timestamp else '')
+			) if (art.already_published is False) else ''),
+		])
+
+	return XML(
+			response.render(
+				'snippets/article_infos_card.html',
+				articleContent
+			)
+		) 
+
+def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, with_cover_letter=False, fullURL=True):
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
@@ -167,53 +273,39 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, fullURL=Tr
 		host=False
 		port=False
 		
-	## NOTE: article facts
-	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
-		article_img = IMG(_alt='picture', _src=URL('default', 'download', args=art.uploaded_picture))
-	else:
-		article_img = ''
+	headerContent = dict()
 	
 	recomm_altmetric = ''
-	if finalRecomm.recommendation_doi:
-		recomm_altmetric = XML(
-				'''
-					<div class='text-right altmetric-embed pci2-altmetric'  data-badge-type='donut' data-badge-details='left' data-hide-no-mentions='true' data-doi='%s'></div>
-				''' % sub(r'doi: *', '', finalRecomm.recommendation_doi)
-			)
+	
 
-	doi = sub(r'doi: *', '', (art.doi or ''))
-	article_altmetric = XML("<div class='altmetric-embed pci2-altmetric' data-badge-type='donut' data-badge-details='right' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
-
-	headerContent = dict()
+	articleInfosCard = getArticleInfosCard(auth, db, response, art, with_cover_letter=False, submittedBy=False)
+		
 	headerContent.update([
-		('articleVersion', SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''),
-		('articleImg', article_img),
-		('articleTitle', art.title or ''),
-		('articleAuthor', art.authors or ''),
-		('articleAbstract', art.abstract or ''),
-		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
-		('recomm_altmetric', recomm_altmetric),
-		('article_altmetric', article_altmetric),
-		('isRecommended', True)
+		('articleInfosCard', articleInfosCard)
 	])
 	
 	# Last recommendation
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=~db.t_recommendations.id).last()
-
 	citeNum = ''
 	citeRef = None
 	if finalRecomm.recommendation_doi:
+		recomm_altmetric = XML(
+			'''
+				<div class='altmetric-embed pci2-altmetric'  data-badge-type='donut' data-badge-popover="right" data-hide-no-mentions='true' data-doi='%s'></div>
+			''' % sub(r'doi: *', '', finalRecomm.recommendation_doi)
+		)
+
 		citeNumSearch = re.search('([0-9]+$)', finalRecomm.recommendation_doi, re.IGNORECASE)
 		if citeNumSearch:
 			citeNum = citeNumSearch.group(1)
 		citeRef = common_small_html.mkDOI(finalRecomm.recommendation_doi)
-		
+
 	if citeRef:
 		citeUrl = citeRef
 	else:
 		citeUrl = URL(c='articles', f='rec', vars=dict(id=art.id), host=host, scheme=scheme, port=port)
 		citeRef = A(citeUrl, _href=citeUrl) # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
-	
+
 	recommAuthors = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	cite = DIV(
 				SPAN(B('Cite this recommendation as:', _class="pci2-main-color-text"), 
@@ -222,7 +314,7 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, fullURL=Tr
 			), _class='pci-citation')
 
 	whoDidRecomm = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=True, linked=True, as_items=False, host=host, port=port, scheme=scheme)
-	
+
 		# PDF (if any)
 	pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
 	if len(pdf_query) > 0:
@@ -240,23 +332,22 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, fullURL=Tr
 				', ',
 				I(finalRecomm.last_change.strftime('Recommended: %d %B %Y')) if finalRecomm.last_change else '')
 			),
+			('recomm_altmetric', recomm_altmetric),
 			('cite', cite),
 			('recommText', WIKI(finalRecomm.recommendation_comments or '')),
 			('pdfLink', pdfLink)
 		])
-	
 
-	
+	# Get METADATA (see next function)
+	recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfLink, citeNum, scheme, host, port)
+
+		
 	headerHtml = XML(
 			response.render(
 				'snippets/recommendation_header.html',
 				headerContent
 			)
 		) 
-
-	# Get METADATA (see next function)
-	recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfLink, citeNum, scheme, host, port)
-
 	return dict(headerHtml=headerHtml, recommMetadata=recommMetadata)
 
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
@@ -325,7 +416,7 @@ def getReviewRoundsHtml(auth, db, response, articleId):
 			isLastRecomm = True
 		else:
 			lastChanges = SPAN(I(recomm.last_change.strftime('%Y-%m-%d')+' ')) if recomm.last_change else ''
-			recommendationText = recomm.recommendation_comments or ''
+			recommendationText = WIKI(recomm.recommendation_comments) or ''
 			preprintDoi = DIV(I(current.T('Preprint DOI:')+' '), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or '')!='') else ''
 
 		reviewsList = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Completed') ).select(orderby=db.t_reviews.id)

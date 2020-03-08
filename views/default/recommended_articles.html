@@ -16,23 +16,32 @@
 	{{=myUpperBtn}}
 	{{pass}}
 
-{{if 'statusTitle' in locals() and statusTitle:}}
-	<div id="pci-ArticleHeader">
-	{{=statusTitle}}
-	</div>
-	{{pass}}
+
+
 
 {{if 'shareButtons' in globals():}}
 	<div data-social-share-privacy="true" class='pci-shareLine'></div>
-	{{pass}}
+{{pass}}
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>
-	{{pass}}
+{{pass}}
+
+
+{{if 'recommHeaderHtml' in locals() and 'recommStatusHeader' in locals():}}
+<div class="pci2-flex-column pci2-align-items-center">
+  <div style="max-width: 800px; width: 100%;">
+		{{=recommStatusHeader}}
+		{{=recommHeaderHtml}}
+	</div>
+</div>
+{{pass}}
 
 {{if 'myContents' in locals():}}
-	<div>{{=myContents}}</div>
-	{{pass}}
+<div>			
+	{{=myContents}}
+</div>
+{{pass}}
 
 {{if 'grid' in locals():}}
 	{{=grid}}

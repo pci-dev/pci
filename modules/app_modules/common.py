@@ -180,35 +180,6 @@ def mkRecommArticleRow(auth, db, row, withImg=True, withScore=False, withDate=Fa
 
 
 
-
-
-######################################################################################################################################################################
-# Builds a html representation of an article
-def mkRepresentArticle(auth, db, articleId):
-	resu = ''
-	if articleId:
-		art = db.t_articles[articleId]
-		if art is not None:
-			submitter = ''
-			sub_repr = ''
-			if art.user_id is not None and art.anonymous_submission is False:
-				submitter = db(db.auth_user.id==art.user_id).select(db.auth_user.first_name, db.auth_user.last_name).last()
-				sub_repr = 'by %s %s,' % (submitter.first_name, submitter.last_name)
-			resu = DIV(
-				SPAN(I(current.T('Submitted')+' %s %s' % (sub_repr, art.upload_timestamp.strftime('%Y-%m-%d %H:%M') if art.upload_timestamp else '')))
-				,H4(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors))
-				,H3(art.title)
-				,BR()+SPAN(art.article_source) if art.article_source else ''
-				,BR()+mkDOI(art.doi) if art.doi else ''
-				,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
-				,BR()
-				,SPAN(I(current.T('Keywords:')+' '))+I(art.keywords or '') if art.keywords else ''
-				,BR()+B(current.T('Abstract'))+BR()+DIV(WIKI(art.abstract or ''), _class='pci-bigtext') if art.abstract else ''
-				, _class='pci-article-div'
-			)
-	return resu
-
-
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITH recommendations link
 def mkArticleCell(auth, db, art):
@@ -973,6 +944,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 								_href=URL(c='manager', f='edit_article', vars=dict(articleId=art.id), user_signature=True)), 
 							_class='pci-EditButtons'))
 	myContents = DIV(myArticle, _class=('pci-article-div-printable' if printable else 'pci-article-div'))
+	# myContents = DIV('', _class=('pci-article-div-printable' if printable else 'pci-article-div'))
 	
 	###NOTE: recommendations counting
 	recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
@@ -981,6 +953,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 	if nbRecomms > 0 and auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
 		# manager's button allowing recommendations management
 		myButtons.append(DIV(A(SPAN(current.T('Manage recommendations'), _class='buttontext btn btn-info pci-manager'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=art.id), user_signature=True)), _class='pci-EditButtons'))
+	
+	
 	if len(recomms)==0 and auth.has_membership(role='recommender') and not(art.user_id==auth.user_id) and art.status=='Awaiting consideration' and not(printable) and not(quiet):
 		# suggested or any recommender's button for recommendation consideration
 		btsAccDec = [A(SPAN(current.T('Click here before starting the evaluation process'), _class='buttontext btn btn-success pci-recommender'), 
@@ -1149,7 +1123,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 					if (review.review_state=='Pending'):
 						# reviewer's buttons in order to accept/decline pending review
 						myReviews.append(DIV(
-										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-main-action pci-reviewer pci2-bouncing-button'), 
+										A(SPAN(current.T('Yes, I agree to review this preprint'), _class='buttontext btn btn-main-action pci-reviewer'), 
 											_href=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review.id), user_signature=True), _class='button'),
 										A(SPAN(current.T('No thanks, I\'d rather not'), _class='buttontext btn btn-default pci-reviewer'), 
 											_href=URL(c='user_actions', f='decline_new_review', vars=dict(reviewId=review.id), user_signature=True), _class='button'),

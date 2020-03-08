@@ -1,135 +1,47 @@
 
 
-<div class="pci2-recomm-title">
-  {{=H1(recommTitle)}}
-  <div class="pci2-flex-row">
-    <div class="pci2-flex-grow pci2-align-items-center">
-      {{=I(recommAuthor)}}
+
+
+{{if 'recommTitle' in locals():}}
+  <div class="pci2-recomm-title">
+    {{=H1(recommTitle)}}
+    <div class="pci2-flex-row">
+      <div class="pci2-flex-grow pci2-align-items-center">
+        {{=I(recommAuthor)}}
+      </div>
     </div>
   </div>
-</div>
+{{pass}}
+
 
 {{if recomm_altmetric != '' :}}
-<div class="pci2-full-width pci2-flex-end">
+<div class="pci2-full-width" style="margin-bottom: 10px;">
   {{=recomm_altmetric}}
 </div>
 {{pass}}
 
-{{=SPAN('A recommendation of:', _class='pci-recommOf')}}
-<div class="pci2-flex-column pci2-article-row pci2-article-row-short">
-  <div class="pci2-flex-row">
-    <div
-      class="pci2-flex-column  pci2-article-left-div pci2-article-left-div-short"
-    >
-      <div class="pci2-flex-center pci2-flex-grow pci2-article-image-div">
-        {{=articleImg}} {{if articleImg == '' :}}
-        <img
-          src="{{=URL('static', 'images/small-background.png')}}"
-          alt="toto"
-        />
-        {{pass}}
-      </div>
-    </div>
 
-    <div class="pci2-flex-row pci2-flex-center">
-      <div class="pci2-flex-column pci2-flex-grow">
-        <h3>{{=articleTitle}}</h3>
-        <span class="pci2-article-infos">{{=articleAuthor}}</span>
-        <span class="pci2-article-infos">{{=articleDoi}}</span>
-        <span class="pci2-article-infos">{{=articleVersion}}</span>
-      </div>
-    </div>
+{{if 'recommTitle' in locals():}}
+{{=SPAN('A recommendation of:', _class='pci-recommOf', _style="color:#aaa")}}
+{{pass}}
 
-  </div>
 
-  {{if article_altmetric != '' :}}
+{{=articleInfosCard}}
+
+{{if 'recommText' in locals():}}
+  {{=DIV(recommDateinfos, _style="margin-bottom: 20px")}} 
+
   <div>
-    {{=article_altmetric}}
-  </div>
-  {{pass}}
+    <b class="pci2-recomm-text-label">Recommendation</b>
+    <div class="pci2-recomm-text">
 
-  {{if 'with_cover_letter' in locals():}}
-    <div
-      onclick="
-        if( jQuery('#menu-1' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-1').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-1').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-1').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-1').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-1').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-1').addClass('glyphicon-rotate')
-        }
-      "
-      style="margin:  15px 0 0px;"
-      class="pci2-flex-row pci2-flex-center pci2-hover-main-color disabled"
-    >
-      <b style="margin: 0;"
-        >No cover letter</b
-      >
-      <hr
-        style="margin: 0 10px;"
-        class="pci2-main-color-hr pci2-flex-grow"
-      />
+      {{=DIV(recommText)}} 
 
-      {{if 'coverLetter' in locals():}}
-        <i id="icon-menu-1" class="glyphicon glyphicon-chevron-up pci2-icon-rotating pci2-icon-rotating2 glyphicon-rotate pci2-main-color-text"></i>
+      {{if pdfLink is not None:}}
+        {{=DIV(pdfLink)}}
       {{pass}}
     </div>
 
-
-    {{if 'coverLetter' in locals():}}
-      <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
-        {{=articleAbstract}}
-      </div>
-    {{pass}}
-  {{pass}}
-
-
-  <div
-    onclick="
-      if( jQuery('#menu-2' ).hasClass('pci2-panel-closed')) { 
-        jQuery('#menu-2').removeClass('pci2-panel-closed') 						
-        jQuery('#icon-menu-2').removeClass('glyphicon-rotate') 
-        jQuery('#icon-menu-2').addClass('glyphicon-rotate-reversed') 
-      } else {
-        jQuery('#menu-2').addClass('pci2-panel-closed') 						
-        jQuery('#icon-menu-2').removeClass('glyphicon-rotate-reversed') 
-        jQuery('#icon-menu-2').addClass('glyphicon-rotate')
-      }
-    "
-    style="margin:  15px 0 0px;"
-    class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
-  >
-    <b style="margin: 0;"
-      >Abstract</b
-    >
-    <hr
-      style="margin: 0 10px;"
-      class="pci2-main-color-hr pci2-flex-grow"
-    />
-
-    <i id="icon-menu-2" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+    {{=DIV(cite)}}
   </div>
-
-
-  <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
-    {{=articleAbstract}}
-  </div>
-</div>
-
-<div>
-  {{=DIV(recommDateinfos, _class="pci2-recomm-date")}} 
-
-  {{=DIV(cite)}}
-  
-  <div class="pci2-recomm-text">
-
-    {{=DIV(recommText)}} 
-
-    {{if pdfLink is not None:}}
-      {{=DIV(pdfLink)}}
-    {{pass}}
-  </div>
-
-</div>
+{{pass}}

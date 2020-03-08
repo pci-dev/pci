@@ -8,8 +8,8 @@
 
   <!-- do not show round decision if this is the last decision (already shown in recommendation_header.html) -->
   {{if isLastRecomm == False :}}
-    <h3>Revision round #{{=roundNumber}}</h3>
-    <span>{{=lastChanges}}</span>
+    <h3 class="pci2-revision-round-title">Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></h3>
+    <span class="pci2-revision-round-date">{{=lastChanges}}</span>
     <div class="pci2-round-recomm-text">{{=recommendationText}}</div>
     <p>{{=preprintDoi}}</p>
   {{pass}} 

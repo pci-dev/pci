@@ -18,12 +18,15 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 
 from gluon.custom_import import track_changes; track_changes(True)
-from app_modules.common import *
 import socket
 
 from uuid import uuid4
 from contextlib import closing
 import shutil
+
+from app_modules.common import *
+from app_modules import common_html
+
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)

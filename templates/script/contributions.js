@@ -16,3 +16,6 @@ $(function() {
         );
     });
 });
+
+// add icon for delete checkbox
+document.getElementById('delete_record').insertAdjacentHTML('afterend','<i class="glyphicon glyphicon-trash">')
