@@ -25,7 +25,7 @@
     </div>
   </div>
   
-  {{if article_altmetric != '' :}}
+  {{if article_altmetric != '' and not printable:}}
     <div class="pci2-flex-end" style="margin-right: 10px;">
       {{=article_altmetric}}
     </div>
@@ -55,14 +55,20 @@
         class="pci2-main-color-hr pci2-flex-grow"
       />
 
-      {{if 'coverLetter' in locals():}}
+      {{if 'coverLetter' in locals() and not printable:}}
         <i id="icon-menu-1" class="glyphicon glyphicon-chevron-up pci2-icon-rotating pci2-icon-rotating2 glyphicon-rotate pci2-main-color-text"></i>
       {{pass}}
     </div>
 
 
-    {{if 'coverLetter' in locals():}}
+    {{if 'coverLetter' in locals() and not printable:}}
       <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
+        {{=coverLetter}}
+      </div>
+    {{pass}}
+
+    {{if 'coverLetter' in locals() and printable:}}
+      <div id="menu-1" class="pci2-abstract-div" style="margin-top: 7.5px;">
         {{=coverLetter}}
       </div>
     {{pass}}
@@ -91,14 +97,20 @@
       style="margin: 0 10px;"
       class="pci2-main-color-hr pci2-flex-grow"
     />
-
-    <i id="icon-menu-2" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+    {{if not printable:}}
+      <i id="icon-menu-2" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+    {{pass}}
   </div>
 
-
-  <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
-    {{=articleAbstract}}
-  </div>
+  {{if not printable:}}
+    <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
+      {{=articleAbstract}}
+    </div>
+  {{else:}}
+    <div id="menu-2" class="pci2-abstract-div" style="margin-top: 7.5px;">
+      {{=articleAbstract}}
+    </div>
+  {{pass}}
 </div>
 
 {{if 'submittedBy' in locals():}}

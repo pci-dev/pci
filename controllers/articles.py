@@ -130,6 +130,8 @@ def rec():
 	# with_reviews = True
 	with_comments = 'comments' in request.vars and request.vars['comments']=='True'
 	# with_comments = True
+	printable = 'printable' in request.vars  and request.vars['printable']=='True'
+	
 	as_pdf = 'asPDF' in request.vars and request.vars['asPDF']=='True'
 
 	# security : Is content avalaible ? 
@@ -179,7 +181,7 @@ def rec():
 	nbReviews = (nbRevs + (nbRecomms-1))
 	
 	# Recommendation Header and Metadata
-	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm)
+	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable)
 	recommHeaderHtml = recommendationHeader['headerHtml']
 	recommMetadata = recommendationHeader['recommMetadata']
 
@@ -195,97 +197,28 @@ def rec():
 	if with_comments:
 		# Get user comments list and form
 		commentsTreeAndForm = common_snippets.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars['replyTo'])
+	
+	
+	if printable:
+		response.view='default/wrapper_printable.html'
+	else:
+		response.view='default/wrapper_normal.html'
 
-	response.view='default/gab_public_article_recommendation.html'
+	viewToRender='default/gab_public_article_recommendation.html'
+
 	return dict(
 				withReviews=with_reviews,
 				withComments=with_comments,
 				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
 				toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-				printableUrl=URL(c='articles', f='rec_printable', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), user_signature=True),
+				printableUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments, printable=True), user_signature=True),
 				currentUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), host=host, scheme=scheme, port=port),
 				shareButtons=True,
 				nbReviews = nbReviews,
 				recommHeaderHtml = recommHeaderHtml,
 				reviewRounds = reviewRounds,
 				commentsTreeAndForm = commentsTreeAndForm,
-			)
-
-			
-def rec_printable():
-	response.view='default/recommended_article_printable.html'
-	printable = True
-
-	if 'reviews' in request.vars and request.vars['reviews']=='True':
-		with_reviews = True
-	else:
-		with_reviews = False
-	if 'comments' in request.vars and request.vars['comments']=='True':
-		with_comments = True
-	else:
-		with_comments = False
-	if 'asPDF' in request.vars and request.vars['asPDF']=='True':
-		as_pdf = True
-	else:
-		as_pdf = False
-	
-	if ('articleId' in request.vars):
-		articleId = request.vars['articleId']
-	elif ('id' in request.vars):
-		articleId = request.vars['id']
-	else:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	# NOTE: check id is numeric!
-	if (not articleId.isdigit()):
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-		
-	art = db.t_articles[articleId]
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	# NOTE: security hole possible by articleId injection: Enforced checkings below.
-	elif art.status != 'Recommended':
-		session.flash = T('Forbidden access')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-
-	if (as_pdf):
-		pdfQ = db( (db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id) ).select(db.t_pdf.id, db.t_pdf.pdf)
-		if len(pdfQ) > 0:
-			redirect(URL('default', 'download', args=pdfQ[0]['pdf']))
-		else:
-			session.flash = T('Unavailable')
-			redirect(redirect(request.env.http_referer))
-
-	myFeaturedRecommendation = mkFeaturedRecommendation(auth, db, art, printable=printable, with_reviews=with_reviews, with_comments=with_comments)
-	myContents = myFeaturedRecommendation['myContents']
-	nbReviews = myFeaturedRecommendation['nbReviews']
-	pdf = myFeaturedRecommendation['pdf']
-	myMeta = myFeaturedRecommendation['myMeta']
-	
-	myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100"))
-	myUpperBtn = ''
-	
-	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	if finalRecomm:
-		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
-	else:
-		response.title = myconf.take('app.longname')
-	if len(response.title)>64:
-		response.title = response.title[:64]+'...'
-	if len(myMeta)>0:
-		response.meta = myMeta
-		#for k in myMeta:
-			#if type(myMeta[k]) is list:
-				#response.meta[k] = ' ; '.join(myMeta[k]) # syntax as in: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
-			#else:
-				#response.meta[k] = myMeta[k]
-	return dict(
-				statusTitle=myTitle,
-				myContents=myContents,
-				myUpperBtn=myUpperBtn,
-				shareButtons=True,
+				viewToRender=viewToRender
 			)
 
 ######################################################################################################################################################################

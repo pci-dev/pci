@@ -2,10 +2,11 @@
 
 import gc
 import os
-import pytz, datetime
+import pytz
 from re import sub, match
 from copy import deepcopy
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 from dateutil.relativedelta import *
 from collections import OrderedDict
 
@@ -2225,7 +2226,7 @@ def reviewsOfCancelled(auth, db, art):
 			,SPAN(' '+current.T('version')+' '+art.ms_version) if art.ms_version else ''
 			,_class='pci-recommOfArticle'
 		)
-		myContents = DIV(myArticle, _class=('pci-article-div-printable' if printable else 'pci-article-div'))
+		myContents = DIV(myArticle, _class='pci-article-div')
 		recomms = db( (db.t_recommendations.article_id==art.id) ).select(orderby=~db.t_recommendations.id)
 		recommRound = len(recomms)
 		headerDone = False

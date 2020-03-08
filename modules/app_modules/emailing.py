@@ -5,7 +5,6 @@ import datetime
 import time
 from re import sub, match
 #from copy import deepcopy
-import datetime
 from dateutil.relativedelta import *
 import traceback
 from pprint import pprint
@@ -115,7 +114,7 @@ def do_send_email_to_test(session, auth, db, userId):
 		report.append( 'email NOT SENT to %s' % destPerson.flatten() )
 		pprint(vars(mail))
 		traceback.print_exc()
-		
+
 	# print(''.join(report))
 	if session.flash is None:
 		session.flash = '; '.join(report)

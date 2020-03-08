@@ -1,5 +1,3 @@
-{{extend 'layout.html'}}
-
 <!-- ALtimetrics badge's js -->
 <script
   type="text/javascript"
@@ -28,7 +26,7 @@
   </div>
 </div>
 
-{{if 'shareButtons' in globals():}}
+{{if 'shareButtons' in globals() and not printable:}}
 <div class="pci2-justify-center">
   <div class="pci2-content-900px pci2-flex-row">
     <a class="pci2-facebook-link pci2-flex-row pci2-align-items-center" href="https://www.facebook.com/sharer/sharer.php?u={{=currentUrl}}" target="_blank">
@@ -57,7 +55,6 @@
     <!-- Last recommendations and article infos   -->
     {{=recommHeaderHtml}}
 
-
     <!-- Reviews -->
     {{if nbReviews > 0:}}
       <div class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
@@ -67,16 +64,18 @@
             {{= T('Reviews')}}
           {{pass}}  
         </h2>
-        
-        <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleReviewsUrl}}">
-          {{if withReviews:}}
-            {{=T('Hide reviews')}}
-            <i class="glyphicon glyphicon-chevron-up"></i>
-          {{else:}}
-            {{=T('Show reviews')}}
-            <i class="glyphicon glyphicon-chevron-down"></i>
-          {{pass}}
-        </a>
+
+        {{if not printable:}}      
+          <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleReviewsUrl}}">
+            {{if withReviews:}}
+              {{=T('Hide reviews')}}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {{else:}}
+              {{=T('Show reviews')}}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {{pass}}
+          </a>
+        {{pass}}
       </div>
     {{pass}}
 
@@ -85,33 +84,32 @@
       {{=reviewRounds}}
     {{pass}}
 
-    <hr>
+    <!-- User comments section-->
+    {{if not printable:}}
+      <hr>
 
-    <!-- User comments -->
-    <div class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
-      <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
-        {{if withComments:}}
-          <i class="glyphicon glyphicon-comment" style="margin-right: 10px;"></i>
-          {{=T('User comments')}}
-        {{pass}}
-      </h2>
+      <div class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
+        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
+          {{if withComments:}}
+            <i class="glyphicon glyphicon-comment" style="margin-right: 10px;"></i>
+            {{=T('User comments')}}
+          {{pass}}
+        </h2>
 
-      <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleCommentsUrl}}">
-        {{if withComments:}}
-          {{=T('Hide user comments')}}
-          <i class="glyphicon glyphicon-chevron-up"></i>
-        {{else:}}
-          {{=T('Show user comments')}}
-          <i class="glyphicon glyphicon-chevron-down"></i>
-        {{pass}}
-      </a>
-    </div>
+        <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleCommentsUrl}}">
+          {{if withComments:}}
+            {{=T('Hide user comments')}}
+            <i class="glyphicon glyphicon-chevron-up"></i>
+          {{else:}}
+            {{=T('Show user comments')}}
+            <i class="glyphicon glyphicon-chevron-down"></i>
+          {{pass}}
+        </a>
+      </div>
 
-    {{if commentsTreeAndForm is not None :}}
-      {{=commentsTreeAndForm}}
+      {{if commentsTreeAndForm is not None :}}
+        {{=commentsTreeAndForm}}
+      {{pass}}
     {{pass}}
-
   </div>
 </div>
-
- <!-- isRecommended    -->

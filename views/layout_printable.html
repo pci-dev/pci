@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+  <head>
+      <meta charset="utf-8">
+      <!-- www.phpied.com/conditional-comments-block-downloads/ -->
+      <!-- Always force latest IE rendering engine
+           (even in intranet) & Chrome Frame
+           Remove this if you use the .htaccess -->
+      <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+      <!--  Mobile Viewport Fix
+            j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
+            device-width: Occupy full width of the screen in its current orientation
+            initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
+            user-scalable = yes allows the user to zoom in -->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>{{=response.title or request.application}}</title>
+      <!-- http://dev.w3.org/html5/markup/meta.name.html -->
+      <meta name="application-name" content="{{=request.application}}">
+      <!-- Speaking of Google, don't forget to set your site up:
+           http://google.com/webmasters -->
+      <meta name="google-site-verification" content="">
+      <link rel="stylesheet"/>
+
+      <!-- include stylesheets -->
+      <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
+      <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap3.css')}}"/>
+      <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700" rel="stylesheet"> 
+      <link rel="icon" type="image/png" href="{{=URL('static','images/favicon.png')}}" />
+      <link rel="shortcut icon" type="image/x-icon" href="{{=URL('static','images/favicon.ico')}}" />
+      <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}" />
+  
+      <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
+      <link rel="stylesheet" href="{{=URL('static','css/pci0.css')}}"/>
+  
+      <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
+      <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
+      <!-- All JavaScript at the bottom, except for Modernizr which enables
+           HTML5 elements & feature detects -->
+      <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
+      <!--[if lt IE 9]>
+          <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
+          <![endif]-->
+      <!-- Favicons -->
+      {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+      <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
+  
+      <!-- http://panzi.github.io/SocialSharePrivacy/ -->
+      <script type="text/javascript" src="https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.cookies.js"></script>
+      <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
+  
+ 
+
+  </head>
+  <body >
+    {{include}}
+  </body>
+</html>

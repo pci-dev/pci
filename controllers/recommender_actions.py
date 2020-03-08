@@ -2,7 +2,6 @@
 
 import re
 import copy
-import datetime
 from dateutil.relativedelta import *
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI

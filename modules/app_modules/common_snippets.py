@@ -5,7 +5,8 @@ import os
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 from dateutil.relativedelta import *
 from collections import OrderedDict
 
@@ -205,7 +206,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, art, with_cover_letter=True, submittedBy=True):
+def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=True, submittedBy=True):
 	## NOTE: article facts
 	if (art.uploaded_picture is not None and art.uploaded_picture != ''):
 		article_img = IMG(_alt='picture', _src=URL('default', 'download', args=art.uploaded_picture))
@@ -224,7 +225,7 @@ def getArticleInfosCard(auth, db, response, art, with_cover_letter=True, submitt
 		('articleAbstract', WIKI(art.abstract) or ''),
 		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
 		('article_altmetric', article_altmetric),
-		('isRecommended', True)
+		('printable', printable)
 	])
 
 	if with_cover_letter:
@@ -263,7 +264,7 @@ def getArticleInfosCard(auth, db, response, art, with_cover_letter=True, submitt
 			)
 		) 
 
-def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, with_cover_letter=False, fullURL=True):
+def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
 	if fullURL:
 		scheme=myconf.take('alerts.scheme')
 		host=myconf.take('alerts.host')
@@ -278,7 +279,7 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, with_cover
 	recomm_altmetric = ''
 	
 
-	articleInfosCard = getArticleInfosCard(auth, db, response, art, with_cover_letter=False, submittedBy=False)
+	articleInfosCard = getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False)
 		
 	headerContent.update([
 		('articleInfosCard', articleInfosCard)
@@ -335,7 +336,8 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, with_cover
 			('recomm_altmetric', recomm_altmetric),
 			('cite', cite),
 			('recommText', WIKI(finalRecomm.recommendation_comments or '')),
-			('pdfLink', pdfLink)
+			('pdfLink', pdfLink),
+			('printable', printable)
 		])
 
 	# Get METADATA (see next function)

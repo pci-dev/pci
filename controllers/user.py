@@ -2,7 +2,6 @@
 
 import re
 import copy
-import datetime
 
 from gluon.contrib.markdown import WIKI
 from app_modules.common import *
@@ -642,7 +641,7 @@ def recommendations():
 
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art,  True)
+		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable,  True)
 		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, quiet=False)
 		
 		response.view='default/recommended_articles.html'

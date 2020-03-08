@@ -5797,7 +5797,7 @@ display:block!important;
 }
 }
 
-@media screen and max-width767px {
+@media max-width767px {
 .table-responsive {
 width:100%;
 margin-bottom:15px;
@@ -5831,7 +5831,7 @@ border-bottom:0;
 }
 }
 
-@media screen and -webkit-min-device-pixel-ratio0 {
+@media -webkit-min-device-pixel-ratio0 {
 input[type=date].form-control,input[type=time].form-control,input[type=datetime-local].form-control,input[type=month].form-control {
 line-height:46px;
 }
@@ -5953,7 +5953,7 @@ display:block!important;
 }
 }
 
-@media screen and min-width768px {
+@media min-width768px {
 .jumbotron {
 padding-top:48px;
 padding-bottom:48px;

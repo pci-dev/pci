@@ -3,7 +3,8 @@
 import re
 import copy
 import tempfile
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 import glob
 import os
 
@@ -237,7 +238,6 @@ def suggested_recommender_emails():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='manager'))
 def recommendations():
-	response.view='default/recommended_articles.html'
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
 	printable = False
@@ -254,13 +254,14 @@ def recommendations():
 
 	# New recommendation function (WIP)
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, True)
+	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
 	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, quiet=False)
 	
+	response.view='default/recommended_articles.html'
 	return dict(
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
-
+				printable = printable,
 				myCloseButton=mkCloseButton(),
 				myContents=myContents,
 				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
@@ -362,7 +363,7 @@ def manage_recommendations():
 		grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
 	myContents = DIV(
 		DIV(
-			common_snippets.getArticleInfosCard(auth, db, response, art, False), _class="pci2-content-900px"
+			common_snippets.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"
 		),
 		_class="pci2-full-width pci2-flex-center"
 	)

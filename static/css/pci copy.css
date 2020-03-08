@@ -946,7 +946,7 @@ header {
 	max-height: 215px;
 }
 
-@media only screen and (max-width: 1280px) {
+@media (max-width: 1280px) {
 	.pci-footer {
 		max-height: none;
 	}
