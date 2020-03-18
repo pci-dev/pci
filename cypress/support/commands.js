@@ -131,8 +131,8 @@ Cypress.Commands.add(
       if (Cypress.env("withScreenshots")) {
         cy.wait(500);
         let folder_name = test + "/" + role;
-        if (role === "suggested_reviewer") folder_name = "reviewer";
-        if (role === "suggested_recommender") folder_name = "recommender";
+        if (role === "suggested_reviewer") folder_name = test + "/reviewer";
+        if (role === "suggested_recommender") folder_name = test + "/recommender";
         cy.screenshot(folder_name + "/" + step + " - " + role);
         cy.wait(500);
       }

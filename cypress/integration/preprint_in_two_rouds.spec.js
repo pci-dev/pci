@@ -1509,7 +1509,7 @@ describe("Preprint recommended in two round", () => {
   });
 
   //##################################################################################################################################
-  describe(" Manager : ROUND 2 - Validate recommendation", () => {
+  describe("Manager : ROUND 2 - Validate recommendation", () => {
     before(() => {
       // log as manager
 
