@@ -8,13 +8,17 @@
   {{=myHelp}} 
 {{pass}} 
 
+{{if 'myCloseButton' in locals() and printable:}}
+	{{=myCloseButton}}
+{{pass}}
+
 <div class="pci2-justify-center">
   <div class="pci2-flex-row pci2-content-900px">
     {{=IMG(_src=URL(r=request,c='static',f='images/small-background.png'), _height="100")}}
 
     <div class="pci2-flex-grow pci2-flex-column pci2-flex-center" style="margin-left: 15px;">
 
-      <div class="pci2-flex-center pci2-recommendation-green-banner">
+      <div class="pci2-flex-center pci2-full-width pci-status-big success {{=printableClass}}">
         Recommendation
       </div>
 <!--       
@@ -57,13 +61,17 @@
 
     <!-- Reviews -->
     {{if nbReviews > 0:}}
-      <div class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
-        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
-          {{if withReviews:}}
-            <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
-            {{= T('Reviews')}}
-          {{pass}}  
+      {{if printable:}}
+        <div style="page-break-before: always"></div>
+      {{pass}}
+
+      <div style="margin-top: 40px;" class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
+        {{if (printable and withReviews) or (not printable) :}}
+        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center {{if not withReviews:}}pci2-half-opacity{{pass}}">
+          <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
+          {{= T('Reviews')}}
         </h2>
+        {{pass}}
 
         {{if not printable:}}      
           <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleReviewsUrl}}">
@@ -86,9 +94,8 @@
 
     <!-- User comments section-->
     {{if not printable:}}
-      <hr>
 
-      <div class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
+      <div style="margin-top: 40px;" class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
         <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
           {{if withComments:}}
             <i class="glyphicon glyphicon-comment" style="margin-right: 10px;"></i>
@@ -96,15 +103,7 @@
           {{pass}}
         </h2>
 
-        <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleCommentsUrl}}">
-          {{if withComments:}}
-            {{=T('Hide user comments')}}
-            <i class="glyphicon glyphicon-chevron-up"></i>
-          {{else:}}
-            {{=T('Show user comments')}}
-            <i class="glyphicon glyphicon-chevron-down"></i>
-          {{pass}}
-        </a>
+        
       </div>
 
       {{if commentsTreeAndForm is not None :}}

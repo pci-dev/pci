@@ -1,3 +1,11 @@
+.caret {
+    display: none;
+}
+
+.pci2-icon-margin-right {
+    margin-right: 7.5px;
+}
+
 /* Common Forms styles (a little hacky)  */
 .form-group .col-sm-9,
 .form-group .col-sm-3 {
@@ -80,7 +88,7 @@ input[name=alerts]+label {
 }
 
 .pci2-hover-main-color hr {
-    border-top: 1px solid #3eaede;
+    border-top: 1px solid #42748d48;
 }
 
 .pci2-hover-main-color:not(.disabled):hover {
@@ -204,6 +212,10 @@ input[name=alerts]+label {
     background-color: #e5eef4;
 }
 
+.pci2-article-row.printable {
+    background-color: transparent;
+}
+
 /* Article Recommendation row */
 .pci2-article-image-div {
     min-width: 150px;
@@ -305,6 +317,7 @@ input[name=alerts]+label {
 .pci2-recomm-title h1 {
     margin: 0;
     margin-bottom: 5px;
+    font-size: 28px;
 }
 
 .pci2-recomm-title i {
@@ -325,12 +338,13 @@ input[name=alerts]+label {
     margin-bottom: 10px;
 }
 
+.pci2-user-cv-label,
 .pci2-recomm-text-label {
 
     position: absolute;
     margin-top: -11px;
     margin-left: 10px;
-    color: #3eaede60;
+    color: #598398bb;
     background: #fff;
     padding: 0 7.5px;
 }
@@ -339,7 +353,7 @@ input[name=alerts]+label {
     padding: 15px;
     margin: 10px 0;
     border-radius: 5px;
-    border: 1px solid #3eaede40;
+    border: 1px solid #42748d48;
 }
 
 
@@ -438,17 +452,17 @@ input[name=alerts]+label {
 .pci2-user-cv {
     white-space: pre-wrap;
     font-style: italic;
-    padding: 5px 10px;
+    padding: 15px 10px;
     color: #8e8c84;
-    border: 1px solid #598398;
+    border: 1px solid #42748d48;
     border-radius: 5px
 }
 
 .pci2-user-stats-div {
     width: 100%;
     padding-top: 5px;
-    margin-bottom: 10px;
-    border-top: 1px solid #598398;
+    margin-bottom: 20px;
+    border-top: 1px solid #42748d48;
 }
 
 .pci2-user-stats-div h3 {
@@ -577,7 +591,6 @@ div.w2p_flash.alert.custom-disappear {
     top: 2px;
     opacity: 0.4;
 
-    margin-right: 7.5px;
 }
 
 

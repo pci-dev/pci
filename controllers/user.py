@@ -617,7 +617,7 @@ def my_articles():
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():
-	printable = False
+	printable = 'printable' in request.vars  and request.vars['printable']=='True'
 
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
@@ -642,69 +642,28 @@ def recommendations():
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable,  True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, quiet=False)
-		
-		response.view='default/recommended_articles.html'
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, printable, quiet=False)
+	
+		if printable:
+			printableClass = 'printable'
+			response.view='default/wrapper_printable.html'
+		else:
+			printableClass = ''
+			response.view='default/wrapper_normal.html'
+
+		viewToRender='default/recommended_articles.html'
 		
 		return dict(
+					viewToRender = viewToRender,
 					recommHeaderHtml = recommHeaderHtml,
 					recommStatusHeader = recommStatusHeader,
-
+					printable = printable,
 					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
 					myCloseButton=mkCloseButton(),
 					# myUpperBtn=myUpperBtn,
 					# statusTitle=myTitle,
 					myContents=myContents,
 				)
-
-@auth.requires_login()
-def recommendations_printable():
-	response.view='default/recommended_article_printable.html'
-	printable = True
-
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	# NOTE: security hole possible by changing manually articleId value
-	revCpt = 0
-	if art.user_id == auth.user_id:
-		revCpt += 1 # NOTE: checkings owner rights.
-	# NOTE: checking reviewer rights
-	revCpt += db( (db.t_recommendations.article_id==articleId) & (db.t_recommendations.id==db.t_reviews.recommendation_id) & (db.t_reviews.reviewer_id==auth.user_id) ).count()
-	if revCpt == 0:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
-		
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-					DIV(
-						DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
-						_class='pci-ArticleHeaderIn'
-					))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-				DIV(
-					#DIV(def my_, _class='pci-ArticleText printable'),
-					_class='pci-ArticleHeaderIn printable'
-				))
-		myUpperBtn = ''
-
-		
-		response.title = (art.title or myconf.take('app.longname'))
-		return dict(
-					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
-					myCloseButton=mkCloseButton(),
-					myUpperBtn=myUpperBtn,
-					statusTitle=myTitle,
-					myContents=myContents,
-				)
-
-
 
 
 ######################################################################################################################################################################

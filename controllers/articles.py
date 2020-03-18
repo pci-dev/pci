@@ -128,9 +128,14 @@ def rec():
 
 	with_reviews = 'reviews' in request.vars and request.vars['reviews']=='True'
 	# with_reviews = True
-	with_comments = 'comments' in request.vars and request.vars['comments']=='True'
 	# with_comments = True
 	printable = 'printable' in request.vars  and request.vars['printable']=='True'
+
+	if printable is None or printable is False:
+		with_comments = True
+	else: 
+		with_comments = False
+
 	
 	as_pdf = 'asPDF' in request.vars and request.vars['asPDF']=='True'
 
@@ -200,25 +205,29 @@ def rec():
 	
 	
 	if printable:
+		printableClass = 'printable'
 		response.view='default/wrapper_printable.html'
 	else:
+		printableClass = ''
 		response.view='default/wrapper_normal.html'
 
 	viewToRender='default/gab_public_article_recommendation.html'
-
 	return dict(
 				withReviews=with_reviews,
 				withComments=with_comments,
-				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews), comments=with_comments), user_signature=True),
-				toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-				printableUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments, printable=True), user_signature=True),
-				currentUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=with_comments), host=host, scheme=scheme, port=port),
+				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews)), user_signature=True),
+				# toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+				printableUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, printable=True), user_signature=True),
+				currentUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews), host=host, scheme=scheme, port=port),
 				shareButtons=True,
 				nbReviews = nbReviews,
 				recommHeaderHtml = recommHeaderHtml,
 				reviewRounds = reviewRounds,
 				commentsTreeAndForm = commentsTreeAndForm,
-				viewToRender=viewToRender
+				viewToRender = viewToRender,
+
+				myCloseButton=mkCloseButton(),
+				printableClass = printableClass
 			)
 
 ######################################################################################################################################################################

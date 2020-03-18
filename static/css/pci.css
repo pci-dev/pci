@@ -316,54 +316,84 @@ header {
 	border-radius: 5px;
 }
 
-.pci-status-big.warning {
+.pci-status-big.warning:not(.printable) {
 	background: #ffbf00;
 	color: #fff;
+}
+
+.pci-status-big.warning.printable {
+	color: #ffbf00;
+	border: 1px solid #ffbf00;
 }
 
 .pci-status.warning {
 	color: #ffbf00;
 }
 
-.pci-status-big.good {
+.pci-status-big.good:not(.printable) {
 	background: #9fd10a;
 	color: #fff;
+}
+
+.pci-status-big.good.printable {
+	color: #9fd10a;
+	border: 1px solid #9fd10a;
 }
 
 .pci-status.good {
 	color: #9fd10a;
 }
 
-.pci-status-big.success {
+.pci-status-big.success:not(.printable) {
 	background: #089108;
 	color: #fff;
+}
+
+.pci-status-big.success.printable {
+	color: #089108;
+	border: 1px solid #089108;
 }
 
 .pci-status.success {
 	color: #089108;
 }
 
-.pci-status-big.info {
+.pci-status-big.info:not(.printable) {
 	background: #0db9f2;
 	color: #fff;
+}
+
+.pci-status-big.info.printable {
+	color: #0db9f2;
+	border: 1px solid #0db9f2;
 }
 
 .pci-status.info {
 	color: #0db9f2;
 }
 
-.pci-status-big.danger {
+.pci-status-big.danger:not(.printable) {
 	background: #e61919;
 	color: #fff;
+}
+
+.pci-status-big.danger.printable {
+	color: #e61919;
+	border: 1px solid #e61919;
 }
 
 .pci-status.danger {
 	color: #e61919;
 }
 
-.pci-status-big.default {
+.pci-status-big.default:not(.printable) {
 	background: #BBBBBB;
 	color: #666;
+}
+
+.pci-status-big.default.printable {
+	color: #BBBBBB;
+	border: 1px solid #BBBBBB;
 }
 
 .pci-status.default {

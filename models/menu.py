@@ -34,7 +34,7 @@ def _DevMenu():
     app = request.application
     ctr = request.controller
     #txtMenu = IMG(_title=T('Development'), _alt=T('Devel.'), _src=URL(c='static', f='images/devel.png'), _class='pci-menuImage')
-    txtMenu = T('Development')
+    txtMenu = SPAN(T('Development'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"))
     return [
         (txtMenu, False, '#', [
 	    	(T('TEST: Recommenders country map'),  False, URL('maps', 'recommenders_map', user_signature=True)),
@@ -105,9 +105,9 @@ def _BaseMenu():
 		articleMenu.append((T('Progress log'), False, URL('articles', 'tracking')))
 	
 	menuBar = [
-		((SPAN(_class='glyphicon glyphicon-home'), T('Home')),       isHomeActive, URL('default', 'index')),
+		((SPAN(_class='pci2-icon-margin-right glyphicon glyphicon-home'), T('Home')),       isHomeActive, URL('default', 'index')),
 		#(T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
-		(T('Articles'),      isArticleActive, '#', articleMenu),
+		(SPAN(T('Articles'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px") ),      isArticleActive, '#', articleMenu),
 	]
 	return menuBar
 
@@ -136,7 +136,7 @@ def _ToolsMenu():
 		]
 
 	return [
-		(SPAN(T('Tools'), _class=myClass), isActive, '#', toolMenu),
+		(SPAN(T('Tools'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class=myClass), isActive, '#', toolMenu),
 	]
 
 # Appends administrators menu
@@ -148,7 +148,7 @@ def _AdminMenu():
 
 
 	return [
-		(SPAN(T('Admin.'), _class='pci-admin'), isActive, '#', [
+		(SPAN(T('Admin'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class='pci-admin'), isActive, '#', [
 			(T('Users & roles'),     False, URL('admin', 'list_users', user_signature=True)),
 			(T('Supports'),          False, URL('admin', 'manage_supports', user_signature=True)),
 			#(T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
@@ -230,7 +230,7 @@ def _UserMenu():
 		)
 
 	return [
-        (SPAN(T('Your contributions'), notificationPin, _class=contribMenuClass), isActive, '#', myContributionsMenu),
+        (SPAN(T('Your contributions'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class=contribMenuClass), isActive, '#', myContributionsMenu),
 	]
 
 def _RecommendationMenu():
@@ -304,10 +304,10 @@ def _RecommendationMenu():
 	
 	if colorRequests:
 		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs_enhanced.png'), _class='pci-menuImage')
-		requestsMenuTitle = SPAN(SPAN(T('Your Recommendations'), _class='pci-recommender'), _class='pci-enhancedMenuItem')
+		requestsMenuTitle = SPAN(SPAN(T('Your Recommendations'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class='pci-recommender'), _class='pci-enhancedMenuItem')
 	else:
 		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs.png'), _class='pci-menuImage')
-		requestsMenuTitle = SPAN(T('Your Recommendations'), _class='pci-recommender')
+		requestsMenuTitle = SPAN(T('Your Recommendations'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class='pci-recommender')
 
 	return [
 		(requestsMenuTitle,  isActive, '#', recommendationsMenu)
@@ -321,21 +321,21 @@ def _ManagerMenu():
 		isActive = True
 
 	#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage.png'), _class='pci-menuImage')
-	txtMenu = T('Manage')
+	txtMenu = SPAN(T('Manage'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"))
 	
 	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
 		txtPending = SPAN(SPAN(txtPending, _class='pci-enhancedMenuItem'), _class='pci-manager')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
-		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
+		txtMenu = SPAN(T('Manage'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class='pci-enhancedMenuItem')
 	
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes underway') if nbGoing > 1 else T('Recommendation process underway'))
 	if nbGoing>0:
 		txtGoing = SPAN(SPAN(txtGoing, _class='pci-enhancedMenuItem'), _class='pci-manager')
 		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
-		txtMenu = SPAN(T('Manage'), _class='pci-enhancedMenuItem')
+		txtMenu = SPAN(T('Manage'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"), _class='pci-enhancedMenuItem')
 
 
 	return [
@@ -377,7 +377,7 @@ def _AboutMenu():
 		]
 
 	return [
-		(T('About'), isActive, '#', aboutMenu)
+		(SPAN(T('About'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px")), isActive, '#', aboutMenu)
 	]
 
 
@@ -407,7 +407,7 @@ def _HelpMenu():
 	]
 	
 	return [
-		(T('Help'), isActive, '#', helpMenu)
+		(SPAN(T('Help'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px")), isActive, '#', helpMenu)
 	]
 
 
@@ -418,30 +418,30 @@ def _AccountMenu():
 	if ctr == 'default' and fct == 'user':
 		isActive = True
 	
-	txtMenu = T('Log in')
+	txtMenu = SPAN(T('Log in'), I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"))
 	auth_menu = []
 
 	if auth.is_logged_in():
-		txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), auth.user.first_name)
+		txtMenu = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), auth.user.first_name, I(_class="glyphicon glyphicon-triangle-bottom", _style="font-size: 12px; margin-right: Opx; margin-left: 7.5px; top: 1px"))
 
 		hasPublicProfilePage = (db( (db.auth_membership.user_id==auth.user.id) ).count() > 0) or auth.has_membership(role='administrator') or auth.has_membership(role='developper')
 
 		if hasPublicProfilePage:
 			auth_menu += [
-				(SPAN(I(_class="glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='user', f='viewUserCard', vars=dict(userId=auth.user.id))),
+				(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='user', f='viewUserCard', vars=dict(userId=auth.user.id))),
 				LI(_class="divider")
 			]
 
 		auth_menu += [
-			(SPAN(I( _class="glyphicon glyphicon-user"), T('Profile')), False, URL('default', 'user/profile', user_signature=True)),
-			(SPAN(I(_class="glyphicon glyphicon-lock"), T('Change password')), False, URL('default', 'user/change_password', user_signature=True)),
+			(SPAN(I( _class="pci2-icon-margin-right glyphicon glyphicon-user"), T('Profile')), False, URL('default', 'user/profile', user_signature=True)),
+			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-lock"), T('Change password')), False, URL('default', 'user/change_password', user_signature=True)),
 			LI(_class="divider"),
-			(SPAN(I(_class="glyphicon glyphicon-off"), T('Log out')), False, URL('default', 'user/logout', user_signature=True))
+			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-off"), T('Log out')), False, URL('default', 'user/logout', user_signature=True))
 		]
 	else:
 		auth_menu += [
-			(SPAN(I(_class="glyphicon glyphicon-log-in"), T('Log in')), False, URL('default', 'user/login', user_signature=True)),
-			(SPAN(I(_class="glyphicon glyphicon-edit"), T('Sign up')), False, URL('default', 'user/register', user_signature=True))
+			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-log-in"), T('Log in')), False, URL('default', 'user/login', user_signature=True)),
+			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T('Sign up')), False, URL('default', 'user/register', user_signature=True))
 		]
 
 	return [(SPAN(txtMenu, _class='pci-manager'), isActive, '#', auth_menu)]

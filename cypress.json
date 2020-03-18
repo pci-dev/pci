@@ -4,7 +4,7 @@
     "watchForFileChanges": false,
     "video": false,
     "env": {
-        "withScreenshots": false,
-        "keepArticle": false
+        "withScreenshots": true,
+        "keepArticle": true
     }
 }

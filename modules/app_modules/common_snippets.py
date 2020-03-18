@@ -157,14 +157,14 @@ def getArticleTrackcRowCard(auth, db, response, article):
 		return None
 
 ######################################################################################################################################################################
-def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, quiet=True):
+def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
 	recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
 	nbRecomms = len(recomms)
-
+	
 	if userDiv:
-		statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status), _class='pci-ArticleText')
+		statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status, printable), _class='pci-ArticleText')
 	else:
-		statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText')
+		statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class='pci-ArticleText')
 
 	myTitle = DIV(
 				IMG(_src=URL(r=request,c='static',f='images/small-background.png')),
@@ -187,14 +187,14 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 	if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not (quiet):
 		allowManageRequest = True
 	
-	
 	snippetVars = dict(
 		statusTitle = myTitle,
 		allowEditArticle = allowEditArticle,
 		allowManageRecomms = allowManageRecomms,
 		allowManageRequest = allowManageRequest,
 		articleId = art.id,
-		printableUrl = URL(c=controller_name, f='recommendations_printable', vars=dict(articleId=art.id), user_signature=True)
+		printableUrl = URL(c=controller_name, f='recommendations', vars=dict(articleId=art.id, printable=True), user_signature=True),
+		printable=printable
 	)
 
 	return XML(
@@ -212,6 +212,11 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
 		article_img = IMG(_alt='picture', _src=URL('default', 'download', args=art.uploaded_picture))
 	else:
 		article_img = ''
+
+	if printable:
+		printableClass = 'printable'
+	else:
+		printableClass = ''
 	
 	doi = sub(r'doi: *', '', (art.doi or ''))
 	article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
@@ -225,7 +230,8 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
 		('articleAbstract', WIKI(art.abstract) or ''),
 		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
 		('article_altmetric', article_altmetric),
-		('printable', printable)
+		('printable', printable),
+		('printableClass', printableClass)
 	])
 
 	if with_cover_letter:

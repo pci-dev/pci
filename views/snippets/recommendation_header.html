@@ -28,8 +28,15 @@
 
 {{=articleInfosCard}}
 
+
+
 {{if 'recommText' in locals():}}
-  {{=DIV(recommDateinfos, _style="margin-bottom: 20px")}} 
+  {{=DIV(recommDateinfos, _style="margin-bottom:20px")}} 
+
+  {{if printable:}}
+    <div style="page-break-before: always"></div>
+    <div style="height: 10px;"></div>
+  {{pass}}
 
   <div>
     <b class="pci2-recomm-text-label">Recommendation</b>

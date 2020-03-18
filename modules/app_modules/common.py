@@ -398,7 +398,7 @@ def mkBackButton(text=current.T('Back'), target=None):
 ######################################################################################################################################################################
 # code for a "Close" button
 def mkCloseButton():
-	return A(SPAN(current.T('Close'), _class='pci-ArticleTopButton buttontext btn btn-default pci-public'), _onclick='window.close(); window.top.close();', _class='button')
+	return A(SPAN(current.T('Close'), _class='pci-ArticleTopButton buttontext btn btn-default pci-public'), _onclick='window.close(); window.top.close();', _class='button unshow-media-print')
 
 
 ######################################################################################################################################################################

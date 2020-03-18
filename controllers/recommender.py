@@ -373,10 +373,7 @@ def article_details():
 	if amIAllowed:
 		alreadyUnderProcess = (db( (db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id != auth.user_id) ).count() > 0) 
 		
-		if printable:
-			response.view='default/recommended_article_printable.html'
-		else:
-			response.view='default/recommended_articles.html'
+		
 		
 		if alreadyUnderProcess:
 			contact = myconf.take('contacts.managers')
@@ -399,16 +396,28 @@ def article_details():
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, quiet=False)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
 
+
+		if printable:
+			printableClass = 'printable'
+			response.view='default/wrapper_printable.html'
+		else:
+			printableClass = ''
+			response.view='default/wrapper_normal.html'
+
+		viewToRender='default/recommended_articles.html'
+		
 		return dict(
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
-	
+				printable = printable,
+
 				myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
 				myCloseButton=mkCloseButton(),
 				# statusTitle=myTitle,
 				myContents=myContents,
+				viewToRender = viewToRender
 			)
 	else:
 		raise HTTP(403, "403: "+T('Access denied'))
@@ -603,8 +612,7 @@ def direct_submission():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def recommendations():
-	response.view='default/recommended_articles.html'
-	printable = False
+	printable = 'printable' in request.vars  and request.vars['printable']=='True'
 	articleId = request.vars['articleId']
 
 	art = db.t_articles[articleId]
@@ -634,75 +642,31 @@ def recommendations():
 		myContents.append(HR())
 		
 		response.title = (art.title or myconf.take('app.longname'))
-
 		
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, quiet=False)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
+
+		if printable:
+			printableClass = 'printable'
+			response.view='default/wrapper_printable.html'
+		else:
+			printableClass = ''
+			response.view='default/wrapper_normal.html'
+
+		viewToRender='default/recommended_articles.html'
 
 		return dict(
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
+				printable = printable,
+
 				myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
 				myCloseButton=mkCloseButton(),
 				myContents=myContents,
+				viewToRender=viewToRender
 			)
-
-def recommendations_printable():
-	response.view='default/recommended_article_printable.html'
-	printable = True
-	articleId = request.vars['articleId']
-	
-	art = db.t_articles[articleId]
-	if art is None:
-		print("Missing article %s" % articleId)
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	# NOTE: 2018-09-05 bug corrected by splitting the query and adding counts; weird but it works
-	countPre = db(
-					(db.t_recommendations.recommender_id == auth.user_id)
-				  & (db.t_recommendations.article_id == articleId) 
-			).count()
-	countPost = db(
-					( (db.t_press_reviews.contributor_id == auth.user_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) )
-				  & (db.t_recommendations.article_id == articleId) 
-			).count()
-	amIAllowed = ((countPre + countPost) > 0)
-	if not(amIAllowed):
-		print("Not allowed: userId=%s, articleId=%s" % (auth.user_id, articleId))
-		#print(db._lastsql)
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		
-		if art.status == 'Recommended':
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-					DIV(
-						DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
-					_class='pci-ArticleHeaderIn'
-					))
-		else:
-			myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-				DIV(
-					DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText'),
-					_class='pci-ArticleHeaderIn printable'
-				))
-		myUpperBtn = ''
-		
-		myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
-		
-		response.title = (art.title or myconf.take('app.longname'))
-		return dict(
-					myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
-					myCloseButton=mkCloseButton(),
-					myUpperBtn=myUpperBtn,
-					statusTitle=myTitle,
-					myContents=myContents,
-				)
-			
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender') or auth.has_membership(role='manager'))

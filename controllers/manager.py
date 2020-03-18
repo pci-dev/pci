@@ -240,8 +240,7 @@ def suggested_recommender_emails():
 def recommendations():
 	articleId = request.vars['articleId']
 	art = db.t_articles[articleId]
-	printable = False
-
+	printable = 'printable' in request.vars  and request.vars['printable']=='True'
 	
 	if art is None:
 		session.flash = auth.not_authorized()
@@ -255,9 +254,18 @@ def recommendations():
 	# New recommendation function (WIP)
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, quiet=False)
+	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, printable, quiet=False)
 	
 	response.view='default/recommended_articles.html'
+
+	if printable:
+		printableClass = 'printable'
+		response.view='default/wrapper_printable.html'
+	else:
+		printableClass = ''
+		response.view='default/wrapper_normal.html'
+		
+	viewToRender='default/recommended_articles.html'
 	return dict(
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
@@ -265,47 +273,8 @@ def recommendations():
 				myCloseButton=mkCloseButton(),
 				myContents=myContents,
 				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
+				viewToRender = viewToRender
 			)
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='manager'))
-def recommendations_printable():
-	response.view='default/recommended_article_printable.html'
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	printable = True
-
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	
-	if art.status == 'Recommended':
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-				DIV(
-					DIV(I(T('Recommended article')), _class='pci-ArticleText pci2-recommendation-green-banner'),
-					_class='pci-ArticleHeaderIn'
-				))
-	else:
-		myTitle=DIV(IMG(_src=URL(r=request,c='static',f='images/background.png')),
-			DIV(
-				DIV(mkStatusBigDiv(auth, db, art.status), _class='pci-ArticleText printable'),
-				_class='pci-ArticleHeaderIn printable'
-			))
-	myUpperBtn = ''
-
-	myContents = mkFeaturedArticle(auth, db, art, printable, quiet=False)
-	myContents.append(HR())
-		
-	response.title = (art.title or myconf.take('app.longname'))
-	return dict(
-				myCloseButton=mkCloseButton(),
-				statusTitle=myTitle,
-				myContents=myContents,
-				myUpperBtn=myUpperBtn,
-				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
-			)
-
-
 
 ######################################################################################################################################################################
 # Allow management of article recommendations

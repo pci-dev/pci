@@ -521,16 +521,22 @@ def mkStatusDivUser(auth, db, status):
 	return DIV(status_txt, _class='pci-status '+color_class, _title=current.T(hint))
 
 ######################################################################################################################################################################
-def mkStatusBigDiv(auth, db, status):
+def mkStatusBigDiv(auth, db, status, printable=False):
 	if statusArticles is None or len(statusArticles) == 0:
 		mkStatusArticles(db)
 	status_txt = (current.T(status)).upper()
 	color_class = statusArticles[status]['color_class'] or 'default'
 	hint = statusArticles[status]['explaination'] or ''
-	return DIV(status_txt, _class='pci-status-big '+color_class, _title=current.T(hint))
+	
+	if printable:
+		printable_class = ' printable'
+	else:
+		printable_class = ''
+
+	return DIV(status_txt, _class='pci-status-big '+color_class+printable_class, _title=current.T(hint))
 
 ######################################################################################################################################################################
-def mkStatusBigDivUser(auth, db, status):
+def mkStatusBigDivUser(auth, db, status, printable=False):
 	if statusArticles is None or len(statusArticles) == 0:
 		mkStatusArticles(db)
 	if status.startswith('Pre-'):
@@ -540,7 +546,13 @@ def mkStatusBigDivUser(auth, db, status):
 	status_txt = (current.T(status2)).upper()
 	color_class = statusArticles[status2]['color_class'] or 'default'
 	hint = statusArticles[status2]['explaination'] or ''
-	return DIV(status_txt, _class='pci-status-big '+color_class, _title=current.T(hint))
+	
+	if printable:
+		printable_class = ' printable'
+	else:
+		printable_class = ''
+
+	return DIV(status_txt, _class='pci-status-big '+color_class+printable_class, _title=current.T(hint))
 
 ######################################################################################################################################################################
 def mkReviewStateDiv(auth, db, state):
