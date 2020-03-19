@@ -646,12 +646,14 @@ div.w2p_flash.alert.custom-disappear {
 
 
 .pci2-facebook-link {
+    margin: 10px 0;
     color: #999;
     font-weight: bold;
     transition: 0.3s;
 }
 
 .pci2-twitter-link {
+    margin: 10px 0;
     margin-left: 25px;
     color: #999;
     font-weight: bold;
@@ -694,22 +696,16 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 .pci2-social-icon {
-    margin: 10px;
-    margin-left: 0px;
+    margin: 0;
+    margin-right: 7.5px;
     transition: 0.3s;
 }
 
-.pci2-facebook-link .pci2-social-icon {
-    margin-right: 7.5px;
-}
-
-.pci2-twitter-link .pci2-social-icon {
-    margin-right: 5px;
-}
 
 
 .pci2-tool-link,
 .pci2-tool-link-right {
+    margin: 10px 0;
     color: #999;
     font-weight: bold;
     transition: 0.3s;
@@ -719,9 +715,8 @@ div.w2p_flash.alert.custom-disappear {
 
 .pci2-tool-link .glyphicon {
     font-size: 26px;
-    margin: 10px;
-    margin-right: 0px;
-    margin-top: 5px;
+    margin: 0;
+    margin-right: 7.5px;
 
     color: #3eaede;
     opacity: 0.3;
@@ -731,8 +726,8 @@ div.w2p_flash.alert.custom-disappear {
 
 .pci2-tool-link-right .glyphicon {
     font-size: 26px;
-    margin: 10px;
-    margin-right: 0px;
+    margin: 0;
+    margin-left: 7.5px;
 
     color: #3eaede;
     opacity: 0.3;

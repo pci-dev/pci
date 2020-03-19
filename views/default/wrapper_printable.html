@@ -1,8 +1,18 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout_printable.html'}}
 
-<a class="pci-ArticleTopButton buttontext btn btn-default pci-public button unshow-media-print" onclick="window.close(); window.top.close();">
-    {{=T('Close')}}
-</a>
+<div>
+  <a
+    class="pci2-flex-row pci2-align-items-center pci2-tool-link unshow-media-print"
+    href=""
+    style="margin: 10px"
+    onclick="window.close(); window.top.close();"
+  >
+    <i class="glyphicon glyphicon-remove" style="margin-right: 5px;"></i>
+    <span>
+      {{=T('Close printable page')}}
+    </span>
+  </a>
+</div>
 
 {{include viewToRender}}

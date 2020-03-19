@@ -9,39 +9,39 @@
   <div class="pci2-justify-center">
     <div style="max-width: 800px; width: 100%; margin-bottom: 35px;" class="pci2-flex-row">
   	  {{if 'allowEditArticle' in locals() and allowEditArticle is True:}}    
-      <a class="pci2-tool-link pci2-flex-row pci2-align-items-center" style="margin-right: 15px" 
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link" style="margin-right: 25px" 
         href="{{=URL(c='user', f='edit_my_article', vars=dict(articleId=articleId), user_signature=True)}}"
       >
-  			<i class="glyphicon glyphicon-edit pci2-secondary-color-text" style="margin:O; margin-right: 5px"></i>
+  			<i class="glyphicon glyphicon-edit pci2-secondary-color-text"></i>
   		  Edit article 
   	  </a>
       {{pass}}
       
       {{if 'allowManageRequest' in locals() and allowManageRequest is True:}}    
-      <a class="pci2-tool-link pci2-flex-row pci2-align-items-center  pci2-yellow-link" style="margin-right: 15px"
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
         href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId), user_signature=True)}}"
       >
-  		  <i class="glyphicon glyphicon-edit" style="margin:O; margin-right: 5px"></i>
+  		  <i class="glyphicon glyphicon-edit"></i>
         Manage this request 
       </a>
       {{pass}}
       
       {{if 'allowManageRecomms' in locals() and allowManageRecomms is True:}}
-      <a class="pci2-tool-link pci2-flex-row pci2-align-items-center pci2-yellow-link" 
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" 
         href="{{=URL(c='manager', f='manage_recommendations', vars=dict(articleId=articleId), user_signature=True)}}"
       >
-        <i class="glyphicon glyphicon-edit" style="margin:O; margin-right: 5px"></i>
+        <i class="glyphicon glyphicon-edit"></i>
         Manage recommendation 
       </a>
       {{pass}}
     
   	  <div class="pci2-flex-grow"></div>
     
-      <a class="pci2-tool-link pci2-flex-row pci2-align-items-center" target="_blank"
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right" target="_blank"
         href="{{=printableUrl}}"
       >
-  		Printable page
-  		<i class="glyphicon glyphicon-print"></i>
+  		  Printable page
+  		  <i class="glyphicon glyphicon-print"></i>
   	  </a>
     
   	</div>

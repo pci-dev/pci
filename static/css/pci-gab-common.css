@@ -13,7 +13,7 @@
 
 @media print {
     .unshow-media-print {
-        display: none;
+        display: none !important;
     }
 }
 
