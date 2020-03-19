@@ -19,24 +19,24 @@ def rss(feed):
 	#local_dt = local.localize(datetime.datetime.now(), is_dst=None)
 	#now = local_dt.astimezone (pytz.utc)
 	now = datetime.datetime.utcnow()
-	img = rss2.Image(url=feed.get('image'), title=safestr(feed,'title'), link=safestr(feed,'link'))
-	link = safestr(feed,'link')
+	img = rss2.Image(url=safestr(feed,'image').decode('utf-8'), title=safestr(feed,'title').decode('utf-8'), link=safestr(feed,'link').decode('utf-8'))
+	link = safestr(feed,'link').decode('utf-8')
 	#thisLink=feed.get('thisLink', link)
 	
-	rss = rss2.RSS2(title=safestr(feed,'title'),
-					link=safestr(feed,'link'),
+	rss = rss2.RSS2(title=safestr(feed,'title').decode('utf-8'),
+					link=safestr(feed,'link').decode('utf-8'),
 					#thisLink=feed.get('thisLink', link),
-					description=safestr(feed,'description'),
+					description=safestr(feed,'description').decode('utf-8'),
 					#lastBuildDate=feed.get('created_on', now),
 					#pubDate=feed.get('pubDate', now),
 					pubDate=feed.get('created_on', now),
-					managingEditor=safestr(feed,'managingEditor'),
+					managingEditor=safestr(feed,'managingEditor').decode('utf-8'),
 					image=img,
 					items=[rss2.RSSItem(
-						guid=safestr(entry,'guid'),
-						title=safestr(entry,'title','(notitle)'),
-						link=safestr(entry,'link'),
-						description=safestr(entry,'description'),
+						guid=safestr(entry,'guid').decode('utf-8'),
+						title=safestr(entry,'title','(notitle)').decode('utf-8'),
+						link=safestr(entry,'link').decode('utf-8'),
+						description=safestr(entry,'description').decode('utf-8'),
 						pubDate=entry.get('created_on', now)
 					) for entry in feed.get('entries', [])]
 				)

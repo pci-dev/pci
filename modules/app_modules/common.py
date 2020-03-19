@@ -1474,7 +1474,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 	resu = SPAN('')
 	if userId is not None:
 		if linked:
-			resu = A(str(userId), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
+			resu = A(str(userId), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=userId)))
 		else:
 			resu = SPAN(str(userId))
 	return resu
@@ -1483,7 +1483,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
 	if theUser:
 		if linked:
-			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
+			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)))
 		else:
 			resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
 	else:
@@ -1495,7 +1495,7 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
 def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
 	if theUser:
 		if linked:
-			resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+			resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 		else:
 			resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 	else:
@@ -1518,7 +1518,7 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
 		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 		if theUser:
 			if linked:
-				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
+				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 			else:
 				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 		else:
@@ -1601,7 +1601,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 	if (userRow.last_name or '') != '':
 		if name != '': name += ' '
 		name += userRow.last_name.upper()
-	resu.append(TD(A(name, _target='blank', _href=URL(c='user', f='viewUserCard', vars=dict(userId=userRow.id)))))
+	resu.append(TD(A(name, _target='blank', _href=URL(c='public', f='user_public_page', vars=dict(userId=userRow.id)))))
 	affil = ''
 	if (userRow.laboratory or '') != '':
 		affil += userRow.laboratory
@@ -1888,14 +1888,15 @@ def mkRecommArticleRss(auth, db, row):
 		return None
 	if (row.uploaded_picture is not None and row.uploaded_picture != ''):
 		img = IMG(_alt='article picture', _src=URL('default', 'download', scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style='padding:8px;')
-	else: img = None
+	else: 
+		img = None
 	link = URL(c='articles', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
 	whoDidIt = getRecommAndReviewAuthors(auth, db, row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
 	desc = DIV()
 	article = DIV(CENTER( I(row.title), BR(), SPAN(row.authors), BR(), mkDOI(row.doi) ), _style='border:2px solid #cccccc; margin-bottom:8px; font-size:larger;')
 	desc.append(article)
 	if img: 
-			desc.append(CENTER(img)) 
+		desc.append(CENTER(img)) 
 	desc.append(BR())
 
 	what = SPAN()
@@ -2039,58 +2040,21 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
 		return None
 	version = recomm.ms_version or ''
 	pci = myconf.take('app.description')
-	title = 'Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s' % locals()
+	title = ('Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s' % locals())
 	url = URL(c='articles', f='rec', vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-	#recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
-	#contribsQy = db( db.t_press_reviews.recommendation_id == recomm.id ).select()
-	#n = len(contribsQy)
-	#i = 0
-	#for contrib in contribsQy:
-		#i += 1
-		#if (i < n):
-			#recommenders += ', '
-		#else:
-			#recommenders += ' and '
-		#recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
-	#recommendersStr = ''.join(recommenders)
+	
 	recommendersStr = mkRecommendersString(auth, db,recomm)
-	
-	#reviewers = []
-	#reviewsQy = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == False) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
-	#if reviewsQy is not None:
-		#nR = len(reviewsQy)
-		#i = 0
-		#for rw in reviewsQy:
-			#if rw.reviewer_id:
-				#i += 1
-				#if (i > 1):
-					#if (i < nR):
-						#reviewers += ', '
-					#else:
-						#reviewers += ' and '
-				#reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
-	#reviewsQyAnon = db( (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == row.id) & (db.t_reviews.anonymously == True) & (db.t_reviews.review_state=='Completed') ).select(db.t_reviews.reviewer_id, distinct=True)
-	#if reviewsQyAnon is not None:
-		#nRA = len(reviewsQyAnon)
-		#if nRA > 0:
-			#if len(reviewers) > 0:
-				#reviewers += ' and '
-			#if nRA > 1:
-				#reviewers += '%s anonymous reviewers' % nRA
-			#else:
-				#reviewers += 'one anonymous reviewer'
-	#reviewersStr = ''.join(reviewers)
+
 	reviewersStr = mkReviewersString(auth, db, row.id)
-	
 	local = pytz.timezone ("Europe/Paris")
 	local_dt = local.localize(row.last_status_change, is_dst=None)
 	created_on = local_dt.astimezone (pytz.utc)
 	
 	return dict(
-		title = title.decode('utf-8'),
+		title = title,
 		url = url,
-		recommender = recommendersStr.decode('utf-8'),
-		reviewers = reviewersStr.decode('utf-8'),
+		recommender = recommendersStr,
+		reviewers = reviewersStr,
 		date = created_on.strftime('%Y-%m-%d'),
 		logo = XML(URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port)),
 		doi = row.doi,
@@ -2147,62 +2111,6 @@ def mkArticleCitation(auth, db, myRecomm):
 			' DOI: ', mkDOI(art.doi)
 		)
 		return citeArticle
-
-
-######################################################################################################################################################################
-# Tracking of submissions / reviews for CNeuro
-def mkTrackRow(auth, db, myArticle):
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	applongname=myconf.take('app.longname')
-	trackR = track = None
-	nbReviews = db( (db.t_recommendations.article_id == myArticle.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs('Under consideration', 'Completed')) ).count(distinct=db.t_reviews.id)
-	if nbReviews > 0 :
-		track = DIV(_class='pci-trackItem')
-		lastRecomm = db( (db.t_recommendations.article_id == myArticle.id) ).select(orderby=db.t_recommendations.id).last()
-		link = mkDOI(myArticle.doi)
-		firstDate = myArticle.upload_timestamp.strftime('%Y-%m-%d')
-		lastDate = myArticle.last_status_change.strftime('%Y-%m-%d')
-		title = myArticle.title
-		if (myArticle.anonymous_submission):
-			authors = '[anonymous submission]'
-		else:
-			authors = myArticle.authors
-		
-		# pci-status
-		if myArticle.status == 'Recommended':
-			#txt = DIV(SPAN(current.T(' is')), SPAN(current.T('RECOMMENDED'), _class='pci-trackStatus success'), SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'), '. ', A('See recommendations and reviews', _href=URL('articles', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success')))
-			txt = DIV(
-					SPAN(current.T(' was')), 
-					SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'),
-					SPAN(SPAN('(', firstDate, ' ➜ ', lastDate, ')'),
-					'. ', 
-					A('See recommendation and reviews', _href=
-						URL('articles', 'rec', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-success'))
-					)
-			
-		#elif myArticle.status == 'Rejected':
-			#txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus pci-status default'), SPAN('(', firstDate, ' ➜ ', lastDate, ')'))
-			
-		elif myArticle.status == 'Cancelled':
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', firstDate, ' ➜ ', lastDate, '). '), A('See reviews', _href=URL('public', 'pubReviews', scheme=scheme, host=host, port=port, vars=dict(id=myArticle.id)), _class='btn btn-default'))
-			
-		elif myArticle.status == 'Under consideration' or myArticle.status == 'Pre-recommended' or myArticle.status == 'Pre-rejected' or myArticle.status == 'Pre-revision':
-			txt = DIV(SPAN(current.T(' is')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus info'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
-			
-		elif myArticle.status == 'Awaiting revision' :
-			txt = DIV(SPAN(current.T(' was')), SPAN(current.T('UNDER REVIEW'), _class='pci-trackStatus default'), SPAN('(', current.T('Submitted on'), ' ', firstDate, ')'))
-
-		else:
-			return(None)
-		track.append(DIV(B(title, _style="font-size:14px")))
-		track.append(DIV(SPAN(authors)))
-		track.append(DIV(link))
-		track.append(txt)
-	
-		trackR = [TD(IMG(_src=URL(c='static', f='images/small-background.png', scheme=scheme, host=host, port=port), _class='pci-trackImg')), TD(track)]
-	return(trackR)
 
 
 ######################################################################################################################################################################

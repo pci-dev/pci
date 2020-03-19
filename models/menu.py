@@ -131,7 +131,7 @@ def _ToolsMenu():
 			(T('Send me a test mail'), False, URL('admin_actions', 'testMail', user_signature=True)),
 			(T('Test my email alert'), False, URL('alerts', 'testUserRecommendedAlert', vars=dict(userId=auth.user_id), user_signature=True)),
 			#(T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
-			(T('RSS for bioRxiv'), False, URL('public', 'rss4bioRxiv', user_signature=True)),
+			(T('RSS for bioRxiv'), False, URL('rss', 'rss4bioRxiv', user_signature=True)),
 			(T('Social networks', lazy=False),      False, URL('about', 'social', user_signature=True))
 		]
 
@@ -428,7 +428,7 @@ def _AccountMenu():
 
 		if hasPublicProfilePage:
 			auth_menu += [
-				(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='user', f='viewUserCard', vars=dict(userId=auth.user.id))),
+				(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='public', f='user_public_page', vars=dict(userId=auth.user.id))),
 				LI(_class="divider")
 			]
 

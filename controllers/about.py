@@ -72,7 +72,7 @@ def rss_info():
 	scheme=myconf.take('alerts.scheme')
 	host=myconf.take('alerts.host')
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	url = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
+	url = URL(c='rss', f='rss', scheme=scheme, host=host, port=port)
 	fname = os.path.dirname(os.path.abspath(__file__)) + '/../static/images/RSS_datamatrix.png'
 	if os.path.isfile(fname):
 		datamImg = IMG(_src=URL(c='static', f='images/RSS_datamatrix.png'), _alt='datamatrix', _style='margin-left:32px;')

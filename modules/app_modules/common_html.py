@@ -727,7 +727,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 	if (userRow.last_name or '') != '':
 		if name != '': name += ' '
 		name += userRow.last_name.upper()
-	resu.append(TD(A(name, _target='blank', _href=URL(c='user', f='viewUserCard', vars=dict(userId=userRow.id)))))
+	resu.append(TD(A(name, _target='blank', _href=URL(c='public', f='user_public_page', vars=dict(userId=userRow.id)))))
 	affil = ''
 	if (userRow.laboratory or '') != '':
 		affil += userRow.laboratory

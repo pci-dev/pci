@@ -280,7 +280,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 	resu = SPAN('')
 	if userId is not None:
 		if linked:
-			resu = A(str(userId), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
+			resu = A(str(userId), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
 		else:
 			resu = SPAN(str(userId))
 	return resu
@@ -289,7 +289,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
 	if theUser:
 		if linked:
-			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)), _class="cyp-user-profile-link")
+			resu = A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)), _class="cyp-user-profile-link")
 		else:
 			resu = SPAN('%s %s' % (theUser.first_name, theUser.last_name))
 	else:
@@ -301,7 +301,7 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
 def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
 	if theUser:
 		if linked:
-			resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+			resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id))), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 		else:
 			resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), I(' -- %s, %s -- %s, %s' % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
 	else:
@@ -324,7 +324,7 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
 		theUser = db(db.auth_user.id==userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 		if theUser:
 			if linked:
-				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='user', f='viewUserCard', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
+				resu = SPAN(A('%s %s' % (theUser.first_name, theUser.last_name), _href=URL(c='public', f='user_public_page', scheme=scheme, host=host, port=port, vars=dict(userId=userId))), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 			else:
 				resu = SPAN(SPAN('%s %s' % (theUser.first_name, theUser.last_name)), A(' [%s]' % theUser.email, _href='mailto:%s' % theUser.email))
 		else:
