@@ -25,49 +25,132 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 ######################################################################################################################################################################
-## Menu Routes
+## (gab) Proper functions
+######################################################################################################################################################################
+
+######################################################################################################################################################################
+# Common function for articles needing attention
+@auth.requires(auth.has_membership(role='recommender'))
+def _awaiting_articles(myVars):
+	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+	temp_db = DAL('sqlite:memory')
+	qy_art = temp_db.define_table('qy_art',
+		Field('id', type='integer'),
+		Field('num', type='integer'),
+		Field('score', type='double', label=T('Score'), default=0),
+		Field('title', type='text', label=T('Title')),
+		Field('authors', type='text', label=T('Authors')),
+		Field('article_source', type='string', label=T('Source')),
+		Field('doi', type='string', label=T('DOI')),
+		Field('abstract', type='text', label=T('Abstract')),
+		Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date')),
+		Field('thematics', type='string', length=1024, label=T('Thematic fields')),
+		Field('keywords', type='text', label=T('Keywords')),
+		Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
+		Field('status', type='string', length=50, default='Pending', label=T('Status')),
+		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
+		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+		Field('already_published', type='boolean', label=T('Postprint')),
+		Field('anonymous_submission', type='boolean', label=T('Anonymous submission')),
+		Field('parallel_submission', type='boolean', label=T('Parallel submission')),
+	)
+	myVars = request.vars
+	qyKw = ''
+	qyTF = []
+	for myVar in myVars:
+		if isinstance(myVars[myVar], list):
+			myValue = (myVars[myVar])[1]
+		else:
+			myValue = myVars[myVar]
+		if (myVar == 'qyKeywords'):
+			qyKw = myValue
+		elif (re.match('^qy_', myVar) and myValue=='on'):
+			qyTF.append(re.sub(r'^qy_', '', myVar))
+	qyKwArr = qyKw.split(' ')
+
+	search = common_forms.getSearchForm(auth, db, myVars)
+
+	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
+	
+	for fr in filtered:
+		qy_art.insert(**fr)
+	
+	temp_db.qy_art.auto_nb_recommendations.readable = False
+	temp_db.qy_art.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
+	temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ''))
+	temp_db.qy_art.anonymous_submission.represent = lambda anon, row: mkAnonymousMask(auth, db, anon or False)
+	temp_db.qy_art.parallel_submission.represent = lambda p,r:SPAN('//', _class="pci-parallelSubmission") if p else ''
+	if len(request.args)==0: # in grid
+		temp_db.qy_art._id.readable = True
+		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+		temp_db.qy_art._id.label = T('Article')
+		temp_db.qy_art.title.readable = False
+		temp_db.qy_art.authors.readable = False
+		#temp_db.qy_art.status.readable = False
+		temp_db.qy_art.article_source.readable = False
+		temp_db.qy_art.upload_timestamp.represent = lambda t, row: mkLastChange(t)
+		temp_db.qy_art.last_status_change.represent = lambda t, row: mkLastChange(t)
+		temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+		temp_db.qy_art.status.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
+		temp_db.qy_art.num.readable = False
+		temp_db.qy_art.score.readable = False
+	else:
+		temp_db.qy_art._id.readable = False
+		temp_db.qy_art.num.readable = False
+		temp_db.qy_art.score.readable = False
+		temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+		temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or '')
+		
+	links = []
+	#links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
+	links.append(dict(header=T(''), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
+	if parallelSubmissionAllowed:
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
+	else:
+		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
+	grid = SQLFORM.grid(temp_db.qy_art
+		,searchable=False,editable=False,deletable=False,create=False,details=False
+		,maxtextlength=250,paginate=10
+		,csv=csv,exportclasses=expClass
+		,fields=fields
+		,links=links
+		,orderby=temp_db.qy_art.num
+	)
+
+	response.view='default/gab_list_layout.html'
+	return dict(
+				#myTitle=T('Articles requiring a recommender'), 
+				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
+				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
+				grid=grid, 
+
+				searchableList = True,
+				search = search
+			)
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
-def new_submission():
-	response.view='default/info.html'
+def fields_awaiting_articles():
+	resu = _awaiting_articles(request.vars)
+	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
+	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:InMyFields')
+	return resu
 
-	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
-	if ethics_not_signed:
-		redirect(URL(c='about', f='ethics', vars=dict(_next=URL())))
-	else:
-		c = getText(request, auth, db, '#ConflictsForRecommenders')
-		myEthical = DIV(
-				FORM(
-					DIV(
-						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
-						DIV(c), 
-						_style='padding:16px;'),
-					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-success pci-panelButton pci-recommender"), 
-					hidden=dict(ethics_approved=True),
-					_action=URL('recommender', 'direct_submission'),
-					_style='text-align:center;',
-				),
-				_class="pci-embeddedEthic",
-			)
-		myScript = SCRIPT(common_tools.get_template('script', 'new_submission.js'))
-
-	myText = DIV(
-				getText(request, auth, db, '#NewRecommendationInfo'),
-				myEthical,
-			)
-
-	return dict(
-		myTitle=getTitle(request, auth, db, '#RecommenderBeforePostprintSubmissionTitle'),
-		myText = myText,
-		myFinalScript = myScript
-	)
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender'))
+def all_awaiting_articles():
+	myVars = request.vars
+	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+		myVars['qy_'+thema.keyword] = 'on'
+	resu = _awaiting_articles(myVars)
+	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:All')
+	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:All')
+	return resu
 
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def search_reviewers():
-	response.view='default/gab_list_layout.html'
-
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
 	qy_reviewers = temp_db.define_table('qy_reviewers',
@@ -163,6 +246,8 @@ def search_reviewers():
 		,orderby=temp_db.qy_reviewers.num
 		,args=request.args
 	)
+
+	response.view='default/gab_list_layout.html'
 	return dict(
 				myHelp=myHelp,
 				myTitle=myTitle,
@@ -172,186 +257,13 @@ def search_reviewers():
 				grid=grid, 
 			 )
 
+######################################################################################################################################################################
+## (gab) END Proper functions
+######################################################################################################################################################################
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
-def my_awaiting_articles():
-	response.view='default/myLayout.html'
-
-	query = ( 
-				(db.t_articles.status == 'Awaiting consideration')
-			  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
-			  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-			  & (db.t_suggested_recommenders.declined == False)
-		)
-	db.t_articles.user_id.writable = False
-	db.t_articles.user_id.represent = lambda userId, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, mkUser(auth, db, userId))
-	#db.t_articles.doi.represent = lambda text, row: mkDOI(text)
-	db.t_articles.auto_nb_recommendations.readable = False
-	db.t_articles.anonymous_submission.readable = False
-	db.t_articles.anonymous_submission.writable = False
-	db.t_articles.status.writable = False
-	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
-	if len(request.args) == 0: # we are in grid
-		#db.t_articles.doi.readable = False
-		#db.t_articles.authors.readable = False
-		#db.t_articles.title.readable = False
-		db.t_articles.upload_timestamp.represent = lambda t, row: mkLastChange(t)
-		db.t_articles.last_status_change.represent = lambda t, row: mkLastChange(t)
-		db.t_articles._id.readable = True
-		db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
-		db.t_articles._id.label = T('Article')
-		db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
-	else: # we are in grid's form
-		db.t_articles._id.readable = False
-		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
-	if parallelSubmissionAllowed:
-		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
-	else:
-		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
-	grid = SQLFORM.grid( query
-		,searchable=False,editable=False,deletable=False,create=False,details=False
-		,maxtextlength=250,paginate=10
-		,csv=csv,exportclasses=expClass
-		,fields=fields
-		,links=[
-			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
-			dict(header=T(''), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)),
-		]
-		,orderby=~db.t_articles.upload_timestamp
-	)
-	return dict(
-				myHelp=getHelp(request, auth, db, '#RecommenderSuggestedArticles'),
-				myText=getText(request, auth, db, '#RecommenderSuggestedArticlesText'),
-				myTitle=getTitle(request, auth, db, '#RecommenderSuggestedArticlesTitle'),
-				grid=grid, 
-			)
-
-
-
+## (gab) WIP proper
 ######################################################################################################################################################################
-# Common function for articles needing attention
-@auth.requires(auth.has_membership(role='recommender'))
-def _awaiting_articles(myVars):
-	response.view='default/gab_list_layout.html'
-
-	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-	temp_db = DAL('sqlite:memory')
-	qy_art = temp_db.define_table('qy_art',
-		Field('id', type='integer'),
-		Field('num', type='integer'),
-		Field('score', type='double', label=T('Score'), default=0),
-		Field('title', type='text', label=T('Title')),
-		Field('authors', type='text', label=T('Authors')),
-		Field('article_source', type='string', label=T('Source')),
-		Field('doi', type='string', label=T('DOI')),
-		Field('abstract', type='text', label=T('Abstract')),
-		Field('upload_timestamp', type='datetime', default=request.now, label=T('Submission date')),
-		Field('thematics', type='string', length=1024, label=T('Thematic fields')),
-		Field('keywords', type='text', label=T('Keywords')),
-		Field('auto_nb_recommendations', type='integer', label=T('Rounds of reviews'), default=0),
-		Field('status', type='string', length=50, default='Pending', label=T('Status')),
-		Field('last_status_change', type='datetime', default=request.now, label=T('Last status change')),
-		Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-		Field('already_published', type='boolean', label=T('Postprint')),
-		Field('anonymous_submission', type='boolean', label=T('Anonymous submission')),
-		Field('parallel_submission', type='boolean', label=T('Parallel submission')),
-	)
-	myVars = request.vars
-	qyKw = ''
-	qyTF = []
-	for myVar in myVars:
-		if isinstance(myVars[myVar], list):
-			myValue = (myVars[myVar])[1]
-		else:
-			myValue = myVars[myVar]
-		if (myVar == 'qyKeywords'):
-			qyKw = myValue
-		elif (re.match('^qy_', myVar) and myValue=='on'):
-			qyTF.append(re.sub(r'^qy_', '', myVar))
-	qyKwArr = qyKw.split(' ')
-
-	search = common_forms.getSearchForm(auth, db, myVars)
-
-	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
-	
-	for fr in filtered:
-		qy_art.insert(**fr)
-	
-	temp_db.qy_art.auto_nb_recommendations.readable = False
-	temp_db.qy_art.uploaded_picture.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=100)) if (text is not None and text != '') else ('')
-	temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ''))
-	temp_db.qy_art.anonymous_submission.represent = lambda anon, row: mkAnonymousMask(auth, db, anon or False)
-	temp_db.qy_art.parallel_submission.represent = lambda p,r:SPAN('//', _class="pci-parallelSubmission") if p else ''
-	if len(request.args)==0: # in grid
-		temp_db.qy_art._id.readable = True
-		temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
-		temp_db.qy_art._id.label = T('Article')
-		temp_db.qy_art.title.readable = False
-		temp_db.qy_art.authors.readable = False
-		#temp_db.qy_art.status.readable = False
-		temp_db.qy_art.article_source.readable = False
-		temp_db.qy_art.upload_timestamp.represent = lambda t, row: mkLastChange(t)
-		temp_db.qy_art.last_status_change.represent = lambda t, row: mkLastChange(t)
-		temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
-		temp_db.qy_art.status.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
-		temp_db.qy_art.num.readable = False
-		temp_db.qy_art.score.readable = False
-	else:
-		temp_db.qy_art._id.readable = False
-		temp_db.qy_art.num.readable = False
-		temp_db.qy_art.score.readable = False
-		temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
-		temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or '')
-		
-	links = []
-	#links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
-	links.append(dict(header=T(''), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
-	if parallelSubmissionAllowed:
-		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
-	else:
-		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
-	grid = SQLFORM.grid(temp_db.qy_art
-		,searchable=False,editable=False,deletable=False,create=False,details=False
-		,maxtextlength=250,paginate=10
-		,csv=csv,exportclasses=expClass
-		,fields=fields
-		,links=links
-		,orderby=temp_db.qy_art.num
-	)
-	return dict(
-				#myTitle=T('Articles requiring a recommender'), 
-				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
-				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
-				grid=grid, 
-
-				searchableList = True,
-				search = search
-			)
-
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
-def fields_awaiting_articles():
-	resu = _awaiting_articles(request.vars)
-	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
-	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:InMyFields')
-	return resu
-
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
-def all_awaiting_articles():
-	myVars = request.vars
-	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-		myVars['qy_'+thema.keyword] = 'on'
-	resu = _awaiting_articles(myVars)
-	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:All')
-	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:All')
-	return resu
-
 
 
 ######################################################################################################################################################################
@@ -409,19 +321,113 @@ def article_details():
 		viewToRender='default/recommended_articles.html'
 		
 		return dict(
+				viewToRender = viewToRender,
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
 				printable = printable,
 
 				myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
-				myCloseButton=mkCloseButton(),
-				# statusTitle=myTitle,
-				myContents=myContents,
-				viewToRender = viewToRender
+				myContents=myContents
 			)
 	else:
 		raise HTTP(403, "403: "+T('Access denied'))
 
+######################################################################################################################################################################
+## (gab) END WIP proper
+######################################################################################################################################################################
+
+######################################################################################################################################################################
+## Menu Routes
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender'))
+def new_submission():
+	response.view='default/info.html'
+
+	ethics_not_signed = not(db.auth_user[auth.user_id].ethical_code_approved)
+	if ethics_not_signed:
+		redirect(URL(c='about', f='ethics', vars=dict(_next=URL())))
+	else:
+		c = getText(request, auth, db, '#ConflictsForRecommenders')
+		myEthical = DIV(
+				FORM(
+					DIV(
+						SPAN(INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False), LABEL(T('I declare that I have no conflict of interest with the authors or the content of the article'))), 
+						DIV(c), 
+						_style='padding:16px;'),
+					INPUT(_type='submit', _value=T("Recommend a postprint"), _class="btn btn-success pci-panelButton pci-recommender"), 
+					hidden=dict(ethics_approved=True),
+					_action=URL('recommender', 'direct_submission'),
+					_style='text-align:center;',
+				),
+				_class="pci-embeddedEthic",
+			)
+		myScript = SCRIPT(common_tools.get_template('script', 'new_submission.js'))
+
+	myText = DIV(
+				getText(request, auth, db, '#NewRecommendationInfo'),
+				myEthical,
+			)
+
+	return dict(
+		myTitle=getTitle(request, auth, db, '#RecommenderBeforePostprintSubmissionTitle'),
+		myText = myText,
+		myFinalScript = myScript
+	)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role='recommender'))
+def my_awaiting_articles():
+	response.view='default/myLayout.html'
+
+	query = ( 
+				(db.t_articles.status == 'Awaiting consideration')
+			  & (db.t_articles._id == db.t_suggested_recommenders.article_id) 
+			  & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+			  & (db.t_suggested_recommenders.declined == False)
+		)
+	db.t_articles.user_id.writable = False
+	db.t_articles.user_id.represent = lambda userId, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, mkUser(auth, db, userId))
+	#db.t_articles.doi.represent = lambda text, row: mkDOI(text)
+	db.t_articles.auto_nb_recommendations.readable = False
+	db.t_articles.anonymous_submission.readable = False
+	db.t_articles.anonymous_submission.writable = False
+	db.t_articles.status.writable = False
+	db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+	if len(request.args) == 0: # we are in grid
+		#db.t_articles.doi.readable = False
+		#db.t_articles.authors.readable = False
+		#db.t_articles.title.readable = False
+		db.t_articles.upload_timestamp.represent = lambda t, row: mkLastChange(t)
+		db.t_articles.last_status_change.represent = lambda t, row: mkLastChange(t)
+		db.t_articles._id.readable = True
+		db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+		db.t_articles._id.label = T('Article')
+		db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ''), _class='pci-div4wiki')
+	else: # we are in grid's form
+		db.t_articles._id.readable = False
+		db.t_articles.abstract.represent=lambda text, row: WIKI(text)
+	if parallelSubmissionAllowed:
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.parallel_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
+	else:
+		fields = [db.t_articles.last_status_change, db.t_articles.status, db.t_articles._id, db.t_articles.upload_timestamp, db.t_articles.anonymous_submission, db.t_articles.abstract, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.user_id,  db.t_articles.auto_nb_recommendations ]
+	grid = SQLFORM.grid( query
+		,searchable=False,editable=False,deletable=False,create=False,details=False
+		,maxtextlength=250,paginate=10
+		,csv=csv,exportclasses=expClass
+		,fields=fields
+		,links=[
+			dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
+			dict(header=T(''), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)),
+		]
+		,orderby=~db.t_articles.upload_timestamp
+	)
+	return dict(
+				myHelp=getHelp(request, auth, db, '#RecommenderSuggestedArticles'),
+				myText=getText(request, auth, db, '#RecommenderSuggestedArticlesText'),
+				myTitle=getTitle(request, auth, db, '#RecommenderSuggestedArticlesTitle'),
+				grid=grid, 
+			)
 
 
 ######################################################################################################################################################################
@@ -658,14 +664,13 @@ def recommendations():
 		viewToRender='default/recommended_articles.html'
 
 		return dict(
-				recommHeaderHtml = recommHeaderHtml,
+				viewToRender=viewToRender,
 				recommStatusHeader = recommStatusHeader,
+				recommHeaderHtml = recommHeaderHtml,
 				printable = printable,
 
 				myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),
-				myCloseButton=mkCloseButton(),
-				myContents=myContents,
-				viewToRender=viewToRender
+				myContents=myContents
 			)
 
 ######################################################################################################################################################################

@@ -1,4 +1,8 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout_printable.html'}}
 
+<a class="pci-ArticleTopButton buttontext btn btn-default pci-public button unshow-media-print" onclick="window.close(); window.top.close();">
+    {{=T('Close')}}
+</a>
+
 {{include viewToRender}}

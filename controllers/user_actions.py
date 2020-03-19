@@ -15,9 +15,6 @@ trgmLimit = myconf.get('config.trgm_limit', default=0.4)
 parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
 
-
-
-
 ######################################################################################################################################################################
 @auth.requires_login()
 def do_cancel_article():
@@ -36,9 +33,6 @@ def do_cancel_article():
 		art.update_record()
 		session.flash = T('Preprint submission cancelled')
 		redirect(URL(c='user', f='my_articles', user_signature=True))
-
-
-
 
 
 
@@ -181,35 +175,33 @@ def review_completed():
 	redirect(URL(c='user', f='my_reviews'))
 
 
-
-
 ######################################################################################################################################################################
-## (gab) Is this used ?
+## (gab) Unused ?
 ######################################################################################################################################################################
-@auth.requires_login()
-def do_delete_article():
-	articleId = request.vars['articleId']
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		db(db.t_articles.id == articleId).delete()
-		session.flash = T('Preprint submission deleted')
-		redirect(URL(c='user', f='my_articles', user_signature=True))
+# @auth.requires_login()
+# def do_delete_article():
+# 	articleId = request.vars['articleId']
+# 	if articleId is None:
+# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+# 	art = db.t_articles[articleId]
+# 	if art is None:
+# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
+# 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+# 	if art.user_id != auth.user_id:
+# 		session.flash = auth.not_authorized()
+# 		redirect(request.env.http_referer)
+# 	else:
+# 		db(db.t_articles.id == articleId).delete()
+# 		session.flash = T('Preprint submission deleted')
+# 		redirect(URL(c='user', f='my_articles', user_signature=True))
 
 
-######################################################################################################################################################################
-def suggest_article_to_all(articleId, recommenderIds):
-	added = []
-	for recommenderId in recommenderIds:
-		do_suggest_article_to(auth, db, articleId, recommenderId)
-		added.append(mkUser(auth, db, recommenderId))
-	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
-	redirect(request.env.http_referer)
+# ######################################################################################################################################################################
+# def suggest_article_to_all(articleId, recommenderIds):
+# 	added = []
+# 	for recommenderId in recommenderIds:
+# 		do_suggest_article_to(auth, db, articleId, recommenderId)
+# 		added.append(mkUser(auth, db, recommenderId))
+# 	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
+# 	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
+# 	redirect(request.env.http_referer)

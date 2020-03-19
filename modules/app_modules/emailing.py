@@ -1208,7 +1208,7 @@ def do_send_mail_new_user(session, auth, db, userId):
 		destAddress = db.auth_user[userId]['email']
 		baseurl=URL(c='about', f='about', scheme=scheme, host=host, port=port)
 		infourl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
-		recommurl=URL(c='public', f='recommenders', scheme=scheme, host=host, port=port)
+		recommurl=URL(c='about', f='recommenders', scheme=scheme, host=host, port=port)
 		thematics = ', '.join(thema)
 		days = ', '.join(alerts)
 		mySubject = 'Welcome to %s' % (appname)

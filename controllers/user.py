@@ -21,6 +21,171 @@ trgmLimit = myconf.get('config.trgm_limit', default=0.4)
 parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=False)
 
 ######################################################################################################################################################################
+## (gab) Proper functions
+######################################################################################################################################################################
+
+######################################################################################################################################################################
+# Recommendations of my articles
+@auth.requires_login()
+def recommendations():
+	printable = 'printable' in request.vars  and request.vars['printable']=='True'
+
+	articleId = request.vars['articleId']
+	art = db.t_articles[articleId]
+	if art is None:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	# NOTE: security hole possible by changing manually articleId value
+	revCpt = 0
+	if art.user_id == auth.user_id:
+		revCpt += 1 # NOTE: checkings owner rights.
+	# NOTE: checking reviewer rights
+	revCpt += db( (db.t_recommendations.article_id==articleId) & (db.t_recommendations.id==db.t_reviews.recommendation_id) & (db.t_reviews.reviewer_id==auth.user_id) ).count()
+	if revCpt == 0:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
+		myContents.append(HR())
+			
+		response.title = (art.title or myconf.take('app.longname'))
+
+		# New recommendation function (WIP)
+		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
+		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable,  True)
+		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, printable, quiet=False)
+	
+		if printable:
+			printableClass = 'printable'
+			response.view='default/wrapper_printable.html'
+		else:
+			printableClass = ''
+			response.view='default/wrapper_normal.html'
+
+		viewToRender='default/recommended_articles.html'
+		
+		return dict(
+					viewToRender = viewToRender,
+					recommHeaderHtml = recommHeaderHtml,
+					recommStatusHeader = recommStatusHeader,
+					printable = printable,
+
+					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
+					myContents=myContents
+				)
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def search_recommenders(): 
+	myVars = request.vars
+
+	qyKw = ''
+	qyTF = []
+	excludeList = []
+	articleId = None
+	for myVar in myVars:
+		if (myVar == 'exclude'):
+			#excludeList = map(int, myValue.split(','))
+			for v in myVars[myVar]:
+				excludeList.append(int(v))
+		elif isinstance(myVars[myVar], list):
+			myValue = (myVars[myVar])[1]
+		else:
+			myValue = myVars[myVar]
+		if (myVar == 'qyKeywords'):
+			qyKw = myValue
+		elif (re.match('^qy_', myVar) and myValue=='on'):
+			qyTF.append(re.sub(r'^qy_', '', myVar))
+		elif (myVar == 'articleId'):
+			articleId = myValue
+
+
+	if articleId is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	art = db.t_articles[articleId]
+	if art is None:
+		raise HTTP(404, "404: "+T('Unavailable'))
+	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
+	if art.user_id != auth.user_id:
+		session.flash = auth.not_authorized()
+		redirect(request.env.http_referer)
+	else:
+		# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+		temp_db = DAL('sqlite:memory')
+		qy_recomm = temp_db.define_table('qy_recomm',
+				Field('id', type='integer'),
+				Field('num', type='integer'),
+				Field('score', type='double', label=T('Score'), default=0),
+				Field('first_name', type='string', length=128, label=T('First name')),
+				Field('last_name', type='string', length=128, label=T('Last name')),
+				Field('email', type='string', length=512, label=T('email')),
+				Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
+				Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
+				Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
+				Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
+				Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
+				Field('thematics', type='list:string', label=T('Thematic fields')),
+				Field('excluded', type='boolean', label=T('Excluded')),
+			)
+		qyKwArr = qyKw.split(' ')
+		searchForm = common_forms.getSearchForm(auth, db, myVars)
+		if searchForm.process(keepvalues=True).accepted:
+			response.flash = None
+		else:
+			qyTF = []
+			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+				qyTF.append(thema.keyword)
+
+		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+		for fr in filtered:
+			qy_recomm.insert(**fr)
+				
+		temp_db.qy_recomm._id.readable = False
+		temp_db.qy_recomm.uploaded_picture.readable = False
+		links = [dict(header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),]
+		selectable = None
+		temp_db.qy_recomm.num.readable = False
+		temp_db.qy_recomm.score.readable = False
+		temp_db.qy_recomm.excluded.readable = False
+		grid = SQLFORM.grid( qy_recomm
+			,editable = False,deletable = False,create = False,details=False,searchable=False
+			,selectable=selectable
+			,maxtextlength=250,paginate=1000
+			,csv=csv,exportclasses=expClass
+			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
+			,links=links
+			,orderby=temp_db.qy_recomm.num
+			,args=request.args
+		)
+		if len(excludeList) > 1:
+			btnTxt = current.T('Done')
+		else:
+			btnTxt = current.T('I don\'t wish to suggest recommenders now')
+		myAcceptBtn = DIV(A(SPAN(btnTxt, _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId, exclude=excludeList)), _class='button'), _style='text-align:center; margin-top:16px;')
+		
+		myUpperBtn = ''
+		if len(grid) >= 10:
+			myUpperBtn = myAcceptBtn
+
+		response.view='default/gab_list_layout.html'
+		return dict(
+					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
+					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
+					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
+					myUpperBtn=myUpperBtn,
+					myAcceptBtn=myAcceptBtn,
+					searchForm=searchForm, 
+					grid=grid, 
+				)
+
+
+######################################################################################################################################################################
+## (gab) END Proper functions
+######################################################################################################################################################################
+
+
+######################################################################################################################################################################
 def new_submission():
 	response.view='default/info.html'
 	if auth.user:
@@ -229,160 +394,6 @@ def add_suggested_recommender():
 
 
 
-######################################################################################################################################################################
-@auth.requires_login()
-def recommenders():
-	response.view='default/myLayout.html'
-	articleId = request.vars['articleId']
-	
-	article = db.t_articles[articleId]
-	if (article.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		query = (db.t_suggested_recommenders.article_id == articleId)
-		db.t_suggested_recommenders._id.readable = False
-		db.t_suggested_recommenders.article_id.default = articleId
-		db.t_suggested_recommenders.article_id.writable = False
-		db.t_suggested_recommenders.article_id.readable = False
-		db.t_suggested_recommenders.email_sent.writable = False
-		db.t_suggested_recommenders.email_sent.readable = False
-		db.t_suggested_recommenders.suggested_recommender_id.writable = True
-		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda rid,row: mkUser(auth, db, rid) if row else ''
-		if len(request.args)>0 and request.args[0]=='new':
-			myAcceptBtn = ''
-		else:
-			myAcceptBtn = DIV(
-							A(SPAN(current.T('Done'), _class='buttontext btn btn-info'), 
-										_href=URL(c='user', f='my_articles', user_signature=True)),
-							_style='margin-top:16px; text-align:center;'
-						)
-		grid = SQLFORM.grid( query
-			,details=False
-			,editable=False
-			,deletable=article.status in ('Pending')
-			,create=False
-			,searchable=False
-			,maxtextlength = 250,paginate=100
-			,csv = csv, exportclasses = expClass
-			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
-		)
-
-		return dict(
-					myTitle=getTitle(request, auth, db, '#UserManageRecommendersTitle'),
-					myText=getText(request, auth, db, '#UserManageRecommendersText'),
-					myHelp = getHelp(request, auth, db, '#UserManageRecommenders'),
-					grid=grid, 
-					myAcceptBtn = myAcceptBtn,
-				)
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def search_recommenders(): 
-	response.view='default/gab_list_layout.html'
-	myVars = request.vars
-
-	qyKw = ''
-	qyTF = []
-	excludeList = []
-	articleId = None
-	for myVar in myVars:
-		if (myVar == 'exclude'):
-			#excludeList = map(int, myValue.split(','))
-			for v in myVars[myVar]:
-				excludeList.append(int(v))
-		elif isinstance(myVars[myVar], list):
-			myValue = (myVars[myVar])[1]
-		else:
-			myValue = myVars[myVar]
-		if (myVar == 'qyKeywords'):
-			qyKw = myValue
-		elif (re.match('^qy_', myVar) and myValue=='on'):
-			qyTF.append(re.sub(r'^qy_', '', myVar))
-		elif (myVar == 'articleId'):
-			articleId = myValue
-
-
-	if articleId is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	art = db.t_articles[articleId]
-	if art is None:
-		raise HTTP(404, "404: "+T('Unavailable'))
-	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-	if art.user_id != auth.user_id:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-		temp_db = DAL('sqlite:memory')
-		qy_recomm = temp_db.define_table('qy_recomm',
-				Field('id', type='integer'),
-				Field('num', type='integer'),
-				Field('score', type='double', label=T('Score'), default=0),
-				Field('first_name', type='string', length=128, label=T('First name')),
-				Field('last_name', type='string', length=128, label=T('Last name')),
-				Field('email', type='string', length=512, label=T('email')),
-				Field('uploaded_picture', type='upload', uploadfield='picture_data', label=T('Picture')),
-				Field('city', type='string', label=T('City'), represent=lambda t,r: t if t else ''),
-				Field('country', type='string', label=T('Country'), represent=lambda t,r: t if t else ''),
-				Field('laboratory', type='string', label=T('Laboratory'), represent=lambda t,r: t if t else ''),
-				Field('institution', type='string', label=T('Institution'), represent=lambda t,r: t if t else ''),
-				Field('thematics', type='list:string', label=T('Thematic fields')),
-				Field('excluded', type='boolean', label=T('Excluded')),
-			)
-		qyKwArr = qyKw.split(' ')
-		searchForm = common_forms.getSearchForm(auth, db, myVars)
-		if searchForm.process(keepvalues=True).accepted:
-			response.flash = None
-		else:
-			qyTF = []
-			for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-				qyTF.append(thema.keyword)
-
-		filtered = db.executesql('SELECT * FROM search_recommenders(%s, %s, %s);', placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-		for fr in filtered:
-			qy_recomm.insert(**fr)
-				
-		temp_db.qy_recomm._id.readable = False
-		temp_db.qy_recomm.uploaded_picture.readable = False
-		links = [dict(header=T(''), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),]
-		selectable = None
-		temp_db.qy_recomm.num.readable = False
-		temp_db.qy_recomm.score.readable = False
-		temp_db.qy_recomm.excluded.readable = False
-		grid = SQLFORM.grid( qy_recomm
-			,editable = False,deletable = False,create = False,details=False,searchable=False
-			,selectable=selectable
-			,maxtextlength=250,paginate=1000
-			,csv=csv,exportclasses=expClass
-			,fields=[temp_db.qy_recomm.num, temp_db.qy_recomm.score, temp_db.qy_recomm.uploaded_picture, temp_db.qy_recomm.first_name, temp_db.qy_recomm.last_name, temp_db.qy_recomm.laboratory, temp_db.qy_recomm.institution, temp_db.qy_recomm.city, temp_db.qy_recomm.country, temp_db.qy_recomm.thematics, temp_db.qy_recomm.excluded]
-			,links=links
-			,orderby=temp_db.qy_recomm.num
-			,args=request.args
-		)
-		if len(excludeList) > 1:
-			btnTxt = current.T('Done')
-		else:
-			btnTxt = current.T('I don\'t wish to suggest recommenders now')
-		myAcceptBtn = DIV(A(SPAN(btnTxt, _class='buttontext btn btn-info'), _href=URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId, exclude=excludeList)), _class='button'), _style='text-align:center; margin-top:16px;')
-		
-		myUpperBtn = ''
-		if len(grid) >= 10:
-			myUpperBtn = myAcceptBtn
-
-		return dict(
-					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
-					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
-					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
-					myUpperBtn=myUpperBtn,
-					myAcceptBtn=myAcceptBtn,
-					searchForm=searchForm, 
-					grid=grid, 
-				)
-
-
 
 
 ######################################################################################################################################################################
@@ -423,9 +434,6 @@ def suggested_recommenders():
 					myTitle=getTitle(request, auth, db, '#UserSuggestedRecommendersTitle'),
 					grid=grid, 
 				)
-
-
-
 
 
 ######################################################################################################################################################################
@@ -489,62 +497,7 @@ def my_articles():
 				myText=getText(request, auth, db, '#UserMyArticlesText'),
 				myTitle=getTitle(request, auth, db, '#UserMyArticlesTitle'),
 				grid=DIV(grid, _style='max-width:100%; overflow-x:auto;'), 
-			 ) 
-
-
-
-
-######################################################################################################################################################################
-# Recommendations of my articles
-@auth.requires_login()
-def recommendations():
-	printable = 'printable' in request.vars  and request.vars['printable']=='True'
-
-	articleId = request.vars['articleId']
-	art = db.t_articles[articleId]
-	if art is None:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	# NOTE: security hole possible by changing manually articleId value
-	revCpt = 0
-	if art.user_id == auth.user_id:
-		revCpt += 1 # NOTE: checkings owner rights.
-	# NOTE: checking reviewer rights
-	revCpt += db( (db.t_recommendations.article_id==articleId) & (db.t_recommendations.id==db.t_reviews.recommendation_id) & (db.t_reviews.reviewer_id==auth.user_id) ).count()
-	if revCpt == 0:
-		session.flash = auth.not_authorized()
-		redirect(request.env.http_referer)
-	else:
-		myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
-			
-		response.title = (art.title or myconf.take('app.longname'))
-
-		# New recommendation function (WIP)
-		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable,  True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, printable, quiet=False)
-	
-		if printable:
-			printableClass = 'printable'
-			response.view='default/wrapper_printable.html'
-		else:
-			printableClass = ''
-			response.view='default/wrapper_normal.html'
-
-		viewToRender='default/recommended_articles.html'
-		
-		return dict(
-					viewToRender = viewToRender,
-					recommHeaderHtml = recommHeaderHtml,
-					recommStatusHeader = recommStatusHeader,
-					printable = printable,
-					myHelp = getHelp(request, auth, db, '#UserRecommendations'),
-					myCloseButton=mkCloseButton(),
-					# myUpperBtn=myUpperBtn,
-					# statusTitle=myTitle,
-					myContents=myContents,
-				)
+			 )
 
 
 ######################################################################################################################################################################
@@ -734,9 +687,11 @@ def edit_review():
 	review = db.t_reviews[reviewId]
 	if review is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
+
 	recomm = db.t_recommendations[review.recommendation_id]
 	if recomm is None:
 		raise HTTP(404, "404: "+T('Unavailable'))
+
 	art = db.t_articles[recomm.article_id]
 	if review.reviewer_id != auth.user_id or review.review_state != 'Under consideration' or art.status != 'Under consideration':
 		session.flash = T('Unauthorized', lazy=False)
@@ -758,6 +713,7 @@ def edit_review():
 					,buttons=buttons
 					,upload=URL('default', 'download')
 				)
+				
 		if form.process().accepted:
 			if form.vars.save:
 				session.flash = T('Review saved', lazy=False)
@@ -779,3 +735,54 @@ def edit_review():
 			)
 
 
+
+
+######################################################################################################################################################################
+## (gab) Unused ?
+######################################################################################################################################################################
+
+# @auth.requires_login()
+# def recommenders():
+# 	response.view='default/myLayout.html'
+# 	articleId = request.vars['articleId']
+	
+# 	article = db.t_articles[articleId]
+# 	if (article.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
+# 		session.flash = auth.not_authorized()
+# 		redirect(request.env.http_referer)
+# 	else:
+# 		query = (db.t_suggested_recommenders.article_id == articleId)
+# 		db.t_suggested_recommenders._id.readable = False
+# 		db.t_suggested_recommenders.article_id.default = articleId
+# 		db.t_suggested_recommenders.article_id.writable = False
+# 		db.t_suggested_recommenders.article_id.readable = False
+# 		db.t_suggested_recommenders.email_sent.writable = False
+# 		db.t_suggested_recommenders.email_sent.readable = False
+# 		db.t_suggested_recommenders.suggested_recommender_id.writable = True
+# 		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda rid,row: mkUser(auth, db, rid) if row else ''
+# 		if len(request.args)>0 and request.args[0]=='new':
+# 			myAcceptBtn = ''
+# 		else:
+# 			myAcceptBtn = DIV(
+# 							A(SPAN(current.T('Done'), _class='buttontext btn btn-info'), 
+# 										_href=URL(c='user', f='my_articles', user_signature=True)),
+# 							_style='margin-top:16px; text-align:center;'
+# 						)
+# 		grid = SQLFORM.grid( query
+# 			,details=False
+# 			,editable=False
+# 			,deletable=article.status in ('Pending')
+# 			,create=False
+# 			,searchable=False
+# 			,maxtextlength = 250,paginate=100
+# 			,csv = csv, exportclasses = expClass
+# 			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
+# 		)
+
+# 		return dict(
+# 					myTitle=getTitle(request, auth, db, '#UserManageRecommendersTitle'),
+# 					myText=getText(request, auth, db, '#UserManageRecommendersText'),
+# 					myHelp = getHelp(request, auth, db, '#UserManageRecommenders'),
+# 					grid=grid, 
+# 					myAcceptBtn = myAcceptBtn,
+# 				)

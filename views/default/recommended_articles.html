@@ -5,15 +5,9 @@
   {{=myHelp}}
   {{pass}}
 
-{{if 'myCloseButton' in locals() and printable:}}
-	{{=myCloseButton}}
-{{pass}}
-
 {{if 'myUpperBtn' in locals():}}
 	{{=myUpperBtn}}
-	{{pass}}
-
-
+{{pass}}
 
 {{if 'recommHeaderHtml' in locals() and 'recommStatusHeader' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
@@ -29,17 +23,3 @@
 	{{=myContents}}
 </div>
 {{pass}}
-
-{{if 'grid' in locals():}}
-	{{=grid}}
-	{{pass}}
-
-{{if 'myAcceptBtn' in locals():}}
-	{{=myAcceptBtn}}
-	{{pass}}
-
-{{if 'panel' in globals():}}
-	{{block right_sidebar}}
-	{{=panel}}
-	{{end}}
-	{{pass}} 

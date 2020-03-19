@@ -256,8 +256,6 @@ def recommendations():
 	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
 	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, printable, quiet=False)
 	
-	response.view='default/recommended_articles.html'
-
 	if printable:
 		printableClass = 'printable'
 		response.view='default/wrapper_printable.html'
@@ -267,13 +265,13 @@ def recommendations():
 		
 	viewToRender='default/recommended_articles.html'
 	return dict(
+				viewToRender = viewToRender,
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
 				printable = printable,
-				myCloseButton=mkCloseButton(),
-				myContents=myContents,
+
 				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),
-				viewToRender = viewToRender
+				myContents=myContents
 			)
 
 ######################################################################################################################################################################

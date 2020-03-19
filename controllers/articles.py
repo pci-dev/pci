@@ -30,10 +30,80 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 
 
 ######################################################################################################################################################################
+@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
+def last_recomms():
+	if 'maxArticles' in request.vars:
+		maxArticles = int(request.vars['maxArticles'])
+	else:
+		maxArticles = 10
+	myVars = copy.deepcopy(request.vars)
+	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
+	myVarsNext = copy.deepcopy(myVars)
+	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
+
+	queryRecommendedArticles = None
+	
+	if queryRecommendedArticles is None:
+		queryRecommendedArticles = db( 
+			(db.t_articles.status=='Recommended') 
+		  	& (db.t_recommendations.article_id==db.t_articles.id) 
+		  	& (db.t_recommendations.recommendation_state=='Recommended')
+		).iterselect(
+			db.t_articles.id, 
+			db.t_articles.title, 
+			db.t_articles.authors, 
+			db.t_articles.article_source, 
+			db.t_articles.doi, 
+			db.t_articles.picture_rights_ok, 
+			db.t_articles.uploaded_picture, 
+			db.t_articles.abstract, 
+			db.t_articles.upload_timestamp, 
+			db.t_articles.user_id, 
+			db.t_articles.status, 
+			db.t_articles.last_status_change, 
+			db.t_articles.thematics, 
+			db.t_articles.keywords, 
+			db.t_articles.already_published, 
+			db.t_articles.i_am_an_author, 
+			db.t_articles.is_not_reviewed_elsewhere, 
+			db.t_articles.auto_nb_recommendations, 
+			limitby=(0, maxArticles), 
+			orderby=~db.t_articles.last_status_change
+		)
+
+	recommendedArticlesList = []
+	for row in queryRecommendedArticles:
+		r = common_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+		if r:
+			recommendedArticlesList.append(r)
+	
+	if len(recommendedArticlesList) == 0:
+		return DIV(I(T('Coming soon...')))
+	
+	if len(recommendedArticlesList) < maxArticles:
+		moreState = ' disabled'
+	else:
+		moreState = ''
+	return DIV(
+			DIV(
+				recommendedArticlesList, 
+				_class='pci2-articles-list'
+			), 
+			DIV(
+				A(current.T('More...'), _id='moreLatestBtn',
+					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
+					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
+				),
+				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
+				_style='text-align:center;'
+			),
+			_class='pci-lastArticles-div',
+		)
+
+
+######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
-	response.view='default/gab_list_layout.html'
-
 	myVars = request.vars
 	qyKwArr = []
 	qyTF = []
@@ -77,6 +147,7 @@ def recommended_articles():
 
 	searchForm = common_forms.getSearchForm(auth, db, myVars2)
 	
+	response.view='default/gab_list_layout.html'
 	return dict(
 				grid=grid, 
 				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
@@ -85,38 +156,6 @@ def recommended_articles():
 				shareable=True,
 				searchableList = True,
 				searchForm = searchForm
-			)
-
-
-######################################################################################################################################################################
-def all_recommended_articles():
-	response.view='default/myLayout.html'
-
-	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
-	myRows = []
-	for row in allR:
-		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
-		if r:
-			myRows.append(r)
-	n = len(allR)
-
-	grid = DIV(
-			DIV(
-				DIV(T('%s articles found')%(n), _class='pci-nResults'),
-				DIV(
-					myRows, 
-					_class='pci2-articles-list'
-				), 
-				_class='pci-lastArticles-div'
-			), 
-			_class='searchRecommendationsDiv')
-	return dict(
-				grid=grid, 
-				#searchForm=searchForm, 
-				myTitle=getTitle(request, auth, db, '#AllRecommendedArticlesTitle'),
-				myText=getText(request, auth, db, '#AllRecommendedArticlesText'),
-				myHelp=getHelp(request, auth, db, '#AllRecommendedArticles'),
-				shareable=True,
 			)
 
 ######################################################################################################################################################################
@@ -213,6 +252,7 @@ def rec():
 
 	viewToRender='default/gab_public_article_recommendation.html'
 	return dict(
+				viewToRender = viewToRender,
 				withReviews=with_reviews,
 				withComments=with_comments,
 				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews)), user_signature=True),
@@ -224,15 +264,11 @@ def rec():
 				recommHeaderHtml = recommHeaderHtml,
 				reviewRounds = reviewRounds,
 				commentsTreeAndForm = commentsTreeAndForm,
-				viewToRender = viewToRender,
-
-				myCloseButton=mkCloseButton(),
 				printableClass = printableClass
 			)
 
 ######################################################################################################################################################################
 def tracking():
-	response.view='default/gab_list_layout.html'
 
 	tracking = myconf.get('config.tracking', default=False)
 	if tracking is False:
@@ -248,6 +284,7 @@ def tracking():
 			if article_html_card:
 				article_list.append(article_html_card)
 		
+		response.view='default/gab_list_layout.html'
 		resu = dict(
 			myHelp=getHelp(request, auth, db, '#Tracking'),
 			myTitle=getTitle(request, auth, db, '#TrackingTitle'),
@@ -259,11 +296,43 @@ def tracking():
 		)
 		return resu
 
+######################################################################################################################################################################
+def all_recommended_articles():
+	response.view='default/myLayout.html'
+
+	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
+	myRows = []
+	for row in allR:
+		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+		if r:
+			myRows.append(r)
+	n = len(allR)
+
+	grid = DIV(
+			DIV(
+				DIV(T('%s articles found')%(n), _class='pci-nResults'),
+				DIV(
+					myRows, 
+					_class='pci2-articles-list'
+				), 
+				_class='pci-lastArticles-div'
+			), 
+			_class='searchRecommendationsDiv')
+	return dict(
+				grid=grid, 
+				#searchForm=searchForm, 
+				myTitle=getTitle(request, auth, db, '#AllRecommendedArticlesTitle'),
+				myText=getText(request, auth, db, '#AllRecommendedArticlesText'),
+				myHelp=getHelp(request, auth, db, '#AllRecommendedArticles'),
+				shareable=True,
+			)
+
+
 
 # (gab) not working ? 
 # STRANGE ERROR : local variable 'myContents' referenced before assignment
 ######################################################################################################################################################################
-def pubReviews():
+def pub_reviews():
 	response.view='default/myLayout.html'
 
 	myContents = DIV()
@@ -284,6 +353,7 @@ def pubReviews():
 		redirect(redirect(request.env.http_referer))
 		
 	art = db.t_articles[articleId]
+	myContents = None
 	if art is None:
 		session.flash = T('Unavailable')
 		redirect(redirect(request.env.http_referer))
@@ -300,85 +370,3 @@ def pubReviews():
 			grid = myContents
 		)
 	return resu
-
-
-
-
-######################################################################################################################################################################
-@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
-def last_recomms():
-	if 'maxArticles' in request.vars:
-		maxArticles = int(request.vars['maxArticles'])
-	else:
-		maxArticles = 10
-	myVars = copy.deepcopy(request.vars)
-	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
-	myVarsNext = copy.deepcopy(myVars)
-	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
-
-	queryRecommendedArticles = None
-	#if 'qyThemaSelect' in request.vars:
-		#thema = request.vars['qyThemaSelect']
-		#if thema and len(thema)>0:
-			#query = db( 
-					#(db.t_articles.status=='Recommended') 
-				  #& (db.t_recommendations.article_id==db.t_articles.id) 
-				  #& (db.t_recommendations.recommendation_state=='Recommended')
-				  #& (db.t_articles.thematics.contains(thema)) 
-				#).iterselect(db.t_articles.id, db.t_articles.title, db.t_articles.authors, db.t_articles.article_source, db.t_articles.doi, db.t_articles.picture_rights_ok, db.t_articles.uploaded_picture, db.t_articles.abstract, db.t_articles.upload_timestamp, db.t_articles.user_id, db.t_articles.status, db.t_articles.last_status_change, db.t_articles.thematics, db.t_articles.keywords, db.t_articles.already_published, db.t_articles.i_am_an_author, db.t_articles.is_not_reviewed_elsewhere, db.t_articles.auto_nb_recommendations, limitby=(0, maxArticles), orderby=~db.t_articles.last_status_change)
-	if queryRecommendedArticles is None:
-		queryRecommendedArticles = db( 
-			(db.t_articles.status=='Recommended') 
-		  	& (db.t_recommendations.article_id==db.t_articles.id) 
-		  	& (db.t_recommendations.recommendation_state=='Recommended')
-		).iterselect(
-			db.t_articles.id, 
-			db.t_articles.title, 
-			db.t_articles.authors, 
-			db.t_articles.article_source, 
-			db.t_articles.doi, 
-			db.t_articles.picture_rights_ok, 
-			db.t_articles.uploaded_picture, 
-			db.t_articles.abstract, 
-			db.t_articles.upload_timestamp, 
-			db.t_articles.user_id, 
-			db.t_articles.status, 
-			db.t_articles.last_status_change, 
-			db.t_articles.thematics, 
-			db.t_articles.keywords, 
-			db.t_articles.already_published, 
-			db.t_articles.i_am_an_author, 
-			db.t_articles.is_not_reviewed_elsewhere, 
-			db.t_articles.auto_nb_recommendations, 
-			limitby=(0, maxArticles), 
-			orderby=~db.t_articles.last_status_change
-		)
-
-	recommendedArticlesList = []
-	for row in queryRecommendedArticles:
-		r = common_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
-		if r:
-			recommendedArticlesList.append(r)
-	
-	if len(recommendedArticlesList) == 0:
-		return DIV(I(T('Coming soon...')))
-	
-	if len(recommendedArticlesList) < maxArticles:
-		moreState = ' disabled'
-	else:
-		moreState = ''
-	return DIV(
-			DIV(
-				recommendedArticlesList, 
-				_class='pci2-articles-list'
-			), 
-			DIV(
-				A(current.T('More...'), _id='moreLatestBtn',
-					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
-					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
-				),
-				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
-				_style='text-align:center;'
-			),
-			_class='pci-lastArticles-div',
-		)

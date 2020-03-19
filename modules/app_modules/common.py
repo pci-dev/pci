@@ -50,37 +50,6 @@ def mkStatusArticles(db):
 		statusArticles[sa['status']] = sa
 
 
-
-######################################################################################################################################################################
-# Builds the right-panel for home page
-def mkTopPanel(myconf, auth, inSearch=False):
-	panel = []
-	if auth.user:
-		panel.append(A(current.T("Submit a preprint"), 
-							_href=URL('user', 'new_submission', user_signature=True), 
-							_class="btn btn-success pci-public"))
-	else:
-		panel.append(DIV(
-						A(current.T("Submit a preprint"), 
-							_href=URL('user', 'new_submission', user_signature=True), 
-							_class="btn btn-success"),
-						A(current.T('Log in'), _href=URL(c='default', f='user', args=['login']), _class="btn btn-info"),
-						LABEL(current.T(' or ')),
-						A(current.T('Register'), _href=URL(c='default', f='user', args=['register']), _class="btn btn-info"),
-						#A(current.T('Lost password?'), _href=URL(c='default', f='user', args=['request_reset_password'], vars=dict(_next="/pcidev/default/index")), _class="pci-lostPassword"),
-						
-					))
-	if auth.has_membership('recommender'):
-		panel.append(A(current.T("Recommend a postprint"), 
-							_href=URL('recommender', 'new_submission', user_signature=True), 
-							_class="btn btn-info pci-recommender"))
-		panel.append(A(current.T("Submitted preprints requiring a recommender"), 
-							_href=URL('recommender', 'all_awaiting_articles', user_signature=True), 
-							_class="btn btn-default pci-recommender"))
-	return DIV(panel, _style='margin-top:20px; margin-bottom:20px; text-align:center;')
-
-
-
 ######################################################################################################################################################################
 # Transforms a DOI in link
 # After CrossRef syntax must be: https://doi.org/xxxx.xx/xxx.xx
