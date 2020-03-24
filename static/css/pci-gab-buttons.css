@@ -565,7 +565,23 @@ div.w2p_flash.alert.custom-disappear {
     /* width: auto; */
 }
 
+/* .pci-text-title {
+	margin-bottom: 11px;
+} */
 
+.pci-text-title-neg-margin {
+    margin-bottom: 0px;
+}
+
+
+.main-container {
+    animation: animOpacity 1s ease;
+}
+
+.footer {
+    opacity: 0;
+    animation: animOpacity 0.7s ease 0.4s forwards;
+}
 
 .pci-lastArticles-div {
     animation: fadeFormTop 0.7s ease;
@@ -583,15 +599,7 @@ div.w2p_flash.alert.custom-disappear {
     font-size: 14px;
     top: 2px;
     opacity: 0.4;
-}
 
-.main-container {
-    animation: animOpacity 1s ease;
-}
-
-.footer {
-    opacity: 0;
-    animation: animOpacity 0.7s ease 0.4s forwards;
 }
 
 

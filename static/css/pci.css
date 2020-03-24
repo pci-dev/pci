@@ -104,13 +104,22 @@ body {
 }
 
 /* for paginator duplication on top of grid (see layout.html)*/
+.web2py_paginator {}
+
 .web2py_paginator {
+	border-radius: 7.5px 7.5px 0 0;
 	margin-top: 5px;
+}
+
+.web2py_paginator:last-child {
+	border-radius: 0 0 7.5px 7.5px;
+	margin-top: 0px;
 	margin-bottom: 5px;
 }
 
 .web2py_counter {
 	width: 100%;
+	float: initial;
 }
 
 .web2py_table {
@@ -189,11 +198,16 @@ header {
 .web2py_grid thead th {
 	background: none;
 	font-size: 11pt;
-	color: #777777;
+	color: #598398;
 }
 
 .web2py_grid thead th a {
-	color: #777777;
+	color: #29abe0;
+}
+
+.web2py_grid thead tr,
+.web2py_grid thead tr:hover {
+	background: #fff;
 }
 
 /* .col-md-3 {position:fixed; width:300px; right:20px; top:280px; border:none;} */

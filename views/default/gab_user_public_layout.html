@@ -22,21 +22,29 @@
       <!-- Rencommendations -->
       {{if len(recommendationsList) > 0:}}
       <div class="pci2-article-list-titled">
-        <h2>{{=totalUserRecommendations}}</h2>
+        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" style="margin-bottom: 15px;">
+          <i class="glyphicon glyphicon-education" style="margin-right: 10px;"></i>
+          {{=totalUserRecommendations}}
+        </h2>
+
         <div>{{=recommendationsList}}</div>
       </div>
       {{pass}}
       <!-- Reviews -->
       {{if len(reviewsList) > 0:}}
       <div class="pci2-article-list-titled">
-        <h2>{{=totalUserReviews}}</h2>
+
+        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" style="margin-bottom: 15px;">
+          <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
+          {{=totalUserReviews}}
+        </h2>
+
         <div>{{=reviewsList}}</div>
       </div>
       {{pass}}
 
     </div>
 
-    <!-- (gab) REPEATED -->
     <div class="pci2-flex-column pci2-flex-center pci2-hide-under-tablet pci2-user-infos-right-div">
       {{include 'snippets/user_infos.html'}}
     </div>

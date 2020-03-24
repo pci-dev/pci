@@ -9,13 +9,43 @@
 </div>
 
 <div class="pci2-user-stats-div">
-  <h3>{{=totalUserRecommendations}}</h3>
-  <h3>{{=totalUserReviews}}</h3>
+  <h4
+    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
+    style="margin-bottom: 10px;"
+  >
+    <i class="glyphicon glyphicon-education" style="margin-right: 10px;"></i>
+    {{=totalUserRecommendationsFlex}}
+  </h4>
+
+  <h4
+    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
+    style="margin-bottom: 10px;"
+  >
+    <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
+    {{=totalUserReviewsFlex}}
+  </h4>
+
+  <!-- <h4
+    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
+    style="margin-bottom: 10px;"
+  >
+    <i class="glyphicon glyphicon-edit" style="margin-right: 10px;"></i>
+    {{=totalUserSubmittedPreprintsFlex}}
+  </h4>
+
+  <h4
+    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
+    style="margin-bottom: 10px;"
+  >
+    <i class="glyphicon glyphicon-comment" style="margin-right: 10px;"></i>
+    {{=totalUserCommentsFlex}}
+  </h4> -->
+   
 </div>
 
 {{if len(userCv) > 0:}}
-  <div class="pci2-user-cv-div">
-    <b class="pci2-user-cv-label">Educational and work</b>
-    {{=DIV((userCv), _class='pci2-user-cv')}}
-  </div>
+<div class="pci2-user-cv-div">
+  <b class="pci2-user-cv-label">Educational and work</b>
+  {{=DIV((userCv), _class='pci2-user-cv')}}
+</div>
 {{pass}}
