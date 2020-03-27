@@ -1,0 +1,60 @@
+/* Common Web2py Forms styles (a little hacky)  */
+.form-group .col-sm-9,
+.form-group .col-sm-3 {
+    width: 100%;
+    text-align: left;
+    max-width: 800px;
+    margin: 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+}
+
+.form-group label.col-sm-3 {
+    margin-bottom: 2.5px;
+    color: #598398;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* center submit button */
+.form-group[id*=submit_record] .col-sm-9 {
+    align-items: center;
+    text-align: center;
+    margin-top: 10px;
+}
+
+#delete_record__label {
+    color: #d9534f;
+}
+
+input.form-control:focus,
+textarea.form-control:focus {
+    border-color: #598398;
+}
+
+.checkbox label {
+    font-weight: bold;
+}
+
+/* remove bold font manually on certain element  */
+
+.checkbox #t_articles_parallel_submission__label,
+.checkbox #t_articles_picture_rights_ok__label,
+.checkbox #auth_user_remember_me__label,
+input[name=thematics]+label,
+input[name=alerts]+label {
+    font-weight: normal;
+}
+
+/* End Common Forms styles */
+#submit_record__row {
+    margin-bottom: 15px;
+}

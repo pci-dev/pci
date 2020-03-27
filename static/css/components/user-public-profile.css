@@ -1,0 +1,44 @@
+
+/* User Profile */
+.pci2-user-infos-right-div {
+    max-width: 350px;
+    margin-left: 25px;
+}
+
+.pci2-user-cv {
+    white-space: pre-wrap;
+    font-style: italic;
+    padding: 15px 10px;
+    color: #8e8c84;
+    border: 1px solid #42748d48;
+    border-radius: 5px
+}
+
+.pci2-user-stats-div {
+    width: 100%;
+    padding-top: 10px;
+    margin-bottom: 30px;
+    border-top: 1px solid #42748d48;
+}
+
+.pci2-user-stats-div h4 {
+    margin: 0px 20px;
+}
+
+.pci2-user-cv-div-tablet {
+    margin: 0 20px;
+    margin-bottom: 15px;
+}
+
+.pci2-user-cv-div {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.pci2-article-list-titled {
+    margin-bottom: 10px;
+}
+
+.pci2-article-list-titled h2 {
+    margin-top: 0;
+}

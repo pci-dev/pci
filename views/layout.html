@@ -27,12 +27,22 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{=URL('static','images/favicon.ico')}}" />
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}" />
 
+    
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci0.css')}}"/>
-
+    
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
+    
+    <link rel="stylesheet" href="{{=URL('static','css/components/navbar.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/article.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/buttons.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/thematic-search.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/user-public-profile.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/web2py-forms.css')}}"/>
 
+
+  
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
@@ -108,11 +118,12 @@
     <!-- Main ========================================= -->
     <!-- Title -->
     {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
-    <div id="pci-small-header">
-      <a  href="{{=URL(c='default', f='index')}}">
+    <div id="pci-small-header" style="padding-bottom: 7.5px; border-bottom: 1px solid #f4f4f4;" class="pci2-flex-row pci2-align-items-center">
+      <!-- <a  href="{{=URL(c='default', f='index')}}">
         <img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo">
-      </a>
-     
+      </a> -->
+      <i class="glyphicon glyphicon-question-sign" style="font-size: 36px; margin: 0 15px; color: #888; opacity: 0.7"></i>
+
       {{if 'uneditableTitle' in locals():}}
         <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
           {{=H1(myTitle, _style="margin: 0")}}

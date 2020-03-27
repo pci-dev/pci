@@ -70,7 +70,7 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
 		DIV(
     		DIV(
 				thematicsList,
-    			_class='pci2-thematics-list pci2-panel-closed'
+    			_class='pci2-thematics-list'
 			),
     		DIV(
     			BUTTON(

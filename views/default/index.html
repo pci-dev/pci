@@ -70,11 +70,15 @@
 </div>  
 
 {{if 'myTitle' in locals():}}
-  <div class="pci-myTitleText">{{=myTitle}}</div>
+<div class="pci2-flex-center">
+  <div class="pci-myTitleText" style="width: 100%; max-width: 1200px;">{{=myTitle}}</div>
+</div>
 {{pass}}
 
 {{if 'myText' in locals():}}
-	<div>{{=myText}}</div>
+<div class="pci2-flex-center">
+  <div style="max-width: 1200px;">{{=myText}}</div>
+</div>
 {{pass}}
 
 

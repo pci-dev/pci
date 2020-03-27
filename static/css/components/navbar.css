@@ -1,0 +1,164 @@
+.navbar-default {
+    background-color: #f7f9fb;
+    border-color: #FFFFFF;
+    border: 0px;
+    /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02),
+        0 2px 4px rgba(0, 0, 0, 0.02),
+        0 4px 8px rgba(0, 0, 0, 0.02); */
+}
+
+.navbar-default .navbar-nav>li>a {
+    color: #707070;
+}
+
+.navbar-default .navbar-nav>li>a:hover {
+    color: #333;
+}
+
+.navbar-default .navbar-nav>li:hover {
+    background-color: #eff3f7;
+}
+
+.navbar-default .navbar-nav>li>a:focus {
+    color: #000;
+}
+
+.navbar-default .navbar-nav>.open>a,
+.navbar-default .navbar-nav>.open>a:hover,
+.navbar-default .navbar-nav>.open>a:focus {
+    background-color: #eff3f7;
+    color: #000;
+}
+
+.navbar-default .navbar-nav .web2py-menu-active>a {
+    background-color: #e6edf5;
+    color: #000;
+    -webkit-box-shadow: inset 0px -3px 0px 0px #598398;
+    -moz-box-shadow: inset 0px -3px 0px 0px #598398;
+    box-shadow: inset 0px -3px 0px 0px #598398;
+}
+
+.navbar-default .navbar-nav .web2py-menu-first.web2py-menu-active>a {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+.navbar-default .navbar-nav .web2py-menu-active>a .glyphicon {
+    color: #598398;
+    opacity: 1
+}
+
+.navbar-default .navbar-nav .web2py-menu-active>a .pci-enhancedMenuItem .glyphicon {
+    color: #fcc24d;
+    opacity: 1
+}
+
+.navbar-default .caret {
+    display: none;
+}
+
+.navbar-collapse {
+    padding: 0 !important;
+    padding-right: 15px !important;
+}
+
+.navbar-nav li .glyphicon {
+    font-size: 14px;
+    top: 2px;
+    opacity: 0.4;
+}
+
+.pci2-icon-margin-right {
+    margin-right: 7.5px;
+}
+
+.navbar-nav li .pci-enhancedMenuItem .glyphicon {
+    opacity: 0.6;
+}
+
+.navbar-nav li .glyphicon-triangle-bottom {
+    font-size: 8px;
+    margin-right: 0;
+    margin-left: 7.5px;
+    top: 0px
+}
+
+.pci-footer li .glyphicon-triangle-bottom {
+    display: none
+}
+
+
+.navbar-nav li .glyphicon.glyphicon-tasks {
+    top: 3px;
+}
+
+
+.navbar-nav .dropdown-menu {
+    border: 0px;
+    background: #eff3f7;
+
+    border-radius: 5px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03),
+        0 2px 2px rgba(0, 0, 0, 0.03),
+        0 4px 4px rgba(0, 0, 0, 0.03),
+        0 8px 8px rgba(0, 0, 0, 0.03);
+}
+
+.navbar-nav .dropdown-menu li a:hover {
+    border: 0px;
+    background: #e6edf5;
+}
+
+
+
+.nav>li>a {
+    padding: 12.5px 15px 5px;
+    min-width: 60px;
+}
+
+.navbar-default .navbar-nav .web2py-menu-first{
+    margin-right: 15px;
+}
+
+.navbar-default .navbar-nav .web2py-menu-first>a{
+    padding: 0;
+}
+
+
+.nav>li>a .pci-enhancedMenuItem,
+.nav>li>a .pci-recommender,
+.nav>li>a .pci-manager>span,
+.nav>li>a>span {
+    display: flex;
+    flex-direction: column;
+
+    text-align: center;
+}
+
+
+.glyphicon-triangle-bottom {
+    display: none;
+}
+
+.nav>li>a .glyphicon {
+    font-size: 20px;
+    opacity: 0.4;
+    margin-right: 0px;
+    margin-bottom: 1px;
+    top: 0px;
+}
+
+.navbar .nav>li>a,
+.dropdown-menu>li>a {
+    text-transform: initial;
+}
+
+.dropdown-menu .divider {
+    background-color: #dde8f7;
+}
+
+
+.pci-footer-li .glyphicon {
+    margin-right: 5px;
+}

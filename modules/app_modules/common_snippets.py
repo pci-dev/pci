@@ -227,7 +227,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
 		('articleImg', article_img),
 		('articleTitle', art.title or ''),
 		('articleAuthor', art.authors or ''),
-		('articleAbstract', WIKI(art.abstract) or ''),
+		('articleAbstract', WIKI(art.abstract or '')),
 		('articleDoi', (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN('')),
 		('article_altmetric', article_altmetric),
 		('printable', printable),
@@ -236,7 +236,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
 
 	if with_cover_letter:
 		articleContent.update([
-			('coverLetter', WIKI(art.cover_letter) or '')
+			('coverLetter', WIKI(art.cover_letter or ''))
 		])
 
 	if submittedBy:

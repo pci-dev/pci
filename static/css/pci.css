@@ -66,102 +66,50 @@ body {
 /* div.w2p_flash {background-image:url(../images/glitter_pink.gif); top:90px; border:1px solid #f0f0ff; border-radius:4px; color:white; font-weight:bold;} */
 /* div.w2p_flash.alert {background-image:url(../images/glitter_pink.gif); top:90px; border:1px solid #f0f0ff; border-radius:4px; color:white; font-weight:bold;} */
 /* .navbar {position:fixed; min-height:60px; margin-bottom:4px; border:1px solid transparent;} */
-.navbar-default {
-	background-color: #ffffff;
-	border-color: #FFFFFF;
-}
-
-.navbar-default .navbar-nav>li>a {
-	color: #707070;
-}
-
-.navbar-default .navbar-nav>li>a:hover {
-	color: #333;
-}
-
-.navbar-default .navbar-nav>li:hover {
-	background-color: #f4f7fa;
-}
-
-
-.navbar-default .navbar-nav>li>a:focus {
-	color: #000;
-}
-
-.navbar-default .navbar-nav>.open>a,
-.navbar-default .navbar-nav>.open>a:hover,
-.navbar-default .navbar-nav>.open>a:focus {
-	background-color: #eaf0f3;
-	color: #000;
-}
-
-.navbar-default .navbar-nav .web2py-menu-active>a {
-	background-color: #f4f7fa;
-	color: #000;
-	-webkit-box-shadow: inset 0px -3px 0px 0px #598398;
-	-moz-box-shadow: inset 0px -3px 0px 0px #598398;
-	box-shadow: inset 0px -3px 0px 0px #598398;
-}
 
 /* for paginator duplication on top of grid (see layout.html)*/
-.web2py_paginator {}
+.web2py_paginator {
+	background: #e5eef4;
+}
 
 .web2py_paginator {
-	border-radius: 7.5px 7.5px 0 0;
+	border-radius: 5px;
+
 	margin-top: 5px;
+	margin-bottom: 15px;
 }
 
 .web2py_paginator:last-child {
-	border-radius: 0 0 7.5px 7.5px;
-	margin-top: 0px;
+	margin-top: 15px;
 	margin-bottom: 5px;
 }
+
+.web2py_table{
+	margin: 5px 0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
 
 .web2py_counter {
 	width: 100%;
 	float: initial;
+	
+	font-style: italic;
+    font-weight: bold;
+    color: #888;
 }
 
 .web2py_table {
 	max-width: 100%;
 }
 
-/*.tooltip {
-	-webkit-transition: all 150ms ease-in-out;
-	-moz-transition: all 150ms ease-in-out;
-	-ms-transition: all 150ms ease-in-out;
-	-o-transition: all 150ms ease-in-out;
-	transition: all 150ms ease-in-out;
-}*/
-
-/*
-navbar-default .navbar-brand,.navbar-default .navbar-link:hover,.navbar-default .btn-link:hover,.navbar-default .btn-link:focus,.navbar-inverse .navbar-brand,.navbar-inverse .navbar-link:hover,.navbar-inverse .btn-link:hover,.navbar-inverse .btn-link:focus {color:#000;}
-.navbar-default .navbar-text {color:green;}
-.navbar-default .navbar-nav>li>a {color:red;}
-.navbar-default .navbar-nav>li>a:hover {color:green;}
-.navbar-default .navbar-nav>.active>a,.navbar-default .navbar-nav>.active>a:hover,.navbar-default .navbar-nav>.active>a:focus {color:#000; background-color:transparent;}
-.navbar-default .navbar-nav>.disabled>a,.navbar-default .navbar-nav>.disabled>a:hover,.navbar-default .navbar-nav>.disabled>a:focus {color:#000;background-color:transparent;}
-.navbar-default .navbar-toggle .icon-bar {background-color:transparent;}
-.navbar-default .navbar-collapse,.navbar-default .navbar-form {border-color:#3e3f3a;}
-.navbar-default .navbar-nav>.open>a,.navbar-default .navbar-nav>.open>a:hover,.navbar-default .navbar-nav>.open>a:focus {background-color:transparent;color:#000;}
-.navbar-default .btn-link[disabled]:hover,fieldset[disabled] .navbar-default .btn-link:hover,.navbar-default .btn-link[disabled]:focus,fieldset[disabled] .navbar-default .btn-link:focus {color:#000;}
-
-.navbar-inverse {background-color:transparent;border-color:#93c54b;}
-.navbar-inverse .navbar-nav>.active>a,.navbar-inverse .navbar-nav>.active>a:hover,.navbar-inverse .navbar-nav>.active>a:focus {color:black;background-color:transparent;}
-.navbar-inverse .navbar-nav>.disabled>a,.navbar-inverse .navbar-nav>.disabled>a:hover,.navbar-inverse .navbar-nav>.disabled>a:focus {color:#444;background-color:transparent;}
-.navbar-inverse .navbar-toggle:hover,.navbar-inverse .navbar-toggle:focus {background-color:transparent;}
-.navbar-inverse .navbar-toggle .icon-bar {background-color:transparent;}
-.navbar-inverse .navbar-collapse,.navbar-inverse .navbar-form {border-color:#81b33a;}
-.navbar-inverse .navbar-nav>.open>a,.navbar-inverse .navbar-nav>.open>a:hover,.navbar-inverse .navbar-nav>.open>a:focus {background-color:transparent;color:#000;}
-.navbar-inverse .btn-link[disabled]:hover,fieldset[disabled] .navbar-inverse .btn-link:hover,.navbar-inverse .btn-link[disabled]:focus,fieldset[disabled] .navbar-inverse .btn-link:focus {color:#000;}
-*/
 
 header {
 	box-shadow: none;
 }
 
 /* Don't remove */
-
 /* body{font-family: FS Albert Web Regular,Arial,sans-serif;} */
 
 /* (gab) removed to center image in a col-md-9 div (because of tweeter div)  */
@@ -195,6 +143,8 @@ header {
 	text-align: center;
 }
 
+
+
 .web2py_grid thead th {
 	background: none;
 	font-size: 11pt;
@@ -207,7 +157,25 @@ header {
 
 .web2py_grid thead tr,
 .web2py_grid thead tr:hover {
-	background: #fff;
+	background: #e5eef4;
+}
+
+.web2py_grid tr.odd {
+	background: #f7f9fb;
+}
+
+.web2py_grid tr.even {
+	background: #eff3f7;
+}
+
+.web2py_grid table tr th:first-child, 
+.web2py_grid table tr td:first-child {
+	padding-left: 10px;
+}
+
+.web2py_grid table tr th:last-child, 
+.web2py_grid table tr td:last-child {
+	padding-right: 10px;
 }
 
 /* .col-md-3 {position:fixed; width:300px; right:20px; top:280px; border:none;} */
@@ -246,7 +214,7 @@ header {
 }
 
 .pci-imgLogo {
-	width: 4cm;
+	width: 150px;
 }
 
 .pci-myTitleNoImage {
@@ -706,17 +674,23 @@ header {
 }
 
 .pci-infotextbox {
-	padding-left: 10%;
-	padding-right: 10%;
+	/* padding-left: 10%; */
+	/* padding-right: 10%; */
+	display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .pci-infotext {
 	text-align: justify;
+	width: 100%;
+	max-width: 1200px;
 }
 
 .pci-text-buttons {
-	width: 100%;
 	text-align: right;
+	width: 100%;
+	max-width: 1200px;
 }
 
 .pci-text-button-edit {
@@ -724,9 +698,12 @@ header {
 }
 
 .pci-text-title {
-	font-size: 36px;
+	font-size: 32px;
 	font-weight: 400;
 	color: #598398;
+
+	width: 100%;
+	max-width: 1200px;
 }
 
 .pci-div4wiki {
@@ -795,7 +772,7 @@ header {
 	background-color: transparent;
 }
 
-/* (gab) need to remove this border-radius and spacing style */
+/* (gab) need to remove border-radius and spacing style */
 .pci-lastArticles-table td:first-child {
 	border-left-style: none;
 	border-top-left-radius: 7.5px;
@@ -804,6 +781,7 @@ header {
 	/* (gab) */
 	width: 100px;
 }
+
 
 .pci-lastArticles-table td:last-child {
 	border-right-style: none;
@@ -971,18 +949,14 @@ header {
 }
 
 .tweeterPanel {
-	padding: 8px;
-	border: 1px solid #0db9f2;
-	border-radius: 12px;
-	max-height: 95vh;
-	overflow-y: auto;
+	border: 2px solid #0db9f2;
+	border-radius: 7.5px;
 }
 
 .tweeterBottomPanel {
 	margin-top: 16px;
-	padding: 2px;
-	border: 1px solid #0db9f2;
-	border-radius: 12px;
+	border: 2px solid #0db9f2;
+	border-radius: 7.5px;
 }
 
 .facebookPanel {
@@ -1086,6 +1060,10 @@ header {
 	margin-top: 10px;
 }
 
+
+.pci-footer-li .pci2-icon-margin-right{
+	display: none;
+}
 
 .pci-citation {
 	font-size: 10px;

@@ -44,7 +44,7 @@ def index():
 	tweetHash = myconf.get('social.tweethash')
 	tweeterId = myconf.get('social.tweeter_id')
 	if tweeterAcc:
-		myPanel.append(XML("""<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> 
+		myPanel.append(XML("""<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
 			<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 			""" % locals() ) 
 		)
@@ -87,7 +87,7 @@ def index():
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
-			myBottomPanel=DIV(myPanel, _class='tweeterBottomPanel'),
+			myBottomPanel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterBottomPanel', _style="overflow: hidden; padding: 0"),
 			shareable=True,
 			script=myScript,
 		)
@@ -97,7 +97,7 @@ def index():
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
-			panel=DIV(myPanel, _class='tweeterPanel'),
+			panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterPanel', _style="overflow: hidden; padding: 0"),
 			shareable=True,
 			script=myScript,
 		)

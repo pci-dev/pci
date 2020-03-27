@@ -17,6 +17,21 @@ parallelSubmissionAllowed = myconf.get('config.parallel_submission', default=Fal
 
 ######################################################################################################################################################################
 @auth.requires_login()
+def validate_ethics():
+	theUser = db.auth_user[auth.user_id]
+	if 'ethics_approved' in request.vars:
+		theUser.ethical_code_approved = True
+		theUser.update_record()
+	_next = None
+	if '_next' in request.vars:
+		_next = request.vars['_next']
+	if _next:
+		redirect(_next)
+	else:
+		redirect(URL('default','index'))
+
+######################################################################################################################################################################
+@auth.requires_login()
 def do_cancel_article():
 	articleId = request.vars['articleId']
 	if articleId is None:

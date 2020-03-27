@@ -14,25 +14,6 @@ csv = False # no export allowed
 expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 
 
-
-######################################################################################################################################################################
-## Actions
-######################################################################################################################################################################
-@auth.requires_login()
-def validate_ethics():
-	theUser = db.auth_user[auth.user_id]
-	if 'ethics_approved' in request.vars:
-		theUser.ethical_code_approved = True
-		theUser.update_record()
-	_next = None
-	if '_next' in request.vars:
-		_next = request.vars['_next']
-	if _next:
-		redirect(_next)
-	else:
-		redirect(URL('default','index'))
-
-
 ######################################################################################################################################################################
 ## Routes
 ######################################################################################################################################################################
@@ -52,7 +33,7 @@ def ethics():
 			message = FORM(
 					DIV(SPAN(INPUT(_type="checkbox", _name="ethics_approved", _id="ethics_approved", _value="yes", value=False), LABEL(T('Yes, I agree to comply with this code of conduct'))), _style='padding:16px;'),
 					INPUT(_type='submit', _value=T("Set in my profile"), _class="btn btn-info"), 
-					_action=URL('about', 'validate_ethics', vars=request.vars),
+					_action=URL('user_actions', 'validate_ethics', vars=request.vars),
 					_style='text-align:center;',
 				)
 
