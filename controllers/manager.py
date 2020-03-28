@@ -47,6 +47,7 @@ def all_articles():
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	resu = _manage_articles(None, URL('manager', 'all_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerAllArticlesText')
+	resu['titleIcon']='book'
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerAllArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageAllArticlesHelp')
 	return resu
@@ -62,6 +63,7 @@ def pending_articles():
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	resu = _manage_articles(['Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected'], URL('manager', 'pending_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerPendingArticlesText')
+	resu['titleIcon']='time'
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerPendingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManagePendingValidations')
 	return resu
@@ -77,6 +79,7 @@ def ongoing_articles():
 	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
 	resu = _manage_articles(['Awaiting consideration', 'Under consideration', 'Awaiting revision'], URL('manager', 'ongoing_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerOngoingArticlesText')
+	resu['titleIcon']='refresh'
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerOngoingArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageOngoingArticles')
 	return resu
@@ -93,6 +96,7 @@ def completed_articles():
 	db.t_articles.status.label = T('Outcome')
 	resu = _manage_articles(['Cancelled', 'Recommended', 'Rejected', 'Not considered'], URL('manager', 'completed_articles', host=host, scheme=scheme, port=port))
 	resu['myText']=getText(request, auth, db, '#ManagerCompletedArticlesText')
+	resu['titleIcon']='ok-sign'
 	resu['myTitle']=getTitle(request, auth, db, '#ManagerCompletedArticlesTitle')
 	resu['myHelp'] = getHelp(request, auth, db, '#ManageCompletedArticles')
 	return resu
@@ -228,6 +232,7 @@ def suggested_recommender_emails():
 	return dict(
 					myHelp = getHelp(request, auth, db, '#ManagerSuggestedRecommenderEmails'),
 					myText=getText(request, auth, db, '#ManagerSuggestedRecommenderEmailsText'),
+					titleIcon='envelope',
 					myTitle=getTitle(request, auth, db, '#ManagerSuggestedRecommenderEmailsTitle'),
 					myBackButton=mkCloseButton(), 
 					message=myContents, 
@@ -339,6 +344,7 @@ def manage_recommendations():
 				#myBackButton = mkBackButton(),
 				myHelp=getHelp(request, auth, db, '#ManageRecommendations'),
 				myText=getText(request, auth, db, '#ManageRecommendationsText'),
+				titleIcon='edit',
 				myTitle=getTitle(request, auth, db, '#ManageRecommendationsTitle'),
 				content=myContents,
 				grid=grid,
@@ -427,6 +433,7 @@ def search_recommenders():
 		return dict(
 					myBackButton=mkBackButton(target=whatNext),
 					myHelp=getHelp(request, auth, db, '#ManagerSearchRecommenders'),
+					titleIcon='search',
 					myText=getText(request, auth, db, '#ManagerSearchRecommendersText'),
 					myTitle=getTitle(request, auth, db, '#ManagerSearchRecommendersTitle'),
 					grid=grid,
@@ -516,6 +523,7 @@ def edit_article():
 				#myBackButton = mkBackButton(),
 				myHelp = getHelp(request, auth, db, '#ManagerEditArticle'),
 				myText=getText(request, auth, db, '#ManagerEditArticleText'),
+				titleIcon='edit',
 				myTitle=getTitle(request, auth, db, '#ManagerEditArticleTitle'),
 				form = form,
 			)
@@ -537,6 +545,7 @@ def manage_comments():
 			)
 	return dict(
 				myText=getText(request, auth, db, '#ManageCommentsText'),
+				titleIcon='comment',
 				myTitle=getTitle(request, auth, db, '#ManageCommentsTitle'),
 				myHelp=getHelp(request, auth, db, '#ManageComments'),
 				grid=grid, 
@@ -571,7 +580,7 @@ def email_article_to_recommenders():
 		art_title = art.title
 		art_doi = art.doi
 		linkTarget = URL(c='recommender', f='article_details', vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
-		linkHelp = URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+		linkHelp = URL(c='help', f='help_generic', scheme=scheme, host=host, port=port)
 		default_subject='%(longname)s: Preprint available for recommenders' % locals()
 		default_message = common_tools.get_template('text', 'default_preprint_avalaible_for_recommenders.txt') % locals()
 
@@ -623,6 +632,7 @@ def email_article_to_recommenders():
 		content=content,
 		form=form,
 		myHelp=getHelp(request, auth, db, '#EmailToWarnRecommendersHelp'),
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#EmailToWarnRecommendersTitle'),
 		myText=getText(request, auth, db, '#EmailToWarnRecommendersInfoText'),
 		myBackButton=mkBackButton(),
@@ -700,6 +710,7 @@ def all_recommendations():
 	return dict(
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#AdminAllRecommendations'),
+				titleIcon='education',
 				myTitle=myTitle, 
 				myText=myText,
 				grid=grid, 

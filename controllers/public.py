@@ -151,6 +151,7 @@ def user_public_page():
 
                 resu = dict(
                     myHelp=getHelp(request, auth, db, "#PublicUserCard"),
+			        titleIcon="briefcase",
                     myTitle=pageTitle,
                     uneditableTitle=True,
                     totalUserRecommendations=SPAN(
@@ -240,6 +241,7 @@ def user_public_page():
     if resu is None:
         resu = dict(
             myHelp=getHelp(request, auth, db, "#PublicUserCard"),
+			titleIcon="briefcase",
             myTitle=getTitle(request, auth, db, "#PublicUserCardTitle"),
             myText=myContents,
         )

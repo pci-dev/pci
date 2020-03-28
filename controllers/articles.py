@@ -149,7 +149,8 @@ def recommended_articles():
 	
 	response.view='default/gab_list_layout.html'
 	return dict(
-				grid=grid, 
+				grid=grid,
+				titleIcon='search', 
 				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
 				myText=getText(request, auth, db, '#RecommendedArticlesText'),
 				myHelp=getHelp(request, auth, db, '#RecommendedArticles'),
@@ -287,6 +288,7 @@ def tracking():
 		response.view='default/gab_list_layout.html'
 		resu = dict(
 			myHelp=getHelp(request, auth, db, '#Tracking'),
+			titleIcon='tasks', 
 			myTitle=getTitle(request, auth, db, '#TrackingTitle'),
 			myText=getText(request, auth, db, '#TrackingText'),
 			grid = DIV(
@@ -321,6 +323,7 @@ def all_recommended_articles():
 	return dict(
 				grid=grid, 
 				#searchForm=searchForm, 
+				titleIcon='book', 
 				myTitle=getTitle(request, auth, db, '#AllRecommendedArticlesTitle'),
 				myText=getText(request, auth, db, '#AllRecommendedArticlesText'),
 				myHelp=getHelp(request, auth, db, '#AllRecommendedArticles'),
@@ -328,9 +331,6 @@ def all_recommended_articles():
 			)
 
 
-
-# (gab) not working ? 
-# STRANGE ERROR : local variable 'myContents' referenced before assignment
 ######################################################################################################################################################################
 def pub_reviews():
 	response.view='default/myLayout.html'
@@ -365,6 +365,7 @@ def pub_reviews():
 	
 	resu = dict(
 			myHelp=getHelp(request, auth, db, '#TrackReviews'),
+			titleIcon='eye-open', 
 			myTitle=getTitle(request, auth, db, '#TrackReviewsTitle'),
 			myText=getText(request, auth, db, '#TrackReviewsText'),
 			grid = myContents

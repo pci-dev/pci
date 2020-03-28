@@ -57,6 +57,7 @@ def _awaiting_articles(myVars):
 	myVars = request.vars
 	qyKw = ''
 	qyTF = []
+	
 	for myVar in myVars:
 		if isinstance(myVars[myVar], list):
 			myValue = (myVars[myVar])[1]
@@ -120,6 +121,7 @@ def _awaiting_articles(myVars):
 	response.view='default/gab_list_layout.html'
 	return dict(
 				#myTitle=T('Articles requiring a recommender'), 
+				titleIcon='inbox', 
 				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
 				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
 				grid=grid, 
@@ -250,6 +252,7 @@ def search_reviewers():
 	response.view='default/gab_list_layout.html'
 	return dict(
 				myHelp=myHelp,
+				titleIcon='search', 
 				myTitle=myTitle,
 				myText=myText,
 				myBackButton=mkBackButton(),
@@ -366,9 +369,11 @@ def new_submission():
 	myText = DIV(
 				getText(request, auth, db, '#NewRecommendationInfo'),
 				myEthical,
+				_class="pci2-flex-column pci2-align-items-center"
 			)
 
 	return dict(
+		titleIcon='edit', 
 		myTitle=getTitle(request, auth, db, '#RecommenderBeforePostprintSubmissionTitle'),
 		myText = myText,
 		myFinalScript = myScript
@@ -423,6 +428,7 @@ def my_awaiting_articles():
 		,orderby=~db.t_articles.upload_timestamp
 	)
 	return dict(
+				titleIcon='envelope', 
 				myHelp=getHelp(request, auth, db, '#RecommenderSuggestedArticles'),
 				myText=getText(request, auth, db, '#RecommenderSuggestedArticlesText'),
 				myTitle=getTitle(request, auth, db, '#RecommenderSuggestedArticlesTitle'),
@@ -477,6 +483,7 @@ def accept_new_article_to_recommend():
 	)
 	return dict(
 		myText=myText,
+		titleIcon="education",
 		myTitle=myTitle,
 		myFinalScript = myScript,
 	)
@@ -549,9 +556,16 @@ def my_recommendations():
 		,links=links
 		,orderby=~db.t_recommendations.last_change
 	)
+
+	if isPress: ## NOTE: POST-PRINTS
+		titleIcon = 'certificate' 
+	else: ## NOTE: PRE-PRINTS
+		titleIcon = 'education' 
+
 	return dict(
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#RecommenderMyRecommendations'),
+				titleIcon=titleIcon, 
 				myTitle=myTitle, 
 				myText=myText,
 				grid=grid, 
@@ -607,6 +621,7 @@ def direct_submission():
 	return dict(
 				myHelp=getHelp(request, auth, db, '#RecommenderDirectSubmission'),
 				#myBackButton=mkBackButton(),
+				titleIcon='edit', 
 				myTitle=getTitle(request, auth, db, '#RecommenderDirectSubmissionTitle'),
 				myText=getText(request, auth, db, '#RecommenderDirectSubmissionText'),
 				form=form, 
@@ -713,6 +728,7 @@ def one_review():
 	return dict(
 			myHelp = getHelp(request, auth, db, '#RecommenderArticleOneReview'),
 			myText=getText(request, auth, db, '#RecommenderArticleOneReviewText'),
+			titleIcon='eye-open', 
 			myTitle=getTitle(request, auth, db, '#RecommenderArticleOneReviewTitle'),
 			myBackButton=mkCloseButton(),
 			#content=myContents, 
@@ -788,6 +804,7 @@ def reviews():
 		return dict(
 				myHelp = getHelp(request, auth, db, '#RecommenderArticleReviews'),
 				myText=getText(request, auth, db, '#RecommenderArticleReviewsText'),
+				titleIcon='eye-open', 
 				myTitle=getTitle(request, auth, db, '#RecommenderArticleReviewsTitle'),
 				#myBackButton=mkBackButton(),
 				content=myContents, 
@@ -846,6 +863,7 @@ def reviewers():
 		return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderAddReviewers'),
 					myText=getText(request, auth, db, '#RecommenderAddReviewersText'),
+					titleIcon='search', 
 					myTitle=getTitle(request, auth, db, '#RecommenderAddReviewersTitle'),
 					myAcceptBtn=myAcceptBtn,
 					content=myContents, 
@@ -945,6 +963,7 @@ def email_for_registered_reviewer():
 	return dict(
 		form=form,
 		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
 		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
 	)
@@ -1069,6 +1088,7 @@ def email_for_new_reviewer():
 	return dict(
 		form=form,
 		myHelp=getHelp(request, auth, db, '#EmailForNewReviewer'),
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#EmailForNewReviewerInfoTitle'),
 		myText=getText(request, auth, db, '#EmailForNewReviewerInfo'),
 		myBackButton=mkBackButton(),
@@ -1163,6 +1183,7 @@ def send_review_reminder():
 	return dict(
 		form=form,
 		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
 		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
 		myBackButton=mkBackButton(),
@@ -1240,6 +1261,7 @@ def send_review_cancellation():
 	return dict(
 		form=form,
 		myHelp=getHelp(request, auth, db, '#EmailForRegisterdReviewer'),
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#EmailForRegisteredReviewerInfoTitle'),
 		myText=getText(request, auth, db, '#EmailForRegisteredReviewerInfo'),
 		myBackButton=mkBackButton(),
@@ -1250,6 +1272,7 @@ def send_review_cancellation():
 def email_for_reviewer():
 	response.view='default/info.html'
 	return dict(
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#TemplateEmailForReviewInfoTitle'),
 		myText=getText(request, auth, db, '#TemplateEmailForReviewInfo'),
 		myBackButton=mkBackButton(),
@@ -1261,12 +1284,11 @@ def email_for_reviewer():
 def email_for_author():
 	response.view='default/info.html'
 	return dict(
+		titleIcon='envelope',
 		myTitle=getTitle(request, auth, db, '#TemplateEmailForAuthorInfoTitle'),
 		myText=getText(request, auth, db, '#TemplateEmailForAuthorInfo'),
 		myBackButton=mkBackButton(),
 	)
-
-
 
 
 
@@ -1326,6 +1348,7 @@ def add_contributor():
 					myBackButton = myBackButton,
 					myHelp = getHelp(request, auth, db, '#RecommenderAddContributor'),
 					myText=getText(request, auth, db, '#RecommenderAddContributorText'),
+					titleIcon="link",
 					myTitle=getTitle(request, auth, db, '#RecommenderAddContributorTitle'),
 					content=myContents, 
 					form=form, 
@@ -1519,6 +1542,7 @@ def edit_recommendation():
 					form=form,
 					myText=myText,
 					myHelp=myHelp,
+					titleIcon='edit',
 					myTitle=myTitle,
 					myFinalScript = SCRIPT(myScript),
 					myBackButton = mkBackButton(),
@@ -1573,6 +1597,7 @@ def my_co_recommendations():
 	return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderMyPressReviews'),
 					myText=getText(request, auth, db, '#RecommenderMyPressReviewsText'),
+					titleIcon='link',
 					myTitle=getTitle(request, auth, db, '#RecommenderMyPressReviewsTitle'),
 					#myBackButton=mkBackButton(), 
 					contents=myContents, 
@@ -1597,6 +1622,7 @@ def review_emails():
 	return dict(
 					myHelp = getHelp(request, auth, db, '#RecommenderReviewEmails'),
 					myText=getText(request, auth, db, '#RecommenderReviewEmailsText'),
+					titleIcon='envelope',
 					myTitle=getTitle(request, auth, db, '#RecommenderReviewEmailsTitle'),
 					myBackButton=mkCloseButton(), 
 					message=myContents, 

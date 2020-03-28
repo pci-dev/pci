@@ -501,7 +501,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 			destPerson = mkUser(auth, db, theUser['id'])
 			destAddress = db.auth_user[theUser['id']]['email']
 			linkTarget=XML(URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port))
-			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+			helpurl=URL(c='help', f='help_generic', scheme=scheme, host=host, port=port)
 			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
 			if article.parallel_submission:
 				addNote = "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appname)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appname)s after reviewers have written their reports, we will post the reviewers' reports on the %(appname)s website as recognition of the reviewers' work and in order to enable critical discussion.<p>" % locals()
@@ -573,7 +573,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 				articleAuthors = article.authors
 			articleDoi = mkDOI(article.doi)
 			linkTarget=XML(URL(c='recommender', f='article_details', vars=dict(articleId=article.id), scheme=scheme, host=host, port=port))
-			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+			helpurl=URL(c='help', f='help_generic', scheme=scheme, host=host, port=port)
 			theUser = db.auth_user[suggRecomm.suggested_recommender_id]
 			mySubject = '%s: Request to act as a recommender for a preprint (reminder)' % (appname)
 			if theUser:
@@ -1207,7 +1207,7 @@ def do_send_mail_new_user(session, auth, db, userId):
 		destPerson = mkUser(auth, db, userId)
 		destAddress = db.auth_user[userId]['email']
 		baseurl=URL(c='about', f='about', scheme=scheme, host=host, port=port)
-		infourl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+		infourl=URL(c='help', f='help_generic', scheme=scheme, host=host, port=port)
 		recommurl=URL(c='about', f='recommenders', scheme=scheme, host=host, port=port)
 		thematics = ', '.join(thema)
 		days = ', '.join(alerts)
@@ -1258,7 +1258,7 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 			#thematics = ', '.join(user.thematics) if user.thematics and len(user.thematics)>0 else ''
 			days = ', '.join(user.alerts)
 			baseurl=URL(c='default', f='index', scheme=scheme, host=host, port=port)
-			helpurl=URL(c='about', f='help_generic', scheme=scheme, host=host, port=port)
+			helpurl=URL(c='help', f='help_generic', scheme=scheme, host=host, port=port)
 			ethicsurl=URL(c='about', f='ethics', scheme=scheme, host=host, port=port)
 			mySubject = 'Welcome as a recommender of %s' % (appname)
 

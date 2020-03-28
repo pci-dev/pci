@@ -158,13 +158,14 @@ def user():
 	myScript = ''
 
 	form = auth()
-	
+	titleIcon=''
 	db.auth_user.registration_key.writable = False
 	db.auth_user.registration_key.readable = False
 	if request.args and len(request.args)>0:
 		
 		if request.args[0] == 'login':
 			myHelp = getHelp(request, auth, db, '#LogIn')
+			titleIcon="log-in"
 			myTitle = getTitle(request, auth, db, '#LogInTitle')
 			myText = getText(request, auth, db, '#LogInText')
 			form.add_button(T('Lost password?'), URL(c='default', f='user', args=['request_reset_password']), _class="pci2-lost-password-link" )
@@ -177,6 +178,7 @@ def user():
 
 		elif request.args[0] == 'register':
 			myHelp = getHelp(request, auth, db, '#CreateAccount')
+			titleIcon="edit"
 			myTitle = getTitle(request, auth, db, '#CreateAccountTitle')
 			myText = getText(request, auth, db, '#ProfileText')
 			myBottomText = getText(request, auth, db, '#ProfileBottomText')
@@ -187,6 +189,7 @@ def user():
 				
 		elif request.args[0] == 'profile':
 			myHelp = getHelp(request, auth, db, '#Profile')
+			titleIcon="user"
 			myTitle = getTitle(request, auth, db, '#ProfileTitle')
 			myText = getText(request, auth, db, '#ProfileText')
 			myBottomText = getText(request, auth, db, '#ProfileBottomText')
@@ -196,6 +199,7 @@ def user():
 		
 		elif request.args[0] == 'request_reset_password':
 			myHelp = getHelp(request, auth, db, '#ResetPassword')
+			titleIcon="lock"
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			user = db(db.auth_user.email==request.vars['email']).select().last()
@@ -213,6 +217,7 @@ def user():
 			
 		elif request.args[0] == 'reset_password':
 			myHelp = getHelp(request, auth, db, '#ResetPassword')
+			titleIcon="lock"
 			myTitle = getTitle(request, auth, db, '#ResetPasswordTitle')
 			myText = getText(request, auth, db, '#ResetPasswordText')
 			user = db(db.auth_user.reset_password_key==vkey).select().last()
@@ -223,9 +228,13 @@ def user():
 				auth.settings.reset_password_next = suite
 
 		elif request.args[0] == 'change_password':
+			titleIcon="lock"
+			myTitle = getTitle(request, auth, db, '#ChangePasswordTitle')
+			myText = getText(request, auth, db, '#ResetPasswordText')
 			form.element(_type='submit')['_class']='btn btn-success'
 
 	return dict(
+		titleIcon=titleIcon,
 		myTitle=myTitle,
 		myText=myText,
 		myBottomText=myBottomText,

@@ -257,7 +257,7 @@ def _RecommendationMenu():
 	# txtPreprintsRecomPend = SPAN('Do you agree to initiate a recommendation?', _class='pci-recommender')
 
 	if nPreprintsRecomPend > 0:
-		txtPreprintsRecomPend = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
+		txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
 		colorRequests = True
 
 	recommendationsMenu.append((txtPreprintsRecomPend,False, 

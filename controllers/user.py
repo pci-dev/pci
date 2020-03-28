@@ -172,6 +172,7 @@ def search_recommenders():
 		return dict(
 					myHelp = getHelp(request, auth, db, '#UserSearchRecommenders'),
 					myText=getText(request, auth, db, '#UserSearchRecommendersText'),
+					titleIcon="search",
 					myTitle=getTitle(request, auth, db, '#UserSearchRecommendersTitle'),
 					myUpperBtn=myUpperBtn,
 					myAcceptBtn=myAcceptBtn,
@@ -206,6 +207,7 @@ def new_submission():
 		)
 	return dict(
 		myText = myText,
+		titleIcon="edit",
 		myTitle=getTitle(request, auth, db, '#UserBeforeSubmissionTitle')
 	)
 
@@ -248,6 +250,7 @@ def fill_new_article():
 		response.flash = T('Form has errors', lazy=False)
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserSubmitNewArticle'),
+				titleIcon="edit",
 				myTitle=getTitle(request, auth, db, '#UserSubmitNewArticleTitle'),
 				myText=getText(request, auth, db, '#UserSubmitNewArticleText'),
 				form=form, 
@@ -303,6 +306,7 @@ def edit_my_article():
 	return dict(
 				myHelp=getHelp(request, auth, db, '#UserEditArticle'),
 				myText=getText(request, auth, db, '#UserEditArticleText'),
+				titleIcon="edit",
 				myTitle=getTitle(request, auth, db, '#UserEditArticleTitle'),
 				form=form,
 				myFinalScript = SCRIPT(myScript),
@@ -327,6 +331,7 @@ def suggested_recommenders():
 	)
 	return dict(
 				myBackButton = mkBackButton(),
+				titleIcon="education",
 				myTitle=getTitle(request, auth, db, '#SuggestedRecommendersTitle'),
 				myText=getText(request, auth, db, '#SuggestedRecommendersText'),
 				myHelp=getHelp(request, auth, db, '#SuggestedRecommenders'),
@@ -382,6 +387,7 @@ def add_suggested_recommender():
 							_style='margin-top:16px; text-align:center;'
 						)
 		return dict(
+					titleIcon="education",
 					myTitle=getTitle(request, auth, db, '#UserAddSuggestedRecommenderTitle'),
 					myText=getText(request, auth, db, '#UserAddSuggestedRecommenderText'),
 					myHelp = getHelp(request, auth, db, '#UserAddSuggestedRecommender'),
@@ -431,6 +437,7 @@ def suggested_recommenders():
 					#myBackButton=mkBackButton(),
 					myHelp = getHelp(request, auth, db, '#UserSuggestedRecommenders'),
 					myText=getText(request, auth, db, '#UserSuggestedRecommendersText'),
+					titleIcon="education",
 					myTitle=getTitle(request, auth, db, '#UserSuggestedRecommendersTitle'),
 					grid=grid, 
 				)
@@ -495,6 +502,7 @@ def my_articles():
 				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#UserMyArticles'),
 				myText=getText(request, auth, db, '#UserMyArticlesText'),
+				titleIcon="duplicate",
 				myTitle=getTitle(request, auth, db, '#UserMyArticlesTitle'),
 				grid=DIV(grid, _style='max-width:100%; overflow-x:auto;'), 
 			 )
@@ -566,9 +574,14 @@ def my_reviews():
 		,links=links
 		,orderby=~db.t_reviews.last_change|~db.t_reviews.review_state
 	)
+	if pendingOnly:
+		titleIcon="envelope"
+	else:
+		titleIcon="eye-open"
+
 	return dict(
-				#myBackButton=mkBackButton(), 
 				myHelp = getHelp(request, auth, db, '#UserMyReviews'),
+				titleIcon=titleIcon,
 				myTitle=myTitle,
 				myText=myText,
 				grid=grid, 
@@ -624,9 +637,11 @@ def accept_new_review():
 	myText = DIV(
 			getText(request, auth, db, '#AcceptReviewInfoText'),
 			myEthical,
+			_class="pci2-flex-column pci2-align-items-center"
 		)
 	return dict(
 		myText=myText,
+		titleIcon="eye-open",
 		myTitle=myTitle,
 		myFinalScript = myScript,
 	)
@@ -669,6 +684,7 @@ def edit_reply():
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserEditReply'),
 				#myBackButton = mkBackButton(),
+				titleIcon="edit",
 				myText=getText(request, auth, db, '#UserEditReplyText'),
 				myTitle=getTitle(request, auth, db, '#UserEditReplyTitle'),
 				form = form,
@@ -729,6 +745,7 @@ def edit_review():
 				myHelp=getHelp(request, auth, db, '#UserEditReview'),
 				myBackButton=mkBackButton(),
 				myText=getText(request, auth, db, '#UserEditReviewText'),
+				titleIcon="edit",
 				myTitle=getTitle(request, auth, db, '#UserEditReviewTitle'),
 				form=form,
 				myFinalScript=SCRIPT(myScript),

@@ -691,6 +691,7 @@ header {
 	text-align: right;
 	width: 100%;
 	max-width: 1200px;
+	margin-top: -11px;
 }
 
 .pci-text-button-edit {
@@ -700,7 +701,6 @@ header {
 .pci-text-title {
 	font-size: 32px;
 	font-weight: 400;
-	color: #598398;
 
 	width: 100%;
 	max-width: 1200px;
@@ -1150,6 +1150,8 @@ header {
 	padding-right: 32px;
 	padding-bottom: 32px;
 	border-radius: 7.5px;
+	max-width: 1200px;
+	width: 100%;
 }
 
 .pci-ChecksList {

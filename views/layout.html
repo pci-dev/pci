@@ -122,14 +122,26 @@
       <!-- <a  href="{{=URL(c='default', f='index')}}">
         <img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo">
       </a> -->
-      <i class="glyphicon glyphicon-question-sign" style="font-size: 36px; margin: 0 15px; color: #888; opacity: 0.7"></i>
+      {{if 'titleIcon' in locals():}}
+        <i class="glyphicon glyphicon-{{=titleIcon}}" style="font-size: 36px; margin-left: 15px; color: #598398; opacity: 0.7"></i>
+      {{pass}}
 
       {{if 'uneditableTitle' in locals():}}
-        <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
-          {{=H1(myTitle, _style="margin: 0")}}
-        </div>
+        {{if 'titleIcon' in locals():}}
+          <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey" style="align-items: center;">
+            {{=H1(myTitle, _style="margin: 0")}}
+          </div>
+        {{else:}}
+          <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
+            {{=H1(myTitle, _style="margin: 0")}}
+          </div>
+        {{pass}}
       {{else:}}
-        <div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
+        {{if 'titleIcon' in locals():}}
+          <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey">{{=myTitle}}</div>
+        {{else:}}
+          <div class="pci-myTitleText pci-myTitleText-gab" >{{=myTitle}}</div>
+        {{pass}}
       {{pass}}
     </div>      
     {{pass}}

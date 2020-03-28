@@ -107,6 +107,19 @@ div.w2p_flash.alert.custom-disappear {
 .pci-myTitleText-gab {
     display: flex;
     flex: 1;
+    margin-left: 15px;
+}
+
+.pci-myTitleText-gab>.pci-infotextbox {
+    color: #598398;
+}
+
+.pci-myTitleText-gab-grey>.pci-infotextbox {
+    color: #888;
+}
+
+.pci-myTitleText-gab-grey>h1 {
+    color: #888;
 }
 
 .pci-myTitleText-gab>.pci-infotextbox {
