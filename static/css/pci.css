@@ -691,7 +691,7 @@ header {
 	text-align: right;
 	width: 100%;
 	max-width: 1200px;
-	margin-top: -11px;
+	/* margin-top: -11px; */
 }
 
 .pci-text-button-edit {
@@ -918,11 +918,8 @@ header {
 	font-size: 11px;
 }
 
-.navbar-default .pci-enhancedMenuItem {
-	/* color: #f3a656; */
-	color: #fcc24d;
-	font-weight: bold;
-}
+
+
 
 .pci-myTextInfo {
 	max-width: 25cm;

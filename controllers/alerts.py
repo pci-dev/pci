@@ -14,7 +14,7 @@ from time import sleep
 #host=socket.getfqdn()
 from gluon.contrib.appconfig import AppConfig
 
-from app_modules import common_snippets
+from app_modules import common_components
 
 myconf = AppConfig(reload=True)
 mail_layout = os.path.join(os.path.dirname(__file__), '..', 'views', 'mail', 'mail.html')
@@ -85,7 +85,7 @@ def testUserRecommendedAlert():
 						odd = True
 						for row in query:
 							myRows.append(
-								common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
+								common_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
 							)
 
 							odd = not(odd)
@@ -134,7 +134,7 @@ def alertUsersLastRecommendations():
 					odd = True
 					for row in query:
 						myRows.append(
-							common_snippets.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
+							common_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True)
 						)
 						odd = not(odd)
 					msgContents = DIV(

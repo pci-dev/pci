@@ -14,7 +14,7 @@ from lxml import etree
 from app_modules.common import *
 from app_modules.helper import *
 from app_modules import common_forms
-from app_modules import common_snippets
+from app_modules import common_components
 from app_modules import common_html
 from app_modules import common_tools
 from app_modules import common_small_html
@@ -73,7 +73,7 @@ def last_recomms():
 
 	recommendedArticlesList = []
 	for row in queryRecommendedArticles:
-		r = common_snippets.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+		r = common_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
 		if r:
 			recommendedArticlesList.append(r)
 	
@@ -129,7 +129,7 @@ def recommended_articles():
 	totalArticles = len(filtered)
 	myRows = []
 	for row in filtered:
-		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 			
@@ -226,7 +226,7 @@ def rec():
 	nbReviews = (nbRevs + (nbRecomms-1))
 	
 	# Recommendation Header and Metadata
-	recommendationHeader = common_snippets.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable)
+	recommendationHeader = common_components.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable)
 	recommHeaderHtml = recommendationHeader['headerHtml']
 	recommMetadata = recommendationHeader['recommMetadata']
 
@@ -236,12 +236,12 @@ def rec():
 	reviewRounds = None
 	if with_reviews:
 		# Get review rounds tree
-		reviewRounds = DIV(common_snippets.getReviewRoundsHtml(auth, db, response, art.id))
+		reviewRounds = DIV(common_components.getReviewRoundsHtml(auth, db, response, art.id))
 
 	commentsTreeAndForm = None
 	if with_comments:
 		# Get user comments list and form
-		commentsTreeAndForm = common_snippets.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars['replyTo'])
+		commentsTreeAndForm = common_components.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars['replyTo'])
 	
 	
 	if printable:
@@ -281,7 +281,7 @@ def tracking():
 		query_already_published_articles = db(db.t_articles.already_published==False).select(orderby=~db.t_articles.last_status_change)
 		
 		for article in query_already_published_articles:
-			article_html_card = common_snippets.getArticleTrackcRowCard(auth, db, response, article)
+			article_html_card = common_components.getArticleTrackcRowCard(auth, db, response, article)
 			if article_html_card:
 				article_list.append(article_html_card)
 		
@@ -305,7 +305,7 @@ def all_recommended_articles():
 	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
 	myRows = []
 	for row in allR:
-		r = common_snippets.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+		r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
 		if r:
 			myRows.append(r)
 	n = len(allR)

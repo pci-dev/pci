@@ -51,7 +51,7 @@ def getHelp(request, auth, db, myHashtag, myLanguage='default'):
 			)
 
 
-def getText(request, auth, db, myHashtag, myLanguage='default'):
+def getText(request, auth, db, myHashtag, myLanguage='default', maxWidth='1200'):
 	r0 = ''
 	c = ''
 	query = (db.help_texts.hashtag==myHashtag) & (db.help_texts.lang==myLanguage)
@@ -69,8 +69,8 @@ def getText(request, auth, db, myHashtag, myLanguage='default'):
 		r0 = A(current.T('edit text'), _href=URL(c='custom_help_text', f='help_texts', args=['edit', 'help_texts', i], user_signature=True), _class='pci-text-button-edit pci-admin')
 
 	return DIV(
-				DIV(r0, _class='pci-text-buttons'), 
-				DIV(WIKI(c, safe_mode=False), _class='pci-infotext', ), 
+				DIV(r0, _class='pci-text-buttons', _style="max-width:" + maxWidth + "px"), 
+				DIV(WIKI(c, safe_mode=False), _class='pci-infotext', _style="max-width:" + maxWidth + "px"), 
 				_class='pci-infotextbox',
 			)
 

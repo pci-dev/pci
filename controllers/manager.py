@@ -22,7 +22,7 @@ from app_modules import manager_module
 from app_modules import common_tools
 from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_snippets
+from app_modules import common_components
 
 from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
@@ -258,8 +258,8 @@ def recommendations():
 
 	# New recommendation function (WIP)
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-	recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, printable, quiet=False)
+	recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
+	recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, printable, quiet=False)
 	
 	if printable:
 		printableClass = 'printable'
@@ -335,7 +335,7 @@ def manage_recommendations():
 		grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
 	myContents = DIV(
 		DIV(
-			common_snippets.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"
+			common_components.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"
 		),
 		_class="pci2-full-width pci2-flex-center"
 	)

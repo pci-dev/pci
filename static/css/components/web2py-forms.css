@@ -36,6 +36,7 @@
 }
 
 input.form-control:focus,
+select.form-control:focus,
 textarea.form-control:focus {
     border-color: #598398;
 }

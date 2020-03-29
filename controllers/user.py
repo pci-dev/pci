@@ -11,7 +11,7 @@ from app_modules import user_module
 from app_modules import common_tools
 from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_snippets
+from app_modules import common_components
 
 
 # frequently used constants
@@ -52,8 +52,8 @@ def recommendations():
 
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable,  True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'user', request, True, printable, quiet=False)
+		recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable,  True)
+		recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'user', request, True, printable, quiet=False)
 	
 		if printable:
 			printableClass = 'printable'
@@ -215,10 +215,8 @@ def new_submission():
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
-	response.view='default/myLayout.html'
 	db.t_articles.article_source.writable = False
 	db.t_articles.ms_version.writable = True
-	db.t_articles.status.readable = False
 	db.t_articles.upload_timestamp.readable = False
 	db.t_articles.status.readable = False
 	db.t_articles.status.writable = False
@@ -235,7 +233,8 @@ def fill_new_article():
 	db.t_articles.parallel_submission.label = T('This preprint is (or will be) also submitted to a journal')
 	myScript = common_tools.get_template('script','fill_new_article.js')
 
-	form = SQLFORM( db.t_articles, keepvalues=True )
+	
+	form = SQLFORM( db.t_articles, fields=['doi', 'ms_version', 'anonymous_submission', 'title', 'authors',  'picture_rights_ok', 'uploaded_picture', 'abstract', 'thematics', 'keywords', 'cover_letter', 'i_am_an_author', 'is_not_reviewed_elsewhere','parallel_submission'], keepvalues=True )
 	form.element(_type='submit')['_value'] = T('Complete your submission')
 	form.element(_type='submit')['_class'] = 'btn btn-success'
 	if form.process().accepted:
@@ -248,11 +247,13 @@ def fill_new_article():
 		redirect(URL(c='user', f='add_suggested_recommender', vars=myVars, user_signature=True))
 	elif form.errors:
 		response.flash = T('Form has errors', lazy=False)
+
+	response.view='default/gab_form_layout.html'	
 	return dict(
 				myHelp = getHelp(request, auth, db, '#UserSubmitNewArticle'),
 				titleIcon="edit",
 				myTitle=getTitle(request, auth, db, '#UserSubmitNewArticleTitle'),
-				myText=getText(request, auth, db, '#UserSubmitNewArticleText'),
+				myText=getText(request, auth, db, '#UserSubmitNewArticleText', maxWidth='800'),
 				form=form, 
 				myFinalScript = SCRIPT(myScript),
 			 ) 

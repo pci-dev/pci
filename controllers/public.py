@@ -106,7 +106,7 @@ def user_public_page():
                 recomms = []
                 for row in recommsQy:
                     recomms.append(
-                        common_snippets.getRecommArticleRowCard(
+                        common_components.getRecommArticleRowCard(
                             auth,
                             db,
                             response,
@@ -137,7 +137,7 @@ def user_public_page():
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
                     reviews.append(
-                        common_snippets.getRecommArticleRowCard(
+                        common_components.getRecommArticleRowCard(
                             auth,
                             db,
                             response,

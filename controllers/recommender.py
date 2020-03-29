@@ -14,7 +14,7 @@ from app_modules import recommender_module
 from app_modules import common_tools
 from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_snippets
+from app_modules import common_components
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -57,7 +57,7 @@ def _awaiting_articles(myVars):
 	myVars = request.vars
 	qyKw = ''
 	qyTF = []
-	
+
 	for myVar in myVars:
 		if isinstance(myVars[myVar], list):
 			myValue = (myVars[myVar])[1]
@@ -109,6 +109,7 @@ def _awaiting_articles(myVars):
 		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.parallel_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
 	else:
 		fields = [temp_db.qy_art.num, temp_db.qy_art.score, temp_db.qy_art.last_status_change, temp_db.qy_art.status, temp_db.qy_art.uploaded_picture, temp_db.qy_art._id, temp_db.qy_art.title, temp_db.qy_art.authors, temp_db.qy_art.article_source, temp_db.qy_art.upload_timestamp, temp_db.qy_art.anonymous_submission, temp_db.qy_art.abstract, temp_db.qy_art.thematics, temp_db.qy_art.keywords, temp_db.qy_art.auto_nb_recommendations]
+	
 	grid = SQLFORM.grid(temp_db.qy_art
 		,searchable=False,editable=False,deletable=False,create=False,details=False
 		,maxtextlength=250,paginate=10
@@ -310,8 +311,8 @@ def article_details():
 
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
+		recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
+		recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
 
 
 		if printable:
@@ -666,8 +667,8 @@ def recommendations():
 		
 		# New recommendation function (WIP)
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-		recommHeaderHtml = common_snippets.getArticleInfosCard(auth, db, response, art, printable, True)
-		recommStatusHeader = common_snippets.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
+		recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
+		recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
 
 		if printable:
 			printableClass = 'printable'

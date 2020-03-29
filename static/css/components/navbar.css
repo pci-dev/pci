@@ -54,6 +54,15 @@
     opacity: 1
 }
 
+.navbar-default .pci-enhancedMenuItem {
+    font-weight: bold;
+}
+
+.navbar-default .pci-enhancedMenuItem .glyphicon{
+	opacity: 1;
+	color: #fcc24d;
+}
+
 .navbar-default .caret {
     display: none;
 }
@@ -74,7 +83,6 @@
 }
 
 .navbar-nav li .pci-enhancedMenuItem .glyphicon {
-    opacity: 0.6;
 }
 
 .navbar-nav li .glyphicon-triangle-bottom {

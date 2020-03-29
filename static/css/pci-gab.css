@@ -139,11 +139,51 @@ div.w2p_flash.alert.custom-disappear {
     /* width: auto; */
 }
 
+.pci-text-button-edit {
+    margin-top: -11px
+}
+
 .pci-lastArticles-div {
     animation: fadeFormTop 0.7s ease;
 }
 
 
+
+.web2py_console form {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+
+.web2py_console #w2p_query_panel,
+.web2py_console .w2p_query_row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+
+
+.web2py_console .w2p_query_row .form-control {
+    width: unset;
+}
+
+.web2py_console .w2p_query_row .btn{   
+    max-height: 20px;
+}
+
+.web2py_console form input[value="Search"]{   
+    background: #93c54b;
+    height: 30px;
+}
+
+.web2py_console form input[value="Clear"]{   
+    background: none;
+    color: #555;
+    box-shadow: none;
+}
 
 
 .main-container {

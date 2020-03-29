@@ -203,30 +203,13 @@ h4.pci2-recomm-article-h2 .glyphicon {
     color: #555;
 }
 
-/* Comment Tree And Form */
+
+
+/* Comment Tree */
 .pci2-comment-tree-div {
     margin-bottom: 20px
 }
 
-.pci2-comment-form-replyto-label b {
-    margin-right: 5px;
-}
-
-.pci2-comment-form-replyto-label i {
-    color: #888
-}
-
-.pci2-comment-form .btn-success {
-    margin: 5px 0;
-}
-
-.pci2-comment-form textarea {
-    resize: none;
-    height: 130px;
-}
-
-
-/* Comment Tree */
 .pci2-comment-div {
     margin-top: 10px;
     padding-top: 5px;
@@ -252,4 +235,23 @@ h4.pci2-recomm-article-h2 .glyphicon {
     margin-top: 5px;
     /* make link lighter than user profile link */
     opacity: 0.75;
+}
+
+
+/* Comment Form */
+.pci2-comment-form-replyto-label b {
+    margin-right: 5px;
+}
+
+.pci2-comment-form-replyto-label i {
+    color: #888
+}
+
+.pci2-comment-form .btn-success {
+    margin: 5px 0;
+}
+
+.pci2-comment-form textarea {
+    resize: none;
+    height: 130px;
 }
