@@ -423,7 +423,7 @@ def _AccountMenu():
 	auth_menu = []
 
 	if auth.is_logged_in():
-		txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), auth.user.first_name)
+		txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), B(auth.user.first_name))
 
 		auth_menu += [
 			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T('Public page')), False,  URL(c='public', f='user_public_page', vars=dict(userId=auth.user.id))),

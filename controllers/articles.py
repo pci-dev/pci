@@ -236,7 +236,7 @@ def rec():
 	reviewRounds = None
 	if with_reviews:
 		# Get review rounds tree
-		reviewRounds = DIV(common_components.getReviewRoundsHtml(auth, db, response, art.id))
+		reviewRounds = DIV(common_components.getPublicReviewRoundsHtml(auth, db, response, art.id))
 
 	commentsTreeAndForm = None
 	if with_comments:

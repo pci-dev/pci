@@ -1,0 +1,37 @@
+<div
+  id="pci-small-header"
+  style="padding-bottom: 7.5px; border-bottom: 1px solid #f4f4f4;"
+  class="pci2-flex-row pci2-align-items-center"
+>
+ 
+  {{if 'titleIcon' in locals():}}
+  <i
+    class="glyphicon glyphicon-{{=titleIcon}}"
+    style="font-size: 36px; margin-left: 15px; color: #598398; opacity: 0.7"
+  ></i>
+  {{pass}} 
+
+  {{if 'uneditableTitle' in locals():}} 
+    {{if 'titleIcon' in locals():}}
+      <div
+        class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey"
+        style="align-items: center;"
+      >
+        {{=H1(myTitle, _style="margin: 0")}}
+      </div>
+    {{else:}}
+      <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
+        {{=H1(myTitle, _style="margin: 0")}}
+      </div>
+    {{pass}} 
+    
+  {{else:}} 
+    {{if 'titleIcon' in locals():}}
+        <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey">
+          {{=myTitle}}
+        </div>
+    {{else:}}
+        <div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
+    {{pass}} 
+  {{pass}}
+</div>

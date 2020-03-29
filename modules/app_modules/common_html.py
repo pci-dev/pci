@@ -656,9 +656,15 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 			truc.append(H3(current.T('Reviews'))+DIV(myReviews, _class='pci-bigtext margin') if len(myReviews) > 0 else '')
 			myRound.append(truc)
 			
-		myContents.append( H2(current.T('Round #%s') % (roundNb)) )
+		if art.already_published :
+			myContents.append( H2(current.T('Postprint recommendation')))
+		else:
+			myContents.append( H2(current.T('Round #%s') % (roundNb)) )
+		
 		if myRound and (recomm.is_closed or art.status == 'Awaiting revision' or art.user_id != auth.user_id):
 			myContents.append(myRound)
+			
+		
 	
 	if auth.has_membership(role='manager') and not(art.user_id==auth.user_id) and not(printable) and not (quiet):
 		if art.status == 'Pending':

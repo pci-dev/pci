@@ -93,55 +93,6 @@ div.w2p_flash.alert.custom-disappear {
     text-align: center;
 }
 
-#pci-small-header {
-    animation: fadefromLeft 0.7s ease;
-    margin: 0 15px;
-    display: flex;
-    flex-direction: row;
-}
-
-#pci-small-header>a {
-    margin: 0 15px;
-}
-
-.pci-myTitleText-gab {
-    display: flex;
-    flex: 1;
-    margin-left: 15px;
-}
-
-.pci-myTitleText-gab>.pci-infotextbox {
-    color: #598398;
-}
-
-.pci-myTitleText-gab-grey>.pci-infotextbox {
-    color: #888;
-}
-
-.pci-myTitleText-gab-grey>h1 {
-    color: #888;
-}
-
-.pci-myTitleText-gab>.pci-infotextbox {
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-}
-
-.pci-myTitleText-gab .pci-text-buttons {
-    justify-content: flex-end;
-    /* align-content: flex-end; */
-    text-align: right;
-    display: flex;
-    flex-direction: row;
-    /* position: absolute; */
-    /* width: auto; */
-}
-
-.pci-text-button-edit {
-    margin-top: -11px
-}
 
 .pci-lastArticles-div {
     animation: fadeFormTop 0.7s ease;
@@ -150,6 +101,7 @@ div.w2p_flash.alert.custom-disappear {
 
 
 .web2py_console form {
+    max-width: 1200px;
     margin: 0;
     display: flex;
     flex-direction: row;
@@ -162,6 +114,19 @@ div.w2p_flash.alert.custom-disappear {
     display: flex;
     flex-direction: row;
     align-items: center;
+    max-width: 1200px;
+}
+
+
+.web2py_console .w2p_query_row{
+    flex: 1;
+}
+.web2py_console .w2p_query_row input[type="text"]{
+    flex:1;
+}
+
+.web2py_console form #w2p_keywords{
+    width: 100%;
 }
 
 
@@ -193,13 +158,6 @@ div.w2p_flash.alert.custom-disappear {
 .footer {
     opacity: 0;
     animation: animOpacity 0.7s ease 0.4s forwards;
-}
-
-
-@media (min-width: 768px) {
-    .navbar-right {
-        margin-right: 0px;
-    }
 }
 
 

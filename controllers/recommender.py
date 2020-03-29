@@ -31,7 +31,8 @@ trgmLimit = myconf.take('config.trgm_limit') or 0.4
 ######################################################################################################################################################################
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role='recommender'))
-def _awaiting_articles(myVars):
+def fields_awaiting_articles():
+	myVars = request.vars
 	# We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
 	temp_db = DAL('sqlite:memory')
 	qy_art = temp_db.define_table('qy_art',
@@ -69,7 +70,7 @@ def _awaiting_articles(myVars):
 			qyTF.append(re.sub(r'^qy_', '', myVar))
 	qyKwArr = qyKw.split(' ')
 
-	search = common_forms.getSearchForm(auth, db, myVars)
+	searchForm = common_forms.getSearchForm(auth, db, myVars)
 
 	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Awaiting consideration', trgmLimit, True], as_dict=True)
 	
@@ -124,31 +125,13 @@ def _awaiting_articles(myVars):
 				#myTitle=T('Articles requiring a recommender'), 
 				titleIcon='inbox', 
 				myTitle=getTitle(request, auth, db, '#RecommenderAwaitingArticlesTitle'),
-				myText=getText(request, auth, db, '#RecommenderAwaitingArticlesText'),
+				myText=getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:InMyFields'),
 				grid=grid, 
+				myHelp=getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:InMyFields'),
 
 				searchableList = True,
-				search = search
+				searchForm = searchForm
 			)
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
-def fields_awaiting_articles():
-	resu = _awaiting_articles(request.vars)
-	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:InMyFields')
-	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:InMyFields')
-	return resu
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role='recommender'))
-def all_awaiting_articles():
-	myVars = request.vars
-	for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-		myVars['qy_'+thema.keyword] = 'on'
-	resu = _awaiting_articles(myVars)
-	resu['myHelp'] = getHelp(request, auth, db, '#RecommenderArticlesAwaitingRecommendation:All')
-	resu['myText'] = getText(request, auth, db, '#RecommenderArticlesAwaitingRecommendationText:All')
-	return resu
 
 
 ######################################################################################################################################################################
@@ -847,7 +830,8 @@ def reviewers():
 		if len(reviewersList)>0:
 			myContents = DIV(
 				H3(T('Reviewers already invited:')),
-				UL(reviewersList)
+				UL(reviewersList),
+				_style="width:100%; max-width: 1200px"
 			)
 		else:
 			myContents = ''
@@ -855,7 +839,7 @@ def reviewers():
 		myUpperBtn = DIV(
 							A(SPAN(current.T('Choose a reviewer from %s database')%(longname), _class='btn btn-success'), _href=URL(c='recommender', f='search_reviewers', vars=dict(recommId=recommId, myGoal='4review', exclude=excludeList))),
 							A(SPAN(current.T('Choose a reviewer outside %s database')%(longname), _class='btn btn-default'), _href=URL(c='recommender', f='email_for_new_reviewer', vars=dict(recommId=recommId))),
-							_style='margin-top:8px; margin-bottom:16px; text-align:left;'
+							_style='margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%'
 						)
 		if auth.user_id == recomm.recommender_id:
 			myAcceptBtn = DIV(A(SPAN(T('Done'), _class='btn btn-info'), _href=URL(c='recommender', f='my_recommendations', vars=dict(pressReviews=False))), _style='margin-top:16px; text-align:center;')
@@ -1317,10 +1301,14 @@ def add_contributor():
 									   _href=URL(c='recommender_actions', f='del_contributor', vars=dict(pressId=con.t_press_reviews.id)), 
 									   _title=T('Delete this co-recommender')) #, _style='margin-left:8px; color:red;'),
 									))
-		myContents = DIV(
-			LABEL(T('Co-recommenders:')),
-			UL(contributorsList),
-		)
+		if len(contributorsList) > 0:
+			myContents = DIV(
+				LABEL(T('Co-recommenders:')),
+				UL(contributorsList),
+			)
+		else: 
+			myContents = ''
+
 		myAcceptBtn = DIV(mkBackButton('Done', target=goBack), _style='width:100%; text-align:center;')
 		myBackButton = ''
 		db.t_press_reviews._id.readable = False
@@ -1335,7 +1323,6 @@ def add_contributor():
 		db.t_press_reviews.contributor_id.requires = IS_IN_DB(otherContribsQy, db.auth_user.id, '%(last_name)s, %(first_name)s')
 		form = SQLFORM(db.t_press_reviews)
 		form.element(_type='submit')['_value'] = T("Add")
-		form.element(_type='submit')['_style'] = 'margin-right:300px;'
 		form.element(_type='submit')['_class'] = 'btn btn-info '+roleClass
 		if form.process().accepted:
 			redirect(URL(c='recommender', f='add_contributor', vars=dict(recommId=recomm.id, goBack=goBack, onlyAdd=onlyAdd)))

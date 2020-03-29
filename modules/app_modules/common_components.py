@@ -221,7 +221,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         printable=printable,
     )
 
-    return XML(response.render("components/edit_recomm_buttons.html", snippetVars))
+    return XML(response.render("components/recommendation_header.html", snippetVars))
 
 
 ######################################################################################################################################################################
@@ -304,7 +304,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
                                 auth,
                                 db,
                                 hideSubmitter,
-                                (submitter.first_name or "") + " " + (submitter.last_name or ""),
+                                B(common_small_html.mkUser_U(auth, db, submitter, linked=True)),
                             )
                         ),
                         I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
@@ -317,7 +317,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
 
     return XML(response.render("components/article_infos_card.html", articleContent))
 
-
+######################################################################################################################################################################
 def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
     if fullURL:
         scheme = myconf.take("alerts.scheme")
@@ -433,7 +433,7 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable,
     # Get METADATA (see next function)
     recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfLink, citeNum, scheme, host, port)
 
-    headerHtml = XML(response.render("components/recommendation_header.html", headerContent))
+    headerHtml = XML(response.render("components/last_recommendation.html", headerContent))
     return dict(headerHtml=headerHtml, recommMetadata=recommMetadata)
 
 
@@ -490,7 +490,7 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
 
 
 ######################################################################################################################################################################
-def getReviewRoundsHtml(auth, db, response, articleId):
+def getPublicReviewRoundsHtml(auth, db, response, articleId):
     recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
 
     recommRound = len(recomms)
@@ -587,7 +587,7 @@ def getReviewRoundsHtml(auth, db, response, articleId):
 
         indentationLeft += 16
 
-        reviewRoundsHtml.append(XML(response.render("components/review_rounds.html", snippetVars)))
+        reviewRoundsHtml.append(XML(response.render("components/public_review_rounds.html", snippetVars)))
 
     return reviewRoundsHtml
 

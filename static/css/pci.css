@@ -678,19 +678,21 @@ header {
 	/* padding-right: 10%; */
 	display: flex;
     flex-direction: column;
-    align-items: center;
+	align-items: center;
 }
 
 .pci-infotext {
 	text-align: justify;
 	width: 100%;
 	max-width: 1200px;
+	padding: 0 15px;
 }
 
 .pci-text-buttons {
 	text-align: right;
 	width: 100%;
 	max-width: 1200px;
+	padding: 0 15px;
 	/* margin-top: -11px; */
 }
 

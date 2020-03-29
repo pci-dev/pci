@@ -1,7 +1,7 @@
 
 .pci2-search-form {
     width: 100%;
-    max-width: 900px;
+    max-width: 1200px;
 }
 
 .pci2-thematics-div {
@@ -44,9 +44,19 @@
 
 .pci2-thematics-list {
     display: grid;
-    max-width: 900px;
-    grid-template-columns: repeat(auto-fit, 220px);
+    max-width: 1200px;
+    grid-template-columns: repeat(auto-fit, 295px);
 }
+
+.pci2-thematics-list label{
+    margin-bottom: 0;
+    padding-left: 10px;
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 
 .pci2-thematics-button {
     margin: 5px 0;

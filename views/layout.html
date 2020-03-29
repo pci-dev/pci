@@ -35,14 +35,12 @@
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
     
     <link rel="stylesheet" href="{{=URL('static','css/components/navbar.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/components/page-title.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/recommendations.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/buttons.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/thematic-search.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/user-public-profile.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/web2py-forms.css')}}"/>
-
-
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
 
   
     <!-- All JavaScript at the bottom, except for Modernizr which enables
@@ -118,34 +116,10 @@
     {{block header}}
     {{end}}
     <!-- Main ========================================= -->
-    <!-- Title -->
-    {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
-    <div id="pci-small-header" style="padding-bottom: 7.5px; border-bottom: 1px solid #f4f4f4;" class="pci2-flex-row pci2-align-items-center">
-      <!-- <a  href="{{=URL(c='default', f='index')}}">
-        <img src="{{=URL(c='static', f='images/small-background.png')}}" class="pci-imgLogo">
-      </a> -->
-      {{if 'titleIcon' in locals():}}
-        <i class="glyphicon glyphicon-{{=titleIcon}}" style="font-size: 36px; margin-left: 15px; color: #598398; opacity: 0.7"></i>
-      {{pass}}
 
-      {{if 'uneditableTitle' in locals():}}
-        {{if 'titleIcon' in locals():}}
-          <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey" style="align-items: center;">
-            {{=H1(myTitle, _style="margin: 0")}}
-          </div>
-        {{else:}}
-          <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
-            {{=H1(myTitle, _style="margin: 0")}}
-          </div>
-        {{pass}}
-      {{else:}}
-        {{if 'titleIcon' in locals():}}
-          <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey">{{=myTitle}}</div>
-        {{else:}}
-          <div class="pci-myTitleText pci-myTitleText-gab" >{{=myTitle}}</div>
-        {{pass}}
-      {{pass}}
-    </div>      
+    <!-- Page Title -->
+    {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
+      {{include 'snippets/page_title.html'}}   
     {{pass}}
 
     <!-- Begin page content -->

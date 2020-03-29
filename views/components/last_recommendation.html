@@ -1,0 +1,54 @@
+
+
+
+
+{{if 'recommTitle' in locals():}}
+  <div class="pci2-recomm-title">
+    {{=H1(recommTitle)}}
+    <div class="pci2-flex-row">
+      <div class="pci2-flex-grow pci2-align-items-center">
+        {{=I(recommAuthor)}}
+      </div>
+    </div>
+  </div>
+{{pass}}
+
+
+{{if recomm_altmetric != '' :}}
+<div class="pci2-full-width" style="margin-bottom: 10px;">
+  {{=recomm_altmetric}}
+</div>
+{{pass}}
+
+
+{{if 'recommTitle' in locals():}}
+{{=SPAN('A recommendation of:', _class='pci-recommOf', _style="color:#aaa")}}
+{{pass}}
+
+
+{{=articleInfosCard}}
+
+
+
+{{if 'recommText' in locals():}}
+  {{=DIV(recommDateinfos, _style="margin-bottom:20px")}} 
+
+  {{if printable:}}
+    <div style="page-break-before: always"></div>
+    <div style="height: 10px;"></div>
+  {{pass}}
+
+  <div>
+    <b class="pci2-recomm-text-label">Recommendation</b>
+    <div class="pci2-recomm-text">
+
+      {{=DIV(recommText)}} 
+
+      {{if pdfLink is not None:}}
+        {{=DIV(pdfLink)}}
+      {{pass}}
+    </div>
+
+    {{=DIV(cite)}}
+  </div>
+{{pass}}
