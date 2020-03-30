@@ -7,7 +7,7 @@
     width: 100%;
 }
 
-.pci2-half-opacity{
+.pci2-half-opacity {
     opacity: 0.5;
 }
 
@@ -91,5 +91,15 @@
     .pci2-align-items-center-under-tablet {
         justify-content: center;
         align-items: center;
+    }
+
+    .col-md-9 {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .pci2-flex-column-mobile {
+        flex-direction: column;
     }
 }

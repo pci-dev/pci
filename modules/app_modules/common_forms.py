@@ -33,6 +33,14 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
 			checkbox = INPUT(_name='qy_'+thematic.keyword, _type='checkbox', value=('qy_'+thematic.keyword in myVars), keepvalues=True)
 		thematicsList.append(DIV( LABEL( checkbox, thematic.keyword, _style='font-weight: normal;')))
 	
+	print(searchedThematics)
+	if searchedThematics >= 1:
+		iconPanelCLass = 'glyphicon-rotate-reversed'
+		panelCLass = ''
+	else:
+		iconPanelCLass = 'glyphicon-rotate'
+		panelCLass = 'pci2-panel-closed'
+
 	return FORM(
  		DIV(
     		DIV(
@@ -51,7 +59,7 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
 		DIV(
 			A(
 				SPAN(current.T('Filter by thematic fields'), _class='pci2-flex-grow'),
-				I('',_class='glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate'),
+				I('',_class='glyphicon glyphicon-chevron-up pci2-icon-rotating ' + iconPanelCLass),
 				_class='pci2-thematic-link',
 				_onclick='''
 					if( jQuery(".pci2-thematics-div" ).hasClass("pci2-panel-closed")) { 
@@ -86,7 +94,7 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
     		  		_onclick='jQuery("input[type=checkbox]").each(function(k){if (this.name.match("^qy_")) {jQuery(this).prop("checked", !jQuery(this).prop("checked"));} });'
 				)
 			),
-			_class='pci2-thematics-div pci2-panel-closed'
+			_class='pci2-thematics-div ' + panelCLass
 		),
 		_class='pci2-search-form'
 	)

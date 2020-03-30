@@ -197,7 +197,7 @@ def _UserMenu():
 	if nRevPend > 0:
 		txtRevPend = SPAN(txtRevPend, _class='pci-enhancedMenuItem')
 		contribMenuClass = 'pci-enhancedMenuItem'
-		# notificationPin = DIV(nRevPend,_class='pci2-notif-pin')
+		notificationPin = DIV(nRevPend,_class='pci2-notif-pin')
 
 	myContributionsMenu.append((txtRevPend, False, URL('user', 'my_reviews', vars=dict(pendingOnly=True), user_signature=True)))
 
@@ -231,12 +231,15 @@ def _UserMenu():
 
 
 	return [
-        (SPAN(I(_class="glyphicon glyphicon-edit"), T('Contribute'), _class=contribMenuClass), isActive, '#', myContributionsMenu),
+        (SPAN(I(_class="glyphicon glyphicon-edit"), T('Contribute'), notificationPin , _class=contribMenuClass), isActive, '#', myContributionsMenu),
 	]
 
 def _RecommendationMenu():
 	ctr = request.controller
 	isActive = False
+	
+	notificationPin = ''
+
 	if ctr == 'recommender':
 		isActive = True
 
@@ -259,6 +262,8 @@ def _RecommendationMenu():
 	if nPreprintsRecomPend > 0:
 		txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class='pci-enhancedMenuItem')
 		colorRequests = True
+		notificationPin = DIV(nPreprintsRecomPend,_class='pci2-notif-pin')
+
 
 	recommendationsMenu.append((txtPreprintsRecomPend,False, 
 							URL('recommender', 'my_awaiting_articles', vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))) 
@@ -289,9 +294,7 @@ def _RecommendationMenu():
 
 	recommendationsMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T('Consider preprint submissions'), _class='pci-recommender'), False, 
 							URL('recommender', 'fields_awaiting_articles', user_signature=True)))
-	# (gab) proposition :
 	recommendationsMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T('Recommend a postprint')), False, URL('recommender', 'new_submission', user_signature=True)))
-	# (gab) fin 
 
 
 	recommendationsMenu.append(LI(_class="divider"))
@@ -304,10 +307,8 @@ def _RecommendationMenu():
 	
 	
 	if colorRequests:
-		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs_enhanced.png'), _class='pci-menuImage')
-		requestsMenuTitle = SPAN(SPAN(I(_class="glyphicon glyphicon-education"), T('Recommend'), _class='pci-recommender'), _class='pci-enhancedMenuItem')
+		requestsMenuTitle = SPAN(SPAN(I(_class="glyphicon glyphicon-education"), T('Recommend'), notificationPin, _class='pci-recommender'), _class='pci-enhancedMenuItem')
 	else:
-		#requestsMenuTitle = IMG(_title=T('Requests for input'), _alt=T('Requests for input'), _src=URL(c='static', f='images/inputs.png'), _class='pci-menuImage')
 		requestsMenuTitle = SPAN(I(_class="glyphicon glyphicon-education"), T('Recommend'), _class='pci-recommender')
 
 	return [
@@ -318,29 +319,28 @@ def _RecommendationMenu():
 def _ManagerMenu():
 	ctr = request.controller
 	isActive = False
+	notificationPin = ''
 	if ctr == 'manager':
 		isActive = True
 
-	#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage.png'), _class='pci-menuImage')
 	txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T('Manage'))
 	
 	nbPend = db( db.t_articles.status.belongs(('Pending', 'Pre-recommended', 'Pre-revision', 'Pre-rejected')) ).count()
 	txtPending = str(nbPend)+' '+(T('Pending validations') if nbPend > 1 else T('Pending validation'))
 	if nbPend>0:
 		txtPending = SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-time"), txtPending, _class='pci-enhancedMenuItem'), _class='pci-manager')
-		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 		txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T('Manage'), _class='pci-enhancedMenuItem')
+		notificationPin = DIV(nbPend,_class='pci2-notif-pin')
 	
 	nbGoing = db( db.t_articles.status.belongs(('Under consideration', 'Awaiting revision', 'Awaiting consideration')) ).count()
 	txtGoing = str(nbGoing)+' '+(T('Recommendation processes underway') if nbGoing > 1 else T('Recommendation process underway'))
 	if nbGoing>0:
 		txtGoing = SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-refresh"), txtGoing, _class='pci-enhancedMenuItem'), _class='pci-manager')
-		#txtMenu = IMG(_title=T('Manage'), _alt=T('Manage'), _src=URL(c='static', f='images/manage_enhanced.png'), _class='pci-menuImage')
 		txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T('Manage'), _class='pci-enhancedMenuItem')
 
 
 	return [
-        (SPAN(txtMenu, _class='pci-manager'), isActive, '#', [
+        (SPAN(txtMenu, notificationPin, _class='pci-manager'), isActive, '#', [
 			(txtPending, False, URL('manager', 'pending_articles', user_signature=True)),
 			(txtGoing, False, URL('manager', 'ongoing_articles', user_signature=True)),
 			(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T('Recommenders\' tasks underway')),  False, URL('manager', 'all_recommendations', user_signature=True)),

@@ -160,6 +160,13 @@ div.w2p_flash.alert.custom-disappear {
     animation: animOpacity 0.7s ease 0.4s forwards;
 }
 
+@media (max-width: 600px) {
+    .main-container{
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+}
+
 
 @keyframes animOpacity {
     from {

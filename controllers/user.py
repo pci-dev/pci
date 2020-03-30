@@ -560,7 +560,7 @@ def my_reviews():
 	#links = [dict(header='toto', body=lambda row: row.t_articles.id),]
 	links = [
 			dict(header=T(''), 
-					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-reviewer'), 
+					body=lambda row: A(SPAN(btnTxt, _class='buttontext btn btn-default pci-reviewer pci-button'), 
 									_href=URL(c='user', f='recommendations', vars=dict(articleId=row.t_articles.id), user_signature=True), 
 									_class='button', 
 									_title=current.T('View and/or edit review')

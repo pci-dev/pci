@@ -5,7 +5,7 @@
     /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02),
         0 2px 4px rgba(0, 0, 0, 0.02),
         0 4px 8px rgba(0, 0, 0, 0.02); */
-    
+
     margin-bottom: 15px;
 }
 
@@ -60,9 +60,9 @@
     font-weight: bold;
 }
 
-.navbar-default .pci-enhancedMenuItem .glyphicon{
-	opacity: 1;
-	color: #fcc24d;
+.navbar-default .pci-enhancedMenuItem .glyphicon {
+    opacity: 1;
+    color: #fcc24d;
 }
 
 .navbar-default .caret {
@@ -82,9 +82,6 @@
 
 .pci2-icon-margin-right {
     margin-right: 7.5px;
-}
-
-.navbar-nav li .pci-enhancedMenuItem .glyphicon {
 }
 
 .navbar-nav li .glyphicon-triangle-bottom {
@@ -127,11 +124,11 @@
     min-width: 60px;
 }
 
-.navbar-default .navbar-nav .web2py-menu-first{
+.navbar-default .navbar-nav .web2py-menu-first {
     margin-right: 15px;
 }
 
-.navbar-default .navbar-nav .web2py-menu-first>a{
+.navbar-default .navbar-nav .web2py-menu-first>a {
     padding: 0;
 }
 
@@ -173,6 +170,33 @@
     margin-right: 5px;
 }
 
+
+.pci2-notif-pin {
+    position: absolute;
+    height: 17px;
+    min-width: 17px;
+    font-size: 8px;
+    line-height: 8px;
+
+    margin-top: -10px;
+    margin-left: 15px;
+    align-self: center;
+
+    border-radius: 13px;
+    color: #fff;
+    background: #cc0e0e;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+.pci-footer-li .pci2-notif-pin {
+    display: none;
+}
 
 @media (min-width: 768px) {
     .navbar-right {

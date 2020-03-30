@@ -296,6 +296,7 @@ header {
 	text-align: center;
 	padding: 10px;
 	border-radius: 5px;
+	width: 100%;
 }
 
 .pci-status-big.warning:not(.printable) {

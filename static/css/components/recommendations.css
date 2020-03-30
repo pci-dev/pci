@@ -255,3 +255,14 @@ h4.pci2-recomm-article-h2 .glyphicon {
     resize: none;
     height: 130px;
 }
+
+@media (max-width: 600px){
+
+    .pci2-article-left-div{
+        margin-bottom: 10px;
+    }
+
+    #pci-ArticleHeader img{
+        display: none;
+    }
+}

@@ -87,7 +87,7 @@ def index():
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
-			myBottomPanel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterBottomPanel', _style="overflow: hidden; padding: 0"),
+			myBottomPanel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterBottomPanel pci2-hide-under-tablet', _style="overflow: hidden; padding: 0"),
 			shareable=True,
 			script=myScript,
 		)
@@ -97,7 +97,7 @@ def index():
 			myText=getText(request, auth, db, '#HomeInfo'),
 			myHelp=getHelp(request, auth, db, '#Home'),
 			form=form,
-			panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterPanel', _style="overflow: hidden; padding: 0"),
+			panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class='tweeterPanel pci2-hide-under-tablet', _style="overflow: hidden; padding: 0"),
 			shareable=True,
 			script=myScript,
 		)

@@ -92,9 +92,9 @@ def last_recomms():
 			DIV(
 				A(current.T('More...'), _id='moreLatestBtn',
 					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
-					_class='btn btn-default'+moreState, _style='margin-left:8px; margin-bottom:8px;'
+					_class='btn btn-default'+moreState,
 				),
-				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default', _style='margin-left:32px; margin-bottom:8px;'),
+				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default'),
 				_style='text-align:center;'
 			),
 			_class='pci-lastArticles-div',
