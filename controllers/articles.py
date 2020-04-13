@@ -226,7 +226,7 @@ def rec():
 	nbReviews = (nbRevs + (nbRecomms-1))
 	
 	# Recommendation Header and Metadata
-	recommendationHeader = common_components.getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable)
+	recommendationHeader = common_components.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
 	recommHeaderHtml = recommendationHeader['headerHtml']
 	recommMetadata = recommendationHeader['recommMetadata']
 

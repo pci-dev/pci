@@ -13,7 +13,7 @@
         href="{{=URL(c='user', f='edit_my_article', vars=dict(articleId=articleId), user_signature=True)}}"
       >
   			<i class="glyphicon glyphicon-edit"></i>
-  		  Edit article 
+  		  {{=T('Edit article')}} 
   	  </a>
       {{pass}}
       
@@ -22,7 +22,7 @@
         href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId), user_signature=True)}}"
       >
   		  <i class="glyphicon glyphicon-edit"></i>
-        Manage this request 
+        {{=T('Edit article reference')}} 
       </a>
       {{pass}}
       
@@ -31,7 +31,7 @@
         href="{{=URL(c='manager', f='manage_recommendations', vars=dict(articleId=articleId), user_signature=True)}}"
       >
         <i class="glyphicon glyphicon-edit"></i>
-        Manage recommendation 
+        {{=T('Manage recommendation')}} 
       </a>
       {{pass}}
     
@@ -40,7 +40,7 @@
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right" target="_blank"
         href="{{=printableUrl}}"
       >
-  		  Printable page
+  		  {{=T('Printable page')}}
   		  <i class="glyphicon glyphicon-print"></i>
   	  </a>
     

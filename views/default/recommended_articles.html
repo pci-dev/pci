@@ -11,15 +11,28 @@
 
 {{if 'recommHeaderHtml' in locals() and 'recommStatusHeader' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
-  <div style="max-width: 800px; width: 100%;">
+  	<div style="max-width: 800px; width: 100%;">
 		{{=recommStatusHeader}}
 		{{=recommHeaderHtml}}
 	</div>
 </div>
 {{pass}}
 
+
+{{if 'recommTopButtons' in locals():}}
+<div class="pci2-flex-column pci2-align-items-center">
+	<div style="max-width: 800px; width: 100%;">
+		{{=recommTopButtons}}
+	</div>
+</div>
+{{pass}}
+
+
+
 {{if 'myContents' in locals():}}
-<div>			
+<div class="pci2-flex-column pci2-align-items-center">
+	<div style="max-width: 800px; width: 100%;">
 	{{=myContents}}
+	</div>
 </div>
 {{pass}}

@@ -159,7 +159,7 @@ Cypress.Commands.add("pciDeleteWithTestLastArticle", articleTitle => {
     .first()
     .click();
 
-  cy.contains("a", "Manage this request").click();
+  cy.contains("a", "Edit article reference").click();
 
   cy.get("#delete_record").click();
 

@@ -1,0 +1,89 @@
+<!-- divider to separate review rounds -->
+{{if not printable :}}
+<hr/>
+{{pass}}
+
+<div>
+
+  {{if printable:}}
+    <div style="page-break-before: always"></div>
+  {{pass}}
+
+  <h2 class="pci2-revision-round-title" style="margin-bottom: 25px;"><i>Postprint recommendation</i></h2>
+
+  <!-- Recommendation -->
+  {{if showRecommendation:}}
+  {{=recommendationTitle}}
+
+  {{if recommendationText or editRecommendationLink:}}
+    <div style="margin-top: 20px;">
+      
+      <b class="pci2-recomm-text-label">{{=T('Recommendation')}}</b>
+     
+      <div class="pci2-recomm-text">
+
+        {{=recommendationText}}
+
+        {{if editRecommendationLink:}}
+        <div class="pci2-flex-column pci2-flex-center pci2-full-width">
+          <a class="buttontext btn btn-default"  href="{{=editRecommendationLink}}">
+            {{=T('Write or edit your decision / recommendation')}}
+          </a>
+        </div>
+        {{pass}}
+
+        {{if 'recommendationPdfLink' in locals() and recommendationPdfLink:}}
+          {{=recommendationPdfLink}}
+        {{pass}}
+      </div>
+    </div>
+  {{pass}}
+
+  {{=recommendationAuthor}}
+
+  {{if recommendationDoi:}}
+    <br/>
+    {{=recommendationDoi}}
+  {{pass}}
+  
+  <br/>
+  {{=manuscriptDoi}}
+
+  {{if 'recommendationVersion' in locals():}}
+    <br/>
+    {{=recommendationVersion}}
+  {{pass}}
+  {{pass}}
+  <div style="margin: 20px 0; max-width: 800px; width: 100%; text-align: center">
+    
+
+    {{if addContributorLink:}}
+      <a class="buttontext btn btn-info"  href="{{=addContributorLink}}">
+        {{=T('You have to add at least one contributor in order to collectively validate this recommendation')}}
+      </a>
+    {{pass}}
+
+    {{if sendRecommendationLink:}}
+      <a class="buttontext btn btn-success {{if isRecommendationTooShort:}} disabled {{pass}}"  href="{{=sendRecommendationLink}}">
+        {{if isRecommendationTooShort:}}
+          {{=T('Recommendation text too short for allowing submission')}}
+        {{else:}}
+          {{=T('Send your recommendation to the managing board for validation')}}
+        {{pass}}
+      </a>
+    {{pass}}
+
+    {{if cancelSubmissionLink:}}
+      <a class="buttontext btn btn-warning"  href="{{=cancelSubmissionLink}}">
+        {{=T('Cancel this postprint recommendation')}}
+      </a>
+    {{pass}}
+
+    {{if validateRecommendationLink:}}
+      <a class="buttontext btn btn-success"  href="{{=validateRecommendationLink}}">
+        {{=T('Validate this recommendation')}}
+      </a>
+    {{pass}}
+
+  </div>
+</div>

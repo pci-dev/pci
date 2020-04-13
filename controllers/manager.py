@@ -251,15 +251,18 @@ def recommendations():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 
-	myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
-	myContents.append(HR())
-		
+	if art.already_published:
+		myContents = common_components.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+	else:
+		myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+			
 	response.title = (art.title or myconf.take('app.longname'))
 
 	# New recommendation function (WIP)
 	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 	recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
 	recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'manager', request, False, printable, quiet=False)
+	recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 	
 	if printable:
 		printableClass = 'printable'
@@ -273,6 +276,8 @@ def recommendations():
 				viewToRender = viewToRender,
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
+				recommTopButtons = recommTopButtons or '',
+				
 				printable = printable,
 
 				myHelp = getHelp(request, auth, db, '#ManagerRecommendations'),

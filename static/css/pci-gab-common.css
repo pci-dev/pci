@@ -3,6 +3,10 @@
     width: 100%;
 }
 
+.pci2-content-1200px {
+    max-width: 1200px;
+    width: 100%;
+}
 .pci2-full-width {
     width: 100%;
 }

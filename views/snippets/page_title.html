@@ -6,8 +6,7 @@
  
   {{if 'titleIcon' in locals():}}
   <i
-    class="glyphicon glyphicon-{{=titleIcon}}"
-    style="font-size: 36px; margin-left: 15px; color: #598398; opacity: 0.7"
+    class="glyphicon glyphicon-{{=titleIcon}} pci-icon-title"
   ></i>
   {{pass}} 
 
@@ -15,9 +14,8 @@
     {{if 'titleIcon' in locals():}}
       <div
         class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey"
-        style="align-items: center;"
       >
-        {{=H1(myTitle, _style="margin: 0")}}
+        {{=DIV(myTitle, _class="pci-text-title")}}
       </div>
     {{else:}}
       <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">

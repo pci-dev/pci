@@ -286,8 +286,10 @@ def article_details():
 				SPAN(' this suggestion.'),
 				_class="pci-alreadyUnderProcess")
 		else:
-			myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
-			myContents.append(HR())
+			if art.already_published:
+				myContents = common_components.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+			else:
+				myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
 		
 		response.title = (art.title or myconf.take('app.longname'))
 
@@ -296,6 +298,7 @@ def article_details():
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 		recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
 		recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
+		recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
 
 		if printable:
@@ -311,6 +314,7 @@ def article_details():
 				viewToRender = viewToRender,
 				recommHeaderHtml = recommHeaderHtml,
 				recommStatusHeader = recommStatusHeader,
+				recommTopButtons = recommTopButtons or '',
 				printable = printable,
 
 				myHelp = getHelp(request, auth, db, '#RecommenderArticlesRequiringRecommender'),
@@ -423,7 +427,6 @@ def my_awaiting_articles():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role='recommender'))
 def accept_new_article_to_recommend():
-	response.view='default/info.html'
 
 	if not('articleId' in request.vars):
 		session.flash = auth.not_authorized()
@@ -455,8 +458,9 @@ def accept_new_article_to_recommend():
 					),
 					hidden=dict(articleId=articleId, ethics_approved=True),
 					_action=URL('recommender_actions', 'do_accept_new_article_to_recommend'),
+					_class="pci2-content-1200px"
 				),
-				#_class="pci-embeddedEthic",
+				_class="pci2-flex-center",
 			)
 		myScript = SCRIPT(common_tools.get_template('script', 'accept_new_article_to_recommend.js'))
 
@@ -465,6 +469,8 @@ def accept_new_article_to_recommend():
 			getText(request, auth, db, '#AcceptPreprintInfoText'),
 			myEthical,
 	)
+
+	response.view='default/info.html'
 	return dict(
 		myText=myText,
 		titleIcon="education",
@@ -642,9 +648,11 @@ def recommendations():
 		session.flash = auth.not_authorized()
 		redirect(request.env.http_referer)
 	else:
-
-		myContents = common_html.mkFeaturedArticle(auth, db, art, printable, quiet=False)
-		myContents.append(HR())
+		if art.already_published:
+			myContents = common_components.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+		else:
+			myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+			
 		
 		response.title = (art.title or myconf.take('app.longname'))
 		
@@ -652,6 +660,7 @@ def recommendations():
 		finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
 		recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
 		recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, 'recommender', request, False, printable, quiet=False)
+		recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
 		if printable:
 			printableClass = 'printable'
@@ -666,6 +675,7 @@ def recommendations():
 				viewToRender=viewToRender,
 				recommStatusHeader = recommStatusHeader,
 				recommHeaderHtml = recommHeaderHtml,
+				recommTopButtons = recommTopButtons or '',
 				printable = printable,
 
 				myHelp = getHelp(request, auth, db, '#RecommenderOtherRecommendations'),

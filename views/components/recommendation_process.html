@@ -1,0 +1,141 @@
+<!-- divider to separate review rounds -->
+{{if not printable :}}
+<hr/>
+{{pass}}
+
+<div>
+
+  {{if printable:}}
+    <div style="page-break-before: always"></div>
+  {{pass}}
+
+  <h2 class="pci2-revision-round-title" style="margin-bottom: 25px;"><i>Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
+
+  <!-- Authors Reply -->
+  {{if authorsReply is not None or editAuthorsReplyLink is not None:}}
+    <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
+    <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
+      {{if authorsReply:}}
+        {{=authorsReply}}
+      {{pass}}
+
+      {{if authorsReplyPdfLink is not None:}}
+        {{=authorsReplyPdfLink}}
+      {{pass}}
+
+      {{if authorsReplyTrackChangeFileLink is not None:}}
+        {{=authorsReplyTrackChangeFileLink}}
+      {{pass}}
+
+      {{if editAuthorsReplyLink:}}
+        <a class="buttontext btn btn-default" 
+          href="{{=editAuthorsReplyLink}}"
+        >
+          {{=T('Write, edit or upload your reply to the recommender')}}
+        </a>
+      {{pass}}
+    </div>
+  {{pass}}
+
+  <!-- Decision or recommendation -->
+  {{=recommendationTitle}}
+
+  {{if recommendationText or editRecommendationLink:}}
+    <div style="margin-top: 20px;">
+      
+      {{if recommendationLabel:}}
+        {{if recommendationLabel == "Recommendation":}}
+          <b class="pci2-recomm-text-label">{{=recommendationLabel}}</b>
+        {{else:}}
+          <b class="pci2-recomm-text-label">{{=recommendationLabel}} {{=T('for round')}} #{{=roundNumber}}</b>
+        {{pass}}
+     {{pass}}
+     
+      <div class="pci2-recomm-text">
+
+        {{=recommendationText}}
+
+        {{if editRecommendationLink:}}
+        <div class="pci2-flex-column pci2-flex-center pci2-full-width">
+          
+            {{if editRecommendationDisabled:}}
+              <i style="font-size: 12px;">{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}</i>
+            {{pass}}
+
+            <a class="buttontext btn btn-default {{if editRecommendationDisabled:}}disabled{{pass}}" 
+              href="{{=editRecommendationLink}}"
+            >
+              {{=editRecommendationButtonText}}
+            </a>
+          </div>
+        {{pass}}
+
+        {{if recommendationPdfLink:}}
+          {{=recommendationPdfLink}}
+        {{pass}}
+      </div>
+    </div>
+  {{pass}}
+
+  {{=recommendationAuthor}}
+  <br/>
+  {{=manuscriptDoi}}
+  <br/>
+  {{=recommendationVersion}}
+  
+  {{if inviteReviewerLink:}}
+    <div class="pci2-flex-row pci2-flex-center pci2-full-width">
+        <a class="buttontext btn btn-default"  href="{{=inviteReviewerLink}}">
+        {{=T('Invite a reviewer')}}
+      </a>
+    </div>
+  {{pass}}
+
+  <!-- Round reviews -->
+  {{for review in reviewsList:}}
+    <div>  
+      {{if review['authors']:}}
+        <h4 class="pci2-round-review-sub-title">{{=review['authors']}}</h4>
+      {{pass}}
+      
+      <!-- Review invitation buttons -->  
+      {{if review['showInvitationButtons']:}}
+        <h3 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" style="margin-top: 25px;">
+          <i class="glyphicon glyphicon-envelope" style="margin-right: 10px;"></i>
+          {{= T('Review invitation')}}
+        </h3>
+        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <a class="buttontext btn btn-success" 
+            href="{{=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review['id']), user_signature=True)}}"
+          >
+            {{=T('Yes, I agree to review this preprint')}}
+          </a>
+          <a class="buttontext btn btn-warning" 
+            href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']), user_signature=True)}}"
+          >
+            {{=T('No thanks, I\'d rather not')}}
+          </a>
+        </div>
+      {{pass}}
+
+      <!-- Review text -->  
+      <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
+        {{if review['text']:}}
+          {{=review['text']}}
+        {{pass}}
+
+        <!-- Review edit button -->  
+        {{if review['showEditButtons']:}}
+          <div class="pci2-flex-row pci2-flex-center pci2-full-width" style="margin: 20px 0;">
+            <a class="buttontext btn btn-default" 
+              href="{{=URL(c='user', f='edit_review', vars=dict(reviewId=review['id']), user_signature=True)}}"
+            >
+              {{=T('Write, edit or upload your review')}}
+            </a>
+          </div>
+        {{pass}}
+      </div>
+    </div>
+  {{pass}}
+
+</div>

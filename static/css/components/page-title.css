@@ -1,4 +1,3 @@
-
 #pci-small-header {
     animation: fadefromLeft 0.7s ease;
     margin: 0 15px;
@@ -20,10 +19,8 @@
     color: #598398;
 }
 
-.pci-myTitleText-gab-grey>.pci-infotextbox {
-    color: #888;
-}
-
+.pci-myTitleText-gab-grey>.pci-infotextbox,
+.pci-myTitleText-gab-grey>.pci-text-title,
 .pci-myTitleText-gab-grey>h1 {
     color: #888;
 }
@@ -47,4 +44,58 @@
 
 .pci-text-button-edit {
     margin-top: -11px
+}
+
+
+.pci-infotextbox {
+    /* padding-left: 10%; */
+    /* padding-right: 10%; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pci-infotext {
+    text-align: justify;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 15px;
+}
+
+.pci-text-buttons {
+    text-align: right;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 15px;
+    /* margin-top: -11px; */
+}
+
+.pci-text-button-edit {
+    font-size: 8px;
+}
+
+.pci-icon-title {
+    font-size: 32px;
+    margin-left: 15px;
+    color: #598398;
+    opacity: 0.7
+}
+
+.pci-text-title {
+    font-size: 26px;
+    font-weight: 400;
+
+    width: 100%;
+    max-width: 1200px;
+}
+
+
+@media (max-width: 960px) {
+    .pci-icon-title {
+        font-size: 26px;
+    }
+
+    .pci-text-title {
+        font-size: 20px;
+    }
 }

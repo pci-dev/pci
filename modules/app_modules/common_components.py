@@ -47,20 +47,11 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         port = False
 
     # Get Recommendation
-    recomm = (
-        db(
-            (db.t_recommendations.article_id == article.id)
-            & (db.t_recommendations.recommendation_state == "Recommended")
-        )
-        .select(orderby=db.t_recommendations.id)
-        .last()
-    )
+    recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
 
-    recommAuthors = common_html.getRecommAndReviewAuthors(
-        auth, db, article, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme
-    )
+    recommAuthors = common_html.getRecommAndReviewAuthors(auth, db, article, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
 
     if withDate:
         date = common_small_html.mkLastChange(article.last_status_change)
@@ -69,9 +60,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     if withImg:
         if article.uploaded_picture is not None and article.uploaded_picture != "":
             articleImg = IMG(
-                _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture),
-                _alt="article picture",
-                _class="pci-articlePicture",
+                _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _class="pci-articlePicture",
             )
 
     recommShortText = common_tools.getShortText(recomm.recommendation_comments, 500) or ""
@@ -84,9 +73,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
 
     snippetVars = dict(
         articleDate=date,
-        articleUrl=URL(
-            c="articles", f="rec", vars=dict(id=article.id, reviews=True), scheme=scheme, host=host, port=port
-        ),
+        articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id, reviews=True), scheme=scheme, host=host, port=port),
         articleTitle=article.title,
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
@@ -125,47 +112,23 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
         # pci-status
         if article.status == "Recommended":
-            txt = DIV(
-                SPAN(current.T(" was")),
-                SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"),
-                SPAN(SPAN("(", firstDate, " ➜ ", lastDate, ")"), ". "),
-            )
+            txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN(SPAN("(", firstDate, " ➜ ", lastDate, ")"), ". "),)
 
         elif article.status == "Cancelled":
-            txt = DIV(
-                SPAN(current.T(" was")),
-                SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"),
-                SPAN("(", firstDate, " ➜ ", lastDate, "). "),
-            )
+            txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN("(", firstDate, " ➜ ", lastDate, "). "),)
 
-        elif (
-            article.status == "Under consideration"
-            or article.status == "Pre-recommended"
-            or article.status == "Pre-rejected"
-            or article.status == "Pre-revision"
-        ):
-            txt = DIV(
-                SPAN(current.T(" is")),
-                SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus info"),
-                SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),
-            )
+        elif article.status == "Under consideration" or article.status == "Pre-recommended" or article.status == "Pre-rejected" or article.status == "Pre-revision":
+            txt = DIV(SPAN(current.T(" is")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus info"), SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),)
 
         elif article.status == "Awaiting revision":
-            txt = DIV(
-                SPAN(current.T(" was")),
-                SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"),
-                SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),
-            )
+            txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),)
 
         else:
             return None
 
         snippetVars = dict(
             articleId=article.id,
-            articleImg=IMG(
-                _src=URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port),
-                _class="pci-trackImg",
-            ),
+            articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port), _class="pci-trackImg",),
             articleTitle=title,
             articleAuthor=authors,
             articleDoi=link,
@@ -174,7 +137,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
         )
 
         return XML(response.render("components/article_track_row_card.html", snippetVars))
-		
+
     # no article reviews founded
     else:
         return None
@@ -186,15 +149,11 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     nbRecomms = len(recomms)
 
     if userDiv:
-        statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
+        statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width",)
     else:
         statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
 
-    myTitle = DIV(
-        IMG(_src=URL(r=request, c="static", f="images/small-background.png")),
-        DIV(statusDiv, _class='pci2-flex-grow'),
-        _class='pci2-flex-row'
-    )
+    myTitle = DIV(IMG(_src=URL(r=request, c="static", f="images/small-background.png")), DIV(statusDiv, _class="pci2-flex-grow"), _class="pci2-flex-row",)
 
     # author's button allowing article edition
     allowEditArticle = False
@@ -216,9 +175,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,
         articleId=art.id,
-        printableUrl=URL(
-            c=controller_name, f="recommendations", vars=dict(articleId=art.id, printable=True), user_signature=True
-        ),
+        printableUrl=URL(c=controller_name, f="recommendations", vars=dict(articleId=art.id, printable=True), user_signature=True),
         printable=printable,
     )
 
@@ -239,10 +196,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
         printableClass = ""
 
     doi = sub(r"doi: *", "", (art.doi or ""))
-    article_altmetric = XML(
-        "<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>"
-        % doi
-    )
+    article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 
     articleContent = dict()
     articleContent.update(
@@ -259,67 +213,52 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
         ]
     )
 
-    if with_cover_letter:
+    if with_cover_letter and not art.already_published:
         articleContent.update([("coverLetter", WIKI(art.cover_letter or ""))])
 
     if submittedBy:
-
-        class FakeSubmitter(object):
-            id = None
-            first_name = ""
-            last_name = "[undisclosed]"
-
-        submitter = FakeSubmitter()
-        hideSubmitter = True
-        qyIsRecommender = db(
-            (db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommender_id == auth.user_id)
-        ).count()
-        qyIsCoRecommender = db(
-            (db.t_recommendations.article_id == art.id)
-            & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
-            & (db.t_press_reviews.contributor_id == auth.user_id)
-        ).count()
-        if (
-            (art.anonymous_submission is False)
-            or (qyIsRecommender > 0)
-            or (qyIsCoRecommender > 0)
-            or (auth.has_membership(role="manager"))
-        ):
-            submitter = (
-                db(db.auth_user.id == art.user_id)
-                .select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name)
-                .last()
-            )
-            if submitter is None:
-                submitter = FakeSubmitter()
-            hideSubmitter = False
-
-        articleContent.update(
-            [
-                (
-                    "submittedBy",
-                    DIV(
-                        I(current.T("Submitted by ")),
-                        I(
-                            common_small_html.mkAnonymousArticleField(
-                                auth,
-                                db,
-                                hideSubmitter,
-                                B(common_small_html.mkUser_U(auth, db, submitter, linked=True)),
-                            )
-                        ),
-                        I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
-                    )
-                    if (art.already_published is False)
-                    else "",
-                ),
-            ]
-        )
+        articleContent.update([("submittedBy", getArticleSubmitter(auth, db, art))])
 
     return XML(response.render("components/article_infos_card.html", articleContent))
 
+
+## move to html snippets
+def getArticleSubmitter(auth, db, art):
+    class FakeSubmitter(object):
+        id = None
+        first_name = ""
+        last_name = "[undisclosed]"
+
+    hideSubmitter = True
+
+    qyIsRecommender = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommender_id == auth.user_id)).count()
+
+    qyIsCoRecommender = db(
+        (db.t_recommendations.article_id == art.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) & (db.t_press_reviews.contributor_id == auth.user_id)
+    ).count()
+
+    if (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role="manager")):
+        submitter = db(db.auth_user.id == art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+        if submitter is None:
+            submitter = FakeSubmitter()
+        hideSubmitter = False
+
+    if art.already_published is False:
+        result = DIV(
+            I(current.T("Submitted by ")),
+            I(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, B(common_small_html.mkUser_U(auth, db, submitter, linked=True)),)),
+            I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
+        )
+    else:
+        result = ""
+
+    return result
+
+
+########################################################################################################################################################################
+## Public recommendation
 ######################################################################################################################################################################
-def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
+def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
     if fullURL:
         scheme = myconf.take("alerts.scheme")
         host = myconf.take("alerts.host")
@@ -333,25 +272,19 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable,
 
     recomm_altmetric = ""
 
-    articleInfosCard = getArticleInfosCard(
-        auth, db, response, art, printable, with_cover_letter=False, submittedBy=False
-    )
+    articleInfosCard = getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False)
 
     headerContent.update([("articleInfosCard", articleInfosCard)])
 
     # Last recommendation
-    finalRecomm = (
-        db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended"))
-        .select(orderby=~db.t_recommendations.id)
-        .last()
-    )
+    finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=~db.t_recommendations.id).last()
     citeNum = ""
     citeRef = None
     if finalRecomm.recommendation_doi:
         recomm_altmetric = XML(
             """
-				<div class='altmetric-embed pci2-altmetric'  data-badge-type='donut' data-badge-popover="right" data-hide-no-mentions='true' data-doi='%s'></div>
-			"""
+                <div class='altmetric-embed pci2-altmetric'  data-badge-type='donut' data-badge-popover="right" data-hide-no-mentions='true' data-doi='%s'></div>
+            """
             % sub(r"doi: *", "", finalRecomm.recommendation_doi)
         )
 
@@ -364,13 +297,9 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable,
         citeUrl = citeRef
     else:
         citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
-        citeRef = A(
-            citeUrl, _href=citeUrl
-        )  # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+        citeRef = A(citeUrl, _href=citeUrl)  # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
 
-    recommAuthors = common_html.mkWhoDidIt4Recomm(
-        auth, db, finalRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme
-    )
+    recommAuthors = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
     cite = DIV(
         SPAN(
             B("Cite this recommendation as:", _class="pci2-main-color-text"),
@@ -387,33 +316,20 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable,
         _class="pci-citation",
     )
 
-    whoDidRecomm = common_html.mkWhoDidIt4Recomm(
-        auth, db, finalRecomm, with_reviewers=True, linked=True, as_items=False, host=host, port=port, scheme=scheme
-    )
+    whoDidRecomm = common_html.mkWhoDidIt4Recomm(auth, db, finalRecomm, with_reviewers=True, linked=True, as_items=False, host=host, port=port, scheme=scheme)
 
     # PDF (if any)
     pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
+    pdfUrl = None
+    pdfLink = None
+
     if len(pdf_query) > 0:
         pdfUrl = URL("articles", "rec", vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
-        pdfLink = A(
-            SPAN(
-                current.T("PDF recommendation"), " ", IMG(_alt="pdf", _src=URL("static", "images/application-pdf.png"))
-            ),
-            _href=pdfUrl,
-            _class="btn btn-info pci-public",
-        )
-    else:
-        pdfUrl = None
-        pdfLink = None
+        pdfLink = A(SPAN(current.T("PDF recommendation"), " ", IMG(_alt="pdf", _src=URL("static", "images/application-pdf.png"))), _href=pdfUrl, _class="btn btn-info pci-public",)
 
     headerContent.update(
         [
-            (
-                "recommTitle",
-                finalRecomm.recommendation_title
-                if ((finalRecomm.recommendation_title or "") != "")
-                else current.T("Recommendation"),
-            ),
+            ("recommTitle", finalRecomm.recommendation_title if ((finalRecomm.recommendation_title or "") != "") else current.T("Recommendation"),),
             ("recommAuthor", whoDidRecomm),
             (
                 "recommDateinfos",
@@ -440,9 +356,7 @@ def getRecommendationHeaderHtml(auth, db, response, art, finalRecomm, printable,
 
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
     desc = "A recommendation of: " + (art.authors or "") + " " + (art.title or "") + " " + (art.doi or "")
-    whoDidItMeta = common_html.mkWhoDidIt4Recomm(
-        auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False
-    )
+    whoDidItMeta = common_html.mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False, as_list=True, as_items=False)
 
     # META headers
     myMeta = OrderedDict()
@@ -472,9 +386,7 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
     # Dublin Core fields
     myMeta["DC.title"] = lastRecomm.recommendation_title
     if len(whoDidItMeta) > 0:
-        myMeta["DC.creator"] = " ; ".join(
-            whoDidItMeta
-        )  # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
+        myMeta["DC.creator"] = " ; ".join(whoDidItMeta)  # syntax follows: http://dublincore.org/documents/2000/07/16/usageguide/#usinghtml
     myMeta["DC.issued"] = lastRecomm.last_change.date()
     # myMeta['DC.date'] = lastRecomm.last_change.date()
     myMeta["DC.description"] = desc
@@ -510,24 +422,15 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         else:
             lastChanges = SPAN(I(recomm.last_change.strftime("%Y-%m-%d") + " ")) if recomm.last_change else ""
             recommendationText = WIKI(recomm.recommendation_comments) or ""
-            preprintDoi = (
-                DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR())
-                if ((recomm.doi or "") != "")
-                else ""
-            )
+            preprintDoi = DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
-        reviewsList = db(
-            (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")
-        ).select(orderby=db.t_reviews.id)
+        reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=db.t_reviews.id)
         reviwesPreparedData = []
 
         for review in reviewsList:
             if review.anonymously:
                 reviewAuthorAndDate = SPAN(
-                    current.T("Reviewed by")
-                    + " "
-                    + current.T("anonymous reviewer")
-                    + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                    current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
                 )
 
             else:
@@ -540,16 +443,12 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
             reviewText = None
             if len(review.review) > 2:
-                reviewText = DIV(WIKI(review.review), _class="pci-bigtext margin")
+                reviewText = WIKI(review.review)
 
             pdfLink = None
             if review.review_pdf:
                 pdfLink = DIV(
-                    A(
-                        current.T("Download the review (PDF file)"),
-                        _href=URL("default", "download", args=review.review_pdf),
-                        _style="margin-bottom: 64px;",
-                    ),
+                    A(current.T("Download the review (PDF file)"), _href=URL("default", "download", args=review.review_pdf), _style="margin-bottom: 64px;",),
                     _class="pci-bigtext margin",
                 )
 
@@ -563,11 +462,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         if recomm.reply_pdf:
             authorsReplyPdfLink = (
                 DIV(
-                    A(
-                        current.T("Download author's reply (PDF file)"),
-                        _href=URL("default", "download", args=recomm.reply_pdf),
-                        _style="margin-bottom: 64px;",
-                    ),
+                    A(current.T("Download author's reply (PDF file)"), _href=URL("default", "download", args=recomm.reply_pdf), _style="margin-bottom: 64px;",),
                     _class="pci-bigtext margin",
                 ),
             )
@@ -633,21 +528,14 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
 
     # Get comments tree
     commentsTree = DIV()
-    commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(
-        orderby=db.t_comments.comment_datetime
-    )
+    commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(orderby=db.t_comments.comment_datetime)
     if len(commentsQy) > 0:
         for comment in commentsQy:
             commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id, with_reviews))
     else:
         commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
 
-    snippetVars = dict(
-        isLoggedIn=isLoggedIn,
-        scrollToCommentForm=scrollToCommentForm,
-        commentForm=commentForm,
-        commentsTree=commentsTree,
-    )
+    snippetVars = dict(isLoggedIn=isLoggedIn, scrollToCommentForm=scrollToCommentForm, commentForm=commentForm, commentsTree=commentsTree,)
 
     return XML(response.render("components/comments_tree_and_form.html", snippetVars))
 
@@ -661,22 +549,439 @@ def getCommentsTreeHtml(auth, db, response, commentId, with_reviews=False):
     for child in children:
         childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id, with_reviews))
 
+    replyToLink = ""
+    if auth.user:
+        replyToLink = A(
+            current.T("Reply..."),
+            _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, reviews=with_reviews, replyTo=comment.id),),
+            _style="margin: 0",
+        )
+
     snippetVars = dict(
         userLink=common_small_html.mkUser_U(auth, db, comment.user_id, linked=True),
         commentDate=str(comment.comment_datetime),
-        commentText=comment.user_comment or "",
-        replyToLink=A(
-            current.T("Reply..."),
-            _href=URL(
-                c="articles",
-                f="rec",
-                vars=dict(articleId=comment.article_id, comments=True, reviews=with_reviews, replyTo=comment.id),
-            ),
-            _style="margin: 0",
-        )
-        if auth.user
-        else "",
+        commentText=WIKI(comment.user_comment) or "",
+        replyToLink=replyToLink,
         childrenDiv=childrenDiv,
     )
     return XML(response.render("components/comments_tree.html", snippetVars))
 
+
+########################################################################################################################################################################
+## On going recommendation
+########################################################################################################################################################################
+def getRecommendationTopButtons(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+
+    myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+    ###NOTE: recommendations counting
+    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+    nbRecomms = len(recomms)
+    myButtons = DIV()
+
+    if (
+        len(recomms) == 0
+        and auth.has_membership(role="recommender")
+        and not (art.user_id == auth.user_id)
+        and art.status == "Awaiting consideration"
+        and not (printable)
+        and not (quiet)
+    ):
+        # suggested or any recommender's button for recommendation consideration
+        btsAccDec = [
+            A(
+                SPAN(current.T("Click here before starting the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
+                _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
+                _class="button",
+            ),
+        ]
+        amISugg = db((db.t_suggested_recommenders.article_id == art.id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).count()
+        if amISugg > 0:
+            # suggested recommender's button for declining recommendation
+            btsAccDec.append(
+                A(
+                    SPAN(current.T("No, thanks, I decline this suggestion"), _class="buttontext btn btn-warning pci-recommender"),
+                    _href=URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
+                    _class="button",
+                ),
+            )
+        myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center", _style="margin:10px"))
+
+    if (
+        (art.user_id == auth.user_id)
+        and not (art.already_published)
+        and (art.status not in ("Cancelled", "Rejected", "Pre-recommended", "Recommended"))
+        and not (printable)
+        and not (quiet)
+    ):
+        myButtons.append(
+            DIV(
+                A(
+                    SPAN(current.T("I wish to cancel my submission"), _class="buttontext btn btn-warning pci-submitter"),
+                    _href=URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id), user_signature=True),
+                    _title=current.T("Click here in order to cancel this submission"),
+                ),
+                _class="pci-EditButtons",
+            )
+        )  # author's button allowing cancellation
+
+    myContents.append(myButtons)
+
+    return myContents
+
+
+########################################################################################################################################################################
+def getRecommendationProcess(auth, db, response, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+    recommendationRounds = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+
+    ###NOTE: recommendations counting
+    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+    nbRecomms = len(recomms)
+
+    ###NOTE: here start recommendations display
+    iRecomm = 0
+    roundNb = nbRecomms + 1
+    for recomm in recomms:
+        iRecomm += 1
+        roundNb -= 1
+        nbCompleted = 0
+        nbOnGoing = 0
+        whoDidIt = common_html.mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
+
+        amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+        # Am I a reviewer?
+        amIReviewer = (
+            db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
+        )
+        # During recommendation, no one is not allowed to see last (unclosed) recommendation
+        hideOngoingRecomm = ((art.status == "Under consideration") or (art.status.startswith("Pre-"))) and not (recomm.is_closed)  # (iRecomm==1)
+        #  ... unless he/she is THE recommender
+        if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender):
+            hideOngoingRecomm = False
+        # or a manager, provided he/she is reviewer
+        if auth.has_membership(role="manager") and (art.user_id != auth.user_id) and (amIReviewer is False):
+            hideOngoingRecomm = False
+
+        authorsReply = None
+        if (recomm.reply is not None) and (len(recomm.reply) > 0):
+            authorsReply = DIV(WIKI(recomm.reply or ""))
+
+        authorsReplyPdfLink = None
+        if recomm.reply_pdf:
+            authorsReplyPdfLink = A(current.T("Download author's reply (PDF file)"), _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port))
+
+        authorsReplyTrackChangeFileLink = None
+        if recomm.track_change:
+            authorsReplyTrackChangeFileLink = A(
+                current.T("Download tracked changes file"), _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port)
+            )
+
+        editAuthorsReplyLink = None
+        if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and not (quiet) and (iRecomm == 1):
+            editAuthorsReplyLink = URL(c="user", f="edit_reply", vars=dict(recommId=recomm.id), user_signature=True)
+
+        # Check for reviews
+        existOngoingReview = False
+        reviewsList = []
+
+        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            orderby=db.t_reviews.id
+        )
+        for review in reviews:
+            if review.review_state == "Under consideration":
+                existOngoingReview = True
+            if review.review_state == "Completed":
+                nbCompleted += 1
+            if review.review_state == "Under consideration":
+                nbOnGoing += 1
+        # If the recommender is also a reviewer, did he/she already completed his/her review?
+        recommReviewFilledOrNull = False  # Let's say no by default
+        # Get reviews states for this case
+        recommenderOwnReviewStates = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).select(db.t_reviews.review_state)
+        if len(recommenderOwnReviewStates) == 0:
+            # The recommender is not also a reviewer
+            recommReviewFilledOrNull = True  # He/she is allowed to see other's reviews
+        else:
+            # The recommender is also a reviewer
+            for recommenderOwnReviewState in recommenderOwnReviewStates:
+                if recommenderOwnReviewState.review_state == "Completed":
+                    recommReviewFilledOrNull = True  # Yes, his/her review is completed
+
+        for review in reviews:
+            # No one is allowd to see ongoing reviews ...
+            hideOngoingReview = True
+            reviewVars = dict(id=review.id, showInvitationButtons=False, showEditButtons=False, authors=None, text=None, reviewPdfUrl=None)
+            # ... but:
+            # ... the author for a closed decision/recommendation ...
+            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
+                hideOngoingReview = False
+            # ...  the reviewer himself once accepted ...
+            if (review.reviewer_id == auth.user_id) and (review.review_state in ("Under consideration", "Completed")):
+                hideOngoingReview = False
+            # ...  a reviewer himself once the decision made up ...
+            if (
+                (amIReviewer)
+                and (recomm.recommendation_state in ("Recommended", "Rejected", "Revision"))
+                and recomm.is_closed
+                and (art.status in ("Under consideration", "Recommended", "Rejected", "Awaiting revision"))
+            ):
+                hideOngoingReview = False
+            # ... or he/she is THE recommender and he/she already filled his/her own review ...
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id) and recommReviewFilledOrNull:
+                hideOngoingReview = False
+            # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
+            if auth.has_membership(role="recommender") and amICoRecommender and recommReviewFilledOrNull:
+                hideOngoingReview = False
+            # ... or a manager, unless submitter or reviewer
+            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
+                hideOngoingReview = False
+
+            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
+                if review.review_state == "Pending":
+                    # reviewer's buttons in order to accept/decline pending review
+                    reviewVars.update([("showInvitationButtons", True)])
+
+            elif review.review_state == "Pending":
+                hideOngoingReview = True
+
+            if (
+                (review.reviewer_id == auth.user_id)
+                and (review.review_state == "Under consideration")
+                and (art.status == "Under consideration")
+                and not (printable)
+                and not (quiet)
+            ):
+                # reviewer's buttons in order to edit/complete pending review
+                reviewVars.update([("showEditButtons", True)])
+
+            if not (hideOngoingReview):
+                # display the review
+                if review.anonymously:
+                    reviewVars.update(
+                        [
+                            (
+                                "authors",
+                                SPAN(
+                                    current.T("Reviewed by"),
+                                    " ",
+                                    current.T("anonymous reviewer"),
+                                    (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                ),
+                            )
+                        ]
+                    )
+                else:
+                    reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+                    if reviewer is not None:
+                        reviewVars.update(
+                            [
+                                (
+                                    "authors",
+                                    SPAN(
+                                        current.T("Reviewed by"),
+                                        " ",
+                                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                                        (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                    ),
+                                )
+                            ]
+                        )
+
+                if len(review.review or "") > 2:
+                    reviewVars.update([("text", WIKI(review.review))])
+
+                if review.review_pdf:
+                    pdfLink = A(
+                        current.T("Download the review (PDF file)"),
+                        _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
+                        _style="margin-bottom: 64px;",
+                    )
+
+                    reviewVars.update([("pdfLink", pdfLink)])
+
+            reviewsList.append(reviewVars)
+
+        # Reommendation label
+        if recomm.recommendation_state == "Recommended":
+            if recomm.recommender_id == auth.user_id:
+                recommendationLabel = current.T("Your recommendation")
+            else:
+                recommendationLabel = current.T("Recommendation")
+        else:
+            if recomm.recommender_id == auth.user_id:
+                recommendationLabel = current.T("Your decision")
+            elif recomm.is_closed:
+                recommendationLabel = current.T("Decision")
+            else:
+                recommendationLabel = ""
+
+        # Recommender buttons
+        editRecommendationLink = None
+        editRecommendationDisabled = None
+        editRecommendationButtonText = None
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
+            # recommender's button for recommendation edition
+            if (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
+                editRecommendationDisabled = False
+                editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
+                editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
+            else:
+                editRecommendationDisabled = True
+                editRecommendationButtonText = current.T("Write your decision / recommendation")
+                editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
+
+        recommendationPdfLink = None
+        if hideOngoingRecomm is False and recomm.recommender_file:
+            recommendationPdfLink = A(
+                current.T("Download recommender's annotations (PDF)"),
+                _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
+                _style="margin-bottom: 64px;",
+            )
+
+        inviteReviewerLink = None
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration"):
+            inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
+
+        recommendationText = ""
+        if len(recomm.recommendation_comments or "") > 2:
+            recommendationText = WIKI(recomm.recommendation_comments or "") if (hideOngoingRecomm is False) else ""
+
+        componentVars = dict(
+            printable=printable,
+            roundNumber=roundNb,
+            lastChanges=None,
+            authorsReply=authorsReply,
+            authorsReplyPdfLink=authorsReplyPdfLink,
+            authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
+            editAuthorsReplyLink=editAuthorsReplyLink,
+            recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
+            manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
+            recommendationVersion=SPAN(" " + current.T("version") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),
+            recommendationTitle=H3(recomm.recommendation_title or "") if (hideOngoingRecomm is False) else "",
+            recommendationLabel=recommendationLabel,
+            recommendationText=recommendationText,
+            recommendationPdfLink=recommendationPdfLink,
+            inviteReviewerLink=inviteReviewerLink,
+            editRecommendationButtonText=editRecommendationButtonText,
+            editRecommendationLink=editRecommendationLink,
+            editRecommendationDisabled=editRecommendationDisabled,
+            reviewsList=reviewsList,
+        )
+        recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
+
+    # Manager button
+    managerButton = None
+    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):
+        if art.status == "Pending":
+            managerButton = DIV(
+                A(
+                    SPAN(current.T("Validate this submission"), _class="buttontext btn btn-success pci-manager"),
+                    _href=URL(c="manager_actions", f="do_validate_article", vars=dict(articleId=art.id), user_signature=True),
+                    _title=current.T("Click here to validate this request and start recommendation process"),
+                ),
+                _class="pci-EditButtons-centered",
+            )
+        elif art.status == "Pre-recommended":
+            managerButton = DIV(
+                A(
+                    SPAN(current.T("Validate this recommendation"), _class="buttontext btn btn-success pci-manager"),
+                    _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
+                    _title=current.T("Click here to validate recommendation of this article"),
+                ),
+                _class="pci-EditButtons-centered",
+            )
+        elif art.status == "Pre-revision":
+            managerButton = DIV(
+                A(
+                    SPAN(current.T("Validate this decision"), _class="buttontext btn btn-info pci-manager"),
+                    _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
+                    _title=current.T("Click here to validate revision of this article"),
+                ),
+                _class="pci-EditButtons-centered",
+            )
+        elif art.status == "Pre-rejected":
+            managerButton = DIV(
+                A(
+                    SPAN(current.T("Validate this rejection"), _class="buttontext btn btn-info pci-manager"),
+                    _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
+                    _title=current.T("Click here to validate the rejection of this article"),
+                ),
+                _class="pci-EditButtons-centered",
+            )
+
+    return DIV(recommendationRounds, managerButton or "")
+
+
+######################################################################################################################################
+def getPostprintRecommendation(auth, db, response, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+    recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+
+    ###NOTE: recommendations counting
+    recomm = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id).last()
+
+    ###NOTE: here start recommendations display
+    whoDidIt = common_html.mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
+
+    contributors = []
+    contrQy = db((db.t_press_reviews.recommendation_id == recomm.id)).select(orderby=db.t_press_reviews.id)
+    for contr in contrQy:
+        contributors.append(contr.contributor_id)
+
+    editRecommendationLink = None
+    sendRecommendationLink = None
+    isRecommendationTooShort = True
+    addContributorLink = None
+    cancelSubmissionLink = None
+    if (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable) and not (quiet):
+        # recommender's button allowing recommendation edition
+        editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True)
+
+        # (gab) minimal_number_of_corecommenders is not defiend ! => set it to 0
+        minimal_number_of_corecommenders = 0
+
+        if len(contributors) >= minimal_number_of_corecommenders:
+            sendRecommendationLink = URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id), user_signature=True)
+            if len(recomm.recommendation_comments) > 50:
+                # recommender's button allowing recommendation submission, provided there are co-recommenders
+                isRecommendationTooShort = False
+            else:
+                isRecommendationTooShort = True
+        else:
+            # otherwise button for adding co-recommender(s)
+            addContributorLink = URL(c="recommender", f="add_contributor", vars=dict(recommId=recomm.id), user_signature=True)
+
+        # recommender's button allowing cancellation
+        cancelSubmissionLink = URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id), user_signature=True)
+
+    # (gab) why this ???
+    # if myRound and (recomm.is_closed or art.status == "Awaiting revision" or art.user_id != auth.user_id):
+    showRecommendation = False
+    if recomm.is_closed or art.status == "Awaiting revision" or art.user_id != auth.user_id:
+        showRecommendation = True
+
+    recommendationText = ""
+    if len(recomm.recommendation_comments or "") > 2:
+        recommendationText = WIKI(recomm.recommendation_comments or "")
+
+    validateRecommendationLink = None
+    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):
+        if art.status == "Pre-recommended":
+            validateRecommendationLink = URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True)
+
+    componentVars = dict(
+        printable=printable,
+        showRecommendation=True,
+        recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
+        recommendationDoi=SPAN(current.T("Recommendation: "), common_small_html.mkDOI(recomm.recommendation_doi)) if (recomm.recommendation_doi) else "",
+        manuscriptDoi=SPAN(current.T("Manuscript: "), common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else "",
+        recommendationTitle=H3(recomm.recommendation_title or "") if (recomm.recommendation_title or "") != "" else "",
+        recommendationText=recommendationText,
+        editRecommendationLink=editRecommendationLink,
+        sendRecommendationLink=sendRecommendationLink,
+        isRecommendationTooShort=isRecommendationTooShort,
+        addContributorLink=addContributorLink,
+        cancelSubmissionLink=cancelSubmissionLink,
+        validateRecommendationLink=validateRecommendationLink,
+    )
+    recommendationDiv.append(XML(response.render("components/postprint_recommendation.html", componentVars)))
+
+    return recommendationDiv
