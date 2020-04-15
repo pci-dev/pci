@@ -3,46 +3,33 @@ from app_modules.helper import *
 
 ######################################################################################################################################################################
 def help_generic():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#GenericHelpTitle'),
-		myText=getText(request, auth, db, '#GenericHelpInfo'),
-		shareable=True,
-	)
+    response.view = "default/info.html"
+    return dict(myTitle=getTitle(request, auth, db, "#GenericHelpTitle"), myText=getText(request, auth, db, "#GenericHelpInfo"), shareable=True,)
+
 
 ######################################################################################################################################################################
 def help_guidelines():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#GuidelinesHelpTitle'),
-		myText=getText(request, auth, db, '#GuidelinesHelpInfo'),
-	)
+    response.view = "default/info.html"
+    return dict(myTitle=getTitle(request, auth, db, "#GuidelinesHelpTitle"), myText=getText(request, auth, db, "#GuidelinesHelpInfo"),)
+
 
 ######################################################################################################################################################################
 def help_practical():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#PracticalHelpTitle'),
-		myText=getText(request, auth, db, '#PracticalHelpInfo'),
-	)
+    response.view = "default/info.html"
+    return dict(myTitle=getTitle(request, auth, db, "#PracticalHelpTitle"), myText=getText(request, auth, db, "#PracticalHelpInfo"),)
+
 
 ######################################################################################################################################################################
 def faq():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#FAQTitle'),
-		myText=getText(request, auth, db, '#FAQInfo'),
-		shareable=True,
-	)
+    response.view = "default/info.html"
+    return dict(myTitle=getTitle(request, auth, db, "#FAQTitle"), myText=getText(request, auth, db, "#FAQInfo"), shareable=True,)
+
 
 ######################################################################################################################################################################
 def cite():
-	response.view='default/info.html'
-	return dict(
-		myTitle=getTitle(request, auth, db, '#CiteTitle'),
-		myText=getText(request, auth, db, '#CiteInfo'),
-		shareable=True,
-	)
+    response.view = "default/info.html"
+    return dict(myTitle=getTitle(request, auth, db, "#CiteTitle"), myText=getText(request, auth, db, "#CiteInfo"), shareable=True,)
+
 
 #  (gab) is this used ?
 
@@ -62,7 +49,6 @@ def cite():
 # 		myTitle=getTitle(request, auth, db, '#RecommenderHelpTitle'),
 # 		myText=getText(request, auth, db, '#RecommenderHelpInfo'),
 # 	)
-
 
 
 # ######################################################################################################################################################################

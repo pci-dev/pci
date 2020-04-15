@@ -23,351 +23,330 @@ from app_modules import common_small_html
 myconf = AppConfig(reload=True)
 
 # frequently used constants
-csv = False # no export allowed
-expClass = None #dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.take('config.trgm_limit') or 0.4
-
+csv = False  # no export allowed
+expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
+trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
 
 ######################################################################################################################################################################
-@cache.action(time_expire=30, cache_model=cache.ram, quick='V')
+@cache.action(time_expire=30, cache_model=cache.ram, quick="V")
 def last_recomms():
-	if 'maxArticles' in request.vars:
-		maxArticles = int(request.vars['maxArticles'])
-	else:
-		maxArticles = 10
-	myVars = copy.deepcopy(request.vars)
-	myVars['maxArticles'] = (myVars['maxArticles'] or 10)
-	myVarsNext = copy.deepcopy(myVars)
-	myVarsNext['maxArticles'] = int(myVarsNext['maxArticles'])+10
+    if "maxArticles" in request.vars:
+        maxArticles = int(request.vars["maxArticles"])
+    else:
+        maxArticles = 10
+    myVars = copy.deepcopy(request.vars)
+    myVars["maxArticles"] = myVars["maxArticles"] or 10
+    myVarsNext = copy.deepcopy(myVars)
+    myVarsNext["maxArticles"] = int(myVarsNext["maxArticles"]) + 10
 
-	queryRecommendedArticles = None
-	
-	if queryRecommendedArticles is None:
-		queryRecommendedArticles = db( 
-			(db.t_articles.status=='Recommended') 
-		  	& (db.t_recommendations.article_id==db.t_articles.id) 
-		  	& (db.t_recommendations.recommendation_state=='Recommended')
-		).iterselect(
-			db.t_articles.id, 
-			db.t_articles.title, 
-			db.t_articles.authors, 
-			db.t_articles.article_source, 
-			db.t_articles.doi, 
-			db.t_articles.picture_rights_ok, 
-			db.t_articles.uploaded_picture, 
-			db.t_articles.abstract, 
-			db.t_articles.upload_timestamp, 
-			db.t_articles.user_id, 
-			db.t_articles.status, 
-			db.t_articles.last_status_change, 
-			db.t_articles.thematics, 
-			db.t_articles.keywords, 
-			db.t_articles.already_published, 
-			db.t_articles.i_am_an_author, 
-			db.t_articles.is_not_reviewed_elsewhere, 
-			db.t_articles.auto_nb_recommendations, 
-			limitby=(0, maxArticles), 
-			orderby=~db.t_articles.last_status_change
-		)
+    queryRecommendedArticles = None
 
-	recommendedArticlesList = []
-	for row in queryRecommendedArticles:
-		r = common_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
-		if r:
-			recommendedArticlesList.append(r)
-	
-	if len(recommendedArticlesList) == 0:
-		return DIV(I(T('Coming soon...')))
-	
-	if len(recommendedArticlesList) < maxArticles:
-		moreState = ' disabled'
-	else:
-		moreState = ''
-	return DIV(
-			DIV(
-				recommendedArticlesList, 
-				_class='pci2-articles-list'
-			), 
-			DIV(
-				A(current.T('More...'), _id='moreLatestBtn',
-					_onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')"%(URL('articles', 'last_recomms', vars=myVarsNext, user_signature=True)),
-					_class='btn btn-default'+moreState,
-				),
-				A(current.T('See all recommendations'), _href=URL('articles', 'all_recommended_articles'), _class='btn btn-default'),
-				_style='text-align:center;'
-			),
-			_class='pci-lastArticles-div',
-		)
+    if queryRecommendedArticles is None:
+        queryRecommendedArticles = db(
+            (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
+        ).iterselect(
+            db.t_articles.id,
+            db.t_articles.title,
+            db.t_articles.authors,
+            db.t_articles.article_source,
+            db.t_articles.doi,
+            db.t_articles.picture_rights_ok,
+            db.t_articles.uploaded_picture,
+            db.t_articles.abstract,
+            db.t_articles.upload_timestamp,
+            db.t_articles.user_id,
+            db.t_articles.status,
+            db.t_articles.last_status_change,
+            db.t_articles.thematics,
+            db.t_articles.keywords,
+            db.t_articles.already_published,
+            db.t_articles.i_am_an_author,
+            db.t_articles.is_not_reviewed_elsewhere,
+            db.t_articles.auto_nb_recommendations,
+            limitby=(0, maxArticles),
+            orderby=~db.t_articles.last_status_change,
+        )
+
+    recommendedArticlesList = []
+    for row in queryRecommendedArticles:
+        r = common_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+        if r:
+            recommendedArticlesList.append(r)
+
+    if len(recommendedArticlesList) == 0:
+        return DIV(I(T("Coming soon...")))
+
+    if len(recommendedArticlesList) < maxArticles:
+        moreState = " disabled"
+    else:
+        moreState = ""
+    return DIV(
+        DIV(recommendedArticlesList, _class="pci2-articles-list"),
+        DIV(
+            A(
+                current.T("More..."),
+                _id="moreLatestBtn",
+                _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
+                _class="btn btn-default" + moreState,
+            ),
+            A(current.T("See all recommendations"), _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
+            _style="text-align:center;",
+        ),
+        _class="pci-lastArticles-div",
+    )
 
 
 ######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
-	myVars = request.vars
-	qyKwArr = []
-	qyTF = []
-	myVars2 = {}
-	for myVar in myVars:
-		if isinstance(myVars[myVar], list):
-			myValue = (myVars[myVar])[1]
-		else:
-			myValue = myVars[myVar]
-		if (myVar == 'qyKeywords'):
-			qyKw = myValue
-			myVars2[myVar] = myValue
-			qyKwArr = qyKw.split(' ')
-		elif (myVar == 'qyThemaSelect') and myValue:
-			qyTF=[myValue]
-			myVars2['qy_'+myValue] = True
-		elif (re.match('^qy_', myVar) and myValue=='on' and not('qyThemaSelect' in myVars)):
-			qyTF.append(re.sub(r'^qy_', '', myVar))
-			myVars2[myVar] = myValue
+    myVars = request.vars
+    qyKwArr = []
+    qyTF = []
+    myVars2 = {}
+    for myVar in myVars:
+        if isinstance(myVars[myVar], list):
+            myValue = (myVars[myVar])[1]
+        else:
+            myValue = myVars[myVar]
+        if myVar == "qyKeywords":
+            qyKw = myValue
+            myVars2[myVar] = myValue
+            qyKwArr = qyKw.split(" ")
+        elif (myVar == "qyThemaSelect") and myValue:
+            qyTF = [myValue]
+            myVars2["qy_" + myValue] = True
+        elif re.match("^qy_", myVar) and myValue == "on" and not ("qyThemaSelect" in myVars):
+            qyTF.append(re.sub(r"^qy_", "", myVar))
+            myVars2[myVar] = myValue
 
-	filtered = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[qyTF, qyKwArr, 'Recommended', trgmLimit, True], as_dict=True)
-	
-	totalArticles = len(filtered)
-	myRows = []
-	for row in filtered:
-		r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
-		if r:
-			myRows.append(r)
-			
-	grid = DIV(
-				DIV(
-					DIV(T('%s articles found')%(totalArticles), _class='pci-nResults'),
-					DIV(
-						myRows, 
-						_class='pci2-articles-list'
-					), 
-					_class='pci-lastArticles-div'
-				), 
-			_class='searchRecommendationsDiv')
+    filtered = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
 
+    totalArticles = len(filtered)
+    myRows = []
+    for row in filtered:
+        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        if r:
+            myRows.append(r)
 
-	searchForm = common_forms.getSearchForm(auth, db, myVars2)
-	
-	response.view='default/gab_list_layout.html'
-	return dict(
-				grid=grid,
-				titleIcon='search', 
-				myTitle=getTitle(request, auth, db, '#RecommendedArticlesTitle'),
-				myText=getText(request, auth, db, '#RecommendedArticlesText'),
-				myHelp=getHelp(request, auth, db, '#RecommendedArticles'),
-				shareable=True,
-				searchableList = True,
-				searchForm = searchForm
-			)
+    grid = DIV(
+        DIV(DIV(T("%s articles found") % (totalArticles), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"),
+        _class="searchRecommendationsDiv",
+    )
+
+    searchForm = common_forms.getSearchForm(auth, db, myVars2)
+
+    response.view = "default/gab_list_layout.html"
+    return dict(
+        grid=grid,
+        titleIcon="search",
+        myTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
+        myText=getText(request, auth, db, "#RecommendedArticlesText"),
+        myHelp=getHelp(request, auth, db, "#RecommendedArticles"),
+        shareable=True,
+        searchableList=True,
+        searchForm=searchForm,
+    )
+
 
 ######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: common_small_html.takePort(v) )
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_small_html.takePort(v))
 
-	with_reviews = 'reviews' in request.vars and request.vars['reviews']=='True'
-	# with_reviews = True
-	# with_comments = True
-	printable = 'printable' in request.vars  and request.vars['printable']=='True'
+    with_reviews = "reviews" in request.vars and request.vars["reviews"] == "True"
+    # with_reviews = True
+    # with_comments = True
+    printable = "printable" in request.vars and request.vars["printable"] == "True"
 
-	if printable is None or printable is False:
-		with_comments = True
-	else: 
-		with_comments = False
+    if printable is None or printable is False:
+        with_comments = True
+    else:
+        with_comments = False
 
-	
-	as_pdf = 'asPDF' in request.vars and request.vars['asPDF']=='True'
+    as_pdf = "asPDF" in request.vars and request.vars["asPDF"] == "True"
 
-	# security : Is content avalaible ? 
-	if ('articleId' in request.vars):
-		articleId = request.vars['articleId']
-	elif ('id' in request.vars):
-		articleId = request.vars['id']
-	else:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	
-	# NOTE: check id is numeric!
-	if (not articleId.isdigit()):
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-		
-	art = db.t_articles[articleId]
+    # security : Is content avalaible ?
+    if "articleId" in request.vars:
+        articleId = request.vars["articleId"]
+    elif "id" in request.vars:
+        articleId = request.vars["id"]
+    else:
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
 
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	# NOTE: security hole possible by articleId injection: Enforced checkings below.
-	elif art.status != 'Recommended':
-		session.flash = T('Forbidden access')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	
-	if (as_pdf):
-		pdfQ = db( (db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id) ).select(db.t_pdf.id, db.t_pdf.pdf)
-		if len(pdfQ) > 0:
-			redirect(URL('default', 'download', args=pdfQ[0]['pdf']))
-		else:
-			session.flash = T('Unavailable')
-			redirect(redirect(request.env.http_referer))
+    # NOTE: check id is numeric!
+    if not articleId.isdigit():
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
 
+    art = db.t_articles[articleId]
 
-	# Set Page title
-	finalRecomm = db( (db.t_recommendations.article_id==art.id) & (db.t_recommendations.recommendation_state=='Recommended') ).select(orderby=db.t_recommendations.id).last()
-	if finalRecomm:
-		response.title = (finalRecomm.recommendation_title or myconf.take('app.longname'))
-	else:
-		response.title = myconf.take('app.longname')
-	response.title = common_tools.getShortText(response.title, 64)
-	
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
+    # NOTE: security hole possible by articleId injection: Enforced checkings below.
+    elif art.status != "Recommended":
+        session.flash = T("Forbidden access")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
 
-	nbRecomms = db( (db.t_recommendations.article_id==art.id) ).count()
-	nbRevs = db( (db.t_recommendations.article_id==art.id) & (db.t_reviews.recommendation_id==db.t_recommendations.id) ).count()
-	nbReviews = (nbRevs + (nbRecomms-1))
-	
-	# Recommendation Header and Metadata
-	recommendationHeader = common_components.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
-	recommHeaderHtml = recommendationHeader['headerHtml']
-	recommMetadata = recommendationHeader['recommMetadata']
+    if as_pdf:
+        pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
+        if len(pdfQ) > 0:
+            redirect(URL("default", "download", args=pdfQ[0]["pdf"]))
+        else:
+            session.flash = T("Unavailable")
+            redirect(redirect(request.env.http_referer))
 
-	if len(recommMetadata)>0:
-		response.meta = recommMetadata
-	
-	reviewRounds = None
-	if with_reviews:
-		# Get review rounds tree
-		reviewRounds = DIV(common_components.getPublicReviewRoundsHtml(auth, db, response, art.id))
+    # Set Page title
+    finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
+    if finalRecomm:
+        response.title = finalRecomm.recommendation_title or myconf.take("app.longname")
+    else:
+        response.title = myconf.take("app.longname")
+    response.title = common_tools.getShortText(response.title, 64)
 
-	commentsTreeAndForm = None
-	if with_comments:
-		# Get user comments list and form
-		commentsTreeAndForm = common_components.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars['replyTo'])
-	
-	
-	if printable:
-		printableClass = 'printable'
-		response.view='default/wrapper_printable.html'
-	else:
-		printableClass = ''
-		response.view='default/wrapper_normal.html'
+    nbRecomms = db((db.t_recommendations.article_id == art.id)).count()
+    nbRevs = db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count()
+    nbReviews = nbRevs + (nbRecomms - 1)
 
-	viewToRender='default/gab_public_article_recommendation.html'
-	return dict(
-				viewToRender = viewToRender,
-				withReviews=with_reviews,
-				withComments=with_comments,
-				toggleReviewsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=not(with_reviews)), user_signature=True),
-				# toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-				printableUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, printable=True), user_signature=True),
-				currentUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews), host=host, scheme=scheme, port=port),
-				shareButtons=True,
-				nbReviews = nbReviews,
-				recommHeaderHtml = recommHeaderHtml,
-				reviewRounds = reviewRounds,
-				commentsTreeAndForm = commentsTreeAndForm,
-				printableClass = printableClass
-			)
+    # Recommendation Header and Metadata
+    recommendationHeader = common_components.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
+    recommHeaderHtml = recommendationHeader["headerHtml"]
+    recommMetadata = recommendationHeader["recommMetadata"]
+
+    if len(recommMetadata) > 0:
+        response.meta = recommMetadata
+
+    reviewRounds = None
+    if with_reviews:
+        # Get review rounds tree
+        reviewRounds = DIV(common_components.getPublicReviewRoundsHtml(auth, db, response, art.id))
+
+    commentsTreeAndForm = None
+    if with_comments:
+        # Get user comments list and form
+        commentsTreeAndForm = common_components.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
+
+    if printable:
+        printableClass = "printable"
+        response.view = "default/wrapper_printable.html"
+    else:
+        printableClass = ""
+        response.view = "default/wrapper_normal.html"
+
+    viewToRender = "default/gab_public_article_recommendation.html"
+    return dict(
+        viewToRender=viewToRender,
+        withReviews=with_reviews,
+        withComments=with_comments,
+        toggleReviewsUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=not (with_reviews)), user_signature=True),
+        # toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
+        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews, printable=True), user_signature=True),
+        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews), host=host, scheme=scheme, port=port),
+        shareButtons=True,
+        nbReviews=nbReviews,
+        recommHeaderHtml=recommHeaderHtml,
+        reviewRounds=reviewRounds,
+        commentsTreeAndForm=commentsTreeAndForm,
+        printableClass=printableClass,
+    )
+
 
 ######################################################################################################################################################################
 def tracking():
 
-	tracking = myconf.get('config.tracking', default=False)
-	if tracking is False:
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-	else:
-		article_list = DIV(_class='pci2-articles-list') 
-		
-		query_already_published_articles = db(db.t_articles.already_published==False).select(orderby=~db.t_articles.last_status_change)
-		
-		for article in query_already_published_articles:
-			article_html_card = common_components.getArticleTrackcRowCard(auth, db, response, article)
-			if article_html_card:
-				article_list.append(article_html_card)
-		
-		response.view='default/gab_list_layout.html'
-		resu = dict(
-			myHelp=getHelp(request, auth, db, '#Tracking'),
-			titleIcon='tasks', 
-			myTitle=getTitle(request, auth, db, '#TrackingTitle'),
-			myText=getText(request, auth, db, '#TrackingText'),
-			grid = DIV(
-					article_list,
-					_class='pci2-flex-center'
-				)
-		)
-		return resu
+    tracking = myconf.get("config.tracking", default=False)
+    if tracking is False:
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+    else:
+        article_list = DIV(_class="pci2-articles-list")
+
+        query_already_published_articles = db(db.t_articles.already_published == False).select(orderby=~db.t_articles.last_status_change)
+
+        for article in query_already_published_articles:
+            article_html_card = common_components.getArticleTrackcRowCard(auth, db, response, article)
+            if article_html_card:
+                article_list.append(article_html_card)
+
+        response.view = "default/gab_list_layout.html"
+        resu = dict(
+            myHelp=getHelp(request, auth, db, "#Tracking"),
+            titleIcon="tasks",
+            myTitle=getTitle(request, auth, db, "#TrackingTitle"),
+            myText=getText(request, auth, db, "#TrackingText"),
+            grid=DIV(article_list, _class="pci2-flex-center"),
+        )
+        return resu
+
 
 ######################################################################################################################################################################
 def all_recommended_articles():
-	response.view='default/myLayout.html'
+    response.view = "default/myLayout.html"
 
-	allR = db.executesql('SELECT * FROM search_articles(%s, %s, %s, %s, %s);', placeholders=[['.*'], None, 'Recommended', trgmLimit, True], as_dict=True)
-	myRows = []
-	for row in allR:
-		r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
-		if r:
-			myRows.append(r)
-	n = len(allR)
+    allR = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
+    myRows = []
+    for row in allR:
+        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        if r:
+            myRows.append(r)
+    n = len(allR)
 
-	grid = DIV(
-			DIV(
-				DIV(T('%s articles found')%(n), _class='pci-nResults'),
-				DIV(
-					myRows, 
-					_class='pci2-articles-list'
-				), 
-				_class='pci-lastArticles-div'
-			), 
-			_class='searchRecommendationsDiv')
-	return dict(
-				grid=grid, 
-				#searchForm=searchForm, 
-				titleIcon='book', 
-				myTitle=getTitle(request, auth, db, '#AllRecommendedArticlesTitle'),
-				myText=getText(request, auth, db, '#AllRecommendedArticlesText'),
-				myHelp=getHelp(request, auth, db, '#AllRecommendedArticles'),
-				shareable=True,
-			)
+    grid = DIV(
+        DIV(DIV(T("%s articles found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
+    )
+    return dict(
+        grid=grid,
+        # searchForm=searchForm,
+        titleIcon="book",
+        myTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
+        myText=getText(request, auth, db, "#AllRecommendedArticlesText"),
+        myHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
+        shareable=True,
+    )
 
 
 ######################################################################################################################################################################
 def pub_reviews():
-	response.view='default/myLayout.html'
+    response.view = "default/myLayout.html"
 
-	myContents = DIV()
-	tracking = myconf.get('config.tracking', default=False)
-	if tracking is False:
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-	elif ('articleId' in request.vars):
-		articleId = request.vars['articleId']
-	elif ('id' in request.vars):
-		articleId = request.vars['id']
-	else:
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-	# NOTE: check id is numeric!
-	if (not articleId.isdigit()):
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-		
-	art = db.t_articles[articleId]
-	myContents = None
-	if art is None:
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-	elif art.status != 'Cancelled':
-		session.flash = T('Unavailable')
-		redirect(redirect(request.env.http_referer))
-	else:
-		myContents = DIV(reviewsOfCancelled(auth, db, art))
-	
-	resu = dict(
-			myHelp=getHelp(request, auth, db, '#TrackReviews'),
-			titleIcon='eye-open', 
-			myTitle=getTitle(request, auth, db, '#TrackReviewsTitle'),
-			myText=getText(request, auth, db, '#TrackReviewsText'),
-			grid = myContents
-		)
-	return resu
+    myContents = DIV()
+    tracking = myconf.get("config.tracking", default=False)
+    if tracking is False:
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+    elif "articleId" in request.vars:
+        articleId = request.vars["articleId"]
+    elif "id" in request.vars:
+        articleId = request.vars["id"]
+    else:
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+    # NOTE: check id is numeric!
+    if not articleId.isdigit():
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+
+    art = db.t_articles[articleId]
+    myContents = None
+    if art is None:
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+    elif art.status != "Cancelled":
+        session.flash = T("Unavailable")
+        redirect(redirect(request.env.http_referer))
+    else:
+        myContents = DIV(reviewsOfCancelled(auth, db, art))
+
+    resu = dict(
+        myHelp=getHelp(request, auth, db, "#TrackReviews"),
+        titleIcon="eye-open",
+        myTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
+        myText=getText(request, auth, db, "#TrackReviewsText"),
+        grid=myContents,
+    )
+    return resu
+

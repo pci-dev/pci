@@ -9,7 +9,7 @@ import tempfile
 import shutil
 
 # sudo pip install tweepy
-#import tweepy
+# import tweepy
 from gluon.contrib.markdown import WIKI
 
 from app_modules.common import *
@@ -19,6 +19,7 @@ from app_modules.helper import *
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
+
 myconf = AppConfig(reload=True)
 
 
@@ -26,36 +27,37 @@ myconf = AppConfig(reload=True)
 ## (gab) Helper => move to modules ?
 ######################################################################################################################################################################
 def mkRoles(row, auth, db):
-	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
-		resu = ''
-		if row.id:
-			roles = db.v_roles[row.id]
-			if roles:
-				resu = SPAN(roles.roles)
-		return resu
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+        resu = ""
+        if row.id:
+            roles = db.v_roles[row.id]
+            if roles:
+                resu = SPAN(roles.roles)
+        return resu
+
 
 ######################################################################################################################################################################
 def set_as_recommender(ids, auth, db):
-	if auth.has_membership(role='administrator') or auth.has_membership(role='developper'):
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
 
-		# get recommender group id
-		recommRoleId = (db(db.auth_group.role == 'recommender').select(db.auth_group.id).last())["id"]
-		for myId in ids:
-			# check not already recommender
-			isAlreadyRecommender = db((db.auth_membership.user_id==myId) & (db.auth_membership.group_id==recommRoleId)).count()
-			if (isAlreadyRecommender == 0):
-				# insert membership
-				db.auth_membership.insert(user_id=myId, group_id=recommRoleId)
+        # get recommender group id
+        recommRoleId = (db(db.auth_group.role == "recommender").select(db.auth_group.id).last())["id"]
+        for myId in ids:
+            # check not already recommender
+            isAlreadyRecommender = db((db.auth_membership.user_id == myId) & (db.auth_membership.group_id == recommRoleId)).count()
+            if isAlreadyRecommender == 0:
+                # insert membership
+                db.auth_membership.insert(user_id=myId, group_id=recommRoleId)
 
 
 ######################################################################################################################################################################
 def recommLatex(articleId, tmpDir, withHistory=False):
-	print('******************************************************', withHistory)
-	art = db.t_articles[articleId]
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
-	template = """
+    print("******************************************************", withHistory)
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
+    template = """
 \\documentclass[a4paper]{article}
 \\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
 \\usepackage{marginnote}
@@ -238,145 +240,152 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 \\end{document}
 
 """
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	applongname = latex_escape(myconf.take('app.description'))
-	logo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'background.png'))
-	smalllogo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'small-background.png'))
-	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_green.png'))
-	ccPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'cc_large.png'))
-	byPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'by_large.png'))
-	ndPng = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'nd_large.png'))
-	Atitle = latex_escape(art.title)
-	Aauthors = latex_escape(art.authors)
-	lastRecomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
-	recommds = mkRecommendersList(auth, db, lastRecomm)
-	n = len(recommds)
-	recommenders = '\n'
-	cpt = 1
-	for r in recommds:
-		recommenders += latex_escape(r)
-		recommenders += '\\textsuperscript{%d}' % cpt
-		if (cpt > 1 and cpt < n-1):
-			recommenders += ', '
-		elif (cpt < n):
-			recommenders += ' and '
-		recommenders += '\n'
-		cpt += 1
-	affil = mkRecommendersAffiliations(auth, db, lastRecomm)
-	affiliations = '\n'
-	cpt = 1
-	for a in affil:
-		affiliations += '\\textsuperscript{%d}' % cpt
-		affiliations += latex_escape(a)
-		affiliations += '\\\\\n'
-		cpt += 1
-	reviewers = latex_escape(mkReviewersString(auth, db, articleId))
-	title = latex_escape(lastRecomm.recommendation_title)
-	datePub = latex_escape((datetime.date.today()).strftime('%A %B %d %Y'))
-	firstRecomm = db.auth_user[lastRecomm.recommender_id]
-	if firstRecomm:
-		emailRecomm = latex_escape(firstRecomm.email)
-	else:
-		emailRecomm = ''
-	doi = latex_escape(art.doi)
-	doiLink = mkLinkDOI(art.doi)
-	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
-	bib = recommBibtex(articleId)
-	#fd, bibfile = tempfile.mkstemp(suffix='.bib')
-	#bibfile = "/tmp/sample.bib"
-	#with open(bibfile, 'w') as tmp:
-		#tmp.write(bib)
-		#tmp.close()
-	recommendation = lastRecomm.recommendation_comments
-	#recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space ::: replaced by latex command DO NOT UNCOMMENT!
-	#with open('/tmp/laRecomm.txt', 'w') as tmp:
-		#tmp.write(recommendation)
-		#tmp.close()
-	recommendation = (render(recommendation))[0]
-	
-	# NOTE: Standard string for using \includepdf for external documents
-	incpdfcmd = '\\includepdf[pages={-},scale=.7,pagecommand={},offset=0mm -20mm]{%s}\n'
-	history = ''
-	if (withHistory and art.already_published is False):
-		history = '\\clearpage\\section*{Review process}\n'
-		allRecomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
-		nbRecomms = len(allRecomms)
-		iRecomm = 0
-		roundNb = nbRecomms+1
-		for recomm in allRecomms:
-			iRecomm += 1
-			roundNb -= 1
-			x = latex_escape('Revision round #%s' % roundNb)
-			history += '\\subsection*{%s}\n' % x
-			#roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-			whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
-			# Decision if not last recomm
-			if iRecomm > 1:
-				history += '\\subsubsection*{Decision by %s}\n' % SPAN(whoDidIt).flatten()
-				x = latex_escape(recomm.recommendation_title)
-				history += '{\\bf %s}\\par\n' % x
-				x = (render(recomm.recommendation_comments))[0]
-				history += x + '\n\n\n'
-				
-			# Check for reviews
-			reviews = db( (db.t_reviews.recommendation_id==recomm.id) & (db.t_reviews.review_state=='Completed') ).select(orderby=~db.t_reviews.id)
-			if len(reviews) > 0:
-				history += '\\subsubsection*{Reviews}\n'
-				history += '\\begin{itemize}\n'
-				for review in reviews:
-					# display the review
-					if review.anonymously:
-						x = latex_escape(current.T('Reviewed by')+' '+current.T('anonymous reviewer')+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
-						history += '\\item{%s}\\par\n' % x
-					else:
-						x = latex_escape(current.T('Reviewed by')+' '+mkUser(auth, db, review.reviewer_id, linked=False).flatten()+(', '+review.last_change.strftime('%Y-%m-%d %H:%M') if review.last_change else ''))
-						history += '\\item{%s}\\par\n' % x
-					if len(review.review or '')>2:
-						x = (render(review.review))[0]
-						history += x + '\n\n\n'
-						if review.review_pdf:
-							x = os.path.join(tmpDir, 'review_%d.pdf' % review.id)
-							with open(x, 'w') as tmp:
-								tmp.write(review.review_pdf_data)
-								tmp.close()
-							history += incpdfcmd % x
-					elif review.review_pdf:
-						x = os.path.join(tmpDir, 'review_%d.pdf' % review.id)
-						with open(x, 'w') as tmp:
-							tmp.write(review.review_pdf_data)
-							tmp.close()
-						history += incpdfcmd % x
-					else:
-						pass
-				history += '\\end{itemize}\n'
-			
-			# Author's reply
-			if len(recomm.reply) > 2 or recomm.reply_pdf: 
-				history += '\\subsubsection*{Authors\' reply}\n'
-			if len(recomm.reply) > 2: 
-				x = (render(recomm.reply))[0]
-				history += x + '\n\n\n'
-			if recomm.reply_pdf: 
-				x = os.path.join(tmpDir, 'reply_%d.pdf' % recomm.id)
-				with open(x, 'w') as tmp:
-					tmp.write(recomm.reply_pdf_data)
-					tmp.close()
-				history += incpdfcmd % x
-			
-	resu = template % locals()
-	return(resu)
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    applongname = latex_escape(myconf.take("app.description"))
+    logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
+    smalllogo = os.path.normpath(os.path.join(request.folder, "static", "images", "small-background.png"))
+    logoOA = os.path.normpath(os.path.join(request.folder, "static", "images", "Open_Access_logo_PLoS_white_green.png"))
+    ccPng = os.path.normpath(os.path.join(request.folder, "static", "images", "cc_large.png"))
+    byPng = os.path.normpath(os.path.join(request.folder, "static", "images", "by_large.png"))
+    ndPng = os.path.normpath(os.path.join(request.folder, "static", "images", "nd_large.png"))
+    Atitle = latex_escape(art.title)
+    Aauthors = latex_escape(art.authors)
+    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    recommds = mkRecommendersList(auth, db, lastRecomm)
+    n = len(recommds)
+    recommenders = "\n"
+    cpt = 1
+    for r in recommds:
+        recommenders += latex_escape(r)
+        recommenders += "\\textsuperscript{%d}" % cpt
+        if cpt > 1 and cpt < n - 1:
+            recommenders += ", "
+        elif cpt < n:
+            recommenders += " and "
+        recommenders += "\n"
+        cpt += 1
+    affil = mkRecommendersAffiliations(auth, db, lastRecomm)
+    affiliations = "\n"
+    cpt = 1
+    for a in affil:
+        affiliations += "\\textsuperscript{%d}" % cpt
+        affiliations += latex_escape(a)
+        affiliations += "\\\\\n"
+        cpt += 1
+    reviewers = latex_escape(mkReviewersString(auth, db, articleId))
+    title = latex_escape(lastRecomm.recommendation_title)
+    datePub = latex_escape((datetime.date.today()).strftime("%A %B %d %Y"))
+    firstRecomm = db.auth_user[lastRecomm.recommender_id]
+    if firstRecomm:
+        emailRecomm = latex_escape(firstRecomm.email)
+    else:
+        emailRecomm = ""
+    doi = latex_escape(art.doi)
+    doiLink = mkLinkDOI(art.doi)
+    siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    bib = recommBibtex(articleId)
+    # fd, bibfile = tempfile.mkstemp(suffix='.bib')
+    # bibfile = "/tmp/sample.bib"
+    # with open(bibfile, 'w') as tmp:
+    # tmp.write(bib)
+    # tmp.close()
+    recommendation = lastRecomm.recommendation_comments
+    # recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space ::: replaced by latex command DO NOT UNCOMMENT!
+    # with open('/tmp/laRecomm.txt', 'w') as tmp:
+    # tmp.write(recommendation)
+    # tmp.close()
+    recommendation = (render(recommendation))[0]
+
+    # NOTE: Standard string for using \includepdf for external documents
+    incpdfcmd = "\\includepdf[pages={-},scale=.7,pagecommand={},offset=0mm -20mm]{%s}\n"
+    history = ""
+    if withHistory and art.already_published is False:
+        history = "\\clearpage\\section*{Review process}\n"
+        allRecomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+        nbRecomms = len(allRecomms)
+        iRecomm = 0
+        roundNb = nbRecomms + 1
+        for recomm in allRecomms:
+            iRecomm += 1
+            roundNb -= 1
+            x = latex_escape("Revision round #%s" % roundNb)
+            history += "\\subsection*{%s}\n" % x
+            # roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+            whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+            # Decision if not last recomm
+            if iRecomm > 1:
+                history += "\\subsubsection*{Decision by %s}\n" % SPAN(whoDidIt).flatten()
+                x = latex_escape(recomm.recommendation_title)
+                history += "{\\bf %s}\\par\n" % x
+                x = (render(recomm.recommendation_comments))[0]
+                history += x + "\n\n\n"
+
+            # Check for reviews
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=~db.t_reviews.id)
+            if len(reviews) > 0:
+                history += "\\subsubsection*{Reviews}\n"
+                history += "\\begin{itemize}\n"
+                for review in reviews:
+                    # display the review
+                    if review.anonymously:
+                        x = latex_escape(
+                            current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                        )
+                        history += "\\item{%s}\\par\n" % x
+                    else:
+                        x = latex_escape(
+                            current.T("Reviewed by")
+                            + " "
+                            + mkUser(auth, db, review.reviewer_id, linked=False).flatten()
+                            + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                        )
+                        history += "\\item{%s}\\par\n" % x
+                    if len(review.review or "") > 2:
+                        x = (render(review.review))[0]
+                        history += x + "\n\n\n"
+                        if review.review_pdf:
+                            x = os.path.join(tmpDir, "review_%d.pdf" % review.id)
+                            with open(x, "w") as tmp:
+                                tmp.write(review.review_pdf_data)
+                                tmp.close()
+                            history += incpdfcmd % x
+                    elif review.review_pdf:
+                        x = os.path.join(tmpDir, "review_%d.pdf" % review.id)
+                        with open(x, "w") as tmp:
+                            tmp.write(review.review_pdf_data)
+                            tmp.close()
+                        history += incpdfcmd % x
+                    else:
+                        pass
+                history += "\\end{itemize}\n"
+
+            # Author's reply
+            if len(recomm.reply) > 2 or recomm.reply_pdf:
+                history += "\\subsubsection*{Authors' reply}\n"
+            if len(recomm.reply) > 2:
+                x = (render(recomm.reply))[0]
+                history += x + "\n\n\n"
+            if recomm.reply_pdf:
+                x = os.path.join(tmpDir, "reply_%d.pdf" % recomm.id)
+                with open(x, "w") as tmp:
+                    tmp.write(recomm.reply_pdf_data)
+                    tmp.close()
+                history += incpdfcmd % x
+
+    resu = template % locals()
+    return resu
 
 
 def recommBibtex(articleId):
-	art = db.t_articles[articleId]
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
 
-	lastRecomm = db(db.t_recommendations.article_id==articleId).select(orderby=db.t_recommendations.id).last()
-	template = """@article{recommendation,
+    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    template = """@article{recommendation,
 		title = {%(title)s},
 		doi = {%(doi)s},
 		journal = {%(applongname)s},
@@ -392,33 +401,32 @@ def recommBibtex(articleId):
 		year = {%(Ayear)s},
 		}
 	"""
-	title = latex_escape(lastRecomm.recommendation_title)
-	doi = latex_escape(lastRecomm.doi)
-	applongname = latex_escape(myconf.take('app.description'))
-	whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
-	year = art.last_status_change.year
-	pat = re.search('\\.(?P<num>\d+)$', doi)
-	if pat:
-		eid = pat.group('num') or ''
-	else:
-		eid = ''
-	Atitle = latex_escape(art.title)
-	Adoi = latex_escape(art.doi)
-	Aauthors = latex_escape(art.authors)
-	Ayear = year
-	resu = template % locals()
-	return(resu)
-
+    title = latex_escape(lastRecomm.recommendation_title)
+    doi = latex_escape(lastRecomm.doi)
+    applongname = latex_escape(myconf.take("app.description"))
+    whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
+    year = art.last_status_change.year
+    pat = re.search("\\.(?P<num>\d+)$", doi)
+    if pat:
+        eid = pat.group("num") or ""
+    else:
+        eid = ""
+    Atitle = latex_escape(art.title)
+    Adoi = latex_escape(art.doi)
+    Aauthors = latex_escape(art.authors)
+    Ayear = year
+    resu = template % locals()
+    return resu
 
 
 ######################################################################################################################################################################
 def frontPageLatex(articleId):
-	art = db.t_articles[articleId]
-	if art == None:
-		session.flash = T('Unavailable')
-		redirect(URL('articles', 'recommended_articles', user_signature=True))
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("articles", "recommended_articles", user_signature=True))
 
-	template = """
+    template = """
 \\documentclass[a4paper]{article}
 \\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
 \\usepackage{marginnote}
@@ -562,27 +570,28 @@ dashed=false
 \\end{document}
 
 """
-	scheme=myconf.take('alerts.scheme')
-	host=myconf.take('alerts.host')
-	port=myconf.take('alerts.port', cast=lambda v: takePort(v) )
-	applongname = myconf.take('app.description')
-	logo = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'background.png'))
-	logoOA = os.path.normpath(os.path.join(request.folder, 'static', 'images', 'Open_Access_logo_PLoS_white_blue.png'))
-	title = art.title
-	authors = art.authors
-	whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
-	reviewers = ""
-	doi = art.doi
-	doiLink = mkLinkDOI(art.doi)
-	siteUrl = URL(c='default', f='index', scheme=scheme, host=host, port=port)
-	bib = recommBibtex(articleId)
-	#fd, bibfile = tempfile.mkstemp(suffix='.bib')
-	#with os.fdopen(fd, 'w') as tmp:
-		#tmp.write(bib)
-		#tmp.close()
-	bibfile = "/tmp/sample.bib"
-	with open(bibfile, 'w') as tmp:
-		tmp.write(bib)
-		tmp.close()
-	resu = template % locals()
-	return(resu)
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    applongname = myconf.take("app.description")
+    logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
+    logoOA = os.path.normpath(os.path.join(request.folder, "static", "images", "Open_Access_logo_PLoS_white_blue.png"))
+    title = art.title
+    authors = art.authors
+    whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
+    reviewers = ""
+    doi = art.doi
+    doiLink = mkLinkDOI(art.doi)
+    siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    bib = recommBibtex(articleId)
+    # fd, bibfile = tempfile.mkstemp(suffix='.bib')
+    # with os.fdopen(fd, 'w') as tmp:
+    # tmp.write(bib)
+    # tmp.close()
+    bibfile = "/tmp/sample.bib"
+    with open(bibfile, "w") as tmp:
+        tmp.write(bib)
+        tmp.close()
+    resu = template % locals()
+    return resu
+

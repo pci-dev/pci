@@ -10,9 +10,7 @@ from app_modules.helper import *
 
 # frequently used constants
 csv = False  # no export allowed
-expClass = (
-    None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-)
+expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
@@ -80,14 +78,7 @@ def suggest_article_to():
 def del_suggested_recommender():
     suggId = request.vars["suggId"]
     if suggId:
-        if (
-            db(
-                (db.t_suggested_recommenders.id == suggId)
-                & (db.t_articles.id == db.t_suggested_recommenders.article_id)
-                & (db.t_articles.user_id == auth.user_id)
-            ).count()
-            > 0
-        ):
+        if db((db.t_suggested_recommenders.id == suggId) & (db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_articles.user_id == auth.user_id)).count() > 0:
             db((db.t_suggested_recommenders.id == suggId)).delete()
     redirect(request.env.http_referer)
 
@@ -123,16 +114,12 @@ def article_revised():
             recommendation_title=None,
         )
         # propagate co-recommenders
-        corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(
-            db.t_press_reviews.contributor_id
-        )
+        corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
         if len(corecommenders) > 0:
             # NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
             db.t_press_reviews._after_insert = []
             for corecommender in corecommenders:
-                db.t_press_reviews.validate_and_insert(
-                    recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id
-                )
+                db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
         redirect(URL(c="user", f="my_articles", user_signature=True))
 
 
