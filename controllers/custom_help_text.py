@@ -5,7 +5,7 @@ from gluon.custom_import import track_changes
 
 track_changes(True)  # reimport module if changed; disable in production
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 
 csv = True  # export allowed

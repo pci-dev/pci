@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from app_modules.common import *
+
 from app_modules.helper import *
+from app_components import common_components
+from app_components import article_components
 
 
 ######################################################################################################################################################################
@@ -74,7 +76,7 @@ def user_public_page():
                 nbRecomms = len(recommsQy)
                 recomms = []
                 for row in recommsQy:
-                    recomms.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    recomms.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 # reviews
                 reviews = []
@@ -90,7 +92,7 @@ def user_public_page():
 
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
-                    reviews.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    reviews.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 resu = dict(
                     myHelp=getHelp(request, auth, db, "#PublicUserCard"),

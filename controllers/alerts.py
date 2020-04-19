@@ -4,7 +4,7 @@
 import re
 
 # from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.emailing import *
 from datetime import date, datetime
 import calendar
@@ -14,7 +14,11 @@ from time import sleep
 # host=socket.getfqdn()
 from gluon.contrib.appconfig import AppConfig
 
-from app_modules import common_components
+from app_components import common_components
+from app_components import article_components
+
+from app_modules import common_tools
+from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
 mail_layout = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
@@ -31,11 +35,13 @@ def _do_send_email_to_test(userId):
     mail_resu = False
     applongname = myconf.take("app.longname")
     appdesc = myconf.take("app.description")
-    destPerson = mkUser(auth, db, userId)
+    destPerson = common_small_html.mkUser(auth, db, userId)
     destAddress = db.auth_user[userId]["email"]
     mySubject = "%s: TEST MAIL" % (applongname)
     siteName = I(applongname)
-    linkTarget = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port", cast=lambda v: takePort(v)))
+    linkTarget = URL(
+        c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    )
     content = (
         """
 Dear %(destPerson)s,<p>
@@ -83,7 +89,7 @@ def testUserRecommendedAlert():
                         myRows = []
                         odd = True
                         for row in query:
-                            myRows.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
+                            myRows.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
 
                             odd = not (odd)
                         msgContents = DIV(TABLE(TBODY(myRows), _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
@@ -121,7 +127,7 @@ def alertUsersLastRecommendations():
                     myRows = []
                     odd = True
                     for row in query:
-                        myRows.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
+                        myRows.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
                         odd = not (odd)
                     msgContents = DIV(DIV(myRows, _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
                     if len(myRows) > 0:

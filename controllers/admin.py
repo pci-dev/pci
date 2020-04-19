@@ -11,12 +11,12 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-from app_modules.common import *
+
 from app_modules.emailing import *
 from app_modules.helper import *
 
-from app_modules import admin_module
-from app_modules import common_tools
+from controller_modules import admin_module
+from app_modules import common_small_html
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -94,11 +94,11 @@ def list_users():
         db.t_comments.parent_id,
     ]
     db.auth_user._id.readable = True
-    db.auth_user._id.represent = lambda i, row: mkUserId(auth, db, i, linked=True)
+    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(auth, db, i, linked=True)
     db.t_reviews.recommendation_id.label = T("Article DOI")
     db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda text, row: mkAnonymousMask(auth, db, text)
-    db.t_articles.already_published.represent = lambda text, row: mkJournalImg(auth, db, text)
+    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
+    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
     grid = SQLFORM.smartgrid(
         db.auth_user,
@@ -234,7 +234,7 @@ def allRecommCitations():
     ).select(db.t_recommendations.ALL, orderby=db.t_recommendations.last_change)
     grid = OL()
     for myRecomm in allRecomms:
-        grid.append(LI(mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), mkArticleCitation(auth, db, myRecomm), P()))
+        grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P()))
     return dict(
         grid=grid,
         myTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
@@ -254,7 +254,7 @@ def article_status():
 
     write_auth = auth.has_membership("developper")
     db.t_status_article._id.label = T("Coded representation")
-    db.t_status_article._id.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
+    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
     db.t_status_article.status.writable = write_auth
     grid = SQLFORM.grid(
         db.t_status_article,
@@ -293,7 +293,7 @@ def manage_pdf():
     for q in myQy:
         myList.append(q[0])
     mySet = db((db.t_recommendations.id.belongs(myList)))
-    db.t_recommendations._format = lambda row: mkRecommendationFormat2(auth, db, row)
+    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(auth, db, row)
     db.t_pdf.recommendation_id.requires = IS_IN_DB(mySet, "t_recommendations.id", db.t_recommendations._format, orderby=db.t_recommendations.id)
     db.t_pdf.recommendation_id.widget = SQLFORM.widgets.radio.widget
     grid = SQLFORM.grid(

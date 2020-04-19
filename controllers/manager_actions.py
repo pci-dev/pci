@@ -14,7 +14,7 @@ import codecs
 
 # import html2text
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 
 from gluon.contrib.appconfig import AppConfig

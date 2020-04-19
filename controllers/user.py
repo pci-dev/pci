@@ -4,14 +4,20 @@ import re
 import copy
 
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 
-from app_modules import user_module
+# App modules
+from controller_modules import user_module
+
+from app_components import app_forms
+from app_components import common_components
+from app_components import article_components
+from app_components import ongoing_recommendation
+
 from app_modules import common_tools
-from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_components
+from app_modules import common_small_html
 
 
 # frequently used constants
@@ -45,15 +51,15 @@ def recommendations():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
 
         response.title = art.title or myconf.take("app.longname")
 
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
-        recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
-        recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+        recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
         if printable:
             printableClass = "printable"
@@ -129,7 +135,7 @@ def search_recommenders():
             Field("excluded", type="boolean", label=T("Excluded")),
         )
         qyKwArr = qyKw.split(" ")
-        searchForm = common_forms.getSearchForm(auth, db, myVars)
+        searchForm = app_forms.searchByThematic(auth, db, myVars)
         if searchForm.process(keepvalues=True).accepted:
             response.flash = None
         else:
@@ -144,7 +150,7 @@ def search_recommenders():
         temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
         links = [
-            dict(header=T(""), body=lambda row: "" if row.excluded else mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
+            dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
         ]
         selectable = None
         temp_db.qy_recomm.num.readable = False
@@ -379,7 +385,7 @@ def suggested_recommenders():
         fields=[db.t_suggested_recommenders.suggested_recommender_id],
     )
     return dict(
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
         titleIcon="education",
         myTitle=getTitle(request, auth, db, "#SuggestedRecommendersTitle"),
         myText=getText(request, auth, db, "#SuggestedRecommendersText"),
@@ -405,11 +411,11 @@ def add_suggested_recommender():
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
             if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(mkUser(auth, db, con.auth_user.id), I(T("(declined)"))))
+                recommendersList.append(LI(common_small_html.mkUser(auth, db, con.auth_user.id), I(T("(declined)"))))
             else:
                 recommendersList.append(
                     LI(
-                        mkUser(auth, db, con.auth_user.id),
+                        common_small_html.mkUser(auth, db, con.auth_user.id),
                         A(
                             "Remove",
                             _class="btn btn-warning",
@@ -474,7 +480,7 @@ def suggested_recommenders():
     else:
         query = (db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         db.t_suggested_recommenders._id.readable = False
-        db.t_suggested_recommenders.suggested_recommender_id.represent = lambda userId, row: mkUser(auth, db, userId)
+        db.t_suggested_recommenders.suggested_recommender_id.represent = lambda userId, row: common_small_html.mkUser(auth, db, userId)
         grid = SQLFORM.grid(
             query,
             details=False,
@@ -490,7 +496,7 @@ def suggested_recommenders():
             field_id=db.t_suggested_recommenders.id,
         )
         return dict(
-            # myBackButton=mkBackButton(),
+            # myBackButton=common_small_html.mkBackButton(),
             myHelp=getHelp(request, auth, db, "#UserSuggestedRecommenders"),
             myText=getText(request, auth, db, "#UserSuggestedRecommendersText"),
             titleIcon="education",
@@ -509,19 +515,19 @@ def my_articles():
     db.t_articles.user_id.default = auth.user_id
     db.t_articles.user_id.writable = False
     db.t_articles.auto_nb_recommendations.writable = False
-    db.t_articles.status.represent = lambda text, row: mkStatusDivUser(auth, db, text)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text)
     db.t_articles.status.writable = False
-    db.t_articles._id.represent = lambda text, row: mkArticleCellNoRecomm(auth, db, row)
+    db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
     db.t_articles._id.label = T("Article")
     db.t_articles.doi.readable = False
     db.t_articles.title.readable = False
     db.t_articles.authors.readable = False
     db.t_articles.article_source.readable = False
     db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda anon, r: mkAnonymousMask(auth, db, anon)
+    db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
         dict(header=T("Suggested recommenders"), body=lambda row: user_module.mkSuggestedRecommendersUserButton(auth, db, row)),
-        dict(header=T("Recommender(s)"), body=lambda row: getRecommender(auth, db, row)),
+        dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(auth, db, row)),
         dict(
             header="",
             body=lambda row: A(
@@ -536,12 +542,12 @@ def my_articles():
         db.t_articles.abstract.readable = False
         db.t_articles.keywords.readable = False
         db.t_articles.thematics.readable = False
-        db.t_articles.upload_timestamp.represent = lambda text, row: mkLastChange(text)
+        db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
         db.t_articles.upload_timestamp.label = T("Submitted")
-        db.t_articles.last_status_change.represent = lambda text, row: mkLastChange(text)
+        db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(text)
         db.t_articles.auto_nb_recommendations.readable = True
     else:
-        db.t_articles.doi.represent = lambda text, row: mkDOI(text)
+        db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
 
     if parallelSubmissionAllowed:
         fields = [
@@ -597,7 +603,7 @@ def my_articles():
         orderby=~db.t_articles.last_status_change,
     )
     return dict(
-        # myBackButton=mkBackButton(),
+        # myBackButton=common_small_html.mkBackButton(),
         myHelp=getHelp(request, auth, db, "#UserMyArticles"),
         myText=getText(request, auth, db, "#UserMyArticlesText"),
         titleIcon="duplicate",
@@ -636,13 +642,13 @@ def my_reviews():
         btnTxt = current.T("View / Edit")
 
     # db.t_articles._id.readable = False
-    db.t_articles._id.represent = lambda aId, row: mkRepresentArticleLight(auth, db, aId)
+    db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(auth, db, aId)
     db.t_articles._id.label = T("Article")
-    db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+    db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations._id.label = T("Recommendation")
-    db.t_articles.status.represent = lambda text, row: mkStatusDivUser(auth, db, text)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text)
     db.t_reviews.last_change.label = T("Days elapsed")
-    db.t_reviews.last_change.represent = lambda text, row: mkElapsed(text)
+    db.t_reviews.last_change.represent = lambda text, row: common_small_html.mkElapsed(text)
     db.t_reviews.reviewer_id.writable = False
     # db.t_reviews.recommendation_id.writable = False
     # db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
@@ -650,8 +656,8 @@ def my_reviews():
     # db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
     db.t_reviews._id.readable = False
     # db.t_reviews.review.readable=False
-    db.t_reviews.review_state.represent = lambda text, row: mkReviewStateDiv(auth, db, text)
-    db.t_reviews.anonymously.represent = lambda anon, row: mkAnonymousMask(auth, db, anon)
+    db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
+    db.t_reviews.anonymously.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon)
     db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
@@ -798,7 +804,7 @@ def edit_reply():
         response.flash = T("Form has errors", lazy=False)
     return dict(
         myHelp=getHelp(request, auth, db, "#UserEditReply"),
-        # myBackButton = mkBackButton(),
+        # myBackButton = common_small_html.mkBackButton(),
         titleIcon="edit",
         myText=getText(request, auth, db, "#UserEditReplyText"),
         myTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
@@ -853,7 +859,7 @@ def edit_review():
 
     return dict(
         myHelp=getHelp(request, auth, db, "#UserEditReview"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
         myText=getText(request, auth, db, "#UserEditReviewText"),
         titleIcon="edit",
         myTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
@@ -861,53 +867,3 @@ def edit_review():
         myFinalScript=SCRIPT(myScript),
     )
 
-
-######################################################################################################################################################################
-## (gab) Unused ?
-######################################################################################################################################################################
-
-# @auth.requires_login()
-# def recommenders():
-# 	response.view='default/myLayout.html'
-# 	articleId = request.vars['articleId']
-
-# 	article = db.t_articles[articleId]
-# 	if (article.user_id != auth.user_id) and not(auth.has_membership(role='manager')):
-# 		session.flash = auth.not_authorized()
-# 		redirect(request.env.http_referer)
-# 	else:
-# 		query = (db.t_suggested_recommenders.article_id == articleId)
-# 		db.t_suggested_recommenders._id.readable = False
-# 		db.t_suggested_recommenders.article_id.default = articleId
-# 		db.t_suggested_recommenders.article_id.writable = False
-# 		db.t_suggested_recommenders.article_id.readable = False
-# 		db.t_suggested_recommenders.email_sent.writable = False
-# 		db.t_suggested_recommenders.email_sent.readable = False
-# 		db.t_suggested_recommenders.suggested_recommender_id.writable = True
-# 		db.t_suggested_recommenders.suggested_recommender_id.represent = lambda rid,row: mkUser(auth, db, rid) if row else ''
-# 		if len(request.args)>0 and request.args[0]=='new':
-# 			myAcceptBtn = ''
-# 		else:
-# 			myAcceptBtn = DIV(
-# 							A(SPAN(current.T('Done'), _class='buttontext btn btn-info'),
-# 										_href=URL(c='user', f='my_articles', user_signature=True)),
-# 							_style='margin-top:16px; text-align:center;'
-# 						)
-# 		grid = SQLFORM.grid( query
-# 			,details=False
-# 			,editable=False
-# 			,deletable=article.status in ('Pending')
-# 			,create=False
-# 			,searchable=False
-# 			,maxtextlength = 250,paginate=100
-# 			,csv = csv, exportclasses = expClass
-# 			,fields=[db.t_suggested_recommenders.article_id, db.t_suggested_recommenders.suggested_recommender_id]
-# 		)
-
-# 		return dict(
-# 					myTitle=getTitle(request, auth, db, '#UserManageRecommendersTitle'),
-# 					myText=getText(request, auth, db, '#UserManageRecommendersText'),
-# 					myHelp = getHelp(request, auth, db, '#UserManageRecommenders'),
-# 					grid=grid,
-# 					myAcceptBtn = myAcceptBtn,
-# 				)

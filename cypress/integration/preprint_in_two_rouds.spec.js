@@ -2,7 +2,7 @@ describe("Preprint recommended in two round", () => {
   const articleTitle = "articleTest" + new Date().toLocaleString();
   const recommTitle = "recommendationTest" + new Date().toLocaleString();
   //  screenshots test folder
-  const currentTest = "preprint_2_round_recommendation"
+  const currentTest = "preprint_2_round_recommendation";
 
   let submitter;
   let manager;
@@ -260,9 +260,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should show 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(
@@ -455,9 +453,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should show 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -550,9 +546,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -703,9 +697,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Your recommendations of preprints' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(
@@ -933,9 +925,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Your submitted preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(".pci-enhancedMenuItem", "Your submitted preprint").should(
@@ -992,9 +982,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Your recommendations of preprints' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(
@@ -1142,9 +1130,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -1237,9 +1223,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -1390,9 +1374,7 @@ describe("Preprint recommended in two round", () => {
     });
 
     it("Should have 'Your recommendations of preprints' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(

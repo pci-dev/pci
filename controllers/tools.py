@@ -12,7 +12,7 @@ import os
 
 import codecs
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 from imported_modules.html2text import *
 

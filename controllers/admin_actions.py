@@ -11,10 +11,12 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-from app_modules.common import *
+
 from app_modules.emailing import *
 from app_modules.helper import *
-from app_modules import admin_module
+
+from controller_modules import admin_module
+from app_modules import common_small_html
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -43,7 +45,7 @@ def testMail():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def resizeAllUserImages():
     for userId in db(db.auth_user.uploaded_picture != None).select(db.auth_user.id):
-        makeUserThumbnail(auth, db, userId, size=(150, 150))
+        common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
     redirect(request.env.http_referer)
 
 
@@ -51,7 +53,7 @@ def resizeAllUserImages():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def resizeAllArticleImages():
     for articleId in db(db.t_articles.uploaded_picture != None).select(db.t_articles.id):
-        makeArticleThumbnail(auth, db, articleId, size=(150, 150))
+        common_small_html.makeArticleThumbnail(auth, db, articleId, size=(150, 150))
     redirect(request.env.http_referer)
 
 
@@ -59,7 +61,7 @@ def resizeAllArticleImages():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def resizeUserImages(ids):
     for userId in ids:
-        makeUserThumbnail(auth, db, userId, size=(150, 150))
+        common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
 
 
 ######################################################################################################################################################################

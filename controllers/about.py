@@ -8,7 +8,10 @@ from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
 # from app_modules.common import mkPanel
 from app_modules.helper import *
-from app_modules import common_forms
+
+from app_components import app_forms
+from app_modules import common_tools
+from app_modules import common_small_html
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -53,7 +56,7 @@ def rss_info():
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     url = URL(c="rss", f="rss", scheme=scheme, host=host, port=port)
     fname = os.path.dirname(os.path.abspath(__file__)) + "/../static/images/RSS_datamatrix.png"
     if os.path.isfile(fname):
@@ -204,7 +207,7 @@ def recommenders():
             qyTF.append(re.sub(r"^qy_", "", myVar))
     qyKwArr = qyKw.split(" ")
 
-    searchForm = common_forms.getSearchForm(auth, db, myVars)
+    searchForm = app_forms.searchByThematic(auth, db, myVars)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
@@ -223,7 +226,7 @@ def recommenders():
             my1 = sfr.last_name[0].upper()
             myRows.append(TR(TD(my1, A(_name=my1)), TD(""), _class="pci-capitals"))
             myIdx.append(A(my1, _href="#%s" % my1, _style="margin-right:20px;"))
-        myRows.append(mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
+        myRows.append(common_small_html.mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
     grid = DIV(
         HR(),
         DIV(nbRecomm + T(" recommenders selected"), _style="text-align:center; margin-bottom:20px;"),
@@ -252,10 +255,10 @@ def managers():
     ).select(db.auth_user.ALL, distinct=db.auth_user.last_name | db.auth_user.id, orderby=db.auth_user.last_name | db.auth_user.id)
     myRows = []
     for user in query:
-        myRows.append(mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
+        myRows.append(common_small_html.mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
     grid = DIV(TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"))
     return dict(
-        # mkBackButton = mkBackButton(),
+        # common_small_html.mkBackButton = common_small_html.mkBackButton(),
         myTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
         myText=getText(request, auth, db, "#PublicManagingBoardText"),
         myHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),

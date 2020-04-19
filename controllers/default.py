@@ -5,7 +5,7 @@ import re
 import copy
 
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 from gluon.utils import web2py_uuid
 

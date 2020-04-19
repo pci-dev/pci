@@ -11,13 +11,16 @@ from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
 
-from app_modules.common import *
+
 from app_modules.helper import *
-from app_modules import common_forms
-from app_modules import common_components
+
+from app_components import app_forms
+from app_components import common_components
+from app_components import article_components
+from app_components import public_recommendation
+
 from app_modules import common_html
 from app_modules import common_tools
-from app_modules import common_small_html
 
 
 myconf = AppConfig(reload=True)
@@ -70,7 +73,7 @@ def last_recomms():
 
     recommendedArticlesList = []
     for row in queryRecommendedArticles:
-        r = common_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
         if r:
             recommendedArticlesList.append(r)
 
@@ -125,7 +128,7 @@ def recommended_articles():
     totalArticles = len(filtered)
     myRows = []
     for row in filtered:
-        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
         if r:
             myRows.append(r)
 
@@ -134,7 +137,7 @@ def recommended_articles():
         _class="searchRecommendationsDiv",
     )
 
-    searchForm = common_forms.getSearchForm(auth, db, myVars2)
+    searchForm = app_forms.searchByThematic(auth, db, myVars2)
 
     response.view = "default/gab_list_layout.html"
     return dict(
@@ -154,7 +157,7 @@ def recommended_articles():
 def rec():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_small_html.takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     with_reviews = "reviews" in request.vars and request.vars["reviews"] == "True"
     # with_reviews = True
@@ -213,7 +216,7 @@ def rec():
     nbReviews = nbRevs + (nbRecomms - 1)
 
     # Recommendation Header and Metadata
-    recommendationHeader = common_components.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
+    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
 
@@ -223,12 +226,12 @@ def rec():
     reviewRounds = None
     if with_reviews:
         # Get review rounds tree
-        reviewRounds = DIV(common_components.getPublicReviewRoundsHtml(auth, db, response, art.id))
+        reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
 
     commentsTreeAndForm = None
     if with_comments:
         # Get user comments list and form
-        commentsTreeAndForm = common_components.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -268,7 +271,7 @@ def tracking():
         query_already_published_articles = db(db.t_articles.already_published == False).select(orderby=~db.t_articles.last_status_change)
 
         for article in query_already_published_articles:
-            article_html_card = common_components.getArticleTrackcRowCard(auth, db, response, article)
+            article_html_card = article_components.getArticleTrackcRowCard(auth, db, response, article)
             if article_html_card:
                 article_list.append(article_html_card)
 
@@ -290,7 +293,7 @@ def all_recommended_articles():
     allR = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
-        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
         if r:
             myRows.append(r)
     n = len(allR)
@@ -339,7 +342,7 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     else:
-        myContents = DIV(reviewsOfCancelled(auth, db, art))
+        myContents = DIV(common_html.reviewsOfCancelled(auth, db, art))
 
     resu = dict(
         myHelp=getHelp(request, auth, db, "#TrackReviews"),

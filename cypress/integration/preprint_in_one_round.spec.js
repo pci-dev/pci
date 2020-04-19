@@ -1,7 +1,7 @@
 describe("Preprint recommended in one round", () => {
   const articleTitle = "articleTest" + new Date().toLocaleString();
   const recommTitle = "recommendationTest" + new Date().toLocaleString();
-  const currentTest = "preprint_1_round_recommendation"
+  const currentTest = "preprint_1_round_recommendation";
 
   let submitter;
   let manager;
@@ -261,9 +261,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should show 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(
@@ -456,9 +454,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should show 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -551,9 +547,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should have 'Request to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Contribute").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Contribute").should("exist");
       cy.contains(".dropdown-toggle", "Contribute").click();
 
       cy.contains(
@@ -704,9 +698,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should have 'Your recommendations of preprints' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "Recommend").should(
-        "exist"
-      );
+      cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(

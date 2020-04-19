@@ -2,14 +2,19 @@ import copy
 
 from gluon.storage import Storage
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
-from app_modules.helper import *
+
 from datetime import datetime, timedelta, date
 from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
 
 myconf = AppConfig(reload=True)
+
+from app_modules.helper import *
+
+from app_modules import common_tools
+from app_modules import common_small_html
+from controller_modules import rss_module
 
 # frequently used constants
 csv = False  # no export allowed
@@ -21,7 +26,7 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 def _rss_cacher(maxArticles):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     title = myconf.take("app.longname")
     contact = myconf.take("contacts.managers")
     managingEditor = "%(contact)s (%(title)s contact)" % locals()
@@ -59,7 +64,7 @@ def _rss_cacher(maxArticles):
     most_recent = None
     for row in query:
         try:
-            r = mkRecommArticleRss(auth, db, row)
+            r = rss_module.mkRecommArticleRss(auth, db, row)
             if r:
                 myRows.append(r)
                 if most_recent is None or row.last_status_change > most_recent:
@@ -118,7 +123,7 @@ def rss4bioRxiv():
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     title = myconf.take("app.longname")
     provider = myconf.take("app.name") or "PCI"
     contact = myconf.take("contacts.managers")
@@ -154,7 +159,7 @@ def rss4bioRxiv():
     links = etree.Element("links")
     for row in query:
         # try:
-        r = mkRecommArticleRss4bioRxiv(auth, db, row)
+        r = rss_module.mkRecommArticleRss4bioRxiv(auth, db, row)
         if r:
             link = etree.Element("link", attrib=dict(providerId=provider))
             resource = etree.SubElement(link, "resource")
@@ -182,7 +187,7 @@ def rss4bioRxiv():
 def rss4altmetric():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     title = myconf.take("app.longname")
     provider = myconf.take("app.name") or "PCI"
     contact = myconf.take("contacts.managers")
@@ -219,7 +224,7 @@ def rss4altmetric():
     links = etree.Element("links")
     for row in query:
         # try:
-        r = mkRecommArticleRss4bioRxiv(auth, db, row)
+        r = rss_module.mkRecommArticleRss4bioRxiv(auth, db, row)
         if r:
             link = etree.Element("link", attrib=dict(providerId=provider))
             resource = etree.SubElement(link, "resource")

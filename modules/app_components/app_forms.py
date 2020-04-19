@@ -8,7 +8,7 @@ from copy import deepcopy
 
 ######################################################################################################################################################################
 # New common modules
-def getSearchForm(auth, db, myVars, allowBlank=True):
+def searchByThematic(auth, db, myVars, allowBlank=True):
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]

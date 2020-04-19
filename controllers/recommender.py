@@ -7,14 +7,19 @@ from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
 from gluon.html import markmin_serializer
 
-from app_modules.common import *
+
 from app_modules.helper import *
 
-from app_modules import recommender_module
+from controller_modules import recommender_module
+
+from app_components import app_forms
+from app_components import common_components
+from app_components import article_components
+from app_components import ongoing_recommendation
+
 from app_modules import common_tools
-from app_modules import common_forms
 from app_modules import common_html
-from app_modules import common_components
+from app_modules import common_small_html
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -71,7 +76,7 @@ def fields_awaiting_articles():
             qyTF.append(re.sub(r"^qy_", "", myVar))
     qyKwArr = qyKw.split(" ")
 
-    searchForm = common_forms.getSearchForm(auth, db, myVars)
+    searchForm = app_forms.searchByThematic(auth, db, myVars)
 
     filtered = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
@@ -80,28 +85,28 @@ def fields_awaiting_articles():
 
     temp_db.qy_art.auto_nb_recommendations.readable = False
     temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
-    temp_db.qy_art.authors.represent = lambda text, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
-    temp_db.qy_art.anonymous_submission.represent = lambda anon, row: mkAnonymousMask(auth, db, anon or False)
+    temp_db.qy_art.authors.represent = lambda text, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
+    temp_db.qy_art.anonymous_submission.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon or False)
     temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
     if len(request.args) == 0:  # in grid
         temp_db.qy_art._id.readable = True
-        temp_db.qy_art._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+        temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
         temp_db.qy_art._id.label = T("Article")
         temp_db.qy_art.title.readable = False
         temp_db.qy_art.authors.readable = False
         # temp_db.qy_art.status.readable = False
         temp_db.qy_art.article_source.readable = False
-        temp_db.qy_art.upload_timestamp.represent = lambda t, row: mkLastChange(t)
-        temp_db.qy_art.last_status_change.represent = lambda t, row: mkLastChange(t)
+        temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
+        temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
         temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-        temp_db.qy_art.status.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
+        temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
     else:
         temp_db.qy_art._id.readable = False
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
-        temp_db.qy_art.doi.represent = lambda text, row: mkDOI(text)
+        temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
         temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
 
     links = []
@@ -230,7 +235,7 @@ def search_reviewers():
                         excludeList.append(uid)
 
     qyKwArr = qyKw.split(" ")
-    searchForm = common_forms.getSearchForm(auth, db, myVars, allowBlank=True)
+    searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
@@ -250,13 +255,13 @@ def search_reviewers():
         recommId = request.vars["recommId"]
         links.append(dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation))
         if myGoal == "4review":
-            links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
+            links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
             # myTitle = T('Search for reviewers')
             myTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
             myText = getText(request, auth, db, "#RecommenderSearchReviewersText")
             myHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
         elif myGoal == "4press":
-            links.append(dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
+            links.append(dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
             # myTitle = T('Search for collaborators')
             myTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             myText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
@@ -294,7 +299,7 @@ def search_reviewers():
     )
 
     response.view = "default/gab_list_layout.html"
-    return dict(myHelp=myHelp, titleIcon="search", myTitle=myTitle, myText=myText, myBackButton=mkBackButton(), searchForm=searchForm, grid=grid,)
+    return dict(myHelp=myHelp, titleIcon="search", myTitle=myTitle, myText=myText, myBackButton=common_small_html.mkBackButton(), searchForm=searchForm, grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -338,7 +343,7 @@ def article_details():
             myContents = DIV(
                 SPAN(
                     "Another recommender has already selected this article (DOI: ",
-                    mkDOI(art.doi),
+                    common_small_html.mkDOI(art.doi),
                     "), for which you were considering handling the evaluation. If you wish, we can inform the recommender handling this article that you would like to be a co-recommender or a reviewer (which would be much appreciated). If you are willing to help in this way, simply send us a message at: ",
                 ),
                 A(contact, _href="mailto:%s" % contact),
@@ -353,17 +358,17 @@ def article_details():
             )
         else:
             if art.already_published:
-                myContents = common_components.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+                myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
             else:
-                myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+                myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
 
         response.title = art.title or myconf.take("app.longname")
 
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
-        recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
-        recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+        recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
         if printable:
             printableClass = "printable"
@@ -376,9 +381,9 @@ def article_details():
 
         return dict(
             viewToRender=viewToRender,
+            recommTopButtons=recommTopButtons or "",
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,
-            recommTopButtons=recommTopButtons or "",
             printable=printable,
             myHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
             myContents=myContents,
@@ -439,21 +444,21 @@ def my_awaiting_articles():
         & (db.t_suggested_recommenders.declined == False)
     )
     db.t_articles.user_id.writable = False
-    db.t_articles.user_id.represent = lambda userId, row: mkAnonymousArticleField(auth, db, row.anonymous_submission, mkUser(auth, db, userId))
-    # db.t_articles.doi.represent = lambda text, row: mkDOI(text)
+    db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, common_small_html.mkUser(auth, db, userId))
+    # db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.anonymous_submission.readable = False
     db.t_articles.anonymous_submission.writable = False
     db.t_articles.status.writable = False
-    db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
     if len(request.args) == 0:  # we are in grid
         # db.t_articles.doi.readable = False
         # db.t_articles.authors.readable = False
         # db.t_articles.title.readable = False
-        db.t_articles.upload_timestamp.represent = lambda t, row: mkLastChange(t)
-        db.t_articles.last_status_change.represent = lambda t, row: mkLastChange(t)
+        db.t_articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
+        db.t_articles.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
         db.t_articles._id.readable = True
-        db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
+        db.t_articles._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
         db.t_articles._id.label = T("Article")
         db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
     else:  # we are in grid's form
@@ -606,7 +611,7 @@ def my_recommendations():
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
@@ -625,8 +630,8 @@ def my_recommendations():
             db.t_recommendations.is_closed,
         ]
         links = [
-            dict(header=T("Co-recommenders"), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(header=T(""), body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+            dict(header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
@@ -646,9 +651,9 @@ def my_recommendations():
             db.t_recommendations.recommender_id,
         ]
         links = [
-            dict(header=T("Co-recommenders"), body=lambda row: mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(header=T("Reviews"), body=lambda row: mkReviewsSubTable(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
-            dict(header=T(""), body=lambda row: mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+            dict(header=T("Reviews"), body=lambda row: common_html.mkReviewsSubTable(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
 
@@ -657,7 +662,7 @@ def my_recommendations():
     # db.t_recommendations.article_id.readable = False
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
-    # db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+    # db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations.recommender_id.readable = False
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
@@ -665,13 +670,13 @@ def my_recommendations():
     db.t_recommendations.recommendation_timestamp.label = T("Started")
     db.t_recommendations.last_change.label = T("Last change")
     db.t_recommendations.last_change.represent = (
-        lambda text, row: mkElapsedDays(row.t_recommendations.last_change) if "t_recommendations" in row else mkElapsedDays(row.last_change)
+        lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.last_change) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.last_change)
     )
     db.t_recommendations.recommendation_timestamp.represent = (
-        lambda text, row: mkElapsedDays(row.t_recommendations.recommendation_timestamp) if "t_recommendations" in row else mkElapsedDays(row.recommendation_timestamp)
+        lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.recommendation_timestamp) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
-    db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
+    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
@@ -697,7 +702,7 @@ def my_recommendations():
         titleIcon = "education"
 
     return dict(
-        # myBackButton=mkBackButton(),
+        # myBackButton=common_small_html.mkBackButton(),
         myHelp=getHelp(request, auth, db, "#RecommenderMyRecommendations"),
         titleIcon=titleIcon,
         myTitle=myTitle,
@@ -758,7 +763,7 @@ def direct_submission():
         )
     return dict(
         myHelp=getHelp(request, auth, db, "#RecommenderDirectSubmission"),
-        # myBackButton=mkBackButton(),
+        # myBackButton=common_small_html.mkBackButton(),
         titleIcon="edit",
         myTitle=getTitle(request, auth, db, "#RecommenderDirectSubmissionTitle"),
         myText=getText(request, auth, db, "#RecommenderDirectSubmissionText"),
@@ -792,17 +797,17 @@ def recommendations():
         redirect(request.env.http_referer)
     else:
         if art.already_published:
-            myContents = common_components.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+            myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
         else:
-            myContents = common_components.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+            myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
 
         response.title = art.title or myconf.take("app.longname")
 
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = common_components.getArticleInfosCard(auth, db, response, art, printable, True)
-        recommStatusHeader = common_components.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
-        recommTopButtons = common_components.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+        recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
         if printable:
             printableClass = "printable"
@@ -848,12 +853,12 @@ def one_review():
     # db.t_reviews.recommendation_id.readable = False
     db.t_reviews.reviewer_id.writable = False
     # db.t_reviews.reviewer_id.default = auth.user_id
-    db.t_reviews.reviewer_id.represent = lambda text, row: mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+    db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
     db.t_reviews.anonymously.default = True
     db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
     db.t_reviews.review.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.writable = auth.has_membership(role="manager")
-    db.t_reviews.review_state.represent = lambda text, row: mkReviewStateDiv(auth, db, text)
+    db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
     db.t_reviews.review.represent = lambda text, row: WIKI(text)
     # db.t_reviews.review_pdf
     form = SQLFORM(
@@ -869,7 +874,7 @@ def one_review():
         myText=getText(request, auth, db, "#RecommenderArticleOneReviewText"),
         titleIcon="eye-open",
         myTitle=getTitle(request, auth, db, "#RecommenderArticleOneReviewTitle"),
-        myBackButton=mkCloseButton(),
+        myBackButton=common_small_html.mkCloseButton(),
         # content=myContents,
         form=form,
         # myFinalScript=myScript,
@@ -899,12 +904,12 @@ def reviews():
         db.t_reviews.recommendation_id.readable = False
         db.t_reviews.reviewer_id.writable = auth.has_membership(role="manager")
         db.t_reviews.reviewer_id.default = auth.user_id
-        db.t_reviews.reviewer_id.represent = lambda text, row: mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+        db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
         db.t_reviews.review.writable = auth.has_membership(role="manager")
         db.t_reviews.review_state.writable = auth.has_membership(role="manager")
-        db.t_reviews.review_state.represent = lambda text, row: mkReviewStateDiv(auth, db, text)
+        db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
         db.t_reviews.emailing.writable = False
         db.t_reviews.emailing.represent = lambda text, row: XML(text) if text else ""
         db.t_reviews.last_change.writable = True
@@ -968,7 +973,7 @@ def reviews():
             myText=getText(request, auth, db, "#RecommenderArticleReviewsText"),
             titleIcon="eye-open",
             myTitle=getTitle(request, auth, db, "#RecommenderArticleReviewsTitle"),
-            # myBackButton=mkBackButton(),
+            # myBackButton=common_small_html.mkBackButton(),
             content=myContents,
             grid=grid,
             myFinalScript=myScript,
@@ -1004,7 +1009,7 @@ def reviewers():
                 reviewersIds.append(con.auth_user.id)
                 reviewersList.append(
                     LI(
-                        mkUserWithMail(auth, db, con.auth_user.id),
+                        common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
                         " ",
                         B(T(" (YOU) ")) if con.auth_user.id == recomm.recommender_id else "",
                         I("(" + (con.t_reviews.review_state or "") + ")"),
@@ -1059,7 +1064,7 @@ def cancel_email_to_registered_reviewer():
         redirect(request.env.http_referer)
     recommId = review.recommendation_id
     db(db.t_reviews.id == reviewId).delete()
-    # session.flash = T('Reviewer "%s" cancelled') % (mkUser(auth, db, review.reviewer_id).flatten())
+    # session.flash = T('Reviewer "%s" cancelled') % (common_small_html.mkUser(auth, db, review.reviewer_id).flatten())
     redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
 
 
@@ -1090,14 +1095,14 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
-    destUser = mkUser(auth, db, reviewer.id).flatten()
-    sender = mkUser(auth, db, auth.user_id).flatten()
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    destUser = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
-    art_doi = mkLinkDOI(recomm.doi or art.doi)
+    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     # linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     linkTarget = URL(c="user", f="recommendations", vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
@@ -1187,17 +1192,17 @@ def email_for_new_reviewer():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    sender = mkUser(auth, db, auth.user_id).flatten()
+    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
-    art_doi = mkLinkDOI(recomm.doi or art.doi)
+    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     # NOTE: 4 parallel submission
     parallelText = ""
@@ -1317,7 +1322,7 @@ def email_for_new_reviewer():
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#EmailForNewReviewerInfoTitle"),
         myText=getText(request, auth, db, "#EmailForNewReviewerInfo"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -1348,10 +1353,10 @@ def send_review_reminder():
         redirect(request.env.http_referer)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
-    destUser = mkUser(auth, db, reviewer.id).flatten()
-    sender = mkUser(auth, db, auth.user_id).flatten()
+    destUser = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     thematics = myconf.take("app.thematics")
     longname = myconf.take("app.longname")
@@ -1359,7 +1364,7 @@ def send_review_reminder():
     reset_password_key = None
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
-    art_doi = mkLinkDOI(recomm.doi or art.doi)
+    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     if (review.review_state or "Pending") == "Pending":
         default_subject = "%(longname)s reminder: Invitation to review a preprint" % locals()
@@ -1427,7 +1432,7 @@ def send_review_reminder():
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         myText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -1458,15 +1463,15 @@ def send_review_cancellation():
         redirect(request.env.http_referer)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
-    destUser = mkUser(auth, db, reviewer.id).flatten()
-    sender = mkUser(auth, db, auth.user_id).flatten()
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    destUser = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
-    art_doi = mkLinkDOI(recomm.doi or art.doi)
+    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Pending") == "Pending":
@@ -1515,7 +1520,7 @@ def send_review_cancellation():
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         myText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -1527,7 +1532,7 @@ def email_for_reviewer():
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#TemplateEmailForReviewInfoTitle"),
         myText=getText(request, auth, db, "#TemplateEmailForReviewInfo"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -1539,7 +1544,7 @@ def email_for_author():
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#TemplateEmailForAuthorInfoTitle"),
         myText=getText(request, auth, db, "#TemplateEmailForAuthorInfo"),
-        myBackButton=mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -1565,7 +1570,7 @@ def add_contributor():
         for con in contributorsListSel:
             contributorsList.append(
                 LI(
-                    mkUserWithMail(auth, db, con.auth_user.id),
+                    common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
                     A(
                         T("Delete"),
                         _class="btn btn-warning pci-smallBtn " + roleClass,
@@ -1579,7 +1584,7 @@ def add_contributor():
         else:
             myContents = ""
 
-        myAcceptBtn = DIV(mkBackButton("Done", target=goBack), _style="width:100%; text-align:center;")
+        myAcceptBtn = DIV(common_small_html.mkBackButton("Done", target=goBack), _style="width:100%; text-align:center;")
         myBackButton = ""
         db.t_press_reviews._id.readable = False
         db.t_press_reviews.recommendation_id.default = recommId
@@ -1587,7 +1592,7 @@ def add_contributor():
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
         db.t_press_reviews.contributor_id.label = T("Select a co-recommender")
-        db.t_press_reviews.contributor_id.represent = lambda text, row: mkUserWithMail(auth, db, row.contributor_id) if row else ""
+        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""
         alreadyCo = db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id != None))._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -1639,14 +1644,14 @@ def contributions():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        myContents = mkRecommendationFormat(auth, db, recomm)
+        myContents = recommender_module.mkRecommendationFormat(auth, db, recomm)
         query = db.t_press_reviews.recommendation_id == recommId
         db.t_press_reviews._id.readable = False
         db.t_press_reviews.recommendation_id.default = recommId
         db.t_press_reviews.recommendation_id.writable = False
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
-        db.t_press_reviews.contributor_id.represent = lambda text, row: mkUserWithMail(auth, db, row.contributor_id) if row else ""
+        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""
         alreadyCo = db(db.t_press_reviews.recommendation_id == recommId)._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -1826,7 +1831,7 @@ def edit_recommendation():
         else:
             myScript = common_tools.get_template("script", "edit_recommendation_is_press.js")
 
-        return dict(form=form, myText=myText, myHelp=myHelp, titleIcon="edit", myTitle=myTitle, myFinalScript=SCRIPT(myScript), myBackButton=mkBackButton(),)
+        return dict(form=form, myText=myText, myHelp=myHelp, titleIcon="edit", myTitle=myTitle, myFinalScript=SCRIPT(myScript), myBackButton=common_small_html.mkBackButton(),)
 
 
 ######################################################################################################################################################################
@@ -1842,19 +1847,14 @@ def my_co_recommendations():
     db.t_press_reviews.contributor_id.writable = False
     db.t_press_reviews.recommendation_id.writable = False
     db.t_articles._id.readable = False
-    # db.t_articles._id.represent = lambda text, row: mkRepresentArticleLight(auth, db, text)
-    # db.t_articles._id.label = T('Article')
     db.t_recommendations._id.label = T("Recommendation")
-    db.t_recommendations._id.represent = lambda rId, row: mkRepresentRecommendationLight(auth, db, rId)
+    db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_articles.status.writable = False
-    db.t_articles.status.represent = lambda text, row: mkStatusDiv(auth, db, text)
-    # db.t_press_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4PressReviewFormat(auth, db, row)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
     db.t_press_reviews._id.readable = False
-    # db.t_press_reviews.contribution_state.represent = lambda state,row: mkContributionStateDiv(auth, db, state)
-    db.t_recommendations.recommender_id.represent = lambda uid, row: mkUserWithMail(auth, db, uid)
+    db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
-    # db.t_articles.already_published.represent = lambda press, row: 'TRUE' if press else 'FALSE'
-    db.t_articles.already_published.represent = lambda press, row: mkJournalImg(auth, db, press)
+    db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
     grid = SQLFORM.grid(
         query,
         searchable=False,
@@ -1877,7 +1877,7 @@ def my_co_recommendations():
             db.t_recommendations.recommender_id,
         ],
         links=[
-            dict(header=T("Other co-recommenders"), body=lambda row: mkOtherContributors(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Other co-recommenders"), body=lambda row: recommender_module.mkOtherContributors(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
             dict(
                 header=T(""),
                 body=lambda row: A(
@@ -1896,7 +1896,7 @@ def my_co_recommendations():
         myText=getText(request, auth, db, "#RecommenderMyPressReviewsText"),
         titleIcon="link",
         myTitle=getTitle(request, auth, db, "#RecommenderMyPressReviewsTitle"),
-        # myBackButton=mkBackButton(),
+        # myBackButton=common_small_html.mkBackButton(),
         contents=myContents,
         grid=grid,
     )
@@ -1910,7 +1910,7 @@ def review_emails():
     revId = request.vars["reviewId"]
     rev = db.t_reviews[revId]
     myContents = DIV()
-    myContents.append(SPAN(B(T("Reviewer: ")), mkUserWithMail(auth, db, rev.reviewer_id)))
+    myContents.append(SPAN(B(T("Reviewer: ")), common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)))
     myContents.append(H2(T("Emails:")))
     myContents.append(
         DIV(
@@ -1924,7 +1924,7 @@ def review_emails():
         myText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
         titleIcon="envelope",
         myTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        myBackButton=mkCloseButton(),
+        myBackButton=common_small_html.mkCloseButton(),
         message=myContents,
     )
 
