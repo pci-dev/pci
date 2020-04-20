@@ -1,8 +1,8 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
-{{if 'myHelp#TODO' in locals():}}
-  {{=myHelp}}
+{{if 'pageHelp#TODO' in locals():}}
+  {{=pageHelp}}
   {{pass}}
 
 {{if 'myBackButton' in locals():}}
@@ -10,8 +10,8 @@
 	{{pass}}
 
 	
-{{if 'myText' in locals():}}
-  {{=myText}}
+{{if 'customText' in locals():}}
+  {{=customText}}
   {{pass}}
 
   

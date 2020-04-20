@@ -1,8 +1,8 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
-{{if 'myHelp#TODO' in locals():}}
-  {{=myHelp}}
+{{if 'pageHelp#TODO' in locals():}}
+  {{=pageHelp}}
   {{pass}}
 
 {{if 'myBackButton' in locals():}}
@@ -15,16 +15,16 @@
 {{end}}
 
 
-{{if 'myTitle' in locals():}}
-	<div class="pci-myTitleText">{{=myTitle}}</div>
+{{if 'pageTitle' in locals():}}
+	<div class="pci-pageTitleText">{{=pageTitle}}</div>
 	{{pass}}
 
 {{if 'message' in globals():}}
 	<h2>{{=message}}</h2>
 	{{pass}}
 
-{{if 'myText' in globals():}}
-	<div class="pci-myTextInfo">{{=myText}}</div>
+{{if 'customText' in globals():}}
+	<div class="pci-customTextInfo">{{=customText}}</div>
 	{{pass}}
 
 <p>

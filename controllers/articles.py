@@ -143,9 +143,9 @@ def recommended_articles():
     return dict(
         grid=grid,
         titleIcon="search",
-        myTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
-        myText=getText(request, auth, db, "#RecommendedArticlesText"),
-        myHelp=getHelp(request, auth, db, "#RecommendedArticles"),
+        pageTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
+        customText=getText(request, auth, db, "#RecommendedArticlesText"),
+        pageHelp=getHelp(request, auth, db, "#RecommendedArticles"),
         shareable=True,
         searchableList=True,
         searchForm=searchForm,
@@ -277,10 +277,10 @@ def tracking():
 
         response.view = "default/gab_list_layout.html"
         resu = dict(
-            myHelp=getHelp(request, auth, db, "#Tracking"),
+            pageHelp=getHelp(request, auth, db, "#Tracking"),
             titleIcon="tasks",
-            myTitle=getTitle(request, auth, db, "#TrackingTitle"),
-            myText=getText(request, auth, db, "#TrackingText"),
+            pageTitle=getTitle(request, auth, db, "#TrackingTitle"),
+            customText=getText(request, auth, db, "#TrackingText"),
             grid=DIV(article_list, _class="pci2-flex-center"),
         )
         return resu
@@ -305,9 +305,9 @@ def all_recommended_articles():
         grid=grid,
         # searchForm=searchForm,
         titleIcon="book",
-        myTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
-        myText=getText(request, auth, db, "#AllRecommendedArticlesText"),
-        myHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
+        pageTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
+        customText=getText(request, auth, db, "#AllRecommendedArticlesText"),
+        pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
         shareable=True,
     )
 
@@ -345,10 +345,10 @@ def pub_reviews():
         myContents = DIV(common_html.reviewsOfCancelled(auth, db, art))
 
     resu = dict(
-        myHelp=getHelp(request, auth, db, "#TrackReviews"),
+        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
         titleIcon="eye-open",
-        myTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
-        myText=getText(request, auth, db, "#TrackReviewsText"),
+        pageTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
+        customText=getText(request, auth, db, "#TrackReviewsText"),
         grid=myContents,
     )
     return resu

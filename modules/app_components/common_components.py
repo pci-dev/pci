@@ -356,7 +356,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     else:
         statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
 
-    myTitle = DIV(IMG(_src=URL(r=request, c="static", f="images/small-background.png")), DIV(statusDiv, _class="pci2-flex-grow"), _class="pci2-flex-row",)
+    pageTitle = DIV(IMG(_src=URL(r=request, c="static", f="images/small-background.png")), DIV(statusDiv, _class="pci2-flex-grow"), _class="pci2-flex-row",)
 
     # author's button allowing article edition
     allowEditArticle = False
@@ -373,7 +373,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         allowManageRequest = True
 
     snippetVars = dict(
-        statusTitle=myTitle,
+        statusTitle=pageTitle,
         allowEditArticle=allowEditArticle,
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,

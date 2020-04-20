@@ -118,7 +118,7 @@
     <!-- Main ========================================= -->
 
     <!-- Page Title -->
-    {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
+    {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
       {{include 'snippets/page_title.html'}}   
     {{pass}}
 

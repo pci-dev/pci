@@ -26,14 +26,14 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 ######################################################################################################################################################################
 def ethics():
     response.view = "default/info.html"
-    myTitle = getTitle(request, auth, db, "#EthicsTitle")
-    myText = getText(request, auth, db, "#EthicsInfo")
+    pageTitle = getTitle(request, auth, db, "#EthicsTitle")
+    customText = getText(request, auth, db, "#EthicsInfo")
     message = ""
     if auth.user_id:
         if db.auth_user[auth.user_id].ethical_code_approved:
             message = DIV(B(T("You have agreed to comply with this code of conduct"), _style="color:green;"), _style="text-align:center; margin:32px;")
         else:
-            myTitle = DIV(H1("Before login, you must agree to comply with the code of conduct"), myTitle,)
+            pageTitle = DIV(H1("Before login, you must agree to comply with the code of conduct"), pageTitle,)
             message = FORM(
                 DIV(
                     SPAN(
@@ -47,7 +47,7 @@ def ethics():
                 _style="text-align:center;",
             )
 
-    return dict(myTitle=myTitle, myText=myText, message=message, shareable=True,)
+    return dict(pageTitle=pageTitle, customText=customText, message=message, shareable=True,)
 
 
 ######################################################################################################################################################################
@@ -65,7 +65,7 @@ def rss_info():
         datamImg = ""
     aurl = DIV(A(url, _href=url), datamImg, _style="text-align:center")
 
-    return dict(myTitle=getTitle(request, auth, db, "#RssTitle"), myText=getText(request, auth, db, "#RssInfo"), message=aurl,)
+    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl,)
 
 
 ######################################################################################################################################################################
@@ -93,8 +93,8 @@ def social():
     # frames.append(DIV(XML('<div class="fb-page" data-href="https://www.facebook.com/%s" data-tabs="timeline" data-width=500 data-small-header="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/%s" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/%s">%s</a></blockquote></div>' % (facebookAcc,facebookAcc,facebookAcc,myconf.get('app.description'))), _class='facebookPanel'))
 
     return dict(
-        myTitle=getTitle(request, auth, db, "#SocialTitle"),
-        myText=getText(request, auth, db, "#SocialInfo"),
+        pageTitle=getTitle(request, auth, db, "#SocialTitle"),
+        customText=getText(request, auth, db, "#SocialInfo"),
         message=DIV(frames, _class="pci-socialDiv"),
         facebook=True,
         shareable=True,
@@ -104,31 +104,31 @@ def social():
 ######################################################################################################################################################################
 def gtu():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#GtuTitle"), myText=getText(request, auth, db, "#GtuInfo"), shareable=True,)
+    return dict(pageTitle=getTitle(request, auth, db, "#GtuTitle"), customText=getText(request, auth, db, "#GtuInfo"), shareable=True,)
 
 
 ######################################################################################################################################################################
 def about():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#AboutTitle"), myText=getText(request, auth, db, "#AboutInfo"), shareable=True,)
+    return dict(pageTitle=getTitle(request, auth, db, "#AboutTitle"), customText=getText(request, auth, db, "#AboutInfo"), shareable=True,)
 
 
 ######################################################################################################################################################################
 def contact():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#ContactTitle"), myText=getText(request, auth, db, "#ContactInfo"), shareable=True,)
+    return dict(pageTitle=getTitle(request, auth, db, "#ContactTitle"), customText=getText(request, auth, db, "#ContactInfo"), shareable=True,)
 
 
 ######################################################################################################################################################################
 def buzz():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#BuzzTitle"), myText=getText(request, auth, db, "#BuzzInfo"), shareable=True,)
+    return dict(pageTitle=getTitle(request, auth, db, "#BuzzTitle"), customText=getText(request, auth, db, "#BuzzInfo"), shareable=True,)
 
 
 ######################################################################################################################################################################
 def thanks_to_reviewers():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), myText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
+    return dict(pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), customText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
 
 
 ######################################################################################################################################################################
@@ -150,9 +150,9 @@ def supports():
         )
         myTable.append(myRow)
     return dict(
-        myTitle=getTitle(request, auth, db, "#SupportsTitle"),
-        # myText=getText(request, auth, db, '#SupportsInfo'),
-        myText=TABLE(myTable, _class="pci-supports"),
+        pageTitle=getTitle(request, auth, db, "#SupportsTitle"),
+        # customText=getText(request, auth, db, '#SupportsInfo'),
+        customText=TABLE(myTable, _class="pci-supports"),
         shareable=True,
     )
 
@@ -185,7 +185,7 @@ def resources():
             ),
         )
         myTable.append(myRow)
-    return dict(myTitle=getTitle(request, auth, db, "#ResourcesTitle"), myText=TABLE(myTable, _class="pci-resources"), shareable=True,)
+    return dict(pageTitle=getTitle(request, auth, db, "#ResourcesTitle"), customText=TABLE(myTable, _class="pci-resources"), shareable=True,)
 
 
 ######################################################################################################################################################################
@@ -236,9 +236,9 @@ def recommenders():
         TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
     )
     resu = dict(
-        myTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
-        myText=getText(request, auth, db, "#PublicRecommendationBoardText"),
-        myHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
+        pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
+        customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
+        pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
         searchForm=searchForm,
         grid=grid,
     )
@@ -259,9 +259,9 @@ def managers():
     grid = DIV(TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"))
     return dict(
         # common_small_html.mkBackButton = common_small_html.mkBackButton(),
-        myTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
-        myText=getText(request, auth, db, "#PublicManagingBoardText"),
-        myHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),
+        pageTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
+        customText=getText(request, auth, db, "#PublicManagingBoardText"),
+        pageHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),
         grid=grid,
     )
 

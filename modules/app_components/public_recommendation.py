@@ -74,7 +74,8 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     else:
         citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
         citeRef = A(citeUrl, _href=citeUrl)  # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
-
+   
+    print("1")
     recommAuthors = common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
     cite = DIV(
         SPAN(
@@ -92,6 +93,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-citation",
     )
 
+    print("2")
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=finalRecomm, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
 
     # PDF (if any)
@@ -132,6 +134,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
     desc = "A recommendation of: " + (art.authors or "") + " " + (art.title or "") + " " + (art.doi or "")
+    print("3")    
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers

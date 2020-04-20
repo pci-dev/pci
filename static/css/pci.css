@@ -217,12 +217,12 @@ header {
 	width: 150px;
 }
 
-.pci-myTitleNoImage {
+.pci-pageTitleNoImage {
 	height: 64px;
 	margin-bottom: 8px;
 }
 
-.pci-myTitleText {
+.pci-pageTitleText {
 	/*font-weight: bold; font-size:30px; */
 	color: #598398;
 }
@@ -890,7 +890,7 @@ header {
 
 
 
-.pci-myTextInfo {
+.pci-customTextInfo {
 	max-width: 25cm;
 	margin-left: auto;
 	margin-right: auto;

@@ -12,8 +12,8 @@
     </header>
 {{end}}
 
-{{if 'myHelp#TODO' in locals():}}
-  {{=myHelp}}
+{{if 'pageHelp#TODO' in locals():}}
+  {{=pageHelp}}
   {{pass}}
 
 
@@ -69,15 +69,15 @@
   {{pass}}
 </div>  
 
-{{if 'myTitle' in locals():}}
+{{if 'pageTitle' in locals():}}
 <div class="pci2-flex-center">
-  <div class="pci-myTitleText" style="width: 100%; max-width: 1200px;">{{=myTitle}}</div>
+  <div class="pci-pageTitleText" style="width: 100%; max-width: 1200px;">{{=pageTitle}}</div>
 </div>
 {{pass}}
 
-{{if 'myText' in locals():}}
+{{if 'customText' in locals():}}
 <div class="pci2-flex-center">
-  <div style="max-width: 1200px;">{{=myText}}</div>
+  <div style="max-width: 1200px;">{{=customText}}</div>
 </div>
 {{pass}}
 

@@ -43,9 +43,9 @@ def help_texts():
         session.back = request.env.http_referer
     return dict(
         grid=grid,
-        myTitle=getTitle(request, auth, db, "#HelpTextTitle"),
-        myText=getText(request, auth, db, "#HelpTextText"),
-        myHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
+        pageTitle=getTitle(request, auth, db, "#HelpTextTitle"),
+        customText=getText(request, auth, db, "#HelpTextText"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
     )
 
 

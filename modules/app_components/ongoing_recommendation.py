@@ -135,6 +135,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
         roundNb -= 1
         nbCompleted = 0
         nbOnGoing = 0
+        print(recomm)
         whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
         amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0

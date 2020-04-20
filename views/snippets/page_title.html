@@ -13,23 +13,23 @@
   {{if 'uneditableTitle' in locals():}} 
     {{if 'titleIcon' in locals():}}
       <div
-        class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey"
+        class="pci-pageTitleText pci-pageTitleText-gab pci-pageTitleText-gab-grey"
       >
-        {{=DIV(myTitle, _class="pci-text-title")}}
+        {{=DIV(pageTitle, _class="pci-text-title")}}
       </div>
     {{else:}}
-      <div class="pci-myTitleText pci-myTitleText-gab" style="align-items: center;">
-        {{=H1(myTitle, _style="margin: 0")}}
+      <div class="pci-pageTitleText pci-pageTitleText-gab" style="align-items: center;">
+        {{=H1(pageTitle, _style="margin: 0")}}
       </div>
     {{pass}} 
     
   {{else:}} 
     {{if 'titleIcon' in locals():}}
-        <div class="pci-myTitleText pci-myTitleText-gab pci-myTitleText-gab-grey">
-          {{=myTitle}}
+        <div class="pci-pageTitleText pci-pageTitleText-gab pci-pageTitleText-gab-grey">
+          {{=pageTitle}}
         </div>
     {{else:}}
-        <div class="pci-myTitleText pci-myTitleText-gab">{{=myTitle}}</div>
+        <div class="pci-pageTitleText pci-pageTitleText-gab">{{=pageTitle}}</div>
     {{pass}} 
   {{pass}}
 </div>

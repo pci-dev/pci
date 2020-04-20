@@ -628,22 +628,21 @@ def mkReviewersString(auth, db, articleId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False, host=False, port=False, scheme=False):
-    whoDidIt = []
+def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False, host=False, port=False, scheme=False):    
+    whoDidIt = []    
 
-    if article is None and recomm is not None:
-        article = db(db.t_articles.id == recomm.article_id).select(db.t_articles.already_published).last()
+    if hasattr(recomm, "article_id"):
+        article = db(db.t_articles.id == recomm.article_id).select(db.t_articles.id, db.t_articles.already_published).last()
 
-    if article and article.id is not None:
+    if hasattr(article, "id"):
         mainRecommenders = db(
             (db.t_recommendations.article_id == article.id)
             & (db.t_recommendations.recommender_id == db.auth_user.id)
-            & (db.t_recommendations.recommendation_state == "Recommended")
         ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+        print(mainRecommenders)
 
         coRecommenders = db(
             (db.t_recommendations.article_id == article.id)
-            & (db.t_recommendations.recommendation_state == "Recommended")
             & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
             & (db.auth_user.id == db.t_press_reviews.contributor_id)
         ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
@@ -663,6 +662,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
                         whoDidIt.append(", ")
+
         else:  # NOTE: PRE-PRINT
             if with_reviewers:
                 namedReviewers = db(
@@ -686,6 +686,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             nr = len(allRecommenders)
             nw = len(namedReviewers)
             ir = 0
+
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
@@ -718,8 +719,10 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                     whoDidIt.append(current.T("%d anonymous reviewers") % (na))
                 elif na == 1:
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
+    print(DIV(whoDidIt))
 
     return whoDidIt
+
 
 ######################################################################################################################################################################
 def getArticleSubmitter(auth, db, art):

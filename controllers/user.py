@@ -76,7 +76,7 @@ def recommendations():
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,
             recommTopButtons=recommTopButtons or "",
-            myHelp=getHelp(request, auth, db, "#UserRecommendations"),
+            pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
             myContents=myContents,
         )
 
@@ -204,10 +204,10 @@ def search_recommenders():
 
         response.view = "default/gab_list_layout.html"
         return dict(
-            myHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
-            myText=getText(request, auth, db, "#UserSearchRecommendersText"),
+            pageHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
+            customText=getText(request, auth, db, "#UserSearchRecommendersText"),
             titleIcon="search",
-            myTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
+            pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             searchForm=searchForm,
@@ -232,8 +232,8 @@ def new_submission():
             LABEL(current.T(" or ")),
             A(current.T("Register"), _href=URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission"))), _class="btn btn-info"),
         )
-    myText = DIV(getText(request, auth, db, "#NewRecommendationRequestInfo"), DIV(button, _style="margin-top:16px; text-align:center;",))
-    return dict(myText=myText, titleIcon="edit", myTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle"))
+    customText = DIV(getText(request, auth, db, "#NewRecommendationRequestInfo"), DIV(button, _style="margin-top:16px; text-align:center;",))
+    return dict(customText=customText, titleIcon="edit", pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle"))
 
 
 ######################################################################################################################################################################
@@ -292,10 +292,10 @@ def fill_new_article():
 
     response.view = "default/gab_form_layout.html"
     return dict(
-        myHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
+        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
         titleIcon="edit",
-        myTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
-        myText=getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800"),
+        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        customText=getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800"),
         form=form,
         myFinalScript=SCRIPT(myScript),
     )
@@ -353,10 +353,10 @@ def edit_my_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(
-        myHelp=getHelp(request, auth, db, "#UserEditArticle"),
-        myText=getText(request, auth, db, "#UserEditArticleText"),
+        pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
+        customText=getText(request, auth, db, "#UserEditArticleText"),
         titleIcon="edit",
-        myTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
+        pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
         myFinalScript=SCRIPT(myScript),
     )
@@ -387,9 +387,9 @@ def suggested_recommenders():
     return dict(
         myBackButton=common_small_html.mkBackButton(),
         titleIcon="education",
-        myTitle=getTitle(request, auth, db, "#SuggestedRecommendersTitle"),
-        myText=getText(request, auth, db, "#SuggestedRecommendersText"),
-        myHelp=getHelp(request, auth, db, "#SuggestedRecommenders"),
+        pageTitle=getTitle(request, auth, db, "#SuggestedRecommendersTitle"),
+        customText=getText(request, auth, db, "#SuggestedRecommendersText"),
+        pageHelp=getHelp(request, auth, db, "#SuggestedRecommenders"),
         grid=grid,
     )
 
@@ -449,9 +449,9 @@ def add_suggested_recommender():
         )
         return dict(
             titleIcon="education",
-            myTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
-            myText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
-            myHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
+            pageTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
+            customText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
+            pageHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
             myUpperBtn=myUpperBtn,
             content=myContents,
             form="",
@@ -497,10 +497,10 @@ def suggested_recommenders():
         )
         return dict(
             # myBackButton=common_small_html.mkBackButton(),
-            myHelp=getHelp(request, auth, db, "#UserSuggestedRecommenders"),
-            myText=getText(request, auth, db, "#UserSuggestedRecommendersText"),
+            pageHelp=getHelp(request, auth, db, "#UserSuggestedRecommenders"),
+            customText=getText(request, auth, db, "#UserSuggestedRecommendersText"),
             titleIcon="education",
-            myTitle=getTitle(request, auth, db, "#UserSuggestedRecommendersTitle"),
+            pageTitle=getTitle(request, auth, db, "#UserSuggestedRecommendersTitle"),
             grid=grid,
         )
 
@@ -604,10 +604,10 @@ def my_articles():
     )
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
-        myHelp=getHelp(request, auth, db, "#UserMyArticles"),
-        myText=getText(request, auth, db, "#UserMyArticlesText"),
+        pageHelp=getHelp(request, auth, db, "#UserMyArticles"),
+        customText=getText(request, auth, db, "#UserMyArticlesText"),
         titleIcon="duplicate",
-        myTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
+        pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
         grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
     )
 
@@ -626,8 +626,8 @@ def my_reviews():
             & (db.t_recommendations.article_id == db.t_articles._id)
             & (db.t_articles.status == "Under consideration")
         )
-        myTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
-        myText = getText(request, auth, db, "#UserMyReviewsRequestsText")
+        pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
+        customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
         db.t_reviews.anonymously.readable = False
     else:
@@ -637,8 +637,8 @@ def my_reviews():
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
         )
-        myTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
-        myText = getText(request, auth, db, "#UserMyReviewsText")
+        pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
+        customText = getText(request, auth, db, "#UserMyReviewsText")
         btnTxt = current.T("View / Edit")
 
     # db.t_articles._id.readable = False
@@ -702,7 +702,7 @@ def my_reviews():
     else:
         titleIcon = "eye-open"
 
-    return dict(myHelp=getHelp(request, auth, db, "#UserMyReviews"), titleIcon=titleIcon, myTitle=myTitle, myText=myText, grid=grid,)
+    return dict(pageHelp=getHelp(request, auth, db, "#UserMyReviews"), titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -757,9 +757,9 @@ def accept_new_review():
         )
         myScript = SCRIPT(common_tools.get_template("script", "accept_new_review.js"))
 
-    myTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
-    myText = DIV(getText(request, auth, db, "#AcceptReviewInfoText"), myEthical, _class="pci2-flex-column pci2-align-items-center")
-    return dict(myText=myText, titleIcon="eye-open", myTitle=myTitle, myFinalScript=myScript,)
+    pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
+    customText = DIV(getText(request, auth, db, "#AcceptReviewInfoText"), myEthical, _class="pci2-flex-column pci2-align-items-center")
+    return dict(customText=customText, titleIcon="eye-open", pageTitle=pageTitle, myFinalScript=myScript,)
 
 
 ######################################################################################################################################################################
@@ -803,11 +803,11 @@ def edit_reply():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(
-        myHelp=getHelp(request, auth, db, "#UserEditReply"),
+        pageHelp=getHelp(request, auth, db, "#UserEditReply"),
         # myBackButton = common_small_html.mkBackButton(),
         titleIcon="edit",
-        myText=getText(request, auth, db, "#UserEditReplyText"),
-        myTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
+        customText=getText(request, auth, db, "#UserEditReplyText"),
+        pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
         form=form,
     )
 
@@ -858,11 +858,11 @@ def edit_review():
     myScript = common_tools.get_template("script", "edit_review.js")
 
     return dict(
-        myHelp=getHelp(request, auth, db, "#UserEditReview"),
+        pageHelp=getHelp(request, auth, db, "#UserEditReview"),
         myBackButton=common_small_html.mkBackButton(),
-        myText=getText(request, auth, db, "#UserEditReviewText"),
+        customText=getText(request, auth, db, "#UserEditReviewText"),
         titleIcon="edit",
-        myTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
+        pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
         form=form,
         myFinalScript=SCRIPT(myScript),
     )
