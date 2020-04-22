@@ -44,7 +44,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
 
-    snippetVars = dict(
+    componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
         allowManageRecomms=allowManageRecomms,
@@ -54,7 +54,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         printable=printable,
     )
 
-    return XML(response.render("components/recommendation_header.html", snippetVars))
+    return XML(response.render("components/recommendation_header.html", componentVars))
 
 
 ######################################################################################################################################################################
@@ -135,7 +135,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
         roundNb -= 1
         nbCompleted = 0
         nbOnGoing = 0
-        print(recomm)
         whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
         amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0

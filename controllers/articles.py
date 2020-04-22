@@ -15,11 +15,11 @@ from lxml import etree
 from app_modules.helper import *
 
 from app_components import app_forms
-from app_components import common_components
+
 from app_components import article_components
 from app_components import public_recommendation
 
-from app_modules import common_html
+from app_modules import old_common
 from app_modules import common_tools
 
 
@@ -342,7 +342,7 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     else:
-        myContents = DIV(common_html.reviewsOfCancelled(auth, db, art))
+        myContents = DIV(old_common.reviewsOfCancelled(auth, db, art))
 
     resu = dict(
         pageHelp=getHelp(request, auth, db, "#TrackReviews"),

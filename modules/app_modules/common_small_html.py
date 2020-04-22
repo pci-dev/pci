@@ -639,7 +639,6 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             (db.t_recommendations.article_id == article.id)
             & (db.t_recommendations.recommender_id == db.auth_user.id)
         ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
-        print(mainRecommenders)
 
         coRecommenders = db(
             (db.t_recommendations.article_id == article.id)
@@ -719,7 +718,6 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                     whoDidIt.append(current.T("%d anonymous reviewers") % (na))
                 elif na == 1:
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
-    print(DIV(whoDidIt))
 
     return whoDidIt
 

@@ -123,7 +123,7 @@ db.define_table(
 auth.settings.extra_fields["auth_user"] = [
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
-    Field("laboratory", type="string", label=SPAN(T("Laboratory")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field("institution", type="string", label=SPAN(T("Institution")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field("city", type="string", label=SPAN(T("City")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field(

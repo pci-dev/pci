@@ -75,7 +75,6 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
         citeRef = A(citeUrl, _href=citeUrl)  # + SPAN(' accessed ', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
    
-    print("1")
     recommAuthors = common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
     cite = DIV(
         SPAN(
@@ -93,7 +92,6 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-citation",
     )
 
-    print("2")
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=finalRecomm, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
 
     # PDF (if any)
@@ -134,7 +132,6 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
     desc = "A recommendation of: " + (art.authors or "") + " " + (art.title or "") + " " + (art.doi or "")
-    print("3")    
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
@@ -248,7 +245,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         recommRound -= 1
 
-        snippetVars = dict(
+        componentVars = dict(
             indentationLeft=indentationLeft,
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
@@ -262,7 +259,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         indentationLeft += 16
 
-        reviewRoundsHtml.append(XML(response.render("components/public_review_rounds.html", snippetVars)))
+        reviewRoundsHtml.append(XML(response.render("components/public_review_rounds.html", componentVars)))
 
     return reviewRoundsHtml
 
@@ -314,9 +311,9 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
     else:
         commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
 
-    snippetVars = dict(isLoggedIn=isLoggedIn, scrollToCommentForm=scrollToCommentForm, commentForm=commentForm, commentsTree=commentsTree,)
+    componentVars = dict(isLoggedIn=isLoggedIn, scrollToCommentForm=scrollToCommentForm, commentForm=commentForm, commentsTree=commentsTree,)
 
-    return XML(response.render("components/comments_tree_and_form.html", snippetVars))
+    return XML(response.render("components/comments_tree_and_form.html", componentVars))
 
 
 def getCommentsTreeHtml(auth, db, response, commentId, with_reviews=False):
@@ -335,11 +332,11 @@ def getCommentsTreeHtml(auth, db, response, commentId, with_reviews=False):
             _style="margin: 0",
         )
 
-    snippetVars = dict(
+    componentVars = dict(
         userLink=common_small_html.mkUser_U(auth, db, comment.user_id, linked=True),
         commentDate=str(comment.comment_datetime),
         commentText=WIKI(comment.user_comment) or "",
         replyToLink=replyToLink,
         childrenDiv=childrenDiv,
     )
-    return XML(response.render("components/comments_tree.html", snippetVars))
+    return XML(response.render("components/comments_tree.html", componentVars))

@@ -1,0 +1,77 @@
+<div class="pci2-flex-column">
+  <div>
+    <h3 class="pci2-revision-round-title" style="margin: 10px 0 7.5px;">
+      <i>
+        Round <b class="pci2-main-color-text">#{{=roundNumber}}</b>
+      </i>
+    </h3>
+  </div>
+
+  {{if len(reviewList) > 0:}}
+    <table>
+
+      <thead>
+        <td><b>Reviewer</b></td>
+        <td><b>Status</b></td>
+        <td><b>Last change</b></td>
+        <td></td>
+      </thead>
+
+      <tbody>
+        {{for review in reviewList:}}
+          <tr>
+            <td>{{=review['reviewer']}}</td>
+            <td>{{=review['status']}}</td>
+            <td>{{=review['lastChange']}}</td>
+            <td>
+              <!-- action button dropdown -->
+              <div class="dropdown">
+                <a style="height: 22px; padding: 0 10px;" class="btn btn-default dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Actions
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                  {{for action in review['actions']:}}
+                    <li>
+                      <a class="dropdown-item" href="{{=action['link']}}">{{=action['text']}}</a>
+                    </li>
+                  {{pass}}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        {{pass}}
+      </tbody>
+    </table>
+  {{pass}}
+
+  <div class="pci2-flex-row">
+    {{if inviteReviewerLink:}}
+    <div class="pci2-align-start pci2-flex-grow">
+      <a  style="height: 22px; padding: 0 10px;" class="btn btn-default" href="{{=inviteReviewerLink}}">
+        <i  class="glyphicon glyphicon-plus" style="margin-right: 5px;"></i>
+        {{=T("Invite a reviewer")}}
+      </a>
+    </div>
+    {{pass}}
+
+    {{if showDecisionLink:}}
+      <div class="pci2-justify-end pci2-flex-grow">
+
+        {{if writeDecisionLink:}}
+          <a style="height: 22px; padding: 0 15px;"  class="btn btn-success" href="{{=writeDecisionLink}}">
+            {{=T("Write or edit your decision / recommendation")}}
+          </a>
+        {{else:}}
+          <a 
+            style="height: 22px; padding: 0 15px;" 
+            class="btn btn-default disabled" 
+            title="{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}"
+          >
+            {{=T("Write your decision / recommendation")}}
+          </a>
+        {{pass}}
+      </div>
+    {{pass}}
+  </div>
+</div>

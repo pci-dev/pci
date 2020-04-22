@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from app_modules.helper import *
-from app_components import common_components
+
 from app_components import article_components
 
 

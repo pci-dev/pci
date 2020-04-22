@@ -25,7 +25,7 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 
 from app_modules import common_small_html
-from app_components import common_components
+
 from app_modules import common_tools
 
 myconf = AppConfig(reload=True)

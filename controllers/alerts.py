@@ -14,7 +14,6 @@ from time import sleep
 # host=socket.getfqdn()
 from gluon.contrib.appconfig import AppConfig
 
-from app_components import common_components
 from app_components import article_components
 
 from app_modules import common_tools

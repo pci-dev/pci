@@ -66,7 +66,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     # if withScore:
     # 		resu.append(TD(row.score or '', _class='pci-lastArticles-date'))
 
-    snippetVars = dict(
+    componentVars = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id, reviews=True), scheme=scheme, host=host, port=port),
         articleTitle=article.title,
@@ -79,7 +79,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         recommendationShortText=WIKI(recommShortText),
     )
 
-    return XML(response.render("components/article_row_card.html", snippetVars))
+    return XML(response.render("components/article_row_card.html", componentVars))
 
 
 ######################################################################################################################################################################
@@ -121,7 +121,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
         else:
             return None
 
-        snippetVars = dict(
+        componentVars = dict(
             articleId=article.id,
             articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port), _class="pci-trackImg",),
             articleTitle=title,
@@ -131,7 +131,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
             articleStatusText=txt,
         )
 
-        return XML(response.render("components/article_track_row_card.html", snippetVars))
+        return XML(response.render("components/article_track_row_card.html", componentVars))
 
     # no article reviews founded
     else:

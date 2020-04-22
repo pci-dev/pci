@@ -29,7 +29,6 @@
 
     
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/pci0.css')}}"/>
     
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
@@ -63,7 +62,6 @@
     {{if 'shareButtons' in globals():}}
 <!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
       <script type="application/x-social-share-privacy-settings">{"path_prefix":"http://panzi.github.io/SocialSharePrivacy/","layout":"line","services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"gplus":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}}}</script>
-      <link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
 		{{pass}}
 	
     {{block head}}{{end}}

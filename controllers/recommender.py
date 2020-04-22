@@ -13,9 +13,10 @@ from app_modules.helper import *
 from controller_modules import recommender_module
 
 from app_components import app_forms
-from app_components import common_components
+
 from app_components import article_components
 from app_components import ongoing_recommendation
+from app_components import recommender_components
 
 from app_modules import common_tools
 from app_modules import common_html
@@ -195,7 +196,7 @@ def search_reviewers():
         Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
         Field("city", type="string", label=T("City")),
         Field("country", type="string", label=T("Country")),
-        Field("laboratory", type="string", label=T("Laboratory")),
+        Field("laboratory", type="string", label=T("Department")),
         Field("institution", type="string", label=T("Institution")),
         Field("thematics", type="list:string", label=T("Thematic fields")),
         Field("roles", type="string", length=1024, label=T("Roles")),
@@ -652,7 +653,7 @@ def my_recommendations():
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(header=T("Reviews"), body=lambda row: common_html.mkReviewsSubTable(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, row.t_recommendations if "t_recommendations" in row else row)),
             dict(header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
         ]
         db.t_recommendations.article_id.label = T("Preprint")

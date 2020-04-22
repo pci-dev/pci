@@ -230,6 +230,7 @@
 'Keywords:': 'Keywords:',
 'Lab, institution, city, country': 'Lab, institution, city, country',
 'Laboratory': 'Laboratory',
+'Department': 'Department',
 'Language': 'Language',
 'Last %s days recommendations in:': 'Last %s days recommendations in:',
 'Last change': 'Last change',

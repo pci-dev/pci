@@ -164,6 +164,12 @@ div.w2p_flash.alert.custom-disappear {
 .footer-content a>img{
     display:none;
 }
+
+/* allow dropdown menu overflow web2py table */
+.web2py_htmltable{
+    overflow-x: visible !important;
+}
+
 @media (max-width: 600px) {
     .main-container{
         padding-left: 0px;
