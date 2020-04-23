@@ -36,8 +36,6 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def list_users():
-    response.view = "default/myLayout.html"
-
     selectable = None
     links = None
     create = True  # allow create buttons
@@ -119,11 +117,13 @@ def list_users():
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
             # grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
+
+    response.view = "default/myLayout.html"
     return dict(
-        customText=getText(request, auth, db, "#AdministrateUsersText"),
         pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
         pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
-        grid=grid,
+        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        grid=grid
     )
 
 
@@ -133,8 +133,8 @@ def list_users():
 def mailing_lists():
     response.view = "default/myLayout.html"
 
-    content = DIV()
-    content.append(H1(T("Roles:")))
+    myContents = DIV()
+    myContents.append(H1(T("Roles:")))
     contentDiv = DIV(_style="padding-left:32px;")
     for theRole in db(db.auth_group.role).select():
         contentDiv.append(H2(theRole.role))
@@ -145,20 +145,20 @@ def mailing_lists():
                 emails.append(user.email)
         list_emails = ", ".join(emails)
         contentDiv.append(list_emails)
-    content.append(contentDiv)
+    myContents.append(contentDiv)
 
     # Special searches: authors
-    content.append(H1(T("Authors:")))
+    myContents.append(H1(T("Authors:")))
     emails = []
     query = db((db.auth_user._id == db.t_articles.user_id)).select(db.auth_user.email, groupby=db.auth_user.email)
     for user in query:
         if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     # Special searches: reviewers
-    content.append(H1(T("Reviewers:")))
+    myContents.append(H1(T("Reviewers:")))
     emails = []
     query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Under consideration", "Completed"]))).select(
         db.auth_user.email, groupby=db.auth_user.email
@@ -167,10 +167,10 @@ def mailing_lists():
         if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     # Other users
-    content.append(H1(T("Others:")))
+    myContents.append(H1(T("Others:")))
     emails = []
     query = db.executesql(
         """SELECT DISTINCT auth_user.email FROM auth_user 
@@ -182,13 +182,13 @@ def mailing_lists():
     for user_email in query:
         emails.append(user_email[0])
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     return dict(
         customText=getText(request, auth, db, "#EmailsListsUsersText"),
         pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
         pageHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
-        content=content,
+        content=myContents,
         grid="",
     )
 

@@ -28,7 +28,6 @@ from contextlib import closing
 import shutil
 
 from app_modules import common_tools
-from app_modules import common_html
 from app_modules import common_small_html
 from app_modules import old_common
 

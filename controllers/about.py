@@ -52,20 +52,22 @@ def ethics():
 
 ######################################################################################################################################################################
 def rss_info():
-    response.view = "default/info.html"
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     url = URL(c="rss", f="rss", scheme=scheme, host=host, port=port)
     fname = os.path.dirname(os.path.abspath(__file__)) + "/../static/images/RSS_datamatrix.png"
+    
     if os.path.isfile(fname):
         datamImg = IMG(_src=URL(c="static", f="images/RSS_datamatrix.png"), _alt="datamatrix", _style="margin-left:32px;")
     else:
         datamImg = ""
+
     aurl = DIV(A(url, _href=url), datamImg, _style="text-align:center")
 
-    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl,)
+    response.view = "default/info.html"
+    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl)
 
 
 ######################################################################################################################################################################

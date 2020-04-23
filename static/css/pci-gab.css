@@ -165,6 +165,8 @@ div.w2p_flash.alert.custom-disappear {
     display:none;
 }
 
+
+
 /* allow dropdown menu overflow web2py table */
 .web2py_htmltable{
     overflow-x: visible !important;

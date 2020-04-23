@@ -29,7 +29,6 @@ from app_components import ongoing_recommendation
 from app_components import recommender_components
 
 from app_modules import common_tools
-from app_modules import common_html
 from app_modules import common_small_html
 
 
@@ -397,8 +396,6 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    response.view = "default/gab_list_layout.html"
-
     myVars = request.vars
     qyKw = ""
     qyTF = []
@@ -504,14 +501,16 @@ def search_recommenders():
             orderby=temp_db.qy_recomm.num,
             args=request.args,
         )
+
+        response.view = "default/gab_list_layout.html"
         return dict(
-            myBackButton=common_small_html.mkBackButton(target=whatNext),
-            pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
             titleIcon="search",
-            customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
             pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
-            grid=grid,
+            pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
+            customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
+            myBackButton=common_small_html.mkBackButton(target=whatNext),
             searchForm=searchForm,
+            grid=grid,
         )
 
 
@@ -520,7 +519,6 @@ def search_recommenders():
 # Logged users only (submission)
 @auth.requires(auth.has_membership(role="manager"))
 def suggested_recommenders():
-    response.view = "default/myLayout.html"
 
     articleId = request.vars["articleId"]
     whatNext = request.vars["whatNext"]
@@ -576,12 +574,13 @@ def suggested_recommenders():
         links=links,
     )
 
+    response.view = "default/myLayout.html"
     return dict(
         # myBackButton=common_small_html.mkBackButton(target=URL(c='manager',f='pending_articles')),
-        myBackButton=common_small_html.mkBackButton(target=whatNext),
+        pageTitle=getTitle(request, auth, db, "#ManageSuggestedRecommendersTitle"),
         pageHelp=getHelp(request, auth, db, "#ManageSuggestedRecommenders"),
         customText=getText(request, auth, db, "#ManageSuggestedRecommendersText"),
-        pageTitle=getTitle(request, auth, db, "#ManageSuggestedRecommendersTitle"),
+        myBackButton=common_small_html.mkBackButton(target=whatNext),
         grid=grid,
     )
 
@@ -680,7 +679,7 @@ def email_article_to_recommenders():
     selRec = []
     for rid in ids:
         selRec.append(LI(common_small_html.mkUserWithMail(auth, db, rid)))
-    content = DIV(H3(T("To each selected recommender:")), UL(selRec), _style="margin-left:400px;")
+    myContents = DIV(H3(T("To each selected recommender:")), UL(selRec), _style="margin-left:400px;")
     form = SQLFORM.factory(
         # Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
         # Field('bcc', label=T('BCC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
@@ -721,7 +720,7 @@ def email_article_to_recommenders():
             redirect(request.env.http_referer)
 
     return dict(
-        content=content,
+        content=myContents,
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailToWarnRecommendersHelp"),
         titleIcon="envelope",

@@ -59,3 +59,8 @@ input[name=alerts]+label {
 #submit_record__row {
     margin-bottom: 15px;
 }
+
+/* overrinde bold */
+.checkbox label {
+    font-weight: normal !important
+}

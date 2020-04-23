@@ -23,7 +23,6 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 
 from app_modules import common_small_html
-from app_modules import common_html
 from app_modules import common_tools
 
 

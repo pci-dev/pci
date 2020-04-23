@@ -16,7 +16,6 @@ from app_components import article_components
 from app_components import ongoing_recommendation
 
 from app_modules import common_tools
-from app_modules import common_html
 from app_modules import common_small_html
 
 
@@ -25,10 +24,6 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-
-######################################################################################################################################################################
-## (gab) Proper functions
-######################################################################################################################################################################
 
 ######################################################################################################################################################################
 # Recommendations of my articles
@@ -216,24 +211,25 @@ def search_recommenders():
 
 
 ######################################################################################################################################################################
-## (gab) END Proper functions
-######################################################################################################################################################################
-
-
-######################################################################################################################################################################
 def new_submission():
-    response.view = "default/info.html"
+    loginLink = None
+    registerLink = None
+    submitPreprintLink = None
     if auth.user:
-        button = A(current.T("Submit your preprint"), _href=URL("user", "fill_new_article", user_signature=True), _class="btn btn-success pci-panelButton")
+        submitPreprintLink = URL("user", "fill_new_article", user_signature=True)
     else:
-        button = SPAN(
-            B(current.T("Before submitting your preprint, please:"), _style="margin-right:8px;"),
-            A(current.T("Log in"), _href=URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission"))), _class="btn btn-info"),
-            LABEL(current.T(" or ")),
-            A(current.T("Register"), _href=URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission"))), _class="btn btn-info"),
-        )
-    customText = DIV(getText(request, auth, db, "#NewRecommendationRequestInfo"), DIV(button, _style="margin-top:16px; text-align:center;",))
-    return dict(customText=customText, titleIcon="edit", pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle"))
+        loginLink = URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission")))
+        registerLink = URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission")))
+
+    response.view = "controller/user/new_submission.html"
+    return dict(
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle"),
+        customText=getText(request, auth, db, "#NewRecommendationRequestInfo"),
+        submitPreprintLink=submitPreprintLink,
+        loginLink=loginLink,
+        registerLink=registerLink,
+    )
 
 
 ######################################################################################################################################################################
@@ -392,72 +388,6 @@ def suggested_recommenders():
         pageHelp=getHelp(request, auth, db, "#SuggestedRecommenders"),
         grid=grid,
     )
-
-
-######################################################################################################################################################################
-@auth.requires_login()
-def add_suggested_recommender():
-    response.view = "default/myLayout.html"
-
-    articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
-    if (art.user_id != auth.user_id) and not (auth.has_membership(role="manager")):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    else:
-        recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
-        recommendersList = []
-        reviewersIds = [auth.user_id]
-        for con in recommendersListSel:
-            reviewersIds.append(con.auth_user.id)
-            if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(common_small_html.mkUser(auth, db, con.auth_user.id), I(T("(declined)"))))
-            else:
-                recommendersList.append(
-                    LI(
-                        common_small_html.mkUser(auth, db, con.auth_user.id),
-                        A(
-                            "Remove",
-                            _class="btn btn-warning",
-                            _href=URL(c="user_actions", f="del_suggested_recommender", vars=dict(suggId=con.t_suggested_recommenders.id)),
-                            _title=T("Delete"),
-                            _style="margin-left:8px;",
-                        )
-                        if (art.status == "Pending")
-                        else "",
-                    )
-                )
-        # excludeList = ','.join(map(str,reviewersIds))
-        excludeList = reviewersIds
-        if len(recommendersList) > 0:
-            myContents = DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy"))
-            txtbtn = current.T("Suggest another recommender?")
-        else:
-            myContents = ""
-            txtbtn = current.T("Suggest recommenders")
-
-        myUpperBtn = DIV(
-            A(
-                SPAN(txtbtn, _class="buttontext btn btn-info"),
-                _href=URL(c="user", f="search_recommenders", vars=dict(articleId=articleId, exclude=excludeList), user_signature=True),
-            ),
-            _style="margin-top:16px; text-align:center;",
-        )
-        myAcceptBtn = DIV(
-            A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", user_signature=True)),
-            _style="margin-top:16px; text-align:center;",
-        )
-        return dict(
-            titleIcon="education",
-            pageTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
-            customText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
-            pageHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
-            myUpperBtn=myUpperBtn,
-            content=myContents,
-            form="",
-            myAcceptBtn=myAcceptBtn,
-            # myFinalScript=myScript,
-        )
 
 
 ######################################################################################################################################################################
@@ -708,7 +638,6 @@ def my_reviews():
 ######################################################################################################################################################################
 @auth.requires_login()
 def accept_new_review():
-    response.view = "default/info.html"
 
     if not ("reviewId" in request.vars):
         session.flash = auth.not_authorized()
@@ -726,6 +655,10 @@ def accept_new_review():
     _next = None
     if "_next" in request.vars:
         _next = request.vars["_next"]
+
+    disclaimerText = None
+    actionFormUrl = None
+    dueTime = None
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""))))
@@ -734,82 +667,15 @@ def accept_new_review():
             due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
         else:
             due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
-        myEthical = DIV(
-            FORM(
-                DIV(
-                    SPAN(
-                        INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False),
-                        LABEL(T("I declare that I have no conflict of interest with the authors or the content of the article")),
-                    ),
-                    DIV(getText(request, auth, db, "#ConflictsForReviewers")),
-                    _style="padding:16px;",
-                ),
-                DIV(
-                    SPAN(INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes", value=False), LABEL("I agree to post my review within %s" % due_time)),
-                    _style="padding:16px;",
-                ),
-                INPUT(_type="submit", _value=T("Yes, I consider this preprint for review"), _class="btn btn-success pci-panelButton"),
-                hidden=dict(reviewId=reviewId, ethics_approved=True),
-                _action=URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""),
-                _style="text-align:center;",
-            ),
-            _class="pci-embeddedEthic",
-        )
-        myScript = SCRIPT(common_tools.get_template("script", "accept_new_review.js"))
+        disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+        actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
+        dueTime = due_time
 
     pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
-    customText = DIV(getText(request, auth, db, "#AcceptReviewInfoText"), myEthical, _class="pci2-flex-column pci2-align-items-center")
-    return dict(customText=customText, titleIcon="eye-open", pageTitle=pageTitle, myFinalScript=myScript,)
+    customText = getText(request, auth, db, "#AcceptReviewInfoText")
 
-
-######################################################################################################################################################################
-@auth.requires_login()
-def edit_reply():
-    response.view = "default/myLayout.html"
-    if "recommId" not in request.vars:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    recommId = request.vars["recommId"]
-
-    recomm = db.t_recommendations[recommId]
-    if recomm is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    art = db.t_articles[recomm.article_id]
-    if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and (art.status == "Awaiting revision")):
-        session.flash = T("Unauthorized", lazy=False)
-        redirect(URL(c="user", f="my_articles"))
-    db.t_recommendations.reply_pdf.label = T("OR Upload your reply as PDF file")
-    form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], upload=URL("default", "download"), showid=False)
-    form.element(_type="submit")["_value"] = T("Save")
-    do_complete = DIV(
-        BUTTON(
-            current.T("Save & submit your reply"),
-            _title=current.T("Click here when the revision is completed in order to submit the new version"),
-            _type="submit",
-            _name="completed",
-            _class="buttontext btn btn-success",
-            _style="margin-top:32px;",
-        ),
-        _style="text-align:center;",
-    )
-    form[0].insert(99, do_complete)
-
-    if form.process().accepted:
-        if request.vars.completed:
-            session.flash = T("Reply completed", lazy=False)
-            redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
-        else:
-            session.flash = T("Reply saved", lazy=False)
-            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
-    elif form.errors:
-        response.flash = T("Form has errors", lazy=False)
-    return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditReply"),
-        # myBackButton = common_small_html.mkBackButton(),
-        titleIcon="edit",
-        customText=getText(request, auth, db, "#UserEditReplyText"),
-        pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
-        form=form,
-    )
+    response.view = "controller/user/accept_new_review.html"
+    return dict(titleIcon="eye-open", pageTitle=pageTitle, disclaimerText=disclaimerText, actionFormUrl=actionFormUrl, dueTime=dueTime, customText=customText, reviewId=reviewId)
 
 
 ######################################################################################################################################################################
@@ -867,3 +733,121 @@ def edit_review():
         myFinalScript=SCRIPT(myScript),
     )
 
+
+# (gab) Should improve (need specific view) :
+######################################################################################################################################################################
+
+######################################################################################################################################################################
+@auth.requires_login()
+def add_suggested_recommender():
+    response.view = "default/myLayout.html"
+
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if (art.user_id != auth.user_id) and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
+        recommendersList = []
+        reviewersIds = [auth.user_id]
+        for con in recommendersListSel:
+            reviewersIds.append(con.auth_user.id)
+            if con.t_suggested_recommenders.declined:
+                recommendersList.append(LI(common_small_html.mkUser(auth, db, con.auth_user.id), I(T("(declined)"))))
+            else:
+                recommendersList.append(
+                    LI(
+                        common_small_html.mkUser(auth, db, con.auth_user.id),
+                        A(
+                            "Remove",
+                            _class="btn btn-warning",
+                            _href=URL(c="user_actions", f="del_suggested_recommender", vars=dict(suggId=con.t_suggested_recommenders.id)),
+                            _title=T("Delete"),
+                            _style="margin-left:8px;",
+                        )
+                        if (art.status == "Pending")
+                        else "",
+                    )
+                )
+        # excludeList = ','.join(map(str,reviewersIds))
+        excludeList = reviewersIds
+        if len(recommendersList) > 0:
+            myContents = DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy"))
+            txtbtn = current.T("Suggest another recommender?")
+        else:
+            myContents = ""
+            txtbtn = current.T("Suggest recommenders")
+
+        myUpperBtn = DIV(
+            A(
+                SPAN(txtbtn, _class="buttontext btn btn-info"),
+                _href=URL(c="user", f="search_recommenders", vars=dict(articleId=articleId, exclude=excludeList), user_signature=True),
+            ),
+            _style="margin-top:16px; text-align:center;",
+        )
+        myAcceptBtn = DIV(
+            A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", user_signature=True)),
+            _style="margin-top:16px; text-align:center;",
+        )
+        return dict(
+            titleIcon="education",
+            pageTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
+            customText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
+            pageHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
+            myUpperBtn=myUpperBtn,
+            content=myContents,
+            form="",
+            myAcceptBtn=myAcceptBtn,
+            # myFinalScript=myScript,
+        )
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def edit_reply():
+    response.view = "default/myLayout.html"
+    if "recommId" not in request.vars:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    recommId = request.vars["recommId"]
+
+    recomm = db.t_recommendations[recommId]
+    if recomm is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    art = db.t_articles[recomm.article_id]
+    if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and (art.status == "Awaiting revision")):
+        session.flash = T("Unauthorized", lazy=False)
+        redirect(URL(c="user", f="my_articles"))
+    db.t_recommendations.reply_pdf.label = T("OR Upload your reply as PDF file")
+    form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], upload=URL("default", "download"), showid=False)
+    form.element(_type="submit")["_value"] = T("Save")
+    do_complete = DIV(
+        BUTTON(
+            current.T("Save & submit your reply"),
+            _title=current.T("Click here when the revision is completed in order to submit the new version"),
+            _type="submit",
+            _name="completed",
+            _class="buttontext btn btn-success",
+            _style="margin-top:32px;",
+        ),
+        _style="text-align:center;",
+    )
+    form[0].insert(99, do_complete)
+
+    if form.process().accepted:
+        if request.vars.completed:
+            session.flash = T("Reply completed", lazy=False)
+            redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
+        else:
+            session.flash = T("Reply saved", lazy=False)
+            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+    elif form.errors:
+        response.flash = T("Form has errors", lazy=False)
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#UserEditReply"),
+        # myBackButton = common_small_html.mkBackButton(),
+        titleIcon="edit",
+        customText=getText(request, auth, db, "#UserEditReplyText"),
+        pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
+        form=form,
+    )

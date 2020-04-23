@@ -141,7 +141,6 @@ def recommended_articles():
 
     response.view = "default/gab_list_layout.html"
     return dict(
-        grid=grid,
         titleIcon="search",
         pageTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
         customText=getText(request, auth, db, "#RecommendedArticlesText"),
@@ -149,6 +148,7 @@ def recommended_articles():
         shareable=True,
         searchableList=True,
         searchForm=searchForm,
+        grid=grid
     )
 
 

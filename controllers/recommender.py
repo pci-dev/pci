@@ -19,7 +19,6 @@ from app_components import ongoing_recommendation
 from app_components import recommender_components
 
 from app_modules import common_tools
-from app_modules import common_html
 from app_modules import common_small_html
 
 # frequently used constants
@@ -29,10 +28,6 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
-
-######################################################################################################################################################################
-## (gab) Proper functions
-######################################################################################################################################################################
 
 ######################################################################################################################################################################
 # Common function for articles needing attention
@@ -262,7 +257,9 @@ def search_reviewers():
             customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
         elif myGoal == "4press":
-            links.append(dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
+            links.append(
+                dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal))
+            )
             # pageTitle = T('Search for collaborators')
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
@@ -301,15 +298,6 @@ def search_reviewers():
 
     response.view = "default/gab_list_layout.html"
     return dict(pageHelp=pageHelp, titleIcon="search", pageTitle=pageTitle, customText=customText, myBackButton=common_small_html.mkBackButton(), searchForm=searchForm, grid=grid,)
-
-
-######################################################################################################################################################################
-## (gab) END Proper functions
-######################################################################################################################################################################
-
-######################################################################################################################################################################
-## (gab) WIP proper
-######################################################################################################################################################################
 
 
 ######################################################################################################################################################################
@@ -394,12 +382,7 @@ def article_details():
 
 
 ######################################################################################################################################################################
-## (gab) END WIP proper
-######################################################################################################################################################################
-
-######################################################################################################################################################################
-## Menu Routes
-######################################################################################################################################################################
+# (gab) Should improve (need specific view):
 @auth.requires(auth.has_membership(role="recommender"))
 def new_submission():
     response.view = "default/info.html"
@@ -522,6 +505,9 @@ def my_awaiting_articles():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def accept_new_article_to_recommend():
+    actionFormUrl = None
+    appLongname = None
+    hidenVarsForm = None
 
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
@@ -533,76 +519,18 @@ def accept_new_article_to_recommend():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics"))
     else:
+        appLongname = myconf.take("app.longname")
+        hiddenVarsForm = dict(articleId=articleId, ethics_approved=True)
+        actionFormUrl = URL("recommender_actions", "do_accept_new_article_to_recommend")
         longname = myconf.take("app.longname")
-        myEthical = DIV(
-            FORM(
-                DIV(
-                    UL(
-                        LI(
-                            INPUT(_type="checkbox", _name="interesting", _id="interesting", _value="yes", value=False),
-                            B(T("I find the preprint interesting")),
-                            SPAN(T(" and therefore worth sending out for peer-review.")),
-                        ),
-                        LI(
-                            INPUT(_type="checkbox", _name="invitations", _id="invitations", _value="yes", value=False),
-                            B(T("I agree to send invitations to 5-10 potential reviewers within the next 24 hours")),
-                            SPAN(
-                                T(
-                                    " and then to send reminders and/or new invitations until I find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week."
-                                )
-                            ),
-                        ),
-                        LI(
-                            INPUT(_type="checkbox", _name="ten_days", _id="ten_days", _value="yes", value=False),
-                            B(T("I agree to post my decision")),
-                            SPAN(T(" or to write my recommendation text ")),
-                            B(T("within 10 days")),
-                            SPAN(T(" of receiving the reviews.")),
-                        ),
-                        LI(
-                            INPUT(_type="checkbox", _name="recomm_text", _id="recomm_text", _value="yes", value=False),
-                            B(T("I agree to write a recommendation text")),
-                            SPAN(T(" if I decide to recommend this preprint for %s at the end of the evaluation process.") % longname),
-                        ),
-                        LI(
-                            INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes", value=False),
-                            B(T("I declare that I have no conflict of interest with the authors or the content of the article: ")),
-                            SPAN(
-                                T(
-                                    "I should not handle articles written by close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation. "
-                                )
-                            ),
-                            A(T("See the code of ethical conduct."), _href=URL(c="about", f="ethics")),
-                        ),
-                        LI(
-                            INPUT(_type="checkbox", _name="commitments", _id="commitments", _value="yes", value=False),
-                            I(
-                                T(
-                                    "I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else."
-                                )
-                                % longname
-                            ),
-                        ),
-                        _style="list-style-type:none;",
-                    ),
-                    _class="pci-ChecksList",
-                ),
-                DIV(
-                    INPUT(_type="submit", _value=T("Yes, I will consider this preprint for recommendation"), _class="btn btn-success pci-panelButton"), _style="text-align:center;",
-                ),
-                hidden=dict(articleId=articleId, ethics_approved=True),
-                _action=URL("recommender_actions", "do_accept_new_article_to_recommend"),
-                _class="pci2-content-1200px",
-            ),
-            _class="pci2-flex-center",
-        )
-        myScript = SCRIPT(common_tools.get_template("script", "accept_new_article_to_recommend.js"))
 
     pageTitle = getTitle(request, auth, db, "#AcceptPreprintInfoTitle")
-    customText = DIV(getText(request, auth, db, "#AcceptPreprintInfoText"), myEthical,)
+    customText = getText(request, auth, db, "#AcceptPreprintInfoText")
 
-    response.view = "default/info.html"
-    return dict(customText=customText, titleIcon="education", pageTitle=pageTitle, myFinalScript=myScript,)
+    response.view = "controller/recommender/accept_new_article_to_recommend.html"
+    return dict(
+        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongname=appLongname, hiddenVarsForm=hiddenVarsForm, articleId=articleId
+    )
 
 
 ######################################################################################################################################################################
@@ -632,7 +560,9 @@ def my_recommendations():
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(
+                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
+            ),
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
@@ -654,7 +584,9 @@ def my_recommendations():
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, row.t_recommendations if "t_recommendations" in row else row)),
-            dict(header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(
+                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
+            ),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
 
@@ -674,7 +606,9 @@ def my_recommendations():
         lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.last_change) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.last_change)
     )
     db.t_recommendations.recommendation_timestamp.represent = (
-        lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.recommendation_timestamp) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.recommendation_timestamp)
+        lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.recommendation_timestamp)
+        if "t_recommendations" in row
+        else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
     db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
@@ -849,11 +783,7 @@ def one_review():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     db.t_reviews._id.readable = False
-    # db.t_reviews.recommendation_id.default = recommId
-    # db.t_reviews.recommendation_id.writable = False
-    # db.t_reviews.recommendation_id.readable = False
     db.t_reviews.reviewer_id.writable = False
-    # db.t_reviews.reviewer_id.default = auth.user_id
     db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
     db.t_reviews.anonymously.default = True
     db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
@@ -861,7 +791,6 @@ def one_review():
     db.t_reviews.review_state.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
     db.t_reviews.review.represent = lambda text, row: WIKI(text)
-    # db.t_reviews.review_pdf
     form = SQLFORM(
         db.t_reviews,
         record=revId,
@@ -876,9 +805,7 @@ def one_review():
         titleIcon="eye-open",
         pageTitle=getTitle(request, auth, db, "#RecommenderArticleOneReviewTitle"),
         myBackButton=common_small_html.mkCloseButton(),
-        # content=myContents,
         form=form,
-        # myFinalScript=myScript,
     )
 
 
@@ -1832,7 +1759,15 @@ def edit_recommendation():
         else:
             myScript = common_tools.get_template("script", "edit_recommendation_is_press.js")
 
-        return dict(form=form, customText=customText, pageHelp=pageHelp, titleIcon="edit", pageTitle=pageTitle, myFinalScript=SCRIPT(myScript), myBackButton=common_small_html.mkBackButton(),)
+        return dict(
+            form=form,
+            customText=customText,
+            pageHelp=pageHelp,
+            titleIcon="edit",
+            pageTitle=pageTitle,
+            myFinalScript=SCRIPT(myScript),
+            myBackButton=common_small_html.mkBackButton(),
+        )
 
 
 ######################################################################################################################################################################
@@ -1878,7 +1813,9 @@ def my_co_recommendations():
             db.t_recommendations.recommender_id,
         ],
         links=[
-            dict(header=T("Other co-recommenders"), body=lambda row: recommender_module.mkOtherContributors(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(
+                header=T("Other co-recommenders"), body=lambda row: recommender_module.mkOtherContributors(auth, db, row.t_recommendations if "t_recommendations" in row else row)
+            ),
             dict(
                 header=T(""),
                 body=lambda row: A(
@@ -1928,4 +1865,6 @@ def review_emails():
         myBackButton=common_small_html.mkCloseButton(),
         message=myContents,
     )
+
+
 
