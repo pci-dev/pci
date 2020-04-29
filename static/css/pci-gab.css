@@ -169,10 +169,7 @@ div.w2p_flash.alert.custom-disappear {
     animation: animOpacity 1.5s ease;
 }
 
-/* allow dropdown menu overflow web2py table */
-.web2py_htmltable{
-    overflow-x: visible !important;
-}
+
 
 @media (max-width: 600px) {
     .main-container{
