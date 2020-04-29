@@ -165,7 +165,9 @@ div.w2p_flash.alert.custom-disappear {
     display:none;
 }
 
-
+.twitter-timeline-rendered{
+    animation: animOpacity 1.5s ease;
+}
 
 /* allow dropdown menu overflow web2py table */
 .web2py_htmltable{

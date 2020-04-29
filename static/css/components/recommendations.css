@@ -265,4 +265,8 @@ h4.pci2-recomm-article-h2 .glyphicon {
     #pci-ArticleHeader img{
         display: none;
     }
+
+    .pci2-recomm-title h1 {
+        font-size: 22px;
+    }
 }

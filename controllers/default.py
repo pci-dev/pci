@@ -46,9 +46,10 @@ def index():
     if tweeterAcc:
         myPanel.append(
             XML(
-                """<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
-			<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-			"""
+                """
+                <a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
+			    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+			    """
                 % locals()
             )
         )
@@ -95,7 +96,9 @@ def index():
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
             form=form,
-            myBottomPanel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            myBottomPanel=DIV(
+                DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
+            ),
             shareable=True,
             script=myScript,
         )
@@ -105,7 +108,7 @@ def index():
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
             form=form,
-            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
             shareable=True,
             script=myScript,
         )

@@ -9,8 +9,6 @@ from gluon.sqlhtml import *
 from app_modules import common_small_html
 
 
-
-
 ######################################################################################################################################################################
 def getReviewsSubTable(auth, db, response, recomm):
     art = db.t_articles[recomm.article_id]
