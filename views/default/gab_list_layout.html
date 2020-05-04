@@ -3,16 +3,19 @@
 
 {{if 'myBackButton' in locals():}}
 	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
-	{{pass}}
+{{pass}}
 	
 {{if 'customText' in locals():}}
   {{=customText}}
-  {{pass}}
+{{pass}}
 
 {{if 'pageHelp#TODO' in locals():}}
   {{=pageHelp}}
 {{pass}}
 
+{{if 'myUpperBtn' in locals():}}
+	{{=myUpperBtn}}
+{{pass}}
 
 {{if 'searchForm' in locals():}}
 	<div style="display:flex; justify-content: center;">	
@@ -20,11 +23,6 @@
 	</div>
 {{pass}}
 
-{{if 'myUpperBtn' in locals():}}
-	{{=myUpperBtn}}
-{{pass}}
-
-	
 <div>
 	{{=grid}}
 </div>

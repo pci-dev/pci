@@ -64,7 +64,6 @@ def recommendations():
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
-
         return dict(
             printable=printable,
             viewToRender=viewToRender,
@@ -251,7 +250,6 @@ def fill_new_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
     db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
-    myScript = common_tools.get_template("script", "fill_new_article.js")
 
     form = SQLFORM(
         db.t_articles,
@@ -286,6 +284,7 @@ def fill_new_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+    myScript = common_tools.get_template("script", "fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),

@@ -519,7 +519,7 @@
 'Your contributions': 'Your contributions',
 'Your recommendation requests of your preprints': 'Your recommendation requests of your preprints',
 'Your recommendations of postprints': 'Your recommendations of postprints',
-'Your recommendations of preprints': 'Your recommendations of preprints',
+'Preprints you are handling': 'Preprints you are handling',
 'Your reviews': 'Your reviews',
 'Your submitted preprints': 'Your submitted preprints',
 '🔍 Search': '🔍 Search',

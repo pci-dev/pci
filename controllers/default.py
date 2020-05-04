@@ -100,7 +100,8 @@ def index():
                 DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
             ),
             shareable=True,
-            script=myScript,
+            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
+            script=myScript
         )
     else:
         return dict(
@@ -110,7 +111,8 @@ def index():
             form=form,
             panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
             shareable=True,
-            script=myScript,
+            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
+            script=myScript
         )
 
 

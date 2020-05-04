@@ -146,6 +146,7 @@ def recommended_articles():
         customText=getText(request, auth, db, "#RecommendedArticlesText"),
         pageHelp=getHelp(request, auth, db, "#RecommendedArticles"),
         shareable=True,
+        currentUrl=URL(c="about", f="recommended_articles", host=host, scheme=scheme, port=port),
         searchableList=True,
         searchForm=searchForm,
         grid=grid
@@ -240,15 +241,15 @@ def rec():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
-    viewToRender = "default/gab_public_article_recommendation.html"
+    viewToRender = "controller/articles/public_article_recommendation.html"
     return dict(
         viewToRender=viewToRender,
         withReviews=with_reviews,
         withComments=with_comments,
         toggleReviewsUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=not (with_reviews)), user_signature=True),
         # toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews, printable=True), user_signature=True),
-        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews), host=host, scheme=scheme, port=port),
+        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, printable=True), user_signature=True),
+        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId), host=host, scheme=scheme, port=port),
         shareButtons=True,
         nbReviews=nbReviews,
         recommHeaderHtml=recommHeaderHtml,
@@ -260,7 +261,6 @@ def rec():
 
 ######################################################################################################################################################################
 def tracking():
-
     tracking = myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
@@ -288,8 +288,6 @@ def tracking():
 
 ######################################################################################################################################################################
 def all_recommended_articles():
-    response.view = "default/myLayout.html"
-
     allR = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
@@ -301,21 +299,21 @@ def all_recommended_articles():
     grid = DIV(
         DIV(DIV(T("%s articles found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
     )
+
+    response.view = "default/myLayout.html"
     return dict(
-        grid=grid,
-        # searchForm=searchForm,
         titleIcon="book",
         pageTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
         customText=getText(request, auth, db, "#AllRecommendedArticlesText"),
         pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
+        grid=grid,
         shareable=True,
+        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port)
     )
 
 
 ######################################################################################################################################################################
 def pub_reviews():
-    response.view = "default/myLayout.html"
-
     myContents = DIV()
     tracking = myconf.get("config.tracking", default=False)
     if tracking is False:
@@ -344,10 +342,11 @@ def pub_reviews():
     else:
         myContents = DIV(old_common.reviewsOfCancelled(auth, db, art))
 
+    response.view = "default/myLayout.html"
     resu = dict(
-        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
         titleIcon="eye-open",
         pageTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
+        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
         customText=getText(request, auth, db, "#TrackReviewsText"),
         grid=myContents,
     )

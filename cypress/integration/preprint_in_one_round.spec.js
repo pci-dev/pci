@@ -697,18 +697,18 @@ describe("Preprint recommended in one round", () => {
       cy.pciLogin(recommender);
     });
 
-    it("Should have 'Your recommendations of preprints' enhanced menu", () => {
+    it("Should have 'Preprints you are handling' enhanced menu", () => {
       cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
       cy.contains(
         ".pci-enhancedMenuItem",
-        "Your recommendations of preprints"
+        "Preprints you are handling"
       ).should("exist");
-      cy.contains("a", "Your recommendations of preprints").click();
+      cy.contains("a", "Preprints you are handling").click();
     });
 
-    it("Should show article in 'Your recommendations of preprints' page", () => {
+    it("Should show article in 'Preprints you are handling' page", () => {
       cy.contains("tr", articleTitle).should("exist");
 
       cy.get(".pci-status")
