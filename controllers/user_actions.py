@@ -5,8 +5,11 @@ import copy
 import datetime
 
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
+
+from controller_modules import user_module
+from app_modules import common_small_html
 
 # frequently used constants
 csv = False  # no export allowed
@@ -63,10 +66,10 @@ def suggest_article_to():
         for v in exclude:
             excludeList.append(int(v))
     myVars = request.vars
-    do_suggest_article_to(auth, db, articleId, recommenderId)
+    user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
     excludeList.append(recommenderId)
     myVars["exclude"] = excludeList
-    session.flash = T('Suggested recommender "%s" added.') % mkUser(auth, db, recommenderId).flatten()
+    session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
     # redirect(request.env.http_referer)
     # redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
     # redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
@@ -221,7 +224,7 @@ def review_completed():
 # 	added = []
 # 	for recommenderId in recommenderIds:
 # 		do_suggest_article_to(auth, db, articleId, recommenderId)
-# 		added.append(mkUser(auth, db, recommenderId))
+# 		added.append(common_small_html.mkUser(auth, db, recommenderId))
 # 	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
 # 	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
 # 	redirect(request.env.http_referer)

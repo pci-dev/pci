@@ -8,7 +8,7 @@ from copy import deepcopy
 
 ######################################################################################################################################################################
 # New common modules
-def getSearchForm(auth, db, myVars, allowBlank=True):
+def searchByThematic(auth, db, myVars, allowBlank=True):
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]
@@ -32,7 +32,6 @@ def getSearchForm(auth, db, myVars, allowBlank=True):
             checkbox = INPUT(_name="qy_" + thematic.keyword, _type="checkbox", value=("qy_" + thematic.keyword in myVars), keepvalues=True)
         thematicsList.append(DIV(LABEL(checkbox, thematic.keyword, _style="font-weight: normal;")))
 
-    print(searchedThematics)
     if searchedThematics >= 1 and searchedThematics < len(thematics):
         iconPanelCLass = "glyphicon-rotate-reversed"
         panelCLass = ""

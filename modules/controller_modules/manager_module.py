@@ -9,6 +9,8 @@ import os
 
 from gluon import current
 
+from app_modules import common_small_html
+
 # sudo pip install tweepy
 # import tweepy
 
@@ -16,7 +18,7 @@ import codecs
 
 # import html2text
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 
 from gluon.contrib.appconfig import AppConfig
@@ -39,14 +41,14 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 def mkRecommenderButton(row, auth, db):
     last_recomm = db(db.t_recommendations.article_id == row.id).select(orderby=db.t_recommendations.id).last()
     if last_recomm:
-        resu = SPAN(mkUserWithMail(auth, db, last_recomm.recommender_id))
+        resu = SPAN(common_small_html.mkUserWithMail(auth, db, last_recomm.recommender_id))
         corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
         if len(corecommenders) > 0:
             resu.append(BR())
             resu.append(B(current.T("Co-recommenders:")))
             resu.append(BR())
             for corecommender in corecommenders:
-                resu.append(SPAN(mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
+                resu.append(SPAN(common_small_html.mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""
@@ -63,17 +65,15 @@ def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
     for sr in suggRecomms:
         exclude.append(str(sr.suggested_recommender_id))
         suggRecomsTxt.append(
-            mkUserWithMail(auth, db, sr.suggested_recommender_id)
+            common_small_html.mkUserWithMail(auth, db, sr.suggested_recommender_id)
             + (XML(" <b>(declined)</b>") if sr.declined else SPAN(""))
             + BR()
             + A(
                 current.T("See emails..."),
                 _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(srId=sr.id)),
-                _target="blank",
                 _class="btn btn-link pci-smallBtn pci-recommender",
                 _style="margin-bottom:12px;",
             )
-            # +A(T('see emails'), _href=URL(c='manager', f='suggested_recommender_emails', vars=dict(srId=sr.id)), _target="_blank", _class='btn pci-smallBtn pci-emailing-btn')
             + BR()
         )
     myVars = dict(articleId=row.id, whatNext=whatNext)
@@ -89,3 +89,24 @@ def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
     if row.status in ("Awaiting consideration", "Pending"):
         butts.append(A(current.T("Add"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=myVars, user_signature=True)))
     return DIV(butts, _class="pci-w200Cell")
+
+
+######################################################################################################################################################################
+# From common.py
+######################################################################################################################################################################
+def mkLastRecommendation(auth, db, articleId):
+    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    if lastRecomm:
+        return DIV(lastRecomm.recommendation_title or "", _class="pci-w200Cell")
+    else:
+        return ""
+
+
+######################################################################################################################################################################
+def mkViewEditRecommendationsManagerButton(auth, db, row):
+    return A(
+        SPAN(current.T("Check & Edit"), _class="buttontext btn btn-default pci-button"),
+        _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.article_id)),
+        _class="button",
+        _title=current.T("View and/or edit article"),
+    )

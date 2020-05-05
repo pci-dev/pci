@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from app_modules.common import *
+
 from app_modules.helper import *
+
+from app_components import article_components
 
 
 ######################################################################################################################################################################
@@ -74,7 +76,7 @@ def user_public_page():
                 nbRecomms = len(recommsQy)
                 recomms = []
                 for row in recommsQy:
-                    recomms.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    recomms.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 # reviews
                 reviews = []
@@ -90,12 +92,12 @@ def user_public_page():
 
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
-                    reviews.append(common_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    reviews.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 resu = dict(
-                    myHelp=getHelp(request, auth, db, "#PublicUserCard"),
+                    pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
                     titleIcon="briefcase",
-                    myTitle=pageTitle,
+                    pageTitle=pageTitle,
                     uneditableTitle=True,
                     totalUserRecommendations=SPAN(SPAN(current.T(" %%{Recommendation(nbRecomms)} : ", dict(nbRecomms=nbRecomms),)), B(nbRecomms, _class="pci2-main-color-text"),),
                     totalUserRecommendationsFlex=SPAN(
@@ -132,6 +134,6 @@ def user_public_page():
             myContents = B(T("Unavailable"))
 
     if resu is None:
-        resu = dict(myHelp=getHelp(request, auth, db, "#PublicUserCard"), titleIcon="briefcase", myTitle=getTitle(request, auth, db, "#PublicUserCardTitle"), myText=myContents,)
+        resu = dict(pageHelp=getHelp(request, auth, db, "#PublicUserCard"), titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"), customText=myContents,)
     return resu
 

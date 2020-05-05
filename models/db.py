@@ -11,9 +11,11 @@ from gluon.custom_import import track_changes
 
 track_changes(True)
 
-from app_modules.common import *
 from app_modules.emailing import *
 from app_modules.helper import *
+
+from app_modules import common_tools
+from app_modules import common_small_html
 
 # def pprint(*args): print args
 
@@ -37,7 +39,7 @@ if request.global_settings.web2py_version < "2.14.1":
 myconf = AppConfig(reload=True)
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
-port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
@@ -121,7 +123,7 @@ db.define_table(
 auth.settings.extra_fields["auth_user"] = [
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
-    Field("laboratory", type="string", label=SPAN(T("Laboratory")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field("institution", type="string", label=SPAN(T("Institution")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field("city", type="string", label=SPAN(T("City")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field(
@@ -461,13 +463,13 @@ db.auth_user._after_update.append(lambda s, f: updUserThumb(s, f))
 
 
 def insUserThumb(f, i):
-    makeUserThumbnail(auth, db, i, size=(150, 150))
+    common_small_html.makeUserThumbnail(auth, db, i, size=(150, 150))
     return None
 
 
 def updUserThumb(s, f):
     o = s.select().first()
-    makeUserThumbnail(auth, db, o.id, size=(150, 150))
+    common_small_html.makeUserThumbnail(auth, db, o.id, size=(150, 150))
     return None
 
 
@@ -508,7 +510,7 @@ db.define_table(
     Field("title", type="string", length=1024, label=T("Title"), requires=IS_NOT_EMPTY()),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=IS_NOT_EMPTY(), represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)")),
-    Field("doi", type="string", label=T("Manuscript most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: mkDOI(text)),
+    Field("doi", type="string", label=T("Manuscript most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text)),
     Field("ms_version", type="string", length=1024, label=T("Manuscript most recent version"), default=""),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
@@ -640,13 +642,13 @@ def newArticle(s, articleId):
 
 
 def insArticleThumb(f, i):
-    makeArticleThumbnail(auth, db, i, size=(150, 150))
+    common_small_html.makeArticleThumbnail(auth, db, i, size=(150, 150))
     return None
 
 
 def updArticleThumb(s, f):
     o = s.select().first()
-    makeArticleThumbnail(auth, db, o.id, size=(150, 150))
+    common_small_html.makeArticleThumbnail(auth, db, o.id, size=(150, 150))
     return None
 
 
@@ -654,12 +656,12 @@ db.define_table(
     "t_recommendations",
     Field("id", type="id"),
     Field("article_id", type="reference t_articles", ondelete="RESTRICT", label=T("Article")),
-    Field("doi", type="string", length=512, label=T("Manuscript DOI (or URL) for the round"), represent=lambda text, row: mkDOI(text)),
+    Field("doi", type="string", length=512, label=T("Manuscript DOI (or URL) for the round"), represent=lambda text, row: common_small_html.mkDOI(text)),
     Field("ms_version", type="string", length=1024, label=T("Manuscript version for the round"), default=""),
     Field("recommender_id", type="reference auth_user", ondelete="RESTRICT", label=T("Recommender")),
     Field("recommendation_title", type="string", length=1024, label=T("Recommendation title")),
     Field("recommendation_comments", type="text", length=2097152, label=T("Recommendation"), default=""),
-    Field("recommendation_doi", type="string", length=512, label=T("Recommendation DOI"), represent=lambda text, row: mkDOI(text)),
+    Field("recommendation_doi", type="string", length=512, label=T("Recommendation DOI"), represent=lambda text, row: common_small_html.mkDOI(text)),
     Field(
         "recommendation_state",
         type="string",
@@ -757,13 +759,13 @@ db.t_resources._after_update.append(lambda s, f: updResourceThumb(s, f))
 
 
 def insResourceThumb(f, i):
-    makeResourceThumbnail(auth, db, i, size=(150, 150))
+    common_small_html.mkStatusDiv(auth, db, i, size=(150, 150))
     return None
 
 
 def updResourceThumb(s, f):
     o = s.select().first()
-    makeResourceThumbnail(auth, db, o.id, size=(150, 150))
+    common_small_html.mkStatusDiv(auth, db, o.id, size=(150, 150))
     return None
 
 

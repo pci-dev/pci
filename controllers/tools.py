@@ -12,7 +12,7 @@ import os
 
 import codecs
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 from imported_modules.html2text import *
 
@@ -26,7 +26,7 @@ def convert_pdf_to_markdown():
     response.view = "default/myLayout.html"
 
     form = SQLFORM.factory(Field("up_file", label=T("PDF File:"), type="upload", uploadfolder="uploads", requires=IS_UPLOAD_FILENAME(extension="pdf")), upload=URL("download"))
-    myText = None
+    customText = None
     if form.accepts(request.vars, formname="form"):
         f = request.vars["up_file"]
         # create temp file from in-memory file contents
@@ -52,7 +52,7 @@ def convert_pdf_to_markdown():
         try:
             with codecs.open(hf_name, "r", encoding="utf-8") as myHtmlFile:
                 myHtml = myHtmlFile.read()
-                myText = html2text.html2text(myHtml)
+                customText = html2text.html2text(myHtml)
                 print('html2text successed on file "%s"' % (hf_name))
         # if fails fallback to pandoc
         except Exception as e:
@@ -60,18 +60,18 @@ def convert_pdf_to_markdown():
             print('html2text failed on file "%s", switch to pandoc' % (hf_name))
             cmd = 'pandoc --smart --normalize --columns=9999 -t markdown "%s"' % (hf_name)
             with os.popen(cmd) as messages:
-                myText = []
+                customText = []
                 for m in messages:
-                    myText.append(m)
-                myText = "\n".join(myText)
+                    customText.append(m)
+                customText = "\n".join(customText)
         # Keep tmp tidy!
         map(os.unlink, glob.glob(ff.name.replace(".pdf", "*")))
     # If any text to be displayed, add it as an editable field in the form
-    if myText:
+    if customText:
         # form[0][0][0].append(HR())
-        form[0].append(DIV(TEXTAREA(value=XML(myText), _class="pci-converted-pdf-area"), _class="form-group"))
+        form[0].append(DIV(TEXTAREA(value=XML(customText), _class="pci-converted-pdf-area"), _class="form-group"))
 
-    return dict(form=form, myTitle=getTitle(request, auth, db, "#ConvertPDFTitle"), myHelp=getHelp(request, auth, db, "#ConvertPDFComments"),)
+    return dict(form=form, pageTitle=getTitle(request, auth, db, "#ConvertPDFTitle"), pageHelp=getHelp(request, auth, db, "#ConvertPDFComments"),)
 
 
 # TODO: gros merdier !
@@ -82,7 +82,7 @@ def convert_pdf_to_markdown():
 ##Field('converted_html', label=T('Converted HTML'), type='text', length=2097152, widget=ckeditor.widget),
 # keepvalues=True,
 # )
-# myText = None
+# customText = None
 # if form.accepts(request.vars, formname="form"):
 # f = request.vars['up_file']
 ## create temp file from in-memory file contents
@@ -98,22 +98,22 @@ def convert_pdf_to_markdown():
 ##cmd = 'sed -i -re \'s#<br/>([A-Za-z0-9])# \\1#g\' "%s"' % (hf_name) ; print(cmd) ; os.system(cmd) # remove line breaks
 # cmd = 'cat "%s"' % (hf_name)
 # with os.popen(cmd) as messages:
-# myText = []
+# customText = []
 # for m in messages:
-# myText.append(m)
-# myText = XML('\n'.join(myText))
+# customText.append(m)
+# customText = XML('\n'.join(customText))
 # map(os.unlink, glob.glob(ff.name.replace('.pdf', '*')))
-##form.vars.converted_html=myText
-##NO!#form[0].append(DIV(TEXTAREA(value=XML(myText), _class='pci-converted-pdf-area', _widget=ckeditor.widget), _class='form-group'))
-##NO!#form.fields.append(Field('converted_html', label=T('Converted HTML'), type='text', length=2097152, default=myText, widget=ckeditor.widget))
+##form.vars.converted_html=customText
+##NO!#form[0].append(DIV(TEXTAREA(value=XML(customText), _class='pci-converted-pdf-area', _widget=ckeditor.widget), _class='form-group'))
+##NO!#form.fields.append(Field('converted_html', label=T('Converted HTML'), type='text', length=2097152, default=customText, widget=ckeditor.widget))
 # form = SQLFORM.factory(
-# Field('converted_html', label=T('Converted HTML'), type='text', length=2097152, default=myText, widget=ckeditor.widget),
+# Field('converted_html', label=T('Converted HTML'), type='text', length=2097152, default=customText, widget=ckeditor.widget),
 # )
 
 # response.view='default/myLayout.html'
 # return dict(
 # form=form,
-# myTitle=getTitle(request, auth, db, '#ConvertPDFTitle'),
-# myHelp=getHelp(request, auth, db, '#ConvertPDFComments'),
+# pageTitle=getTitle(request, auth, db, '#ConvertPDFTitle'),
+# pageHelp=getHelp(request, auth, db, '#ConvertPDFComments'),
 # )
 

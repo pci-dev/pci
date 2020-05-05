@@ -54,7 +54,78 @@
     animation: rotate180degReversed 0.4s ease forwards;
 }
 
+/* Social links */
+.social-links-div {
+    position: fixed;
+    bottom: 15px;
+    right: 25px;
+    z-index: 10000;
+}
 
+#toggle-social-links.active {
+    opacity: 0.5;
+    transform: scale(0.8);
+}
+
+#toggle-social-links:hover.active {
+    transform: scale(0.8);
+}
+
+#toggle-social-links {
+    opacity: 1;
+}
+
+.fixed-social-link,
+#toggle-social-links {
+    transition: 0.3s ease;
+    text-decoration: none;
+    width: 70px;
+    height: 70px;
+    border-radius: 35px;
+    margin-top: 10px;
+}
+
+#toggle-social-links {
+    background: #598398;
+}
+
+.fixed-facebook-link {
+    background: #3b5998;
+}
+
+.fixed-twitter-link {
+    background: #1DA1F2;
+}
+
+
+.fixed-social-link {
+    animation: socialAppear 0.35s;
+}
+
+.fixed-social-link.social-first-hide {
+    display: none;
+}
+
+.fixed-social-link.social-hidden {
+    animation: socialDisappear 0.35s forwards;
+}
+
+.fixed-social-link:hover,
+#toggle-social-links:hover {
+    transform: scale(1.05);
+}
+
+.fixed-social-link svg {
+    fill: #fff;
+}
+
+#toggle-social-links .glyphicon {
+    font-size: 40px;
+    margin: 0;
+    margin-bottom: 5px;
+    margin-left: 3px;
+    color: #fff;
+}
 
 
 /* OVERRIDE pci.css or bootstrap/web2py css files */
@@ -118,14 +189,15 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 
-.web2py_console .w2p_query_row{
+.web2py_console .w2p_query_row {
     flex: 1;
 }
-.web2py_console .w2p_query_row input[type="text"]{
-    flex:1;
+
+.web2py_console .w2p_query_row input[type="text"] {
+    flex: 1;
 }
 
-.web2py_console form #w2p_keywords{
+.web2py_console form #w2p_keywords {
     width: 100%;
 }
 
@@ -135,16 +207,16 @@ div.w2p_flash.alert.custom-disappear {
     width: unset;
 }
 
-.web2py_console .w2p_query_row .btn{   
+.web2py_console .w2p_query_row .btn {
     max-height: 20px;
 }
 
-.web2py_console form input[value="Search"]{   
+.web2py_console form input[value="Search"] {
     background: #93c54b;
     height: 30px;
 }
 
-.web2py_console form input[value="Clear"]{   
+.web2py_console form input[value="Clear"] {
     background: none;
     color: #555;
     box-shadow: none;
@@ -161,11 +233,18 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 /* remove logo from footer */
-.footer-content a>img{
-    display:none;
+.footer-content a>img {
+    display: none;
 }
+
+.twitter-timeline-rendered {
+    animation: animOpacity 1.5s ease;
+}
+
+
+
 @media (max-width: 600px) {
-    .main-container{
+    .main-container {
         padding-left: 0px;
         padding-right: 0px;
     }
@@ -203,6 +282,35 @@ div.w2p_flash.alert.custom-disappear {
     to {
         opacity: 1;
         transform: translateX(0);
+    }
+}
+
+@keyframes socialAppear {
+    0% {
+        opacity: 0;
+        transform: translatey(100px);
+    }
+
+    80% {
+        transform: translatey(-15px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes socialDisappear {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translatey(250px);
+        display: none;
     }
 }
 

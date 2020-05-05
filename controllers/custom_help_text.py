@@ -5,7 +5,7 @@ from gluon.custom_import import track_changes
 
 track_changes(True)  # reimport module if changed; disable in production
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 
 csv = True  # export allowed
@@ -43,9 +43,9 @@ def help_texts():
         session.back = request.env.http_referer
     return dict(
         grid=grid,
-        myTitle=getTitle(request, auth, db, "#HelpTextTitle"),
-        myText=getText(request, auth, db, "#HelpTextText"),
-        myHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
+        pageTitle=getTitle(request, auth, db, "#HelpTextTitle"),
+        customText=getText(request, auth, db, "#HelpTextText"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
     )
 
 

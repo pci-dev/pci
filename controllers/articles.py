@@ -11,13 +11,16 @@ from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
 
-from app_modules.common import *
+
 from app_modules.helper import *
-from app_modules import common_forms
-from app_modules import common_components
-from app_modules import common_html
+
+from app_components import app_forms
+
+from app_components import article_components
+from app_components import public_recommendation
+
+from app_modules import old_common
 from app_modules import common_tools
-from app_modules import common_small_html
 
 
 myconf = AppConfig(reload=True)
@@ -70,7 +73,7 @@ def last_recomms():
 
     recommendedArticlesList = []
     for row in queryRecommendedArticles:
-        r = common_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
         if r:
             recommendedArticlesList.append(r)
 
@@ -125,7 +128,7 @@ def recommended_articles():
     totalArticles = len(filtered)
     myRows = []
     for row in filtered:
-        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
         if r:
             myRows.append(r)
 
@@ -134,18 +137,19 @@ def recommended_articles():
         _class="searchRecommendationsDiv",
     )
 
-    searchForm = common_forms.getSearchForm(auth, db, myVars2)
+    searchForm = app_forms.searchByThematic(auth, db, myVars2)
 
     response.view = "default/gab_list_layout.html"
     return dict(
-        grid=grid,
         titleIcon="search",
-        myTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
-        myText=getText(request, auth, db, "#RecommendedArticlesText"),
-        myHelp=getHelp(request, auth, db, "#RecommendedArticles"),
+        pageTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
+        customText=getText(request, auth, db, "#RecommendedArticlesText"),
+        pageHelp=getHelp(request, auth, db, "#RecommendedArticles"),
         shareable=True,
+        currentUrl=URL(c="about", f="recommended_articles", host=host, scheme=scheme, port=port),
         searchableList=True,
         searchForm=searchForm,
+        grid=grid
     )
 
 
@@ -154,7 +158,7 @@ def recommended_articles():
 def rec():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_small_html.takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     with_reviews = "reviews" in request.vars and request.vars["reviews"] == "True"
     # with_reviews = True
@@ -213,7 +217,7 @@ def rec():
     nbReviews = nbRevs + (nbRecomms - 1)
 
     # Recommendation Header and Metadata
-    recommendationHeader = common_components.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
+    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
 
@@ -223,12 +227,12 @@ def rec():
     reviewRounds = None
     if with_reviews:
         # Get review rounds tree
-        reviewRounds = DIV(common_components.getPublicReviewRoundsHtml(auth, db, response, art.id))
+        reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
 
     commentsTreeAndForm = None
     if with_comments:
         # Get user comments list and form
-        commentsTreeAndForm = common_components.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -237,15 +241,15 @@ def rec():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
-    viewToRender = "default/gab_public_article_recommendation.html"
+    viewToRender = "controller/articles/public_article_recommendation.html"
     return dict(
         viewToRender=viewToRender,
         withReviews=with_reviews,
         withComments=with_comments,
         toggleReviewsUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=not (with_reviews)), user_signature=True),
         # toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
-        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews, printable=True), user_signature=True),
-        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=with_reviews), host=host, scheme=scheme, port=port),
+        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, printable=True), user_signature=True),
+        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId), host=host, scheme=scheme, port=port),
         shareButtons=True,
         nbReviews=nbReviews,
         recommHeaderHtml=recommHeaderHtml,
@@ -257,7 +261,6 @@ def rec():
 
 ######################################################################################################################################################################
 def tracking():
-
     tracking = myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
@@ -268,16 +271,16 @@ def tracking():
         query_already_published_articles = db(db.t_articles.already_published == False).select(orderby=~db.t_articles.last_status_change)
 
         for article in query_already_published_articles:
-            article_html_card = common_components.getArticleTrackcRowCard(auth, db, response, article)
+            article_html_card = article_components.getArticleTrackcRowCard(auth, db, response, article)
             if article_html_card:
                 article_list.append(article_html_card)
 
         response.view = "default/gab_list_layout.html"
         resu = dict(
-            myHelp=getHelp(request, auth, db, "#Tracking"),
+            pageHelp=getHelp(request, auth, db, "#Tracking"),
             titleIcon="tasks",
-            myTitle=getTitle(request, auth, db, "#TrackingTitle"),
-            myText=getText(request, auth, db, "#TrackingText"),
+            pageTitle=getTitle(request, auth, db, "#TrackingTitle"),
+            customText=getText(request, auth, db, "#TrackingText"),
             grid=DIV(article_list, _class="pci2-flex-center"),
         )
         return resu
@@ -285,12 +288,10 @@ def tracking():
 
 ######################################################################################################################################################################
 def all_recommended_articles():
-    response.view = "default/myLayout.html"
-
     allR = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
-        r = common_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
         if r:
             myRows.append(r)
     n = len(allR)
@@ -298,21 +299,21 @@ def all_recommended_articles():
     grid = DIV(
         DIV(DIV(T("%s articles found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
     )
+
+    response.view = "default/myLayout.html"
     return dict(
-        grid=grid,
-        # searchForm=searchForm,
         titleIcon="book",
-        myTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
-        myText=getText(request, auth, db, "#AllRecommendedArticlesText"),
-        myHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
+        pageTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
+        customText=getText(request, auth, db, "#AllRecommendedArticlesText"),
+        pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
+        grid=grid,
         shareable=True,
+        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port)
     )
 
 
 ######################################################################################################################################################################
 def pub_reviews():
-    response.view = "default/myLayout.html"
-
     myContents = DIV()
     tracking = myconf.get("config.tracking", default=False)
     if tracking is False:
@@ -339,13 +340,14 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     else:
-        myContents = DIV(reviewsOfCancelled(auth, db, art))
+        myContents = DIV(old_common.reviewsOfCancelled(auth, db, art))
 
+    response.view = "default/myLayout.html"
     resu = dict(
-        myHelp=getHelp(request, auth, db, "#TrackReviews"),
         titleIcon="eye-open",
-        myTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
-        myText=getText(request, auth, db, "#TrackReviewsText"),
+        pageTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
+        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
+        customText=getText(request, auth, db, "#TrackReviewsText"),
         grid=myContents,
     )
     return resu

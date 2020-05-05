@@ -71,7 +71,7 @@ Cypress.Commands.add(
 
       case "recommender":
         cy.contains(".dropdown-toggle", "Recommend").click();
-        cy.contains("a", "Your recommendations of preprints").click();
+        cy.contains("a", "Preprints you are handling").click();
 
         if (status != "not.exist")
           cy.contains("a", "Check & Edit")

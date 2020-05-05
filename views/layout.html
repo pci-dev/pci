@@ -29,7 +29,6 @@
 
     
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/pci0.css')}}"/>
     
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
@@ -48,23 +47,14 @@
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
     <!--[if lt IE 9]>
         <![endif]-->
-    <!-- Favicons -->
-	  {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+    
+    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
 
     <!-- http://panzi.github.io/SocialSharePrivacy/ -->
     <script type="text/javascript" src="https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.cookies.js"></script>
     <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
 
-    {{if 'shareable' in globals():}}
-<!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"box", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
-		  <script type="application/x-social-share-privacy-settings">{"path_prefix":"http://panzi.github.io/SocialSharePrivacy/","layout":"line","services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"gplus":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}}}</script>
-		{{pass}}
-    {{if 'shareButtons' in globals():}}
-<!-- 		<script type="application/x-social-share-privacy-settings">{"path_prefix":"{{=URL('static', 'SocialSharePrivacy/', host=AppConfig(reload=True).get('alerts.host'), scheme=True, port=request.env.server_port)}}", "layout":"line", "services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}, "twitter":{"hashtags":"{{=AppConfig(reload=True).get('social.tweethash')}}"} } }</script> -->
-      <script type="application/x-social-share-privacy-settings">{"path_prefix":"http://panzi.github.io/SocialSharePrivacy/","layout":"line","services":{"buffer":{"status":false},"delicious":{"status":false},"disqus":{"status":false},"flattr":{"status":false},"gplus":{"status":false},"hackernews":{"status":false},"linkedin":{"status":false},"pinterest":{"status":false},"reddit":{"status":false},"stumbleupon":{"status":false},"tumblr":{"status":false},"xing":{"status":false}}}</script>
-      <link rel="stylesheet" href="{{=URL('static','css/pci-ssp.css')}}"/>
-		{{pass}}
 	
     {{block head}}{{end}}
     {{
@@ -118,7 +108,7 @@
     <!-- Main ========================================= -->
 
     <!-- Page Title -->
-    {{if 'myTitle' in locals() and response.view != 'default/index.html':}} 
+    {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
       {{include 'snippets/page_title.html'}}   
     {{pass}}
 
@@ -153,18 +143,9 @@
     <!-- The javascript =============================== -->
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
-    {{block page_js}}{{end page_js}}
- 	<script>$('.web2py_paginator').clone().insertBefore($('.web2py_table'));</script>
+    {{block page_js}} {{end page_js}}
+ 	  <script>$('.web2py_paginator').clone().insertBefore($('.web2py_table'));</script>
     
-    <!-- Share ======================================== -->
-    {{if 'shareable' in globals():}}
-		<script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
-<!-- 		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script> -->
-		{{pass}}
-    {{if 'shareButtons' in globals():}}
-		<script src="{{=URL('static','js/shareButtons.js',vars=dict(static=URL('static','images')))}}"></script>
-<!--		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script>-->
-		{{pass}}
 	
     <!-- other scripts ======================================== -->
     {{if 'script' in globals():}}
@@ -172,22 +153,25 @@
 		{{pass}}
 	
     <!-- The footer =============================== -->
-	<footer class="footer span12" id="footer">
-		<div class="footer-content">
-			{{block footer}}
-			{{if response.footer_menu:}}
-				{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
-				{{pass}}
-			{{=getText(request, auth, db, '#Footer')}}
-			{{pass}}
-			{{end}}
-		</div>
-	</footer>
-    {{if 'shareButtons' in globals() or 'shareable' in globals():}}
-<!-- 		<script type="text/javascript">(function () {var s=document.createElement('script'); var t=document.getElementsByTagName('script')[0]; s.type='text/javascript'; s.async=true; s.src="{{=URL('static', 'SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js', host=True, scheme=True, port=request.env.server_port)}}"; t.parentNode.insertBefore(s, t);})();</script> -->
-		<script type="text/javascript">(function () {var s = document.createElement('script');var t = document.getElementsByTagName('script')[0];s.type = 'text/javascript';s.async = true;s.src = 'https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.socialshareprivacy.min.autoload.js';t.parentNode.insertBefore(s, t);})();</script>
+	  <footer class="footer span12" id="footer">
+	  	<div class="footer-content">
+	  		{{block footer}}
+	  		{{if response.footer_menu:}}
+	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
+	  		{{pass}}
+	  		  {{=getText(request, auth, db, '#Footer')}}
+	  		{{pass}}
+	  		{{end}}
+	  	</div>
+    </footer>
+  
+    <!-- Share page on social media link =============================== -->
+    {{if 'shareable' in globals():}}
+      {{include 'snippets/social_links.html'}}   
     {{pass}}
-    
+
+
+    <!-- Put footer to the bottom of the page -->
     <script type="text/javascript">
       var header_height = 0;
       var footer_height = document.getElementById("footer").offsetHeight;
@@ -202,7 +186,6 @@
       var margin_content = footer_height + 16 + small_header_height + header_height + 103;
 
       var footer_height = document.getElementById("main-content").setAttribute('style', 'min-height: calc(100vh - ' + margin_content + 'px)');
-
     </script>
 
     <script type="text/javascript">

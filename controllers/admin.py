@@ -11,12 +11,12 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-from app_modules.common import *
+
 from app_modules.emailing import *
 from app_modules.helper import *
 
-from app_modules import admin_module
-from app_modules import common_tools
+from controller_modules import admin_module
+from app_modules import common_small_html
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -36,8 +36,6 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def list_users():
-    response.view = "default/myLayout.html"
-
     selectable = None
     links = None
     create = True  # allow create buttons
@@ -94,11 +92,11 @@ def list_users():
         db.t_comments.parent_id,
     ]
     db.auth_user._id.readable = True
-    db.auth_user._id.represent = lambda i, row: mkUserId(auth, db, i, linked=True)
+    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(auth, db, i, linked=True)
     db.t_reviews.recommendation_id.label = T("Article DOI")
     db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda text, row: mkAnonymousMask(auth, db, text)
-    db.t_articles.already_published.represent = lambda text, row: mkJournalImg(auth, db, text)
+    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
+    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
     grid = SQLFORM.smartgrid(
         db.auth_user,
@@ -119,11 +117,13 @@ def list_users():
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
             # grid.element(_title="Add record to database")['_title'] = T('Manually add new round of recommendation. Expert use!!')
+
+    response.view = "default/myLayout.html"
     return dict(
-        myText=getText(request, auth, db, "#AdministrateUsersText"),
-        myTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
-        myHelp=getHelp(request, auth, db, "#AdministrateUsers"),
-        grid=grid,
+        pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
+        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        grid=grid
     )
 
 
@@ -133,8 +133,8 @@ def list_users():
 def mailing_lists():
     response.view = "default/myLayout.html"
 
-    content = DIV()
-    content.append(H1(T("Roles:")))
+    myContents = DIV()
+    myContents.append(H1(T("Roles:")))
     contentDiv = DIV(_style="padding-left:32px;")
     for theRole in db(db.auth_group.role).select():
         contentDiv.append(H2(theRole.role))
@@ -145,20 +145,20 @@ def mailing_lists():
                 emails.append(user.email)
         list_emails = ", ".join(emails)
         contentDiv.append(list_emails)
-    content.append(contentDiv)
+    myContents.append(contentDiv)
 
     # Special searches: authors
-    content.append(H1(T("Authors:")))
+    myContents.append(H1(T("Authors:")))
     emails = []
     query = db((db.auth_user._id == db.t_articles.user_id)).select(db.auth_user.email, groupby=db.auth_user.email)
     for user in query:
         if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     # Special searches: reviewers
-    content.append(H1(T("Reviewers:")))
+    myContents.append(H1(T("Reviewers:")))
     emails = []
     query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Under consideration", "Completed"]))).select(
         db.auth_user.email, groupby=db.auth_user.email
@@ -167,10 +167,10 @@ def mailing_lists():
         if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     # Other users
-    content.append(H1(T("Others:")))
+    myContents.append(H1(T("Others:")))
     emails = []
     query = db.executesql(
         """SELECT DISTINCT auth_user.email FROM auth_user 
@@ -182,13 +182,13 @@ def mailing_lists():
     for user_email in query:
         emails.append(user_email[0])
     list_emails = ", ".join(emails)
-    content.append(list_emails)
+    myContents.append(list_emails)
 
     return dict(
-        myText=getText(request, auth, db, "#EmailsListsUsersText"),
-        myTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
-        myHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
-        content=content,
+        customText=getText(request, auth, db, "#EmailsListsUsersText"),
+        pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
+        pageHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
+        content=myContents,
         grid="",
     )
 
@@ -217,9 +217,9 @@ def thematics_list():
         orderby=db.t_thematics.keyword,
     )
     return dict(
-        myHelp=getHelp(request, auth, db, "#AdministrateThematicFields"),
-        myText=getText(request, auth, db, "#AdministrateThematicFieldsText"),
-        myTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateThematicFields"),
+        customText=getText(request, auth, db, "#AdministrateThematicFieldsText"),
+        pageTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
         grid=grid,
     )
 
@@ -234,12 +234,12 @@ def allRecommCitations():
     ).select(db.t_recommendations.ALL, orderby=db.t_recommendations.last_change)
     grid = OL()
     for myRecomm in allRecomms:
-        grid.append(LI(mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), mkArticleCitation(auth, db, myRecomm), P()))
+        grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P()))
     return dict(
         grid=grid,
-        myTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
-        myText=getText(request, auth, db, "#allRecommCitationsTextText"),
-        myHelp=getHelp(request, auth, db, "#allRecommCitationsHelpTexts"),
+        pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
+        customText=getText(request, auth, db, "#allRecommCitationsTextText"),
+        pageHelp=getHelp(request, auth, db, "#allRecommCitationsHelpTexts"),
     )
 
 
@@ -254,7 +254,7 @@ def article_status():
 
     write_auth = auth.has_membership("developper")
     db.t_status_article._id.label = T("Coded representation")
-    db.t_status_article._id.represent = lambda text, row: mkStatusDiv(auth, db, row.status)
+    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
     db.t_status_article.status.writable = write_auth
     grid = SQLFORM.grid(
         db.t_status_article,
@@ -272,9 +272,9 @@ def article_status():
     )
     mkStatusArticles(db)
     return dict(
-        myHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
-        myText=getText(request, auth, db, "#AdministrateArticleStatusText"),
-        myTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
+        customText=getText(request, auth, db, "#AdministrateArticleStatusText"),
+        pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
         grid=grid,
     )
 
@@ -293,7 +293,7 @@ def manage_pdf():
     for q in myQy:
         myList.append(q[0])
     mySet = db((db.t_recommendations.id.belongs(myList)))
-    db.t_recommendations._format = lambda row: mkRecommendationFormat2(auth, db, row)
+    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(auth, db, row)
     db.t_pdf.recommendation_id.requires = IS_IN_DB(mySet, "t_recommendations.id", db.t_recommendations._format, orderby=db.t_recommendations.id)
     db.t_pdf.recommendation_id.widget = SQLFORM.widgets.radio.widget
     grid = SQLFORM.grid(
@@ -310,7 +310,7 @@ def manage_pdf():
         fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf],
         orderby=~db.t_pdf.id,
     )
-    return dict(myText=getText(request, auth, db, "#AdminPdfText"), myTitle=getTitle(request, auth, db, "#AdminPdfTitle"), grid=grid,)
+    return dict(customText=getText(request, auth, db, "#AdminPdfText"), pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -332,7 +332,7 @@ def manage_supports():
         exportclasses=expClass,
         orderby=db.t_supports.support_rank,
     )
-    return dict(myText=getText(request, auth, db, "#AdminSupportsText"), myTitle=getTitle(request, auth, db, "#AdminSupportsTitle"), grid=grid,)
+    return dict(customText=getText(request, auth, db, "#AdminSupportsText"), pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"), grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -354,7 +354,7 @@ def manage_resources():
         exportclasses=expClass,
         orderby=db.t_resources.resource_rank,
     )
-    return dict(myText=getText(request, auth, db, "#AdminResourcesText"), myTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), grid=grid,)
+    return dict(customText=getText(request, auth, db, "#AdminResourcesText"), pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), grid=grid,)
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -495,8 +495,8 @@ def recap_reviews():
     db.executesql("DROP VIEW IF EXISTS _v_%(runId)s;" % locals())
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
     return dict(
-        myText=getText(request, auth, db, "#AdminRecapReviews"),
-        myTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
+        customText=getText(request, auth, db, "#AdminRecapReviews"),
+        pageTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
         grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),
     )
 

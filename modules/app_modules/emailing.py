@@ -27,8 +27,9 @@ from uuid import uuid4
 from contextlib import closing
 import shutil
 
-from app_modules.common import *
-from app_modules import common_html
+from app_modules import common_tools
+from app_modules import common_small_html
+from app_modules import old_common
 
 
 myconf = AppConfig(reload=True)
@@ -74,7 +75,7 @@ def get_MB_emails(session, auth, db):
 def mkFooter():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     appdesc = myconf.take("app.description")
     appname = myconf.take("app.name")
     applongname = myconf.take("app.longname")
@@ -94,11 +95,11 @@ def do_send_email_to_test(session, auth, db, userId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
-    destPerson = mkUser(auth, db, userId)
+    destPerson = common_small_html.mkUser(auth, db, userId)
     destAddress = db.auth_user[userId]["email"]
     mySubject = "%s: Test Mail" % (appname)
     siteName = I(appname)
@@ -137,7 +138,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -146,7 +147,7 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
     recomm_limit_days = myconf.get("config.recomm_limit_days", default=50)
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
-        destPerson = mkUser(auth, db, article.user_id)
+        destPerson = common_small_html.mkUser(auth, db, article.user_id)
         destAddress = db.auth_user[article.user_id]["email"]
         articleTitle = article.title
         recommendation = None
@@ -191,21 +192,21 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
             mySubject = "%s: Decision concerning your submission" % (appname)
             linkTarget = URL(c="user", f="my_articles", scheme=scheme, host=host, port=port)
             recommTarget = URL(c="user", f="recommendations", vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
-            recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             content = get_mail_template("requester_rejected_submission.html") % locals()
 
         elif article.status != newStatus and newStatus == "Not considered":
             mySubject = "%s: Decision concerning your submission" % (appname)
             linkTarget = URL(c="user", f="my_articles", scheme=scheme, host=host, port=port)
             recommTarget = URL(c="user", f="recommendations", vars=dict(articleId=articleId), scheme=scheme, host=host, port=port)
-            recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             content = get_mail_template("requester_not_considered_submission.html") % locals()
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
             mySubject = "%s: Decision concerning your submission" % (appname)
             linkTarget = XML(URL(c="user", f="my_articles", scheme=scheme, host=host, port=port))
             recommTarget = XML(URL(c="user", f="recommendations", vars=dict(articleId=articleId), scheme=scheme, host=host, port=port))
-            recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             content = get_mail_template("requester_awaiting_submission.html") % locals()
 
         elif article.status != newStatus and newStatus == "Pre-recommended":
@@ -214,11 +215,11 @@ def do_send_email_to_requester(session, auth, db, articleId, newStatus):
         elif article.status != newStatus and newStatus == "Recommended":
             mySubject = "%s: Recommendation of your preprint" % (appname)
             linkTarget = XML(URL(c="articles", f="rec", vars=dict(id=articleId), scheme=scheme, host=host, port=port))
-            recommendation = None  # mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = None  # old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             lastRecomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select().last()
-            doiRecomm = XML(mkLinkDOI(lastRecomm.recommendation_doi))
+            doiRecomm = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
             recommVersion = lastRecomm.ms_version
-            recommsList = SPAN(mkWhoDidIt4Recomm(auth, db, lastRecomm, with_reviewers=False, linked=False)).flatten()
+            recommsList = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
             contact = A(myconf.take("contacts.contact"), _href="mailto:" + myconf.take("contacts.contact"))
             content = get_mail_template("requester_recommended_preprint.html") % locals()
 
@@ -257,7 +258,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -266,11 +267,11 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
         linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=True)))
         for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
             recommender_id = myRecomm["recommender_id"]
-            destPerson = mkUser(auth, db, recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recommender_id)
             destAddress = db.auth_user[myRecomm.recommender_id]["email"]
             articleAuthors = article.authors
             articleTitle = article.title
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             tOldStatus = current.T(article.status)
             tNewStatus = current.T(newStatus)
             mySubject = "%s: Change in article status" % (appname)
@@ -303,7 +304,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -314,11 +315,11 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
         for myRecomm0 in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
             recommender_id = myRecomm0.recommender_id
             myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == recommender_id)).select(orderby=db.t_recommendations.id).last()
-            destPerson = mkUser(auth, db, recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recommender_id)
             destAddress = db.auth_user[myRecomm.recommender_id]["email"]
             articleAuthors = article.authors
             articleTitle = article.title
-            articleDoi = XML(mkSimpleDOI(article.doi))
+            articleDoi = XML(common_small_html.mkSimpleDOI(article.doi))
             tOldStatus = current.T(article.status)
             tNewStatus = current.T(newStatus)
             if article.status == "Awaiting revision" and newStatus == "Under consideration":
@@ -374,10 +375,10 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
 
             elif newStatus == "Recommended":
                 mySubject = "%s: Article recommended" % (appname)
-                myRefRecomm = mkRecommCitation(auth, db, myRecomm).flatten()
-                myRefArticle = mkArticleCitation(auth, db, myRecomm).flatten()
+                myRefRecomm = common_small_html.mkRecommCitation(auth, db, myRecomm).flatten()
+                myRefArticle = common_small_html.mkArticleCitation(auth, db, myRecomm).flatten()
                 linkRecomm = XML(URL(c="articles", f="rec", scheme=scheme, host=host, port=port, vars=dict(id=article.id)))
-                doiRecomm = mkLinkDOI(myRecomm.recommendation_doi)
+                doiRecomm = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
                 content = get_mail_template("recommender_status_changed_under_to_recommended.html") % locals()
 
             else:
@@ -414,7 +415,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -425,7 +426,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
             articleAuthors = current.T("[undisclosed]")
         else:
             articleAuthors = article.authors
-        articleDoi = mkDOI(article.doi)
+        articleDoi = common_small_html.mkDOI(article.doi)
         mySubject = "%s: About our request to act as a recommender for a preprint" % (appname)
         # TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
         suggestedQy = db(
@@ -435,7 +436,7 @@ def do_send_email_to_suggested_recommenders_useless(session, auth, db, articleId
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
         for theUser in suggestedQy:
-            destPerson = mkUser(auth, db, theUser["auth_user.id"])
+            destPerson = common_small_html.mkUser(auth, db, theUser["auth_user.id"])
             destAddress = db.auth_user[theUser["auth_user.id"]]["auth_user.email"]
             mailManagers = A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
             # linkTarget=URL(c='recommender', f='my_awaiting_articles', scheme=scheme, host=host, port=port)
@@ -484,7 +485,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -495,7 +496,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
             articleAuthors = current.T("[undisclosed]")
         else:
             articleAuthors = article.authors
-        articleDoi = mkDOI(article.doi)
+        articleDoi = common_small_html.mkDOI(article.doi)
         mySubject = "%s: Request to act as a recommender for a preprint" % (appname)
         suggestedQy = db.executesql(
             "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;",
@@ -503,7 +504,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
             as_dict=True,
         )
         for theUser in suggestedQy:
-            destPerson = mkUser(auth, db, theUser["id"])
+            destPerson = common_small_html.mkUser(auth, db, theUser["id"])
             destAddress = db.auth_user[theUser["id"]]["email"]
             linkTarget = XML(URL(c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=scheme, host=host, port=port))
             helpurl = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
@@ -564,7 +565,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -577,13 +578,13 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
                 articleAuthors = current.T("[undisclosed]")
             else:
                 articleAuthors = article.authors
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             linkTarget = XML(URL(c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=scheme, host=host, port=port))
             helpurl = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
             theUser = db.auth_user[suggRecomm.suggested_recommender_id]
             mySubject = "%s: Request to act as a recommender for a preprint (reminder)" % (appname)
             if theUser:
-                destPerson = mkUser(auth, db, theUser["id"])
+                destPerson = common_small_html.mkUser(auth, db, theUser["id"])
                 destAddress = db.auth_user[theUser["id"]]["email"]
                 content = get_mail_template("recommender_suggested_article_reminder.html") % locals()
                 try:
@@ -630,7 +631,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -648,8 +649,8 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
                 articleAuthors = article.authors
             theUser = db.auth_user[rev.reviewer_id]
             if theUser:
-                recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                destPerson = mkUser(auth, db, rev.reviewer_id)
+                recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                destPerson = common_small_html.mkUser(auth, db, rev.reviewer_id)
                 destAddress = db.auth_user[rev.reviewer_id]["email"]
                 content = get_mail_template("reviewer_review_reopened.html") % locals()
                 try:
@@ -687,7 +688,7 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -728,9 +729,9 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
                     except:
                         print("unable to delete temp file %s" % tmpR1)
                         pass
-                destPerson = mkUser(auth, db, recomm.recommender_id)
+                destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
                 destAddress = db.auth_user[recomm.recommender_id]["email"]
-                reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
+                reviewerPerson = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
                 content = get_mail_template("reviewer_review_closed.html") % locals()
 
@@ -761,7 +762,7 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -772,9 +773,9 @@ def do_send_email_to_recommenders_press_review_considerated(session, auth, db, p
         if article:
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: co-recommender accepted the recommendation" % (appname)
-            destPerson = mkUser(auth, db, recomm.recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
             destAddress = db.auth_user[recomm.recommender_id]["email"]
-            contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
+            contributorPerson = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
             content = get_mail_template("recommenders_press_review_considerated.html") % locals()
             try:
                 myMessage = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter()))
@@ -799,7 +800,7 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -811,9 +812,9 @@ def do_send_email_to_recommenders_press_review_declined(session, auth, db, press
             articleTitle = article.title
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: co-recommender declined the recommendation" % (appname)
-            destPerson = mkUser(auth, db, recomm.recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
             destAddress = db.auth_user[recomm.recommender_id]["email"]
-            contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
+            contributorPerson = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
 
             content = get_mail_template("recommenders_press_review_declined.html") % locals()
 
@@ -840,7 +841,7 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -852,9 +853,9 @@ def do_send_email_to_recommenders_press_review_agreement(session, auth, db, pres
             articleTitle = article.title
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: co-recommender agreed with the recommendation of the postprint" % (appname)
-            destPerson = mkUser(auth, db, recomm.recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
             destAddress = db.auth_user[recomm.recommender_id]["email"]
-            contributorPerson = mkUserWithMail(auth, db, press.contributor_id)
+            contributorPerson = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
 
             content = get_mail_template("recommenders_press_review_agreement.html") % locals()
 
@@ -882,7 +883,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -896,12 +897,12 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
                 articleAuthors = current.T("[undisclosed]")
             else:
                 articleAuthors = article.authors
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: Request to review accepted" % (appname)
-            destPerson = mkUser(auth, db, recomm.recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
             destAddress = db.auth_user[recomm.recommender_id]["email"]
-            reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
+            reviewerPerson = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
             expectedDuration = datetime.timedelta(days=21)  # three weeks
             dueTime = str((datetime.datetime.now() + expectedDuration).date())
 
@@ -930,7 +931,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -944,12 +945,12 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
                 articleAuthors = current.T("[undisclosed]")
             else:
                 articleAuthors = article.authors
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: Request to review declined" % (appname)
-            destPerson = mkUser(auth, db, recomm.recommender_id)
+            destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
             destAddress = db.auth_user[recomm.recommender_id]["email"]
-            reviewerPerson = mkUserWithMail(auth, db, rev.reviewer_id)
+            reviewerPerson = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
             content = get_mail_template("recommenders_review_declined.html") % locals()
 
@@ -976,7 +977,7 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -992,12 +993,12 @@ def do_send_email_to_reviewers_review_suggested(session, auth, db, reviewsList):
                             articleAuthors = current.T("[undisclosed]")
                         else:
                             articleAuthors = article.authors
-                        articleDoi = mkDOI(article.doi)
+                        articleDoi = common_small_html.mkDOI(article.doi)
                         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
                         mySubject = "%(appname)s: Invitation to review a preprint" % locals()
-                        destPerson = mkUser(auth, db, rev.reviewer_id)
+                        destPerson = common_small_html.mkUser(auth, db, rev.reviewer_id)
                         destAddress = db.auth_user[rev.reviewer_id]["email"]
-                        recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id)
+                        recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
 
                         content = get_mail_template("reviewers_review_suggested.html") % locals()
 
@@ -1035,7 +1036,7 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1046,7 +1047,7 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
             articleAuthors = current.T("[undisclosed]")
         else:
             articleAuthors = article.authors
-        articleDoi = mkDOI(article.doi)
+        articleDoi = common_small_html.mkDOI(article.doi)
         mySubject = "%s: About our request to act as reviewer for a preprint" % (appname)
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
         lastRecomm = db(db.t_recommendations.article_id == article.id).select(orderby=db.t_recommendations.id).last()
@@ -1054,9 +1055,9 @@ def do_send_email_to_reviewers_cancellation(session, auth, db, articleId, newSta
             reviewers = db((db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ("Pending", "Under consideration", "Completed"))).select()
             for rev in reviewers:
                 if rev is not None and rev.reviewer_id is not None:
-                    destPerson = mkUser(auth, db, rev.reviewer_id)
+                    destPerson = common_small_html.mkUser(auth, db, rev.reviewer_id)
                     destAddress = db.auth_user[rev.reviewer_id]["email"]
-                    recommenderPerson = mkUserWithMail(auth, db, lastRecomm.recommender_id)
+                    recommenderPerson = common_small_html.mkUserWithMail(auth, db, lastRecomm.recommender_id)
 
                     content = get_mail_template("reviewers_cancellation.html") % locals()
 
@@ -1105,7 +1106,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1117,7 +1118,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
         dest.append(admin.email)
     user = db.auth_user[userId]
     if user:
-        userTxt = mkUser(auth, db, userId)
+        userTxt = common_small_html.mkUser(auth, db, userId)
         userMail = user.email
         mySubject = "%s: A new user has signed up" % (appname)
 
@@ -1147,7 +1148,7 @@ def do_send_mail_new_user(session, auth, db, userId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1166,7 +1167,7 @@ def do_send_mail_new_user(session, auth, db, userId):
             alerts = ["[no alerts]"]
     # print thema, alerts
     if user:
-        destPerson = mkUser(auth, db, userId)
+        destPerson = common_small_html.mkUser(auth, db, userId)
         destAddress = db.auth_user[userId]["email"]
         baseurl = URL(c="about", f="about", scheme=scheme, host=host, port=port)
         infourl = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
@@ -1203,14 +1204,14 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
     user = db.auth_user[db.auth_membership[membershipId].user_id]
     group = db.auth_group[db.auth_membership[membershipId].group_id]
     if user and group:
-        destPerson = mkUser(auth, db, user.id)
+        destPerson = common_small_html.mkUser(auth, db, user.id)
         destAddress = db.auth_user[user.id]["email"]
         if group.role == "recommender":
             # thematics = ', '.join(user.thematics) if user.thematics and len(user.thematics)>0 else ''
@@ -1265,7 +1266,7 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1274,9 +1275,9 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
     if article:
         articleTitle = article.title
         articleAuthors = article.authors
-        articleDoi = mkDOI(article.doi)
+        articleDoi = common_small_html.mkDOI(article.doi)
         if article.user_id:
-            submitterPerson = mkUser(auth, db, article.user_id)  # submitter
+            submitterPerson = common_small_html.mkUser(auth, db, article.user_id)  # submitter
         else:
             submitterPerson = "?"
 
@@ -1289,19 +1290,19 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
         elif newStatus.startswith("Pre-"):
             recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
             if recomm is not None:
-                recommenderPerson = mkUser(auth, db, recomm.recommender_id) or ""  # recommender
+                recommenderPerson = common_small_html.mkUser(auth, db, recomm.recommender_id) or ""  # recommender
             else:
                 recommenderPerson = "?"
             mySubject = "%s: Decision or recommendation requiring validation" % (appname)
             linkTarget = XML(URL(c="manager", f="pending_articles", scheme=scheme, host=host, port=port))
-            recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             content = get_mail_template("managers_recommendation_or_decision.html") % locals()
             myMessage = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
 
         elif newStatus == "Under consideration":
             recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
             if recomm is not None:
-                recommenderPerson = mkUser(auth, db, recomm.recommender_id) or ""  # recommender
+                recommenderPerson = common_small_html.mkUser(auth, db, recomm.recommender_id) or ""  # recommender
             else:
                 recommenderPerson = "?"
             linkTarget = XML(URL(c="manager", f="ongoing_articles", scheme=scheme, host=host, port=port))
@@ -1313,7 +1314,7 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
                 mySubject = "%s: Article considered for recommendation" % (appname)
                 content = get_mail_template("managers_article_considered_for_recommendation.html") % locals()
 
-            recommendation = mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=scheme, host=host, port=port)
             myMessage = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter(), recommendation=recommendation))
 
         elif newStatus == "Cancelled":
@@ -1357,7 +1358,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1367,13 +1368,13 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
         if article:
             articleTitle = article.title
             articleAuthors = article.authors
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=article.already_published)))
             mySubject = "%s: Thank you for initiating a recommendation!" % (appname)
             theUser = db.auth_user[recomm.recommender_id]
             if theUser:
-                # recommender = mkUser(auth, db, recomm.recommender_id)
-                destPerson = mkUser(auth, db, recomm.recommender_id)
+                # recommender = common_small_html.mkUser(auth, db, recomm.recommender_id)
+                destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
                 if article.already_published:
                     content = get_mail_template("recommender_thank_for_postprint.html") % locals()
 
@@ -1400,7 +1401,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1409,13 +1410,13 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
         if article:
             articleTitle = article.title
             articleAuthors = article.authors
-            articleDoi = mkDOI(article.doi)
+            articleDoi = common_small_html.mkDOI(article.doi)
             linkTarget = XML(URL(c="recommender", f="my_recommendations", scheme=scheme, host=host, port=port, vars=dict(pressReviews=False)))
             mySubject = "%s: Thank you for initiating a recommendation!" % (appname)
             recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
             theUser = db.auth_user[recomm.recommender_id]
             if theUser:
-                destPerson = mkUser(auth, db, theUser.id)
+                destPerson = common_small_html.mkUser(auth, db, theUser.id)
 
                 if article.parallel_submission:
                     content = get_mail_template("recommender_thank_for_preprint_parallel_submission.html") % locals()
@@ -1445,7 +1446,7 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1460,13 +1461,13 @@ def do_send_email_to_thank_reviewer(session, auth, db, reviewId, newForm):
                     articleAuthors = current.T("[undisclosed]")
                 else:
                     articleAuthors = article.authors
-                articleDoi = mkDOI(article.doi)
+                articleDoi = common_small_html.mkDOI(article.doi)
                 linkTarget = XML(URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port))
                 mySubject = "%s: Thank you for agreeing to review a preprint!" % (appname)
                 theUser = db.auth_user[rev.reviewer_id]
                 if theUser:
-                    recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    destPerson = mkUser(auth, db, rev.reviewer_id)
+                    recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    destPerson = common_small_html.mkUser(auth, db, rev.reviewer_id)
                     expectedDuration = datetime.timedelta(days=21)  # three weeks
                     dueTime = str((datetime.datetime.now() + expectedDuration).date())
 
@@ -1508,7 +1509,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1524,7 +1525,7 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
                     articleAuthors = current.T("[undisclosed]")
                 else:
                     articleAuthors = article.authors
-                articleDoi = mkDOI(article.doi)
+                articleDoi = common_small_html.mkDOI(article.doi)
                 linkTarget = XML(URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port))
                 mySubject = "%s: Thank you for evaluating a preprint" % (appname)
                 theUser = db.auth_user[rev.reviewer_id]
@@ -1534,8 +1535,8 @@ def do_send_email_to_thank_reviewer_after(session, auth, db, reviewId, newForm):
                     if article.parallel_submission:
                         parallelText += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.<p>"""
                 if theUser:
-                    recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    destPerson = mkUser(auth, db, rev.reviewer_id)
+                    recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    destPerson = common_small_html.mkUser(auth, db, rev.reviewer_id)
 
                     content = get_mail_template("reviewer_thank_for_review_done.html") % locals()
 
@@ -1575,7 +1576,7 @@ def do_send_email_to_delete_one_contributor(session, auth, db, contribId):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1592,13 +1593,13 @@ def do_send_email_to_delete_one_contributor(session, auth, db, contribId):
                         articleAuthors = current.T("[undisclosed]")
                     else:
                         articleAuthors = article.authors
-                    articleDoi = mkDOI(article.doi)
+                    articleDoi = common_small_html.mkDOI(article.doi)
                     articlePrePost = "postprint" if article.already_published else "preprint"
                     linkTarget = URL(c="recommender", f="my_co_recommendations", scheme=scheme, host=host, port=port)
                     mySubject = "%(appname)s: Your co-recommendation of a %(articlePrePost)s" % locals()
-                    destPerson = mkUser(auth, db, contrib.contributor_id)
+                    destPerson = common_small_html.mkUser(auth, db, contrib.contributor_id)
                     destAddress = db.auth_user[contrib.contributor_id]["email"]
-                    recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
 
                     content = get_mail_template("contributor_removed_from_article.html") % locals()
 
@@ -1626,7 +1627,7 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1643,13 +1644,13 @@ def do_send_email_to_one_contributor(session, auth, db, contribId):
                         articleAuthors = current.T("[undisclosed]")
                     else:
                         articleAuthors = article.authors
-                    articleDoi = mkDOI(article.doi)
+                    articleDoi = common_small_html.mkDOI(article.doi)
                     articlePrePost = "postprint" if article.already_published else "preprint"
                     linkTarget = XML(URL(c="recommender", f="my_co_recommendations", scheme=scheme, host=host, port=port))
                     mySubject = "%(appname)s: Your co-recommendation of a %(articlePrePost)s" % locals()
-                    destPerson = mkUser(auth, db, contrib.contributor_id)
+                    destPerson = common_small_html.mkUser(auth, db, contrib.contributor_id)
                     destAddress = db.auth_user[contrib.contributor_id]["email"]
-                    recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
                     ethicsLink = URL("about", "ethics", scheme=scheme, host=host, port=port)
 
                     if article.status in ("Under consideration", "Pre-recommended"):
@@ -1683,7 +1684,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1697,15 +1698,15 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
             articleAuthors = current.T("[undisclosed]")
         else:
             articleAuthors = article.authors
-        articleDoi = mkDOI(article.doi)
+        articleDoi = common_small_html.mkDOI(article.doi)
         articlePrePost = "postprint" if article.already_published else "preprint"
         tOldStatus = current.T(article.status)
         tNewStatus = current.T(newStatus)
         linkTarget = XML(URL(c="recommender", f="my_co_recommendations", scheme=scheme, host=host, port=port))
-        recommenderPerson = mkUserWithMail(auth, db, recomm.recommender_id) or ""
+        recommenderPerson = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
         mySubject = "%(appname)s: Your co-recommendation of a %(articlePrePost)s" % locals()
         for contrib in contribs:
-            destPerson = mkUser(auth, db, contrib.contributor_id)
+            destPerson = common_small_html.mkUser(auth, db, contrib.contributor_id)
             dest = db.auth_user[contrib.contributor_id]
             if dest:
                 destAddress = dest["email"]
@@ -1713,7 +1714,7 @@ def do_send_email_to_contributors(session, auth, db, articleId, newStatus):
                 destAddress = ""
 
             if newStatus == "Recommended":
-                recommDOI = mkLinkDOI(recomm.recommendation_doi)
+                recommDOI = common_small_html.mkLinkDOI(recomm.recommendation_doi)
                 linkRecomm = XML(URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port))
                 content = get_mail_template("contributors_article_recommended.html") % locals()
 
@@ -1745,11 +1746,11 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
-    destPerson = mkUser(auth, db, userId)
+    destPerson = common_small_html.mkUser(auth, db, userId)
     destAddress = db.auth_user[userId]["email"]
     mySubject = "%s: New recommendations of %s" % (appname, applongname)
     # TODO: (in the fields for which you have requested alerts)
@@ -1782,7 +1783,7 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
     mail = getMailer(auth)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1793,8 +1794,8 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
             articleTitle = article.title
             articleStatus = current.T(newStatus)
             linkTarget = XML(URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port))
-            myRefArticle = mkArticleCitation(auth, db, recomm)
-            myRefRecomm = mkRecommCitation(auth, db, recomm)
+            myRefArticle = common_small_html.mkArticleCitation(auth, db, recomm)
+            myRefRecomm = common_small_html.mkRecommCitation(auth, db, recomm)
             mySubject = "%s: Decision on preprint you reviewed" % (appname)
             if newStatus == "Recommended":
                 reviewers = db(
@@ -1809,10 +1810,10 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
                 )
             for rev in reviewers:
                 review = db.t_reviews[rev.t_reviews.id]
-                destPerson = mkUser(auth, db, rev.auth_user.id)
+                destPerson = common_small_html.mkUser(auth, db, rev.auth_user.id)
 
                 if newStatus == "Recommended":
-                    recommDOI = mkLinkDOI(recomm.recommendation_doi)
+                    recommDOI = common_small_html.mkLinkDOI(recomm.recommendation_doi)
                     linkRecomm = XML(URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port))
                     content = get_mail_template("reviewers_article_recommended.html") % locals()
                 else:
@@ -1858,7 +1859,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
     # managers=myconf.take('contacts.managers')
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appname = myconf.take("app.name")
     appdesc = myconf.take("app.description")
@@ -1868,7 +1869,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
         if recomm:
             rev = db.auth_user[review["reviewer_id"]]
             if rev:
-                destPerson = mkUser(auth, db, review.reviewer_id)
+                destPerson = common_small_html.mkUser(auth, db, review.reviewer_id)
                 myMessage = DIV(WIKI(message))
                 if reset_password_key:
                     if linkTarget:
@@ -1935,10 +1936,10 @@ def do_send_email_to_reset_password(session, auth, db, userId):
     mail_resu = False
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.longname")
     appdesc = myconf.take("app.description")
-    destPerson = mkUser(auth, db, userId)
+    destPerson = common_small_html.mkUser(auth, db, userId)
     destAddress = db.auth_user[userId]["email"]
     fkey = db.auth_user[userId]["reset_password_key"]
     mySubject = "%s: Password changed" % (applongname)

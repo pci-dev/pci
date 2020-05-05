@@ -9,30 +9,30 @@
     margin: 0 15px;
 }
 
-.pci-myTitleText-gab {
+.pci-pageTitleText-gab {
     display: flex;
     flex: 1;
     margin-left: 15px;
 }
 
-.pci-myTitleText-gab>.pci-infotextbox {
+.pci-pageTitleText-gab>.pci-infotextbox {
     color: #598398;
 }
 
-.pci-myTitleText-gab-grey>.pci-infotextbox,
-.pci-myTitleText-gab-grey>.pci-text-title,
-.pci-myTitleText-gab-grey>h1 {
+.pci-pageTitleText-gab-grey>.pci-infotextbox,
+.pci-pageTitleText-gab-grey>.pci-text-title,
+.pci-pageTitleText-gab-grey>h1 {
     color: #888;
 }
 
-.pci-myTitleText-gab>.pci-infotextbox {
+.pci-pageTitleText-gab>.pci-infotextbox {
     padding: 0;
     display: flex;
     justify-content: center;
     flex-direction: column;
 }
 
-.pci-myTitleText-gab .pci-text-buttons {
+.pci-pageTitleText-gab .pci-text-buttons {
     justify-content: flex-end;
     /* align-content: flex-end; */
     text-align: right;

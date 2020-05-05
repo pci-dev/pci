@@ -12,7 +12,9 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-from app_modules.common import *
+from app_modules import common_small_html
+from app_modules import common_tools
+
 from app_modules.emailing import *
 from app_modules.helper import *
 
@@ -242,7 +244,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 """
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = latex_escape(myconf.take("app.description"))
     logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
     smalllogo = os.path.normpath(os.path.join(request.folder, "static", "images", "small-background.png"))
@@ -274,7 +276,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
         affiliations += latex_escape(a)
         affiliations += "\\\\\n"
         cpt += 1
-    reviewers = latex_escape(mkReviewersString(auth, db, articleId))
+    reviewers = latex_escape(common_small_html.mkReviewersString(auth, db, articleId))
     title = latex_escape(lastRecomm.recommendation_title)
     datePub = latex_escape((datetime.date.today()).strftime("%A %B %d %Y"))
     firstRecomm = db.auth_user[lastRecomm.recommender_id]
@@ -283,7 +285,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
     else:
         emailRecomm = ""
     doi = latex_escape(art.doi)
-    doiLink = mkLinkDOI(art.doi)
+    doiLink = common_small_html.mkLinkDOI(art.doi)
     siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
@@ -313,7 +315,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
             x = latex_escape("Revision round #%s" % roundNb)
             history += "\\subsection*{%s}\n" % x
             # roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-            whoDidIt = mkWhoDidIt4Recomm(auth, db, recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+            whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
             # Decision if not last recomm
             if iRecomm > 1:
                 history += "\\subsubsection*{Decision by %s}\n" % SPAN(whoDidIt).flatten()
@@ -338,7 +340,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
                         x = latex_escape(
                             current.T("Reviewed by")
                             + " "
-                            + mkUser(auth, db, review.reviewer_id, linked=False).flatten()
+                            + common_small_html.mkUser(auth, db, review.reviewer_id, linked=False).flatten()
                             + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
                         )
                         history += "\\item{%s}\\par\n" % x
@@ -404,7 +406,9 @@ def recommBibtex(articleId):
     title = latex_escape(lastRecomm.recommendation_title)
     doi = latex_escape(lastRecomm.doi)
     applongname = latex_escape(myconf.take("app.description"))
-    whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten())
+    whoDidIt = latex_escape(
+        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten()
+    )
     year = art.last_status_change.year
     pat = re.search("\\.(?P<num>\d+)$", doi)
     if pat:
@@ -572,16 +576,18 @@ dashed=false
 """
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.description")
     logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
     logoOA = os.path.normpath(os.path.join(request.folder, "static", "images", "Open_Access_logo_PLoS_white_blue.png"))
     title = art.title
     authors = art.authors
-    whoDidIt = latex_escape(SPAN(getRecommAndReviewAuthors(auth, db, art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten())
+    whoDidIt = latex_escape(
+        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten()
+    )
     reviewers = ""
     doi = art.doi
-    doiLink = mkLinkDOI(art.doi)
+    doiLink = common_small_html.mkLinkDOI(art.doi)
     siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
@@ -595,3 +601,97 @@ dashed=false
     resu = template % locals()
     return resu
 
+
+######################################################################################################################################################################
+# From common.py
+######################################################################################################################################################################
+def mkRecommendationFormat2(auth, db, row):
+    recommender = db(db.auth_user.id == row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+    if recommender:
+        recommFmt = SPAN("%s %s" % (recommender.first_name, recommender.last_name))
+    else:
+        recommFmt = ""
+    art = db.t_articles[row.article_id]
+    artRep = common_small_html.mkRepresentArticleLight(auth, db, art.id)
+    anchor = DIV(
+        artRep, BR(), row.recommendation_title, BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi), _class="pci-RecommendationFormat2"
+    )
+    return anchor
+
+
+######################################################################################################################################################################
+def mkRecommendersList(auth, db, recomm):
+    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+    for contrib in contribsQy:
+        recommenders.append(mkUser(auth, db, contrib.contributor_id).flatten())
+    return recommenders
+
+
+######################################################################################################################################################################
+def mkRecommendersAffiliations(auth, db, recomm):
+    affiliations = []
+    theUser = db.auth_user[recomm.recommender_id]
+    if theUser:
+        affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+    for contrib in contribsQy:
+        theUser = db.auth_user[contrib.contributor_id]
+        if theUser:
+            affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
+    return affiliations
+
+    recommendersStr = mkRecommendersString(auth, db, recomm)
+    # reviewers = []
+    reviewsQy = db(
+        (db.t_reviews.recommendation_id == db.t_recommendations.id)
+        & (db.t_recommendations.article_id == articleId)
+        & (db.t_reviews.anonymously == False)
+        & (db.t_reviews.review_state == "Completed")
+    ).select(db.t_reviews.reviewer_id, distinct=True)
+    # if reviewsQy is not None:
+    # nR = len(reviewsQy)
+    # i = 0
+    # for rw in reviewsQy:
+    # if rw.reviewer_id:
+    # i += 1
+    # if (i > 1):
+    # if (i < nR):
+    # reviewers += ', '
+    # else:
+    # reviewers += ' and '
+    # reviewers += common_small_html.mkUser(auth, db, rw.reviewer_id).flatten()
+    reviewsQyAnon = db(
+        (db.t_reviews.recommendation_id == db.t_recommendations.id)
+        & (db.t_recommendations.article_id == articleId)
+        & (db.t_reviews.anonymously == True)
+        & (db.t_reviews.review_state == "Completed")
+    ).select(db.t_reviews.reviewer_id, distinct=True)
+    # if reviewsQyAnon is not None:
+    # nRA = len(reviewsQyAnon)
+    # if nRA > 0:
+    # if len(reviewers) > 0:
+    # reviewers += ' and '
+    # if nRA > 1:
+    # reviewers += '%s anonymous reviewers' % nRA
+    # else:
+    # reviewers += 'one anonymous reviewer'
+    # reviewersStr = ''.join(reviewers)
+    return reviewersStr
+
+
+######################################################################################################################################################################
+def mkRecommendersString(auth, db, recomm):
+    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+    n = len(contribsQy)
+    i = 0
+    for contrib in contribsQy:
+        i += 1
+        if i < n:
+            recommenders += ", "
+        else:
+            recommenders += " and "
+        recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+    recommendersStr = "".join(recommenders)
+    return recommendersStr

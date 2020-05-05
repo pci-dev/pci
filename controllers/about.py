@@ -8,7 +8,10 @@ from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
 # from app_modules.common import mkPanel
 from app_modules.helper import *
-from app_modules import common_forms
+
+from app_components import app_forms
+from app_modules import common_tools
+from app_modules import common_small_html
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -22,15 +25,14 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 ## Routes
 ######################################################################################################################################################################
 def ethics():
-    response.view = "default/info.html"
-    myTitle = getTitle(request, auth, db, "#EthicsTitle")
-    myText = getText(request, auth, db, "#EthicsInfo")
+    pageTitle = getTitle(request, auth, db, "#EthicsTitle")
+    customText = getText(request, auth, db, "#EthicsInfo")
     message = ""
     if auth.user_id:
         if db.auth_user[auth.user_id].ethical_code_approved:
             message = DIV(B(T("You have agreed to comply with this code of conduct"), _style="color:green;"), _style="text-align:center; margin:32px;")
         else:
-            myTitle = DIV(H1("Before login, you must agree to comply with the code of conduct"), myTitle,)
+            pageTitle = DIV(H1("Before login, you must agree to comply with the code of conduct"), pageTitle,)
             message = FORM(
                 DIV(
                     SPAN(
@@ -44,32 +46,33 @@ def ethics():
                 _style="text-align:center;",
             )
 
-    return dict(myTitle=myTitle, myText=myText, message=message, shareable=True,)
+    response.view = "default/info.html"
+    return dict(pageTitle=pageTitle, customText=customText, message=message, shareable=True, currentUrl=URL(c="about", f="ethics", host=host, scheme=scheme, port=port))
 
 
 ######################################################################################################################################################################
 def rss_info():
-    response.view = "default/info.html"
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: takePort(v))
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     url = URL(c="rss", f="rss", scheme=scheme, host=host, port=port)
     fname = os.path.dirname(os.path.abspath(__file__)) + "/../static/images/RSS_datamatrix.png"
+
     if os.path.isfile(fname):
         datamImg = IMG(_src=URL(c="static", f="images/RSS_datamatrix.png"), _alt="datamatrix", _style="margin-left:32px;")
     else:
         datamImg = ""
+
     aurl = DIV(A(url, _href=url), datamImg, _style="text-align:center")
 
-    return dict(myTitle=getTitle(request, auth, db, "#RssTitle"), myText=getText(request, auth, db, "#RssInfo"), message=aurl,)
+    response.view = "default/info.html"
+    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl)
 
 
 ######################################################################################################################################################################
 ## Keep for future use?
 def social():
-    response.view = "default/info.html"
-
     frames = []
     tweeterAcc = myconf.get("social.tweeter")
     if tweeterAcc:
@@ -89,43 +92,65 @@ def social():
     # frames.append(H2('Facebook'))
     # frames.append(DIV(XML('<div class="fb-page" data-href="https://www.facebook.com/%s" data-tabs="timeline" data-width=500 data-small-header="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/%s" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/%s">%s</a></blockquote></div>' % (facebookAcc,facebookAcc,facebookAcc,myconf.get('app.description'))), _class='facebookPanel'))
 
+    response.view = "default/info.html"
     return dict(
-        myTitle=getTitle(request, auth, db, "#SocialTitle"),
-        myText=getText(request, auth, db, "#SocialInfo"),
+        pageTitle=getTitle(request, auth, db, "#SocialTitle"),
+        customText=getText(request, auth, db, "#SocialInfo"),
         message=DIV(frames, _class="pci-socialDiv"),
         facebook=True,
         shareable=True,
+        currentUrl=URL(c="about", f="social", host=host, scheme=scheme, port=port),
     )
 
 
 ######################################################################################################################################################################
 def gtu():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#GtuTitle"), myText=getText(request, auth, db, "#GtuInfo"), shareable=True,)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#GtuTitle"),
+        customText=getText(request, auth, db, "#GtuInfo"),
+        shareable=True,
+        currentUrl=URL(c="about", f="gtu", host=host, scheme=scheme, port=port),
+    )
 
 
 ######################################################################################################################################################################
 def about():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#AboutTitle"), myText=getText(request, auth, db, "#AboutInfo"), shareable=True,)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#AboutTitle"),
+        customText=getText(request, auth, db, "#AboutInfo"),
+        shareable=True,
+        currentUrl=URL(c="about", f="about", host=host, scheme=scheme, port=port),
+    )
 
 
 ######################################################################################################################################################################
 def contact():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#ContactTitle"), myText=getText(request, auth, db, "#ContactInfo"), shareable=True,)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#ContactTitle"),
+        customText=getText(request, auth, db, "#ContactInfo"),
+        shareable=True,
+        currentUrl=URL(c="about", f="contact", host=host, scheme=scheme, port=port),
+    )
 
 
 ######################################################################################################################################################################
 def buzz():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#BuzzTitle"), myText=getText(request, auth, db, "#BuzzInfo"), shareable=True,)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#BuzzTitle"),
+        customText=getText(request, auth, db, "#BuzzInfo"),
+        shareable=True,
+        currentUrl=URL(c="about", f="buzz", host=host, scheme=scheme, port=port),
+    )
 
 
 ######################################################################################################################################################################
 def thanks_to_reviewers():
     response.view = "default/info.html"
-    return dict(myTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), myText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
+    return dict(pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), customText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
 
 
 ######################################################################################################################################################################
@@ -147,10 +172,11 @@ def supports():
         )
         myTable.append(myRow)
     return dict(
-        myTitle=getTitle(request, auth, db, "#SupportsTitle"),
-        # myText=getText(request, auth, db, '#SupportsInfo'),
-        myText=TABLE(myTable, _class="pci-supports"),
+        pageTitle=getTitle(request, auth, db, "#SupportsTitle"),
+        # customText=getText(request, auth, db, '#SupportsInfo'),
+        customText=TABLE(myTable, _class="pci-supports"),
         shareable=True,
+        currentUrl=URL(c="about", f="supports", host=host, scheme=scheme, port=port),
     )
 
 
@@ -182,13 +208,16 @@ def resources():
             ),
         )
         myTable.append(myRow)
-    return dict(myTitle=getTitle(request, auth, db, "#ResourcesTitle"), myText=TABLE(myTable, _class="pci-resources"), shareable=True,)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#ResourcesTitle"),
+        customText=TABLE(myTable, _class="pci-resources"),
+        shareable=True,
+        currentUrl=URL(c="about", f="resources", host=host, scheme=scheme, port=port),
+    )
 
 
 ######################################################################################################################################################################
 def recommenders():
-    response.view = "default/gab_list_layout.html"
-
     myVars = request.vars
     qyKw = ""
     qyTF = []
@@ -204,7 +233,7 @@ def recommenders():
             qyTF.append(re.sub(r"^qy_", "", myVar))
     qyKwArr = qyKw.split(" ")
 
-    searchForm = common_forms.getSearchForm(auth, db, myVars)
+    searchForm = app_forms.searchByThematic(auth, db, myVars)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
@@ -223,7 +252,7 @@ def recommenders():
             my1 = sfr.last_name[0].upper()
             myRows.append(TR(TD(my1, A(_name=my1)), TD(""), _class="pci-capitals"))
             myIdx.append(A(my1, _href="#%s" % my1, _style="margin-right:20px;"))
-        myRows.append(mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
+        myRows.append(common_small_html.mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
     grid = DIV(
         HR(),
         DIV(nbRecomm + T(" recommenders selected"), _style="text-align:center; margin-bottom:20px;"),
@@ -232,10 +261,12 @@ def recommenders():
         HR(),
         TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
     )
+
+    response.view = "default/gab_list_layout.html"
     resu = dict(
-        myTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
-        myText=getText(request, auth, db, "#PublicRecommendationBoardText"),
-        myHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
+        pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
+        customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
+        pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
         searchForm=searchForm,
         grid=grid,
     )
@@ -245,20 +276,21 @@ def recommenders():
 # (gab) is this unused ? i put it in about from public
 ######################################################################################################################################################################
 def managers():
-    response.view = "default/myLayout.html"
 
     query = db(
         (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role.belongs("manager", "administrator"))
     ).select(db.auth_user.ALL, distinct=db.auth_user.last_name | db.auth_user.id, orderby=db.auth_user.last_name | db.auth_user.id)
     myRows = []
     for user in query:
-        myRows.append(mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
+        myRows.append(common_small_html.mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
     grid = DIV(TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"))
+
+    response.view = "default/gab_list_layout.html"
     return dict(
-        # mkBackButton = mkBackButton(),
-        myTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
-        myText=getText(request, auth, db, "#PublicManagingBoardText"),
-        myHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),
+        # common_small_html.mkBackButton = common_small_html.mkBackButton(),
+        pageTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
+        customText=getText(request, auth, db, "#PublicManagingBoardText"),
+        pageHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),
         grid=grid,
     )
 

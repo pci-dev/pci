@@ -5,7 +5,7 @@ import re
 import copy
 
 from gluon.contrib.markdown import WIKI
-from app_modules.common import *
+
 from app_modules.helper import *
 from gluon.utils import web2py_uuid
 
@@ -46,9 +46,10 @@ def index():
     if tweeterAcc:
         myPanel.append(
             XML(
-                """<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
-			<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-			"""
+                """
+                <a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
+			    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+			    """
                 % locals()
             )
         )
@@ -91,23 +92,27 @@ def index():
 
     if request.user_agent().is_mobile:
         return dict(
-            myTitle=getTitle(request, auth, db, "#HomeTitle"),
-            myText=getText(request, auth, db, "#HomeInfo"),
-            myHelp=getHelp(request, auth, db, "#Home"),
+            pageTitle=getTitle(request, auth, db, "#HomeTitle"),
+            customText=getText(request, auth, db, "#HomeInfo"),
+            pageHelp=getHelp(request, auth, db, "#Home"),
             form=form,
-            myBottomPanel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            myBottomPanel=DIV(
+                DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
+            ),
             shareable=True,
-            script=myScript,
+            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
+            script=myScript
         )
     else:
         return dict(
-            myTitle=getTitle(request, auth, db, "#HomeTitle"),
-            myText=getText(request, auth, db, "#HomeInfo"),
-            myHelp=getHelp(request, auth, db, "#Home"),
+            pageTitle=getTitle(request, auth, db, "#HomeTitle"),
+            customText=getText(request, auth, db, "#HomeInfo"),
+            pageHelp=getHelp(request, auth, db, "#Home"),
             form=form,
-            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
             shareable=True,
-            script=myScript,
+            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
+            script=myScript
         )
 
 
@@ -157,24 +162,23 @@ def user():
     if fkey == "":
         fkey = None
 
-    myHelp = ""
-    myTitle = ""
-    myText = ""
+    titleIcon = ""
+    pageTitle = ""
+    pageHelp = ""
+    customText = ""
     myBottomText = ""
-    myContent = ""
     myScript = ""
 
     form = auth()
-    titleIcon = ""
     db.auth_user.registration_key.writable = False
     db.auth_user.registration_key.readable = False
     if request.args and len(request.args) > 0:
 
         if request.args[0] == "login":
-            myHelp = getHelp(request, auth, db, "#LogIn")
             titleIcon = "log-in"
-            myTitle = getTitle(request, auth, db, "#LogInTitle")
-            myText = getText(request, auth, db, "#LogInText")
+            pageTitle = getTitle(request, auth, db, "#LogInTitle")
+            pageHelp = getHelp(request, auth, db, "#LogIn")
+            customText = getText(request, auth, db, "#LogInText")
             form.add_button(T("Lost password?"), URL(c="default", f="user", args=["request_reset_password"]), _class="pci2-lost-password-link")
             # green color for submit button form
             form.element(_type="submit")["_class"] = "btn btn-success"
@@ -184,10 +188,10 @@ def user():
                 auth.settings.login_next = suite
 
         elif request.args[0] == "register":
-            myHelp = getHelp(request, auth, db, "#CreateAccount")
             titleIcon = "edit"
-            myTitle = getTitle(request, auth, db, "#CreateAccountTitle")
-            myText = getText(request, auth, db, "#ProfileText")
+            pageTitle = getTitle(request, auth, db, "#CreateAccountTitle")
+            pageHelp = getHelp(request, auth, db, "#CreateAccount")
+            customText = getText(request, auth, db, "#ProfileText")
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
@@ -195,20 +199,20 @@ def user():
                 auth.settings.register_next = suite
 
         elif request.args[0] == "profile":
-            myHelp = getHelp(request, auth, db, "#Profile")
             titleIcon = "user"
-            myTitle = getTitle(request, auth, db, "#ProfileTitle")
-            myText = getText(request, auth, db, "#ProfileText")
+            pageTitle = getTitle(request, auth, db, "#ProfileTitle")
+            pageHelp = getHelp(request, auth, db, "#Profile")
+            customText = getText(request, auth, db, "#ProfileText")
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             form.element(_type="submit")["_class"] = "btn btn-success"
             if suite:
                 auth.settings.profile_next = suite
 
         elif request.args[0] == "request_reset_password":
-            myHelp = getHelp(request, auth, db, "#ResetPassword")
             titleIcon = "lock"
-            myTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
-            myText = getText(request, auth, db, "#ResetPasswordText")
+            pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
+            pageHelp = getHelp(request, auth, db, "#ResetPassword")
+            customText = getText(request, auth, db, "#ResetPasswordText")
             user = db(db.auth_user.email == request.vars["email"]).select().last()
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (fkey is not None) and (user is not None):
@@ -223,10 +227,10 @@ def user():
                 auth.settings.request_reset_password_next = suite
 
         elif request.args[0] == "reset_password":
-            myHelp = getHelp(request, auth, db, "#ResetPassword")
             titleIcon = "lock"
-            myTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
-            myText = getText(request, auth, db, "#ResetPasswordText")
+            pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
+            pageHelp = getHelp(request, auth, db, "#ResetPassword")
+            customText = getText(request, auth, db, "#ResetPasswordText")
             user = db(db.auth_user.reset_password_key == vkey).select().last()
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (vkey is not None) and (suite is not None) and (user is None):
@@ -236,11 +240,11 @@ def user():
 
         elif request.args[0] == "change_password":
             titleIcon = "lock"
-            myTitle = getTitle(request, auth, db, "#ChangePasswordTitle")
-            myText = getText(request, auth, db, "#ResetPasswordText")
+            pageTitle = getTitle(request, auth, db, "#ChangePasswordTitle")
+            customText = getText(request, auth, db, "#ResetPasswordText")
             form.element(_type="submit")["_class"] = "btn btn-success"
 
-    return dict(titleIcon=titleIcon, myTitle=myTitle, myText=myText, myBottomText=myBottomText, myHelp=myHelp, content=myContent, form=form,)
+    return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
 
 
 # (gab) is this used ?

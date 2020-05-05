@@ -7,7 +7,7 @@ from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
 from gluon.html import markmin_serializer
 
-from app_modules.common import *
+
 from app_modules.helper import *
 
 

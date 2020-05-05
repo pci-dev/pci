@@ -315,7 +315,7 @@ def _RecommendationMenu():
     recommendationsMenu.append(
         (
             SPAN(
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Your recommendations of preprints"), _class="pci-recommender"),
+                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Preprints you are handling"), _class="pci-recommender"),
                 _class=classPreprintsOngoing,
             ),
             False,

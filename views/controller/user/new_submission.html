@@ -1,0 +1,22 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
+{{extend 'layout.html'}}
+
+{{if 'customText' in locals():}}
+	{{=customText}}
+{{pass}}
+
+<!-- Show submit preprint button if user is logged in -->
+{{if submitPreprintLink:}}
+  <div class="pci2-full-width pci2-flex-center">
+      <a class="btn btn-success" href="{{=submitPreprintLink}}">{{=T("Submit your preprint")}}</a>
+  </div>
+{{else:}}
+  <div class="pci2-full-width pci2-flex-center">
+    <b>
+      <span>{{=T("Before submitting your preprint, please:")}}</span>
+      <a class="btn btn-info" href="{{=loginLink}}">{{=T('Log in')}}</a>
+      <span>{{=T(" or ")}}</span>
+      <a class="btn btn-info" href="{{=registerLink}}">{{=T('Register')}}</a>
+    </b>
+  </div>
+{{pass}}
