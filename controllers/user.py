@@ -72,6 +72,7 @@ def recommendations():
             recommTopButtons=recommTopButtons or "",
             pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
             myContents=myContents,
+            myBackButton=common_small_html.mkBackButton()
         )
 
 

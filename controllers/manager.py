@@ -289,6 +289,7 @@ def recommendations():
         printable=printable,
         pageHelp=getHelp(request, auth, db, "#ManagerRecommendations"),
         myContents=myContents,
+        myBackButton=common_small_html.mkBackButton()
     )
 
 

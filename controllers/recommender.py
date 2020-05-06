@@ -376,6 +376,7 @@ def article_details():
             printable=printable,
             pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
             myContents=myContents,
+            myBackButton=common_small_html.mkBackButton()
         )
     else:
         raise HTTP(403, "403: " + T("Access denied"))
