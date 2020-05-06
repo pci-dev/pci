@@ -34,9 +34,9 @@ def user_public_page():
                 mail = LI(A(" [%s]" % user.email, _href="mailto:%s" % user.email) if withMail else "")
 
                 if user.uploaded_picture is not None and user.uploaded_picture != "":
-                    img = IMG(_alt="avatar", _src=URL("default", "download", args=user.uploaded_picture), _class="pci-userPicture", _style="float:left;",)
+                    img = IMG(_alt="avatar", _src=URL("default", "download", args=user.uploaded_picture), _class="pci-userPicture")
                 else:
-                    img = IMG(_alt="avatar", _src=URL(c="static", f="images/default_user.png"), _class="pci-userPicture", _style="float:left;",)
+                    img = IMG(_alt="avatar", _src=URL(c="static", f="images/default_user.png"), _class="pci-userPicture")
 
                 if (user.cv or "") != "":
                     userCv = user.cv
@@ -98,41 +98,21 @@ def user_public_page():
                     titleIcon="briefcase",
                     pageTitle=pageTitle,
                     uneditableTitle=True,
-                    totalUserRecommendations=SPAN(SPAN(current.T(" %%{Recommendation(nbRecomms)} : ", dict(nbRecomms=nbRecomms),)), B(nbRecomms, _class="pci2-main-color-text"),),
-                    totalUserRecommendationsFlex=SPAN(
-                        SPAN(current.T(" %%{Recommendation(nbRecomms)} : ", dict(nbRecomms=nbRecomms),), _class="pci2-flex-grow",),
-                        B(nbRecomms, _class="pci2-main-color-text"),
-                        _class="pci2-flex-row pci2-flex-grow",
-                    ),
+                    nbRecomms=nbRecomms,
                     recommendationsList=DIV(recomms, _class="pci2-articles-list"),
-                    totalUserReviews=SPAN(SPAN(current.T(" %%{Review(nbReviews)} : ", dict(nbReviews=nbReviews))), B(nbReviews, _class="pci2-main-color-text"),),
-                    totalUserReviewsFlex=SPAN(
-                        SPAN(current.T(" %%{Review(nbReviews)} : ", dict(nbReviews=nbReviews)), _class="pci2-flex-grow",),
-                        B(nbReviews, _class="pci2-main-color-text"),
-                        _class="pci2-flex-row pci2-flex-grow",
-                    ),
+                    nbReviews=nbReviews,
                     reviewsList=DIV(reviews, _class="pci2-articles-list"),
                     userAvatar=img,
                     userName=nameTitle,
                     userInfosList=UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles),
-                    userCv=userCv,
-                    totalUserSubmittedPreprints=SPAN(SPAN(current.T("submitted %%{preprint(nbReviews)} : ", dict(nbReviews=3),)), B(3, _class="pci2-main-color-text"),),
-                    totalUserSubmittedPreprintsFlex=SPAN(
-                        SPAN(current.T(" Submitted %%{preprint(nbReviews)} : ", dict(nbReviews=3),), _class="pci2-flex-grow",),
-                        B(3, _class="pci2-main-color-text"),
-                        _class="pci2-flex-row pci2-flex-grow",
-                    ),
-                    totalUserComments=SPAN(SPAN(current.T(" %%{comment(nbReviews)} : ", dict(nbReviews=1))), B(1, _class="pci2-main-color-text"),),
-                    totalUserCommentsFlex=SPAN(
-                        SPAN(current.T(" %%{Comment(nbReviews)} : ", dict(nbReviews=1)), _class="pci2-flex-grow",),
-                        B(1, _class="pci2-main-color-text"),
-                        _class="pci2-flex-row pci2-flex-grow",
-                    ),
+                    userCv=userCv
                 )
         else:
             myContents = B(T("Unavailable"))
 
     if resu is None:
-        resu = dict(pageHelp=getHelp(request, auth, db, "#PublicUserCard"), titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"), customText=myContents,)
+        resu = dict(
+            pageHelp=getHelp(request, auth, db, "#PublicUserCard"), titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"), customText=myContents,
+        )
     return resu
 

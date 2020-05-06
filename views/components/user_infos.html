@@ -14,7 +14,10 @@
     style="margin-bottom: 10px;"
   >
     <i class="glyphicon glyphicon-education" style="margin-right: 10px;"></i>
-    {{=totalUserRecommendationsFlex}}
+    <span class="pci2-flex-grow">
+      {{=T(" %%{Recommendation(nbRecomms)} : ", dict(nbRecomms=nbRecomms))}}
+    </span>
+    <b class="pci2-main-color-text">&nbsp;{{=nbRecomms}}</b>
   </h4>
 
   <h4
@@ -22,24 +25,13 @@
     style="margin-bottom: 10px;"
   >
     <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
-    {{=totalUserReviewsFlex}}
+    <span class="pci2-flex-grow">
+      {{=T(" %%{Review(nbReviews)} : ", dict(nbReviews=nbReviews))}}
+    </span>
+    <b class="pci2-main-color-text">&nbsp;{{=nbReviews}}</b>
   </h4>
 
-  <!-- <h4
-    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
-    style="margin-bottom: 10px;"
-  >
-    <i class="glyphicon glyphicon-edit" style="margin-right: 10px;"></i>
-    {{=totalUserSubmittedPreprintsFlex}}
-  </h4>
-
-  <h4
-    class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"
-    style="margin-bottom: 10px;"
-  >
-    <i class="glyphicon glyphicon-comment" style="margin-right: 10px;"></i>
-    {{=totalUserCommentsFlex}}
-  </h4> -->
+  
    
 </div>
 
