@@ -241,7 +241,18 @@ div.w2p_flash.alert.custom-disappear {
     animation: animOpacity 1.5s ease;
 }
 
+.pci2-recomm-backButtonDiv{
+    position: absolute;
+    top: -15px;
+    left: 0px;
+}
 
+
+@media (max-width: 1200px) {
+    .pci2-recomm-backButtonDiv{
+        position: relative;
+    }
+}
 
 @media (max-width: 600px) {
     .main-container {

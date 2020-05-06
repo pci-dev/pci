@@ -49,7 +49,6 @@ def user_public_page():
                     rolesList.append(roleRow.role)
                 roles = LI(B(", ".join(rolesList)))
 
-                # recommendations ## Patch SP 2020-01-06
                 recommsQy0sql = (
                     """
 						SELECT t_articles.id

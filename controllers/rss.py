@@ -183,7 +183,7 @@ def rss4bioRxiv():
     # pass
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True).decode("utf8")
 
-
+######################################################################################################################################################################
 def rss4altmetric():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")

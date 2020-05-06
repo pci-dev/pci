@@ -1,4 +1,9 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
+
+{{if 'myBackButton' in locals():}}
+	<div class="pci2-recomm-backButtonDiv">{{=myBackButton}}</div>
+{{pass}}
+    
 {{include viewToRender}}

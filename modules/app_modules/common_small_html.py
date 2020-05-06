@@ -431,15 +431,9 @@ def mkViewEditRecommendationsRecommenderButton(auth, db, row):
 # go to the target instead, if any.
 def mkBackButton(text=current.T("Back"), target=None):
     if target:
-        return A(SPAN(text, _class="buttontext btn btn-default pci-public"), _href=target, _class="button")
+        return A(I(_class="glyphicon glyphicon-chevron-left"),SPAN(text), _href=target, _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
     else:
-        return A(SPAN(text, _class="buttontext btn btn-default pci-public"), _onclick="window.history.back();", _class="button")
-
-
-######################################################################################################################################################################
-# code for a "Close" button
-def mkCloseButton():
-    return A(SPAN(current.T("Close"), _class="pci-ArticleTopButton buttontext btn btn-default pci-public"), _onclick="window.close(); window.top.close();", _class="button")
+        return A(I(_class="glyphicon glyphicon-chevron-left"),SPAN(text), _onclick="window.history.back();", _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
 
 
 ######################################################################################################################################################################

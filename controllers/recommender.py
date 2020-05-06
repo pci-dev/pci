@@ -761,6 +761,7 @@ def recommendations():
             printable=printable,
             pageHelp=getHelp(request, auth, db, "#RecommenderOtherRecommendations"),
             myContents=myContents,
+            myBackButton=common_small_html.mkBackButton()
         )
 
 
@@ -804,7 +805,7 @@ def one_review():
         customText=getText(request, auth, db, "#RecommenderArticleOneReviewText"),
         titleIcon="eye-open",
         pageTitle=getTitle(request, auth, db, "#RecommenderArticleOneReviewTitle"),
-        myBackButton=common_small_html.mkCloseButton(),
+        myBackButton=common_small_html.mkBackButton(),
         form=form,
     )
 
@@ -1862,7 +1863,7 @@ def review_emails():
         customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
         titleIcon="envelope",
         pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        myBackButton=common_small_html.mkCloseButton(),
+        myBackButton=common_small_html.mkBackButton(),
         message=myContents,
     )
 

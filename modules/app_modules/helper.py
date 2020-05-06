@@ -13,7 +13,7 @@ shortname = myconf.take("app.name")
 longname = myconf.take("app.longname")
 contact = myconf.take("contacts.managers")
 
-
+######################################################################################################################################################################
 def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     r0 = []
     c = ""
@@ -49,6 +49,7 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     return DIV(DIV(r0, _class="pci-help-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-helptext", _style="display:none;",), _class="pci-helper",)
 
 
+######################################################################################################################################################################
 def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200"):
     r0 = ""
     c = ""
@@ -75,6 +76,7 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
     )
 
 
+######################################################################################################################################################################
 def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     r0 = ""
     c = ""

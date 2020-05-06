@@ -244,7 +244,7 @@ def suggested_recommender_emails():
         customText=getText(request, auth, db, "#ManagerSuggestedRecommenderEmailsText"),
         titleIcon="envelope",
         pageTitle=getTitle(request, auth, db, "#ManagerSuggestedRecommenderEmailsTitle"),
-        myBackButton=common_small_html.mkCloseButton(),
+        myBackButton=common_small_html.mkBackButton(),
         message=myContents,
     )
 
