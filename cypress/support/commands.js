@@ -26,19 +26,22 @@
 
 Cypress.Commands.add("pciLogin", user => {
   cy.clearCookies();
-  cy.visit("http://127.0.0.1:8000/pcidev/");
 
-  // homepage login button
-  cy.get("#cyp-login-button").click();
+  cy.fixture("config").then(config => {
+    cy.visit(config.site_url);
 
-  // fill  and submit login form
-  cy.get("#auth_user_email").typeFast(user.mail);
-  cy.get("#auth_user_password").typeFast(user.password);
+    // homepage login button
+    cy.get("#cyp-login-button").click();
 
-  cy.get("input[type=submit]").click();
+    // fill  and submit login form
+    cy.get("#auth_user_email").typeFast(user.mail);
+    cy.get("#auth_user_password").typeFast(user.password);
 
-  // check if profile menu exist
-  cy.contains(".dropdown-toggle", user.firstname).should("exist");
+    cy.get("input[type=submit]").click();
+
+    // check if profile menu exist
+    cy.contains(".dropdown-toggle", user.firstname).should("exist");
+  });
 });
 
 Cypress.Commands.add("pciLogout", () => {
@@ -132,7 +135,8 @@ Cypress.Commands.add(
         cy.wait(500);
         let folder_name = test + "/" + role;
         if (role === "suggested_reviewer") folder_name = test + "/reviewer";
-        if (role === "suggested_recommender") folder_name = test + "/recommender";
+        if (role === "suggested_recommender")
+          folder_name = test + "/recommender";
         cy.screenshot(folder_name + "/" + step + " - " + role);
         cy.wait(500);
       }

@@ -7,7 +7,7 @@ from app_components import article_components
 
 ######################################################################################################################################################################
 def user_public_page():
-    response.view = "default/gab_user_public_layout.html"
+    response.view = "default/user_public_profile.html"
     resu = None
     myContents = ""
     if not ("userId" in request.vars):

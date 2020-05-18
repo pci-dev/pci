@@ -10,9 +10,6 @@ describe("Preprint recommended in one round", () => {
   let reviewer_1;
 
   before(() => {
-    //
-    // cy.visit("http://127.0.0.1:8000/pcidev/");
-
     cy.fixture("users").then(user => {
       submitter = user.normal_user;
       manager = user.manager;
