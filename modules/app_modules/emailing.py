@@ -35,7 +35,6 @@ from app_modules import old_common
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
-# (gab) pu in app.ini
 mail_sleep = 1.5  # in seconds
 
 # common view for all emails
@@ -718,6 +717,8 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
                     except:
                         print("unable to delete temp file %s" % tmpR0)
                         pass
+                
+                # (gab) This part cause mail is not sent when there's a pdf file to send 
                 if rev.review_pdf is not None and rev.review_pdf != "":
                     (fnR1, stream) = db.t_reviews.review_pdf.retrieve(rev.review_pdf)
                     tmpR1 = os.path.join(directory, str(uuid4()))
@@ -729,6 +730,8 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
                     except:
                         print("unable to delete temp file %s" % tmpR1)
                         pass
+                # (gab) end
+
                 destPerson = common_small_html.mkUser(auth, db, recomm.recommender_id)
                 destAddress = db.auth_user[recomm.recommender_id]["email"]
                 reviewerPerson = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
@@ -742,6 +745,7 @@ def do_send_email_to_recommenders_review_closed(session, auth, db, reviewId):
                     else:
                         mail_resu = mail.send(to=[destAddress], subject=mySubject, message=myMessage,)
                 except:
+                    print(myMessage)
                     pass
                 if mail_resu:
                     report.append("email sent to %s" % destPerson.flatten())

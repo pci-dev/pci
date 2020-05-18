@@ -124,6 +124,10 @@
           {{=review['text']}}
         {{pass}}
 
+        {{if review['pdfLink'] is not None:}}
+          {{=review['pdfLink']}}
+        {{pass}}
+
         <!-- Review edit button -->  
         {{if review['showEditButtons']:}}
           <div class="pci2-flex-row pci2-flex-center pci2-full-width" style="margin: 20px 0;">

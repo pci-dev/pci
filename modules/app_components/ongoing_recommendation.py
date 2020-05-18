@@ -183,6 +183,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                 nbCompleted += 1
             if review.review_state == "Under consideration":
                 nbOnGoing += 1
+
         # If the recommender is also a reviewer, did he/she already completed his/her review?
         recommReviewFilledOrNull = False  # Let's say no by default
         # Get reviews states for this case
@@ -199,7 +200,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
         for review in reviews:
             # No one is allowd to see ongoing reviews ...
             hideOngoingReview = True
-            reviewVars = dict(id=review.id, showInvitationButtons=False, showEditButtons=False, authors=None, text=None, reviewPdfUrl=None)
+            reviewVars = dict(id=review.id, showInvitationButtons=False, showEditButtons=False, authors=None, text=None, pdfLink=None)
             # ... but:
             # ... the author for a closed decision/recommendation ...
             if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
@@ -233,6 +234,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             elif review.review_state == "Pending":
                 hideOngoingReview = True
 
+            
+            # reviewer's buttons in order to edit/complete pending review
             if (
                 (review.reviewer_id == auth.user_id)
                 and (review.review_state == "Under consideration")
@@ -240,7 +243,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                 and not (printable)
                 and not (quiet)
             ):
-                # reviewer's buttons in order to edit/complete pending review
                 reviewVars.update([("showEditButtons", True)])
 
             if not (hideOngoingReview):
@@ -285,7 +287,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                         _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
                         _style="margin-bottom: 64px;",
                     )
-
                     reviewVars.update([("pdfLink", pdfLink)])
 
             reviewsList.append(reviewVars)
