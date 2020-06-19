@@ -11,9 +11,6 @@ describe("Preprint recommended in two round", () => {
   let reviewer_1;
 
   before(() => {
-    //
-    // cy.visit("http://127.0.0.1:8000/pcidev/");
-
     cy.fixture("users").then(user => {
       submitter = user.normal_user;
       manager = user.manager;
@@ -26,7 +23,7 @@ describe("Preprint recommended in two round", () => {
   beforeEach(() => {
     Cypress.Cookies.preserveOnce(
       "session_id_admin",
-      "session_id_pcidev",
+      "session_id_pci",
       "session_id_welcome"
     );
   });
@@ -309,7 +306,7 @@ describe("Preprint recommended in two round", () => {
     it("Should search for reviewer 1 (co_recommender user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
@@ -335,7 +332,7 @@ describe("Preprint recommended in two round", () => {
     it("Should search for reviewer 2 (developper user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);
@@ -1007,7 +1004,7 @@ describe("Preprint recommended in two round", () => {
     it("Should search for reviewer 1 (co_recommender user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
@@ -1031,7 +1028,7 @@ describe("Preprint recommended in two round", () => {
     it("Should search for reviewer 2 (developper user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);

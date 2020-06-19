@@ -22,7 +22,7 @@ describe("Preprint recommended in one round", () => {
   beforeEach(() => {
     Cypress.Cookies.preserveOnce(
       "session_id_admin",
-      "session_id_pcidev",
+      "session_id_pci",
       "session_id_welcome"
     );
   });
@@ -307,7 +307,7 @@ describe("Preprint recommended in one round", () => {
     it("Should search for reviewer 1 (co_recommender user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
@@ -333,7 +333,7 @@ describe("Preprint recommended in one round", () => {
     it("Should search for reviewer 2 (developper user)", () => {
       cy.contains(
         ".btn",
-        "Choose a reviewer from PCI Evol Biol DEV database"
+        "Choose a reviewer among the PCI Evol Biol DEV recommenders"
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);

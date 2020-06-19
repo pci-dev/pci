@@ -1,6 +1,7 @@
 *.pyc
 *~
 *.old
+*.DS_Store
 errors/*
 sessions/*
 static/plugin_ckeditor

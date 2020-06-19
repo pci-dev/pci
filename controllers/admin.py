@@ -270,7 +270,7 @@ def article_status():
         fields=[db.t_status_article.status, db.t_status_article._id, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination],
         orderby=db.t_status_article.priority_level,
     )
-    mkStatusArticles(db)
+    common_small_html.mkStatusArticles(db)
     return dict(
         pageHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
         customText=getText(request, auth, db, "#AdministrateArticleStatusText"),

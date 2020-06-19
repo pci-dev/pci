@@ -239,7 +239,7 @@ def search_reviewers():
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
 
-    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+    filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
     for fr in filtered:
         qy_reviewers.insert(**fr)
 
@@ -953,7 +953,7 @@ def reviewers():
         longname = myconf.take("app.longname")
         myUpperBtn = DIV(
             A(
-                SPAN(current.T("Choose a reviewer from %s database") % (longname), _class="btn btn-success"),
+                SPAN(current.T("Choose a reviewer among the %s recommenders") % (longname), _class="btn btn-success"),
                 _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", exclude=excludeList)),
             ),
             A(
