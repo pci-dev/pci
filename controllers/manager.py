@@ -137,7 +137,7 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
     db.t_articles.upload_timestamp.label = T("Submission date")
     db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(row.last_status_change)
-    db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
+    db.t_articles.already_published.readable = False
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
@@ -150,7 +150,7 @@ def _manage_articles(statuses, whatNext):
         ]
     links += [
         dict(header=T("Recommenders"), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
-        dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
+        # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
         dict(
             header=T("Actions"),
             body=lambda row: DIV(
@@ -181,14 +181,14 @@ def _manage_articles(statuses, whatNext):
         fields = [
             db.t_articles.last_status_change,
             db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
-            db.t_articles.parallel_submission,
+            # db.t_articles.parallel_submission,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
-            db.t_articles.thematics,
+            # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.anonymous_submission,
         ]
@@ -196,13 +196,13 @@ def _manage_articles(statuses, whatNext):
         fields = [
             db.t_articles.last_status_change,
             db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
-            db.t_articles.thematics,
+            # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.anonymous_submission,
         ]
@@ -509,7 +509,7 @@ def search_recommenders():
             pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
             pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
             customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
-            myBackButton=common_small_html.mkBackButton(target=whatNext),
+            myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
         )
@@ -520,7 +520,6 @@ def search_recommenders():
 # Logged users only (submission)
 @auth.requires(auth.has_membership(role="manager"))
 def suggested_recommenders():
-
     articleId = request.vars["articleId"]
     whatNext = request.vars["whatNext"]
     if articleId is None:
@@ -553,6 +552,8 @@ def suggested_recommenders():
             )
         )
 
+    addSuggestedRecommendersButton = A(current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True))
+
     grid = SQLFORM.grid(
         query,
         details=True,
@@ -581,7 +582,8 @@ def suggested_recommenders():
         pageTitle=getTitle(request, auth, db, "#ManageSuggestedRecommendersTitle"),
         pageHelp=getHelp(request, auth, db, "#ManageSuggestedRecommenders"),
         customText=getText(request, auth, db, "#ManageSuggestedRecommendersText"),
-        myBackButton=common_small_html.mkBackButton(target=whatNext),
+        myBackButton=common_small_html.mkBackButton(),
+        addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
     )
 
@@ -749,11 +751,11 @@ def all_recommendations():
         customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
         fields = [
             db.t_recommendations.last_change,
-            db.t_articles.status,
+            # db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             db.t_recommendations.doi,
-            db.t_recommendations.recommendation_timestamp,
+            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.is_closed,
         ]
         links = [
@@ -769,11 +771,11 @@ def all_recommendations():
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
             db.t_recommendations.last_change,
-            db.t_articles.status,
+            # db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             db.t_recommendations.doi,
-            db.t_recommendations.recommendation_timestamp,
+            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,

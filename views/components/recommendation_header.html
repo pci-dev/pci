@@ -22,19 +22,25 @@
         href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId), user_signature=True)}}"
       >
   		  <i class="glyphicon glyphicon-edit"></i>
-        {{=T('Edit article reference')}} 
+        {{=T('Edit article')}} 
       </a>
       {{pass}}
       
+      {{if 'manageRecommenderButton' in locals() and manageRecommenderButton is not None:}}
+        {{=manageRecommenderButton}}
+      {{pass}}
+    
+
       {{if 'allowManageRecomms' in locals() and allowManageRecomms is True:}}
-      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" 
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
         href="{{=URL(c='manager', f='manage_recommendations', vars=dict(articleId=articleId), user_signature=True)}}"
       >
         <i class="glyphicon glyphicon-edit"></i>
         {{=T('Manage recommendation')}} 
       </a>
       {{pass}}
-    
+
+
   	  <div class="pci2-flex-grow"></div>
     
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right" target="_blank"

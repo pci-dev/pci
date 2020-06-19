@@ -552,10 +552,10 @@ def my_recommendations():
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
         fields = [
             db.t_recommendations.last_change,
-            db.t_articles.status,
+            # db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
-            db.t_recommendations.recommendation_timestamp,
+            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.doi,
             db.t_recommendations.is_closed,
         ]
@@ -572,10 +572,10 @@ def my_recommendations():
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
         fields = [
             db.t_recommendations.last_change,
-            db.t_articles.status,
+            # db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
-            db.t_recommendations.recommendation_timestamp,
+            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.doi,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommendation_state,

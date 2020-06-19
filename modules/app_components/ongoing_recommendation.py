@@ -13,13 +13,20 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.sqlhtml import *
 
+from app_modules import common_tools
 from app_modules import common_small_html
+
+from controller_modules import manager_module
 
 myconf = AppConfig(reload=True)
 
 
 ########################################################################################################################################################################
 def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
     recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
     nbRecomms = len(recomms)
 
@@ -44,11 +51,16 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
 
+    
+    back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
+    manageRecommenderButton = manager_module.mkSuggestedRecommendersManagerButtonNew(art, back2, auth, db)
+
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,
+        manageRecommenderButton=manageRecommenderButton,
         articleId=art.id,
         printableUrl=URL(c=controller_name, f="recommendations", vars=dict(articleId=art.id, printable=True), user_signature=True),
         printable=printable,

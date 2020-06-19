@@ -40,32 +40,32 @@ def list_users():
     links = None
     create = True  # allow create buttons
     if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):
-        # selectable = [  (T('Deny login to selected users'), lambda ids: [deny_login(ids)], 'class1')  ]
         selectable = [(T("Add role 'recommender' to selected users"), lambda ids: [admin_module.set_as_recommender(ids, auth, db)], "btn btn-info pci-admin")]
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
     db.auth_user.registration_datetime.readable = True
 
-    db.auth_user.uploaded_picture.represent = (
-        lambda text, row: (IMG(_src=URL("default", "download", args=row.uploaded_picture), _width=100))
-        if (row.uploaded_picture is not None and row.uploaded_picture != "")
-        else (IMG(_src=URL(r=request, c="static", f="images/default_user.png"), _width=100))
-    )
+    # db.auth_user.uploaded_picture.represent = (
+    #     lambda text, row: (IMG(_src=URL("default", "download", args=row.uploaded_picture), _width=100))
+    #     if (row.uploaded_picture is not None and row.uploaded_picture != "")
+    #     else (IMG(_src=URL(r=request, c="static", f="images/default_user.png"), _width=100))
+    # )
+
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
 
     fields = [
         db.auth_user.id,
         db.auth_user.registration_key,
-        db.auth_user.uploaded_picture,
+        # db.auth_user.uploaded_picture,
         db.auth_user.first_name,
         db.auth_user.last_name,
         db.auth_user.email,
-        db.auth_user.registration_datetime,
-        db.auth_user.laboratory,
-        db.auth_user.institution,
-        db.auth_user.city,
-        db.auth_user.country,
-        db.auth_user.thematics,
-        db.auth_user.alerts,
+        # db.auth_user.registration_datetime,
+        # db.auth_user.laboratory,
+        # db.auth_user.institution,
+        # db.auth_user.city,
+        # db.auth_user.country,
+        # db.auth_user.thematics,
+        # db.auth_user.alerts,
         db.auth_membership.user_id,
         db.auth_membership.group_id,
         db.t_articles.id,
