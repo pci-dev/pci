@@ -247,6 +247,33 @@ div.w2p_flash.alert.custom-disappear {
     left: 0px;
 }
 
+.action-button-absolute .web2py_htmltable>table>tbody>tr>td:last-child{
+    min-width: 150px;
+    min-height: 105px;
+    padding: 0;
+    display: flex;
+}
+
+.action-button-absolute .web2py_htmltable>table>tbody>tr>td:last-child>div{
+    position: absolute;
+    right: 15px;
+    padding-right: 10px;
+    max-width: 150px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+}
+
+.action-button-absolute .web2py_htmltable>table>tbody>tr.even>td:last-child>div{
+    background: linear-gradient(90deg, rgba(0,0,0,0), rgba(239, 243, 247, 255) 15%);
+}
+
+.action-button-absolute .web2py_htmltable>table>tbody>tr.odd>td:last-child>div{
+    background: #f7f9fb;
+    background: linear-gradient(90deg, rgba(0,0,0,0), rgba(247, 249, 251, 255) 15%);
+}
 
 @media (max-width: 1200px) {
     .pci2-recomm-backButtonDiv{

@@ -453,8 +453,11 @@ def my_articles():
     db.t_articles.title.readable = False
     db.t_articles.authors.readable = False
     db.t_articles.article_source.readable = False
-    db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
+    db.t_articles.parallel_submission.readable = False
+    db.t_articles.anonymous_submission.readable = False
+    
+    # db.t_articles.anonymous_submission.label = T("Anonymous submission")
+    # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
         dict(header=T("Suggested recommenders"), body=lambda row: user_module.mkSuggestedRecommendersUserButton(auth, db, row)),
         dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(auth, db, row)),
@@ -472,6 +475,7 @@ def my_articles():
         db.t_articles.abstract.readable = False
         db.t_articles.keywords.readable = False
         db.t_articles.thematics.readable = False
+        db.t_articles.upload_timestamp.readable = False
         db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
         db.t_articles.upload_timestamp.label = T("Submitted")
         db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(text)
@@ -483,7 +487,7 @@ def my_articles():
         fields = [
             db.t_articles.last_status_change,
             db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.title,
@@ -502,7 +506,7 @@ def my_articles():
         fields = [
             db.t_articles.last_status_change,
             db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.title,

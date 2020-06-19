@@ -6,8 +6,7 @@
   "devDependencies": {
     "cypress": "^4.5.0"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+ssh://gabfranck@git.renater.fr:2222/scmrepos/git/pci/pci.git"

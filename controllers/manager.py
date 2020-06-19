@@ -143,11 +143,11 @@ def _manage_articles(statuses, whatNext):
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     links = []
-    if whatNext != "completed_articles":
-        back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
-        links += [
-            dict(header=T("Suggested recommenders"), body=lambda row: manager_module.mkSuggestedRecommendersManagerButton(row, back2, auth, db)),
-        ]
+    # if whatNext != "completed_articles":
+    #     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
+    #     links += [
+    #         dict(header=T("Suggested recommenders"), body=lambda row: manager_module.mkSuggestedRecommendersManagerButton(row, back2, auth, db)),
+    #     ]
     links += [
         dict(header=T("Recommenders"), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
         # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
@@ -221,8 +221,12 @@ def _manage_articles(statuses, whatNext):
         fields=fields,
         links=links,
         orderby=~db.t_articles.last_status_change,
+        _class="web2py_grid action-button-absolute"
     )
-    return dict(customText=getText(request, auth, db, "#ManagerArticlesText"), pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"), grid=grid,)
+
+    absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
+
+    return dict(customText=getText(request, auth, db, "#ManagerArticlesText"), pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"), grid=grid, myFinalScript=absoluteButtonScript)
 
 
 ######################################################################################################################################################################
@@ -786,7 +790,7 @@ def all_recommendations():
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, row.t_recommendations if "t_recommendations" in row else row)),
             # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
             dict(
-                header=T("Actions"), body=lambda row: manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
+                header=T("Actions"), body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row))
             ),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
@@ -830,7 +834,11 @@ def all_recommendations():
         fields=fields,
         links=links,
         orderby=~db.t_recommendations.last_change,
+        _class="web2py_grid action-button-absolute"
     )
+
+    absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
+
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
@@ -838,5 +846,6 @@ def all_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
+        myFinalScript=absoluteButtonScript
     )
 

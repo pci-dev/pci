@@ -83,7 +83,12 @@ def fields_awaiting_articles():
     temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
     temp_db.qy_art.authors.represent = lambda text, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
     temp_db.qy_art.anonymous_submission.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon or False)
+    temp_db.qy_art.anonymous_submission.readable = False
     temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
+    temp_db.qy_art.parallel_submission.readable = False
+    temp_db.qy_art.thematics.readable = False
+    temp_db.qy_art.keywords.readable = False
+    
     if len(request.args) == 0:  # in grid
         temp_db.qy_art._id.readable = True
         temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
