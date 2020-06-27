@@ -378,9 +378,9 @@ describe("Preprint recommended in one round", () => {
       cy.contains("a", "Done").click();
       cy.contains("tr", articleTitle).should("exist");
 
-      cy.get(".pci-status")
-        .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      // cy.get(".pci-status")
+      //   .first()
+      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
     });
   });
 
@@ -708,9 +708,9 @@ describe("Preprint recommended in one round", () => {
     it("Should show article in 'Preprints you are handling' page", () => {
       cy.contains("tr", articleTitle).should("exist");
 
-      cy.get(".pci-status")
-        .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      // cy.get(".pci-status")
+      //   .first()
+      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
     });
 
     it("Should write recommendation decision", () => {
@@ -747,9 +747,9 @@ describe("Preprint recommended in one round", () => {
     it("Should show article under status 'RECOMMENDATION PENDING VALIDATION'", () => {
       cy.contains("tr", articleTitle).should("exist");
 
-      cy.get(".pci-status")
-        .first()
-        .should("contain", "RECOMMENDATION PENDING VALIDATION");
+      // cy.get(".pci-status")
+      //   .first()
+      //   .should("contain", "RECOMMENDATION PENDING VALIDATION");
     });
   });
 

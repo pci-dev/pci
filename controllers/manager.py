@@ -549,7 +549,7 @@ def suggested_recommenders():
             dict(
                 header="",
                 body=lambda row: A(
-                    T("Send a reminder"), _class="btn btn-info pci-manager", _href=URL(c="manager_actions", f="send_suggested_recommender_reminder", vars=dict(suggRecommId=row.id))
+                    T("Prepare a reminder"), _class="btn btn-info pci-manager", _href=URL(c="manager_actions", f="send_suggested_recommender_reminder", vars=dict(suggRecommId=row.id))
                 )
                 if not (row.declined)
                 else "",

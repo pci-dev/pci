@@ -45,15 +45,15 @@ def getReviewsSubTable(auth, db, response, recomm):
 
             if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") in ("Pending", "Under consideration")):
                 if review.review_state == "Under consideration":
-                    btnText = current.T("Send an overdue message")
+                    btnText = current.T("Prepare an overdue message")
                 else:
-                    btnText = current.T("Send a reminder")
+                    btnText = current.T("Prepare a reminder")
 
                 reviewVars["actions"].append(dict(text=btnText, link=URL(c="recommender", f="send_review_reminder", vars=dict(reviewId=review.id))))
 
             if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") == "Pending"):
                 reviewVars["actions"].append(
-                    dict(text=current.T("Send a cancellation notification"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
+                    dict(text=current.T("Prepare a cancellation notification"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                 )
 
         reviewList.append(reviewVars)
