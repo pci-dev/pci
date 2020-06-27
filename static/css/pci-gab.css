@@ -275,6 +275,13 @@ div.w2p_flash.alert.custom-disappear {
     background: linear-gradient(90deg, rgba(0,0,0,0), rgba(247, 249, 251, 255) 15%);
 }
 
+.red-disclaimer {
+    border-radius: 5px; 
+    border: 2px solid #cc0e0e; 
+    padding: 10px; 
+    font-weight: bold;
+}
+
 @media (max-width: 1200px) {
     .pci2-recomm-backButtonDiv{
         position: relative;
