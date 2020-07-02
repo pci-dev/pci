@@ -468,7 +468,7 @@ def _AccountMenu():
     if ctr == "default" and fct == "user":
         isActive = True
 
-    txtMenu = SPAN(I(_class="glyphicon glyphicon-log-in"), T("Log in"))
+    txtMenu = SPAN(I(_class="glyphicon glyphicon-log-in"), T("Log in"), _class="pci-enhancedMenuItem")
     auth_menu = []
 
     if auth.is_logged_in():

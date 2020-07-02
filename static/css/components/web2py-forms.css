@@ -41,6 +41,13 @@ textarea.form-control:focus {
     border-color: #598398;
 }
 
+input.form-control,
+select.form-control,
+textarea.form-control {
+    -webkit-transition: border-color ease-in-out .25s;
+    transition: border-color ease-in-out .25s;
+}   
+
 .checkbox label {
     font-weight: bold;
 }

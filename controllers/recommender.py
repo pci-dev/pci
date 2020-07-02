@@ -557,7 +557,7 @@ def my_recommendations():
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
         fields = [
             db.t_recommendations.last_change,
-            # db.t_articles.status,
+            db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             # db.t_recommendations.recommendation_timestamp,
@@ -577,7 +577,7 @@ def my_recommendations():
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
         fields = [
             db.t_recommendations.last_change,
-            # db.t_articles.status,
+            db.t_articles.status,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             # db.t_recommendations.recommendation_timestamp,
@@ -797,7 +797,7 @@ def one_review():
     db.t_reviews.review.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
-    db.t_reviews.review.represent = lambda text, row: WIKI(text)
+    db.t_reviews.review.represent = lambda text, row: WIKI(text, safe_mode=False)
     form = SQLFORM(
         db.t_reviews,
         record=revId,

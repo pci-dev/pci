@@ -95,7 +95,7 @@ def reviewsOfCancelled(auth, db, art):
                         )
                     myReviews.append(BR())
                     if len(review.review or "") > 2:
-                        myReviews.append(DIV(WIKI(review.review), _class="pci-bigtext margin"))
+                        myReviews.append(DIV(WIKI(review.review, safe_mode=False), _class="pci-bigtext margin"))
                         if review.review_pdf:
                             myReviews.append(
                                 DIV(
@@ -117,7 +117,7 @@ def reviewsOfCancelled(auth, db, art):
                 if recomm.reply_pdf:
                     reply = DIV(
                         H4(B(current.T("Author's reply:"))),
-                        DIV(WIKI(recomm.reply), _class="pci-bigtext"),
+                        DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext"),
                         DIV(
                             A(current.T("Download author's reply (PDF file)"), _href=URL("default", "download", args=recomm.reply_pdf), _style="margin-bottom: 64px;"),
                             _class="pci-bigtext margin",
@@ -125,7 +125,7 @@ def reviewsOfCancelled(auth, db, art):
                         _style="margin-top:32px;",
                     )
                 else:
-                    reply = DIV(H4(B(current.T("Author's reply:"))), DIV(WIKI(recomm.reply), _class="pci-bigtext"), _style="margin-top:32px;",)
+                    reply = DIV(H4(B(current.T("Author's reply:"))), DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext"), _style="margin-top:32px;",)
             elif recomm.reply_pdf:
                 reply = DIV(
                     H4(B(current.T("Author's reply:"))),
@@ -147,7 +147,7 @@ def reviewsOfCancelled(auth, db, art):
                     # ,SPAN(SPAN(current.T('Recommendation:')+' '), common_small_html.mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
                     # ,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
                     ,
-                    DIV(WIKI(recomm.recommendation_comments or ""), _class="pci-bigtext"),
+                    DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="pci-bigtext"),
                     DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else "",
                     DIV(myReviews, _class="pci-reviews") if len(myReviews) > 0 else "",
                     reply,
@@ -400,7 +400,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     BR(),
                     SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi) + BR()) if (recomm.doi != art.doi) else SPAN(""),
                     I(recomm.last_change.strftime("%Y-%m-%d")) if recomm.last_change else "",
-                    DIV(WIKI(recomm.recommendation_comments or ""), _class="pci-bigtext margin"),
+                    DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="pci-bigtext margin"),
                     _class="pci-recommendation-div",
                 )
             )
@@ -488,7 +488,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 myRound.append(HR())
                 myRound.append(DIV(B(current.T("Author's Reply:"))))
             if (recomm.reply is not None) and (len(recomm.reply) > 0):
-                myRound.append(DIV(WIKI(recomm.reply or ""), _class="pci-bigtext margin"))
+                myRound.append(DIV(WIKI(recomm.reply or "", safe_mode=False), _class="pci-bigtext margin"))
             if recomm.reply_pdf:
                 myRound.append(
                     A(
@@ -642,7 +642,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                             )
                     myReviews.append(BR())
                     if len(review.review or "") > 2:
-                        myReviews.append(DIV(WIKI(review.review), _class="pci-bigtext margin"))
+                        myReviews.append(DIV(WIKI(review.review, safe_mode=False), _class="pci-bigtext margin"))
                         if review.review_pdf:
                             myReviews.append(
                                 DIV(
@@ -736,7 +736,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 BR(),
                 H4(recomm.recommendation_title or "") if (hideOngoingRecomm is False) else "",
                 BR(),
-                (DIV(WIKI(recomm.recommendation_comments or ""), _class="pci-bigtext margin") if (hideOngoingRecomm is False) else ""),
+                (DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="pci-bigtext margin") if (hideOngoingRecomm is False) else ""),
                 _class="pci-recommendation-div",
             )
             if hideOngoingRecomm is False and recomm.recommender_file:

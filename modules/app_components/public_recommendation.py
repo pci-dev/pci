@@ -116,7 +116,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ),
             ("recomm_altmetric", recomm_altmetric),
             ("cite", cite),
-            ("recommText", WIKI(finalRecomm.recommendation_comments or "")),
+            ("recommText", WIKI(finalRecomm.recommendation_comments, safe_mode=False or "")),
             ("pdfLink", pdfLink),
             ("printable", printable),
         ]
@@ -197,7 +197,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             isLastRecomm = True
         else:
             lastChanges = SPAN(I(recomm.last_change.strftime("%Y-%m-%d") + " ")) if recomm.last_change else ""
-            recommendationText = WIKI(recomm.recommendation_comments) or ""
+            recommendationText = WIKI(recomm.recommendation_comments, safe_mode=False) or ""
             preprintDoi = DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
         reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=db.t_reviews.id)
@@ -219,7 +219,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
             reviewText = None
             if len(review.review) > 2:
-                reviewText = WIKI(review.review)
+                reviewText = WIKI(review.review, safe_mode=False)
 
             pdfLink = None
             if review.review_pdf:
@@ -232,7 +232,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         authorsReply = None
         if recomm.reply:
-            authorsReply = DIV(WIKI(recomm.reply), _class="pci-bigtext")
+            authorsReply = DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext")
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:

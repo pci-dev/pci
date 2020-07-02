@@ -165,7 +165,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
 
         authorsReply = None
         if (recomm.reply is not None) and (len(recomm.reply) > 0):
-            authorsReply = DIV(WIKI(recomm.reply or ""))
+            authorsReply = DIV(WIKI(recomm.reply or "", safe_mode=False))
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
@@ -291,7 +291,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                         )
 
                 if len(review.review or "") > 2:
-                    reviewVars.update([("text", WIKI(review.review))])
+                    reviewVars.update([("text", WIKI(review.review, safe_mode=False))])
 
                 if review.review_pdf:
                     pdfLink = A(
@@ -346,7 +346,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
 
         recommendationText = ""
         if len(recomm.recommendation_comments or "") > 2:
-            recommendationText = WIKI(recomm.recommendation_comments or "") if (hideOngoingRecomm is False) else ""
+            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False) if (hideOngoingRecomm is False) else ""
 
         componentVars = dict(
             printable=printable,
@@ -465,7 +465,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, with_co
 
     recommendationText = ""
     if len(recomm.recommendation_comments or "") > 2:
-        recommendationText = WIKI(recomm.recommendation_comments or "")
+        recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
 
     validateRecommendationLink = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):

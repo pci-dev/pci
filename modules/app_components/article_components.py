@@ -75,7 +75,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         articleDoi=common_small_html.mkDOI(article.doi),
         recommendationAuthors=SPAN(recommAuthors),
         recommendationTitle=recomm.recommendation_title,
-        recommendationShortText=WIKI(recommShortText),
+        recommendationShortText=WIKI(recommShortText, safe_mode=False),
     )
 
     return XML(response.render("components/article_row_card.html", componentVars))
@@ -160,7 +160,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
             ("articleImg", article_img),
             ("articleTitle", art.title or ""),
             ("articleAuthor", art.authors or ""),
-            ("articleAbstract", WIKI(art.abstract or "")),
+            ("articleAbstract", WIKI(art.abstract or "", safe_mode=False)),
             ("articleDoi", (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN("")),
             ("article_altmetric", article_altmetric),
             ("printable", printable),
@@ -169,7 +169,7 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
     )
 
     if with_cover_letter and not art.already_published:
-        articleContent.update([("coverLetter", WIKI(art.cover_letter or ""))])
+        articleContent.update([("coverLetter", WIKI(art.cover_letter or "", safe_mode=False))])
 
     if submittedBy:
         articleContent.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, art))])

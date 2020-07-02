@@ -61,7 +61,7 @@ def mkRecommArticleRss(auth, db, row):
     what.append(A(current.T("view"), _href=link))
     desc.append(what)
 
-    desc.append(DIV(WIKI(recomm.recommendation_comments or u""), _style="font-size:smaller;"))
+    desc.append(DIV(WIKI(recomm.recommendation_comments or u"", safe_mode=False), _style="font-size:smaller;"))
     desc.append(HR())
 
     xdesc = desc.xml()
