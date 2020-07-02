@@ -294,7 +294,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
     # tmp.write(bib)
     # tmp.close()
     recommendation = lastRecomm.recommendation_comments
-    # recommendation = recommendation.decode("utf-8").replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space ::: replaced by latex command DO NOT UNCOMMENT!
+    # recommendation = recommendation.replace(unichr(160), u' ').encode("utf-8") # remove unbreakable space by space ::: replaced by latex command DO NOT UNCOMMENT!
     # with open('/tmp/laRecomm.txt', 'w') as tmp:
     # tmp.write(recommendation)
     # tmp.close()
@@ -641,7 +641,7 @@ def mkRecommendersAffiliations(auth, db, recomm):
             affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
     return affiliations
 
-    recommendersStr = mkRecommendersString(auth, db, recomm)
+    recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
     # reviewers = []
     reviewsQy = db(
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
@@ -678,20 +678,3 @@ def mkRecommendersAffiliations(auth, db, recomm):
     # reviewers += 'one anonymous reviewer'
     # reviewersStr = ''.join(reviewers)
     return reviewersStr
-
-
-######################################################################################################################################################################
-def mkRecommendersString(auth, db, recomm):
-    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
-    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
-    n = len(contribsQy)
-    i = 0
-    for contrib in contribsQy:
-        i += 1
-        if i < n:
-            recommenders += ", "
-        else:
-            recommenders += " and "
-        recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
-    recommendersStr = "".join(recommenders)
-    return recommendersStr

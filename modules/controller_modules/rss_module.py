@@ -71,7 +71,7 @@ def mkRecommArticleRss(auth, db, row):
     local_dt = local.localize(row.last_status_change, is_dst=None)
     created_on = local_dt.astimezone(pytz.utc)
 
-    return dict(guid=link, title=title.decode("utf-8"), link=link, description=xdesc.decode("utf-8"), created_on=created_on)
+    return dict(guid=link, title=title, link=link, description=xdesc, created_on=created_on)
 
 
 ######################################################################################################################################################################
@@ -99,19 +99,19 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     title = "Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s" % locals()
     url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
 
-    recommendersStr = mkRecommendersString(auth, db, recomm)
+    recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
 
-    reviewersStr = mkReviewersString(auth, db, row.id)
+    reviewersStr = common_small_html.mkReviewersString(auth, db, row.id)
 
     local = pytz.timezone("Europe/Paris")
     local_dt = local.localize(row.last_status_change, is_dst=None)
     created_on = local_dt.astimezone(pytz.utc)
 
     return dict(
-        title=title.decode("utf-8"),
+        title=title,
         url=url,
-        recommender=recommendersStr.decode("utf-8"),
-        reviewers=reviewersStr.decode("utf-8"),
+        recommender=recommendersStr,
+        reviewers=reviewersStr,
         date=created_on.strftime("%Y-%m-%d"),
         logo=XML(URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
         doi=row.doi,

@@ -747,3 +747,19 @@ def getArticleSubmitter(auth, db, art):
         result = ""
 
     return result
+
+######################################################################################################################################################################
+def mkRecommendersString(auth, db, recomm):
+    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+    n = len(contribsQy)
+    i = 0
+    for contrib in contribsQy:
+        i += 1
+        if i < n:
+            recommenders += ", "
+        else:
+            recommenders += " and "
+        recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+    recommendersStr = "".join(recommenders)
+    return recommendersStr
