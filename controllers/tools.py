@@ -19,13 +19,13 @@ from imported_modules.html2text import *
 from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
-
+pdf_max_size = int(myconf.take("config.pdf_max_size")) or 5
 
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def convert_pdf_to_markdown():
     response.view = "default/myLayout.html"
 
-    form = SQLFORM.factory(Field("up_file", label=T("PDF File:"), type="upload", uploadfolder="uploads", requires=[IS_LENGTH(5 * 1048576, error_message='The file size is over 5MB.'), IS_UPLOAD_FILENAME(extension="pdf")]), upload=URL("download"))
+    form = SQLFORM.factory(Field("up_file", label=T("PDF File:"), type="upload", uploadfolder="uploads", requires=[IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.'), IS_UPLOAD_FILENAME(extension="pdf")]), upload=URL("download"))
     customText = None
     if form.accepts(request.vars, formname="form"):
         f = request.vars["up_file"]
