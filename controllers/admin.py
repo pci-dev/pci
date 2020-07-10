@@ -277,8 +277,7 @@ def article_status():
         pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
         grid=grid,
     )
-
-
+    
 ######################################################################################################################################################################
 # PDF management
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -288,8 +287,9 @@ def manage_pdf():
     # Do the complex query in full sql and return valid ids
     myList = []
     myQy = db.executesql(
-        "SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE p.id IS NULL AND a.status IN ('Recommended', 'Pre-recommended') AND r.recommendation_state LIKE 'Recommended';"
+        'SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE a.status IN (\'Recommended\', \'Pre-recommended\') AND r.recommendation_state LIKE \'Recommended\';'
     )
+
     for q in myQy:
         myList.append(q[0])
     mySet = db((db.t_recommendations.id.belongs(myList)))
