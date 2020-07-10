@@ -66,13 +66,13 @@
 
 
     {{if 'coverLetter' in locals() and not printable:}}
-      <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
+      <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
         {{=coverLetter}}
       </div>
     {{pass}}
 
     {{if 'coverLetter' in locals() and printable:}}
-      <div id="menu-1" class="pci2-abstract-div" style="margin-top: 7.5px;">
+      <div id="menu-1" class="pci2-abstract-div" style="margin-top: 15px;">
         {{=coverLetter}}
       </div>
     {{pass}}
@@ -111,11 +111,11 @@
   </div>
 
   {{if not printable:}}
-    <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 7.5px;">
+    <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
       {{=articleAbstract}}
     </div>
   {{else:}}
-    <div id="menu-2" class="pci2-abstract-div" style="margin-top: 7.5px;">
+    <div id="menu-2" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=articleAbstract}}
     </div>
   {{pass}}

@@ -86,6 +86,10 @@
 
 
 /* Article Reccom Page */
+#title-reviews{
+    transition: opacity 0.3s ease;
+}
+
 .pci2-recomm-article-h2 {
     margin: 0;
     color: #888;
@@ -172,9 +176,22 @@ h4.pci2-recomm-article-h2 .glyphicon {
 
 .pci2-abstract-div {
     animation: 0.5s fadeFormTop ease;
-    font-style: italic;
     color: #888;
 }
+
+
+.pci2-abstract-div h1,
+.pci2-abstract-div h2,
+.pci2-abstract-div h3,
+.pci2-abstract-div ul,
+.pci2-abstract-div li,
+.pci2-abstract-div blockquote,
+.pci2-abstract-div div,
+.pci2-abstract-div p{
+    background: none !important;
+    color: #888 !important;
+}
+
 
 .pci2-revision-round-title {
     color: #555;

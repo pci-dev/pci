@@ -265,7 +265,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
 
 ######################################################################################################################################################################
-def getRecommCommentListAndForm(auth, db, response, session, articleId, with_reviews=False, parentId=None):
+def getRecommCommentListAndForm(auth, db, response, session, articleId, parentId=None):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -298,7 +298,7 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
 
         if commentForm.process().accepted:
             session.flash = current.T("Comment saved", lazy=False)
-            redirect(URL(c="articles", f="rec", vars=dict(id=articleId, comments=True, reviews=with_reviews)))
+            redirect(URL(c="articles", f="rec", vars=dict(id=articleId, comments=True)))
         elif commentForm.errors:
             response.flash = current.T("Form has errors", lazy=False)
 
@@ -307,7 +307,7 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
     commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(orderby=db.t_comments.comment_datetime)
     if len(commentsQy) > 0:
         for comment in commentsQy:
-            commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id, with_reviews))
+            commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id))
     else:
         commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
 
@@ -316,19 +316,19 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, with_rev
     return XML(response.render("components/comments_tree_and_form.html", componentVars))
 
 
-def getCommentsTreeHtml(auth, db, response, commentId, with_reviews=False):
+def getCommentsTreeHtml(auth, db, response, commentId):
     comment = db.t_comments[commentId]
     childrenDiv = []
     children = db(db.t_comments.parent_id == comment.id).select(orderby=db.t_comments.comment_datetime)
 
     for child in children:
-        childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id, with_reviews))
+        childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id))
 
     replyToLink = ""
     if auth.user:
         replyToLink = A(
             current.T("Reply..."),
-            _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, reviews=with_reviews, replyTo=comment.id),),
+            _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id),),
             _style="margin: 0",
         )
 

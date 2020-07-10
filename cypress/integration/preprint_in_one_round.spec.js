@@ -50,10 +50,10 @@ describe("Preprint recommended in one round", () => {
         );
         cy.get("#t_articles_doi").typeFast(datas.doi);
         // cy.get("#t_articles_abstract").typeFast("Abstract " + datas.long_text);
-        cy.get("#t_articles_abstract__row").find('[contenteditable=true]').type("Abstract " + datas.long_text);
+        cy.get("#t_articles_abstract_ifr").typeTinymce("Abstract " + datas.long_html_text);
         cy.get("#t_articles_keywords").typeFast(datas.small_text);
         // cy.get("#t_articles_cover_letter").typeFast("Cover " + datas.long_text);
-        cy.get("#t_articles_cover_letter__row").find('[contenteditable=true]').type("Cover " + datas.long_text);
+        cy.get("#t_articles_cover_letter_ifr").typeTinymce("Cover " + datas.long_html_text);
       });
 
       cy.get('input[name="thematics"]')
@@ -505,7 +505,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.fixture("fake_datas").then(datas => {
         // cy.get("#t_reviews_review").typeFast("Review 1 " + datas.long_text);
-        cy.get("#t_reviews_review__row").find('[contenteditable=true]').type("Review 1 " + datas.long_text);
+        cy.get("#t_reviews_review_ifr").typeTinymce("Review 1 " + datas.long_html_text);
       });
 
 
@@ -600,7 +600,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.fixture("fake_datas").then(datas => {
         // cy.get("#t_reviews_review").typeFast("Review 2 " + datas.long_text);
-        cy.get("#t_reviews_review__row").find('[contenteditable=true]').type("Review 2 " + datas.long_text);
+        cy.get("#t_reviews_review_ifr").typeTinymce("Review 2 " + datas.long_html_text);
       });
 
       cy.get('input[name="terminate"]').click();
@@ -735,7 +735,7 @@ describe("Preprint recommended in one round", () => {
         // cy.get("#t_recommendations_recommendation_comments").typeFast(
         //   "Recomm " + datas.long_text
         // );
-        cy.get("#t_recommendations_recommendation_comments__row").find('[contenteditable=true]').type("Recomm " + datas.long_text);
+        cy.get("#t_recommendations_recommendation_comments_ifr").typeTinymce("Recomm " + datas.long_html_text);
       });
 
       cy.get('input[name="terminate"]').click();

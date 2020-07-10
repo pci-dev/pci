@@ -452,6 +452,7 @@ def my_articles():
     db.t_articles.doi.readable = False
     db.t_articles.title.readable = False
     db.t_articles.authors.readable = False
+    db.t_articles.ms_version.readable = False
     db.t_articles.article_source.readable = False
     db.t_articles.parallel_submission.readable = False
     db.t_articles.anonymous_submission.readable = False

@@ -62,22 +62,29 @@
       {{pass}}
 
       <div style="margin-top: 40px;" class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
-        {{if (printable and withReviews) or (not printable) :}}
-        <h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center {{if not withReviews:}}pci2-half-opacity{{pass}}">
+        <h2 id="title-reviews" class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
           <i class="glyphicon glyphicon-eye-open" style="margin-right: 10px;"></i>
           {{= T('Reviews')}}
         </h2>
-        {{pass}}
 
         {{if not printable:}}      
-          <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" href="{{=toggleReviewsUrl}}">
-            {{if withReviews:}}
-              {{=T('Hide reviews')}}
-              <i class="glyphicon glyphicon-chevron-up"></i>
-            {{else:}}
-              {{=T('Show reviews')}}
-              <i class="glyphicon glyphicon-chevron-down"></i>
-            {{pass}}
+          <a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center"
+            onclick="if( jQuery('#reviews-container' ).hasClass('pci2-panel-closed')) { 
+              jQuery('#reviews-container').removeClass('pci2-panel-closed') 						
+              jQuery('#icon-reviews').removeClass('glyphicon-rotate') 
+              jQuery('#icon-reviews').addClass('glyphicon-rotate-reversed') 
+              jQuery('#title-reviews').removeClass('pci2-half-opacity')
+            } else {
+              jQuery('#reviews-container').addClass('pci2-panel-closed') 						
+              jQuery('#icon-reviews').removeClass('glyphicon-rotate-reversed') 
+              jQuery('#icon-reviews').addClass('glyphicon-rotate')
+              jQuery('#title-reviews').addClass('pci2-half-opacity')
+
+            }" 
+          >
+
+          {{=T('Toggle reviews')}}
+          <i id="icon-reviews" class="glyphicon glyphicon-chevron-up pci2-icon-rotating pci2-icon-rotating2 glyphicon-rotate-reversed pci2-main-color-text"></i>
           </a>
         {{pass}}
       </div>
@@ -85,7 +92,9 @@
 
     <!-- if nbReviews == 0 hide => this is a postprint -->
     {{if reviewRounds is not None and nbReviews > 0:}}
+    <div id="reviews-container">
       {{=reviewRounds}}
+    </div>
     {{pass}}
 
     <!-- User comments section-->

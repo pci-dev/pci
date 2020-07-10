@@ -51,14 +51,17 @@
     {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     <script src="{{=URL('static','js/jquery.cookie.js')}}"></script>
 
-    <!-- http://panzi.github.io/SocialSharePrivacy/ -->
-    <script type="text/javascript" src="https://panzi.github.io/SocialSharePrivacy/javascripts/jquery.cookies.js"></script>
-    <script rel="text/javascript" src="{{=URL('static','js/pci.js')}}"></script>
+    <!-- MathJax -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    <!-- CK editor 5 -->
-    <script src="{{=URL('static','js/ckeditor.js')}}"></script>  
-    <script src="https://www.wiris.net/demo/plugins/app/WIRISplugins.js?viewer=image"></script>
+    <!-- TinyMCE -->
+    <script src="{{=URL('static','js/tinymce/tinymce.min.js')}}" referrerpolicy="origin"></script>
 
+    <!-- TinyMCE MathJax plugin-->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" src="{{=URL('static','js/tinymce-mathjax/plugin.min.js')}}"></script>
+
+    
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use
@@ -95,7 +98,7 @@
       
       <div class="collapse navbar-collapse navbar-ex1-collapse">
         {{if response.menu:}}
-        {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
+          {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
         {{pass}}
         <ul class="nav navbar-nav navbar-right">
           {{if response.help_about_menu:}}
@@ -143,7 +146,7 @@
 
     </div>
 
-    <!-- The javascript =============================== -->
+    <!-- Bootstrap and web2py javascript =============================== -->
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
     {{block page_js}} {{end page_js}}

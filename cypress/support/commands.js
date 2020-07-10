@@ -183,3 +183,22 @@ Cypress.Commands.add(
       .trigger("change");
   }
 );
+
+Cypress.Commands.add(
+  "typeTinymce",
+  {
+    prevSubject: true
+  },
+  (subject, html_text) => {
+    // const iframe2 = cy.get(subject)
+
+    cy
+      .get(subject)
+      .its('0.contentDocument').should('exist')
+      .its('body').should('not.be.undefined')
+      .then(cy.wrap)
+      .invoke('prop', 'innerHTML', html_text)
+
+    // iframe2.contentDocument.get('body').innerHTML = html_text
+  }
+);

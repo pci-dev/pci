@@ -57,17 +57,13 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
                 _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _class="pci-articlePicture",
             )
 
-    recommShortText = common_tools.getShortText(recomm.recommendation_comments, 500) or ""
+    recommShortText = DIV(WIKI(recomm.recommendation_comments, safe_mode=False) or "", _class="fade-transparent-text")
 
     authors = common_tools.getShortText(article.authors, 500) or ""
 
-    # (gab) Where do i need to place this ?
-    # if withScore:
-    # 		resu.append(TD(row.score or '', _class='pci-lastArticles-date'))
-
     componentVars = dict(
         articleDate=date,
-        articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id, reviews=True), scheme=scheme, host=host, port=port),
+        articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
         articleTitle=article.title,
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,

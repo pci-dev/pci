@@ -142,13 +142,8 @@ def _manage_articles(statuses, whatNext):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    links = []
-    # if whatNext != "completed_articles":
-    #     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
-    #     links += [
-    #         dict(header=T("Suggested recommenders"), body=lambda row: manager_module.mkSuggestedRecommendersManagerButton(row, back2, auth, db)),
-    #     ]
-    links += [
+
+    links = [
         dict(header=T("Recommenders"), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
         # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
         dict(

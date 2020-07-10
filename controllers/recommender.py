@@ -99,7 +99,7 @@ def fields_awaiting_articles():
         temp_db.qy_art.article_source.readable = False
         temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
-        temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+        # temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
         temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
@@ -108,7 +108,7 @@ def fields_awaiting_articles():
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
         temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
-        temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
+        # temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
 
     links = []
     # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
@@ -127,7 +127,7 @@ def fields_awaiting_articles():
             temp_db.qy_art.upload_timestamp,
             temp_db.qy_art.anonymous_submission,
             temp_db.qy_art.parallel_submission,
-            temp_db.qy_art.abstract,
+            # temp_db.qy_art.abstract,
             temp_db.qy_art.thematics,
             temp_db.qy_art.keywords,
             temp_db.qy_art.auto_nb_recommendations,
@@ -145,7 +145,7 @@ def fields_awaiting_articles():
             temp_db.qy_art.article_source,
             temp_db.qy_art.upload_timestamp,
             temp_db.qy_art.anonymous_submission,
-            temp_db.qy_art.abstract,
+            # temp_db.qy_art.abstract,
             temp_db.qy_art.thematics,
             temp_db.qy_art.keywords,
             temp_db.qy_art.auto_nb_recommendations,
@@ -439,6 +439,10 @@ def my_awaiting_articles():
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.anonymous_submission.readable = False
     db.t_articles.anonymous_submission.writable = False
+    
+    db.t_articles.abstract.readable = False
+    db.t_articles.keywords.readable = False
+
     db.t_articles.status.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
     if len(request.args) == 0:  # we are in grid
@@ -450,10 +454,10 @@ def my_awaiting_articles():
         db.t_articles._id.readable = True
         db.t_articles._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
         db.t_articles._id.label = T("Article")
-        db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+        # db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
     else:  # we are in grid's form
         db.t_articles._id.readable = False
-        db.t_articles.abstract.represent = lambda text, row: WIKI(text)
+        # db.t_articles.abstract.represent = lambda text, row: WIKI(text)
     if parallelSubmissionAllowed:
         fields = [
             db.t_articles.last_status_change,
@@ -462,7 +466,7 @@ def my_awaiting_articles():
             db.t_articles.upload_timestamp,
             db.t_articles.anonymous_submission,
             db.t_articles.parallel_submission,
-            db.t_articles.abstract,
+            # db.t_articles.abstract,
             db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.user_id,
@@ -475,12 +479,13 @@ def my_awaiting_articles():
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.anonymous_submission,
-            db.t_articles.abstract,
+            # db.t_articles.abstract,
             db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.user_id,
             db.t_articles.auto_nb_recommendations,
         ]
+
     grid = SQLFORM.grid(
         query,
         searchable=False,
@@ -495,16 +500,21 @@ def my_awaiting_articles():
         fields=fields,
         links=[
             dict(header=T("Suggested recommenders"), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders),
-            dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)),
+            dict(header=T(""), body=lambda row: DIV(recommender_module.mkViewEditArticleRecommenderButton(auth, db, row))),
         ],
         orderby=~db.t_articles.upload_timestamp,
+        _class="web2py_grid action-button-absolute"
     )
+
+    absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
+
     return dict(
         titleIcon="envelope",
         pageHelp=getHelp(request, auth, db, "#RecommenderSuggestedArticles"),
         customText=getText(request, auth, db, "#RecommenderSuggestedArticlesText"),
         pageTitle=getTitle(request, auth, db, "#RecommenderSuggestedArticlesTitle"),
         grid=grid,
+        myFinalScript=absoluteButtonScript
     )
 
 

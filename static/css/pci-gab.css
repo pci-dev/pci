@@ -275,24 +275,30 @@ div.w2p_flash.alert.custom-disappear {
     background: linear-gradient(90deg, rgba(0,0,0,0), rgba(247, 249, 251, 255) 15%);
 }
 
-.ck-toolbar {
-    border-top-left-radius: 4px !important; 
-    border-top-right-radius: 4px !important;
-    border-color: #dfd7ca !important; 
+.tox-tinymce{
+    min-height: 250px;
+    border-radius: 4px !important;
+    border-color: #dfd7ca !important;
 }
 
-.ck-editor__editable {
-    border-bottom-left-radius: 4px !important; 
-    border-bottom-right-radius: 4px !important;
-    border-color: #dfd7ca !important; 
-
-    -webkit-transition: border-color ease-in-out .25s;
-    transition: border-color ease-in-out .25s;
+.fade-transparent-text {
+    max-height: 100px;
+    overflow: hidden;
+    mix-blend-mode: hard-light;
+    position: relative;
 }
 
-.ck-editor__editable:focus {
-    border-color: #598398 !important;
+.fade-transparent-text::after {
+    position: absolute;
+    content: "";
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(transparent, gray);
+    pointer-events: none;
 }
+
 /* replace blockquote to Red disclaimer in Help_text*/
 .pci-infotext>blockquote{
     border-radius: 5px; 
@@ -302,7 +308,8 @@ div.w2p_flash.alert.custom-disappear {
     font-size: unset;
 }
 
-#help_texts_contents__row .ck-editor__editable>blockquote{
+
+#help_texts_contents_ifr blockquote {
     border-radius: 5px; 
     border: 2px solid #cc0e0e; 
     padding: 10px; 

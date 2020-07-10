@@ -106,12 +106,12 @@
         </h3>
         <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
           <a class="buttontext btn btn-success" 
-            href="{{=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review['id']), user_signature=True)}}"
+            href="{{=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review['id']))}}"
           >
             {{=T('Yes, I agree to review this preprint')}}
           </a>
           <a class="buttontext btn btn-warning" 
-            href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']), user_signature=True)}}"
+            href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"
           >
             {{=T('No thanks, I\'d rather not')}}
           </a>
@@ -132,7 +132,7 @@
         {{if review['showEditButtons']:}}
           <div class="pci2-flex-row pci2-flex-center pci2-full-width" style="margin: 20px 0;">
             <a class="buttontext btn btn-default" 
-              href="{{=URL(c='user', f='edit_review', vars=dict(reviewId=review['id']), user_signature=True)}}"
+              href="{{=URL(c='user', f='edit_review', vars=dict(reviewId=review['id']))}}"
             >
               {{=T('Write, edit or upload your review')}}
             </a>

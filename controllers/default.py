@@ -78,11 +78,13 @@ def index():
     )
     myScript = SCRIPT(
         """window.onload=function() {
-	ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
-	if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
-}"""
+	        ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
+	        if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
+        }
+        """
         % (URL("articles", "last_recomms", vars=myVars, user_signature=True)),
         _type="text/javascript",
+        
     )
 
     # if auth.user_id:

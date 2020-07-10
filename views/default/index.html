@@ -24,7 +24,7 @@
 <div style="margin-top:20px; margin-bottom:20px; text-align:center;">
   {{if auth.user:}}
     <a
-      href="{{=URL('user', 'new_submission', user_signature=True)}}"
+      href="{{=URL('user', 'new_submission')}}"
       class="btn btn-success pci-public"
     >
       {{=T("Submit a preprint")}}
@@ -32,7 +32,7 @@
 
     {{else:}}
     <a
-    	href="{{=URL('user', 'new_submission', user_signature=True)}}"
+    	href="{{=URL('user', 'new_submission')}}"
     	class="btn btn-success pci-public"
       >
     	{{=T("Submit a preprint")}}
@@ -55,13 +55,13 @@
 
   {{if auth.has_membership('recommender'):}}
     <a
-    	href="{{=URL('recommender', 'new_submission', user_signature=True)}}"
+    	href="{{=URL('recommender', 'new_submission')}}"
     	class="btn btn-info pci-recommender"
     >
     	{{=T("Recommend a postprint")}}
     </a>
     <a
-    	href="{{=URL('recommender', 'fields_awaiting_articles', user_signature=True)}}"
+    	href="{{=URL('recommender', 'fields_awaiting_articles')}}"
     	class="btn btn-default pci-recommender"
     >
     	{{=T("Preprints requiring a recommender")}}

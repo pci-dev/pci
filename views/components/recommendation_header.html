@@ -10,7 +10,7 @@
     <div style="max-width: 800px; width: 100%; margin-bottom: 35px;" class="pci2-flex-row">
   	  {{if 'allowEditArticle' in locals() and allowEditArticle is True:}}    
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
-        href="{{=URL(c='user', f='edit_my_article', vars=dict(articleId=articleId), user_signature=True)}}"
+        href="{{=URL(c='user', f='edit_my_article', vars=dict(articleId=articleId))}}"
       >
   			<i class="glyphicon glyphicon-edit"></i>
   		  {{=T('Edit article')}} 
@@ -19,7 +19,7 @@
       
       {{if 'allowManageRequest' in locals() and allowManageRequest is True:}}    
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
-        href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId), user_signature=True)}}"
+        href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId))}}"
       >
   		  <i class="glyphicon glyphicon-edit"></i>
         {{=T('Edit article')}} 
@@ -33,7 +33,7 @@
 
       {{if 'allowManageRecomms' in locals() and allowManageRecomms is True:}}
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
-        href="{{=URL(c='manager', f='manage_recommendations', vars=dict(articleId=articleId), user_signature=True)}}"
+        href="{{=URL(c='manager', f='manage_recommendations', vars=dict(articleId=articleId))}}"
       >
         <i class="glyphicon glyphicon-edit"></i>
         {{=T('Manage recommendation')}} 

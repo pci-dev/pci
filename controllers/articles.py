@@ -96,7 +96,7 @@ def last_recomms():
             A(current.T("See all recommendations"), _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
             _style="text-align:center;",
         ),
-        _class="pci-lastArticles-div",
+        _class="pci-lastArticles-div"
     )
 
 
@@ -160,8 +160,6 @@ def rec():
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-    with_reviews = "reviews" in request.vars and request.vars["reviews"] == "True"
-    # with_reviews = True
     # with_comments = True
     printable = "printable" in request.vars and request.vars["printable"] == "True"
 
@@ -224,15 +222,12 @@ def rec():
     if len(recommMetadata) > 0:
         response.meta = recommMetadata
 
-    reviewRounds = None
-    if with_reviews:
-        # Get review rounds tree
-        reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
+    reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
 
     commentsTreeAndForm = None
     if with_comments:
         # Get user comments list and form
-        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, with_reviews, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -244,10 +239,7 @@ def rec():
     viewToRender = "controller/articles/public_article_recommendation.html"
     return dict(
         viewToRender=viewToRender,
-        withReviews=with_reviews,
         withComments=with_comments,
-        toggleReviewsUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, reviews=not (with_reviews)), user_signature=True),
-        # toggleCommentsUrl=URL(c='articles', f='rec', vars=dict(articleId=articleId, reviews=with_reviews, comments=not(with_comments)), user_signature=True),
         printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, printable=True), user_signature=True),
         currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId), host=host, scheme=scheme, port=port),
         shareButtons=True,
