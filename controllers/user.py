@@ -600,7 +600,7 @@ def my_reviews():
             _style="border-bottom: 1px solid #ddd", 
             _class="pci2-flex-row pci2-align-center"
         ),
-        DIV(WIKI(text or "", safe_mode=False), _class="pci-div4wiki-large")
+        DIV(WIKI(text or "", safe_mode=False), _style="color: #888", _class="pci-div4wiki-large")
     )
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]

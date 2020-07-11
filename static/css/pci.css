@@ -673,6 +673,7 @@ header {
 }
 
 .pci-div4wiki-large{
+	max-width: 900px;
 	max-height: 200px;
 	overflow: auto;
 }
