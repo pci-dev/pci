@@ -279,7 +279,7 @@ header {
 
 .pci-status {
 	box-sizing: unset;
-	width: 125px;
+	width: 140px;
 	/* white-space: initial; */
 	padding: 5px;
 	font-size: 11px;
@@ -672,6 +672,10 @@ header {
 	float: right;
 }
 
+.pci-div4wiki-large{
+	max-height: 200px;
+	overflow: auto;
+}
 
 .pci-div4wiki {
 	max-width: 400px;

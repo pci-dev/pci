@@ -583,7 +583,7 @@ def my_reviews():
     db.t_recommendations._id.label = T("Recommendation")
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text)
     db.t_reviews.last_change.label = T("Days elapsed")
-    db.t_reviews.last_change.represent = lambda text, row: common_small_html.mkElapsed(text)
+    db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
     db.t_reviews.reviewer_id.writable = False
     # db.t_reviews.recommendation_id.writable = False
     # db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
@@ -591,9 +591,17 @@ def my_reviews():
     # db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
     db.t_reviews._id.readable = False
     # db.t_reviews.review.readable=False
-    db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
-    db.t_reviews.anonymously.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon)
-    db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+    db.t_reviews.review_state.readable = False
+    db.t_reviews.anonymously.readable = False
+    db.t_reviews.review.represent = lambda text, row: DIV(
+        DIV(
+            B("Review status : ", _style="padding: 2px 0; font-size: 14px"), 
+            common_small_html.mkReviewStateDiv(auth, db, row["review_state"]), 
+            _style="border-bottom: 1px solid #ddd", 
+            _class="pci2-flex-row pci2-align-center"
+        ),
+        DIV(WIKI(text or "", safe_mode=False), _class="pci-div4wiki-large")
+    )
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
     links = [
