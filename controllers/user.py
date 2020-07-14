@@ -72,7 +72,7 @@ def recommendations():
             recommTopButtons=recommTopButtons or "",
             pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
             myContents=myContents,
-            myBackButton=common_small_html.mkBackButton()
+            myBackButton=common_small_html.mkBackButton(),
         )
 
 
@@ -456,7 +456,7 @@ def my_articles():
     db.t_articles.article_source.readable = False
     db.t_articles.parallel_submission.readable = False
     db.t_articles.anonymous_submission.readable = False
-    
+
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
     # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
@@ -564,7 +564,6 @@ def my_reviews():
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
-        db.t_reviews.anonymously.readable = False
     else:
         query = (
             (db.t_reviews.reviewer_id == auth.user_id)
@@ -587,21 +586,48 @@ def my_reviews():
     db.t_reviews.reviewer_id.writable = False
     # db.t_reviews.recommendation_id.writable = False
     # db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
-    # db.t_reviews.recommendation_id.label = T('Recommender')
-    # db.t_reviews.recommendation_id.represent = lambda text,row: mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
+    db.t_reviews.recommendation_id.label = T("Recommender")
+    db.t_reviews.recommendation_id.represent = lambda text, row: user_module.mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
+
     db.t_reviews._id.readable = False
-    # db.t_reviews.review.readable=False
     db.t_reviews.review_state.readable = False
     db.t_reviews.anonymously.readable = False
     db.t_reviews.review.represent = lambda text, row: DIV(
         DIV(
-            B("Review status : ", _style="padding: 2px 0; font-size: 14px"), 
-            common_small_html.mkReviewStateDiv(auth, db, row["review_state"]), 
-            _style="border-bottom: 1px solid #ddd", 
-            _class="pci2-flex-row pci2-align-center"
+            B("Review status : ", _style="margin-top: -2px; font-size: 14px"),
+            common_small_html.mkReviewStateDiv(auth, db, row["review_state"]),
+            _style="border-bottom: 1px solid #ddd",
+            _class="pci2-flex-row pci2-align-items-center",
         ),
-        DIV(WIKI(text or "", safe_mode=False), _style="color: #888", _class="pci-div4wiki-large")
+        DIV(
+            WIKI(
+                text
+                or DIV(
+                    DIV(
+                        A(
+                            SPAN(current.T("Write, edit or upload your review")),
+                            _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.id)),
+                            _class="btn btn-default",
+                            _style="margin: 20px 10px",
+                        ),
+                        _class="text-center",
+                    )
+                    if row["review_state"] == "Under consideration"
+                    else ""
+                )
+                or "",
+                safe_mode=False,
+            ),
+            _style="color: #888",
+            _class="pci-div4wiki-large",
+        ),
     )
+
+    if pendingOnly:
+        db.t_reviews.review.readable = False
+        db.t_reviews.review_pdf.readable = False
+    else:
+        db.t_reviews.recommendation_id.readable = False
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
     links = [
@@ -631,9 +657,11 @@ def my_reviews():
         fields=[
             db.t_articles.status,
             db.t_articles._id,
-            db.t_reviews.review_state,
-            db.t_reviews.last_change,
+            db.t_reviews._id,
             db.t_reviews.anonymously,
+            db.t_reviews.recommendation_id,
+            db.t_reviews.last_change,
+            db.t_reviews.review_state,
             db.t_reviews.review,
             db.t_reviews.review_pdf,
         ],
