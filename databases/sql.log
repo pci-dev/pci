@@ -46,3 +46,13 @@ CREATE TABLE help_texts(
     contents TEXT
 );
 success!
+timestamp: 2020-07-10T18:10:09.301287
+CREATE TABLE "mail_templates"(
+    "id" SERIAL PRIMARY KEY,
+    "hashtag" VARCHAR(128),
+    "lang" VARCHAR(10),
+    "subject" VARCHAR(256),
+    "description" VARCHAR(512),
+    "contents" TEXT
+);
+success!
