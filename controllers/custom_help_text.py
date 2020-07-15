@@ -22,7 +22,7 @@ def help_texts():
         redirect_url = URL()
     db.help_texts.lang.writable = False
     db.help_texts.hashtag.writable = auth.has_membership(role="developper")
-    db.help_texts.contents.represent = lambda text, row: WIKI(text or "")
+    db.help_texts.contents.represent = lambda text, row: DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300")
     db.help_texts._id.readable = False
     db.help_texts._id.writable = False
     grid = SQLFORM.grid(
@@ -47,6 +47,46 @@ def help_texts():
         customText=getText(request, auth, db, "#HelpTextText"),
         pageHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
     )
+
+
+def mail_templates():
+    response.view = "default/myLayout.html"
+
+    if session.back:
+        redirect_url = session.back
+    else:
+        redirect_url = URL()
+
+    db.mail_templates.lang.writable = False
+    db.mail_templates.hashtag.writable = auth.has_membership(role="developper")
+
+    db.mail_templates.subject.readable = False
+    db.mail_templates.subject.writable = True
+
+    db.mail_templates.contents.represent = lambda text, row: DIV(P(B(row.subject)), DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300"))
+
+    db.mail_templates._id.readable = False
+    db.mail_templates._id.writable = False
+
+    grid = SQLFORM.grid(
+        db.mail_templates,
+        create=auth.has_membership(role="developper"),
+        deletable=False,
+        paginate=100,
+        maxtextlength=4096,
+        csv=csv,
+        exportclasses=expClass,
+        orderby=db.mail_templates.hashtag,
+    )
+
+    if grid.update_form and grid.update_form.process().accepted:
+        if redirect_url:
+            redirect(redirect_url)
+        session.back = None
+    else:
+        session.back = request.env.http_referer
+
+    return dict(grid=grid, pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"), customText=getText(request, auth, db, "#MailTemplatesText"),)
 
 
 @auth.requires(auth.has_membership(role="developper"))

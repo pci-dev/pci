@@ -79,6 +79,7 @@ def do_accept_new_article_to_recommend():
         raise HTTP(403, "403: " + T("Forbidden"))
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
+    
     if article.status == "Awaiting consideration":
         recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state="Ongoing", no_conflict_of_interest=True)
         db.commit()
@@ -87,8 +88,27 @@ def do_accept_new_article_to_recommend():
         article.update_record()
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
     else:
-        session.flash = T("Article no more available", lazy=False)
-        redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
+        if article.status == "Under consideration":
+            lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
+            if lastRecomm is not None and lastRecomm.id is not None:
+                recommId = lastRecomm.id
+                reviewersListSel = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
+                    db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id
+                )
+                if len(reviewersListSel) == 0:
+                    redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
+                else:
+                    print("Bug (reviewersListSel) : " + reviewersListSel)
+                    session.flash = T("Article no more available", lazy=False)
+                    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+            else:
+                print("Bug (lastRecomm) : " + lastRecomm)
+                session.flash = T("Article no more available", lazy=False)
+                redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+        else:      
+            print("Bug (articleStatus) : " + article.status)
+            session.flash = T("Article no more available", lazy=False)
+            redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
 
 
 ######################################################################################################################################################################
@@ -268,7 +288,7 @@ def email_to_selected_reviewers():
         reviewersList = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.reviewer_id != auth.user_id)).select(
             db.t_reviews.id
         )
-        do_send_email_to_reviewers_review_suggested(session, auth, db, reviewersList)
+        do_send_email_to_reviewer_review_invitation(session, auth, db, reviewersList)
     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
 
 

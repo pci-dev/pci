@@ -590,46 +590,46 @@ def deltaStatus(s, f):
             # if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
             # do_send_email_to_managers(session, auth, db, o['id'], f['status'])
             # do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
-            # do_send_email_to_contributors(session, auth, db, o['id'], f['status'])
+            # do_send_email_to_corecommenders(session, auth, db, o['id'], f['status'])
             # elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
             if o.status != f["status"]:
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
                 do_send_email_to_recommender_postprint_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_contributors(session, auth, db, o["id"], f["status"])
+                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
 
         else:  # PREPRINTS
             if o.status == "Pending" and f["status"] == "Awaiting consideration":
                 do_send_email_to_suggested_recommenders(session, auth, db, o["id"])
-                do_send_email_to_requester(session, auth, db, o["id"], f["status"])
+                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                do_send_email_to_requester(session, auth, db, o["id"], f["status"])
+                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_requester(session, auth, db, o["id"], f["status"])
-                do_send_email_to_suggested_recommenders_useless(session, auth, db, o["id"])
+                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
+                do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
                 do_send_email_to_thank_recommender_preprint(session, auth, db, o["id"])
             elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
                 do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_contributors(session, auth, db, o["id"], f["status"])
+                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
             elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_contributors(session, auth, db, o["id"], f["status"])
+                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
                 do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Cancelled":
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
                 do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_contributors(session, auth, db, o["id"], f["status"])
-                do_send_email_to_reviewers_cancellation(session, auth, db, o["id"], f["status"])
-                do_send_email_to_requester(session, auth, db, o["id"], f["status"])
+                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
+                do_send_email_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
+                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
             elif o.status != f["status"]:
                 do_send_email_to_managers(session, auth, db, o["id"], f["status"])
                 do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_contributors(session, auth, db, o["id"], f["status"])
+                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended"):
                     do_send_email_decision_to_reviewers(session, auth, db, o["id"], f["status"])
-                    do_send_email_to_requester(session, auth, db, o["id"], f["status"])
+                    do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
                 if f["status"] in ("Rejected", "Recommended", "Awaiting revision"):
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
                     for lr in lastRecomm:
@@ -803,7 +803,7 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Declined", "Completed", "Cancelled"))),
         writable=False,
     ),
-    Field("review", type="text", length=2097152, label=T("Review as text (MarkDown)")),
+    Field("review", type="text", length=2097152, label=T("Review as text")),
     Field("review_pdf", type="upload", uploadfield="review_pdf_data", label=T("Review as PDF"), requires=[IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.'), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))]),
     Field("review_pdf_data", type="blob", readable=False),
     Field("acceptation_timestamp", type="datetime", label=T("Acceptation timestamp"), writable=False),
@@ -824,14 +824,14 @@ def reviewDone(s, f):
     o = s.select().first()
     if o["review_state"] == "Pending" and f["review_state"] == "Under consideration":
         do_send_email_to_recommenders_review_considered(session, auth, db, o["id"])
-        do_send_email_to_thank_reviewer(session, auth, db, o["id"], f)
+        do_send_email_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
     elif o["review_state"] == "Completed" and f["review_state"] == "Under consideration":
         do_send_email_to_reviewer_review_reopened(session, auth, db, o["id"], f)
     elif o["review_state"] == "Pending" and f["review_state"] == "Declined":
         do_send_email_to_recommenders_review_declined(session, auth, db, o["id"])
     if o["reviewer_id"] is not None and o["review_state"] == "Under consideration" and f["review_state"] == "Completed":
-        do_send_email_to_recommenders_review_closed(session, auth, db, o["id"])
-        do_send_email_to_thank_reviewer_after(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
+        do_send_email_to_recommenders_review_completed(session, auth, db, o["id"])
+        do_send_email_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
     return None
 
 
@@ -885,7 +885,7 @@ db.t_press_reviews._after_insert.append(lambda s, i: newPressReview(s, i))
 
 
 def newPressReview(s, i):
-    do_send_email_to_one_contributor(session, auth, db, i)
+    do_send_email_to_one_corecommender(session, auth, db, i)
 
 
 db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
@@ -893,7 +893,7 @@ db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
 
 def delPressReview(s):
     pr = s.select().first()
-    do_send_email_to_delete_one_contributor(session, auth, db, pr.id)
+    do_send_email_to_delete_one_corecommender(session, auth, db, pr.id)
 
 
 db.define_table(
@@ -910,20 +910,17 @@ db.define_table(
     format=lambda row: row.user_comment[0:100],
 )
 
-
-# db.define_table('t_images',
-# Field('id', type='id', readable=False, writable=False),
-# Field('image_name', type='string', length=512, label=T('Image name'), requires=IS_NOT_EMPTY()),
-# Field('image', type='upload', uploadfield='image_data', label=T('Image'), requires=IS_IMAGE(extensions=('JPG', 'jpg', 'jpeg', 'PNG', 'png', 'GIF', 'gif'))),
-# Field('image_data', type='blob', readable=False),
-# singular=T('Image'),
-# plural=T('Images'),
-# migrate=False,
-# )
-# db.t_images.image.represent = lambda text,row: (IMG(_src=URL('default', 'download', args=text), _width=200)) if (text is not None and text != '') else ('')
-# db.t_images.url = Field.Virtual('URL', lambda row: URL('default', 'download', scheme=scheme, host=host, port=port, args=row.t_images.image))
-# db.t_images.url2 = Field.Virtual('URL2', lambda row: URL('default', 'download', scheme=scheme, host=host, port=port, args=row.t_images.image_name))
-
+db.define_table(
+    "mail_templates",
+    Field("id", type="id"),
+    Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#"),
+    Field("lang", type="string", length=10, label=T("Language"), default="default"),
+    Field("subject", type="string", length=256, label=T("Subject")),
+    Field("contents", type="text", length=1048576, label=T("Contents")),
+    format="%(hashtag)s",
+    migrate=False,
+)
+db.commit()
 
 ##-------------------------------- Views ---------------------------------
 db.define_table(

@@ -57,7 +57,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
                 _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _class="pci-articlePicture",
             )
 
-    recommShortText = DIV(WIKI(recomm.recommendation_comments, safe_mode=False) or "", _class="fade-transparent-text")
+    recommShortText = DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="fade-transparent-text")
 
     authors = common_tools.getShortText(article.authors, 500) or ""
 

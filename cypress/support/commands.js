@@ -24,10 +24,10 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-Cypress.Commands.add("pciLogin", user => {
+Cypress.Commands.add("pciLogin", (user) => {
   cy.clearCookies();
 
-  cy.fixture("config").then(config => {
+  cy.fixture("config").then((config) => {
     cy.visit(config.site_url);
 
     // homepage login button
@@ -66,9 +66,7 @@ Cypress.Commands.add(
         cy.contains("a", "All articles").click();
 
         if (status != "not.exist")
-          cy.contains("a", "Check & Edit")
-            .first()
-            .click();
+          cy.contains("a", "Check & Edit").first().click();
         // cy.screenshot()
         break;
 
@@ -77,9 +75,7 @@ Cypress.Commands.add(
         cy.contains("a", "Preprints you are handling").click();
 
         if (status != "not.exist")
-          cy.contains("a", "Check & Edit")
-            .first()
-            .click();
+          cy.contains("a", "Check & Edit").first().click();
         // cy.screenshot()
         break;
 
@@ -87,10 +83,7 @@ Cypress.Commands.add(
         cy.contains(".dropdown-toggle", "Recommend").click();
         cy.contains("a", "requests to handle a preprint").click();
 
-        if (status != "not.exist")
-          cy.contains("a", "View")
-            .first()
-            .click();
+        if (status != "not.exist") cy.contains("a", "View").first().click();
         // cy.screenshot()
         break;
 
@@ -99,9 +92,7 @@ Cypress.Commands.add(
         cy.contains("a", "Your reviews").click();
 
         if (status != "not.exist")
-          cy.contains("a", "View / Edit")
-            .first()
-            .click();
+          cy.contains("a", "View / Edit").first().click();
         // cy.screenshot()
         break;
 
@@ -110,9 +101,7 @@ Cypress.Commands.add(
         cy.contains("a", "invitations to review a preprint").click();
 
         if (status != "not.exist")
-          cy.contains("a", "Accept or decline")
-            .first()
-            .click();
+          cy.contains("a", "Accept or decline").first().click();
         // cy.screenshot()
         break;
 
@@ -121,9 +110,7 @@ Cypress.Commands.add(
         cy.contains("a", "Your submitted preprints").click();
 
         if (status != "not.exist")
-          cy.contains("a", "View / Edit")
-            .first()
-            .click();
+          cy.contains("a", "View / Edit").first().click();
         // cy.screenshot()
         break;
     }
@@ -141,15 +128,13 @@ Cypress.Commands.add(
         cy.wait(500);
       }
 
-      cy.get(".pci-status-big")
-        .first()
-        .should("contain", status);
+      cy.get(".pci-status-big").first().should("contain", status);
     }
   }
 );
 
-Cypress.Commands.add("pciDeleteWithTestLastArticle", articleTitle => {
-  cy.fixture("users").then(user => {
+Cypress.Commands.add("pciDeleteWithTestLastArticle", (articleTitle) => {
+  cy.fixture("users").then((user) => {
     cy.clearCookies();
     cy.pciLogin(user.manager);
   });
@@ -159,11 +144,9 @@ Cypress.Commands.add("pciDeleteWithTestLastArticle", articleTitle => {
 
   cy.contains("tr", articleTitle).should("exist");
 
-  cy.contains("a", "Check & Edit")
-    .first()
-    .click();
+  cy.contains("a", "Check & Edit").first().click();
 
-  cy.contains("a", "Edit article reference").click();
+  cy.contains("a", "Edit article").click();
 
   cy.get("#delete_record").click();
 
@@ -175,29 +158,28 @@ Cypress.Commands.add("pciDeleteWithTestLastArticle", articleTitle => {
 Cypress.Commands.add(
   "typeFast",
   {
-    prevSubject: true
+    prevSubject: true,
   },
   (subject, text) => {
-    cy.wrap(subject)
-      .invoke("val", text)
-      .trigger("change");
+    cy.wrap(subject).invoke("val", text).trigger("change");
   }
 );
 
 Cypress.Commands.add(
   "typeTinymce",
   {
-    prevSubject: true
+    prevSubject: true,
   },
   (subject, html_text) => {
     // const iframe2 = cy.get(subject)
 
-    cy
-      .get(subject)
-      .its('0.contentDocument').should('exist')
-      .its('body').should('not.be.undefined')
+    cy.get(subject)
+      .its("0.contentDocument")
+      .should("exist")
+      .its("body")
+      .should("not.be.undefined")
       .then(cy.wrap)
-      .invoke('prop', 'innerHTML', html_text)
+      .invoke("prop", "innerHTML", html_text);
 
     // iframe2.contentDocument.get('body').innerHTML = html_text
   }

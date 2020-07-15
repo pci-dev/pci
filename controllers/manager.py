@@ -577,11 +577,11 @@ def suggested_recommenders():
 
     response.view = "default/myLayout.html"
     return dict(
-        # myBackButton=common_small_html.mkBackButton(target=URL(c='manager',f='pending_articles')),
+        myBackButton=common_small_html.mkBackButton(target=URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
         pageTitle=getTitle(request, auth, db, "#ManageSuggestedRecommendersTitle"),
         pageHelp=getHelp(request, auth, db, "#ManageSuggestedRecommenders"),
         customText=getText(request, auth, db, "#ManageSuggestedRecommendersText"),
-        myBackButton=common_small_html.mkBackButton(),
+        # myBackButton=common_small_html.mkBackButton(),
         addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
     )
@@ -709,7 +709,7 @@ def email_article_to_recommenders():
                 report.append("email sent to %s" % destPerson.flatten())
             else:
                 report.append("email NOT SENT to %s" % destPerson.flatten())
-            time.sleep(mail_sleep)
+            # time.sleep(mail_sleep)
 
         print("\n".join(report))
         if session.flash is None:

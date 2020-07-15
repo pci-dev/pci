@@ -53,14 +53,14 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     
     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
-    manageRecommenderButton = manager_module.mkSuggestedRecommendersManagerButtonNew(art, back2, auth, db)
+    manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
 
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,
-        manageRecommenderButton=manageRecommenderButton,
+        manageRecommendersButton=manageRecommendersButton,
         articleId=art.id,
         printableUrl=URL(c=controller_name, f="recommendations", vars=dict(articleId=art.id, printable=True), user_signature=True),
         printable=printable,

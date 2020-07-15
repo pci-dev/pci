@@ -10,7 +10,7 @@ describe("Preprint recommended in one round", () => {
   let reviewer_1;
 
   before(() => {
-    cy.fixture("users").then(user => {
+    cy.fixture("users").then((user) => {
       submitter = user.normal_user;
       manager = user.manager;
       recommender = user.recommender;
@@ -43,22 +43,24 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should submit form with bad title", () => {
-      cy.fixture("fake_datas").then(datas => {
+      cy.fixture("fake_datas").then((datas) => {
         cy.get("#t_articles_title").typeFast("Tototototototot totoo");
         cy.get("#t_articles_authors").typeFast(
           submitter.firstname + " " + submitter.lastname
         );
         cy.get("#t_articles_doi").typeFast(datas.doi);
         // cy.get("#t_articles_abstract").typeFast("Abstract " + datas.long_text);
-        cy.get("#t_articles_abstract_ifr").typeTinymce("Abstract " + datas.long_html_text);
+        cy.get("#t_articles_abstract_ifr").typeTinymce(
+          "Abstract " + datas.long_html_text
+        );
         cy.get("#t_articles_keywords").typeFast(datas.small_text);
         // cy.get("#t_articles_cover_letter").typeFast("Cover " + datas.long_text);
-        cy.get("#t_articles_cover_letter_ifr").typeTinymce("Cover " + datas.long_html_text);
+        cy.get("#t_articles_cover_letter_ifr").typeTinymce(
+          "Cover " + datas.long_html_text
+        );
       });
 
-      cy.get('input[name="thematics"]')
-        .first()
-        .click();
+      cy.get('input[name="thematics"]').first().click();
 
       cy.get("#t_articles_i_am_an_author").click();
       cy.get("#t_articles_is_not_reviewed_elsewhere").click();
@@ -110,15 +112,13 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should be able to edit submission and set correct title before validation", () => {
-      cy.contains("a", "View / Edit")
-        .first()
-        .click();
+      cy.contains("a", "View / Edit").first().click();
 
       cy.contains("a", "Edit article").click();
 
       cy.get("#t_articles_title").clear();
 
-      cy.fixture("fake_datas").then(datas => {
+      cy.fixture("fake_datas").then((datas) => {
         cy.get("#t_articles_title").typeFast(
           articleTitle + " " + datas.small_text
         );
@@ -180,9 +180,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should validate the submission", () => {
-      cy.contains("a", "Check & Edit")
-        .first()
-        .click();
+      cy.contains("a", "Check & Edit").first().click();
 
       cy.contains(".btn-success", "Validate this submission").should("exist");
       cy.contains(".btn-success", "Validate this submission").click();
@@ -279,16 +277,14 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should accept to recommend the preprint", () => {
-      cy.contains("a", "View")
-        .first()
-        .click();
+      cy.contains("a", "View").first().click();
 
       cy.get(".btn-success.pci-recommender").should("exist");
       cy.get(".btn-success.pci-recommender").click();
 
       cy.get("input[type=submit]").should("have.attr", "disabled");
 
-      cy.get("input[type=checkbox]").each($el => {
+      cy.get("input[type=checkbox]").each(($el) => {
         $el.click();
       });
 
@@ -326,10 +322,9 @@ describe("Preprint recommended in one round", () => {
 
     it("=> mail sent to reviewer 1", () => {
       cy.wait(500);
-      cy.contains(
-        ".w2p_flash",
-        'email sent to "' + reviewer_1.firstname
-      ).should("exist");
+      cy.contains(".w2p_flash", "email sent to " + reviewer_1.firstname).should(
+        "exist"
+      );
     });
 
     it("Should search for reviewer 2 (developper user)", () => {
@@ -352,10 +347,9 @@ describe("Preprint recommended in one round", () => {
 
     it("=> mail sent to reviewer 2", () => {
       cy.wait(500);
-      cy.contains(
-        ".w2p_flash",
-        'email sent to "' + reviewer_2.firstname
-      ).should("exist");
+      cy.contains(".w2p_flash", "email sent to " + reviewer_2.firstname).should(
+        "exist"
+      );
     });
 
     it("Should invite reviewer outside PCI database", () => {
@@ -373,7 +367,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> mail sent to reviewer outside PCI db", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", 'email sent to "Titi Toto"').should("exist");
+      cy.contains(".w2p_flash", "email sent to Titi Toto").should("exist");
     });
 
     it("Should show article under status 'RECOMMENDATION PROCESS UNDERWAY'", () => {
@@ -472,15 +466,13 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should accept to review article", () => {
-      cy.contains("a", "Accept or decline")
-        .first()
-        .click();
+      cy.contains("a", "Accept or decline").first().click();
 
       cy.contains("a", "Yes, I agree to review this preprint").click();
 
       cy.get("input[type=submit]").should("have.attr", "disabled");
 
-      cy.get("input[type=checkbox]").each($el => {
+      cy.get("input[type=checkbox]").each(($el) => {
         $el.click();
       });
 
@@ -503,11 +495,12 @@ describe("Preprint recommended in one round", () => {
       cy.contains("a", "Write, edit or upload your review").should("exist");
       cy.contains("a", "Write, edit or upload your review").click();
 
-      cy.fixture("fake_datas").then(datas => {
+      cy.fixture("fake_datas").then((datas) => {
         // cy.get("#t_reviews_review").typeFast("Review 1 " + datas.long_text);
-        cy.get("#t_reviews_review_ifr").typeTinymce("Review 1 " + datas.long_html_text);
+        cy.get("#t_reviews_review_ifr").typeTinymce(
+          "Review 1 " + datas.long_html_text
+        );
       });
-
 
       cy.get('input[name="terminate"]').click();
     });
@@ -527,13 +520,9 @@ describe("Preprint recommended in one round", () => {
       cy.contains(".dropdown-toggle", "Contribute").click();
       cy.contains("a", "Your reviews").click();
 
-      cy.get(".cyp-review-state")
-        .first()
-        .should("contain", "COMPLETED");
+      cy.get(".cyp-review-state").first().should("contain", "COMPLETED");
 
-      cy.contains("a", "View / Edit")
-        .first()
-        .click();
+      cy.contains("a", "View / Edit").first().click();
 
       cy.contains("a", "Write, edit or upload your review").should("not.exist");
     });
@@ -567,15 +556,13 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should accept to review article", () => {
-      cy.contains("a", "Accept or decline")
-        .first()
-        .click();
+      cy.contains("a", "Accept or decline").first().click();
 
       cy.contains("a", "Yes, I agree to review this preprint").click();
 
       cy.get("input[type=submit]").should("have.attr", "disabled");
 
-      cy.get("input[type=checkbox]").each($el => {
+      cy.get("input[type=checkbox]").each(($el) => {
         $el.click();
       });
 
@@ -598,9 +585,11 @@ describe("Preprint recommended in one round", () => {
       cy.contains("a", "Write, edit or upload your review").should("exist");
       cy.contains("a", "Write, edit or upload your review").click();
 
-      cy.fixture("fake_datas").then(datas => {
+      cy.fixture("fake_datas").then((datas) => {
         // cy.get("#t_reviews_review").typeFast("Review 2 " + datas.long_text);
-        cy.get("#t_reviews_review_ifr").typeTinymce("Review 2 " + datas.long_html_text);
+        cy.get("#t_reviews_review_ifr").typeTinymce(
+          "Review 2 " + datas.long_html_text
+        );
       });
 
       cy.get('input[name="terminate"]').click();
@@ -621,13 +610,9 @@ describe("Preprint recommended in one round", () => {
       cy.contains(".dropdown-toggle", "Contribute").click();
       cy.contains("a", "Your reviews").click();
 
-      cy.get(".cyp-review-state")
-        .first()
-        .should("contain", "COMPLETED");
+      cy.get(".cyp-review-state").first().should("contain", "COMPLETED");
 
-      cy.contains("a", "View / Edit")
-        .first()
-        .click();
+      cy.contains("a", "View / Edit").first().click();
 
       cy.contains("a", "Write, edit or upload your review").should("not.exist");
     });
@@ -703,10 +688,9 @@ describe("Preprint recommended in one round", () => {
       cy.contains(".pci-enhancedMenuItem", "Recommend").should("exist");
       cy.contains(".dropdown-toggle", "Recommend").click();
 
-      cy.contains(
-        ".pci-enhancedMenuItem",
-        "Preprints you are handling"
-      ).should("exist");
+      cy.contains(".pci-enhancedMenuItem", "Preprints you are handling").should(
+        "exist"
+      );
       cy.contains("a", "Preprints you are handling").click();
     });
 
@@ -719,15 +703,13 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should write recommendation decision", () => {
-      cy.contains("a", "Check & Edit")
-        .first()
-        .click();
+      cy.contains("a", "Check & Edit").first().click();
 
       cy.contains("a", "Write or edit your decision / recommendation").click();
 
       cy.get("#opinion_recommend").click();
 
-      cy.fixture("fake_datas").then(datas => {
+      cy.fixture("fake_datas").then((datas) => {
         cy.get("#t_recommendations_recommendation_title").typeFast(
           recommTitle + " " + datas.small_text
         );
@@ -735,7 +717,9 @@ describe("Preprint recommended in one round", () => {
         // cy.get("#t_recommendations_recommendation_comments").typeFast(
         //   "Recomm " + datas.long_text
         // );
-        cy.get("#t_recommendations_recommendation_comments_ifr").typeTinymce("Recomm " + datas.long_html_text);
+        cy.get("#t_recommendations_recommendation_comments_ifr").typeTinymce(
+          "Recomm " + datas.long_html_text
+        );
       });
 
       cy.get('input[name="terminate"]').click();
@@ -845,9 +829,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should validate the recommendation", () => {
-      cy.contains("a", "Check & Edit")
-        .first()
-        .click();
+      cy.contains("a", "Check & Edit").first().click();
 
       cy.contains("a", "Validate this recommendation").should("exist");
       cy.contains("a", "Validate this recommendation").click();

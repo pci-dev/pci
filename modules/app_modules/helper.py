@@ -98,7 +98,7 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
         )
 
     if c != "" and (auth.has_membership(role="administrator") or auth.has_membership(role="developper")):
-        return DIV(DIV(r0, _class="pci-text-buttons"), DIV(c, _class="pci-text-title"), _class="pci-infotextbox",)
+        return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title"), _class="pci-infotextbox",)
     else:
-        return DIV(DIV(r0, _class="pci-text-buttons"), DIV(c, _class="pci-text-title pci-text-buttons-no-margin"), _class="pci-infotextbox",)
+        return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title pci-text-buttons-no-margin"), _class="pci-infotextbox",)
 

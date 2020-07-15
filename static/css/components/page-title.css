@@ -82,13 +82,19 @@
 }
 
 .pci-text-title {
-    font-size: 26px;
-    font-weight: 400;
+    font-size: 26px !important;
+    font-weight: 400 !important;
 
-    width: 100%;
-    max-width: 1200px;
+    width: 100% !important;
+    max-width: 1200px !important;
 }
 
+.pci-text-title h2,
+.pci-text-title h3,
+.pci-text-title h4,
+.pci-text-title p {
+    margin: 0 !important;
+}
 
 @media (max-width: 960px) {
     .pci-icon-title {
@@ -96,6 +102,6 @@
     }
 
     .pci-text-title {
-        font-size: 20px;
+        font-size: 20px !important;
     }
 }

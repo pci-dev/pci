@@ -281,6 +281,14 @@ div.w2p_flash.alert.custom-disappear {
     border-color: #dfd7ca !important;
 }
 
+
+.fade-transparent-text-300{
+    max-height: 200px;
+    overflow: hidden;
+    mix-blend-mode: hard-light;
+    position: relative;
+}
+
 .fade-transparent-text {
     max-height: 100px;
     overflow: hidden;
@@ -288,7 +296,8 @@ div.w2p_flash.alert.custom-disappear {
     position: relative;
 }
 
-.fade-transparent-text::after {
+.fade-transparent-text::after,
+.fade-transparent-text-300::after {
     position: absolute;
     content: "";
     left: 0px;
@@ -299,6 +308,18 @@ div.w2p_flash.alert.custom-disappear {
     pointer-events: none;
 }
 
+#mail_templates_subject{
+    font-weight: bold;
+}
+
+div.w2p_export_menu {
+    padding: 0px 15px;
+    border-radius: 4px;
+}
+
+#closeflash {
+    display: none;
+}
 /* replace blockquote to Red disclaimer in Help_text*/
 .pci-infotext>blockquote{
     border-radius: 5px; 

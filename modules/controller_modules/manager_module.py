@@ -57,82 +57,25 @@ def mkRecommenderButton(row, auth, db):
 def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
     if row.already_published:
         return ""
-    butts = []
-    suggRecomsTxt = []
+
     exclude = [str(auth.user_id)]
     # sr = db.v_suggested_recommenders[row.id].suggested_recommenders
     suggRecomms = db(db.t_suggested_recommenders.article_id == row.id).select()
     for sr in suggRecomms:
         exclude.append(str(sr.suggested_recommender_id))
-        suggRecomsTxt.append(
-            common_small_html.mkUserWithMail(auth, db, sr.suggested_recommender_id)
-            + (XML(" <b>(declined)</b>") if sr.declined else SPAN(""))
-            + BR()
-            + A(
-                current.T("See emails..."),
-                _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(srId=sr.id)),
-                _class="btn btn-link pci-smallBtn pci-recommender",
-                _style="margin-bottom:12px;",
-            )
-            + BR()
-        )
+        
     myVars = dict(articleId=row.id, whatNext=whatNext)
     if len(exclude) > 0:
         myVars["exclude"] = ",".join(exclude)
-    if len(suggRecomsTxt) > 0:
-        butts.append(DIV(suggRecomsTxt))
-        if row.status in ("Awaiting consideration", "Pending"):
-            butts.append(A(current.T("Manage"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="suggested_recommenders", vars=myVars)))
-    # for thema in row.thematics:
-    # myVars['qy_'+thema] = 'on'
-    # butts.append( BR() )
-    if row.status in ("Awaiting consideration", "Pending"):
-        butts.append(A(current.T("Add"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=myVars, user_signature=True)))
-    return DIV(butts, _class="pci-w200Cell")
-
-
-
-def mkSuggestedRecommendersManagerButtonNew(row, whatNext, auth, db):
-    if row.already_published:
-        return ""
-    butts = []
-    suggRecomsTxt = []
-    exclude = [str(auth.user_id)]
-    # sr = db.v_suggested_recommenders[row.id].suggested_recommenders
-    suggRecomms = db(db.t_suggested_recommenders.article_id == row.id).select()
-    for sr in suggRecomms:
-        exclude.append(str(sr.suggested_recommender_id))
-        suggRecomsTxt.append(
-            common_small_html.mkUserWithMail(auth, db, sr.suggested_recommender_id)
-            + (XML(" <b>(declined)</b>") if sr.declined else SPAN(""))
-            + BR()
-            + A(
-                current.T("See emails..."),
-                _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(srId=sr.id)),
-                _class="btn btn-link pci-smallBtn pci-recommender",
-                _style="margin-bottom:12px;",
-            )
-            + BR()
-        )
-    myVars = dict(articleId=row.id, whatNext=whatNext)
-    if len(exclude) > 0:
-        myVars["exclude"] = ",".join(exclude)
-    if len(suggRecomsTxt) > 0:
-        butts.append(DIV(suggRecomsTxt))
-        if row.status in ("Awaiting consideration", "Pending"):
-            butts.append(A(current.T("Manage"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="suggested_recommenders", vars=myVars)))
-    # for thema in row.thematics:
-    # myVars['qy_'+thema] = 'on'
-    # butts.append( BR() )
+    
     button = None
     if row.status in ("Awaiting consideration", "Pending"):
-        button = A(  
-            I(_class="glyphicon glyphicon-edit"),
-            current.T("Manage recommenders"), 
-            _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link", 
-            _href=URL(c="manager", f="suggested_recommenders", vars=myVars)
+        button = A(
+            I(_class="glyphicon glyphicon-user"),
+            current.T("Manage recommenders"),
+            _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link",
+            _href=URL(c="manager", f="suggested_recommenders", vars=myVars),
         )
-        
 
     return button
 

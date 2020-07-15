@@ -22,51 +22,10 @@ from app_modules import common_small_html
 myconf = AppConfig(reload=True)
 mail_layout = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 
-# auth.settings.allow_basic_login = True
-
-
-# dummy tests
-# TEST MAIL
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
-def _do_send_email_to_test(userId):
-    mail = getMailer(auth)
-    report = []
-    mail_resu = False
-    applongname = myconf.take("app.longname")
-    appdesc = myconf.take("app.description")
-    destPerson = common_small_html.mkUser(auth, db, userId)
-    destAddress = db.auth_user[userId]["email"]
-    mySubject = "%s: TEST MAIL" % (applongname)
-    siteName = I(applongname)
-    linkTarget = URL(
-        c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    )
-    content = (
-        """
-Dear %(destPerson)s,<p>
-This is a test mail; please ignore.<p>
-You may visit %(siteName)s on: <a href="%(linkTarget)s">%(linkTarget)s</a><p>"""
-        % locals()
-    )
-    myMessage = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter()))
-    mail_resu = mail.send(to=[destAddress], subject=mySubject, message=myMessage,)
-    if mail_resu:
-        report.append("email to %s sent" % destPerson.flatten())
-    else:
-        report.append("email to %s NOT SENT" % destPerson.flatten())
-    print("".join(report))
-
-
 @auth.requires(auth.has_membership(role="developper"))
 def test_flash():
     session.flash = "Coucou !"
     redirect(request.env.http_referer)
-
-
-@auth.requires(auth.has_membership(role="developper"))
-def test_mail_piry():
-    if "client" not in request:
-        _do_send_email_to_test(1)
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
