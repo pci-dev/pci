@@ -709,7 +709,7 @@ def email_article_to_recommenders():
                 report.append("email sent to %s" % destPerson.flatten())
             else:
                 report.append("email NOT SENT to %s" % destPerson.flatten())
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
         print("\n".join(report))
         if session.flash is None:

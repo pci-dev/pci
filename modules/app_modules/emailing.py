@@ -182,7 +182,7 @@ def do_send_email_to_test(session, auth, db, userId):
 
     # Report error (to remove when queued mail) :
     reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-    # time.sleep(mail_sleep)
+    time.sleep(mail_sleep)
 
     # Send report (to remove when queued mail) :
     get_flash_message(session, reports)
@@ -291,7 +291,7 @@ def do_send_email_to_submitter(session, auth, db, articleId, newStatus):
                 pass
 
         reports = create_mail_report(mail_resu, "submitter " + mail_vars["destPerson"].flatten(), reports)
-        # time.sleep(mail_sleep)
+        time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -332,7 +332,7 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -444,7 +444,7 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -510,7 +510,7 @@ def do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db
             suggRecom.update_record()
 
             reports = create_mail_report(mail_resu, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -584,7 +584,7 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
             suggRecom.update_record()
 
             reports = create_mail_report(mail_resu, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -647,7 +647,7 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
                 suggRecomm.update_record()
 
                 reports = create_mail_report(mail_resu, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -701,7 +701,7 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
                     pass
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -785,7 +785,7 @@ def do_send_email_to_recommenders_review_completed(session, auth, db, reviewId):
                     pass
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -828,7 +828,7 @@ def do_send_email_to_recommender_co_recommender_considerated(session, auth, db, 
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -871,7 +871,7 @@ def do_send_email_to_recommenders_co_recommender_declined(session, auth, db, pre
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -914,7 +914,7 @@ def do_send_email_to_recommenders_co_recommender_agreement(session, auth, db, pr
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -966,7 +966,7 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1015,7 +1015,7 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
                 pass
 
             reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1064,7 +1064,7 @@ def do_send_email_to_reviewer_review_invitation(session, auth, db, reviewsList):
                             rev.update_record()
 
                         reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                        # time.sleep(mail_sleep)
+                        time.sleep(mail_sleep)
 
                     else:
                         print("do_send_email_to_reviewer_review_invitation: Article not found")
@@ -1132,7 +1132,7 @@ def do_send_email_to_reviewers_article_cancellation(session, auth, db, articleId
                     rev.update_record()
 
                     reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                    # time.sleep(mail_sleep)
+                    time.sleep(mail_sleep)
         else:
             print("do_send_email_to_reviewers_article_cancellation: Recommendation not found")
     else:
@@ -1173,7 +1173,7 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
                 pass
 
     reports = create_mail_report(mail_resu, "administrators", reports)
-    # time.sleep(mail_sleep)
+    time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1226,7 +1226,7 @@ def do_send_mail_new_user(session, auth, db, userId):
             pass
 
         reports = create_mail_report(mail_resu, "new user " + mail_vars["destPerson"].flatten(), reports)
-        # time.sleep(mail_sleep)
+        time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1259,12 +1259,12 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
             try:
                 message = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter()))
                 mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
             except:
                 pass
 
             reports = create_mail_report(mail_resu, "new recommender " + mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
         elif group.role == "manager":
             mail_template = get_mail_template_hashtag(db, "#NewMembreshipRecommender")
@@ -1274,12 +1274,12 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
             try:
                 message = render(filename=mail_layout, context=dict(content=XML(content), footer=mkFooter()))
                 mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
             except:
                 pass
 
             reports = create_mail_report(mail_resu, "new manager " + mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
         else:
             return
@@ -1364,7 +1364,7 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
                 pass
 
             reports = create_mail_report(mail_resu, "manager " + (manager.email or ""), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1410,7 +1410,7 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
                     pass
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1454,7 +1454,7 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
                     pass
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1514,7 +1514,7 @@ def do_send_email_to_thank_reviewer_acceptation(session, auth, db, reviewId, new
                     newForm["emailing"] = emailing
 
                     reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                    # time.sleep(mail_sleep)
+                    time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1582,7 +1582,7 @@ def do_send_email_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
                     newForm["emailing"] = emailing
 
                     reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                    # time.sleep(mail_sleep)
+                    time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1626,7 +1626,7 @@ def do_send_email_to_delete_one_corecommender(session, auth, db, contribId):
                         pass
 
                     reports = create_mail_report(mail_resu, "contributor " + mail_vars["destPerson"].flatten(), reports)
-                    # time.sleep(mail_sleep)
+                    time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1676,7 +1676,7 @@ def do_send_email_to_one_corecommender(session, auth, db, contribId):
                             pass
 
                         reports = create_mail_report(mail_resu, "contributor " + mail_vars["destPerson"].flatten(), reports)
-                        # time.sleep(mail_sleep)
+                        time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1731,7 +1731,7 @@ def do_send_email_to_corecommenders(session, auth, db, articleId, newStatus):
                 pass
 
             reports = create_mail_report(mail_resu, "contributor " + mail_vars["destPerson"].flatten(), reports)
-            # time.sleep(mail_sleep)
+            time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1767,7 +1767,7 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
             pass
 
         reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-        # time.sleep(mail_sleep)
+        time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1840,7 +1840,7 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
                 review.update_record()
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1875,7 +1875,7 @@ def do_send_email_to_reset_password(session, auth, db, userId):
         pass
 
     reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-    # time.sleep(mail_sleep)
+    time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
 
@@ -1969,6 +1969,6 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
                 review.update_record()
 
                 reports = create_mail_report(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                # time.sleep(mail_sleep)
+                time.sleep(mail_sleep)
 
     get_flash_message(session, reports)
