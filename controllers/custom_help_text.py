@@ -48,7 +48,7 @@ def help_texts():
         pageHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
     )
 
-
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def mail_templates():
     response.view = "default/myLayout.html"
 
