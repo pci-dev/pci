@@ -22,7 +22,7 @@ from gluon.contrib.appconfig import AppConfig
 myconf = AppConfig(reload=True)
 
 # frequently used constants
-from app_modules.emailing import mail_layout, mail_sleep
+from app_modules.emailing import MAIL_HTML_LAYOUT, MAIL_DELAY
 
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)

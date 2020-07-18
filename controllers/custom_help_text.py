@@ -42,10 +42,11 @@ def help_texts():
     else:
         session.back = request.env.http_referer
     return dict(
-        grid=grid,
+        titleIcon="question-sign",
         pageTitle=getTitle(request, auth, db, "#HelpTextTitle"),
-        customText=getText(request, auth, db, "#HelpTextText"),
         pageHelp=getHelp(request, auth, db, "#AdministrateHelpTexts"),
+        customText=getText(request, auth, db, "#HelpTextText"),
+        grid=grid,
     )
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -86,7 +87,12 @@ def mail_templates():
     else:
         session.back = request.env.http_referer
 
-    return dict(grid=grid, pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"), customText=getText(request, auth, db, "#MailTemplatesText"),)
+    return dict(
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"),
+        customText=getText(request, auth, db, "#MailTemplatesText"),
+        grid=grid, 
+    )
 
 
 @auth.requires(auth.has_membership(role="developper"))

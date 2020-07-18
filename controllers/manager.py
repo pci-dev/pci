@@ -35,7 +35,7 @@ from app_modules import common_small_html
 myconf = AppConfig(reload=True)
 
 # frequently used constants
-from app_modules.emailing import mail_layout, mail_sleep
+from app_modules.emailing import MAIL_HTML_LAYOUT, MAIL_DELAY
 
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
@@ -696,7 +696,7 @@ def email_article_to_recommenders():
         response.flash = None
         mySubject = request.vars["subject"]
         myContent = request.vars["message"]
-        myMessage = render(filename=mail_layout, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
+        myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
         for rid in ids:
             destPerson = common_small_html.mkUserWithMail(auth, db, rid)
             destAddress = db.auth_user[rid].email
@@ -709,7 +709,7 @@ def email_article_to_recommenders():
                 report.append("email sent to %s" % destPerson.flatten())
             else:
                 report.append("email NOT SENT to %s" % destPerson.flatten())
-            time.sleep(mail_sleep)
+            time.sleep(MAIL_DELAY)
 
         print("\n".join(report))
         if session.flash is None:

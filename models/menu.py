@@ -112,24 +112,21 @@ def _ToolsMenu():
     isActive = False
     if ctr == "tools":
         isActive = True
-
-    toolMenu = [(T("Convert PDF to MarkDown"), False, URL("tools", "convert_pdf_to_markdown", user_signature=True))]
-
+    
     if auth.has_membership(None, None, "administrator"):
         myClass = "pci-admin"
     else:
         myClass = "pci-manager"
 
-    if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developper"):
-        toolMenu += [
-            LI(_class="divider"),
-            (T("Send me a test mail"), False, URL("admin_actions", "testMail", user_signature=True)),
-            (T("Test my email alert"), False, URL("alerts", "testUserRecommendedAlert", vars=dict(userId=auth.user_id), user_signature=True)),
-            # (T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
-            (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
-            (T("Social networks", lazy=False), False, URL("about", "social", user_signature=True)),
-        ]
-
+    toolMenu = [
+        (T("Send me a test mail"), False, URL("admin_actions", "testMail", user_signature=True)),
+        (T("Test my email alert"), False, URL("alerts", "testUserRecommendedAlert", vars=dict(userId=auth.user_id), user_signature=True)),
+        # (T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
+        (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
+        (T("Social networks", lazy=False), False, URL("about", "social", user_signature=True)),
+        (T("Send email alerts manually"), False, URL("alerts", "alertUsersLastRecommendations", user_signature=True))
+    ]
+    
     return [
         (SPAN(I(_class="glyphicon glyphicon-wrench"), T("Tools"), _class=myClass), isActive, "#", toolMenu),
     ]
@@ -148,20 +145,20 @@ def _AdminMenu():
             isActive,
             "#",
             [
-                (T("Users & roles"), False, URL("admin", "list_users", user_signature=True)),
-                (T("Supports"), False, URL("admin", "manage_supports", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Users & roles")), False, URL("admin", "list_users", user_signature=True)),
                 # (T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
-                (T("All recommendation citations"), False, URL("admin", "allRecommCitations", user_signature=True)),
-                (T("Reviews synthesis"), False, URL("admin", "recap_reviews", user_signature=True)),
-                (T("Resources"), False, URL("admin", "manage_resources", user_signature=True)),
-                (T("Recommendation PDF files"), False, URL("admin", "manage_pdf", user_signature=True)),
-                (T("Contacy lists"), False, URL("admin", "mailing_lists", user_signature=True)),
-                (T("Thematic fields"), False, URL("admin", "thematics_list", user_signature=True)),
-                (T("Article status"), False, URL("admin", "article_status", user_signature=True)),
-                (T("Help texts"), False, URL("custom_help_text", "help_texts", user_signature=True)),
-                (T("Mail Templates"), False, URL("custom_help_text", "mail_templates", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Reviews synthesis")), False, URL("admin", "recap_reviews", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")), False, URL("admin", "allRecommCitations", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
                 LI(_class="divider"),
-                (T("Send email alerts manually"), False, URL("alerts", "alertUsersLastRecommendations", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Article status")), False, URL("admin", "article_status", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Mail Templates")), False, URL("custom_help_text", "mail_templates", user_signature=True)),
+                LI(_class="divider"),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T("Supports")), False, URL("admin", "manage_supports", user_signature=True)),
+                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-picture"), T("Resources")), False, URL("admin", "manage_resources", user_signature=True)),
             ],
         ),
     ]
@@ -516,7 +513,7 @@ if auth.has_membership(None, None, "administrator") or auth.has_membership(None,
     response.menu += _AdminMenu()
     response.footer_menu += _AdminMenu()
 
-if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "manager") or auth.has_membership(None, None, "developper"):
+if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developper"):
     response.menu += _ToolsMenu()
     response.footer_menu += _ToolsMenu()
 

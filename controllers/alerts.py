@@ -20,7 +20,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
-mail_layout = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
+MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 
 @auth.requires(auth.has_membership(role="developper"))
 def test_flash():

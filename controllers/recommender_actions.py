@@ -77,6 +77,7 @@ def do_accept_new_article_to_recommend():
     noConflict = request.vars["no_conflict_of_interest"]
     if noConflict != "yes":
         raise HTTP(403, "403: " + T("Forbidden"))
+    
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
     
@@ -89,7 +90,7 @@ def do_accept_new_article_to_recommend():
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
     else:
         if article.status == "Under consideration":
-            lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
+            lastRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
             if lastRecomm is not None and lastRecomm.id is not None:
                 recommId = lastRecomm.id
                 reviewersListSel = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(

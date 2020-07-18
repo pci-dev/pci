@@ -107,7 +107,6 @@ auth.settings.host = host
 # auth.settings.keep_session_onlogin=False
 # auth.settings.logout_next = ''
 
-
 # -------------------------------------------------------------------------
 db.define_table(
     "t_thematics",
@@ -920,7 +919,20 @@ db.define_table(
     format="%(hashtag)s",
     migrate=False,
 )
-db.commit()
+
+db.define_table(
+    "mail_queue",
+    Field("id", type="id"),
+    Field("sending_status", type="string", length=128, label=T("Sending status"), default="pending"),
+    Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
+    Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
+    Field("dest_mail_address", type="string", length=256, label=T("Dest email")),
+    Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Sender")),
+    Field("mail_subject", type="string", length=256, label=T("Subject")),
+    Field("mail_content", type="text", length=1048576, label=T("Contents")),
+    Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
+    migrate=True
+)
 
 ##-------------------------------- Views ---------------------------------
 db.define_table(

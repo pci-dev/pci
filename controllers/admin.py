@@ -120,6 +120,7 @@ def list_users():
 
     response.view = "default/myLayout.html"
     return dict(
+        titleIcon="user",
         pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
         pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
         customText=getText(request, auth, db, "#AdministrateUsersText"),
@@ -185,8 +186,9 @@ def mailing_lists():
     myContents.append(list_emails)
 
     return dict(
-        customText=getText(request, auth, db, "#EmailsListsUsersText"),
+        titleIcon="earphone",
         pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
+        customText=getText(request, auth, db, "#EmailsListsUsersText"),
         pageHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
         content=myContents,
         grid="",
@@ -217,9 +219,10 @@ def thematics_list():
         orderby=db.t_thematics.keyword,
     )
     return dict(
+        titleIcon="tags",
+        pageTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
         pageHelp=getHelp(request, auth, db, "#AdministrateThematicFields"),
         customText=getText(request, auth, db, "#AdministrateThematicFieldsText"),
-        pageTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
         grid=grid,
     )
 
@@ -236,10 +239,11 @@ def allRecommCitations():
     for myRecomm in allRecomms:
         grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P()))
     return dict(
-        grid=grid,
+        titleIcon="education",
         pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
         customText=getText(request, auth, db, "#allRecommCitationsTextText"),
         pageHelp=getHelp(request, auth, db, "#allRecommCitationsHelpTexts"),
+        grid=grid,
     )
 
 
@@ -272,9 +276,10 @@ def article_status():
     )
     common_small_html.mkStatusArticles(db)
     return dict(
+        titleIcon="bookmark",
+        pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
         pageHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
         customText=getText(request, auth, db, "#AdministrateArticleStatusText"),
-        pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
         grid=grid,
     )
     
@@ -310,7 +315,12 @@ def manage_pdf():
         fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf],
         orderby=~db.t_pdf.id,
     )
-    return dict(customText=getText(request, auth, db, "#AdminPdfText"), pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), grid=grid,)
+    return dict(
+        titleIcon="duplicate",
+        pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), 
+        customText=getText(request, auth, db, "#AdminPdfText"), 
+        grid=grid
+    )
 
 
 ######################################################################################################################################################################
@@ -332,7 +342,12 @@ def manage_supports():
         exportclasses=expClass,
         orderby=db.t_supports.support_rank,
     )
-    return dict(customText=getText(request, auth, db, "#AdminSupportsText"), pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"), grid=grid,)
+    return dict(
+        titleIcon="briefcase",
+        customText=getText(request, auth, db, "#AdminSupportsText"), 
+        pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"),
+        grid=grid,
+    )
 
 
 ######################################################################################################################################################################
@@ -354,7 +369,12 @@ def manage_resources():
         exportclasses=expClass,
         orderby=db.t_resources.resource_rank,
     )
-    return dict(customText=getText(request, auth, db, "#AdminResourcesText"), pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), grid=grid,)
+    return dict(
+        titleIcon="briefcase",
+        pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), 
+        customText=getText(request, auth, db, "#AdminResourcesText"), 
+        grid=grid,
+    )
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -495,6 +515,7 @@ def recap_reviews():
     db.executesql("DROP VIEW IF EXISTS _v_%(runId)s;" % locals())
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
     return dict(
+        titleIcon="list-alt",
         customText=getText(request, auth, db, "#AdminRecapReviews"),
         pageTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
         grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),

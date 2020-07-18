@@ -346,7 +346,11 @@ div.w2p_export_menu {
   border: 2px solid #cc0e0e;
   padding: 10px;
   font-weight: bold;
-  font-size: unset;
+  font-size: inherit;
+}
+
+blockquote {
+  font-size: inherit;
 }
 
 @media (max-width: 1200px) {
