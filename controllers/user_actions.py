@@ -173,6 +173,12 @@ def decline_new_review():
     if rev.reviewer_id != auth.user_id:
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="my_reviews"))
+
+    if rev["review_state"] in ["Declined", "Completed", "Cancelled"]:
+        recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
+        session.flash = T("Review state has been changed")
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm['article_id'])))
+        
     # db(db.t_reviews.id==reviewId).delete()
     rev.review_state = "Declined"
     rev.update_record()

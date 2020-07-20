@@ -923,7 +923,7 @@ db.define_table(
 db.define_table(
     "mail_queue",
     Field("id", type="id"),
-    Field("sending_status", type="string", length=128, label=T("Sending status"), default="pending"),
+    Field("sending_status", type="string", length=128, label=T("Sending status"), default="in queue"),
     Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
     Field("dest_mail_address", type="string", length=256, label=T("Dest email")),

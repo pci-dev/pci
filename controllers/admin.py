@@ -40,7 +40,7 @@ def list_users():
     links = None
     create = True  # allow create buttons
     if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):
-        selectable = [(T("Add role 'recommender' to selected users"), lambda ids: [admin_module.set_as_recommender(ids, auth, db)], "btn btn-info pci-admin")]
+        selectable = [(T("Add role 'recommender' to selected users"), lambda ids: [admin_module.set_as_recommender(ids, auth, db)], "btn btn-info pci-admin",)]
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
     db.auth_user.registration_datetime.readable = True
 
@@ -101,14 +101,14 @@ def list_users():
     grid = SQLFORM.smartgrid(
         db.auth_user,
         fields=fields,
-        linked_tables=["auth_user", "auth_membership", "t_articles", "t_recommendations", "t_reviews", "t_press_reviews", "t_comments"],
+        linked_tables=["auth_user", "auth_membership", "t_articles", "t_recommendations", "t_reviews", "t_press_reviews", "t_comments",],
         links=links,
         csv=False,
         exportclasses=dict(auth_user=expClass, auth_membership=expClass),
         editable=dict(auth_user=True, auth_membership=False),
         details=dict(auth_user=True, auth_membership=False),
         searchable=dict(auth_user=True, auth_membership=False),
-        create=dict(auth_user=create, auth_membership=create, t_articles=create, t_recommendations=create, t_reviews=create, t_press_reviews=create, t_comments=create),
+        create=dict(auth_user=create, auth_membership=create, t_articles=create, t_recommendations=create, t_reviews=create, t_press_reviews=create, t_comments=create,),
         selectable=selectable,
         maxtextlength=250,
         paginate=25,
@@ -124,7 +124,7 @@ def list_users():
         pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
         pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
         customText=getText(request, auth, db, "#AdministrateUsersText"),
-        grid=grid
+        grid=grid,
     )
 
 
@@ -237,7 +237,7 @@ def allRecommCitations():
     ).select(db.t_recommendations.ALL, orderby=db.t_recommendations.last_change)
     grid = OL()
     for myRecomm in allRecomms:
-        grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P()))
+        grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P(),))
     return dict(
         titleIcon="education",
         pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
@@ -271,7 +271,7 @@ def article_status():
         paginate=100,
         csv=csv,
         exportclasses=expClass,
-        fields=[db.t_status_article.status, db.t_status_article._id, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination],
+        fields=[db.t_status_article.status, db.t_status_article._id, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination,],
         orderby=db.t_status_article.priority_level,
     )
     common_small_html.mkStatusArticles(db)
@@ -282,7 +282,8 @@ def article_status():
         customText=getText(request, auth, db, "#AdministrateArticleStatusText"),
         grid=grid,
     )
-    
+
+
 ######################################################################################################################################################################
 # PDF management
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -292,7 +293,7 @@ def manage_pdf():
     # Do the complex query in full sql and return valid ids
     myList = []
     myQy = db.executesql(
-        'SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE a.status IN (\'Recommended\', \'Pre-recommended\') AND r.recommendation_state LIKE \'Recommended\';'
+        "SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE a.status IN ('Recommended', 'Pre-recommended') AND r.recommendation_state LIKE 'Recommended';"
     )
 
     for q in myQy:
@@ -315,12 +316,7 @@ def manage_pdf():
         fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf],
         orderby=~db.t_pdf.id,
     )
-    return dict(
-        titleIcon="duplicate",
-        pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), 
-        customText=getText(request, auth, db, "#AdminPdfText"), 
-        grid=grid
-    )
+    return dict(titleIcon="duplicate", pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), customText=getText(request, auth, db, "#AdminPdfText"), grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -342,12 +338,7 @@ def manage_supports():
         exportclasses=expClass,
         orderby=db.t_supports.support_rank,
     )
-    return dict(
-        titleIcon="briefcase",
-        customText=getText(request, auth, db, "#AdminSupportsText"), 
-        pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"),
-        grid=grid,
-    )
+    return dict(titleIcon="briefcase", customText=getText(request, auth, db, "#AdminSupportsText"), pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"), grid=grid,)
 
 
 ######################################################################################################################################################################
@@ -369,12 +360,7 @@ def manage_resources():
         exportclasses=expClass,
         orderby=db.t_resources.resource_rank,
     )
-    return dict(
-        titleIcon="briefcase",
-        pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), 
-        customText=getText(request, auth, db, "#AdminResourcesText"), 
-        grid=grid,
-    )
+    return dict(titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), customText=getText(request, auth, db, "#AdminResourcesText"), grid=grid,)
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
@@ -552,4 +538,45 @@ def testRedir():
     session.flash = "redirect!"
     url = URL("default", "index", user_signature=True)  # , scheme=scheme, host=host, port=port)
     redirect(url)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+def mailing_queue():
+    response.view = "default/myLayout.html"
+
+    db.mail_queue.sending_status.represent = lambda text, row: DIV(
+        SPAN(admin_module.makeMailStatusDiv(text)),
+        SPAN(I(T('Sending attempts : ')), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        _class="pci2-flex-column",
+        _style="margin: 5px 10px;"
+    )
+    db.mail_queue.sending_attempts.readable = False 
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(text, "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.mail_content.represent = lambda text, row: WIKI(admin_module.sanitizeHtmlContent(text), safe_mode=None)
+    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
+    # db.mail_queue.mail_content.represent = lambda text, row: toto(text)
+    # db.mail_queue.mail_content.represent = lambda text, row: WIKI(text, safe_mode=False)
+
+    grid = SQLFORM.grid(
+        db.mail_queue,
+        details=True,
+        editable=False,
+        deletable=False,
+        create=False,
+        searchable=True,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.mail_queue.id,
+        fields=[
+            db.mail_queue.sending_status,
+            db.mail_queue.sending_date,
+            db.mail_queue.sending_attempts,
+            db.mail_queue.dest_mail_address,
+            db.mail_queue.user_id,
+            db.mail_queue.mail_template_hashtag,
+            db.mail_queue.mail_subject,
+        ],
+    )
+    return dict(titleIcon="send", pageTitle=getTitle(request, auth, db, "#AdminMailQueueTitle"), customText=getText(request, auth, db, "#AdminMailQueueText"), grid=grid,)
 

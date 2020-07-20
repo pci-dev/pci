@@ -2,13 +2,18 @@
 from datetime import datetime
 import time
 
-QUEUE_CHECK_INTERVAL = 15  # in seconds
-MAIL_DELAY = 1.5  # in seconds
-MAIL_MAX_ATTEMPTS = 3  # in seconds
+from gluon.contrib.appconfig import AppConfig
+
+myconf = AppConfig(reload=True)
+MAIL_DELAY = float(myconf.take("config.mail_delay")) or 1.5  # in seconds
+QUEUE_CHECK_INTERVAL = int(myconf.take("config.mail_queue_interval")) or 15  # in seconds
+MAIL_MAX_SENDING_ATTEMPTS = int(myconf.take("config.mail_max_sending_attemps")) or 3
 
 
-def getPendingMails():
-    return db((db.mail_queue.sending_status == "pending") & (db.mail_queue.sending_date <= datetime.now())).select(orderby=db.mail_queue.sending_date)
+def getMailsInQueue():
+    return db((db.mail_queue.sending_status == "in queue") & (db.mail_queue.sending_date <= datetime.now())).select(
+        orderby=db.mail_queue.sending_date
+    )
 
 
 def tryToSendMail(mail_item):
@@ -29,10 +34,10 @@ def updateSendingStatus(mail_item, isSent):
 
     if isSent:
         new_status = "sent"
-    if not isSent and attempts >= MAIL_MAX_ATTEMPTS:
+    if not isSent and attempts >= MAIL_MAX_SENDING_ATTEMPTS:
         new_status = "failed"
-    elif not isSent and attempts < MAIL_MAX_ATTEMPTS:
-        new_status = "pending"
+    elif not isSent and attempts < MAIL_MAX_SENDING_ATTEMPTS:
+        new_status = "in queue"
 
     mail_item.update_record(sending_status=new_status, sending_attempts=attempts)
     db.commit()
@@ -65,10 +70,10 @@ def logSendingStatus(mail_item, isSent):
 # Mailing Queue :
 ######################################################################################################################################################################
 while True:
-    pending_mails = getPendingMails()
-    logMailsInQueue(len(pending_mails))
+    mails_in_queue = getMailsInQueue()
+    logMailsInQueue(len(mails_in_queue))
 
-    for mail_item in pending_mails:
+    for mail_item in mails_in_queue:
         tryToSendMail(mail_item)
 
     time.sleep(QUEUE_CHECK_INTERVAL)  # check every minute

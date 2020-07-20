@@ -49,6 +49,7 @@ def help_texts():
         grid=grid,
     )
 
+
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def mail_templates():
     response.view = "default/myLayout.html"
@@ -87,12 +88,7 @@ def mail_templates():
     else:
         session.back = request.env.http_referer
 
-    return dict(
-        titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"),
-        customText=getText(request, auth, db, "#MailTemplatesText"),
-        grid=grid, 
-    )
+    return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"), customText=getText(request, auth, db, "#MailTemplatesText"), grid=grid,)
 
 
 @auth.requires(auth.has_membership(role="developper"))

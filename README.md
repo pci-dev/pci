@@ -2,13 +2,13 @@
 
 ## A free recommendation process of published and unpublished scientific papers based on peer reviews
 
------
+---
 
 ## What is PCI ?
 
 The “Peer Community in” project is a non-profit scientific organization aimed at creating specific communities of researchers reviewing and recommending papers in their field. These specific communities are entitled Peer Community in X, e.g. Peer Community in Evolutionary Biology, Peer Community in Microbiology.
 
------
+---
 
 ## Install project
 
@@ -69,10 +69,17 @@ Run project :
 python web2py.py
 ```
 
+Run mailing queue :
+
+```bash
+python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
+```
+
+**Don't forget to replace "<app-name>" in the command above.**
+
 ---
 
 ## Run tests
-
 
 #### requirements :
 

@@ -1,12 +1,79 @@
-<html style='font-size:12pt;'>
-{{if 'content' in globals() and content is not None:}}
-	{{=content}}
-	{{pass}}
-{{if 'footer' in locals() and footer is not None:}}
-	{{=footer}}
-	{{pass}}
-{{if 'recommendation' in locals() and recommendation is not None:}}
-	<hr>
-	{{=recommendation}}
-	{{pass}}
+<html style="
+  font-size:12pt;
+">
+  <body style="
+  	background: #a5c5d5;
+  	text-align: center;
+    padding: 25px;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  ">
+  	<div style="
+  	  background:#ffffff !important;
+  	  color:#333333 !important;
+      margin: 0 auto;
+      padding: 10px 15px;
+  	  max-width: 600px;
+  	  border-radius: 4px;
+  	  text-align: left;
+    ">
+
+      {{if 'subject' in locals():}}
+      <table>
+        <tr>
+          <td style="vertical-align: center; text-align: left;">
+            <img style="width: 150px; border-radius: 4px;" src="{{=applogo}}" alt="PCI">
+          </td>
+          <td style="vertical-align: center; text-align: left;">
+            {{if 'appname' in locals() and appname is not None:}}
+            <label style="margin: 0 15px; font-size: 14px; font-weight: bold; font-style: italic; color: #598398; text-align: left;">
+              {{=appname}}
+            </label>
+            {{pass}}
+            {{if subject is not None:}}
+            <h1 style="margin: 0 15px; color: #555555; font-size: 20px; text-align: left;">
+              {{=subject}}
+            </h1>
+            {{pass}}
+          </td>
+        </tr>
+      </table>
+      <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+      {{pass}}
+      
+  		{{if 'content' in globals() and content is not None:}}
+  			{{=content}}
+  		{{pass}}	
+  	</div>
+
+    {{if 'recommendation' in locals() and recommendation is not None:}}
+      <div style="
+  	    background:#f0f0f0 !important;
+  	    color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+  	    max-width: 600px;
+  	    border-radius: 4px;
+  	    text-align: left;
+  	  ">
+        {{=recommendation}}
+      </div>
+    {{pass}}
+
+    <div style="
+  	  color: #555555;
+      margin: 0 auto;
+      margin-top: 25px;
+  	  max-width: 600px;
+      text-align: left;
+      padding: 0 15px;
+    ">
+      {{if 'footer' in locals() and footer is not None:}}
+        {{=footer}}
+      {{pass}}
+    </div>
+  </body>
 </html>
+

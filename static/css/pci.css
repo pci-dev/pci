@@ -54,9 +54,7 @@ html {
 body {
   padding-top: 0px;
   margin-bottom: 0px;
-  /* 	font-family: Optima; */
-  /* 	font-family: Optima, Segoe, "Segoe UI", Candara, Calibri, Arial, "sans-serif"; */
-  font-family: Optima, "Open Sans", sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-size: 14px;
   /* 	line-height:1.2em; */
 }
@@ -289,6 +287,15 @@ header {
   width: 100%;
 }
 
+.pci-mail-status {
+  padding: 0 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+}
+
+
 .pci-status-big.warning:not(.printable) {
   background: #ffbf00;
   color: #fff;
@@ -301,6 +308,11 @@ header {
 
 .pci-status.warning {
   color: #ffbf00;
+}
+
+.pci-mail-status.warning {
+  background: #ffbf00;
+  color: #fff;
 }
 
 .pci-status-big.good:not(.printable) {
@@ -317,6 +329,11 @@ header {
   color: #9fd10a;
 }
 
+.pci-mail-status.good {
+  background: #9fd10a;
+  color: #fff;
+}
+
 .pci-status-big.success:not(.printable) {
   background: #089108;
   color: #fff;
@@ -329,6 +346,11 @@ header {
 
 .pci-status.success {
   color: #089108;
+}
+
+.pci-mail-status.success {
+  background: #089108;
+  color: #fff;
 }
 
 .pci-status-big.info:not(.printable) {
@@ -345,6 +367,11 @@ header {
   color: #0db9f2;
 }
 
+.pci-mail-status.info {
+  background: #0db9f2;
+  color: #fff;
+}
+
 .pci-status-big.danger:not(.printable) {
   background: #e61919;
   color: #fff;
@@ -359,6 +386,11 @@ header {
   color: #e61919;
 }
 
+.pci-mail-status.danger {
+  background: #e61919;
+  color: #fff;
+}
+
 .pci-status-big.default:not(.printable) {
   background: #bbbbbb;
   color: #666;
@@ -371,6 +403,11 @@ header {
 
 .pci-status.default {
   color: #bbbbbb;
+}
+
+.pci-mail-status.default {
+  background: #bbbbbb;
+  color: #666;
 }
 
 .searchForm {

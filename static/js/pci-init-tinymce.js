@@ -15,7 +15,7 @@ for (const id_textarea of ids_array) {
 
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
-      invalid_styles: "font-size background background-color",
+      invalid_styles: "font-size font-family background background-color",
 
       selector: id_textarea,
       branding: false,
@@ -68,12 +68,12 @@ for (const id_textarea of ids_array) {
       (tinymce_options.content_css = false),
         (tinymce_options.content_style = `
 				body{
-			  		font-family: unset;
+            font-family: "Open Sans", sans-serif;
 				}
             
 				blockquote {
 				    border-radius: 5px; 
-					margin: 0 0 20px;
+					  margin: 0 0 20px;
 				    border: 2px solid #cc0e0e; 
 				    padding: 10px; 
 				    font-weight: bold;
@@ -87,7 +87,7 @@ for (const id_textarea of ids_array) {
       (tinymce_options.content_css = false),
         (tinymce_options.content_style = `
 				body{
-			  		font-family: unset;
+            font-family: "Open Sans", sans-serif;
 				}
             
 				blockquote {

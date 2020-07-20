@@ -668,13 +668,14 @@ def email_article_to_recommenders():
         site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
         description = myconf.take("app.description")
         longname = myconf.take("app.longname")
+        appname = myconf.take("app.name")
         contact = myconf.take("contacts.managers")
         art_authors = art.authors
         art_title = art.title
         art_doi = art.doi
         linkTarget = URL(c="recommender", f="article_details", vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
         linkHelp = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
-        default_subject = "%(longname)s: Preprint available for recommenders" % locals()
+        default_subject = "%(appname)s: Preprint available for recommenders" % locals()
         default_message = common_tools.get_template("text", "default_preprint_avalaible_for_recommenders.txt") % locals()
 
     report = []
@@ -695,8 +696,11 @@ def email_article_to_recommenders():
     if form.process().accepted:
         response.flash = None
         mySubject = request.vars["subject"]
+        subject_without_appname = mySubject.replace("%s: " % appname, "")
+        applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         myContent = request.vars["message"]
-        myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(content=XML(WIKI(myContent)), footer=mkFooter()))
+        
+        myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=appname, content=XML(WIKI(myContent)), footer=mkFooter()))
         for rid in ids:
             destPerson = common_small_html.mkUserWithMail(auth, db, rid)
             destAddress = db.auth_user[rid].email

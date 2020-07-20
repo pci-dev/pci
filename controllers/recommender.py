@@ -1045,6 +1045,7 @@ def email_for_registered_reviewer():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
+    appname = myconf.take("app.name")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
@@ -1065,7 +1066,7 @@ def email_for_registered_reviewer():
 
     default_message = common_tools.get_template("text", "default_review_invitation_register_user.txt") % locals()
 
-    default_subject = "%(longname)s: Invitation to review a preprint" % locals()
+    default_subject = "%(appname)s: Invitation to review a preprint" % locals()
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1140,6 +1141,7 @@ def email_for_new_reviewer():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
+    appname = myconf.take("app.name")
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
@@ -1164,7 +1166,7 @@ def email_for_new_reviewer():
 
     default_message = common_tools.get_template("text", "default_review_invitation_new_user.txt") % locals()
 
-    default_subject = "%(longname)s: Invitation to review a preprint" % locals()
+    default_subject = "%(appname)s: Invitation to review a preprint" % locals()
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1305,6 +1307,7 @@ def send_review_reminder():
     description = myconf.take("app.description")
     thematics = myconf.take("app.thematics")
     longname = myconf.take("app.longname")
+    appname = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     reset_password_key = None
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
@@ -1312,7 +1315,7 @@ def send_review_reminder():
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     if (review.review_state or "Pending") == "Pending":
-        default_subject = "%(longname)s reminder: Invitation to review a preprint" % locals()
+        default_subject = "%(appname)s reminder: Invitation to review a preprint" % locals()
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
         # NOTE: parallel submission
         parallelText = ""
@@ -1334,7 +1337,7 @@ def send_review_reminder():
             default_message = common_tools.get_template("text", "default_review_reminder_register_user.txt") % locals()
 
     elif review.review_state == "Under consideration":
-        default_subject = "%(longname)s reminder: Review due" % locals()
+        default_subject = "%(appname)s reminder: Review due" % locals()
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
         default_message = common_tools.get_template("text", "default_review_reminder_under_consideration.txt") % locals()
 
@@ -1413,6 +1416,7 @@ def send_review_cancellation():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
+    appname = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
@@ -1420,7 +1424,7 @@ def send_review_cancellation():
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Pending") == "Pending":
-        default_subject = "%(longname)s: Cancellation of a review request" % locals()
+        default_subject = "%(appname)s: Cancellation of a review request" % locals()
         default_message = common_tools.get_template("text", "default_review_cancellation.txt") % locals()
 
     else:

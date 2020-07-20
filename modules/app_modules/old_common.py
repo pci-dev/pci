@@ -238,7 +238,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 )
             )
             myArticle.append(SCRIPT("$.cookie('PCiHideCoverLetter', 'On', {expires:365, path:'/'});"))
-            myArticle.append(DIV(B(current.T("Cover letter")), BR(), WIKI((art.cover_letter or "")), _class="pci-bigtext pci-onoffCoverLetter"))
+            myArticle.append(DIV(B(current.T("Cover letter")), BR(), WIKI((art.cover_letter or ""), safe_mode=False), _class="pci-bigtext pci-onoffCoverLetter"))
         else:
             myArticle.append(DIV(A(current.T("No Cover letter"), _class="btn btn-default disabled"), _class="pci-EditButtons"))
     if not (printable) and not (quiet):
@@ -264,7 +264,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             DIV(
                 B(current.T("Abstract")),
                 BR(),
-                WIKI((art.abstract or "")),
+                WIKI((art.abstract or ""), safe_mode=False),
                 SPAN(I(current.T("Keywords:") + " " + art.keywords) + BR() if art.keywords else ""),
                 _class="pci-bigtext pci-onoffAbstract",
             )
@@ -274,7 +274,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             DIV(
                 B(current.T("Abstract")),
                 BR(),
-                WIKI((art.abstract or "")),
+                WIKI((art.abstract or ""), safe_mode=False),
                 SPAN(I(current.T("Keywords:") + " " + art.keywords) + BR() if art.keywords else ""),
                 _class="pci-bigtext",
             )
@@ -400,7 +400,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     BR(),
                     SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi) + BR()) if (recomm.doi != art.doi) else SPAN(""),
                     I(recomm.last_change.strftime("%Y-%m-%d")) if recomm.last_change else "",
-                    DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="pci-bigtext margin"),
+                    DIV(WIKI((recomm.recommendation_comments or ""), safe_mode=False), _class="pci-bigtext margin"),
                     _class="pci-recommendation-div",
                 )
             )

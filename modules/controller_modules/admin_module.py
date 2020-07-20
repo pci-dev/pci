@@ -678,3 +678,22 @@ def mkRecommendersAffiliations(auth, db, recomm):
     # reviewers += 'one anonymous reviewer'
     # reviewersStr = ''.join(reviewers)
     return reviewersStr
+
+def makeMailStatusDiv(text):
+    if text == "sent":
+        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status success")
+    elif text == "in queue":
+        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status warning")
+    elif text == "failed":
+        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status danger")
+    else:
+        result = text
+    return result
+
+def sanitizeHtmlContent(text):
+    text = text.replace("\r","")
+    text = text.replace("\n","")
+    text = text.replace("<html style='font-size:12pt;'>", "")
+    text = text.replace("<body", "<div")
+    text = text.replace("</body>", "</div>")
+    return text
