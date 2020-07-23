@@ -646,94 +646,94 @@ def manage_comments():
     )
 
 
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
-def email_article_to_recommenders():
-    response.view = "default/myLayout.html"
+# ######################################################################################################################################################################
+# @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+# def email_article_to_recommenders():
+#     response.view = "default/myLayout.html"
 
-    if "articleId" in request.vars and request.vars["articleId"]:
-        articleId = request.vars["articleId"]
-        art = db.t_articles[articleId]
-    if "ids" in request.vars and request.vars["ids"]:
-        ids = request.vars["ids"]
-    if "comeback" in request.vars and request.vars["comeback"]:
-        comeback = request.vars["comeback"]
+#     if "articleId" in request.vars and request.vars["articleId"]:
+#         articleId = request.vars["articleId"]
+#         art = db.t_articles[articleId]
+#     if "ids" in request.vars and request.vars["ids"]:
+#         ids = request.vars["ids"]
+#     if "comeback" in request.vars and request.vars["comeback"]:
+#         comeback = request.vars["comeback"]
 
-    if art is None or ids is None or len(ids) == 0:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    else:
-        scheme = myconf.take("alerts.scheme")
-        host = myconf.take("alerts.host")
-        port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-        site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
-        description = myconf.take("app.description")
-        longname = myconf.take("app.longname")
-        appname = myconf.take("app.name")
-        contact = myconf.take("contacts.managers")
-        art_authors = art.authors
-        art_title = art.title
-        art_doi = art.doi
-        linkTarget = URL(c="recommender", f="article_details", vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
-        linkHelp = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
-        default_subject = "%(appname)s: Preprint available for recommenders" % locals()
-        default_message = common_tools.get_template("text", "default_preprint_avalaible_for_recommenders.txt") % locals()
+#     if art is None or ids is None or len(ids) == 0:
+#         raise HTTP(404, "404: " + T("Unavailable"))
+#     else:
+#         scheme = myconf.take("alerts.scheme")
+#         host = myconf.take("alerts.host")
+#         port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+#         site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+#         description = myconf.take("app.description")
+#         longname = myconf.take("app.longname")
+#         appname = myconf.take("app.name")
+#         contact = myconf.take("contacts.managers")
+#         art_authors = art.authors
+#         art_title = art.title
+#         art_doi = art.doi
+#         linkTarget = URL(c="recommender", f="article_details", vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
+#         linkHelp = URL(c="help", f="help_generic", scheme=scheme, host=host, port=port)
+#         default_subject = "%(appname)s: Preprint available for recommenders" % locals()
+#         default_message = common_tools.get_template("text", "default_preprint_avalaible_for_recommenders.txt") % locals()
 
-    report = []
-    selRec = []
-    for rid in ids:
-        selRec.append(LI(common_small_html.mkUserWithMail(auth, db, rid)))
-    myContents = DIV(H3(T("To each selected recommender:")), UL(selRec), _style="margin-left:400px;")
-    form = SQLFORM.factory(
-        # Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
-        # Field('bcc', label=T('BCC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
-        # Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
-        Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
-        Field("message", label=T("Message"), type="text", default=default_message, required=True),
-    )
-    form.element(_type="submit")["_value"] = T("Send email so selected recommenders")
-    form.element("textarea[name=message]")["_style"] = "height:550px;"
+#     report = []
+#     selRec = []
+#     for rid in ids:
+#         selRec.append(LI(common_small_html.mkUserWithMail(auth, db, rid)))
+#     myContents = DIV(H3(T("To each selected recommender:")), UL(selRec), _style="margin-left:400px;")
+#     form = SQLFORM.factory(
+#         # Field('replyto', label=T('Reply-to'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default=replyto_address, writable=False),
+#         # Field('bcc', label=T('BCC'), type='string', length=250, requires=IS_EMAIL(error_message=T('invalid email!')), default='%s, %s'%(replyto.email, contact), writable=False),
+#         # Field('reviewer_email', label=T('Reviewer email address'), type='string', length=250, default=reviewer.email, writable=False, requires=IS_EMAIL(error_message=T('invalid email!'))),
+#         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
+#         Field("message", label=T("Message"), type="text", default=default_message, required=True),
+#     )
+#     form.element(_type="submit")["_value"] = T("Send email so selected recommenders")
+#     form.element("textarea[name=message]")["_style"] = "height:550px;"
 
-    if form.process().accepted:
-        response.flash = None
-        mySubject = request.vars["subject"]
-        subject_without_appname = mySubject.replace("%s: " % appname, "")
-        applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        myContent = request.vars["message"]
+#     if form.process().accepted:
+#         response.flash = None
+#         mySubject = request.vars["subject"]
+#         subject_without_appname = mySubject.replace("%s: " % appname, "")
+#         applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+#         myContent = request.vars["message"]
         
-        myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=appname, content=XML(WIKI(myContent)), footer=mkFooter()))
-        for rid in ids:
-            destPerson = common_small_html.mkUserWithMail(auth, db, rid)
-            destAddress = db.auth_user[rid].email
-            mail_resu = False
-            try:
-                mail_resu = mail.send(to=[destAddress], cc=contact, subject=mySubject, message=myMessage)
-            except:
-                pass
-            if mail_resu:
-                report.append("email sent to %s" % destPerson.flatten())
-            else:
-                report.append("email NOT SENT to %s" % destPerson.flatten())
-            time.sleep(MAIL_DELAY)
+#         myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=appname, content=XML(WIKI(myContent)), footer=mkFooter()))
+#         for rid in ids:
+#             destPerson = common_small_html.mkUserWithMail(auth, db, rid)
+#             destAddress = db.auth_user[rid].email
+#             mail_resu = False
+#             try:
+#                 mail_resu = mail.send(to=[destAddress], cc=contact, subject=mySubject, message=myMessage)
+#             except:
+#                 pass
+#             if mail_resu:
+#                 report.append("email sent to %s" % destPerson.flatten())
+#             else:
+#                 report.append("email NOT SENT to %s" % destPerson.flatten())
+#             time.sleep(MAIL_DELAY)
 
-        print("\n".join(report))
-        if session.flash is None:
-            session.flash = "; ".join(report)
-        else:
-            session.flash += "; " + "; ".join(report)
-        if comeback:
-            redirect(comeback)
-        else:
-            redirect(request.env.http_referer)
+#         print("\n".join(report))
+#         if session.flash is None:
+#             session.flash = "; ".join(report)
+#         else:
+#             session.flash += "; " + "; ".join(report)
+#         if comeback:
+#             redirect(comeback)
+#         else:
+#             redirect(request.env.http_referer)
 
-    return dict(
-        content=myContents,
-        form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailToWarnRecommendersHelp"),
-        titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailToWarnRecommendersTitle"),
-        customText=getText(request, auth, db, "#EmailToWarnRecommendersInfoText"),
-        myBackButton=common_small_html.mkBackButton(),
-    )
+#     return dict(
+#         content=myContents,
+#         form=form,
+#         pageHelp=getHelp(request, auth, db, "#EmailToWarnRecommendersHelp"),
+#         titleIcon="envelope",
+#         pageTitle=getTitle(request, auth, db, "#EmailToWarnRecommendersTitle"),
+#         customText=getText(request, auth, db, "#EmailToWarnRecommendersInfoText"),
+#         myBackButton=common_small_html.mkBackButton(),
+#     )
 
 
 ######################################################################################################################################################################

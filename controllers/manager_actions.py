@@ -155,7 +155,7 @@ def set_not_considered():
 def send_suggested_recommender_reminder():
     if "suggRecommId" in request.vars:
         suggRecommId = request.vars["suggRecommId"]
-        do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecommId)
+        emailing.send_reminder_to_suggested_recommender(session, auth, db, suggRecommId)
     else:
         session.flash = T("Unavailable")
     redirect(request.env.http_referer)

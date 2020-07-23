@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
-
 import re
 import copy
 import datetime
 from dateutil.relativedelta import *
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
-from gluon.html import markmin_serializer
+
+from gluon import current
+from gluon.html import *
+from gluon.contrib.appconfig import AppConfig
 
 from app_modules.helper import *
 
 from app_modules import common_small_html
-
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -74,7 +75,6 @@ def mkSuggestReviewToButton(auth, db, row, recommId, myGoal):
 def mkOtherContributors(auth, db, row):
     butts = []
     hrevs = []
-    art = db.t_articles[row.article_id]
     revs = db(db.t_press_reviews.recommendation_id == row.id).select()
     for rev in revs:
         if rev.contributor_id:

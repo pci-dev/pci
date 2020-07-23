@@ -289,7 +289,7 @@ def email_to_selected_reviewers():
         reviewersList = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.reviewer_id != auth.user_id)).select(
             db.t_reviews.id
         )
-        do_send_email_to_reviewer_review_invitation(session, auth, db, reviewersList)
+        emailing.send_to_reviewer_review_invitation(session, auth, db, reviewersList)
     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
 
 

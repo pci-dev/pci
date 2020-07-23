@@ -11,11 +11,10 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-
-from app_modules.emailing import *
 from app_modules.helper import *
 
 from controller_modules import admin_module
+from app_modules import emailing
 from app_modules import common_small_html
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
@@ -35,7 +34,7 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def testMail():
     print("starting test mail")
-    do_send_email_to_test(session, auth, db, auth.user_id)
+    emailing.send_test_mail(session, auth, db, auth.user_id)
     redirect(request.env.http_referer)
 
 

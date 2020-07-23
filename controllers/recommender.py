@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import time
 import re
 import copy
 from dateutil.relativedelta import *
@@ -1104,7 +1105,7 @@ def email_for_registered_reviewer():
 
     if form.process().accepted:
         try:
-            do_send_personal_email_to_reviewer(
+            emailing.send_reviewer_invitation(
                 session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
@@ -1233,7 +1234,7 @@ def email_for_new_reviewer():
             # linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True))
             if existingUser:
                 try:
-                    do_send_personal_email_to_reviewer(
+                    emailing.send_reviewer_invitation(
                         session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
                     )
                     # currentReview = db(db.t_reviews.id==reviewId).select().first()
@@ -1243,7 +1244,7 @@ def email_for_new_reviewer():
                     pass
             else:
                 try:
-                    do_send_personal_email_to_reviewer(
+                    emailing.send_reviewer_invitation(
                         session,
                         auth,
                         db,
@@ -1363,7 +1364,7 @@ def send_review_reminder():
 
     if form.process().accepted:
         try:
-            do_send_personal_email_to_reviewer(
+            emailing.send_reviewer_invitation(
                 session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], reset_password_key, linkTarget
             )
         except Exception as e:
@@ -1452,7 +1453,7 @@ def send_review_cancellation():
     if form.process().accepted:
         try:
             review.update_record(review_state="Cancelled")
-            do_send_personal_email_to_reviewer(
+            emailing.send_reviewer_invitation(
                 session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:

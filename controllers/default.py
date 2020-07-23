@@ -220,7 +220,7 @@ def user():
             if (fkey is not None) and (user is not None):
                 reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
                 user.update_record(reset_password_key=reset_password_key)
-                do_send_email_to_reset_password(session, auth, db, user.id)
+                emailing.send_to_reset_password(session, auth, db, user.id)
                 if suite:
                     redirect(URL("default", "index", vars=dict(_next=suite)))  # squeeze normal functions
                 else:

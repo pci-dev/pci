@@ -12,10 +12,10 @@ import shutil
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
+from app_modules import emailing
 from app_modules import common_small_html
 from app_modules import common_tools
 
-from app_modules.emailing import *
 from app_modules.helper import *
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape

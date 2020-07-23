@@ -47,8 +47,8 @@ MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "
 
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")
-def do_send_email_to_test(session, auth, db, userId):
-    print("do_send_email_to_test")
+def send_test_mail(session, auth, db, userId):
+    print("send_test_mail")
     # Get common variables :
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -71,8 +71,8 @@ def do_send_email_to_test(session, auth, db, userId):
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def do_send_email_to_submitter(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_submitter")
+def send_to_submitter(session, auth, db, articleId, newStatus):
+    print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -165,8 +165,8 @@ def do_send_email_to_submitter(session, auth, db, articleId, newStatus):
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints (gab ex en : 337)
-def do_send_email_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_recommender_postprint_status_changed")
+def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
+    print("send_to_recommender_postprint_status_changed")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -195,14 +195,12 @@ def do_send_email_to_recommender_postprint_status_changed(session, auth, db, art
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
-def do_send_email_to_recommender_status_changed(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_recommender_status_changed")
+def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
+    print("send_to_recommender_status_changed")
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_resu = False
     reports = []
-    attach = []
 
     mail_vars["recomm_limit_days"] = myconf.get("config.recomm_limit_days", default=50)
 
@@ -225,57 +223,11 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
             mail_vars["tNewStatus"] = current.T(newStatus)
 
             if article.status == "Awaiting revision" and newStatus == "Under consideration":
-                closedRecomm = (
-                    db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == recommender_id) & (db.t_recommendations.is_closed == True))
-                    .select(orderby=db.t_recommendations.id)
-                    .last()
-                )
                 mail_vars["mailManagers"] = A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
                 mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%a %b %d")
 
-                # write fields to temp files
-                directory = os.path.join(os.path.dirname(__file__), "../../tmp/attachments")
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-
-                # NOTE: include answer & track-change (append to "attach")
-                if closedRecomm:
-                    if closedRecomm.reply is not None and closedRecomm.reply != "":
-                        tmpR0 = os.path.join(directory, "Answer_%d.txt" % closedRecomm.id)
-                        f0 = open(tmpR0, "w+")
-                        f0.write(closedRecomm.reply)
-                        f0.close()
-                        attach.append(mail.Attachment(tmpR0, content_id="Answer"))
-                        try:
-                            os.unlink(tmpR0)
-                        except:
-                            print("unable to delete temp file %s" % tmpR0)
-                            pass
-                    if closedRecomm.reply_pdf is not None and closedRecomm.reply_pdf != "":
-                        (fnR1, stream) = db.t_recommendations.reply_pdf.retrieve(closedRecomm.reply_pdf)
-                        tmpR1 = os.path.join(directory, str(uuid4()))
-                        with closing(stream) as src, closing(open(tmpR1, "wb")) as dest:
-                            shutil.copyfileobj(src, dest)
-                        attach.append(mail.Attachment(tmpR1, fnR1))
-                        try:
-                            os.unlink(tmpR1)
-                        except:
-                            print("unable to delete temp file %s" % tmpR1)
-                            pass
-                    if closedRecomm.track_change is not None and closedRecomm.track_change != "":
-                        (fnTr, stream) = db.t_recommendations.track_change.retrieve(closedRecomm.track_change)
-                        tmpTr = os.path.join(directory, str(uuid4()))
-                        with closing(stream) as src, closing(open(tmpTr, "wb")) as dest:
-                            shutil.copyfileobj(src, dest)
-                        attach.append(mail.Attachment(tmpTr, fnTr))
-                        try:
-                            os.unlink(tmpTr)
-                        except:
-                            print("unable to delete temp file %s" % tmpTr)
-                            pass
-
                 hashtag_template = "#RecommenderStatusChangedToUnderConsideration"
-
+            
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
                 mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
@@ -286,34 +238,17 @@ def do_send_email_to_recommender_status_changed(session, auth, db, articleId, ne
                 hashtag_template = "#RecommenderArticleStatusChanged"
 
             # Fill define template with mail_vars :
-            mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-            subject = mail_template["subject"] % mail_vars
-            subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-            applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            content = mail_template["content"] % mail_vars
-            message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-            try:
-                if len(attach) > 0:
-                    mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message, attachments=attach)
-                    # NOTE: delete attachment files -> see below
-                else:
-                    mail_resu = True
-                    db.mail_queue.insert(
-                        dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template
-                    )
-            except:
-                pass
-
-            reports = emailing_tools.createMailReport(mail_resu, mail_vars["destPerson"].flatten(), reports)
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
-def do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
-    print("do_send_email_to_suggested_recommenders_not_needed_anymore")
+def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
+    print("send_to_suggested_recommenders_not_needed_anymore")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -344,19 +279,6 @@ def do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db
             hashtag_template = "#RecommenderSuggestionNotNeededAnymore"
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-            # suggRecom = db.t_suggested_recommenders[sugg_recommender["t_suggested_recommenders.id"]]
-            # if suggRecom.emailing:
-            #     emailing0 = suggRecom.emailing
-            # else:
-            #     emailing0 = ""
-            # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-            # suggRecom.email_sent = True
-            # emailing += message
-            # emailing += "<hr>"
-            # emailing += emailing0
-            # suggRecom.emailing = emailing
-            # suggRecom.update_record()
-
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
@@ -364,8 +286,8 @@ def do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
-    print("do_send_email_to_suggested_recommenders")
+def send_to_suggested_recommenders(session, auth, db, articleId):
+    print("send_to_suggested_recommenders")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -404,22 +326,6 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
             hashtag_template = "#RecommenderSuggestedArticle"
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-            # suggRecom = db.t_suggested_recommenders[sugg_recommender["sr_id"]]
-            # if suggRecom.emailing:
-            #     emailing0 = suggRecom.emailing
-            # else:
-            #     emailing0 = ""
-
-            # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-            # suggRecom.email_sent = True
-
-            # emailing += message
-            # emailing += "<hr>"
-            # emailing += emailing0
-
-            # suggRecom.emailing = emailing
-            # suggRecom.update_record()
-
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
@@ -427,8 +333,8 @@ def do_send_email_to_suggested_recommenders(session, auth, db, articleId):
 
 ######################################################################################################################################################################
 # Individual reminder for previous message
-def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecommId):
-    print("do_send_reminder_email_to_suggested_recommenders")
+def send_reminder_to_suggested_recommender(session, auth, db, suggRecommId):
+    print("send_reminder_to_suggested_recommenders")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -456,20 +362,6 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
                 hashtag_template = "#RecommenderSuggestedArticleReminder"
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-                # if suggRecomm.emailing:
-                #     emailing0 = suggRecomm.emailing
-                # else:
-                #     emailing0 = ""
-
-                # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                # suggRecomm.email_sent = True
-
-                # emailing += message
-                # emailing += "<hr>"
-                # emailing += emailing0
-                # suggRecomm.emailing = emailing
-                # suggRecomm.update_record()
-
                 reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
@@ -477,8 +369,8 @@ def do_send_reminder_email_to_suggested_recommender(session, auth, db, suggRecom
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is re-opened
-def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
-    print("do_send_email_to_reviewer_review_reopened")
+def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
+    print("send_to_reviewer_review_reopened")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -509,14 +401,11 @@ def do_send_email_to_reviewer_review_reopened(session, auth, db, reviewId, newFo
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is closed
-def do_send_email_to_recommenders_review_completed(session, auth, db, reviewId):
-    print("do_send_email_to_recommenders_review_completed")
-    mail = emailing_tools.getMailer(auth)
+def send_to_recommenders_review_completed(session, auth, db, reviewId):
+    print("send_to_recommenders_review_completed")
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_resu = False
     reports = []
-    attach = []
 
     rev = db.t_reviews[reviewId]
     recomm = db.t_recommendations[rev.recommendation_id]
@@ -535,71 +424,22 @@ def do_send_email_to_recommenders_review_completed(session, auth, db, reviewId):
 
             recommender = db.auth_user[recomm.recommender_id]
             if recommender:
-
-                directory = os.path.join(os.path.dirname(__file__), "../../tmp/attachments")
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-
-                revText = ""
-                if rev.review is not None and rev.review != "":
-                    revText = WIKI(rev.review)
-                    tmpR0 = os.path.join(directory, "Review_%d.html" % rev.id)
-                    f0 = open(tmpR0, "w+")
-                    f0.write(revText.flatten())
-                    f0.close()
-                    attach.append(mail.Attachment(tmpR0, content_id="Review"))
-                    try:
-                        os.unlink(tmpR0)
-                    except:
-                        print("unable to delete temp file %s" % tmpR0)
-                        pass
-
-                # (gab) This part cause mail is not sent when there's a pdf file to send
-                if rev.review_pdf is not None and rev.review_pdf != "":
-                    (fnR1, stream) = db.t_reviews.review_pdf.retrieve(rev.review_pdf)
-                    tmpR1 = os.path.join(directory, str(uuid4()))
-                    with closing(stream) as src, closing(open(tmpR1, "wb")) as dest:
-                        shutil.copyfileobj(src, dest)
-                    attach.append(mail.Attachment(tmpR1, fnR1))
-                    try:
-                        os.unlink(tmpR1)
-                    except:
-                        print("unable to delete temp file %s" % tmpR1)
-                        pass
-                # (gab) end
-
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
                 mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
                 mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
                 hashtag_template = "#ReviewerReviewCompleted"
-                mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-                subject = mail_template["subject"] % mail_vars
-                subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-                applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                content = mail_template["content"] % mail_vars
-                message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter(), revText=revText))
-
-                try:
-                    if len(attach) > 0:
-                        mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message, attachments=attach,)
-                    else:
-                        mail_resu = True
-                        db.mail_queue.insert(
-                            dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template
-                        )
-                except:
-                    pass
-
-                reports = emailing_tools.createMailReport(mail_resu, mail_vars["destPerson"].flatten(), reports)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+                
+                reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
 # Do send email to recommender when a co correcommender accepted recommendation
-def do_send_email_to_recommender_co_recommender_considerated(session, auth, db, pressId):
-    print("do_send_email_to_recommender_co_recommender_considerated")
+def send_to_recommender_co_recommender_considerated(session, auth, db, pressId):
+    print("send_to_recommender_co_recommender_considerated")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -629,8 +469,8 @@ def do_send_email_to_recommender_co_recommender_considerated(session, auth, db, 
 
 
 ######################################################################################################################################################################
-def do_send_email_to_recommenders_co_recommender_declined(session, auth, db, pressId):
-    print("do_send_email_to_recommenders_co_recommender_declined")
+def send_to_recommenders_co_recommender_declined(session, auth, db, pressId):
+    print("send_to_recommenders_co_recommender_declined")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -661,8 +501,8 @@ def do_send_email_to_recommenders_co_recommender_declined(session, auth, db, pre
 
 
 ######################################################################################################################################################################
-def do_send_email_to_recommenders_co_recommender_agreement(session, auth, db, pressId):
-    print("do_send_email_to_recommenders_co_recommender_agreement")
+def send_to_recommenders_co_recommender_agreement(session, auth, db, pressId):
+    print("send_to_recommenders_co_recommender_agreement")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -694,8 +534,8 @@ def do_send_email_to_recommenders_co_recommender_agreement(session, auth, db, pr
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is accepted for consideration
-def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId):
-    print("do_send_email_to_recommenders_review_considered")
+def send_to_recommenders_review_considered(session, auth, db, reviewId):
+    print("send_to_recommenders_review_considered")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -734,8 +574,8 @@ def do_send_email_to_recommenders_review_considered(session, auth, db, reviewId)
 
 
 ######################################################################################################################################################################
-def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
-    print("do_send_email_to_recommenders_review_declined")
+def send_to_recommenders_review_declined(session, auth, db, reviewId):
+    print("send_to_recommenders_review_declined")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -772,8 +612,8 @@ def do_send_email_to_recommenders_review_declined(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_reviewer_review_invitation(session, auth, db, reviewsList):
-    print("do_send_email_to_reviewer_review_invitation")
+def send_to_reviewer_review_invitation(session, auth, db, reviewsList):
+    print("send_to_reviewer_review_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -805,20 +645,20 @@ def do_send_email_to_reviewer_review_invitation(session, auth, db, reviewsList):
 
                         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
                     else:
-                        print("do_send_email_to_reviewer_review_invitation: Article not found")
+                        print("send_to_reviewer_review_invitation: Article not found")
                 else:
-                    print("do_send_email_to_reviewer_review_invitation: recommender = reviewer")
+                    print("send_to_reviewer_review_invitation: recommender = reviewer")
             else:
-                print("do_send_email_to_reviewer_review_invitation: Recommendation not found")
+                print("send_to_reviewer_review_invitation: Recommendation not found")
         else:
-            print("do_send_email_to_reviewer_review_invitation: Review not found")
+            print("send_to_reviewer_review_invitation: Review not found")
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
-def do_send_email_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_reviewers_article_cancellation")
+def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
+    print("send_to_reviewers_article_cancellation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -844,31 +684,18 @@ def do_send_email_to_reviewers_article_cancellation(session, auth, db, articleId
                     hashtag_template = "#ReviewersArticleCancellation"
                     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-                    # if rev.emailing:
-                    #     emailing0 = rev.emailing
-                    # else:
-                    #     emailing0 = ""
-
-                    # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                    # emailing += message
-                    # emailing += "<hr>"
-                    # emailing += emailing0
-                    # rev.emailing = emailing
-                    # rev.review_state = "Cancelled"
-                    # rev.update_record()
-
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
         else:
-            print("do_send_email_to_reviewers_article_cancellation: Recommendation not found")
+            print("send_to_reviewers_article_cancellation: Recommendation not found")
     else:
-        print("do_send_email_to_reviewers_article_cancellation: Article not found")
+        print("send_to_reviewers_article_cancellation: Article not found")
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
-def do_send_mail_admin_new_user(session, auth, db, userId):
-    print("do_send_mail_admin_new_user")
+def send_admin_new_user(session, auth, db, userId):
+    print("send_admin_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -876,27 +703,18 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
         db.auth_user.ALL
     )
     dest = []
-    for admin in admins:
-        dest.append(admin.email)
+    
+
     user = db.auth_user[userId]
     if user:
         mail_vars["userTxt"] = common_small_html.mkUser(auth, db, userId)
         mail_vars["userMail"] = user.email
+        
+        for admin in admins:
+            mail_vars["destAddress"] = admin.email
 
-        mail_template = emailing_tools.getMailTemplateHashtag(db, "#AdminNewUser")
-        subject = mail_template["subject"] % mail_vars
-        content = mail_template["content"] % mail_vars
-
-        hashtag_template = "#AdminNewUser"
-        mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-        subject = mail_template["subject"] % mail_vars
-        subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-        applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        content = mail_template["content"] % mail_vars
-        message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
-
-        if len(dest) > 0:  # TODO: also check elsewhere
-            db.mail_queue.insert(dest_mail_address=dest, mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template)
+            hashtag_template = "#AdminNewUser"
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
     reports = emailing_tools.createMailReport(True, "administrators", reports)
 
@@ -904,8 +722,8 @@ def do_send_mail_admin_new_user(session, auth, db, userId):
 
 
 ######################################################################################################################################################################
-def do_send_mail_new_user(session, auth, db, userId):
-    print("do_send_mail_new_user")
+def send_new_user(session, auth, db, userId):
+    print("send_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -946,8 +764,8 @@ def do_send_mail_new_user(session, auth, db, userId):
 
 
 ######################################################################################################################################################################
-def do_send_mail_new_membreship(session, auth, db, membershipId):
-    print("do_send_mail_new_membreship")
+def send_new_membreship(session, auth, db, membershipId):
+    print("send_new_membreship")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -981,8 +799,8 @@ def do_send_mail_new_membreship(session, auth, db, membershipId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_managers(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_managers")
+def send_to_managers(session, auth, db, articleId, newStatus):
+    print("send_to_managers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1053,8 +871,8 @@ def do_send_email_to_managers(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
-    print("do_send_email_to_thank_recommender_postprint")
+def send_to_thank_recommender_postprint(session, auth, db, recommId):
+    print("send_to_thank_recommender_postprint")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1089,8 +907,8 @@ def do_send_email_to_thank_recommender_postprint(session, auth, db, recommId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
-    print("do_send_email_to_thank_recommender_preprint")
+def send_to_thank_recommender_preprint(session, auth, db, articleId):
+    print("send_to_thank_recommender_preprint")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1123,8 +941,8 @@ def do_send_email_to_thank_recommender_preprint(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_thank_reviewer_acceptation(session, auth, db, reviewId, newForm):
-    print("do_send_email_to_thank_reviewer_acceptation")
+def send_to_thank_reviewer_acceptation(session, auth, db, reviewId, newForm):
+    print("send_to_thank_reviewer_acceptation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1154,24 +972,14 @@ def do_send_email_to_thank_reviewer_acceptation(session, auth, db, reviewId, new
                     hashtag_template = "#ReviewerThankForReviewAcceptation"
                     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-                    # if newForm["emailing"]:
-                    #     emailing0 = newForm["emailing"]
-                    # else:
-                    #     emailing0 = ""
-                    # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                    # emailing += message
-                    # emailing += "<hr>"
-                    # emailing += emailing0
-                    # newForm["emailing"] = emailing
-
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
-def do_send_email_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
-    print("do_send_email_to_thank_reviewer_done")
+def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
+    print("send_to_thank_reviewer_done")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1208,24 +1016,14 @@ def do_send_email_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
                     hashtag_template = "#ReviewerThankForReviewDone"
                     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-                    # if newForm["emailing"]:
-                    #     emailing0 = newForm["emailing"]
-                    # else:
-                    #     emailing0 = ""
-                    # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                    # emailing += message
-                    # emailing += "<hr>"
-                    # emailing += emailing0
-                    # newForm["emailing"] = emailing
-
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
-def do_send_email_to_delete_one_corecommender(session, auth, db, contribId):
-    print("do_send_email_to_delete_one_corecommender")
+def send_to_delete_one_corecommender(session, auth, db, contribId):
+    print("send_to_delete_one_corecommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1257,8 +1055,8 @@ def do_send_email_to_delete_one_corecommender(session, auth, db, contribId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_one_corecommender(session, auth, db, contribId):
-    print("do_send_email_to_one_corecommender")
+def send_to_one_corecommender(session, auth, db, contribId):
+    print("send_to_one_corecommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1296,8 +1094,8 @@ def do_send_email_to_one_corecommender(session, auth, db, contribId):
 
 
 ######################################################################################################################################################################
-def do_send_email_to_corecommenders(session, auth, db, articleId, newStatus):
-    print("do_send_email_to_corecommenders")
+def send_to_corecommenders(session, auth, db, articleId, newStatus):
+    print("send_to_corecommenders")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1340,8 +1138,8 @@ def do_send_email_to_corecommenders(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-def alert_new_recommendations(session, auth, db, userId, msgArticles):
-    print("alert_new_recommendations")
+def send_alert_new_recommendations(session, auth, db, userId, msgArticles):
+    print("send_alert_new_recommendations")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1359,8 +1157,8 @@ def alert_new_recommendations(session, auth, db, userId, msgArticles):
 
 
 ######################################################################################################################################################################
-def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus):
-    print("do_send_email_decision_to_reviewers")
+def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
+    print("send_decision_to_reviewers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1399,18 +1197,6 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
 
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
-                # review = db.t_reviews[rev.t_reviews.id]
-                # if review.emailing:
-                #     emailing0 = review.emailing
-                # else:
-                #     emailing0 = ""
-                # emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                # emailing += message
-                # emailing += "<hr>"
-                # emailing += emailing0
-                # review.emailing = emailing
-                # review.update_record()
-
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
@@ -1418,8 +1204,8 @@ def do_send_email_decision_to_reviewers(session, auth, db, articleId, newStatus)
 
 ######################################################################################################################################################################
 # RESET PASSWORD EMAIL
-def do_send_email_to_reset_password(session, auth, db, userId):
-    print("do_send_email_decision_to_reviewers")
+def send_to_reset_password(session, auth, db, userId):
+    print("send_decision_to_reviewers")
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -1457,12 +1243,9 @@ def do_send_email_to_reset_password(session, auth, db, userId):
 # No template for this one :
 # Will be changed by gab soon...
 ######################################################################################################################################################################
-def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc, subject, message, reset_password_key=None, linkTarget=None):
-    print("do_send_personal_email_to_reviewer")
-    mail = emailing_tools.getMailer(auth)
+def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, message, reset_password_key=None, linkTarget=None):
+    print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
-
-    mail_resu = False
     reports = []
 
     review = db.t_reviews[reviewId]
@@ -1472,6 +1255,7 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
             rev = db.auth_user[review["reviewer_id"]]
             if rev:
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+                mail_vars["destAddress"] = rev["email"]
                 content = DIV(WIKI(message))
 
                 if reset_password_key:
@@ -1523,37 +1307,14 @@ def do_send_personal_email_to_reviewer(session, auth, db, reviewId, replyto, cc,
                 
                 subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
                 applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                try:    
-                    message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
-                    mail_resu = mail.send(
-                        to=[rev["email"]],
-                        cc=[cc, replyto],
-                        # bcc=managers,
-                        reply_to=replyto,
-                        subject=subject,
-                        message=message,
-                    )
-                except:
-                    pass
+                message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
+                
+                db.mail_queue.insert(dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag="not set")
+                
+                if review.review_state is None:
+                    review.review_state = "Pending"
+                    review.update_record()
 
-                if review.emailing:
-                    emailing0 = review.emailing
-                else:
-                    emailing0 = ""
-                if mail_resu:
-                    emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="green">SENT</font></h2>'
-                    if review.review_state is None:
-                        review.review_state = "Pending"
-                else:
-                    emailing = "<h2>" + str(datetime.datetime.now()) + ' -- <font color="red">NOT SENT</font></h2>'
-                    # review.review_state = ''
-                emailing += message
-                emailing += "<hr>"
-                emailing += emailing0
-                review.emailing = emailing
-                review.update_record()
-
-                reports = emailing_tools.createMailReport(mail_resu, mail_vars["destPerson"].flatten(), reports)
-                time.sleep(MAIL_DELAY)
+                reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)

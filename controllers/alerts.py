@@ -5,7 +5,6 @@ import re
 
 # from gluon.contrib.markdown import WIKI
 
-from app_modules.emailing import *
 from datetime import date, datetime
 import calendar
 from time import sleep
@@ -16,6 +15,7 @@ from gluon.contrib.appconfig import AppConfig
 
 from app_components import article_components
 
+from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 
@@ -52,7 +52,7 @@ def testUserRecommendedAlert():
                             odd = not (odd)
                         msgContents = DIV(TABLE(TBODY(myRows), _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
                         if len(myRows) > 0:
-                            alert_new_recommendations(session, auth, db, userId, msgContents)
+                            send_alert_new_recommendations(session, auth, db, userId, msgContents)
                             # (gab) ArticleRowCard need mail template styles
 
             redirect(request.env.http_referer)
@@ -89,7 +89,7 @@ def alertUsersLastRecommendations():
                         odd = not (odd)
                     msgContents = DIV(DIV(myRows, _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
                     if len(myRows) > 0:
-                        alert_new_recommendations(session, auth, db, userId, msgContents)
+                        send_alert_new_recommendations(session, auth, db, userId, msgContents)
                         # (gab) ArticleRowCard need mail template styles
                         user.last_alert = datetime.now()
                         user.update_record()

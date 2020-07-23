@@ -11,9 +11,9 @@ from gluon.custom_import import track_changes
 
 track_changes(True)
 
-from app_modules.emailing import *
 from app_modules.helper import *
 
+from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 
@@ -41,7 +41,7 @@ scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-pdf_max_size = int(myconf.take("config.pdf_max_size")) or 5
+pdf_max_size = int(myconf.take("config.pdf_max_size") or 5 )
 
 
 if not request.env.web2py_runtime_gae:
@@ -448,8 +448,8 @@ def newRegistration(s, f):
     o = s.select().first()
     # BUG: missing key "registration_key" error occurs when password reset and account not confirmed
     if o.registration_key != "" and f["registration_key"] == "":
-        do_send_mail_new_user(session, auth, db, o.id)
-        do_send_mail_admin_new_user(session, auth, db, o.id)
+        emailing.send_new_user(session, auth, db, o.id)
+        emailing.send_admin_new_user(session, auth, db, o.id)
     return None
 
 
@@ -457,7 +457,7 @@ db.auth_membership._after_insert.append(lambda f, id: newMembership(f, id))
 
 
 def newMembership(f, membershipId):
-    do_send_mail_new_membreship(session, auth, db, membershipId)
+    emailing.send_new_membreship(session, auth, db, membershipId)
 
 
 db.auth_user._after_insert.append(lambda f, i: insUserThumb(f, i))
@@ -587,48 +587,48 @@ def deltaStatus(s, f):
         # print(o.status + " --> " +f['status'])
         if o.already_published:  # POSTPRINTS
             # if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
-            # do_send_email_to_managers(session, auth, db, o['id'], f['status'])
-            # do_send_email_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
-            # do_send_email_to_corecommenders(session, auth, db, o['id'], f['status'])
+            # emailing.send_to_managers(session, auth, db, o['id'], f['status'])
+            # emailing.send_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
+            # emailing.send_to_corecommenders(session, auth, db, o['id'], f['status'])
             # elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
             if o.status != f["status"]:
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_recommender_postprint_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_recommender_postprint_status_changed(session, auth, db, o["id"], f["status"])
+                emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
 
         else:  # PREPRINTS
             if o.status == "Pending" and f["status"] == "Awaiting consideration":
-                do_send_email_to_suggested_recommenders(session, auth, db, o["id"])
-                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
+                emailing.send_to_suggested_recommenders(session, auth, db, o["id"])
+                emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
-                do_send_email_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
-                do_send_email_to_thank_recommender_preprint(session, auth, db, o["id"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
+                emailing.send_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
+                emailing.send_to_thank_recommender_preprint(session, auth, db, o["id"])
             elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
-                do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
+                emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
             elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
-                do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
+                emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Cancelled":
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
-                do_send_email_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
-                do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
+                emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
+                emailing.send_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
+                emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
             elif o.status != f["status"]:
-                do_send_email_to_managers(session, auth, db, o["id"], f["status"])
-                do_send_email_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
-                do_send_email_to_corecommenders(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
+                emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended"):
-                    do_send_email_decision_to_reviewers(session, auth, db, o["id"], f["status"])
-                    do_send_email_to_submitter(session, auth, db, o["id"], f["status"])
+                    emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
+                    emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                 if f["status"] in ("Rejected", "Recommended", "Awaiting revision"):
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
                     for lr in lastRecomm:
@@ -639,7 +639,7 @@ def deltaStatus(s, f):
 
 def newArticle(s, articleId):
     if s.already_published is False:
-        do_send_email_to_managers(session, auth, db, articleId, "Pending")
+        emailing.send_to_managers(session, auth, db, articleId, "Pending")
     return None
 
 
@@ -708,7 +708,7 @@ def newRecommendation(s, i):
         art = db.t_articles[recomm.article_id]
         if art:
             if art.already_published:
-                do_send_email_to_thank_recommender_postprint(session, auth, db, i)
+                emailing.send_to_thank_recommender_postprint(session, auth, db, i)
     return None
 
 
@@ -822,15 +822,15 @@ db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 def reviewDone(s, f):
     o = s.select().first()
     if o["review_state"] == "Pending" and f["review_state"] == "Under consideration":
-        do_send_email_to_recommenders_review_considered(session, auth, db, o["id"])
-        do_send_email_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
+        emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
+        emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
     elif o["review_state"] == "Completed" and f["review_state"] == "Under consideration":
-        do_send_email_to_reviewer_review_reopened(session, auth, db, o["id"], f)
+        emailing.send_to_reviewer_review_reopened(session, auth, db, o["id"], f)
     elif o["review_state"] == "Pending" and f["review_state"] == "Declined":
-        do_send_email_to_recommenders_review_declined(session, auth, db, o["id"])
+        emailing.send_to_recommenders_review_declined(session, auth, db, o["id"])
     if o["reviewer_id"] is not None and o["review_state"] == "Under consideration" and f["review_state"] == "Completed":
-        do_send_email_to_recommenders_review_completed(session, auth, db, o["id"])
-        do_send_email_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
+        emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
+        emailing.send_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
     return None
 
 
@@ -860,7 +860,7 @@ db.t_suggested_recommenders._after_insert.append(lambda f, i: appendRecommender(
 def appendRecommender(f, i):
     a = db.t_articles[f.article_id]
     if a and a["status"] == "Awaiting consideration":
-        do_send_email_to_suggested_recommenders(session, auth, db, a["id"])
+        emailing.send_to_suggested_recommenders(session, auth, db, a["id"])
 
 
 db.define_table(
@@ -884,7 +884,7 @@ db.t_press_reviews._after_insert.append(lambda s, i: newPressReview(s, i))
 
 
 def newPressReview(s, i):
-    do_send_email_to_one_corecommender(session, auth, db, i)
+    emailing.send_to_one_corecommender(session, auth, db, i)
 
 
 db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
@@ -892,7 +892,7 @@ db.t_press_reviews._before_delete.append(lambda s: delPressReview(s))
 
 def delPressReview(s):
     pr = s.select().first()
-    do_send_email_to_delete_one_corecommender(session, auth, db, pr.id)
+    emailing.send_to_delete_one_corecommender(session, auth, db, pr.id)
 
 
 db.define_table(

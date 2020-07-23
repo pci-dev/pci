@@ -1,4 +1,5 @@
-## in file /app/private/mail_queue.py
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 import time
 
