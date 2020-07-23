@@ -216,12 +216,14 @@ def _manage_articles(statuses, whatNext):
         fields=fields,
         links=links,
         orderby=~db.t_articles.last_status_change,
-        _class="web2py_grid action-button-absolute"
+        _class="web2py_grid action-button-absolute",
     )
 
     absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
 
-    return dict(customText=getText(request, auth, db, "#ManagerArticlesText"), pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"), grid=grid, myFinalScript=absoluteButtonScript)
+    return dict(
+        customText=getText(request, auth, db, "#ManagerArticlesText"), pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"), grid=grid, myFinalScript=absoluteButtonScript
+    )
 
 
 ######################################################################################################################################################################
@@ -288,7 +290,7 @@ def recommendations():
         printable=printable,
         pageHelp=getHelp(request, auth, db, "#ManagerRecommendations"),
         myContents=myContents,
-        myBackButton=common_small_html.mkBackButton()
+        myBackButton=common_small_html.mkBackButton(),
     )
 
 
@@ -544,14 +546,18 @@ def suggested_recommenders():
             dict(
                 header="",
                 body=lambda row: A(
-                    T("Prepare a reminder"), _class="btn btn-info pci-manager", _href=URL(c="manager_actions", f="send_suggested_recommender_reminder", vars=dict(suggRecommId=row.id))
+                    T("Prepare a reminder"),
+                    _class="btn btn-info pci-manager",
+                    _href=URL(c="manager_actions", f="send_suggested_recommender_reminder", vars=dict(suggRecommId=row.id)),
                 )
                 if not (row.declined)
                 else "",
             )
         )
 
-    addSuggestedRecommendersButton = A(current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True))
+    addSuggestedRecommendersButton = A(
+        current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)
+    )
 
     grid = SQLFORM.grid(
         query,
@@ -699,7 +705,7 @@ def manage_comments():
 #         subject_without_appname = mySubject.replace("%s: " % appname, "")
 #         applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 #         myContent = request.vars["message"]
-        
+
 #         myMessage = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=appname, content=XML(WIKI(myContent)), footer=mkFooter()))
 #         for rid in ids:
 #             destPerson = common_small_html.mkUserWithMail(auth, db, rid)
@@ -789,7 +795,8 @@ def all_recommendations():
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, row.t_recommendations if "t_recommendations" in row else row)),
             # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
             dict(
-                header=T("Actions"), body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row))
+                header=T("Actions"),
+                body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
             ),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
@@ -833,7 +840,7 @@ def all_recommendations():
         fields=fields,
         links=links,
         orderby=~db.t_recommendations.last_change,
-        _class="web2py_grid action-button-absolute"
+        _class="web2py_grid action-button-absolute",
     )
 
     absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
@@ -845,6 +852,6 @@ def all_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        myFinalScript=absoluteButtonScript
+        myFinalScript=absoluteButtonScript,
     )
 

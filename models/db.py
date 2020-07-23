@@ -41,7 +41,7 @@ scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-pdf_max_size = int(myconf.take("config.pdf_max_size") or 5 )
+pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 
 
 if not request.env.web2py_runtime_gae:
@@ -676,16 +676,28 @@ db.define_table(
     Field("is_closed", type="boolean", label=T("Closed"), default=False),
     Field("no_conflict_of_interest", type="boolean", label=T("I/we declare that I/we have no conflict of interest with the authors or the content of the article")),
     Field("reply", type="text", length=2097152, label=T("Author's Reply"), default=""),
-    Field("reply_pdf", type="upload", uploadfield="reply_pdf_data", label=T("Author's Reply as PDF"), requires=[IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf")), IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.')]),
+    Field(
+        "reply_pdf",
+        type="upload",
+        uploadfield="reply_pdf_data",
+        label=T("Author's Reply as PDF"),
+        requires=[IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf")), IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB.")],
+    ),
     Field("reply_pdf_data", type="blob"),  # , readable=False),
-    Field("track_change", type="upload", uploadfield="track_change_data", label=T("Tracked changes document (eg. PDF or Word file)"), requires=IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.')),
+    Field(
+        "track_change",
+        type="upload",
+        uploadfield="track_change_data",
+        label=T("Tracked changes document (eg. PDF or Word file)"),
+        requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+    ),
     Field("track_change_data", type="blob", readable=False),
     Field(
         "recommender_file",
         type="upload",
         uploadfield="recommender_file_data",
         label=T("Recommender's annotations (PDF)"),
-        requires=[IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.'), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))]
+        requires=[IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))],
     ),
     Field("recommender_file_data", type="blob", readable=False),
     format=lambda row: mkRecommendationFormat(auth, db, row),
@@ -724,7 +736,9 @@ db.define_table(
     "t_pdf",
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
-    Field("pdf", type="upload", uploadfield="pdf_data", label=T("PDF"), requires=IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.')),
+    Field(
+        "pdf", type="upload", uploadfield="pdf_data", label=T("PDF"), requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB.")
+    ),
     Field("pdf_data", type="blob"),
     singular=T("PDF file"),
     plural=T("PDF files"),
@@ -749,7 +763,14 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
     ),
     Field("resource_logo_data", type="blob", readable=False),
-    Field("resource_document", type="upload", uploadfield="resource_document_data", comment=T("The document itself"), label=T("Document"), requires=IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.')),
+    Field(
+        "resource_document",
+        type="upload",
+        uploadfield="resource_document_data",
+        comment=T("The document itself"),
+        label=T("Document"),
+        requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+    ),
     Field("resource_document_data", type="blob", readable=False),
     singular=T("Resource"),
     plural=T("Resources"),
@@ -803,7 +824,13 @@ db.define_table(
         writable=False,
     ),
     Field("review", type="text", length=2097152, label=T("Review as text")),
-    Field("review_pdf", type="upload", uploadfield="review_pdf_data", label=T("Review as PDF"), requires=[IS_LENGTH(pdf_max_size * 1048576, error_message='The file size is over ' + str(pdf_max_size) + 'MB.'), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))]),
+    Field(
+        "review_pdf",
+        type="upload",
+        uploadfield="review_pdf_data",
+        label=T("Review as PDF"),
+        requires=[IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))],
+    ),
     Field("review_pdf_data", type="blob", readable=False),
     Field("acceptation_timestamp", type="datetime", label=T("Acceptation timestamp"), writable=False),
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
@@ -931,7 +958,7 @@ db.define_table(
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
-    migrate=True
+    migrate=True,
 )
 
 ##-------------------------------- Views ---------------------------------

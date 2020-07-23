@@ -89,7 +89,7 @@ def fields_awaiting_articles():
     temp_db.qy_art.parallel_submission.readable = False
     temp_db.qy_art.thematics.readable = False
     temp_db.qy_art.keywords.readable = False
-    
+
     if len(request.args) == 0:  # in grid
         temp_db.qy_art._id.readable = True
         temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
@@ -382,7 +382,7 @@ def article_details():
             printable=printable,
             pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
             myContents=myContents,
-            myBackButton=common_small_html.mkBackButton()
+            myBackButton=common_small_html.mkBackButton(),
         )
     else:
         raise HTTP(403, "403: " + T("Access denied"))
@@ -440,7 +440,7 @@ def my_awaiting_articles():
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.anonymous_submission.readable = False
     db.t_articles.anonymous_submission.writable = False
-    
+
     db.t_articles.abstract.readable = False
     db.t_articles.keywords.readable = False
 
@@ -504,7 +504,7 @@ def my_awaiting_articles():
             dict(header=T(""), body=lambda row: DIV(recommender_module.mkViewEditArticleRecommenderButton(auth, db, row))),
         ],
         orderby=~db.t_articles.upload_timestamp,
-        _class="web2py_grid action-button-absolute"
+        _class="web2py_grid action-button-absolute",
     )
 
     absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
@@ -515,7 +515,7 @@ def my_awaiting_articles():
         customText=getText(request, auth, db, "#RecommenderSuggestedArticlesText"),
         pageTitle=getTitle(request, auth, db, "#RecommenderSuggestedArticlesTitle"),
         grid=grid,
-        myFinalScript=absoluteButtonScript
+        myFinalScript=absoluteButtonScript,
     )
 
 
@@ -778,7 +778,7 @@ def recommendations():
             printable=printable,
             pageHelp=getHelp(request, auth, db, "#RecommenderOtherRecommendations"),
             myContents=myContents,
-            myBackButton=common_small_html.mkBackButton()
+            myBackButton=common_small_html.mkBackButton(),
         )
 
 
@@ -1887,6 +1887,4 @@ def review_emails():
         myBackButton=common_small_html.mkBackButton(),
         message=myContents,
     )
-
-
 

@@ -141,9 +141,12 @@ def mkFooter():
 def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
     subject = mail_template["subject"] % mail_vars
-    subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-    applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
+    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     content = mail_template["content"] % mail_vars
-    message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=mkFooter(), recommendation=recommendation))
+    message = render(
+        filename=MAIL_HTML_LAYOUT,
+        context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=mkFooter(), recommendation=recommendation),
+    )
 
     db.mail_queue.insert(dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template)

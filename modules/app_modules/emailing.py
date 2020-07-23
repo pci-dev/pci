@@ -227,7 +227,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%a %b %d")
 
                 hashtag_template = "#RecommenderStatusChangedToUnderConsideration"
-            
+
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
                 mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
@@ -430,7 +430,7 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
 
                 hashtag_template = "#ReviewerReviewCompleted"
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-                
+
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
@@ -703,13 +703,12 @@ def send_admin_new_user(session, auth, db, userId):
         db.auth_user.ALL
     )
     dest = []
-    
 
     user = db.auth_user[userId]
     if user:
         mail_vars["userTxt"] = common_small_html.mkUser(auth, db, userId)
         mail_vars["userMail"] = user.email
-        
+
         for admin in admins:
             mail_vars["destAddress"] = admin.email
 
@@ -1147,7 +1146,6 @@ def send_alert_new_recommendations(session, auth, db, userId, msgArticles):
     mail_vars["destAddress"] = db.auth_user[userId]["email"]
     mail_vars["msgArticles"] = msgArticles
 
-
     hashtag_template = "#AlertNewRecommendations"
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
@@ -1223,12 +1221,15 @@ def send_to_reset_password(session, auth, db, userId):
 
     mail_template = emailing_tools.getMailTemplateHashtag(db, "#UserResetPassword")
     subject = mail_template["subject"] % mail_vars
-    subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-    applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
+    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     content = mail_template["content"] % mail_vars
 
     try:
-        message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
+        message = render(
+            filename=MAIL_HTML_LAYOUT,
+            context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=emailing_tools.mkFooter()),
+        )
         mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message)
     except:
         pass
@@ -1294,7 +1295,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, 
                         content.append(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))))
 
                     content.append(A(linkTarget, _href=linkTarget))
-                    
+
                     # acceptLink = URL(c="user", f="accept_new_review", vars=dict(reviewId=reviewId), scheme=mail_vars['scheme'], host=mail_vars['host'], port=mail_vars['port'])
                     # declineLink = URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"]), scheme=mail_vars['scheme'], host=mail_vars['host'], port=mail_vars['port'])
 
@@ -1304,13 +1305,17 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, 
                     #     _style="width: 100%; text-align: center; margin-bottom: 25px;"
                     # ))
 
-                
-                subject_without_appname = subject.replace("%s: " % mail_vars['appname'], "")
-                applogo = URL('static', 'images/small-background.png', scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                message = render(filename=MAIL_HTML_LAYOUT, context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars['appname'], content=XML(content), footer=emailing_tools.mkFooter()))
-                
-                db.mail_queue.insert(dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag="not set")
-                
+                subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
+                applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                message = render(
+                    filename=MAIL_HTML_LAYOUT,
+                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=emailing_tools.mkFooter()),
+                )
+
+                db.mail_queue.insert(
+                    dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag="no template"
+                )
+
                 if review.review_state is None:
                     review.review_state = "Pending"
                     review.update_record()

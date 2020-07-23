@@ -548,11 +548,11 @@ def mailing_queue():
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
-        SPAN(I(T('Sending attempts : ')), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
         _class="pci2-flex-column",
-        _style="margin: 5px 10px;"
+        _style="margin: 5px 10px;",
     )
-    db.mail_queue.sending_attempts.readable = False 
+    db.mail_queue.sending_attempts.readable = False
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(text, "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: WIKI(admin_module.sanitizeHtmlContent(text), safe_mode=None)
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
