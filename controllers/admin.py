@@ -553,7 +553,7 @@ def mailing_queue():
         _style="margin: 5px 10px;",
     )
     db.mail_queue.sending_attempts.readable = False
-    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(text, "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: WIKI(admin_module.sanitizeHtmlContent(text), safe_mode=None)
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     # db.mail_queue.mail_content.represent = lambda text, row: toto(text)

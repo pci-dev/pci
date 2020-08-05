@@ -73,7 +73,7 @@ def mail_templates():
     grid = SQLFORM.grid(
         db.mail_templates,
         create=auth.has_membership(role="developper"),
-        deletable=False,
+        deletable=auth.has_membership(role="developper"),
         paginate=100,
         maxtextlength=4096,
         csv=csv,

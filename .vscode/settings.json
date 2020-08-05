@@ -1,4 +1,7 @@
 {
   "python.formatting.provider": "black",
-  "python.formatting.blackArgs": ["--line-length", "180"]
+  "python.formatting.blackArgs": ["--line-length", "180"],
+  "python.linting.pylintArgs": [
+    "--load-plugins=pylint_web2py3"
+  ]
 }

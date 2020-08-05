@@ -943,6 +943,7 @@ db.define_table(
     Field("lang", type="string", length=10, label=T("Language"), default="default"),
     Field("subject", type="string", length=256, label=T("Subject")),
     Field("contents", type="text", length=1048576, label=T("Contents")),
+    Field("description", type="string", length=512, label=T("Description")),
     format="%(hashtag)s",
     migrate=False,
 )
