@@ -117,6 +117,11 @@ def rss():
 # <doi>10.1101/273367</doi>
 # </link>
 # </links>
+
+def rss4elife():
+    result = rss4bioRxiv()
+    return result
+
 def rss4bioRxiv():
     response.headers["Content-Type"] = "application/rss+xml"
     response.view = "rsslayout.rss"
@@ -167,6 +172,8 @@ def rss4bioRxiv():
             title.text = r["title"]
             url = etree.SubElement(resource, "url")
             url.text = r["url"]
+            recomm_doi = etree.SubElement(resource, "doi")
+            recomm_doi.text = r["recomm_doi"]
             editor = etree.SubElement(resource, "recommender")
             editor.text = r["recommender"]
             reviewers = etree.SubElement(resource, "reviewers")

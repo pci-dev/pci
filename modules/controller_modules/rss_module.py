@@ -81,6 +81,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     # <resource>
     # <title>Version 3 of this preprint has been peer-reviewed and recommended by Peer Community in Evolutionary Biology</title>
     # <url>https://dx.doi.org/10.24072/pci.evolbiol.100055</url>
+    # <doi>recomm_doi : 10.8483/42422442</doi>
     # <editor>Charles Baer</editor>
     # <date>2018-08-08</date>
     # <reviewers>anonymous and anonymous</reviewers>
@@ -100,8 +101,8 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
 
     recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
-
     reviewersStr = common_small_html.mkReviewersString(auth, db, row.id)
+
 
     local = pytz.timezone("Europe/Paris")
     local_dt = local.localize(row.last_status_change, is_dst=None)
@@ -115,4 +116,5 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
         date=created_on.strftime("%Y-%m-%d"),
         logo=XML(URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
         doi=row.doi,
+        recomm_doi=recomm.doi
     )
