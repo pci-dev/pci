@@ -116,5 +116,5 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
         date=created_on.strftime("%Y-%m-%d"),
         logo=XML(URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
         doi=row.doi,
-        recomm_doi=recomm.doi
+        recomm_doi=recomm.recommendation_doi
     )
