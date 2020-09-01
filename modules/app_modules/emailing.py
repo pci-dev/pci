@@ -1244,7 +1244,7 @@ def send_to_reset_password(session, auth, db, userId):
 # No template for this one :
 # Will be changed by gab soon...
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, message, reset_password_key=None, linkTarget=None):
+def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_template, subject, message, reset_password_key=None, linkTarget=None):
     print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1313,7 +1313,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, 
                 )
 
                 db.mail_queue.insert(
-                    dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag="no template"
+                    dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template
                 )
 
                 if review.review_state is None:

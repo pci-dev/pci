@@ -1067,7 +1067,8 @@ def email_for_registered_reviewer():
                 % locals()
             )
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewInvitationRegisterUser")
+    hashtag_template = "#DefaultReviewInvitationRegisterUser"
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = mail_template["subject"] % locals()
     default_message = mail_template["content"] % locals()
 
@@ -1109,7 +1110,7 @@ def email_for_registered_reviewer():
     if form.process().accepted:
         try:
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1168,7 +1169,8 @@ def email_for_new_reviewer():
                 % locals()
             )
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewInvitationNewUser")
+    hashtag_template = "#DefaultReviewInvitationNewUser"
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = mail_template["subject"] % locals()
     default_message = mail_template["content"] % locals()
 
@@ -1239,7 +1241,17 @@ def email_for_new_reviewer():
             if existingUser:
                 try:
                     emailing.send_reviewer_invitation(
-                        session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
+                        session,
+                        auth,
+                        db,
+                        reviewId,
+                        replyto_address,
+                        myconf.take("contacts.managers"),
+                        hashtag_template,
+                        request.vars["subject"],
+                        request.vars["message"],
+                        None,
+                        linkTarget,
                     )
                     # currentReview = db(db.t_reviews.id==reviewId).select().first()
                     # currentReview.update_record(review_state='Pending')
@@ -1255,6 +1267,7 @@ def email_for_new_reviewer():
                         reviewId,
                         replyto_address,
                         myconf.take("contacts.managers"),
+                        hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
                         reset_password_key,
@@ -1320,7 +1333,6 @@ def send_review_reminder():
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     if (review.review_state or "Pending") == "Pending":
-        default_subject = "%(appname)s reminder: Invitation to review a preprint" % locals()
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
         # NOTE: parallel submission
         parallelText = ""
@@ -1336,13 +1348,16 @@ def send_review_reminder():
                 )
         if len(reviewer.reset_password_key or "") > 0:  # even not logged in yet
             reset_password_key = reviewer.reset_password_key
-            mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderNewUser")
+            hashtag_template = "#DefaultReviewReminderNewUser"
+            mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         else:
-            mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderRegisterUser")
+            hashtag_template = "#DefaultReviewReminderRegisterUser"
+            mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
 
     elif review.review_state == "Under consideration":
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
-        mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderUnderConsideration")
+        hashtag_template = "#DefaultReviewReminderUnderConsideration"
+        mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
 
     default_subject = mail_template["subject"] % locals()
     default_message = mail_template["content"] % locals()
@@ -1370,7 +1385,17 @@ def send_review_reminder():
     if form.process().accepted:
         try:
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], reset_password_key, linkTarget
+                session,
+                auth,
+                db,
+                reviewId,
+                replyto_address,
+                myconf.take("contacts.managers"),
+                hashtag_template,
+                request.vars["subject"],
+                request.vars["message"],
+                reset_password_key,
+                linkTarget,
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1430,7 +1455,8 @@ def send_review_cancellation():
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Pending") == "Pending":
-        mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewCancellation")
+        hashtag_template = "#DefaultReviewCancellation"
+        mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = mail_template["subject"] % locals()
         default_message = mail_template["content"] % locals()
 
@@ -1460,7 +1486,7 @@ def send_review_cancellation():
         try:
             review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
