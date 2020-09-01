@@ -21,6 +21,8 @@ from app_components import recommender_components
 
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules import emailing_tools
+
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -1065,9 +1067,10 @@ def email_for_registered_reviewer():
                 % locals()
             )
 
-    default_message = common_tools.get_template("text", "default_review_invitation_register_user.txt") % locals()
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewInvitationRegisterUser")
+    default_subject = mail_template["subject"] % locals()
+    default_message = mail_template["content"] % locals()
 
-    default_subject = "%(appname)s: Invitation to review a preprint" % locals()
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1165,9 +1168,10 @@ def email_for_new_reviewer():
                 % locals()
             )
 
-    default_message = common_tools.get_template("text", "default_review_invitation_new_user.txt") % locals()
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewInvitationNewUser")
+    default_subject = mail_template["subject"] % locals()
+    default_message = mail_template["content"] % locals()
 
-    default_subject = "%(appname)s: Invitation to review a preprint" % locals()
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1332,15 +1336,16 @@ def send_review_reminder():
                 )
         if len(reviewer.reset_password_key or "") > 0:  # even not logged in yet
             reset_password_key = reviewer.reset_password_key
-            default_message = common_tools.get_template("text", "default_review_reminder_new_user.txt") % locals()
-
+            mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderNewUser")
         else:
-            default_message = common_tools.get_template("text", "default_review_reminder_register_user.txt") % locals()
+            mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderRegisterUser")
 
     elif review.review_state == "Under consideration":
-        default_subject = "%(appname)s reminder: Review due" % locals()
         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
-        default_message = common_tools.get_template("text", "default_review_reminder_under_consideration.txt") % locals()
+        mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewReminderUnderConsideration")
+
+    default_subject = mail_template["subject"] % locals()
+    default_message = mail_template["content"] % locals()
 
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1425,8 +1430,9 @@ def send_review_cancellation():
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Pending") == "Pending":
-        default_subject = "%(appname)s: Cancellation of a review request" % locals()
-        default_message = common_tools.get_template("text", "default_review_cancellation.txt") % locals()
+        mail_template = emailing_tools.getMailTemplateHashtag(db, "#DefaultReviewCancellation")
+        default_subject = mail_template["subject"] % locals()
+        default_message = mail_template["content"] % locals()
 
     else:
         pass

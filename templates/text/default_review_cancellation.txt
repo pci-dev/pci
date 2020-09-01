@@ -1,9 +1,0 @@
-Dear %(destUser)s,
-
-I invited you to act as a reviewer for a preprint entitled "%(art_title)s" by %(art_authors)s (DOI %(art_doi)s). In the meantime, other colleagues also contacted for this evaluation have agreed to review this preprint. I now have enough reviewers for the evaluation of this preprint and your input is therefore no longer required. Consequently, this preprint no longer appears in your list of requests to act as a reviewer on the %(longname)s webpage.
-
-I apologize for any inconvenience and wish you all the best.
-
-Best regards,
-
-%(sender)s

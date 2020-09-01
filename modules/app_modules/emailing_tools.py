@@ -110,8 +110,8 @@ def getFlashMessage(session, reports):
 
 
 ######################################################################################################################################################################
-def getMailTemplate(templateName):
-    with open(os.path.join(os.path.dirname(__file__), "../../templates/mail", templateName), encoding="utf-8") as myfile:
+def getMailFooter():
+    with open(os.path.join(os.path.dirname(__file__), "../../views/mail", "mail_footer.html"), encoding="utf-8") as myfile:
         data = myfile.read()
     return data
 
@@ -134,7 +134,7 @@ def mkFooter():
         port=mail_vars["port"],
     )
 
-    return XML(getMailTemplate("mail_footer.html") % mail_vars)
+    return XML(getMailFooter() % mail_vars)
 
 
 ######################################################################################################################################################################

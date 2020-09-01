@@ -17,6 +17,8 @@ from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 
+from controller_modules import recommender_module
+
 # def pprint(*args): print args
 
 # -------------------------------------------------------------------------
@@ -700,7 +702,7 @@ db.define_table(
         requires=[IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))],
     ),
     Field("recommender_file_data", type="blob", readable=False),
-    format=lambda row: mkRecommendationFormat(auth, db, row),
+    format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
     migrate=False,
@@ -956,6 +958,7 @@ db.define_table(
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
     Field("dest_mail_address", type="string", length=256, label=T("Dest email")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Sender")),
+    # Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),

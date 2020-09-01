@@ -1257,7 +1257,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, subject, 
             if rev:
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
                 mail_vars["destAddress"] = rev["email"]
-                content = DIV(WIKI(message))
+                content = DIV(WIKI(message, safe_mode=False))
 
                 if reset_password_key:
                     if linkTarget:

@@ -2,6 +2,7 @@
 # this file is released under public domain and you can use without limitations
 
 import re
+import os
 
 # from gluon.contrib.markdown import WIKI
 
@@ -52,8 +53,7 @@ def testUserRecommendedAlert():
                             odd = not (odd)
                         msgContents = DIV(TABLE(TBODY(myRows), _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
                         if len(myRows) > 0:
-                            send_alert_new_recommendations(session, auth, db, userId, msgContents)
-                            # (gab) ArticleRowCard need mail template styles
+                            emailing.send_alert_new_recommendations(session, auth, db, userId, msgContents)
 
             redirect(request.env.http_referer)
         else:
@@ -66,7 +66,6 @@ def testUserRecommendedAlert():
 # @auth.requires_login()
 def alertUsersLastRecommendations():
     print("Starting cron alerts...")
-    mailDelay = float(myconf.take("alerts.delay") or 10.0)
     conditions = ["client" not in request, auth.has_membership(role="manager")]
     if any(conditions):
         my_date = date.today()
@@ -75,7 +74,8 @@ def alertUsersLastRecommendations():
         for user in usersQy:
             userId = user.id
             articleIdsQy = db.executesql("SELECT * FROM alert_last_recommended_article_ids_for_user(%s);", placeholders=[userId])
-            if len(articleIdsQy) > 0:  # yes, new stuff to display
+            print(userId)
+            if len(articleIdsQy) > 0:
                 artIds = articleIdsQy[0][0]
                 if artIds:
                     query = db(
@@ -89,10 +89,10 @@ def alertUsersLastRecommendations():
                         odd = not (odd)
                     msgContents = DIV(DIV(myRows, _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
                     if len(myRows) > 0:
-                        send_alert_new_recommendations(session, auth, db, userId, msgContents)
-                        # (gab) ArticleRowCard need mail template styles
+                        emailing.send_alert_new_recommendations(session, auth, db, userId, msgContents)
                         user.last_alert = datetime.now()
                         user.update_record()
                         db.commit()
-            sleep(mailDelay)  # try to avoid mailer black-listing
+        
+        redirect(request.env.http_referer)
 

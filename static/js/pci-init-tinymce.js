@@ -5,7 +5,8 @@ const ids_array = [
   "#t_recommendations_recommendation_comments",
   "#t_reviews_review",
   "#t_recommendations_reply",
-  "#mail_templates_contents"
+  "#mail_templates_contents",
+  "#no_table_message"
 ];
 
 for (const id_textarea of ids_array) {
