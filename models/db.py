@@ -642,6 +642,8 @@ def deltaStatus(s, f):
 def newArticle(s, articleId):
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
+        next_template = "#ReninderSubmitterSuggestedRecommenderNeeded"
     return None
 
 
@@ -958,11 +960,11 @@ db.define_table(
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
     Field("dest_mail_address", type="string", length=256, label=T("Dest email")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Sender")),
-    # Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
+    Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
-    migrate=True,
+    migrate=False,
 )
 
 ##-------------------------------- Views ---------------------------------

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-import datetime
 import time
 from re import sub, match
+
+from datetime import datetime, timedelta
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -138,7 +139,7 @@ def mkFooter():
 
 
 ######################################################################################################################################################################
-def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation=None):
+def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
     subject = mail_template["subject"] % mail_vars
     subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
@@ -149,4 +150,37 @@ def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation=None
         context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=mkFooter(), recommendation=recommendation),
     )
 
-    db.mail_queue.insert(dest_mail_address=mail_vars["destAddress"], mail_subject=subject, mail_content=message, user_id=auth.user_id, mail_template_hashtag=hashtag_template)
+    db.mail_queue.insert(
+        dest_mail_address=mail_vars["destAddress"],
+        mail_subject=subject,
+        mail_content=message,
+        user_id=auth.user_id,
+        recommendation_id=recommendation_id,
+        mail_template_hashtag=hashtag_template,
+    )
+
+
+######################################################################################################################################################################
+def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recommendation_id=None, recommendation=None):
+    sending_date = datetime.now() + timedelta(days=days)
+
+    mail_template = getMailTemplateHashtag(db, hashtag_template)
+    subject = mail_template["subject"] % mail_vars
+    subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
+    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    content = mail_template["content"] % mail_vars
+    message = render(
+        filename=MAIL_HTML_LAYOUT,
+        context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=mkFooter(), recommendation=recommendation),
+    )
+
+    db.mail_queue.insert(
+        sending_status="pending",
+        sending_date=sending_date,
+        dest_mail_address=mail_vars["destAddress"],
+        mail_subject=subject,
+        mail_content=message,
+        user_id=auth.user_id,
+        recommendation_id=recommendation_id,
+        mail_template_hashtag=hashtag_template,
+    )

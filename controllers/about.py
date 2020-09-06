@@ -4,6 +4,7 @@ import os
 # import os.path
 import re
 from gluon.custom_import import track_changes
+from gluon.storage import Storage
 
 track_changes(True)  # reimport module if changed; disable in production
 # from app_modules.common import mkPanel
@@ -260,6 +261,7 @@ def recommenders():
         SPAN(myIdx, _class="pci-capitals"),
         HR(),
         TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
+        _class="pci2-flex-column pci2-flex-center",
     )
 
     response.view = "default/gab_list_layout.html"
@@ -283,7 +285,9 @@ def managers():
     myRows = []
     for user in query:
         myRows.append(common_small_html.mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
-    grid = DIV(TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"))
+    grid = DIV(
+        TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"), _class="pci2-flex-column pci2-flex-center"
+    )
 
     response.view = "default/gab_list_layout.html"
     return dict(

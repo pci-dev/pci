@@ -683,9 +683,11 @@ def makeMailStatusDiv(text):
     if text == "sent":
         result = SPAN(text, _style="font-size:14px", _class="pci-mail-status success")
     elif text == "in queue":
-        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status warning")
+        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status good")
     elif text == "failed":
         result = SPAN(text, _style="font-size:14px", _class="pci-mail-status danger")
+    elif text == "pending":
+        result = SPAN(text, _style="font-size:14px", _class="pci-mail-status warning")
     else:
         result = text
     return result

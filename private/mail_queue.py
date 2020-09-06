@@ -12,7 +12,7 @@ MAIL_MAX_SENDING_ATTEMPTS = int(myconf.take("config.mail_max_sending_attemps")) 
 
 
 def getMailsInQueue():
-    return db((db.mail_queue.sending_status == "in queue") & (db.mail_queue.sending_date <= datetime.now())).select(
+    return db((db.mail_queue.sending_status.belongs("in queue", "pending")) & (db.mail_queue.sending_date <= datetime.now())).select(
         orderby=db.mail_queue.sending_date
     )
 
@@ -23,8 +23,8 @@ def tryToSendMail(mail_item):
     else:
         isSent = False
 
-    logSendingStatus(mail_item, isSent)
     updateSendingStatus(mail_item, isSent)
+    logSendingStatus(mail_item, isSent)
 
     # wait beetween email sendings
     time.sleep(MAIL_DELAY)
