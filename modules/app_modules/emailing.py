@@ -84,13 +84,14 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
     if article and article.user_id is not None:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
         mail_vars["articleTitle"] = article.title
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
-            
+
         recommendation = None
         mail_vars["linkTarget"] = URL(c="user", f="my_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -102,7 +103,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
                 mail_vars["parallelText"] = ""
                 if parallelSubmissionAllowed:
                     mail_vars["parallelText"] += (
-                        """Please note that if you abandon the process with %(appname)s after reviewers have contributed their time toward evaluation and before the end of the evaluation, we will post the reviewers' reports on the %(appname)s website as recognition of their work and in order to enable critical discussion.<p>"""
+                        """Please note that if you abandon the process with %(appName)s after reviewers have contributed their time toward evaluation and before the end of the evaluation, we will post the reviewers' reports on the %(appName)s website as recognition of their work and in order to enable critical discussion.<p>"""
                         % mail_vars
                     )
                 hashtag_template = "#SubmitterPreprintSubmitted"
@@ -150,7 +151,6 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
             mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
             mail_vars["recommVersion"] = lastRecomm.ms_version
             mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
-            mail_vars["contact"] = A(myconf.take("contacts.contact"), _href="mailto:" + myconf.take("contacts.contact"))
 
             hashtag_template = "#SubmitterRecommendedPreprint"
 
@@ -171,7 +171,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-# Send email to the recommenders (if any) for postprints (gab ex en : 337)
+# Send email to the recommenders (if any) for postprints
 def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
     print("send_to_recommender_postprint_status_changed")
     mail_vars = emailing_tools.getMailCommonVars()
@@ -228,7 +228,6 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             mail_vars["tNewStatus"] = current.T(newStatus)
 
             if article.status == "Awaiting revision" and newStatus == "Under consideration":
-                mail_vars["mailManagers"] = A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
                 mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%a %b %d")
 
                 hashtag_template = "#RecommenderStatusChangedToUnderConsideration"
@@ -283,8 +282,6 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
-            mail_vars["mailManagers"] = A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
-
             # TODO: parallel submission
             hashtag_template = "#RecommenderSuggestionNotNeededAnymore"
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id)
@@ -303,11 +300,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
     article = db.t_articles[articleId]
     if article:
-        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
-        recomm_id = None
-        if recomm:
-            recomm_id = recomm.id
-
+       
         mail_vars["articleTitle"] = article.title
         mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
 
@@ -315,6 +308,11 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
         else:
             mail_vars["articleAuthors"] = article.authors
+
+        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm_id = None
+        if recomm:
+            recomm_id = recomm.id
 
         suggested_recommenders = db.executesql(
             "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;",
@@ -332,7 +330,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
             if article.parallel_submission:
                 mail_vars["addNote"] = (
-                    "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appname)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appname)s after reviewers have written their reports, we will post the reviewers' reports on the %(appname)s website as recognition of the reviewers' work and in order to enable critical discussion.<p>"
+                    "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
                     % mail_vars
                 )
             else:
@@ -361,7 +359,7 @@ def send_reminder_to_suggested_recommender(session, auth, db, suggRecommId):
             recomm_id = None
             if recomm:
                 recomm_id = recomm.id
-            
+
             mail_vars["articleTitle"] = article.title
             mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
             mail_vars["linkTarget"] = URL(
@@ -830,7 +828,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
-            
+
         recommendation = None
 
         mail_vars["articleTitle"] = article.title
@@ -1288,11 +1286,11 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                     #     _style="width: 100%; text-align: center; margin-bottom: 25px;"
                     # ))
 
-                subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
+                subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
-                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=emailing_tools.mkFooter()),
+                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=emailing_tools.mkFooter()),
                 )
 
                 db.mail_queue.insert(
@@ -1313,21 +1311,21 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
     emailing_tools.getFlashMessage(session, reports)
 
 
-######################################################################################################################################################################
-## Reminders
-######################################################################################################################################################################
-def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
-    hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
-    mail_vars = emailing_tools.getMailCommonVars()
-    
-    article = db.t_articles[articleId]
-    if article:
-        recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
-        recomm_id = None
-        if recomm:
-            recomm_id = recomm.id
-            
-        recommendation = None
+# ######################################################################################################################################################################
+# ## Reminders
+# ######################################################################################################################################################################
+# def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
+#     hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
+#     mail_vars = emailing_tools.getMailCommonVars()
+
+#     article = db.t_articles[articleId]
+#     if article:
+#         recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
+#         recomm_id = None
+#         if recomm:
+#             recomm_id = recomm.id
+
+#         recommendation = None
 
 
 ######################################################################################################################################################################
@@ -1349,18 +1347,10 @@ def send_to_reset_password(session, auth, db, userId):
     )  # default/user/reset_password?key=1561727068-2946ea7b-54fe-4caa-87af-9c5e459b3487.
     mail_vars["linkTargetA"] = A(mail_vars["linkTarget"], _href=mail_vars["linkTarget"])
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#UserResetPassword")
-    subject = mail_template["subject"] % mail_vars
-    subject_without_appname = subject.replace("%s: " % mail_vars["appname"], "")
-    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-    content = mail_template["content"] % mail_vars
+    mail = emailing_tools.buildMail(db, "#UserResetPassword", mail_vars)
 
     try:
-        message = render(
-            filename=MAIL_HTML_LAYOUT,
-            context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appname"], content=XML(content), footer=emailing_tools.mkFooter()),
-        )
-        mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=subject, message=message)
+        mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=mail["subject"], message=mail["content"])
     except:
         pass
 

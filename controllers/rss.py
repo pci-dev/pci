@@ -172,8 +172,10 @@ def rss4bioRxiv():
             title.text = r["title"]
             url = etree.SubElement(resource, "url")
             url.text = r["url"]
-            recomm_doi = etree.SubElement(resource, "doi")
-            recomm_doi.text = r["recomm_doi"]
+
+            if r["recomm_doi"]:
+                recomm_doi = etree.SubElement(resource, "doi")
+                recomm_doi.text = r["recomm_doi"]
             editor = etree.SubElement(resource, "recommender")
             editor.text = r["recommender"]
             reviewers = etree.SubElement(resource, "reviewers")

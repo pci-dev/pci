@@ -642,7 +642,7 @@ def deltaStatus(s, f):
 def newArticle(s, articleId):
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
-        emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
+        # emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
         next_template = "#ReninderSubmitterSuggestedRecommenderNeeded"
     return None
 

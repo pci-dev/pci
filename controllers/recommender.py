@@ -1048,7 +1048,7 @@ def email_for_registered_reviewer():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
-    appname = myconf.take("app.name")
+    appName = myconf.take("app.name")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
@@ -1069,8 +1069,8 @@ def email_for_registered_reviewer():
 
     hashtag_template = "#DefaultReviewInvitationRegisterUser"
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-    default_subject = mail_template["subject"] % locals()
-    default_message = mail_template["content"] % locals()
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
@@ -1146,7 +1146,7 @@ def email_for_new_reviewer():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
-    appname = myconf.take("app.name")
+    appName = myconf.take("app.name")
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
@@ -1171,8 +1171,8 @@ def email_for_new_reviewer():
 
     hashtag_template = "#DefaultReviewInvitationNewUser"
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-    default_subject = mail_template["subject"] % locals()
-    default_message = mail_template["content"] % locals()
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
@@ -1325,7 +1325,7 @@ def send_review_reminder():
     description = myconf.take("app.description")
     thematics = myconf.take("app.thematics")
     longname = myconf.take("app.longname")
-    appname = myconf.take("app.name")
+    appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     reset_password_key = None
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
@@ -1359,8 +1359,8 @@ def send_review_reminder():
         hashtag_template = "#DefaultReviewReminderUnderConsideration"
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
 
-    default_subject = mail_template["subject"] % locals()
-    default_message = mail_template["content"] % locals()
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
@@ -1447,7 +1447,7 @@ def send_review_cancellation():
     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
-    appname = myconf.take("app.name")
+    appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
@@ -1457,8 +1457,8 @@ def send_review_cancellation():
     if (review.review_state or "Pending") == "Pending":
         hashtag_template = "#DefaultReviewCancellation"
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-        default_subject = mail_template["subject"] % locals()
-        default_message = mail_template["content"] % locals()
+        default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+        default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     else:
         pass
