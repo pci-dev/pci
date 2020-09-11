@@ -72,6 +72,8 @@ def mail_templates():
 
     grid = SQLFORM.grid(
         db.mail_templates,
+        details=False,
+        editable=True,
         create=auth.has_membership(role="developper"),
         deletable=auth.has_membership(role="developper"),
         paginate=100,

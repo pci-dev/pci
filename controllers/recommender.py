@@ -3,11 +3,12 @@
 import time
 import re
 import copy
+import datetime
 from dateutil.relativedelta import *
+
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
 from gluon.html import markmin_serializer
-
 
 from app_modules.helper import *
 
@@ -22,6 +23,9 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import emailing_tools
+
+# to change to common
+from controller_modules import admin_module
 
 
 # frequently used constants
@@ -1895,28 +1899,73 @@ def my_co_recommendations():
 
 
 ######################################################################################################################################################################
+# @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+# def review_emails():
+# response.view = "default/info.html"
+
+# revId = request.vars["reviewId"]
+# rev = db.t_reviews[revId]
+# myContents = DIV()
+# myContents.append(SPAN(B(T("Reviewer: ")), common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)))
+# myContents.append(H2(T("Emails:")))
+# myContents.append(
+#     DIV(
+#         # WIKI((rev.emailing or '*None yet*'), safe_mode=False)
+#         XML((rev.emailing or "<b>None yet</b>")),
+#         _style="margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;",
+#     )
+# )
+# return dict(
+#     pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+#     customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
+#     titleIcon="envelope",
+#     pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
+#     myBackButton=common_small_html.mkBackButton(),
+#     message=myContents,
+# )
+
+
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def review_emails():
-    response.view = "default/info.html"
+    response.view = "default/myLayout.html"
 
-    revId = request.vars["reviewId"]
-    rev = db.t_reviews[revId]
-    myContents = DIV()
-    myContents.append(SPAN(B(T("Reviewer: ")), common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)))
-    myContents.append(H2(T("Emails:")))
-    myContents.append(
-        DIV(
-            # WIKI((rev.emailing or '*None yet*'), safe_mode=False)
-            XML((rev.emailing or "<b>None yet</b>")),
-            _style="margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;",
-        )
+    reviewId = request.vars["reviewId"]
+    review = db.t_reviews[reviewId]
+    reviewer = db.auth_user[review.reviewer_id]
+
+    db.mail_queue.sending_status.represent = lambda text, row: DIV(
+        SPAN(admin_module.makeMailStatusDiv(text)),
+        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        _class="pci2-flex-column",
+        _style="margin: 5px 10px;",
     )
+    db.mail_queue.sending_attempts.readable = False
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.mail_content.represent = lambda text, row: WIKI(admin_module.sanitizeHtmlContent(text), safe_mode=None)
+    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
+    # db.mail_queue.mail_content.represent = lambda text, row: toto(text)
+    # db.mail_queue.mail_content.represent = lambda text, row: WIKI(text, safe_mode=False)
+
+    grid = SQLFORM.grid(
+        ((db.mail_queue.user_id == auth.user_id) & (db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == review.recommendation_id)),
+        details=True,
+        editable=False,
+        deletable=False,
+        create=False,
+        searchable=False,
+        csv=False,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.mail_queue.id,
+        fields=[db.mail_queue.sending_status, db.mail_queue.sending_date, db.mail_queue.sending_attempts, db.mail_queue.dest_mail_address, db.mail_queue.mail_subject,],
+    )
+
     return dict(
-        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
-        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
-        titleIcon="envelope",
+        titleIcon="send",
         pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        myBackButton=common_small_html.mkBackButton(),
-        message=myContents,
+        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
+        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
+        grid=grid
     )
 
