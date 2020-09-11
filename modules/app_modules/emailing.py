@@ -61,7 +61,6 @@ def send_test_mail(session, auth, db, userId):
     # Insert mail in mail_queue :
     hashtag_template = "#TestMail"
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 1)
 
     # Create report for session flash alerts :
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
@@ -107,7 +106,6 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
                         % mail_vars
                     )
                 hashtag_template = "#SubmitterPreprintSubmitted"
-                # reminder_hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
 
         elif article.status == "Awaiting consideration" and newStatus == "Under consideration":
             if article.parallel_submission:
@@ -300,7 +298,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
     article = db.t_articles[articleId]
     if article:
-       
+
         mail_vars["articleTitle"] = article.title
         mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
 
@@ -338,6 +336,8 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
             hashtag_template = "#RecommenderSuggestedArticle"
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id)
+
+            delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
@@ -1311,21 +1311,76 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
     emailing_tools.getFlashMessage(session, reports)
 
 
-# ######################################################################################################################################################################
-# ## Reminders
-# ######################################################################################################################################################################
-# def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
-#     hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
-#     mail_vars = emailing_tools.getMailCommonVars()
+######################################################################################################################################################################
+## Reminders
+######################################################################################################################################################################
+def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
 
-#     article = db.t_articles[articleId]
-#     if article:
-#         recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
-#         recomm_id = None
-#         if recomm:
-#             recomm_id = recomm.id
+    article = db.t_articles[articleId]
+    sugg_recommenders = db(db.t_suggested_recommenders.article_id == articleId).select()
 
-#         recommendation = None
+    if article and article.user_id is not None and len(sugg_recommenders) == 0:
+
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 2, None, None, articleId)
+
+        # Create report for session flash alerts :
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+        # Build reports :
+        emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        hashtag_template = "#ReminderSubmitterNewSuggestedRecommenderNeeded"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, None, None, articleId)
+
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+        emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
+def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        hashtag_template = "#ReminderSubmitterCancelSubmission"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 20, None, None, articleId)
+
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+        emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+def delete_reminder_for_submitter(db, hashtag_template, articleId):
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        submitter_mail = db.auth_user[article.user_id]["email"]
+
+        db((db.mail_queue.dest_mail_address == submitter_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == articleId)).delete()
 
 
 ######################################################################################################################################################################

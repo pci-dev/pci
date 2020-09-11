@@ -5,8 +5,10 @@ CREATE TABLE "mail_queue"(
     "sending_date" TIMESTAMP,
     "dest_mail_address" VARCHAR(256),
     "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE RESTRICT,
+    "article_id" INTEGER REFERENCES "t_articles" ("id") ON DELETE CASCADE,
     "recommendation_id" INTEGER REFERENCES "t_recommendations" ("id") ON DELETE CASCADE,
     "mail_subject" VARCHAR(256),
     "mail_content" TEXT,
-    "mail_template_hashtag" VARCHAR(128)
+    "mail_template_hashtag" VARCHAR(128),
+    "reminder_count" INTEGER
 );

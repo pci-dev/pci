@@ -153,7 +153,7 @@ def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=N
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recommendation_id=None, recommendation=None):
+def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recommendation_id=None, recommendation=None, article_id=None):
     sending_date = datetime.now() + timedelta(days=days)
 
     mail = buildMail(db, hashtag_template, mail_vars, recommendation)
@@ -166,6 +166,7 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recom
         mail_content=mail["content"],
         user_id=auth.user_id,
         recommendation_id=recommendation_id,
+        article_id=article_id,
         mail_template_hashtag=hashtag_template,
     )
 

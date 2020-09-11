@@ -23,6 +23,9 @@ def tryToSendMail(mail_item):
     else:
         isSent = False
 
+    # if mail_item.sending_status == "pending":
+    #     prepareReminder(mail_item)
+
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
 
@@ -65,6 +68,7 @@ def logSendingStatus(mail_item, isSent):
     hashtag_text = "\033[3m%s\033[0m" % mail_item.mail_template_hashtag
 
     print("\t- mail %s to : %s => %s" % (sending_status, mail_dest, hashtag_text))
+
 
 
 ######################################################################################################################################################################
