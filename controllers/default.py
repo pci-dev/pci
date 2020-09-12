@@ -77,7 +77,7 @@ def index():
             _style="float:right;",
         ),
         _class="pci-pageTitleText",
-        _style="margin-top: 15px; margin-bottom: 25px",
+        _style="margin-top: 15px; margin-bottom: 20px",
     )
 
     myScript = SCRIPT(
@@ -90,7 +90,7 @@ def index():
         _type="text/javascript",
     )
 
-    searchForm = DIV(app_forms.searchByThematic(auth, db, myVars, redirectSearchArticle=True), _style="margin-bottom: 25px")
+    searchForm = DIV(app_forms.searchByThematic(auth, db, myVars, redirectSearchArticle=True), _style="margin-bottom: 20px")
 
     # if auth.user_id:
     # theUser = db.auth_user[auth.user_id]
