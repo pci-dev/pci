@@ -1932,6 +1932,7 @@ def review_emails():
     reviewId = request.vars["reviewId"]
     review = db.t_reviews[reviewId]
     reviewer = db.auth_user[review.reviewer_id]
+    recommendation = db.t_recommendations[review.recommendation_id]
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
@@ -1947,7 +1948,7 @@ def review_emails():
     # db.mail_queue.mail_content.represent = lambda text, row: WIKI(text, safe_mode=False)
 
     grid = SQLFORM.grid(
-        ((db.mail_queue.user_id == auth.user_id) & (db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == review.recommendation_id)),
+        ((db.mail_queue.user_id == recommendation.recommender_id) & (db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == recommendation.id)),
         details=True,
         editable=False,
         deletable=False,

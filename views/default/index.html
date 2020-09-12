@@ -91,9 +91,14 @@
 	  {{=content}}
 	{{pass}}
 
+  
   <div id="lastRecommendationsDiv">
-    {{if 'form' in locals():}}
-    	{{=form}}
+    {{=lastRecommTitle}}
+
+    {{=searchForm}}
+
+    {{if 'lastRecomms' in locals():}}
+    	{{=lastRecomms}}
 	  {{pass}}
   </div>
 </div>

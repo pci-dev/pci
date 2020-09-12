@@ -8,7 +8,7 @@ from copy import deepcopy
 
 ######################################################################################################################################################################
 # New common modules
-def searchByThematic(auth, db, myVars, allowBlank=True):
+def searchByThematic(auth, db, myVars, allowBlank=True, redirectSearchArticle=False):
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]
@@ -39,10 +39,16 @@ def searchByThematic(auth, db, myVars, allowBlank=True):
         iconPanelCLass = "glyphicon-rotate"
         panelCLass = "pci2-panel-closed"
 
+    actionForm = ""
+    placeholderText = current.T("Search")
+    if redirectSearchArticle == True:
+        actionForm = URL(c="articles", f="recommended_articles")
+        placeholderText = current.T("Search article")
+
     return FORM(
         DIV(
             DIV(
-                INPUT(_placeholder=current.T("Search"), _name="qyKeywords", value=keywords, keepvalues=True, _class="form-control pci2-search-input"),
+                INPUT(_placeholder=placeholderText, _name="qyKeywords", value=keywords, keepvalues=True, _class="form-control pci2-search-input"),
                 _class="pci2-search-input-div",
             ),
             BUTTON(current.T("Search"), _type="submit", _class="btn btn-success pci2-search-button"),
@@ -86,4 +92,6 @@ def searchByThematic(auth, db, myVars, allowBlank=True):
             _class="pci2-thematics-div " + panelCLass,
         ),
         _class="pci2-search-form",
+        _action=actionForm,
+        _method="get"
     )

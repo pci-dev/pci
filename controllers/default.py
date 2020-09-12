@@ -9,6 +9,8 @@ from gluon.contrib.markdown import WIKI
 from app_modules.helper import *
 from gluon.utils import web2py_uuid
 
+from app_components import app_forms
+
 # -------------------------------------------------------------------------
 # This is a sample controller
 # - index is the default action of any application
@@ -64,18 +66,20 @@ def index():
     myVarsNext = copy.deepcopy(myVars)
     myVarsNext["maxArticles"] = myVarsNext["maxArticles"] + 10
 
-    form = FORM(
-        H3(
-            T("Latest recommendations"),
-            A(
-                SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-                _href=URL("about", "rss_info"),
-                _class="btn btn-default pci-rss-btn",
-                _style="float:right;",
-            ),
+    lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
+
+    lastRecommTitle = H3(
+        T("Latest recommendations"),
+        A(
+            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
+            _href=URL("about", "rss_info"),
+            _class="btn btn-default pci-rss-btn",
+            _style="float:right;",
         ),
-        DIV(loading(), _id="lastRecommendations",),
+        _class="pci-pageTitleText",
+        _style="margin-top: 15px; margin-bottom: 25px",
     )
+
     myScript = SCRIPT(
         """window.onload=function() {
 	        ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
@@ -84,8 +88,9 @@ def index():
         """
         % (URL("articles", "last_recomms", vars=myVars, user_signature=True)),
         _type="text/javascript",
-        
     )
+
+    searchForm = DIV(app_forms.searchByThematic(auth, db, myVars, redirectSearchArticle=True), _style="margin-bottom: 25px")
 
     # if auth.user_id:
     # theUser = db.auth_user[auth.user_id]
@@ -97,24 +102,28 @@ def index():
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            form=form,
+            searchForm=searchForm,
+            lastRecommTitle=lastRecommTitle,
+            lastRecomms=lastRecomms,
             myBottomPanel=DIV(
                 DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
             ),
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript
+            script=myScript,
         )
     else:
         return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            form=form,
+            searchForm=searchForm,
+            lastRecommTitle=lastRecommTitle,
+            lastRecomms=lastRecomms,
             panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript
+            script=myScript,
         )
 
 
