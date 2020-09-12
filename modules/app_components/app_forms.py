@@ -8,7 +8,7 @@ from copy import deepcopy
 
 ######################################################################################################################################################################
 # New common modules
-def searchByThematic(auth, db, myVars, allowBlank=True, redirectSearchArticle=False):
+def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=False):
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]
@@ -43,7 +43,7 @@ def searchByThematic(auth, db, myVars, allowBlank=True, redirectSearchArticle=Fa
     placeholderText = current.T("Search")
     if redirectSearchArticle == True:
         actionForm = URL(c="articles", f="recommended_articles")
-        placeholderText = current.T("Search article")
+        placeholderText = current.T("Search articles")
 
     return FORM(
         DIV(
@@ -92,6 +92,5 @@ def searchByThematic(auth, db, myVars, allowBlank=True, redirectSearchArticle=Fa
             _class="pci2-thematics-div " + panelCLass,
         ),
         _class="pci2-search-form",
-        _action=actionForm,
-        _method="get"
+        _action=actionForm
     )
