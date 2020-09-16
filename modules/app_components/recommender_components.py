@@ -28,39 +28,40 @@ def getReviewsSubTable(auth, db, response, recomm):
 
     reviewList = []
     for review in reviews:
-        reviewVars = dict(
-            reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
-            status=common_small_html.mkReviewStateDiv(auth, db, review.review_state),
-            lastChange=common_small_html.mkElapsedDays(review.last_change),
-            actions=[],
-        )
-        reviewVars["actions"].append(dict(text=current.T("See emails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
-
-        if allowed_to_see_reviews and review.review_state == "Completed":
-            reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
-
-        if art.status == "Under consideration" and not (recomm.is_closed):
-            if (review.reviewer_id == auth.user_id) and (review.review_state == "Under consideration"):
-                reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
-
-            if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") in ("Pending", "Under consideration")):
-                if review.review_state == "Under consideration":
-                    btnText = current.T("Prepare an overdue message")
-                else:
-                    btnText = current.T("Prepare a reminder")
-
-                reviewVars["actions"].append(dict(text=btnText, link=URL(c="recommender", f="send_review_reminder", vars=dict(reviewId=review.id))))
-
-            if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") == "Pending"):
-                reviewVars["actions"].append(
-                    dict(text=current.T("Prepare a cancellation notification"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
-                )
-
-        reviewList.append(reviewVars)
-        if review.review_state == "Completed":
-            nbCompleted += 1
-        if review.review_state == "Under consideration":
-            nbOnGoing += 1
+        if review.reviewer_id is not None:
+            reviewVars = dict(
+                reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
+                status=common_small_html.mkReviewStateDiv(auth, db, review.review_state),
+                lastChange=common_small_html.mkElapsedDays(review.last_change),
+                actions=[],
+            )
+            reviewVars["actions"].append(dict(text=current.T("See emails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
+    
+            if allowed_to_see_reviews and review.review_state == "Completed":
+                reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
+    
+            if art.status == "Under consideration" and not (recomm.is_closed):
+                if (review.reviewer_id == auth.user_id) and (review.review_state == "Under consideration"):
+                    reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
+    
+                if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") in ("Pending", "Under consideration")):
+                    if review.review_state == "Under consideration":
+                        btnText = current.T("Prepare an overdue message")
+                    else:
+                        btnText = current.T("Prepare a reminder")
+    
+                    reviewVars["actions"].append(dict(text=btnText, link=URL(c="recommender", f="send_review_reminder", vars=dict(reviewId=review.id))))
+    
+                if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") == "Pending"):
+                    reviewVars["actions"].append(
+                        dict(text=current.T("Prepare a cancellation notification"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
+                    )
+    
+            reviewList.append(reviewVars)
+            if review.review_state == "Completed":
+                nbCompleted += 1
+            if review.review_state == "Under consideration":
+                nbOnGoing += 1
 
     showDecisionLink = False
     writeDecisionLink = None

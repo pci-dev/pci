@@ -17,7 +17,7 @@ for (const id_textarea of ids_array) {
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
       invalid_styles: "font-size font-family background background-color",
-
+      invalid_elements: "em",
       selector: id_textarea,
       branding: false,
       menubar: false,

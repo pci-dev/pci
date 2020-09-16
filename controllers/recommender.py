@@ -365,7 +365,6 @@ def article_details():
 
         response.title = art.title or myconf.take("app.longname")
 
-        # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
         recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
@@ -1056,9 +1055,10 @@ def email_for_registered_reviewer():
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-    # art_doi = (recomm.doi or art.doi)
-    # linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-    linkTarget = URL(c="user", f="recommendations", vars=dict(articleId=art.id), scheme=scheme, host=host, port=port)
+
+    linkTarget = URL(c="user", f="accept_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
+    declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
+    
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
@@ -1114,7 +1114,7 @@ def email_for_registered_reviewer():
     if form.process().accepted:
         try:
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget, declineLinkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1159,7 +1159,6 @@ def email_for_new_reviewer():
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-    # art_doi = (recomm.doi or art.doi)
     # NOTE: 4 parallel submission
     parallelText = ""
     if parallelSubmissionAllowed:
@@ -1178,7 +1177,6 @@ def email_for_new_reviewer():
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
-    # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
@@ -1198,8 +1196,9 @@ def email_for_new_reviewer():
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
+
     form.element(_type="submit")["_value"] = T("Send email")
-    form.element("textarea[name=message]")["_style"] = "height:500px;"
+    
     if form.process().accepted:
         new_user_id = None
         # search for already-existing user
@@ -1241,7 +1240,7 @@ def email_for_new_reviewer():
             session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
         else:
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-            # linkTarget = URL(c='user', f='my_reviews', vars=dict(pendingOnly=True))
+
             if existingUser:
                 try:
                     emailing.send_reviewer_invitation(
@@ -1255,10 +1254,8 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         None,
-                        linkTarget,
+                        linkTarget
                     )
-                    # currentReview = db(db.t_reviews.id==reviewId).select().first()
-                    # currentReview.update_record(review_state='Pending')
                 except Exception as e:
                     session.flash = (session.flash or "") + T("Email failed.")
                     pass
@@ -1275,10 +1272,8 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         reset_password_key,
-                        linkTarget,
+                        linkTarget
                     )
-                    # currentReview = db(db.t_reviews.id==reviewId).select().first()
-                    # currentReview.update_record(review_state='Pending')
                 except Exception as e:
                     session.flash = (session.flash or "") + T("Email failed.")
                     pass

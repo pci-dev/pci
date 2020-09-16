@@ -1225,7 +1225,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_template, subject, message, reset_password_key=None, linkTarget=None):
+def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None):
     print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1263,28 +1263,75 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             host=mail_vars["host"],
                             port=mail_vars["port"],
                         )
-                    content.append(P())
-                    content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:"))))
-                    content.append(A(link, _href=link))
-                    content.append(P(B(current.T('THEN GO TO "Contribute —> invitations to review a preprint?" IN THE TOP MENU'))))
+
+                    declineLinkTarget = URL(
+                        a=None, c="user", f="delete_temp_user", vars=dict(key=reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
+                    )
+
+                    content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTON:"))))
+                    content.append(
+                        DIV(
+                            A(
+                                SPAN(
+                                    current.T("Validate your account"),
+                                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                ),
+                                _href=link,
+                                _style="text-decoration: none;",
+                            ),
+                            _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                        )
+                    )
+
+                    content.append(P(B(current.T('THEN GO TO "Contribute —> invitations to review a preprint" IN THE TOP MENU'))))
+                    content.append(HR())
+                    content.append(P(current.T("You can also delete the created account by clicking on this button :")))
+                    content.append(
+                        DIV(
+                            A(
+                                SPAN(
+                                    current.T("Delete the temporary account"),
+                                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                ),
+                                _href=declineLinkTarget,
+                                _style="text-decoration: none;",
+                            ),
+                            _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                        )
+                    )
 
                 elif linkTarget:
                     content.append(P())
+
                     if review.review_state is None or review.review_state == "Pending" or review.review_state == "":
-                        content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING LINK:"))))
+                        content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:"))))
+
+                        if declineLinkTarget:
+                            content.append(
+                                DIV(
+                                    A(
+                                        SPAN(
+                                            current.T("Yes, I agree to review this preprint"),
+                                            _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                        ),
+                                        _href=linkTarget,
+                                        _style="text-decoration: none;",
+                                    ),
+                                    A(
+                                        SPAN(
+                                            current.T("No thanks, I'd rather not"),
+                                            _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                        ),
+                                        _href=declineLinkTarget,
+                                        _style="text-decoration: none;",
+                                    ),
+                                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                                )
+                            )
+
                     elif review.review_state == "Under consideration":
                         content.append(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))))
-
-                    content.append(A(linkTarget, _href=linkTarget))
-
-                    # acceptLink = URL(c="user", f="accept_new_review", vars=dict(reviewId=reviewId), scheme=mail_vars['scheme'], host=mail_vars['host'], port=mail_vars['port'])
-                    # declineLink = URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"]), scheme=mail_vars['scheme'], host=mail_vars['host'], port=mail_vars['port'])
-
-                    # content.append(DIV(
-                    #     A(SPAN(current.T("Yes, I agree to review this preprint"), _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px"), _href=acceptLink, _style="text-decoration: none;"),
-                    #     A(SPAN(current.T("No thanks, I'd rather not"), _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px"), _href=declineLink, _style="text-decoration: none;"),
-                    #     _style="width: 100%; text-align: center; margin-bottom: 25px;"
-                    # ))
+                        content.append(A(linkTarget, _href=linkTarget))
 
                 subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -1355,6 +1402,7 @@ def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth
 
         emailing_tools.getFlashMessage(session, reports)
 
+
 ######################################################################################################################################################################
 def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId):
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1381,6 +1429,55 @@ def delete_reminder_for_submitter(db, hashtag_template, articleId):
         submitter_mail = db.auth_user[article.user_id]["email"]
 
         db((db.mail_queue.dest_mail_address == submitter_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == articleId)).delete()
+
+
+######################################################################################################################################################################
+def create_reminder_for_suggested_recommenders_invitation(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        hashtag_template = "#ReminderSuggestedRecommenderInvitation"
+
+        suggested_recommenders = db(
+            (db.t_suggested_recommenders.article_id == articleId)
+            & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
+        ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+
+        for sugg_recommender in suggested_recommenders:
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
+            mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
+
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 5, None, None, articleId)
+
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+    emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        submitter_mail = db.auth_user[article.user_id]["email"]
+
+        suggested_recommenders = db(
+            (db.t_suggested_recommenders.article_id == articleId)
+            & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
+        ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+
+        for sugg_recommender in suggested_recommenders:
+            db(
+                (db.mail_queue.dest_mail_address == sugg_recommender["auth_user.email"])
+                & (db.mail_queue.mail_template_hashtag == hashtag_template)
+                & (db.mail_queue.article_id == articleId)
+            ).delete()
 
 
 ######################################################################################################################################################################

@@ -46,8 +46,6 @@ def recommendations():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
-
         response.title = art.title or myconf.take("app.longname")
 
         # New recommendation function (WIP)
@@ -56,6 +54,8 @@ def recommendations():
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
+        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+        
         if printable:
             printableClass = "printable"
             response.view = "default/wrapper_printable.html"
@@ -895,3 +895,24 @@ def edit_reply():
         pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
         form=form,
     )
+
+
+def delete_temp_user():
+    if "key" in request.vars:
+        vkey = request.vars["key"]
+    else:
+        vkey = None
+    if isinstance(vkey, list):
+        vkey = vkey[1]
+    if vkey == "":
+        vkey = None
+
+    user = db(db.auth_user.reset_password_key == vkey).select().last()
+
+    if vkey is not None and user is not None:
+        db(db.auth_user.reset_password_key == vkey).delete()
+        session.flash = T("Account successfully deleted")
+        redirect(URL(c="default", f="index"))
+    else:
+        session.flash = T("Account deletion failed")
+        redirect(URL(c="default", f="index"))

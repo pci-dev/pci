@@ -257,7 +257,6 @@ def user():
 
     return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
 
-
 # (gab) is this used ?
 @cache.action()
 def download():
