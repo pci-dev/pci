@@ -306,8 +306,10 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 def mkReviewStateDiv(auth, db, state):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
-    if state == "Pending":
+    if state == "Pending" or state == "Ask for review":
         color_class = "warning"
+    elif state == "Declined by recommender":
+        color_class = "danger"
     elif state == "Under consideration":
         color_class = "info"
     elif state == "Completed":

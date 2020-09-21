@@ -83,19 +83,36 @@
   <br/>
   {{=recommendationVersion}}
   
-  {{if inviteReviewerLink:}}
-    <div class="pci2-flex-row pci2-flex-center pci2-full-width">
-        <a class="buttontext btn btn-default"  href="{{=inviteReviewerLink}}">
+  <div class="pci2-flex-row pci2-flex-center pci2-full-width" style="margin-top: 20px">
+    {{if inviteReviewerLink:}}
+      <a class="buttontext btn btn-success"  href="{{=inviteReviewerLink}}">
         {{=T('Invite a reviewer')}}
       </a>
-    </div>
-  {{pass}}
+    {{pass}}
+
+    {{if showSearchingForReviewersButton:}}
+      <a class="buttontext btn btn-default"  href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+        {{=T('Put preprint in "searching for rewiwers" list')}}
+      </a>
+    {{pass}}
+    
+    {{if showRemoveSearchingForReviewersButton:}}
+      <a class="buttontext btn btn-warning"  href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+        {{=T('Remove preprint from "searching for rewiwers" list ')}}
+      </a>
+    {{pass}}
+  </div>
+
 
   <!-- Round reviews -->
   {{for review in reviewsList:}}
     <div>  
-      {{if review['authors']:}}
-        <h4 class="pci2-round-review-sub-title">{{=review['authors']}}</h4>
+      {{if review['authors'] and not review['showReviewRequest']:}}
+        <h4 class="pci2-round-review-sub-title">{{=T('Review request by ')}}{{=review['authors']}}</h4>
+      {{pass}}
+
+      {{if review['showReviewRequest']:}}
+        <h4 class="pci2-round-review-sub-title">{{=T('Review request by ')}}{{=review['authors']}}</h4>
       {{pass}}
       
       <!-- Review invitation buttons -->  
@@ -115,6 +132,37 @@
           >
             {{=T('No thanks, I\'d rather not')}}
           </a>
+        </div>
+      {{pass}}
+
+      <!-- Accept request to review article invitation buttons -->  
+      {{if review['showReviewRequest']:}}
+        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <a class="buttontext btn btn-success" 
+            href="{{=URL(c='recommender_actions', f='accept_review_request',  vars=dict(reviewId=review['id']))}}"
+          >
+            {{=T('Yes, I accept this review request')}}
+          </a>
+          <a class="buttontext btn btn-warning" 
+            href="{{=URL(c='recommender_actions', f='decline_review_request',  vars=dict(reviewId=review['id']))}}"
+          >
+            {{=T('No thanks, I\'d rather not')}}
+          </a>
+        </div>
+      {{pass}}
+
+      <!-- Review invitation buttons -->  
+      {{if review['showPendingAskForReview']:}}
+        <h3 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" style="margin-top: 25px;">
+          <i class="glyphicon glyphicon-envelope" style="margin-right: 10px;"></i>
+          {{= T('Request to review this article')}}
+        </h3>
+        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          {{if review['declinedByRecommender']:}}
+            <b style="margin:15px">{{=T('Your request has been declined by the recommender.')}}</b>
+          {{else:}}
+            <b style="margin:15px">{{=T('Waiting for recommender acceptation...')}}</b>
+          {{pass}}
         </div>
       {{pass}}
 

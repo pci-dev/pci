@@ -55,7 +55,7 @@ def recommendations():
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
-        
+
         if printable:
             printableClass = "printable"
             response.view = "default/wrapper_printable.html"
@@ -639,7 +639,7 @@ def my_reviews():
                 _class="button",
                 _title=current.T("View and/or edit review"),
             )
-            if row.t_reviews.review_state in ("Pending", "Under consideration", "Completed")
+            if row.t_reviews.review_state in ("Pending", "Under consideration", "Completed", "Ask for review")
             else "",
         ),
     ]
@@ -723,6 +723,73 @@ def accept_new_review():
 
     response.view = "controller/user/accept_new_review.html"
     return dict(titleIcon="eye-open", pageTitle=pageTitle, disclaimerText=disclaimerText, actionFormUrl=actionFormUrl, dueTime=dueTime, customText=customText, reviewId=reviewId)
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def ask_for_review():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    articleId = request.vars["articleId"]
+    if articleId is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    article = db.t_articles[articleId]
+    if article is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    if not (article.is_searching_reviewers):
+        raise HTTP(403, "403: " + T("ERROR: The recommender is not searching for reviewers"))
+
+    isParallel = db((db.t_articles.id == articleId)).select(db.t_articles.parallel_submission).last()
+
+    _next = None
+    if "_next" in request.vars:
+        _next = request.vars["_next"]
+
+    disclaimerText = None
+    actionFormUrl = None
+    dueTime = None
+    ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
+    if ethics_not_signed:
+        redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_for_review", vars=dict(articleId=articleId) if articleId else ""))))
+    else:
+        if isParallel:
+            due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+        else:
+            due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
+        disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+        actionFormUrl = URL("user_actions", "do_ask_for_review")
+        dueTime = due_time
+
+    amISubmitter = article.user_id == auth.user_id
+
+    amIReviewer = (
+        db((db.t_recommendations.article_id == articleId) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
+    )
+
+    recomm = db(db.t_recommendations.article_id == articleId).select().last()
+    amIRecommender = recomm.recommender_id == auth.user_id
+
+    recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, article, False, True)
+
+    pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
+    customText = getText(request, auth, db, "#AskForReviewText")
+
+    response.view = "controller/user/ask_for_review.html"
+    return dict(
+        titleIcon="envelope",
+        pageTitle=pageTitle,
+        disclaimerText=disclaimerText,
+        actionFormUrl=actionFormUrl,
+        dueTime=dueTime,
+        customText=customText,
+        articleId=articleId,
+        isAlreadyReviewer=amIReviewer,
+        isRecommender=amIRecommender,
+        isSubmitter=amISubmitter,
+        recommHeaderHtml=recommHeaderHtml,
+        myBackButton=common_small_html.mkBackButton(),
+    )
 
 
 ######################################################################################################################################################################
@@ -916,3 +983,112 @@ def delete_temp_user():
     else:
         session.flash = T("Account deletion failed")
         redirect(URL(c="default", f="index"))
+
+
+######################################################################################################################################################################
+# Show my submissions
+@auth.requires_login()
+def articles_awaiting_reviewers():
+    response.view = "default/myLayout.html"
+
+    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")
+
+    db.t_articles.auto_nb_recommendations.writable = False
+    db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
+    db.t_articles._id.label = T("Article")
+    db.t_articles.doi.readable = False
+    db.t_articles.title.readable = False
+    db.t_articles.authors.readable = False
+    db.t_articles.ms_version.readable = False
+    db.t_articles.article_source.readable = False
+    db.t_articles.parallel_submission.readable = False
+    db.t_articles.anonymous_submission.readable = False
+
+    # db.t_articles.anonymous_submission.label = T("Anonymous submission")
+    # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
+    links = [
+        dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(auth, db, row)),
+        dict(
+            header="",
+            body=lambda row: A(
+                SPAN(current.T("Ask for review"), _class="buttontext btn btn-default pci-button pci-submitter"),
+                _href=URL(c="user", f="ask_for_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
+                _class="button",
+                _title=current.T("View and/or edit article"),
+            ),
+        ),
+    ]
+
+    db.t_articles.abstract.readable = False
+    db.t_articles.keywords.readable = False
+    db.t_articles.thematics.readable = False
+    db.t_articles.upload_timestamp.readable = False
+    db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
+    db.t_articles.upload_timestamp.label = T("Submitted")
+    db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(text)
+    db.t_articles.auto_nb_recommendations.readable = True
+
+    if parallelSubmissionAllowed:
+        fields = [
+            db.t_articles.last_status_change,
+            # db.t_articles.status,
+            db.t_articles.uploaded_picture,
+            db.t_articles._id,
+            db.t_articles.upload_timestamp,
+            db.t_articles.title,
+            db.t_articles.anonymous_submission,
+            db.t_articles.parallel_submission,
+            db.t_articles.authors,
+            db.t_articles.article_source,
+            db.t_articles.abstract,
+            db.t_articles.doi,
+            db.t_articles.ms_version,
+            db.t_articles.thematics,
+            db.t_articles.keywords,
+            db.t_articles.auto_nb_recommendations,
+        ]
+    else:
+        fields = [
+            db.t_articles.last_status_change,
+            # db.t_articles.status,
+            db.t_articles.uploaded_picture,
+            db.t_articles._id,
+            db.t_articles.upload_timestamp,
+            db.t_articles.title,
+            db.t_articles.anonymous_submission,
+            db.t_articles.authors,
+            db.t_articles.article_source,
+            db.t_articles.abstract,
+            db.t_articles.doi,
+            db.t_articles.ms_version,
+            db.t_articles.thematics,
+            db.t_articles.keywords,
+            db.t_articles.auto_nb_recommendations,
+        ]
+
+    grid = SQLFORM.grid(
+        query,
+        searchable=False,
+        details=False,
+        editable=False,
+        deletable=False,
+        create=False,
+        csv=csv,
+        exportclasses=expClass,
+        maxtextlength=250,
+        paginate=20,
+        fields=fields,
+        links=links,
+        left=db.t_status_article.on(db.t_status_article.status == db.t_articles.status),
+        orderby=~db.t_articles.last_status_change,
+    )
+
+    print(grid)
+    return dict(
+        # myBackButton=common_small_html.mkBackButton(),
+        pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),
+        customText=getText(request, auth, db, "#ArticlesAwaitingReviewersText"),
+        titleIcon="inbox",
+        pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
+        grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+    )

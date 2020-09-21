@@ -177,13 +177,62 @@ def decline_new_review():
     if rev["review_state"] in ["Declined", "Completed", "Cancelled"]:
         recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
         session.flash = T("Review state has been changed")
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm['article_id'])))
-        
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
     # db(db.t_reviews.id==reviewId).delete()
     rev.review_state = "Declined"
     rev.update_record()
     # email to recommender sent at database level
     redirect(URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), user_signature=True))
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def do_ask_for_review():
+    if "articleId" not in request.vars:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    articleId = request.vars["articleId"]
+    if isinstance(articleId, list):
+        articleId = articleId[1]
+
+    article = db.t_articles[articleId]
+    if not (article.is_searching_reviewers):
+        raise HTTP(403, "403: " + T("ERROR: The recommender is not searching for reviewers"))
+    if article.user_id == auth.user_id:
+        raise HTTP(403, "403: " + T("ERROR: You are the submitter this article"))
+
+    theUser = db.auth_user[auth.user_id]
+    if "ethics_approved" in request.vars and theUser.ethical_code_approved is False:
+        theUser.ethical_code_approved = True
+        theUser.update_record()
+    if not (theUser.ethical_code_approved):
+        raise HTTP(403, "403: " + T("ERROR: Ethical code not approved"))
+    if "no_conflict_of_interest" not in request.vars:
+        raise HTTP(403, "403: " + T('ERROR: Value "no conflict of interest" missing'))
+    noConflict = request.vars["no_conflict_of_interest"]
+    if noConflict != "yes":
+        raise HTTP(403, "403: " + T("ERROR: No conflict of interest not checked"))
+
+    amIReviewer = (
+        db((db.t_recommendations.article_id == articleId) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
+    )
+    if amIReviewer:
+        raise HTTP(403, "403: " + T("ERROR: Already reviewer on this article"))
+    
+
+    recomm = db(db.t_recommendations.article_id == articleId).select().last()
+    if recomm.recommender_id == auth.user_id:
+        raise HTTP(403, "403: " + T("ERROR: You are the recommender this article"))
+
+    reviewerId = request.vars.reviewerId
+
+    revId = db.t_reviews.update_or_insert(
+        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Ask for review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
+    )
+
+    # email to recommender sent at database level
+    redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm.article_id)))
 
 
 ######################################################################################################################################################################

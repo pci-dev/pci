@@ -1,0 +1,1 @@
+ALTER TABLE "t_articles" ADD COLUMN "is_searching_reviewers" boolean DEFAULT false;

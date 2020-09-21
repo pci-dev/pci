@@ -77,10 +77,10 @@ def do_accept_new_article_to_recommend():
     noConflict = request.vars["no_conflict_of_interest"]
     if noConflict != "yes":
         raise HTTP(403, "403: " + T("Forbidden"))
-    
+
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
-    
+
     if article.status == "Awaiting consideration":
         recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state="Ongoing", no_conflict_of_interest=True)
         db.commit()
@@ -106,7 +106,7 @@ def do_accept_new_article_to_recommend():
                 print("Bug (lastRecomm) : " + lastRecomm)
                 session.flash = T("Article no more available", lazy=False)
                 redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
-        else:      
+        else:
             print("Bug (articleStatus) : " + article.status)
             session.flash = T("Article no more available", lazy=False)
             redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
@@ -334,3 +334,104 @@ def cancel_recommender_as_reviewer():
         session.flash = auth.not_authorized()
     redirect(request.env.http_referer)
 
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def accept_review_request():
+    if "reviewId" not in request.vars:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    reviewId = request.vars["reviewId"]
+    rev = db.t_reviews[reviewId]
+    if rev is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    if rev["review_state"] != "Ask for review":
+        session.flash = T("Review state has been changed")
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+    recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
+    if recomm.recommender_id != auth.user_id:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    # db(db.t_reviews.id==reviewId).delete()
+    rev.review_state = "Under consideration"
+    rev.update_record()
+    # email to recommender sent at database level
+    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def decline_review_request():
+    if "reviewId" not in request.vars:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    reviewId = request.vars["reviewId"]
+    rev = db.t_reviews[reviewId]
+    if rev is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    if rev["review_state"] != "Ask for review":
+        session.flash = T("Review state has been changed")
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+    recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
+    if recomm.recommender_id != auth.user_id:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    # db(db.t_reviews.id==reviewId).delete()
+    rev.review_state = "Declined by recommender"
+    rev.update_record()
+    # email to recommender sent at database level
+    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+
+######################################################################################################################################################################
+def make_preprint_searching_for_reviewers():
+    recommId = request.vars["recommId"]
+    if recommId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        print("ERRRRRRRR 1")
+
+    recomm = db.t_recommendations[recommId]
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        print("ERRRRRRRR 2")
+
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        art = db.t_articles[recomm.article_id]
+        print(art)
+
+        art.is_searching_reviewers = True
+        art.update_record()
+        db.commit()
+        session.flash = "Preprint now appear in \"searching for rewiwers\" list"
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
+
+
+######################################################################################################################################################################
+def make_preprint_not_searching_for_reviewers():
+    recommId = request.vars["recommId"]
+    if recommId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    recomm = db.t_recommendations[recommId]
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        art = db.t_articles[recomm.article_id]
+        art.is_searching_reviewers = False
+        art.update_record()
+        db.commit()
+        session.flash = "Preprint is removed from \"searching for rewiwers\" list"
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))

@@ -562,11 +562,12 @@ db.define_table(
         readable=parallelSubmissionAllowed,
         represent=lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else "",
     ),
+    Field("is_searching_reviewers", type="boolean", label=T("Open to reviewers"), default=False),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews"), default=0),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
-    migrate=False,
+    migrate=True,
 )
 db.t_articles.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
 db.t_articles.authors.represent = lambda t, r: "[undisclosed]" if (r.anonymous_submission and r.status != "Recommended") else (t)
@@ -831,7 +832,7 @@ db.define_table(
         type="string",
         length=50,
         label=T("Review status"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Declined", "Completed", "Cancelled"))),
+        requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Ask for review", "Declined by recommender", "Declined", "Completed", "Cancelled"))),
         writable=False,
     ),
     Field("review", type="text", length=2097152, label=T("Review as text")),

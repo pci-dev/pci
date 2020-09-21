@@ -202,6 +202,10 @@ def _UserMenu():
     myContributionsMenu.append((txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)))
 
     myContributionsMenu.append(
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint searching for reviewers")), False, URL("user", "articles_awaiting_reviewers", user_signature=True))
+    )
+
+    myContributionsMenu.append(
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Submit a preprint")), False, URL("user", "new_submission", user_signature=True))
     )
     myContributionsMenu.append(LI(_class="divider"))

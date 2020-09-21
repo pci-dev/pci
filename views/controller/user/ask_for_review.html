@@ -1,0 +1,112 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
+{{extend 'layout.html'}} 
+
+{{if 'pageHelp#TODO' in locals():}} 
+  {{=pageHelp}}
+{{pass}} 
+
+{{if 'myBackButton' in locals():}}
+  <div class="pci-backButtonDiv">{{=myBackButton}}</div>
+{{pass}} 
+
+{{if 'customText' in locals():}} 
+  {{=customText}} 
+{{pass}}
+
+<div class="pci2-justify-center">
+  <div class="pci2-content-900px">
+    {{=recommHeaderHtml}}
+
+    {{if isAlreadyReviewer == False and isRecommender == False and isSubmitter == False:}}
+
+    <div class="pci2-full-width pci2-flex-center" style="margin: 40px 0">
+      <div class="pci-embeddedEthic" style="padding-top: 10px">
+        <form action="{{=actionFormUrl}}" enctype="multipart/form-data" method="POST">
+          <!-- hidden values -->
+          <input value="{{=articleId}}" type="hidden" name="articleId" />
+          <input value="true" type="hidden" name="ethics_approved" />
+        
+          <div class="checkbox">
+            <label>
+              <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
+              <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the article")}}</b>
+            </label>
+          </div>
+        
+          <span>
+            {{=disclaimerText}}
+          </span>      
+
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="due_time" id="due_time" value="yes"> 
+              <b>{{=T('I agree to post my review within %s' % dueTime)}}</b>
+            </label>
+          </div>
+        
+          <div class="pci2-flex-center">
+            <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I consider this preprint for review')}}">          
+          </div>
+        </form>
+      </div>
+    </div>
+    {{else:}}
+    <div class="pci2-full-width pci2-flex-center" style="margin: 40px 0">
+      <div class="pci-embeddedEthic" style="padding-top: 30px; text-align: center;">
+        {{if isAlreadyReviewer or isSubmitter:}}
+          {{if isAlreadyReviewer:}}
+            <p><b>{{=T('You are already a reviewer or asking to review this preprint.')}}</b></p>
+          {{pass}}
+          {{if isSubmitter:}}
+            <p><b>{{=T('You are the submitter of this preprint.')}}</b></p>
+          {{pass}}
+          <a type="submit" class="btn btn-success pci-panelButton" href="{{=URL(c="user", f="recommendations", vars=dict(articleId=articleId))}}">
+            {{=T('Go to recommendation page')}}
+          </a>  
+        {{elif isRecommender:}}
+          <p><b>{{=T('You are the recommender of this preprint.')}}</b></p>
+          <a type="submit" class="btn btn-success pci-panelButton" href="{{=URL(c="recommender", f="recommendations", vars=dict(articleId=articleId))}}">
+            {{=T('Go to recommendation page')}}
+          </a>  
+        {{pass}}
+      </div>
+    </div>
+    {{pass}}
+  </div>
+</div>
+
+<!-- disable submit button if checkboxes are not checked -->
+<script>
+  jQuery(document).ready(function() {
+    if (
+      jQuery("#no_conflict_of_interest").prop("checked") &
+      jQuery("#due_time").prop("checked")
+    ) {
+      jQuery(":submit").prop("disabled", false);
+    } else {
+      jQuery(":submit").prop("disabled", true);
+    }
+
+    jQuery("#no_conflict_of_interest").change(function() {
+      if (
+        jQuery("#no_conflict_of_interest").prop("checked") &
+        jQuery("#due_time").prop("checked")
+      ) {
+        jQuery(":submit").prop("disabled", false);
+      } else {
+        jQuery(":submit").prop("disabled", true);
+      }
+    });
+
+    jQuery("#due_time").change(function() {
+      if (
+        jQuery("#no_conflict_of_interest").prop("checked") &
+        jQuery("#due_time").prop("checked")
+      ) {
+        jQuery(":submit").prop("disabled", false);
+      } else {
+        jQuery(":submit").prop("disabled", true);
+      }
+    });
+  });
+</script>

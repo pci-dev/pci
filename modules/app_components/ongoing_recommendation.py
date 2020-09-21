@@ -46,7 +46,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     allowManageRecomms = False
     if nbRecomms > 0 and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
-    
+
     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
     allowManageRequest = False
@@ -54,8 +54,6 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
         manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
-    
-    
 
     componentVars = dict(
         statusTitle=myTitle,
@@ -214,7 +212,9 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
         for review in reviews:
             # No one is allowd to see ongoing reviews ...
             hideOngoingReview = True
-            reviewVars = dict(id=review.id, showInvitationButtons=False, showEditButtons=False, authors=None, text=None, pdfLink=None)
+            reviewVars = dict(
+                id=review.id, showInvitationButtons=False, showReviewRequest=False, showPendingAskForReview=False, declinedByRecommender=False, showEditButtons=False, authors=None, text=None, pdfLink=None
+            )
             # ... but:
             # ... the author for a closed decision/recommendation ...
             if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
@@ -240,15 +240,22 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
                 hideOngoingReview = False
 
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id) and review.review_state == "Ask for review":
+                reviewVars.update([("showReviewRequest", True)])
+
             if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
                 if review.review_state == "Pending":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
+                elif review.review_state == "Ask for review" or review.review_state == "Declined by recommender":
+                    # reviewer's buttons in order to accept/decline pending review
+                    reviewVars.update([("showPendingAskForReview", True)])
+                    if review.review_state == "Declined by recommender":
+                        reviewVars.update([("declinedByRecommender", True)])
 
-            elif review.review_state == "Pending":
+            elif review.review_state == "Pending" or review.review_state == "Declined by recommender":
                 hideOngoingReview = True
 
-            
             # reviewer's buttons in order to edit/complete pending review
             if (
                 (review.reviewer_id == auth.user_id)
@@ -267,8 +274,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                             (
                                 "authors",
                                 SPAN(
-                                    current.T("Reviewed by"),
-                                    " ",
                                     current.T("anonymous reviewer"),
                                     (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
                                 ),
@@ -283,8 +288,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                                 (
                                     "authors",
                                     SPAN(
-                                        current.T("Reviewed by"),
-                                        " ",
                                         common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
                                         (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
                                     ),
@@ -343,14 +346,19 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             )
 
         inviteReviewerLink = None
+        showSearchingForReviewersButton = None
+        showRemoveSearchingForReviewersButton = None
         if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration"):
             inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
+            showSearchingForReviewersButton = not art.is_searching_reviewers
+            showRemoveSearchingForReviewersButton = art.is_searching_reviewers
 
         recommendationText = ""
         if len(recomm.recommendation_comments or "") > 2:
             recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False) if (hideOngoingRecomm is False) else ""
 
         componentVars = dict(
+            recommId=recomm.id,
             printable=printable,
             roundNumber=roundNb,
             lastChanges=None,
@@ -370,6 +378,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             editRecommendationLink=editRecommendationLink,
             editRecommendationDisabled=editRecommendationDisabled,
             reviewsList=reviewsList,
+            showSearchingForReviewersButton=showSearchingForReviewersButton,
+            showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
         )
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
 
