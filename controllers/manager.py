@@ -240,7 +240,7 @@ def recommendations():
     if art.already_published:
         myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
     else:
-        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
     response.title = art.title or myconf.take("app.longname")
 

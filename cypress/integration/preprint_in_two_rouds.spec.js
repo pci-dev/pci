@@ -129,13 +129,13 @@ describe("Preprint recommended in two round", () => {
     });
   });
 
-  describe("1 - Prepint validated => check status : SUBMISSION PENDING VALIDATION", () => {
+  describe("1 - Prepint submitted => check status : SUBMISSION PENDING VALIDATION", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
-        "1-Prepint validated",
+        "1-Prepint submitted",
         "SUBMISSION PENDING VALIDATION",
         articleTitle
       );
@@ -146,7 +146,7 @@ describe("Preprint recommended in two round", () => {
         currentTest,
         manager,
         "manager",
-        "1-Prepint validated",
+        "1-Prepint submitted",
         "SUBMISSION PENDING VALIDATION",
         articleTitle
       );

@@ -19,20 +19,68 @@
 {{pass}}
 
 
-{{if 'recommTopButtons' in locals():}}
+{{if 'myContents' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
 	<div style="max-width: 800px; width: 100%;">
-		{{=recommTopButtons}}
+		{{if ('recommendationProgression' in locals()) and (recommendationProgression is not None) and (isSubmitter == True):}}
+			<hr>
+
+			<div style="margin-bottom: 40px; " class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
+				<h2 id="title-recomm-process" class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center {{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}pci2-half-opacity{{pass}}">
+				  <i class="glyphicon glyphicon-dashboard" style="margin-right: 10px;"></i>
+				  {{= T('Recommendation timeline')}}
+				</h2>
+
+				{{if not printable:}}      
+					<a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center"
+						onclick="if( jQuery('#recomm-process-container' ).hasClass('pci2-panel-closed')) { 
+							jQuery('#recomm-process-container').removeClass('pci2-panel-closed') 						
+							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate') 
+							jQuery('#icon-recomm-process').addClass('glyphicon-rotate-reversed') 
+							jQuery('#title-recomm-process').removeClass('pci2-half-opacity')
+						} else {
+							jQuery('#recomm-process-container').addClass('pci2-panel-closed') 						
+							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate-reversed') 
+							jQuery('#icon-recomm-process').addClass('glyphicon-rotate')
+							jQuery('#title-recomm-process').addClass('pci2-half-opacity')
+						}" 
+					>
+						{{=T('Toggle')}}
+						{{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}
+							<i id="icon-recomm-process" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+						{{else:}}
+							<i id="icon-recomm-process" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate-reversed pci2-main-color-text"></i>
+						{{pass}}					
+					</a>
+				{{pass}}
+			</div>
+
+
+			<div id="recomm-process-container" class="pci2-fade-in-top {{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}pci2-panel-closed{{pass}}">
+				{{=recommendationProgression}}
+			</div>
+		{{pass}}
+
+		{{if ('isSubmitter' not in locals() and 'isRecommAvalaibleToSubmitter' not in locals()) or (isSubmitter and roundNumber >= 1 and isRecommAvalaibleToSubmitter) or ('isSubmitter' in locals() and isSubmitter == False) or (isSubmitter and roundNumber >= 2):}}
+			<hr>
+		
+			<h2 style="margin-top: 40px" id="title-recomm-process" class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
+				<i class="glyphicon glyphicon-education" style="margin-right: 10px;"></i>
+				{{= T('Recommendation process')}}
+			</h2>
+
+			{{=myContents}}
+
+		{{pass}}
 	</div>
 </div>
 {{pass}}
 
 
-
-{{if 'myContents' in locals():}}
+{{if 'recommTopButtons' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
-	<div style="max-width: 800px; width: 100%;">
-	{{=myContents}}
+	<div style="max-width: 800px; width: 100%; margin-top: 20px;">
+		{{=recommTopButtons}}
 	</div>
 </div>
 {{pass}}

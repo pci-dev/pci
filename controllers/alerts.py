@@ -74,7 +74,6 @@ def alertUsersLastRecommendations():
         for user in usersQy:
             userId = user.id
             articleIdsQy = db.executesql("SELECT * FROM alert_last_recommended_article_ids_for_user(%s);", placeholders=[userId])
-            print(userId)
             if len(articleIdsQy) > 0:
                 artIds = articleIdsQy[0][0]
                 if artIds:

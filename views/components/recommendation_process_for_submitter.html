@@ -1,0 +1,134 @@
+{{if roundNumber == 1:}}
+    <div class="progress-step-div pci2-flex-row {{=submissionValidatedClassClass}}">
+        <div class="progress-step-circle pci2-flex-center">
+            <i class="glyphicon glyphicon-check"></i>
+        </div>
+        <div class="step-description">
+            <h3>Validation by the managing board</h3>
+            {{if submissionValidatedClassClass == "step-done":}}
+                <p><b>Submission <b style="color: #089108">accepted</b></b></p>
+            {{else:}}
+                <p>Waiting for acceptation...</p>
+            {{pass}}
+        </div>
+    </div>
+
+    <div class="progress-step-div pci2-flex-row {{=havingRecommenderClass}}">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-education"></i>
+        </div>
+        <div class="step-description">
+            <h3>Suggested recommenders invitations</h3>
+            <p>
+                Suggested recommenders : <b>{{=suggestedRecommendersCount}}</b>
+                {{if havingRecommenderClass == "step-done":}}
+                    <br/>
+                    Recommender : <b><i>{{=A(recommenderName)}}</i></b>
+                {{pass}}
+            </p>
+        </div>
+    </div>
+{{pass}}
+
+
+{{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and 
+    (not recommendationStepClass == "step-done" or 
+    (acceptedReviewCount >= 2 and completedReviewCount >= 2))
+):}}
+    <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-envelope"></i>
+        </div>
+        <div class="step-description">
+            <h3><b style="color: #333">Round {{=roundNumber}} : </b> Reviewers invitations</h3>
+            <p>
+                Invited : <b>{{=reviewCount}}</b> <br/>
+                Accepted : <b>{{=acceptedReviewCount}} / 2</b> <br/>
+            </p>
+        </div>
+    </div>
+
+    <div class="progress-step-div pci2-flex-row {{=reviewsStepDoneClass}}">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-eye-open"></i>
+        </div>
+        <div class="step-description">
+            <h3><b style="color: #333">Round {{=roundNumber}} : </b>Reviews progression</h3>
+            <p>
+                Reviews completed : <b>{{=completedReviewCount}} / 2</b>
+            </p>
+        </div>
+    </div>
+{{pass}}
+
+<div class="progress-step-div pci2-flex-row {{=recommendationStepClass}}">
+    <div class="pci2-flex-center progress-step-circle">
+        <i class="glyphicon glyphicon-edit"></i>
+    </div>
+    <div class="step-description">
+        <h3><b style="color: #333">Round {{=roundNumber}} : </b>Decision by the recommender</h3>
+        {{if recommendationStepClass == "step-done":}}
+            <p>
+                Decision :
+                {{if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":}}
+                    <b style="color: #089108">Recommended</b>
+                {{elif recommStatus == "Revision" and managerDecisionDoneClass == "step-done":}}
+                    <b style="color: #ffbf00">Awaiting revision</b>
+                {{elif recommStatus == "Rejected" and managerDecisionDoneClass == "step-done":}}
+                    <b style="color: #e61919">Rejected</b>
+                {{else:}}
+                    <b>Waiting for managing board validation to show</b>
+                {{pass}}      
+            </p>
+        {{else:}}
+            <p>
+                Waiting for decision...
+            </p>
+        {{pass}}
+    </div>
+</div>
+
+<div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}">
+    <div class="pci2-flex-center progress-step-circle">
+        <i class="glyphicon glyphicon-ok"></i>
+    </div>
+    <div class="step-description">
+        <h3><b style="color: #333">Round {{=roundNumber}} : </b>Validation of the decision by the managing board</h3>
+        {{if managerDecisionDoneClass == "step-done":}}
+            <p>
+                <b>Recommender decision <b style="color: #089108">validated</b></b>
+            </p>
+            {{if recommendationLink:}}
+                <div class="pci2-flex-center">
+                    <a class="buttontext btn btn-success" 
+                        href="{{=recommendationLink}}"
+                        >
+                        {{=T('See public recommendation page')}}
+                    </a>
+                </div>
+            {{pass}}
+        {{else:}}
+            <p>
+                Waiting for decision...
+            </p>
+        {{pass}}
+    </div>
+</div>
+
+{{if ((recommStatus == "Revision") and managerDecisionDoneClass == "step-done"):}}
+    <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="step-description">
+            <h3><b style="color: #333">Round {{=roundNumber}} : </b> Author's reply</h3>
+            {{if authorsReplyClass == "step-done":}}
+                <p>
+                    <b>Your reply has been <b style="color: #089108">sent</b></b>
+                </p>
+            {{else:}}
+                <p>The recommender is asking for revisions from the author</p>
+            {{pass}}        
+        </div>
+    </div>
+{{pass}}

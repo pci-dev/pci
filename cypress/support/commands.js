@@ -111,7 +111,7 @@ Cypress.Commands.add(
 
         if (status != "not.exist")
           cy.contains("a", "View / Edit").first().click();
-        // cy.screenshot()
+          // cy.screenshot()
         break;
     }
 

@@ -70,7 +70,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
 
 ######################################################################################################################################################################
-def getRecommendationTopButtons(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, scheme=False, host=False, port=False):
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
     ###NOTE: recommendations counting
@@ -120,7 +120,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, with_comments=Fa
                     _href=URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id), user_signature=True),
                     _title=current.T("Click here in order to cancel this submission"),
                 ),
-                _class="pci-EditButtons",
+                _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
             )
         )  # author's button allowing cancellation
 
@@ -130,9 +130,159 @@ def getRecommendationTopButtons(auth, db, art, printable=False, with_comments=Fa
 
 
 ########################################################################################################################################################################
+def getRecommendationProcessForSubmitter(auth, db, response, art, printable, scheme=False, host=False, port=False):
+    recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+
+    submissionValidatedClassClass = "step-default"
+    havingRecommenderClass = "step-default"
+
+    recommendationStepClass = "step-default"
+    reviewInvitationsAcceptedClass = "step-default"
+    reviewsStepDoneClass = "step-default"
+    managerDecisionDoneClass = "step-default"
+
+    if not (art.status == "Pending"):
+        submissionValidatedClassClass = "step-done"
+
+    suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
+
+    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id)
+    totalRecomm = len(recomms)
+
+    if totalRecomm > 0:
+        havingRecommenderClass = "step-done"
+
+    roundNumber = 1
+
+    recommStatus = None
+    reviewCount = 0
+    acceptedReviewCount = 0
+    completedReviewCount = 0
+
+    recommenderName = None
+
+    if totalRecomm > 0:
+        for recomm in recomms:
+
+            recommendationStepClass = "step-default"
+            reviewInvitationsAcceptedClass = "step-default"
+            reviewsStepDoneClass = "step-default"
+            managerDecisionDoneClass = "step-default"
+            authorsReplyClass = "step-default"
+
+            recommenderName = common_small_html.getRecommAndReviewAuthors(
+                auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
+            )
+
+            recommStatus = None
+            reviewCount = 0
+            acceptedReviewCount = 0
+            completedReviewCount = 0
+
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+                orderby=db.t_reviews.id
+            )
+
+            for review in reviews:
+                reviewCount += 1
+                if review.review_state == "Under consideration":
+                    acceptedReviewCount += 1
+                if review.review_state == "Completed":
+                    acceptedReviewCount += 1
+                    completedReviewCount += 1
+
+            if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
+                recommendationStepClass = "step-done"
+                recommStatus = recomm.recommendation_state
+
+            if acceptedReviewCount >= 2:
+                reviewInvitationsAcceptedClass = "step-done"
+
+            if completedReviewCount >= 2:
+                reviewsStepDoneClass = "step-done"
+
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and recomm.reply is not None):
+                managerDecisionDoneClass = "step-done"
+
+            if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                managerDecisionDoneStepClass = "progress-step-div"
+            else:
+                managerDecisionDoneStepClass = "progress-last-step-div"
+
+            if (roundNumber < totalRecomm) and (recomm.reply is not None) and (len(recomm.reply) > 0):
+                authorsReplyClass = "step-done"
+
+            if roundNumber == totalRecomm and recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                authorsReplyClassStepClass = "progress-last-step-div"
+            else:
+                authorsReplyClassStepClass = "progress-step-div"
+
+            recommendationLink = None
+            if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":
+                recommendationLink = URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True)
+
+            componentVars = dict(
+                printable=printable,
+                roundNumber=roundNumber,
+                articleStatus=art.status,
+                submissionValidatedClassClass=submissionValidatedClassClass,
+                havingRecommenderClass=havingRecommenderClass,
+                suggestedRecommendersCount=suggestedRecommendersCount,
+                recommenderName=recommenderName,
+                reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+                reviewCount=reviewCount,
+                acceptedReviewCount=acceptedReviewCount,
+                reviewsStepDoneClass=reviewsStepDoneClass,
+                completedReviewCount=completedReviewCount,
+                recommendationStepClass=recommendationStepClass,
+                recommStatus=recommStatus,
+                managerDecisionDoneClass=managerDecisionDoneClass,
+                managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+                authorsReplyClass=authorsReplyClass,
+                authorsReplyClassStepClass=authorsReplyClassStepClass,
+                totalRecomm=totalRecomm,
+                recommendationLink=recommendationLink,
+            )
+            recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+
+            roundNumber += 1
+
+    else:
+        managerDecisionDoneStepClass = "progress-last-step-div"
+
+        componentVars = dict(
+            printable=printable,
+            roundNumber=roundNumber,
+            articleStatus=art.status,
+            submissionValidatedClassClass=submissionValidatedClassClass,
+            havingRecommenderClass=havingRecommenderClass,
+            suggestedRecommendersCount=suggestedRecommendersCount,
+            recommenderName=recommenderName,
+            reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+            reviewCount=reviewCount,
+            acceptedReviewCount=acceptedReviewCount,
+            reviewsStepDoneClass=reviewsStepDoneClass,
+            completedReviewCount=completedReviewCount,
+            recommendationStepClass=recommendationStepClass,
+            recommStatus=recommStatus,
+            managerDecisionDoneClass=managerDecisionDoneClass,
+            managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+            totalRecomm=totalRecomm,
+        )
+
+        recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+
+    return dict(
+        roundNumber=totalRecomm,
+        isRecommAvalaibleToSubmitter=(managerDecisionDoneClass == "step-done"),
+        content=recommendationDiv
+    ) 
+
+
+########################################################################################################################################################################
 # Preprint recommendation process
 ########################################################################################################################################################################
-def getRecommendationProcess(auth, db, response, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+def getRecommendationProcess(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationRounds = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     ###NOTE: recommendations counting
@@ -178,23 +328,12 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             )
 
         editAuthorsReplyLink = None
-        if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and not (quiet) and (iRecomm == 1):
+        if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and (iRecomm == 1):
             editAuthorsReplyLink = URL(c="user", f="edit_reply", vars=dict(recommId=recomm.id), user_signature=True)
 
         # Check for reviews
         existOngoingReview = False
         reviewsList = []
-
-        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
-            orderby=db.t_reviews.id
-        )
-        for review in reviews:
-            if review.review_state == "Under consideration":
-                existOngoingReview = True
-            if review.review_state == "Completed":
-                nbCompleted += 1
-            if review.review_state == "Under consideration":
-                nbOnGoing += 1
 
         # If the recommender is also a reviewer, did he/she already completed his/her review?
         recommReviewFilledOrNull = False  # Let's say no by default
@@ -209,11 +348,29 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                 if recommenderOwnReviewState.review_state == "Completed":
                     recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
+        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            orderby=db.t_reviews.id
+        )
+
         for review in reviews:
+            if review.review_state == "Under consideration":
+                existOngoingReview = True
+                nbOnGoing += 1
+            if review.review_state == "Completed":
+                nbCompleted += 1
+
             # No one is allowd to see ongoing reviews ...
             hideOngoingReview = True
             reviewVars = dict(
-                id=review.id, showInvitationButtons=False, showReviewRequest=False, showPendingAskForReview=False, declinedByRecommender=False, showEditButtons=False, authors=None, text=None, pdfLink=None
+                id=review.id,
+                showInvitationButtons=False,
+                showReviewRequest=False,
+                showPendingAskForReview=False,
+                declinedByRecommender=False,
+                showEditButtons=False,
+                authors=None,
+                text=None,
+                pdfLink=None,
             )
             # ... but:
             # ... the author for a closed decision/recommendation ...
@@ -243,7 +400,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id) and review.review_state == "Ask for review":
                 reviewVars.update([("showReviewRequest", True)])
 
-            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
+            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
                 if review.review_state == "Pending":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
@@ -257,29 +414,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
                 hideOngoingReview = True
 
             # reviewer's buttons in order to edit/complete pending review
-            if (
-                (review.reviewer_id == auth.user_id)
-                and (review.review_state == "Under consideration")
-                and (art.status == "Under consideration")
-                and not (printable)
-                and not (quiet)
-            ):
+            if (review.reviewer_id == auth.user_id) and (review.review_state == "Under consideration") and (art.status == "Under consideration") and not (printable):
                 reviewVars.update([("showEditButtons", True)])
 
             if not (hideOngoingReview):
                 # display the review
                 if review.anonymously:
-                    reviewVars.update(
-                        [
-                            (
-                                "authors",
-                                SPAN(
-                                    current.T("anonymous reviewer"),
-                                    (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
-                                ),
-                            )
-                        ]
-                    )
+                    reviewVars.update([("authors", SPAN(current.T("anonymous reviewer"), (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),),)])
                 else:
                     reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
                     if reviewer is not None:
@@ -326,7 +467,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
         editRecommendationLink = None
         editRecommendationDisabled = None
         editRecommendationButtonText = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (printable):
             # recommender's button for recommendation edition
             if (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
                 editRecommendationDisabled = False
@@ -361,6 +502,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
             recommId=recomm.id,
             printable=printable,
             roundNumber=roundNb,
+            nbRecomms=nbRecomms,
             lastChanges=None,
             authorsReply=authorsReply,
             authorsReplyPdfLink=authorsReplyPdfLink,
@@ -385,7 +527,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
 
     # Manager button
     managerButton = None
-    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):
+    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
         if art.status == "Pending":
             managerButton = DIV(
                 A(
@@ -429,7 +571,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, with_comm
 ######################################################################################################################################
 # Postprint recommendation process
 ######################################################################################################################################
-def getPostprintRecommendation(auth, db, response, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     ###NOTE: recommendations counting
@@ -448,7 +590,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, with_co
     isRecommendationTooShort = True
     addContributorLink = None
     cancelSubmissionLink = None
-    if (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable) and not (quiet):
+    if (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable):
         # recommender's button allowing recommendation edition
         editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True)
 
@@ -480,7 +622,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, with_co
         recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
 
     validateRecommendationLink = None
-    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):
+    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
         if art.status == "Pre-recommended":
             validateRecommendationLink = URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True)
 

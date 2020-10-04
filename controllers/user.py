@@ -54,7 +54,9 @@ def recommendations():
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
-        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable, quiet=False)
+        recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
+        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+
 
         if printable:
             printableClass = "printable"
@@ -64,14 +66,19 @@ def recommendations():
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
+
         return dict(
             printable=printable,
+            isSubmitter=(art.user_id == auth.user_id),
             viewToRender=viewToRender,
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,
             recommTopButtons=recommTopButtons or "",
             pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
             myContents=myContents,
+            recommendationProgression=recommendationProgression["content"],
+            roundNumber=recommendationProgression["roundNumber"],
+            isRecommAvalaibleToSubmitter=recommendationProgression["isRecommAvalaibleToSubmitter"],
             myBackButton=common_small_html.mkBackButton(),
         )
 
@@ -820,7 +827,7 @@ def edit_review():
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.anonymously.label = T("I wish to remain anonymous")
         # db.t_reviews.anonymously.writable = review.reviewer_id != recomm.recommender_id
-        db.t_reviews.review_pdf.label = T("OR Upload review as PDF")
+        db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
         form = SQLFORM(
             db.t_reviews, record=review, fields=["anonymously", "review", "review_pdf", "no_conflict_of_interest"], showid=False, buttons=buttons, upload=URL("default", "download")
@@ -1083,7 +1090,6 @@ def articles_awaiting_reviewers():
         orderby=~db.t_articles.last_status_change,
     )
 
-    print(grid)
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),

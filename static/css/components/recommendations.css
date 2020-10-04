@@ -1,184 +1,178 @@
-
 .pci2-articles-list {
-    max-width: 1200px;
-    width: 100%;
+  max-width: 1200px;
+  width: 100%;
 }
 
 .pci2-article-row:nth-child(odd) {
-    background-color: #f7f9fb;
+  background-color: #f7f9fb;
 }
 
 .pci2-article-row:nth-child(even) {
-    background-color: #e5eef4;
+  background-color: #e5eef4;
 }
 
 .pci2-article-row.printable {
-    background-color: transparent;
+  background-color: transparent;
 }
 
 /* Article Recommendation row */
 .pci2-article-image-div {
-    min-width: 150px;
+  min-width: 150px;
 }
 
-.pci2-article-image-div>img {
-    max-width: 150px;
-    max-height: 120px;
+.pci2-article-image-div > img {
+  max-width: 150px;
+  max-height: 120px;
 }
 
 .pci2-article-row {
-    border-radius: 5px;
+  border-radius: 5px;
 
-    margin-bottom: 15px;
-    width: 100%;
-    padding: 7.5px 15px;
+  margin-bottom: 15px;
+  width: 100%;
+  padding: 7.5px 15px;
 }
 
-
 .pci2-article-left-div {
-    margin-right: 15px;
+  margin-right: 15px;
 }
 
 .pci2-article-row i {
-    color: #888;
+  color: #888;
 }
 
 .pci2-article-row h3 {
-    margin: 0;
-    margin-bottom: 3px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #555;
+  margin: 0;
+  margin-bottom: 3px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #555;
 }
 
 .pci2-article-row h4 {
-    margin: 5px 0;
-    margin-bottom: 2.5px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #555;
-
+  margin: 5px 0;
+  margin-bottom: 2.5px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
 }
 
 .pci2-article-infos {
-    font-size: 14px;
-    line-height: 16px;
+  font-size: 14px;
+  line-height: 16px;
 }
 
 .pci2-article-recommendation-div {
-    padding: 0px 15px;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    padding-right: 0;
-    border-left: 1px solid #ddd;
-    font-style: italic;
+  padding: 0px 15px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-right: 0;
+  border-left: 1px solid #ddd;
+  font-style: italic;
 }
 
 .pci2-article-recommendation-div p {
-    margin: 0;
-    font-size: 12px;
+  margin: 0;
+  font-size: 12px;
 }
-
 
 .pci2-altmetric {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 
-
 /* Article Reccom Page */
-#title-reviews{
-    transition: opacity 0.3s ease;
+#title-reviews {
+  transition: opacity 0.3s ease;
 }
 
 .pci2-recomm-article-h2 {
-    margin: 0;
-    color: #888;
+  margin: 0;
+  color: #888;
 }
 
 .pci2-recomm-article-h2 .glyphicon {
-    color: #598398 !important;
+  color: #598398 !important;
 }
 
 h2.pci2-recomm-article-h2 .pci2-main-color-text {
-    font-size: 28px !important;
+  font-size: 28px !important;
 }
-
 
 h4.pci2-recomm-article-h2 .glyphicon {
-    font-size: 23px !important;
+  font-size: 23px !important;
 }
 
-
 .pci2-signle-toggle-button {
-    margin-top: 20px;
-    margin-bottom: 0px;
+  margin-top: 20px;
+  margin-bottom: 0px;
 }
 
 /* Recommendation Header */
 .pci2-recommendation-green-banner {
-    background: #1ca01c;
-    color: #fff;
+  background: #1ca01c;
+  color: #fff;
 
-    white-space: initial;
-    font-size: 32px;
-    text-align: center;
-    padding: 10px;
-    width: 100%;
-    border-radius: 5px;
+  white-space: initial;
+  font-size: 32px;
+  text-align: center;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
 }
 
 .pci2-recomm-title {
-    margin: 20px 0 10px;
+  margin: 20px 0 10px;
 }
 
 .pci2-recomm-title h1 {
-    margin: 0;
-    margin-bottom: 5px;
-    font-size: 28px;
+  margin: 0;
+  margin-bottom: 5px;
+  font-size: 28px;
 }
 
 .pci2-recomm-title i {
-    margin: 0;
-    font-size: 16px
+  margin: 0;
+  font-size: 16px;
 }
 
 .pci2-article-row-short {
-    margin-bottom: 10px;
-    padding: 20px;
+  margin-bottom: 10px;
+  padding: 20px;
 }
 
 .pci2-article-left-div-short {
-    margin-right: 20px;
+  margin-right: 20px;
 }
 
 .pci2-recomm-date {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .pci2-user-cv-label,
 .pci2-recomm-text-label {
-
-    position: absolute;
-    margin-top: -11px;
-    margin-left: 10px;
-    color: #598398bb;
-    background: #fff;
-    padding: 0 7.5px;
+  position: absolute;
+  margin-top: -11px;
+  margin-left: 10px;
+  color: #598398bb;
+  background: #fff;
+  padding: 0 7.5px;
 }
 
 .pci2-recomm-text {
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #42748d48;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #42748d48;
 }
-
 
 .pci2-abstract-div {
-    animation: 0.5s fadeFormTop ease;
-    color: #888;
+  animation: 0.5s fadeFormTop ease;
+  color: #888;
 }
 
+.pci2-fade-in-top {
+  animation: 0.5s fadeFormTop ease;
+}
 
 .pci2-abstract-div h1,
 .pci2-abstract-div h2,
@@ -187,103 +181,167 @@ h4.pci2-recomm-article-h2 .glyphicon {
 .pci2-abstract-div li,
 .pci2-abstract-div blockquote,
 .pci2-abstract-div div,
-.pci2-abstract-div p{
-    background: none !important;
-    color: #888 !important;
+.pci2-abstract-div p {
+  background: none !important;
+  color: #888 !important;
 }
 
-
 .pci2-revision-round-title {
-    color: #555;
-    margin-bottom: 0px;
+  color: #555;
+  margin-bottom: 0px;
 }
 
 .pci2-revision-round-date {
-    color: #aaa;
-    font-weight: bold;
-    font-style: italic;
+  color: #aaa;
+  font-weight: bold;
+  font-style: italic;
 }
 
 /* Review Rounds */
 .pci2-round-recomm-text {
-    padding: 15px;
-    margin: 0;
-    margin-bottom: 5px;
-    margin-top: 15px;
-    border-radius: 5px;
-    border: 1px solid #eee;
+  padding: 15px;
+  margin: 0;
+  margin-bottom: 5px;
+  margin-top: 15px;
+  border-radius: 5px;
+  border: 1px solid #eee;
 }
 
 .pci2-round-review-sub-title {
-    margin-top: 20px;
-    font-weight: bold;
-    color: #555;
+  margin-top: 20px;
+  font-weight: bold;
+  color: #555;
 }
-
-
 
 /* Comment Tree */
 .pci2-comment-tree-div {
-    margin-bottom: 20px
+  margin-bottom: 20px;
 }
 
 .pci2-comment-div {
-    margin-top: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 16px;
-    border-left: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 16px;
+  border-left: 1px solid #eee;
 }
 
 .pci2-comment-infos {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #aaa;
-    font-style: italic;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #aaa;
+  font-style: italic;
 }
 
 .pci2-comment-text {
-    margin-top: 0;
-    margin-bottom: 5px;
+  margin-top: 0;
+  margin-bottom: 5px;
 }
 
 .pci2-comment-reply-link {
-    margin-top: 5px;
-    /* make link lighter than user profile link */
-    opacity: 0.75;
+  margin-top: 5px;
+  /* make link lighter than user profile link */
+  opacity: 0.75;
 }
-
 
 /* Comment Form */
 .pci2-comment-form-replyto-label b {
-    margin-right: 5px;
+  margin-right: 5px;
 }
 
 .pci2-comment-form-replyto-label i {
-    color: #888
+  color: #888;
 }
 
 .pci2-comment-form .btn-success {
-    margin: 5px 0;
+  margin: 5px 0;
 }
 
 .pci2-comment-form textarea {
-    resize: none;
-    height: 130px;
+  resize: none;
+  height: 130px;
 }
 
-@media (max-width: 600px){
+/* Recommendation process for submitter */
+.progress-step-div {
+  margin-left: 25px;
+}
+.progress-last-step-div {
+  margin-left: 30px;
+}
 
-    .pci2-article-left-div{
-        margin-bottom: 10px;
-    }
+.progress-step-circle {
+  margin-left: -40px;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background: white;
+}
 
-    #pci-ArticleHeader img{
-        display: none;
-    }
+.progress-step-div .step-description {
+  min-height: 125px;
+  margin-left: 25px;
+}
+.progress-last-step-div .step-description {
+  margin-left: 25px;
+}
 
-    .pci2-recomm-title h1 {
-        font-size: 22px;
-    }
+.progress-step-div .glyphicon,
+.progress-last-step-div .glyphicon {
+  font-size: 35px;
+}
+
+.progress-step-div.step-default {
+  border-left: 5px solid #eaeaea;
+}
+.progress-step-div.step-default .progress-step-circle,
+.progress-last-step-div.step-default .progress-step-circle {
+  border: 5px solid #eaeaea;
+}
+.progress-step-div.step-default .glyphicon,
+.progress-last-step-div.step-default .glyphicon {
+  color: #bbb;
+}
+
+.progress-step-div.step-done {
+  border-left: 5px solid #29abe0;
+}
+.progress-step-div.step-done .progress-step-circle,
+.progress-last-step-div.step-done .progress-step-circle {
+  border: 5px solid #29abe0;
+}
+.progress-step-div.step-done h3,
+.progress-last-step-div.step-done h3 {
+  color: #29abe0;
+}
+.progress-step-div.step-done .glyphicon,
+.progress-last-step-div.step-done .glyphicon {
+  color: #555;
+}
+
+.progress-step-div.step-current {
+  border-left: 5px solid #ffbf00;
+}
+.progress-step-div.step-current .progress-step-circle,
+.progress-last-step-div.step-current .progress-step-circle {
+  border: 5px solid #ffbf00;
+}
+.progress-step-div.step-current .glyphicon,
+.progress-last-step-div.step-current .glyphicon {
+  color: #555;
+}
+
+@media (max-width: 600px) {
+  .pci2-article-left-div {
+    margin-bottom: 10px;
+  }
+
+  #pci-ArticleHeader img {
+    display: none;
+  }
+
+  .pci2-recomm-title h1 {
+    font-size: 22px;
+  }
 }

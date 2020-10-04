@@ -1483,7 +1483,7 @@ def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
 ######################################################################################################################################################################
 # RESET PASSWORD EMAIL
 def send_to_reset_password(session, auth, db, userId):
-    print("send_decision_to_reviewers")
+    print("send_reset_password")
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -1493,7 +1493,7 @@ def send_to_reset_password(session, auth, db, userId):
     fkey = db.auth_user[userId]["reset_password_key"]
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = db.auth_user[userId]["email"]
-    mail_vars["siteName"] = I(applongname)
+    mail_vars["siteName"] = mail_vars["appName"]
     mail_vars["linkTarget"] = URL(
         c="default", f="user", args=["reset_password"], scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(key=fkey)
     )  # default/user/reset_password?key=1561727068-2946ea7b-54fe-4caa-87af-9c5e459b3487.

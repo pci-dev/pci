@@ -391,20 +391,17 @@ def make_preprint_searching_for_reviewers():
     if recommId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-        print("ERRRRRRRR 1")
 
     recomm = db.t_recommendations[recommId]
     if recomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-        print("ERRRRRRRR 2")
 
     if recomm.recommender_id != auth.user_id and not recomm.is_closed:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
         art = db.t_articles[recomm.article_id]
-        print(art)
 
         art.is_searching_reviewers = True
         art.update_record()
