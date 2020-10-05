@@ -265,16 +265,18 @@ h4.pci2-recomm-article-h2 .glyphicon {
 
 /* Recommendation process for submitter */
 .progress-step-div {
-  margin-left: 25px;
+  margin-left: 40px;
 }
 .progress-last-step-div {
-  margin-left: 30px;
+  margin-left: 45px;
 }
 
 .progress-step-circle {
   margin-left: -40px;
   width: 75px;
+  min-width: 75px;
   height: 75px;
+  min-height: 75px;
   border-radius: 50%;
   background: white;
 }
