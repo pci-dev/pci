@@ -6,7 +6,7 @@
         <div class="step-description">
             <h3>Validation by the managing board</h3>
             {{if submissionValidatedClassClass == "step-done":}}
-                <p><b>Submission <b style="color: #089108">accepted</b></b></p>
+                <p><b>Submission <b style="color: #089108">validated</b></b></p>
             {{else:}}
                 <p>Waiting for acceptation...</p>
             {{pass}}
@@ -90,7 +90,7 @@
 
 <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}">
     <div class="pci2-flex-center progress-step-circle">
-        <i class="glyphicon glyphicon-ok"></i>
+        <i class="glyphicon glyphicon-ok" ></i>
     </div>
     <div class="step-description">
         <h3><b style="color: #333">Round {{=roundNumber}} : </b>Validation of the decision by the managing board</h3>

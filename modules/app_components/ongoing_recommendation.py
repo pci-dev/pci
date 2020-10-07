@@ -135,10 +135,9 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
     submissionValidatedClassClass = "step-default"
     havingRecommenderClass = "step-default"
-
-    recommendationStepClass = "step-default"
     reviewInvitationsAcceptedClass = "step-default"
     reviewsStepDoneClass = "step-default"
+    recommendationStepClass = "step-default"
     managerDecisionDoneClass = "step-default"
 
     if not (art.status == "Pending"):
@@ -164,9 +163,9 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
     if totalRecomm > 0:
         for recomm in recomms:
 
-            recommendationStepClass = "step-default"
             reviewInvitationsAcceptedClass = "step-default"
             reviewsStepDoneClass = "step-default"
+            recommendationStepClass = "step-default"
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
 
@@ -191,15 +190,16 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                     acceptedReviewCount += 1
                     completedReviewCount += 1
 
-            if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
-                recommendationStepClass = "step-done"
-                recommStatus = recomm.recommendation_state
 
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
 
             if completedReviewCount >= 2:
                 reviewsStepDoneClass = "step-done"
+
+            if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
+                recommendationStepClass = "step-done"
+                recommStatus = recomm.recommendation_state
 
             if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and recomm.reply is not None):
                 managerDecisionDoneClass = "step-done"
