@@ -68,6 +68,7 @@ def getMailCommonVars():
         appThematics=myconf.take("app.thematics"),
         appContactMail=myconf.take("contacts.managers"),
         appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers")),
+        siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
     )
 
 

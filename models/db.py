@@ -616,6 +616,9 @@ def deltaStatus(s, f):
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                 emailing.send_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
                 emailing.send_to_thank_recommender_preprint(session, auth, db, o["id"])
+                # create some reminders
+                emailing.create_reminder_for_recommender_reviewers_needed(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, o["id"])
                 # delete some reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
@@ -858,8 +861,10 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 
 
 def reviewSuggested(s, row):
+    # create reminder
     emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
-
+    # delete reminder
+    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
     return None
 
 
@@ -868,12 +873,13 @@ def reviewDone(s, f):
     if o["review_state"] == "Pending" and f["review_state"] == "Under consideration":
         emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
         emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
-        # create reminders
+        # create reminder
         emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
         emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
         emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
         # delete reminder
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitation", o["id"])
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
     elif o["review_state"] == "Completed" and f["review_state"] == "Under consideration":
         emailing.send_to_reviewer_review_reopened(session, auth, db, o["id"], f)
     elif o["review_state"] == "Pending" and f["review_state"] == "Declined":
