@@ -603,7 +603,7 @@ def deltaStatus(s, f):
             if o.status == "Pending" and f["status"] == "Awaiting consideration":
                 emailing.send_to_suggested_recommenders(session, auth, db, o["id"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
-                # create some reminders
+                # create reminders
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
@@ -616,10 +616,10 @@ def deltaStatus(s, f):
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                 emailing.send_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
                 emailing.send_to_thank_recommender_preprint(session, auth, db, o["id"])
-                # create some reminders
+                # create reminders
                 emailing.create_reminder_for_recommender_reviewers_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, o["id"])
-                # delete some reminders
+                # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
                 emailing.delete_reminder_for_suggested_recommenders(db, "#ReminderSuggestedRecommenderInvitation", o["id"])
@@ -627,6 +627,9 @@ def deltaStatus(s, f):
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                # delete reminders
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionWarning", o["id"])
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionNeeded", o["id"])
             elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
@@ -649,6 +652,10 @@ def deltaStatus(s, f):
                     for lr in lastRecomm:
                         lr.is_closed = True
                         lr.update_record()
+                if o["status"] == "Pre-revision" and f["status"] == "Awaiting revision":
+                    # create reminders
+                    emailing.create_reminder_for_submitter_revised_version_warning(session, auth, db, o["id"])
+                    emailing.create_reminder_for_submitter_revised_version_needed(session, auth, db, o["id"])
     return None
 
 
