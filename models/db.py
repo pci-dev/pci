@@ -587,13 +587,7 @@ def deltaStatus(s, f):
     # pprint(s,f)
     if "status" in f:
         o = s.select().first()
-        # print(o.status + " --> " +f['status'])
         if o.already_published:  # POSTPRINTS
-            # if o.status == 'Under consideration' and (f['status'].startswith('Pre-') or f['status']=='Cancelled'):
-            # emailing.send_to_managers(session, auth, db, o['id'], f['status'])
-            # emailing.send_to_recommender_postprint_status_changed(session, auth, db, o['id'], f['status'])
-            # emailing.send_to_corecommenders(session, auth, db, o['id'], f['status'])
-            # elif o.status == 'Pre-recommended' and f['status'] == 'Recommended':
             if o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_postprint_status_changed(session, auth, db, o["id"], f["status"])
@@ -608,9 +602,11 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
+                
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
@@ -623,35 +619,60 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
                 emailing.delete_reminder_for_suggested_recommenders(db, "#ReminderSuggestedRecommenderInvitation", o["id"])
+
             elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                # create reminders
+                emailing.create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_revised_decision_due(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_revised_decision_over_due(session, auth, db, o["id"])
                 # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionWarning", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionNeeded", o["id"])
+
             elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
+                # delete reminders
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionSoonDue", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionDue", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionOverDue", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionSoonDue", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionDue", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionOverDue", o["id"])
+
+
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Cancelled":
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
+                # delete all article reminder
+                emailing.delete_all_reminders_from_article_id(db, o["id"])
+
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
+
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended"):
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
                     emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
-                if f["status"] in ("Rejected", "Recommended", "Awaiting revision"):
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
                     for lr in lastRecomm:
                         lr.is_closed = True
                         lr.update_record()
+                        # delete reminders
+                        emailing.delete_all_reminders_from_recommendation_id(db, lr.id)
+
+                if f["status"] == "Recommended":
+                    # delete reminders
+                    emailing.delete_all_reminders_from_article_id(db, o["id"])
+
                 if o["status"] == "Pre-revision" and f["status"] == "Awaiting revision":
                     # create reminders
                     emailing.create_reminder_for_submitter_revised_version_warning(session, auth, db, o["id"])
@@ -872,6 +893,9 @@ def reviewSuggested(s, row):
     emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
     # delete reminder
     emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
+    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionSoonDue",row["recommendation_id"])
+    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue",row["recommendation_id"])
+    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue",row["recommendation_id"])
     return None
 
 
@@ -896,12 +920,15 @@ def reviewDone(s, f):
     if o["reviewer_id"] is not None and o["review_state"] == "Under consideration" and f["review_state"] == "Completed":
         emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
         emailing.send_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
+        # create reminder
+        emailing.create_reminder_for_recommender_decision_soon_due(session, auth, db, o["id"])
+        emailing.create_reminder_for_recommender_decision_due(session, auth, db, o["id"])
+        emailing.create_reminder_for_recommender_decision_over_due(session, auth, db, o["id"])
         # delete reminder
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewSoonDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewOverDue", o["id"])
     return None
-
 
 db.define_table(
     "t_suggested_recommenders",

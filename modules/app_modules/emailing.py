@@ -1633,6 +1633,131 @@ def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, arti
 
 
 ######################################################################################################################################################################
+def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    review = db.t_reviews[reviewId]
+    recomm = db.t_recommendations[review.recommendation_id]
+
+    count_reviews_under_consideration = 0
+    if recomm:
+        count_reviews_under_consideration = db(
+            (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")
+        ).count()
+        
+    if recomm and count_reviews_under_consideration >= 1:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        
+        hashtag_template = "#ReminderRecommenderDecisionSoonDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 8, recomm.id, None, recomm.article_id)
+
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    review = db.t_reviews[reviewId]
+    recomm = db.t_recommendations[review.recommendation_id]
+
+    count_reviews_under_consideration = 0
+    if recomm:
+        count_reviews_under_consideration = db(
+            (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")
+        ).count()
+        
+    if recomm and count_reviews_under_consideration >= 1:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        
+        hashtag_template = "#ReminderRecommenderDecisionDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, recomm.id, None, recomm.article_id)
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    review = db.t_reviews[reviewId]
+    recomm = db.t_recommendations[review.recommendation_id]
+
+    count_reviews_under_consideration = 0
+    if recomm:
+        count_reviews_under_consideration = db(
+            (db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")
+        ).count()
+        
+    if recomm and count_reviews_under_consideration >= 1:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+
+        hashtag_template = "#ReminderRecommenderDecisionOverDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 14, recomm.id, None, recomm.article_id)
+
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+
+    if recomm and article:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+
+        mail_vars["articleTitle"] = article.title
+        mail_vars["articleAuthors"] = article.authors
+        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+        hashtag_template = "#ReminderRecommenderRevisedDecisionSoonDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 7, recomm.id, None, article.id)
+
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_revised_decision_due(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+
+    if recomm and article:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+
+        mail_vars["articleTitle"] = article.title
+        mail_vars["articleAuthors"] = article.authors
+        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+        hashtag_template = "#ReminderRecommenderRevisedDecisionDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, recomm.id, None, article.id)
+
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_revised_decision_over_due(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+
+    if recomm and article:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+
+        mail_vars["articleTitle"] = article.title
+        mail_vars["articleAuthors"] = article.authors
+        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+        hashtag_template = "#ReminderRecommenderRevisedDecisionOverDue"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 14, recomm.id, None, article.id)
+
+
+######################################################################################################################################################################
 def delete_reminder_for_recommender(db, hashtag_template, recommendationId):
     recomm = db.t_recommendations[recommendationId]
 
@@ -1647,10 +1772,39 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId):
                 db(
                     (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
                 ).delete()
+
+        elif hashtag_template in ("#ReminderRecommenderRevisedDecisionSoonDue", "#ReminderRecommenderRevisedDecisionDue", "#ReminderRecommenderRevisedDecisionOverDue"):
+            article = db.t_articles[recomm.article_id]
+            db(
+                (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == recomm.article_id)
+            ).delete()
+
         else:
             db(
                 (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
             ).delete()
+
+
+######################################################################################################################################################################
+def delete_reminder_for_recommender_from_article_id(db, hashtag_template, articleId):
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+
+    if recomm:
+        recomm_mail = db.auth_user[recomm.recommender_id]["email"]
+        db((db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == articleId)).delete()
+
+######################################################################################################################################################################
+def delete_all_reminders_from_article_id(db, articleId):
+    article = db.t_articles[articleId]
+    if article:
+        db((db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
+
+#####################################################################################################################################################################
+def delete_all_reminders_from_recommendation_id(db, recommendationId):
+    recomm = db.t_recommendations[recommendationId]
+    if recomm:
+        db((db.mail_queue.recommendation_id == recommendationId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
 
 
 ######################################################################################################################################################################
