@@ -353,6 +353,14 @@ blockquote {
   font-size: inherit;
 }
 
+.danger-text{
+  color: #cc0e0e;
+}
+
+.success-text{
+  color: #089108;
+}
+
 @media (max-width: 1200px) {
   .pci2-recomm-backButtonDiv {
     position: relative;

@@ -26,11 +26,12 @@ from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
 
-
+######################################################################################################################################################################
 def loading():
     return DIV(IMG(_alt="Loading...", _src=URL(c="static", f="images/loading.gif")), _id="loading", _style="text-align:center;")
 
 
+######################################################################################################################################################################
 # Home page (public)
 def index():
     response.view = "default/index.html"
@@ -127,6 +128,7 @@ def index():
         )
 
 
+######################################################################################################################################################################
 def user():
     response.view = "default/myLayoutBot.html"
 
@@ -256,6 +258,91 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
 
     return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
+
+
+######################################################################################################################################################################
+def change_mail_form_processing(form):
+    if CRYPT()(form.vars.password_confirmation)[0] != db.auth_user[auth.user_id].password:
+        form.errors.password_confirmation = "Password confirmation error"
+
+    mail_already_used = db(db.auth_user.email == form.vars.new_email).count() >= 1
+    if mail_already_used:
+        form.errors.new_email = "Email already used"
+
+    recover_mail_already_used = db(db.auth_user.recover_email == form.vars.new_email).count() >= 1
+    if recover_mail_already_used:
+        form.errors.new_email = "Email already used"
+
+    if form.vars.new_email != form.vars.email_confirmation:
+        form.errors.email_confirmation = "New email and its confirmation does not match"
+
+
+@auth.requires_login()
+def change_email():
+    response.view = "default/myLayoutBot.html"
+    print("init form")
+    form = FORM(
+        DIV(
+            LABEL(T("Password confirmation"), _class="control-label col-sm-3"),
+            DIV(INPUT(_name="password_confirmation", _type="password", _class="form-control"), _class="col-sm-9"),
+            SPAN(_class="help-block"),
+            _class="form-group",
+        ),
+        DIV(
+            LABEL(T("New email address"), _class="control-label col-sm-3"),
+            DIV(INPUT(_name="new_email", _class="form-control"), _class="col-sm-9"),
+            SPAN(_class="help-block"),
+            _class="form-group",
+        ),
+        DIV(
+            LABEL(T("New email address confirmation"), _class="control-label col-sm-3"),
+            DIV(INPUT(_name="email_confirmation", _class="form-control"), _class="col-sm-9"),
+            SPAN(_class="help-block"),
+            _class="form-group",
+        ),
+        DIV(INPUT(_value=T("Change email address"), _type="submit", _class="btn btn-success",), _class="form-group"),
+    )
+
+    if form.process(onvalidation=change_mail_form_processing).accepted:
+        max_time = time.time()
+        registeration_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
+        recover_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
+
+        user = db.auth_user[auth.user_id]
+
+        emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
+        emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
+
+        user.update_record(email=form.vars.new_email, registration_key=registeration_key, recover_email=user.email, recover_email_key=recover_key)
+
+        session.flash = "Toto"
+        redirect(URL("default", "user", args="logout"))
+
+    return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
+
+
+######################################################################################################################################################################
+def recover_mail():
+    if "key" in request.vars:
+        recover_key = request.vars["key"]
+    else:
+        session.flash = T("Unavailable")
+        redirect(URL("default", "index"))
+
+    user = db(db.auth_user.recover_email_key == recover_key).select().last()
+    if user is None:
+        session.flash = T("Unavailable")
+        redirect(URL("default", "index"))
+    else:
+        user.email = user.recover_email
+        user.recover_email = None
+        user.recover_email_key = None
+        user.registration_key = None
+
+        user.update_record()
+        session.flash = T("Email succefully recovered")
+        redirect(URL("default", "index"))
+
 
 # (gab) is this used ?
 @cache.action()

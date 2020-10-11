@@ -486,6 +486,7 @@ def _AccountMenu():
             LI(_class="divider"),
             (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Profile")), False, URL("default", "user/profile", user_signature=True)),
             (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-lock"), T("Change password")), False, URL("default", "user/change_password", user_signature=True)),
+            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Change email address")), False, URL("default", "change_email", user_signature=True)),
             LI(_class="divider"),
             (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-off"), T("Log out")), False, URL("default", "user/logout", user_signature=True)),
         ]
