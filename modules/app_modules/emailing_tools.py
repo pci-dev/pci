@@ -68,7 +68,7 @@ def getMailCommonVars():
         appThematics=myconf.take("app.thematics"),
         appContactMail=myconf.take("contacts.managers"),
         appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers")),
-        siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
+        siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port")),
     )
 
 
@@ -173,6 +173,37 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recom
 
 
 ######################################################################################################################################################################
+def insertNewsLetterMailInQueue(
+    auth,
+    db,
+    mail_vars,
+    hashtag_template,
+    newRecommendations=None,
+    newRecommendationsCount=0,
+    newPreprintSearchingForReviewers=None,
+    newPreprintSearchingForReviewersCount=0,
+    newPreprintRequiringRecommender=None,
+    newPreprintRequiringRecommenderCount=0,
+):
+
+    mail = buildNewsLetterMail(
+        db,
+        mail_vars,
+        hashtag_template,
+        newRecommendations,
+        newRecommendationsCount,
+        newPreprintSearchingForReviewers,
+        newPreprintSearchingForReviewersCount,
+        newPreprintRequiringRecommender,
+        newPreprintRequiringRecommenderCount,
+    )
+
+    db.mail_queue.insert(
+        dest_mail_address=mail_vars["destAddress"], mail_subject=mail["subject"], mail_content=mail["content"], user_id=auth.user_id, mail_template_hashtag=hashtag_template
+    )
+
+
+######################################################################################################################################################################
 def buildMail(db, hashtag_template, mail_vars, recommendation=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
@@ -185,6 +216,54 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None):
     content_rendered = render(
         filename=MAIL_HTML_LAYOUT,
         context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=mkFooter(), recommendation=recommendation),
+    )
+
+    return dict(content=content_rendered, subject=subject)
+
+
+######################################################################################################################################################################
+def buildNewsLetterMail(
+    db,
+    mail_vars,
+    hashtag_template,
+    newRecommendations=None,
+    newRecommendationsCount=0,
+    newPreprintSearchingForReviewers=None,
+    newPreprintSearchingForReviewersCount=0,
+    newPreprintRequiringRecommender=None,
+    newPreprintRequiringRecommenderCount=0,
+):
+    mail_template = getMailTemplateHashtag(db, hashtag_template)
+
+    subject = replaceMailVars(mail_template["subject"], mail_vars)
+    content = replaceMailVars(mail_template["content"], mail_vars)
+
+    subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+    allRecommendationsLink = A(
+        current.T("See more recommendations..."),
+        _href=URL(c="articles", f="recommended_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]),
+        _style="border-radius: 5px; font-weight: bold; padding: 6px 20px; color: #ffffff; background-color: #3e3f3a;",
+    )
+
+    content_rendered = render(
+        filename=MAIL_HTML_LAYOUT,
+        context=dict(
+            subject=subject_without_appname,
+            applogo=applogo,
+            appname=mail_vars["appName"],
+            content=XML(content),
+            newRecommendations=XML(newRecommendations),
+            newRecommendationsCount=newRecommendationsCount,
+            allRecommendationsLink=allRecommendationsLink,
+            newPreprintSearchingForReviewers=XML(newPreprintSearchingForReviewers),
+            newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
+            newPreprintRequiringRecommender=XML(newPreprintRequiringRecommender),
+            newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
+            footer=mkFooter(),
+            mail_vars=mail_vars,
+        ),
     )
 
     return dict(content=content_rendered, subject=subject)

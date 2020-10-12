@@ -1,2 +1,2 @@
 #crontab
-00   16  *  *  *		root	*alerts/alertUsersLastRecommendations
+00  16  *  *  *		root	*alerts/sendNewsletterMails

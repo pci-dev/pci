@@ -31,6 +31,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
 from app_modules import emailing_tools
+from app_modules import newsletter_module
 
 
 myconf = AppConfig(reload=True)
@@ -1159,24 +1160,6 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-def send_alert_new_recommendations(session, auth, db, userId, msgArticles):
-    print("send_alert_new_recommendations")
-    mail_vars = emailing_tools.getMailCommonVars()
-    reports = []
-
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
-    mail_vars["destAddress"] = db.auth_user[userId]["email"]
-    mail_vars["msgArticles"] = msgArticles
-
-    hashtag_template = "#AlertNewRecommendations"
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-
-    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-
-    emailing_tools.getFlashMessage(session, reports)
-
-
-######################################################################################################################################################################
 def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
     print("send_decision_to_reviewers")
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1391,13 +1374,93 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = dest_mail
     mail_vars["recoverMailUrl"] = URL(c="default", f="recover_mail", vars=dict(key=key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-    
+
     hashtag_template = "#UserRecoverMail"
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
 
     emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+## News letter
+######################################################################################################################################################################
+def send_newsletter_mail(session, auth, db, userId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    user = db.auth_user[userId]
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+    mail_vars["destAddress"] = user["email"]
+
+    hashtag_template = "#NewsLetter"
+
+    # New recommended articles
+    new_recommended_articles = db(
+        (
+            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date())
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+            & (db.t_articles.status == "Recommended")
+        )
+    ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+
+    i = 0
+    newRecommendations = DIV()
+    newRecommendationsCount = len(new_recommended_articles)
+    for article in new_recommended_articles:
+        i += 1
+        if i <= 5:
+            newRecommendations.append(newsletter_module.makeArticleWithRecommRow(auth, db, article))
+
+    # New preprint searching for reviewers
+    new_searching_for_reviewers_preprint = db(
+        (
+            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date())
+            & (db.t_articles.is_searching_reviewers == True)
+            & (db.t_articles.status == "Under consideration")
+        )
+    ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+
+    j = 0
+    newPreprintSearchingForReviewers = DIV()
+    newPreprintSearchingForReviewersCount = len(new_searching_for_reviewers_preprint)
+    for article in new_searching_for_reviewers_preprint:
+        j += 1
+        if j <= 5:
+            newPreprintSearchingForReviewers.append(newsletter_module.makeArticleRow(article, "review"))
+
+    # New preprint requiring recommender 
+    group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
+    
+    newPreprintRequiringRecommender = None
+    newPreprintRequiringRecommenderCount = 0
+    if group > 0:
+        new_searching_for_recommender_preprint = db(
+            ((db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date()) & (db.t_articles.status == "Awaiting consideration"))
+        ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+
+        k = 0
+        newPreprintRequiringRecommender = DIV()
+        newPreprintRequiringRecommenderCount = len(new_searching_for_recommender_preprint)
+        for article in new_searching_for_recommender_preprint:
+            k += 1
+            if k <= 5:
+                newPreprintRequiringRecommender.append(newsletter_module.makeArticleRow(article, "recommendation"))
+
+    emailing_tools.insertNewsLetterMailInQueue(
+        auth,
+        db,
+        mail_vars,
+        hashtag_template,
+        newRecommendations=newRecommendations,
+        newRecommendationsCount=newRecommendationsCount,
+        newPreprintSearchingForReviewers=newPreprintSearchingForReviewers,
+        newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
+        newPreprintRequiringRecommender=newPreprintRequiringRecommender,
+        newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
+    )
 
 
 ######################################################################################################################################################################

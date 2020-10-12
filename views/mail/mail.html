@@ -62,6 +62,67 @@
       </div>
     {{pass}}
 
+    {{if 'newRecommendations' in locals() and newRecommendations is not None and newRecommendationsCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newRecommendationsCount}}</b> new recommendation{{if newRecommendationsCount > 1:}}s{{pass}} this week
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newRecommendations}}
+
+        <div style="width: 100%; text-align: center; margin-top: 20px; margin-bottom: 10px;">
+          {{=allRecommendationsLink}}
+        </div>
+      </div>
+    {{pass}}
+
+    {{if 'newPreprintSearchingForReviewers' in locals() and newPreprintSearchingForReviewers is not None and newPreprintSearchingForReviewersCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newPreprintSearchingForReviewersCount}}</b> new preprint{{if newPreprintSearchingForReviewersCount > 1:}}s{{pass}} searching for reviewers
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newPreprintSearchingForReviewers}}
+      </div>
+    {{pass}}
+
+    {{if 'newPreprintRequiringRecommender' in locals() and newPreprintRequiringRecommender is not None and newPreprintRequiringRecommenderCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newPreprintRequiringRecommenderCount}}</b> new preprint{{if newPreprintRequiringRecommenderCount > 1:}}s{{pass}} requiring recommender
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newPreprintRequiringRecommender}}
+      </div>
+    {{pass}}
+
     <div style="
   	  color: #555555;
       margin: 0 auto;

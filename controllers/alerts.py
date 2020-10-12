@@ -23,6 +23,7 @@ from app_modules import common_small_html
 myconf = AppConfig(reload=True)
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 
+
 @auth.requires(auth.has_membership(role="developper"))
 def test_flash():
     session.flash = "Coucou !"
@@ -30,68 +31,23 @@ def test_flash():
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
-def testUserRecommendedAlert():
-    if "userId" in request.vars:
-        userId = request.vars["userId"]
-    conditions = ["client" not in request, auth.user]
-    if any(conditions):
-        if userId:
-            userId = auth.user_id
-            user = db.auth_user[userId]
-            if user:
-                articleIdsQy = db.executesql("SELECT * FROM alert_last_recommended_article_ids_for_user(%s);", placeholders=[userId])
-                if len(articleIdsQy) > 0:
-                    artIds = articleIdsQy[0][0]
-                    if artIds:
-                        query = db((db.t_articles.id.belongs(artIds))).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-                        n = len(query)
-                        myRows = []
-                        odd = True
-                        for row in query:
-                            myRows.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
-
-                            odd = not (odd)
-                        msgContents = DIV(TABLE(TBODY(myRows), _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
-                        if len(myRows) > 0:
-                            emailing.send_alert_new_recommendations(session, auth, db, userId, msgContents)
-
-            redirect(request.env.http_referer)
-        else:
-            raise HTTP(404, "404: " + T("Unavailable"))
-    else:
-        raise HTTP(403, "403: " + T("Unauthorized"))
+def testMyNewsletterMail():
+    emailing.send_newsletter_mail(session, auth, db, auth.user_id)
+    redirect(request.env.http_referer)
 
 
 # function called daily
-# @auth.requires_login()
-def alertUsersLastRecommendations():
-    print("Starting cron alerts...")
+def sendNewsletterMails():
     conditions = ["client" not in request, auth.has_membership(role="manager")]
     if any(conditions):
         my_date = date.today()
         my_day = calendar.day_name[my_date.weekday()]
         usersQy = db(db.auth_user.alerts.contains(my_day, case_sensitive=False)).select()
+
         for user in usersQy:
-            userId = user.id
-            articleIdsQy = db.executesql("SELECT * FROM alert_last_recommended_article_ids_for_user(%s);", placeholders=[userId])
-            if len(articleIdsQy) > 0:
-                artIds = articleIdsQy[0][0]
-                if artIds:
-                    query = db(
-                        (db.t_articles.id.belongs(artIds)) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
-                    ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-                    n = len(query)
-                    myRows = []
-                    odd = True
-                    for row in query:
-                        myRows.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=False, withScore=False, withDate=True, fullURL=True))
-                        odd = not (odd)
-                    msgContents = DIV(DIV(myRows, _style="width:100%; background-color:transparent; border-collapse: separate; border-spacing: 0 8px;"),)
-                    if len(myRows) > 0:
-                        emailing.send_alert_new_recommendations(session, auth, db, userId, msgContents)
-                        user.last_alert = datetime.now()
-                        user.update_record()
-                        db.commit()
-        
-        redirect(request.env.http_referer)
+            emailing.send_newsletter_mail(session, auth, db, user.id)
+            user.last_alert = datetime.now()
+            user.update_record()
+
+    redirect(request.env.http_referer)
 

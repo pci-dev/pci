@@ -34,158 +34,7 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
-    
 
-
-######################################################################################################################################################################
-# Common function for articles needing attention
-@auth.requires(auth.has_membership(role="recommender"))
-def fields_awaiting_articles():
-    myVars = request.vars
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    temp_db = DAL("sqlite:memory")
-    qy_art = temp_db.define_table(
-        "qy_art",
-        Field("id", type="integer"),
-        Field("num", type="integer"),
-        Field("score", type="double", label=T("Score"), default=0),
-        Field("title", type="text", label=T("Title")),
-        Field("authors", type="text", label=T("Authors")),
-        Field("article_source", type="string", label=T("Source")),
-        Field("doi", type="string", label=T("DOI")),
-        Field("abstract", type="text", label=T("Abstract")),
-        Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
-        Field("thematics", type="string", length=1024, label=T("Thematic fields")),
-        Field("keywords", type="text", label=T("Keywords")),
-        Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews"), default=0),
-        Field("status", type="string", length=50, default="Pending", label=T("Status")),
-        Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
-        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-        Field("already_published", type="boolean", label=T("Postprint")),
-        Field("anonymous_submission", type="boolean", label=T("Anonymous submission")),
-        Field("parallel_submission", type="boolean", label=T("Parallel submission")),
-    )
-    myVars = request.vars
-    qyKw = ""
-    qyTF = []
-
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-    qyKwArr = qyKw.split(" ")
-
-    searchForm = app_forms.searchByThematic(auth, db, myVars)
-
-    filtered = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
-
-    for fr in filtered:
-        qy_art.insert(**fr)
-
-    temp_db.qy_art.auto_nb_recommendations.readable = False
-    temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
-    temp_db.qy_art.authors.represent = lambda text, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
-    temp_db.qy_art.anonymous_submission.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon or False)
-    temp_db.qy_art.anonymous_submission.readable = False
-    temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
-    temp_db.qy_art.parallel_submission.readable = False
-    temp_db.qy_art.thematics.readable = False
-    temp_db.qy_art.keywords.readable = False
-
-    if len(request.args) == 0:  # in grid
-        temp_db.qy_art._id.readable = True
-        temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
-        temp_db.qy_art._id.label = T("Article")
-        temp_db.qy_art.title.readable = False
-        temp_db.qy_art.authors.readable = False
-        # temp_db.qy_art.status.readable = False
-        temp_db.qy_art.article_source.readable = False
-        temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
-        temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
-        # temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-        temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
-    else:
-        temp_db.qy_art._id.readable = False
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
-        temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
-        # temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
-
-    links = []
-    # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
-    links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
-    if parallelSubmissionAllowed:
-        fields = [
-            temp_db.qy_art.num,
-            temp_db.qy_art.score,
-            temp_db.qy_art.last_status_change,
-            temp_db.qy_art.status,
-            temp_db.qy_art.uploaded_picture,
-            temp_db.qy_art._id,
-            temp_db.qy_art.title,
-            temp_db.qy_art.authors,
-            temp_db.qy_art.article_source,
-            temp_db.qy_art.upload_timestamp,
-            temp_db.qy_art.anonymous_submission,
-            temp_db.qy_art.parallel_submission,
-            # temp_db.qy_art.abstract,
-            temp_db.qy_art.thematics,
-            temp_db.qy_art.keywords,
-            temp_db.qy_art.auto_nb_recommendations,
-        ]
-    else:
-        fields = [
-            temp_db.qy_art.num,
-            temp_db.qy_art.score,
-            temp_db.qy_art.last_status_change,
-            temp_db.qy_art.status,
-            temp_db.qy_art.uploaded_picture,
-            temp_db.qy_art._id,
-            temp_db.qy_art.title,
-            temp_db.qy_art.authors,
-            temp_db.qy_art.article_source,
-            temp_db.qy_art.upload_timestamp,
-            temp_db.qy_art.anonymous_submission,
-            # temp_db.qy_art.abstract,
-            temp_db.qy_art.thematics,
-            temp_db.qy_art.keywords,
-            temp_db.qy_art.auto_nb_recommendations,
-        ]
-
-    grid = SQLFORM.grid(
-        temp_db.qy_art,
-        searchable=False,
-        editable=False,
-        deletable=False,
-        create=False,
-        details=False,
-        maxtextlength=250,
-        paginate=10,
-        csv=csv,
-        exportclasses=expClass,
-        fields=fields,
-        links=links,
-        orderby=temp_db.qy_art.num,
-    )
-
-    response.view = "default/gab_list_layout.html"
-    return dict(
-        # pageTitle=T('Articles requiring a recommender'),
-        titleIcon="inbox",
-        pageTitle=getTitle(request, auth, db, "#RecommenderAwaitingArticlesTitle"),
-        customText=getText(request, auth, db, "#RecommenderArticlesAwaitingRecommendationText:InMyFields"),
-        grid=grid,
-        pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
-        searchableList=True,
-        searchForm=searchForm,
-    )
 
 ######################################################################################################################################################################
 # Common function for articles needing attention
@@ -1209,7 +1058,7 @@ def email_for_registered_reviewer():
 
     linkTarget = URL(c="user", f="accept_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
     declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
-    
+
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
@@ -1265,7 +1114,18 @@ def email_for_registered_reviewer():
     if form.process().accepted:
         try:
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget, declineLinkTarget
+                session,
+                auth,
+                db,
+                reviewId,
+                replyto_address,
+                myconf.take("contacts.managers"),
+                hashtag_template,
+                request.vars["subject"],
+                request.vars["message"],
+                None,
+                linkTarget,
+                declineLinkTarget,
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1349,7 +1209,7 @@ def email_for_new_reviewer():
     )
 
     form.element(_type="submit")["_value"] = T("Send email")
-    
+
     if form.process().accepted:
         new_user_id = None
         # search for already-existing user
@@ -1405,7 +1265,7 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         None,
-                        linkTarget
+                        linkTarget,
                     )
                 except Exception as e:
                     session.flash = (session.flash or "") + T("Email failed.")
@@ -1423,7 +1283,7 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         reset_password_key,
-                        linkTarget
+                        linkTarget,
                     )
                 except Exception as e:
                     session.flash = (session.flash or "") + T("Email failed.")
@@ -2113,6 +1973,6 @@ def review_emails():
         customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
         pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
         myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
-        grid=grid
+        grid=grid,
     )
 

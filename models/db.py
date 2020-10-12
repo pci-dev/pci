@@ -602,7 +602,7 @@ def deltaStatus(s, f):
                 # create reminders
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
-                emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
+                # emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
 
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
@@ -619,7 +619,7 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, o["id"])
                 # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
-                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
+                # emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
                 emailing.delete_reminder_for_suggested_recommenders(db, "#ReminderSuggestedRecommenderInvitation", o["id"])
 
             elif o.status == "Awaiting revision" and f["status"] == "Under consideration":

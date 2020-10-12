@@ -120,11 +120,11 @@ def _ToolsMenu():
 
     toolMenu = [
         (T("Send me a test mail"), False, URL("admin_actions", "testMail", user_signature=True)),
-        (T("Test my email alert"), False, URL("alerts", "testUserRecommendedAlert", vars=dict(userId=auth.user_id), user_signature=True)),
+        (T("Send me the newsletter"), False, URL("alerts", "testMyNewsletterMail", user_signature=True)),
+        (T("Send newsletter manually"), False, URL("alerts", "sendNewsletterMails", user_signature=True)),
         # (T('Test ALL email alerts'), False, URL('alerts', 'alertUsers')),
         (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
         (T("Social networks", lazy=False), False, URL("about", "social", user_signature=True)),
-        (T("Send email alerts manually"), False, URL("alerts", "alertUsersLastRecommendations", user_signature=True))
     ]
     
     return [
