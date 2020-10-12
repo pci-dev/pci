@@ -1154,7 +1154,7 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
 
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
 
-            reports = emailing_tools.createMailReport(true, "contributor " + mail_vars["destPerson"].flatten(), reports)
+            reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 

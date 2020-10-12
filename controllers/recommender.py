@@ -1695,7 +1695,10 @@ def edit_recommendation():
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
     isPress = None
-    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+    
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+
+    if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled"):
@@ -1734,7 +1737,8 @@ def edit_recommendation():
             # buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
             db.t_recommendations.no_conflict_of_interest.writable = False
         else:
-            buttons += [INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save and submit your decision")]
+            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager"):
+                buttons += [INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save and submit your decision")]
         db.t_recommendations.recommendation_state.readable = False
         db.t_recommendations.recommendation_state.writable = False
         if isPress:
@@ -1785,36 +1789,39 @@ def edit_recommendation():
                 session.flash = T("Recommendation saved", lazy=False)
                 redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
             elif form.vars.terminate:
-                session.flash = T("Recommendation saved and completed", lazy=False)
-                recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
-                recomm.recommendation_title = form.vars.recommendation_title
-                recomm.recommendation_comments = form.vars.recommendation_comments
-                recomm.recommender_file = form.vars.recommender_file
-                # manual bypass:
-                rf = request.vars.recommender_file
-                if rf is not None:
-                    if hasattr(rf, "value"):
-                        recomm.recommender_file_data = rf.value
-                        recomm.recommender_file = rf
-                    elif hasattr(request.vars, "recommender_file__delete") and request.vars.recommender_file__delete == "on":
-                        recomm.recommender_file_data = None
-                        recomm.recommender_file = None
-                if isPress is False:
-                    if form.vars.recommender_opinion == "do_recommend":
+                if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager"):
+                    session.flash = T("Recommendation saved and completed", lazy=False)
+                    recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
+                    recomm.recommendation_title = form.vars.recommendation_title
+                    recomm.recommendation_comments = form.vars.recommendation_comments
+                    recomm.recommender_file = form.vars.recommender_file
+                    # manual bypass:
+                    rf = request.vars.recommender_file
+                    if rf is not None:
+                        if hasattr(rf, "value"):
+                            recomm.recommender_file_data = rf.value
+                            recomm.recommender_file = rf
+                        elif hasattr(request.vars, "recommender_file__delete") and request.vars.recommender_file__delete == "on":
+                            recomm.recommender_file_data = None
+                            recomm.recommender_file = None
+                    if isPress is False:
+                        if form.vars.recommender_opinion == "do_recommend":
+                            recomm.recommendation_state = "Recommended"
+                            art.status = "Pre-recommended"
+                        elif form.vars.recommender_opinion == "do_revise":
+                            recomm.recommendation_state = "Revision"
+                            art.status = "Pre-revision"
+                        elif form.vars.recommender_opinion == "do_reject":
+                            recomm.recommendation_state = "Rejected"
+                            art.status = "Pre-rejected"
+                    else:
                         recomm.recommendation_state = "Recommended"
                         art.status = "Pre-recommended"
-                    elif form.vars.recommender_opinion == "do_revise":
-                        recomm.recommendation_state = "Revision"
-                        art.status = "Pre-revision"
-                    elif form.vars.recommender_opinion == "do_reject":
-                        recomm.recommendation_state = "Rejected"
-                        art.status = "Pre-rejected"
+                    recomm.update_record()
+                    art.update_record()
+                    redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
                 else:
-                    recomm.recommendation_state = "Recommended"
-                    art.status = "Pre-recommended"
-                recomm.update_record()
-                art.update_record()
-                redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
+                    session.flash = T("Unauthorized: You need to be recommender or manager", lazy=False)
         elif form.errors:
             response.flash = T("Form has errors", lazy=False)
 

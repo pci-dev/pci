@@ -388,7 +388,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             ):
                 hideOngoingReview = False
             # ... or he/she is THE recommender and he/she already filled his/her own review ...
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id) and recommReviewFilledOrNull:
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and recommReviewFilledOrNull:
                 hideOngoingReview = False
             # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
             if auth.has_membership(role="recommender") and amICoRecommender and recommReviewFilledOrNull:
@@ -397,7 +397,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
                 hideOngoingReview = False
 
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id) and review.review_state == "Ask for review":
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Ask for review":
                 reviewVars.update([("showReviewRequest", True)])
 
             if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
@@ -453,11 +453,15 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         if recomm.recommendation_state == "Recommended":
             if recomm.recommender_id == auth.user_id:
                 recommendationLabel = current.T("Your recommendation")
+            elif amICoRecommender:
+                recommendationLabel = current.T("Your co-recommendation")
             else:
                 recommendationLabel = current.T("Recommendation")
         else:
             if recomm.recommender_id == auth.user_id:
                 recommendationLabel = current.T("Your decision")
+            elif amICoRecommender:
+                recommendationLabel = current.T("Your co-decision")
             elif recomm.is_closed:
                 recommendationLabel = current.T("Decision")
             else:
@@ -467,7 +471,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         editRecommendationLink = None
         editRecommendationDisabled = None
         editRecommendationButtonText = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (printable):
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration") and not (printable):
             # recommender's button for recommendation edition
             if (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
                 editRecommendationDisabled = False
@@ -489,7 +493,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         inviteReviewerLink = None
         showSearchingForReviewersButton = None
         showRemoveSearchingForReviewersButton = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration"):
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration"):
             inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
             showSearchingForReviewersButton = not art.is_searching_reviewers
             showRemoveSearchingForReviewersButton = art.is_searching_reviewers
@@ -580,6 +584,8 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     ###NOTE: here start recommendations display
     whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+
     contributors = []
     contrQy = db((db.t_press_reviews.recommendation_id == recomm.id)).select(orderby=db.t_press_reviews.id)
     for contr in contrQy:
@@ -590,7 +596,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     isRecommendationTooShort = True
     addContributorLink = None
     cancelSubmissionLink = None
-    if (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable):
+    if (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable):
         # recommender's button allowing recommendation edition
         editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True)
 
