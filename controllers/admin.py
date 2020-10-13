@@ -548,7 +548,7 @@ def mailing_queue():
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
-        SPAN(I(T("Sending attempts:")), XML('&nbsp;'), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        SPAN(I(T("Sending attempts:")), XML("&nbsp;"), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
         _class="pci2-flex-column",
         _style="margin: 5px 10px;",
     )
@@ -559,10 +559,23 @@ def mailing_queue():
     # db.mail_queue.mail_content.represent = lambda text, row: toto(text)
     # db.mail_queue.mail_content.represent = lambda text, row: WIKI(text, safe_mode=False)
 
+    db.mail_queue.sending_status.writable = False
+    db.mail_queue.sending_attempts.writable = False
+    db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.user_id.writable = False
+    db.mail_queue.mail_template_hashtag.writable = False
+    db.mail_queue.reminder_count.writable = False
+    db.mail_queue.article_id.writable = False
+    db.mail_queue.recommendation_id.writable = False
+    
+    db.mail_queue.mail_content.writable = False
+
+    
+
     grid = SQLFORM.grid(
         db.mail_queue,
         details=True,
-        editable=False,
+        editable=lambda row: (row.sending_status == "pending"),
         deletable=False,
         create=False,
         searchable=True,

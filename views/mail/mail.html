@@ -42,9 +42,11 @@
       <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
       {{pass}}
       
-  		{{if 'content' in globals() and content is not None:}}
-  			{{=content}}
-  		{{pass}}	
+      {{if 'content' in globals() and content is not None:}}
+        <div id="mail-content">
+          {{=content}}
+        </div>
+  		{{pass}}
   	</div>
 
     {{if 'recommendation' in locals() and recommendation is not None:}}

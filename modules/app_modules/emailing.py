@@ -1479,7 +1479,7 @@ def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db
 
         hashtag_template = "#ReminderSubmitterSuggestedRecommenderNeeded"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 2, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1493,7 +1493,7 @@ def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth
 
         hashtag_template = "#ReminderSubmitterNewSuggestedRecommenderNeeded"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1507,7 +1507,7 @@ def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId
 
         hashtag_template = "#ReminderSubmitterCancelSubmission"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 20, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1525,7 +1525,7 @@ def create_reminder_for_submitter_revised_version_warning(session, auth, db, art
 
         hashtag_template = "#ReminderSubmitterRevisedVersionWarning"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 7, recomm.id, None, articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1543,7 +1543,7 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
 
         hashtag_template = "#ReminderSubmitterRevisedVersionNeeded"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 30, recomm.id, None, articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1576,7 +1576,7 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 5, None, None, articleId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -1617,7 +1617,7 @@ def create_reminder_for_reviewer_review_invitation(session, auth, db, reviewId):
 
         hashtag_template = "#ReminderReviewerReviewInvitation"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 5, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1641,7 +1641,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
         hashtag_template = "#ReminderReviewerReviewSoonDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 14, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1662,7 +1662,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
         hashtag_template = "#ReminderReviewerReviewDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 21, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1683,7 +1683,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
         hashtag_template = "#ReminderReviewerReviewOverDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 25, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1714,7 +1714,7 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
         hashtag_template = "#ReminderRecommenderReviewersNeeded"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 1, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1734,7 +1734,7 @@ def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, arti
 
         hashtag_template = "#ReminderRecommenderNewReviewersNeeded"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 7, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1754,7 +1754,7 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
 
         hashtag_template = "#ReminderRecommenderDecisionSoonDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 8, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -1774,7 +1774,7 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
 
         hashtag_template = "#ReminderRecommenderDecisionDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -1794,7 +1794,7 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
 
         hashtag_template = "#ReminderRecommenderDecisionOverDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 14, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -1814,7 +1814,7 @@ def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db,
 
         hashtag_template = "#ReminderRecommenderRevisedDecisionSoonDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 7, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1834,7 +1834,7 @@ def create_reminder_for_recommender_revised_decision_due(session, auth, db, arti
 
         hashtag_template = "#ReminderRecommenderRevisedDecisionDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 10, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1854,7 +1854,7 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
 
         hashtag_template = "#ReminderRecommenderRevisedDecisionOverDue"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, 14, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################

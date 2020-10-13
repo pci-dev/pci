@@ -1,0 +1,21 @@
+#ReminderRecommenderReviewersNeeded = [1, 3, 5]
+#ReminderRecommenderNewReviewersNeeded = [7]
+#ReminderRecommenderDecisionSoonDue = [8]
+#ReminderRecommenderDecisionDue = [10]
+#ReminderRecommenderDecisionOverDue = [14, 18, 22]
+#ReminderRecommenderRevisedDecisionSoonDue = [7]
+#ReminderRecommenderRevisedDecisionDue = [10]
+#ReminderRecommenderRevisedDecisionOverDue = [14, 18, 22]
+
+#ReminderReviewerReviewInvitation = [5, 8]
+#ReminderReviewerReviewSoonDue = [14, 19]
+#ReminderReviewerReviewDue = [21]
+#ReminderReviewerReviewOverDue = [25, 29, 33, 37, 40]
+
+#ReminderSubmitterCancelSubmission = [20]
+#ReminderSubmitterSuggestedRecommenderNeeded = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+#ReminderSubmitterNewSuggestedRecommenderNeeded = [10]
+#ReminderSubmitterRevisedVersionWarning = [7]
+#ReminderSubmitterRevisedVersionNeeded = [30, 60, 90]
+
+#ReminderSuggestedRecommenderInvitation = [5, 9]

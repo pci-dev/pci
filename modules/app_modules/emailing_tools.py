@@ -3,6 +3,7 @@
 import os
 import time
 from re import sub, match
+import numpy as np
 
 from datetime import datetime, timedelta
 
@@ -32,7 +33,6 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
 
-
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
@@ -40,6 +40,42 @@ MAIL_DELAY = 1.5  # in seconds
 
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
+
+# Reminders config
+def get_reminders_from_config():
+    reminders = []
+    with open(os.path.join(os.path.dirname(__file__), "../../private", "reminders_config")) as f:
+        # Remove empty lines
+        non_empty_lines = [lin for lin in f if lin.strip() != ""]
+
+        # Parse lines
+        for line in non_empty_lines:
+            # Remove whitechar
+            line = line.strip()
+            line = line.replace(" ", "")
+            element = line.split("=")
+
+            # Get hashtag_template
+            hashtag = element[0]
+
+            # Get elapsed_days
+            # Remove array notation
+            elapsed_days_str = element[1].replace("[", "")
+            elapsed_days_str = elapsed_days_str.replace("]", "")
+            elapsed_days_str = elapsed_days_str.split(",")
+
+            # Convert elapsed_days from str to int
+            elapsed_days_int = []
+            for i in elapsed_days_str:
+                elapsed_days_int.append(int(i))
+
+            # Append item
+            reminders.append(dict(hashtag=hashtag, elapsed_days=elapsed_days_int))
+
+    return reminders
+
+
+REMINDERS = get_reminders_from_config()
 
 ######################################################################################################################################################################
 # Mailing tools
@@ -154,22 +190,27 @@ def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=N
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, days, recommendation_id=None, recommendation=None, article_id=None):
-    sending_date = datetime.now() + timedelta(days=days)
+def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None):
+    reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
 
-    mail = buildMail(db, hashtag_template, mail_vars, recommendation)
+    if reminder[0]:
+        elapsed_days = reminder[0]["elapsed_days"][0]
 
-    db.mail_queue.insert(
-        sending_status="pending",
-        sending_date=sending_date,
-        dest_mail_address=mail_vars["destAddress"],
-        mail_subject=mail["subject"],
-        mail_content=mail["content"],
-        user_id=auth.user_id,
-        recommendation_id=recommendation_id,
-        article_id=article_id,
-        mail_template_hashtag=hashtag_template,
-    )
+        sending_date = datetime.now() + timedelta(days=elapsed_days)
+
+        mail = buildMail(db, hashtag_template, mail_vars, recommendation)
+
+        db.mail_queue.insert(
+            sending_status="pending",
+            sending_date=sending_date,
+            dest_mail_address=mail_vars["destAddress"],
+            mail_subject=mail["subject"],
+            mail_content=mail["content"],
+            user_id=auth.user_id,
+            recommendation_id=recommendation_id,
+            article_id=article_id,
+            mail_template_hashtag=hashtag_template,
+        )
 
 
 ######################################################################################################################################################################

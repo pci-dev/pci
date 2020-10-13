@@ -672,6 +672,7 @@ def deltaStatus(s, f):
 
                 if f["status"] == "Recommended":
                     # delete reminders
+                    print("RECOMMENDED")
                     emailing.delete_all_reminders_from_article_id(db, o["id"])
 
                 if o["status"] == "Pre-revision" and f["status"] == "Awaiting revision":
