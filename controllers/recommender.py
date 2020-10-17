@@ -172,6 +172,7 @@ def fields_awaiting_articles():
         fields=fields,
         links=links,
         orderby=temp_db.qy_art.num,
+        _class="web2py_grid action-button-absolute",
     )
 
     response.view = "default/gab_list_layout.html"
@@ -184,6 +185,7 @@ def fields_awaiting_articles():
         pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
         searchableList=True,
         searchForm=searchForm,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -649,6 +651,7 @@ def my_recommendations():
         fields=fields,
         links=links,
         orderby=~db.t_recommendations.last_change,
+        _class="web2py_grid action-button-absolute",
     )
 
     if isPress:  ## NOTE: POST-PRINTS
@@ -663,6 +666,7 @@ def my_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -896,6 +900,7 @@ def reviews():
                 db.t_reviews.emailing,
             ],
             selectable=selectable,
+            _class="web2py_grid action-button-absolute",
         )
 
         # This script renames the "Add record" button
@@ -926,6 +931,7 @@ def reviews():
             content=myContents,
             grid=grid,
             myFinalScript=myScript,
+            absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
         )
 
 
@@ -1242,16 +1248,23 @@ def email_for_new_reviewer():
                 session.flash = T("User creation failed :-(")
                 redirect(request.env.http_referer)
 
-        # Create review
-        reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state=None)  # State will be validated after emailing
+        
 
         if nbExistingReviews > 0:
             session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
         else:
+            # Create review
+            # BUG : managers could invite recommender as reviewer (incoherent status)
+            reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state=None)  # State will be validated after emailing
+            
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 
             if existingUser:
                 try:
+                    hashtag_template = "#DefaultReviewInvitationRegisterUser"
+                    linkTarget = URL(c="user", f="my_reviews", scheme=scheme, host=host, port=port)
+                    declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=reviewId), scheme=scheme, host=host, port=port)
+
                     emailing.send_reviewer_invitation(
                         session,
                         auth,
@@ -1262,14 +1275,17 @@ def email_for_new_reviewer():
                         hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
-                        reset_password_key,
+                        None,
                         linkTarget,
+                        declineLinkTarget,
                     )
                 except Exception as e:
                     session.flash = (session.flash or "") + T("Email failed.")
                     pass
             else:
                 try:
+                    hashtag_template = "#DefaultReviewInvitationNewUser"
+
                     emailing.send_reviewer_invitation(
                         session,
                         auth,
@@ -1899,6 +1915,7 @@ def my_co_recommendations():
             ),
         ],
         orderby=~db.t_articles.last_status_change | ~db.t_press_reviews.id,
+        _class="web2py_grid action-button-absolute",
     )
     myContents = ""
     return dict(
@@ -1909,6 +1926,7 @@ def my_co_recommendations():
         # myBackButton=common_small_html.mkBackButton(),
         contents=myContents,
         grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -1948,6 +1966,12 @@ def review_emails():
     reviewer = db.auth_user[review.reviewer_id]
     recommendation = db.t_recommendations[review.recommendation_id]
 
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+
+    if (recommendation.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
         SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
@@ -1981,7 +2005,7 @@ def review_emails():
     myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
     grid = SQLFORM.grid(
-        ((db.mail_queue.user_id == recommendation.recommender_id) & (db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == recommendation.id)),
+        ((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == recommendation.id)),
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
@@ -2002,6 +2026,7 @@ def review_emails():
             db.mail_queue.mail_template_hashtag,
             db.mail_queue.article_id,
         ],
+        _class="web2py_grid action-button-absolute",
     )
 
     return dict(
@@ -2012,6 +2037,7 @@ def review_emails():
         myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 

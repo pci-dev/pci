@@ -52,13 +52,17 @@ def do_cancel_press_review():
 def del_contributor():
     pressId = request.vars["pressId"]
     if pressId:
-        if (
-            db(
-                (db.t_press_reviews.id == pressId) & (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_recommendations.recommender_id == auth.user_id)
-            ).count()
-            > 0
-        ):
-            db((db.t_press_reviews.id == pressId)).delete()
+        if auth.has_membership(role="recommender"):
+            if (
+                db(
+                    (db.t_press_reviews.id == pressId) & (db.t_recommendations.id == db.t_press_reviews.recommendation_id) & (db.t_recommendations.recommender_id == auth.user_id)
+                ).count()
+                > 0
+            ):
+                db((db.t_press_reviews.id == pressId)).delete()
+        if auth.has_membership(role="manager"):
+             db((db.t_press_reviews.id == pressId)).delete()
+        
     redirect(request.env.http_referer)
 
 

@@ -346,6 +346,55 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
+# Do send email to suggested recommenders for a given available article
+def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
+    print("send_to_suggested_recommenders")
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    article = db.t_articles[articleId]
+    if article:
+
+        mail_vars["articleTitle"] = article.title
+        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+
+        if article.anonymous_submission:
+            mail_vars["articleAuthors"] = current.T("[undisclosed]")
+        else:
+            mail_vars["articleAuthors"] = article.authors
+
+        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm_id = None
+        if recomm:
+            recomm_id = recomm.id
+
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
+        mail_vars["destAddress"] = db.auth_user[suggRecommId]["email"]
+        mail_vars["linkTarget"] = URL(
+            c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
+        )
+        mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+        if article.parallel_submission:
+            mail_vars["addNote"] = (
+                "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
+                % mail_vars
+            )
+        else:
+            mail_vars["addNote"] = ""
+
+        hashtag_template = "#RecommenderSuggestedArticle"
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
+
+        delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+
+        reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
+
+    emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
 # Individual reminder for previous message
 def send_reminder_to_suggested_recommender(session, auth, db, suggRecommId):
     print("send_reminder_to_suggested_recommenders")
@@ -1578,6 +1627,23 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
             emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+
+
+######################################################################################################################################################################
+def create_reminder_for_suggested_recommender_invitation(session, auth, db, articleId, suggRecommId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    article = db.t_articles[articleId]
+    if article and article.user_id is not None:
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        hashtag_template = "#ReminderSuggestedRecommenderInvitation"
+
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
+        mail_vars["destAddress"] = db.auth_user[suggRecommId]["auth_user.email"]
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################

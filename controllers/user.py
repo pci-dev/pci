@@ -57,7 +57,6 @@ def recommendations():
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
-
         if printable:
             printableClass = "printable"
             response.view = "default/wrapper_printable.html"
@@ -543,6 +542,7 @@ def my_articles():
         links=links,
         left=db.t_status_article.on(db.t_status_article.status == db.t_articles.status),
         orderby=~db.t_articles.last_status_change,
+        _class="web2py_grid action-button-absolute",
     )
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
@@ -551,6 +551,7 @@ def my_articles():
         titleIcon="duplicate",
         pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
         grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -674,13 +675,21 @@ def my_reviews():
         ],
         links=links,
         orderby=~db.t_reviews.last_change | ~db.t_reviews.review_state,
+        _class="web2py_grid action-button-absolute",
     )
     if pendingOnly:
         titleIcon = "envelope"
     else:
         titleIcon = "eye-open"
 
-    return dict(pageHelp=getHelp(request, auth, db, "#UserMyReviews"), titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, grid=grid,)
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#UserMyReviews"),
+        titleIcon=titleIcon,
+        pageTitle=pageTitle,
+        customText=customText,
+        grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+    )
 
 
 ######################################################################################################################################################################
@@ -1088,6 +1097,7 @@ def articles_awaiting_reviewers():
         links=links,
         left=db.t_status_article.on(db.t_status_article.status == db.t_articles.status),
         orderby=~db.t_articles.last_status_change,
+        _class="web2py_grid action-button-absolute",
     )
 
     return dict(
@@ -1097,4 +1107,6 @@ def articles_awaiting_reviewers():
         titleIcon="inbox",
         pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
         grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
+

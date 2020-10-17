@@ -961,7 +961,9 @@ db.t_suggested_recommenders._after_insert.append(lambda f, i: appendRecommender(
 def appendRecommender(f, i):
     a = db.t_articles[f.article_id]
     if a and a["status"] == "Awaiting consideration":
-        emailing.send_to_suggested_recommenders(session, auth, db, a["id"])
+        # BUG : resend to all send to all 
+        emailing.send_to_suggested_recommender(session, auth, db, a["id"], f["suggested_recommender_id"])
+        emailing.create_reminder_for_suggested_recommender_invitation(session, auth, db, a["id"], f["suggested_recommender_id"])
 
 
 db.define_table(

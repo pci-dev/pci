@@ -357,6 +357,7 @@ def manage_recommendations():
         ],
         links=links,
         orderby=~db.t_recommendations.recommendation_timestamp,
+        _class="web2py_grid action-button-absolute",
     )
     if grid.element(_title="Add record to database"):
         grid.element(_title="Add record to database")[0] = T("Manually add new round")
@@ -371,6 +372,7 @@ def manage_recommendations():
         pageTitle=getTitle(request, auth, db, "#ManageRecommendationsTitle"),
         content=myContents,
         grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -558,6 +560,7 @@ def suggested_recommenders():
         ],
         field_id=db.t_suggested_recommenders.id,
         links=links,
+        _class="web2py_grid action-button-absolute",
     )
 
     response.view = "default/myLayout.html"
@@ -569,6 +572,7 @@ def suggested_recommenders():
         # myBackButton=common_small_html.mkBackButton(),
         addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -828,6 +832,7 @@ def article_emails():
             db.mail_queue.mail_template_hashtag,
             db.mail_queue.article_id,
         ],
+        _class="web2py_grid action-button-absolute",
     )
 
     return dict(
@@ -838,6 +843,7 @@ def article_emails():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         myFinalScript=myScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 
