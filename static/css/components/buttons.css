@@ -1,214 +1,201 @@
 /* Some changes... */
 
 .btn {
-    border-radius: 5px;
-    font-weight: bold;
-    padding: 4px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 4px 15px;
 }
 
 .btn-main-action {
-    background: #fcc24d;
-    font-family: Arial;
-    color: #ffffff;
-    text-decoration: none;
+  background: #fcc24d;
+  font-family: Arial;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .btn-main-action:hover {
-    background: #e0a838;
+  background: #e0a838;
 }
-
-
 
 .pci2-tool-link,
 .pci2-tool-link-right {
-    margin: 10px 0;
-    color: #999;
-    font-weight: bold;
-    transition: 0.3s;
-    text-decoration: none;
+  margin: 10px 0;
+  color: #999;
+  font-weight: bold;
+  transition: 0.3s;
+  text-decoration: none;
 }
 
-
 .pci2-tool-link .glyphicon {
-    font-size: 26px;
-    margin: 0;
-    margin-right: 7.5px;
+  font-size: 26px;
+  margin: 0;
+  margin-right: 7.5px;
 
-    color: #3eaede;
-    opacity: 0.3;
+  color: #3eaede;
+  opacity: 0.3;
 
-    transition: 0.3s;
+  transition: 0.3s;
 }
 
 .pci2-tool-link-right .glyphicon {
-    font-size: 26px;
-    margin: 0;
-    margin-left: 7.5px;
+  font-size: 26px;
+  margin: 0;
+  margin-left: 7.5px;
 
-    color: #3eaede;
-    opacity: 0.3;
+  color: #3eaede;
+  opacity: 0.3;
 
-    transition: 0.3s;
+  transition: 0.3s;
 }
-
 
 .pci2-tool-link-right:hover,
 .pci2-tool-link-right:focus,
 .pci2-tool-link:hover,
 .pci2-tool-link:focus {
-    color: #3eaede;
-    text-decoration: none;
+  color: #3eaede;
+  text-decoration: none;
 }
 
 .pci2-tool-link-right:hover .glyphicon,
 .pci2-tool-link-right:focus .glyphicon,
 .pci2-tool-link:hover .glyphicon,
 .pci2-tool-link:focus .glyphicon {
-    color: #3eaede;
-    opacity: 1;
+  color: #3eaede;
+  opacity: 1;
 }
 
 .pci2-yellow-link .glyphicon {
-    color: #fcc24d;
-    opacity: 0.3;
+  color: #fcc24d;
+  opacity: 0.3;
 }
 
 .pci2-yellow-link:hover,
 .pci2-yellow-link:focus {
-    color: #fcc24d;
-    text-decoration: none;
+  color: #fcc24d;
+  text-decoration: none;
 }
 
 .pci2-yellow-link:hover .glyphicon,
 .pci2-yellow-link:focus .glyphicon {
-    opacity: 1;
-    color: #fcc24d;
+  opacity: 1;
+  color: #fcc24d;
 }
 
-
 .pci2-lost-password-link {
-    background: none;
-    border: none;
-    font-weight: bold;
-    color: #333;
+  background: none;
+  border: none;
+  font-weight: bold;
+  color: #333;
 }
 
 .pci2-lost-password-link.disabled {
-    background: none;
-    border: none;
-    font-weight: bold;
-    box-shadow: none;
-    outline: none;
-    opacity: 0.2;
-    color: #333;
+  background: none;
+  border: none;
+  font-weight: bold;
+  box-shadow: none;
+  outline: none;
+  opacity: 0.2;
+  color: #333;
 }
 
 .pci2-lost-password-link:hover {
-    background: none;
-    border: none;
-    font-weight: bold;
-    box-shadow: none;
-    outline: none;
-    opacity: 0.8;
-    color: #3eaede;
+  background: none;
+  border: none;
+  font-weight: bold;
+  box-shadow: none;
+  outline: none;
+  opacity: 0.8;
+  color: #3eaede;
 }
 
 .pci2-lost-password-link:focus,
 .pci2-lost-password-link:active {
-    opacity: 1;
-    background: none;
-    border: none;
-    font-weight: bold;
-    box-shadow: none;
-    outline: none !important;
-    color: #3eaede;
+  opacity: 1;
+  background: none;
+  border: none;
+  font-weight: bold;
+  box-shadow: none;
+  outline: none !important;
+  color: #3eaede;
 }
 
-
 .pci2-facebook-link {
-    margin: 10px 0;
-    color: #999;
-    font-weight: bold;
-    transition: 0.3s;
+  margin: 10px 0;
+  color: #999;
+  font-weight: bold;
+  transition: 0.3s;
 }
 
 .pci2-twitter-link {
-    margin: 10px 0;
-    margin-left: 25px;
-    color: #999;
-    font-weight: bold;
-    transition: 0.3s;
+  margin: 10px 0;
+  margin-left: 25px;
+  color: #999;
+  font-weight: bold;
+  transition: 0.3s;
 }
 
 .pci2-facebook-link:hover,
 .pci2-facebook-link:focus {
-    color: #3b5998;
-    text-decoration: none;
+  color: #3b5998;
+  text-decoration: none;
 }
 
 .pci2-twitter-link:hover,
 .pci2-twitter-link:focus {
-    color: #1DA1F2;
-    text-decoration: none;
+  color: #1da1f2;
+  text-decoration: none;
 }
 
-
 .pci2-facebook-link .pci2-social-icon {
-    fill: #3b5998;
-    opacity: 0.3;
+  fill: #3b5998;
+  opacity: 0.3;
 }
 
 .pci2-facebook-link:hover .pci2-social-icon,
 .pci2-facebook-link:focus .pci2-social-icon {
-    fill: #3b5998;
-    opacity: 1;
+  fill: #3b5998;
+  opacity: 1;
 }
 
 .pci2-twitter-link .pci2-social-icon {
-    fill: #1DA1F2;
-    opacity: 0.3;
+  fill: #1da1f2;
+  opacity: 0.3;
 }
 
 .pci2-twitter-link:hover .pci2-social-icon,
 .pci2-twitter-link:focus .pci2-social-icon {
-    fill: #1DA1F2;
-    opacity: 1;
+  fill: #1da1f2;
+  opacity: 1;
 }
 
 .pci2-social-icon {
-    margin: 0;
-    margin-right: 7.5px;
-    transition: 0.3s;
+  margin: 0;
+  margin-right: 7.5px;
+  transition: 0.3s;
 }
-
 
 /* Web2py table button */
-
 .web2py_grid .row_buttons .btn {
-    background: none;
-    color: #333;
-    box-shadow: none !important;
-    opacity: 0.65;
-    transition: 0.3s;
-    font-size: 12px;
+  color: #fff;
+  background: #3eaede;
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 4px 15px;
+  line-height: 22px;
 }
-
+/* 
 .web2py_grid .row_buttons .btn:hover {
-    opacity: 1;
-    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.175) !important;
+} */
+
+.web2py_grid .row_buttons .btn[data-w2p_remove]{
+  background: #e61919;
 }
 
 .web2py_grid .row_buttons .btn .glyphicon {
-    margin-right: 2.5px;
-    font-size: 15px;
-    color: #3eaede;
-    top: 2px;
-}
-
-.web2py_grid .row_buttons .btn .glyphicon-trash {
-    color: #e61919;
+  /* display: none; */
 }
 
 .web2py_table .btn-default.pci-button {
-    background: #3eaede;
+  background: #3eaede;
 }

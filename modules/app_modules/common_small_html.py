@@ -306,7 +306,7 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 def mkReviewStateDiv(auth, db, state):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
-    if state == "Pending" or state == "Ask for review":
+    if state == "Pending" or state == "Ask to review":
         color_class = "warning"
     elif state == "Declined by recommender":
         color_class = "danger"
@@ -433,13 +433,38 @@ def mkViewEditRecommendationsRecommenderButton(auth, db, row):
 # go to the target instead, if any.
 def mkBackButton(text=current.T("Back"), target=None):
     if target:
-        return A(I(_class="glyphicon glyphicon-chevron-left"),SPAN(text), _href=target, _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
+        return A(I(_class="glyphicon glyphicon-chevron-left"), SPAN(text), _href=target, _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
     else:
-        return A(I(_class="glyphicon glyphicon-chevron-left"),SPAN(text), _onclick="window.history.back();", _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
+        return A(
+            I(_class="glyphicon glyphicon-chevron-left"),
+            SPAN(text),
+            _onclick="window.history.back();",
+            _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link",
+        )
 
 
 ######################################################################################################################################################################
 # Article recomm presentation
+######################################################################################################################################################################
+def mkRepresentArticleLightLinked(auth, db, article_id):
+    anchor = ""
+    art = db.t_articles[article_id]
+
+    if art:
+        if len(art.title) > 40:
+            art_title = art.title[0:40]
+            art_title += "..."
+        else:
+            art_title = art.title
+
+        anchor = DIV(
+            B(art_title),
+            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+            mkDOI(art.doi)
+        )
+    return anchor
+
+
 ######################################################################################################################################################################
 def mkRepresentArticleLight(auth, db, article_id):
     anchor = ""
@@ -624,17 +649,16 @@ def mkReviewersString(auth, db, articleId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False, host=False, port=False, scheme=False):    
-    whoDidIt = []    
+def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False, host=False, port=False, scheme=False):
+    whoDidIt = []
 
     if hasattr(recomm, "article_id"):
         article = db(db.t_articles.id == recomm.article_id).select(db.t_articles.id, db.t_articles.already_published).last()
 
     if hasattr(article, "id"):
-        mainRecommenders = db(
-            (db.t_recommendations.article_id == article.id)
-            & (db.t_recommendations.recommender_id == db.auth_user.id)
-        ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+        mainRecommenders = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)).select(
+            db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name
+        )
 
         coRecommenders = db(
             (db.t_recommendations.article_id == article.id)
@@ -749,6 +773,7 @@ def getArticleSubmitter(auth, db, art):
         result = ""
 
     return result
+
 
 ######################################################################################################################################################################
 def mkRecommendersString(auth, db, recomm):

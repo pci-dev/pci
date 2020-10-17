@@ -6,23 +6,30 @@ const ids_array = [
   "#t_reviews_review",
   "#t_recommendations_reply",
   "#mail_templates_contents",
-  "#no_table_message"
+  "#no_table_message",
+  "#mail_queue_mail_content",
 ];
 
 for (const id_textarea of ids_array) {
   let elem = document.querySelector(id_textarea);
   if (elem) {
     // let editor_elem = `<div id="${id_textarea + '_editor'}"></div>`
+    let invalid_styles;
+    if (id_textarea == "#mail_queue_mail_content") {
+      invalid_styles = "font-size font-family";
+    } else {
+      invalid_styles = "font-size font-family background background-color";
+    }
 
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
-      invalid_styles: "font-size font-family background background-color",
+      invalid_styles: invalid_styles,
       invalid_elements: "em",
       selector: id_textarea,
       branding: false,
       menubar: false,
       statusbar: false,
-      plugins: "lists link autoresize media",
+      plugins: "lists link autoresize media image",
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,
       toolbar: [
@@ -48,7 +55,19 @@ for (const id_textarea of ids_array) {
         // },
         {
           name: "blockformats",
-          items: ["numlist", "bullist", "blockquote", "media", "mathjax"],
+          items: [
+            "numlist",
+            "bullist",
+            "blockquote",
+          ],
+        },
+        {
+          name: "mediatype",
+          items: [
+            "image",
+            "media",
+            "mathjax",
+          ],
         },
       ],
       style_formats: [

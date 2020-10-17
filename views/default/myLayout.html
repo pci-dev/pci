@@ -53,7 +53,12 @@
 	{{pass}}
 
 {{if 'myFinalScript' in locals():}}
-	{{=myFinalScript}}
+{{=myFinalScript}}
 {{pass}}
+
+{{if 'absoluteButtonScript' in locals():}}
+{{=absoluteButtonScript}}
+{{pass}}
+
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>

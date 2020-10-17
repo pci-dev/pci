@@ -239,6 +239,7 @@ div.w2p_flash.alert.custom-disappear {
   min-height: 105px;
   padding: 0;
   display: flex;
+  flex-direction: column;
 }
 
 .action-button-absolute
@@ -271,6 +272,7 @@ div.w2p_flash.alert.custom-disappear {
     rgba(0, 0, 0, 0),
     rgba(239, 243, 247, 255) 15%
   );
+  background-image: -webkit-linear-gradient(left, rgba(239,243,247,0.001) 0%, rgba(239, 243, 247, 255) 15%);
 }
 
 .action-button-absolute
@@ -286,6 +288,7 @@ div.w2p_flash.alert.custom-disappear {
     rgba(0, 0, 0, 0),
     rgba(247, 249, 251, 255) 15%
   );
+  background-image: -webkit-linear-gradient(left,rgba(247, 249, 251,0.001) 0%, rgba(247, 249, 251) 15%);
 }
 
 .tox-tinymce {
@@ -317,6 +320,7 @@ div.w2p_flash.alert.custom-disappear {
   height: 100%;
   width: 100%;
   background: linear-gradient(transparent, gray);
+  background-image: -webkit-linear-gradient(rgba(239,243,247,0.001), gray);
   pointer-events: none;
 }
 

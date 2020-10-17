@@ -31,6 +31,8 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import common_small_html
 
+from controller_modules import admin_module
+
 
 myconf = AppConfig(reload=True)
 
@@ -219,10 +221,11 @@ def _manage_articles(statuses, whatNext):
         _class="web2py_grid action-button-absolute",
     )
 
-    absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
-
     return dict(
-        customText=getText(request, auth, db, "#ManagerArticlesText"), pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"), grid=grid, myFinalScript=absoluteButtonScript
+        customText=getText(request, auth, db, "#ManagerArticlesText"),
+        pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
+        grid=grid,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -306,7 +309,7 @@ def manage_recommendations():
         dict(
             header=T("Co-recommenders"),
             body=lambda row: A(
-                (db.v_recommendation_contributors[(row.get("t_recommendations") or row).id]).contributors or "ADD",
+                (db.v_recommendation_contributors[(row.get("t_recommendations") or row).id]).contributors or "ADD CO-RECOMMENDER",
                 _href=URL(c="recommender", f="contributions", vars=dict(recommId=(row.get("t_recommendations") or row).id)),
             ),
         )
@@ -316,7 +319,7 @@ def manage_recommendations():
             dict(
                 header=T("Reviews"),
                 body=lambda row: A(
-                    (db.v_reviewers[(row.get("t_recommendations") or row).id]).reviewers or "ADD",
+                    (db.v_reviewers[(row.get("t_recommendations") or row).id]).reviewers or "ADD REVIEWER",
                     _href=URL(c="recommender", f="reviews", vars=dict(recommId=(row.get("t_recommendations") or row).id)),
                 ),
             )
@@ -337,20 +340,20 @@ def manage_recommendations():
         # ,left=db.t_pdf.on(db.t_pdf.recommendation_id==db.t_recommendations.id)
         ,
         fields=[
-            db.t_recommendations.id,
-            db.t_recommendations.doi,
-            db.t_recommendations.ms_version,
-            db.t_recommendations.recommendation_timestamp,
+            # db.t_recommendations.id,
+            # db.t_recommendations.doi,
+            # db.t_recommendations.ms_version,
+            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.last_change,
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
-            db.t_recommendations.recommendation_comments,
-            db.t_recommendations.reply,
-            db.t_recommendations.reply_pdf,
-            db.t_recommendations.track_change,
-            db.t_recommendations.recommender_file,
-            db.t_pdf.pdf,
+            # db.t_recommendations.recommendation_comments,
+            # db.t_recommendations.reply,
+            # db.t_recommendations.reply_pdf,
+            # db.t_recommendations.track_change,
+            # db.t_recommendations.recommender_file,
+            # db.t_pdf.pdf,
         ],
         links=links,
         orderby=~db.t_recommendations.recommendation_timestamp,
@@ -361,7 +364,7 @@ def manage_recommendations():
     myContents = DIV(DIV(article_components.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
 
     return dict(
-        # myBackButton = common_small_html.mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManageRecommendations"),
         customText=getText(request, auth, db, "#ManageRecommendationsText"),
         titleIcon="edit",
@@ -627,6 +630,7 @@ def manage_comments():
         grid=grid,
     )
 
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def all_recommendations():
@@ -728,8 +732,6 @@ def all_recommendations():
         _class="web2py_grid action-button-absolute",
     )
 
-    absoluteButtonScript = SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript")
-
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
@@ -737,7 +739,7 @@ def all_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        myFinalScript=absoluteButtonScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
     )
 
 
@@ -763,3 +765,105 @@ def suggested_recommender_emails():
         myBackButton=common_small_html.mkBackButton(),
         message=myContents,
     )
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def article_emails():
+    response.view = "default/myLayout.html"
+
+    articleId = request.vars["articleId"]
+    article = db.t_articles[articleId]
+
+    db.mail_queue.sending_status.represent = lambda text, row: DIV(
+        SPAN(admin_module.makeMailStatusDiv(text)),
+        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        _class="pci2-flex-column",
+        _style="margin: 5px 10px;",
+    )
+
+    db.mail_queue.id.readable = False
+    db.mail_queue.sending_attempts.readable = False
+
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
+    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
+    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+
+    db.mail_queue.sending_status.writable = False
+    db.mail_queue.sending_attempts.writable = False
+    db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.user_id.writable = False
+    db.mail_queue.mail_template_hashtag.writable = False
+    db.mail_queue.reminder_count.writable = False
+    db.mail_queue.article_id.writable = False
+    db.mail_queue.recommendation_id.writable = False
+
+    if len(request.args) > 2 and request.args[0] == "edit":
+        db.mail_queue.mail_template_hashtag.readable = True
+    else:
+        db.mail_queue.mail_template_hashtag.readable = False
+
+    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+
+    grid = SQLFORM.grid(
+        ((db.mail_queue.article_id == articleId)),
+        details=True,
+        editable=lambda row: (row.sending_status == "pending"),
+        deletable=lambda row: (row.sending_status == "pending"),
+        create=False,
+        searchable=True,
+        csv=False,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.mail_queue.id,
+        onvalidation=mail_form_processing,
+        fields=[
+            db.mail_queue.sending_status,
+            db.mail_queue.sending_date,
+            db.mail_queue.sending_attempts,
+            db.mail_queue.dest_mail_address,
+            # db.mail_queue.user_id,
+            db.mail_queue.mail_subject,
+            db.mail_queue.mail_template_hashtag,
+            db.mail_queue.article_id,
+        ],
+    )
+
+    return dict(
+        titleIcon="send",
+        pageTitle=getTitle(request, auth, db, "#ArticleEmailsTitle"),
+        customText=getText(request, auth, db, "#ArticleEmailsText"),
+        pageHelp=getHelp(request, auth, db, "#ArticleEmails"),
+        myBackButton=common_small_html.mkBackButton(),
+        grid=grid,
+        myFinalScript=myScript,
+    )
+
+
+def mail_form_processing(form):
+    form.errors = True
+    mail = db.mail_queue[request.vars.id]
+
+    content_saved = False
+    try:
+        content_begin = mail.mail_content.rindex("<!-- CONTENT START -->") + 22
+        content_end = mail.mail_content.rindex("<!-- CONTENT END -->")
+
+        new_content = mail.mail_content[0:content_begin]
+        new_content += form.vars.mail_content
+        new_content += mail.mail_content[content_end:-1]
+
+        mail.mail_content = new_content
+        mail.mail_subject = form.vars.mail_subject
+        mail.sending_date = form.vars.sending_date
+        mail.update_record()
+
+        content_saved = True
+    except:
+        print("Error")
+
+    if content_saved:
+        args = request.args
+        args[0] = "view"
+        session.flash = T("Reminder saved")

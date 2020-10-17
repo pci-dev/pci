@@ -345,7 +345,7 @@ def accept_review_request():
     if rev is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    if rev["review_state"] != "Ask for review":
+    if rev["review_state"] != "Ask to review":
         session.flash = T("Review state has been changed")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
@@ -370,7 +370,7 @@ def decline_review_request():
     if rev is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    if rev["review_state"] != "Ask for review":
+    if rev["review_state"] != "Ask to review":
         session.flash = T("Review state has been changed")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
@@ -406,7 +406,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
-        session.flash = "Preprint now appear in \"searching for rewiwers\" list"
+        session.flash = "Preprint now appear in \"searching for reviewers\" list"
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
 
 
@@ -430,5 +430,5 @@ def make_preprint_not_searching_for_reviewers():
         art.is_searching_reviewers = False
         art.update_record()
         db.commit()
-        session.flash = "Preprint is removed from \"searching for rewiwers\" list"
+        session.flash = "Preprint is removed from \"searching for reviewers\" list"
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))

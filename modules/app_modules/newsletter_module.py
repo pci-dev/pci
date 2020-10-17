@@ -63,7 +63,7 @@ def makeArticleRow(article, linkType):
     if linkType == "review":
         target_link = A(
             current.T("See more"),
-            _href=URL(c="user", f="ask_for_review", vars=dict(articleId=article.id), scheme=scheme, host=host, port=port),
+            _href=URL(c="user", f="ask_to_review", vars=dict(articleId=article.id), scheme=scheme, host=host, port=port),
             _style="font-size: 12px; padding: 4px 15px; background-color: #93c54b; color: #ffffff; border-radius: 5px; font-weight: bold;",
         )
 

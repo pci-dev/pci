@@ -141,7 +141,7 @@ function alertContents() {
 
     if (httpRequest.status === 200) {
       fillFormFields(httpRequest.responseText);
-      error_message.innerText = "Some field has been auto-filled";
+      error_message.innerText = "Some fields has been auto-filled";
       error_message.classList = "success-text";
     } else {
       error_message.innerText = "Error : doi not found";

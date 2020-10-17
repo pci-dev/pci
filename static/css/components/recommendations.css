@@ -148,14 +148,23 @@ h4.pci2-recomm-article-h2 .glyphicon {
   margin-bottom: 10px;
 }
 
-.pci2-user-cv-label,
-.pci2-recomm-text-label {
+.pci2-user-cv-label {
   position: absolute;
   margin-top: -11px;
   margin-left: 10px;
   color: #598398bb;
   background: #fff;
   padding: 0 7.5px;
+}
+
+.pci2-recomm-text-label {
+  position: absolute;
+  margin-top: -9px;
+  margin-left: 10px;
+  color: #598398bb;
+  background: #fff;
+  padding: 0 7.5px;
+  font-weight: bold;
 }
 
 .pci2-recomm-text {

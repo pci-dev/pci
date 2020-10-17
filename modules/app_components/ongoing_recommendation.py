@@ -55,6 +55,10 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         allowManageRequest = True
         manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
 
+    printableUrl = None
+    if auth.has_membership(role="manager"):
+        printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
+
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
@@ -62,7 +66,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         allowManageRequest=allowManageRequest,
         manageRecommendersButton=manageRecommendersButton,
         articleId=art.id,
-        printableUrl=URL(c=controller_name, f="recommendations", vars=dict(articleId=art.id, printable=True), user_signature=True),
+        printableUrl=printableUrl,
         printable=printable,
     )
 
@@ -190,7 +194,6 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                     acceptedReviewCount += 1
                     completedReviewCount += 1
 
-
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
 
@@ -272,11 +275,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
         recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
 
-    return dict(
-        roundNumber=totalRecomm,
-        isRecommAvalaibleToSubmitter=(managerDecisionDoneClass == "step-done"),
-        content=recommendationDiv
-    ) 
+    return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=(managerDecisionDoneClass == "step-done"), content=recommendationDiv)
 
 
 ########################################################################################################################################################################
@@ -397,14 +396,14 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
                 hideOngoingReview = False
 
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Ask for review":
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Ask to review":
                 reviewVars.update([("showReviewRequest", True)])
 
             if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
                 if review.review_state == "Pending":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
-                elif review.review_state == "Ask for review" or review.review_state == "Declined by recommender":
+                elif review.review_state == "Ask to review" or review.review_state == "Declined by recommender":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showPendingAskForReview", True)])
                     if review.review_state == "Declined by recommender":

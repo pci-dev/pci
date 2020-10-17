@@ -552,12 +552,15 @@ def mailing_queue():
         _class="pci2-flex-column",
         _style="margin: 5px 10px;",
     )
+
+    db.mail_queue.id.readable = False
     db.mail_queue.sending_attempts.readable = False
+
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
-    # db.mail_queue.mail_content.represent = lambda text, row: toto(text)
-    # db.mail_queue.mail_content.represent = lambda text, row: WIKI(text, safe_mode=False)
+    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
@@ -567,30 +570,74 @@ def mailing_queue():
     db.mail_queue.reminder_count.writable = False
     db.mail_queue.article_id.writable = False
     db.mail_queue.recommendation_id.writable = False
-    
-    db.mail_queue.mail_content.writable = False
 
-    
+    if len(request.args) > 2 and request.args[0] == "edit":
+        db.mail_queue.mail_template_hashtag.readable = True
+    else:
+        db.mail_queue.mail_template_hashtag.readable = False
+
+    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
     grid = SQLFORM.grid(
         db.mail_queue,
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
-        deletable=False,
+        deletable=lambda row: (row.sending_status == "pending"),
         create=False,
         searchable=True,
         paginate=50,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
+        onvalidation=mail_form_processing,
         fields=[
             db.mail_queue.sending_status,
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
-            db.mail_queue.user_id,
-            db.mail_queue.mail_template_hashtag,
+            # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
+            db.mail_queue.mail_template_hashtag,
+            db.mail_queue.article_id,
         ],
+        _class="web2py_grid action-button-absolute",
     )
-    return dict(titleIcon="send", pageTitle=getTitle(request, auth, db, "#AdminMailQueueTitle"), customText=getText(request, auth, db, "#AdminMailQueueText"), grid=grid,)
+
+    return dict(
+        titleIcon="send",
+        pageTitle=getTitle(request, auth, db, "#AdminMailQueueTitle"),
+        customText=getText(request, auth, db, "#AdminMailQueueText"),
+        grid=grid,
+        myFinalScript=myScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+    )
+
+
+def mail_form_processing(form):
+    form.errors = True
+    mail = db.mail_queue[request.vars.id]
+
+    content_saved = False
+    try:
+        content_begin = mail.mail_content.rindex("<!-- CONTENT START -->") + 22
+        content_end = mail.mail_content.rindex("<!-- CONTENT END -->")
+
+        new_content = mail.mail_content[0:content_begin]
+        new_content += "\n"
+        new_content += form.vars.mail_content
+        new_content += "\n"
+        new_content += mail.mail_content[content_end:-1]
+
+        mail.mail_content = new_content
+        mail.mail_subject = form.vars.mail_subject
+        mail.sending_date = form.vars.sending_date
+        mail.update_record()
+
+        content_saved = True
+    except:
+        print("Error")
+
+    if content_saved:
+        args = request.args
+        args[0] = "view"
+        redirect(URL("admin", "mailing_queue", args=args, user_signature=True))
 

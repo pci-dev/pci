@@ -646,7 +646,7 @@ def my_reviews():
                 _class="button",
                 _title=current.T("View and/or edit review"),
             )
-            if row.t_reviews.review_state in ("Pending", "Under consideration", "Completed", "Ask for review")
+            if row.t_reviews.review_state in ("Pending", "Under consideration", "Completed", "Ask to review")
             else "",
         ),
     ]
@@ -734,7 +734,7 @@ def accept_new_review():
 
 ######################################################################################################################################################################
 @auth.requires_login()
-def ask_for_review():
+def ask_to_review():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -758,14 +758,14 @@ def ask_for_review():
     dueTime = None
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
-        redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_for_review", vars=dict(articleId=articleId) if articleId else ""))))
+        redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
     else:
         if isParallel:
             due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
         else:
             due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
-        actionFormUrl = URL("user_actions", "do_ask_for_review")
+        actionFormUrl = URL("user_actions", "do_ask_to_review")
         dueTime = due_time
 
     amISubmitter = article.user_id == auth.user_id
@@ -782,7 +782,7 @@ def ask_for_review():
     pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
     customText = getText(request, auth, db, "#AskForReviewText")
 
-    response.view = "controller/user/ask_for_review.html"
+    response.view = "controller/user/ask_to_review.html"
     return dict(
         titleIcon="envelope",
         pageTitle=pageTitle,
@@ -1018,8 +1018,8 @@ def articles_awaiting_reviewers():
         dict(
             header="",
             body=lambda row: A(
-                SPAN(current.T("Ask for review"), _class="buttontext btn btn-default pci-button pci-submitter"),
-                _href=URL(c="user", f="ask_for_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
+                SPAN(current.T("Ask to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
+                _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
                 _class="button",
                 _title=current.T("View and/or edit article"),
             ),

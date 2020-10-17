@@ -188,7 +188,7 @@ def decline_new_review():
 
 ######################################################################################################################################################################
 @auth.requires_login()
-def do_ask_for_review():
+def do_ask_to_review():
     if "articleId" not in request.vars:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -228,7 +228,7 @@ def do_ask_for_review():
     reviewerId = request.vars.reviewerId
 
     revId = db.t_reviews.update_or_insert(
-        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Ask for review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
+        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Ask to review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
     )
 
     # email to recommender sent at database level

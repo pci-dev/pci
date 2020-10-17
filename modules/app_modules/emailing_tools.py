@@ -3,7 +3,6 @@
 import os
 import time
 from re import sub, match
-import numpy as np
 
 from datetime import datetime, timedelta
 
@@ -176,7 +175,7 @@ def mkFooter():
 
 
 ######################################################################################################################################################################
-def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None):
+def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None):
     mail = buildMail(db, hashtag_template, mail_vars, recommendation)
 
     db.mail_queue.insert(
@@ -184,6 +183,7 @@ def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=N
         mail_subject=mail["subject"],
         mail_content=mail["content"],
         user_id=auth.user_id,
+        article_id=article_id,
         recommendation_id=recommendation_id,
         mail_template_hashtag=hashtag_template,
     )

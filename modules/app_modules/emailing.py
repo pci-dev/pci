@@ -162,7 +162,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
             return
 
         # Fill define template with mail_vars :
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, articleId)
 
         reports = emailing_tools.createMailReport(True, "submitter " + mail_vars["destPerson"].flatten(), reports)
 
@@ -192,7 +192,7 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
             mail_vars["tNewStatus"] = current.T(newStatus)
 
             hashtag_template = "#RecommenderPostprintStatusChanged"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -241,7 +241,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 hashtag_template = "#RecommenderArticleStatusChanged"
 
             # Fill define template with mail_vars :
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -283,7 +283,7 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
 
             # TODO: parallel submission
             hashtag_template = "#RecommenderSuggestionNotNeededAnymore"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
@@ -336,7 +336,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
                 mail_vars["addNote"] = ""
 
             hashtag_template = "#RecommenderSuggestedArticle"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
 
             delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
@@ -379,7 +379,7 @@ def send_reminder_to_suggested_recommender(session, auth, db, suggRecommId):
                 mail_vars["destAddress"] = suggested_recommender["email"]
 
                 hashtag_template = "#RecommenderSuggestedArticleReminder"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, suggRecomm.article_id)
 
                 reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
@@ -411,7 +411,7 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
                 mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
 
                 hashtag_template = "#ReviewerReviewReopened"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -448,7 +448,7 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
                 mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
                 hashtag_template = "#ReviewerReviewCompleted"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -480,7 +480,7 @@ def send_to_recommender_co_recommender_considerated(session, auth, db, pressId):
             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
 
             hashtag_template = "#RecommenderCoRecommenderConsiderated"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -512,7 +512,7 @@ def send_to_recommenders_co_recommender_declined(session, auth, db, pressId):
             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
 
             hashtag_template = "#RecommenderCoRecommenderDeclined"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -544,7 +544,7 @@ def send_to_recommenders_co_recommender_agreement(session, auth, db, pressId):
             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
 
             hashtag_template = "#RecommenderCoRecommenderAgreement"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -585,7 +585,7 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
                 mail_vars["articleAuthors"] = article.authors
 
             hashtag_template = "#RecommenderReviewConsidered"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -623,7 +623,7 @@ def send_to_recommenders_review_declined(session, auth, db, reviewId):
                 mail_vars["articleAuthors"] = article.authors
 
             hashtag_template = "#RecommenderReviewDeclined"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -657,7 +657,7 @@ def send_to_reviewer_review_invitation(session, auth, db, reviewsList):
                             mail_vars["articleAuthors"] = article.authors
 
                         hashtag_template = "#ReviewerReviewInvitation"
-                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                         rev.review_state = "Pending"
                         rev.update_record()
@@ -701,7 +701,7 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, lastRecomm.recommender_id)
 
                     hashtag_template = "#ReviewersArticleCancellation"
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, lastRecomm.id)
+                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, lastRecomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
         else:
@@ -885,7 +885,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
 
         for manager in managers:
             mail_vars["destAddress"] = manager.email
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
 
             reports = emailing_tools.createMailReport(True, "manager " + (manager.email or ""), reports)
 
@@ -921,7 +921,7 @@ def send_to_thank_recommender_postprint(session, auth, db, recommId):
                 mail_vars["destAddress"] = recommender["email"]
 
                 hashtag_template = "#RecommenderThankForPostprint"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -955,7 +955,7 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
                 else:
                     hashtag_template = "#RecommenderThankForPreprint"
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -992,7 +992,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId, newForm):
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).date())
 
                     hashtag_template = "#ReviewerThankForReviewAcceptation"
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -1036,7 +1036,7 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
                     mail_vars["destAddress"] = reviewer["email"]
 
                     hashtag_template = "#ReviewerThankForReviewDone"
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -1069,7 +1069,7 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
                         mail_vars["articleAuthors"] = article.authors
 
                     hashtag_template = "#CoRecommenderRemovedFromArticle"
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
@@ -1108,7 +1108,7 @@ def send_to_one_corecommender(session, auth, db, contribId):
                         else:
                             hashtag_template = "#CoRecommenderAddedOnArticle"
 
-                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                         reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
@@ -1152,7 +1152,7 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
             else:
                 hashtag_template = "#CoRecommendersArticleStatusChanged"
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
@@ -1198,7 +1198,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
                 else:
                     hashtag_template = "#ReviewersArticleStatusChanged"
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id)
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -1330,6 +1330,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                     user_id=auth.user_id,
                     recommendation_id=recomm.id,
                     mail_template_hashtag=hashtag_template,
+                    article_id=recomm.article_id,
                 )
 
                 if review.review_state is None:
@@ -1431,9 +1432,9 @@ def send_newsletter_mail(session, auth, db, userId):
         if j <= 5:
             newPreprintSearchingForReviewers.append(newsletter_module.makeArticleRow(article, "review"))
 
-    # New preprint requiring recommender 
+    # New preprint requiring recommender
     group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
-    
+
     newPreprintRequiringRecommender = None
     newPreprintRequiringRecommenderCount = 0
     if group > 0:
@@ -1718,23 +1719,28 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, articleId):
+def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, recommId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = db.t_recommendations[recommId]
+    article = db((db.t_articles.id == recomm.article_id)).select().last()
 
     if recomm and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        count_reviews_under_consideration = db(
+            (db.t_reviews.recommendation_id == recommId) & ((db.t_reviews.review_state == "Under consideration") | (db.t_reviews.review_state == "Completed"))
+        ).count()
+        if count_reviews_under_consideration < 2:
 
-        mail_vars["articleTitle"] = article.title
-        mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
-        hashtag_template = "#ReminderRecommenderNewReviewersNeeded"
+            mail_vars["articleTitle"] = article.title
+            mail_vars["articleAuthors"] = article.authors
+            mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            hashtag_template = "#ReminderRecommenderNewReviewersNeeded"
+
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -1858,13 +1864,13 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender(db, hashtag_template, recommendationId):
+def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False):
     recomm = db.t_recommendations[recommendationId]
 
     if recomm:
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
 
-        if hashtag_template == "#ReminderRecommenderNewReviewersNeeded":
+        if hashtag_template == "#ReminderRecommenderNewReviewersNeeded" and not force_delete:
             count_reviews_under_consideration = db(
                 (db.t_reviews.recommendation_id == recommendationId) & ((db.t_reviews.review_state == "Under consideration") | (db.t_reviews.review_state == "Completed"))
             ).count()

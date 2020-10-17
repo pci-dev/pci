@@ -616,7 +616,6 @@ def deltaStatus(s, f):
                 emailing.send_to_thank_recommender_preprint(session, auth, db, o["id"])
                 # create reminders
                 emailing.create_reminder_for_recommender_reviewers_needed(session, auth, db, o["id"])
-                emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, o["id"])
                 # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
                 # emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
@@ -865,7 +864,7 @@ db.define_table(
         type="string",
         length=50,
         label=T("Review status"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Ask for review", "Declined by recommender", "Declined", "Completed", "Cancelled"))),
+        requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Ask to review", "Declined by recommender", "Declined", "Completed", "Cancelled"))),
         writable=False,
     ),
     Field("review", type="text", length=2097152, label=T("Review as text")),
@@ -893,6 +892,9 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 def reviewSuggested(s, row):
     # create reminder
     emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
+    # renew reminder
+    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
+    emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, row["recommendation_id"])
     # delete reminder
     emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
     emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionSoonDue", row["recommendation_id"])
@@ -1027,11 +1029,11 @@ db.define_table(
     Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
     Field("dest_mail_address", type="string", length=256, label=T("Dest email")),
-    Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Sender")),
-    Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
-    Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
+    Field("user_id", type="reference auth_user", ondelete="CASCADE", label=T("Sender")),
+    Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
+    Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
     migrate=False,

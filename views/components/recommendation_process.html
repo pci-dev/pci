@@ -15,17 +15,19 @@
   {{if authorsReply is not None or editAuthorsReplyLink is not None:}}
     <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
+      {{if authorsReplyPdfLink is not None:}}
+        {{=authorsReplyPdfLink}} <br/>
+      {{pass}}
+
+      {{if authorsReplyTrackChangeFileLink is not None:}}
+        {{=authorsReplyTrackChangeFileLink}} <br/>
+      {{pass}}
+
       {{if authorsReply:}}
         {{=authorsReply}}
       {{pass}}
 
-      {{if authorsReplyPdfLink is not None:}}
-        {{=authorsReplyPdfLink}}
-      {{pass}}
 
-      {{if authorsReplyTrackChangeFileLink is not None:}}
-        {{=authorsReplyTrackChangeFileLink}}
-      {{pass}}
 
       {{if editAuthorsReplyLink:}}
         <a class="buttontext btn btn-default" 
@@ -45,9 +47,9 @@
       
       {{if recommendationLabel:}}
         {{if recommendationLabel == "Recommendation":}}
-          <b class="pci2-recomm-text-label">{{=recommendationLabel}}</b>
+          <h4 class="pci2-recomm-text-label">{{=recommendationLabel}}</h4>
         {{else:}}
-          <b class="pci2-recomm-text-label">{{=recommendationLabel}} {{=T('for round')}} #{{=roundNumber}}</b>
+          <h4 class="pci2-recomm-text-label">{{=recommendationLabel}} {{=T('for round')}} #{{=roundNumber}}</h4>
         {{pass}}
      {{pass}}
      
@@ -92,13 +94,13 @@
 
     {{if showSearchingForReviewersButton:}}
       <a class="buttontext btn btn-default"  href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
-        {{=T('Put preprint in "searching for rewiwers" list')}}
+        {{=T('Put preprint in "searching for reviewers" list')}}
       </a>
     {{pass}}
     
     {{if showRemoveSearchingForReviewersButton:}}
       <a class="buttontext btn btn-warning"  href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
-        {{=T('Remove preprint from "searching for rewiwers" list ')}}
+        {{=T('Remove preprint from "searching for reviewers" list ')}}
       </a>
     {{pass}}
   </div>
@@ -108,11 +110,11 @@
   {{for review in reviewsList:}}
     <div>  
       {{if review['authors'] and not review['showReviewRequest']:}}
-        <h4 class="pci2-round-review-sub-title">{{=T('Review request by ')}}{{=review['authors']}}</h4>
+        <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}
 
       {{if review['showReviewRequest']:}}
-        <h4 class="pci2-round-review-sub-title">{{=T('Review request by ')}}{{=review['authors']}}</h4>
+        <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}
       
       <!-- Review invitation buttons -->  

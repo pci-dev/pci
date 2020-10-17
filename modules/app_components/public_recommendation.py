@@ -123,7 +123,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     )
 
     # Get METADATA (see next function)
-    recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfLink, citeNum, scheme, host, port)
+    recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfUrl, citeNum, scheme, host, port)
 
     headerHtml = XML(response.render("components/last_recommendation.html", headerContent))
     return dict(headerHtml=headerHtml, recommMetadata=recommMetadata)

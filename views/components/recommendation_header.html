@@ -42,13 +42,15 @@
 
 
   	  <div class="pci2-flex-grow"></div>
-    
-      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right" target="_blank"
+      
+      {{if 'printableUrl' in locals() and printableUrl is not None:}}
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right pci2-yellow-link"
         href="{{=printableUrl}}"
       >
-  		  {{=T('Printable page')}}
-  		  <i class="glyphicon glyphicon-print"></i>
-  	  </a>
+  		  {{=T('See emails')}}
+  		  <i class="glyphicon glyphicon-envelope"></i>
+      </a>
+      {{pass}}
     
   	</div>
   </div>

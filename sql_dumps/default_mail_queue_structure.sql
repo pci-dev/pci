@@ -4,7 +4,7 @@ CREATE TABLE "mail_queue"(
     "sending_attempts" INTEGER,
     "sending_date" TIMESTAMP,
     "dest_mail_address" VARCHAR(256),
-    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE RESTRICT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE,
     "article_id" INTEGER REFERENCES "t_articles" ("id") ON DELETE CASCADE,
     "recommendation_id" INTEGER REFERENCES "t_recommendations" ("id") ON DELETE CASCADE,
     "mail_subject" VARCHAR(256),

@@ -1,6 +1,4 @@
-<html style="
-  font-size:12pt;
-">
+<html style="font-size:12pt;">
   <body style="
   	background: #a5c5d5;
   	text-align: center;
@@ -43,9 +41,9 @@
       {{pass}}
       
       {{if 'content' in globals() and content is not None:}}
-        <div id="mail-content">
+        <!-- CONTENT START -->
           {{=content}}
-        </div>
+        <!-- CONTENT END -->
   		{{pass}}
   	</div>
 
