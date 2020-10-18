@@ -75,9 +75,9 @@ def mkElapsed(t):
 def mkDOI(doi):
     if (doi is not None) and (doi != ""):
         if match("^http", doi):
-            return A(doi, _href=doi, _class="doi_url", _target="_blank")
+            return A(B(doi), _href=doi, _class="doi_url", _target="_blank")
         else:
-            return A(doi, _href="https://doi.org/" + sub(r"doi: *", "", doi), _class="doi_url", _target="_blank")
+            return A(B(doi), _href="https://doi.org/" + sub(r"doi: *", "", doi), _class="doi_url", _target="_blank")
     else:
         return SPAN("", _class="doi_url")
 
@@ -163,7 +163,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
     resu = SPAN("")
     if userId is not None:
         if linked:
-            resu = A(str(userId), _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
+            resu = A(B(str(userId)), _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
         else:
             resu = SPAN(str(userId))
     return resu
@@ -174,7 +174,7 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
     if theUser:
         if linked:
             resu = A(
-                "%s %s" % (theUser.first_name, theUser.last_name),
+                B("%s %s" % (theUser.first_name, theUser.last_name)),
                 _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)),
                 _class="cyp-user-profile-link",
             )

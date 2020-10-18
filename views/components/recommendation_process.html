@@ -9,25 +9,26 @@
     <div style="page-break-before: always"></div>
   {{pass}}
 
-  <h2 class="pci2-revision-round-title" style="margin-bottom: 25px;"><i>Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
+  <h2 class="pci2-revision-round-title">
+    <i>Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i>
+  </h2>
 
   <!-- Authors Reply -->
   {{if authorsReply is not None or editAuthorsReplyLink is not None:}}
     <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
+
       {{if authorsReplyPdfLink is not None:}}
-        {{=authorsReplyPdfLink}} <br/>
+        {{=authorsReplyPdfLink}}
       {{pass}}
 
       {{if authorsReplyTrackChangeFileLink is not None:}}
-        {{=authorsReplyTrackChangeFileLink}} <br/>
+        {{=authorsReplyTrackChangeFileLink}}
       {{pass}}
 
       {{if authorsReply:}}
         {{=authorsReply}}
       {{pass}}
-
-
 
       {{if editAuthorsReplyLink:}}
         <a class="buttontext btn btn-default" 
@@ -40,20 +41,31 @@
   {{pass}}
 
   <!-- Decision or recommendation -->
-  {{=recommendationTitle}}
 
   {{if recommendationText or editRecommendationLink:}}
     <div style="margin-top: 20px;">
       
       {{if recommendationLabel:}}
         {{if recommendationLabel == "Recommendation":}}
-          <h4 class="pci2-recomm-text-label">{{=recommendationLabel}}</h4>
+          <h4 class="pci2-recomm-text-label">
+            {{=recommendationLabel}}
+          </h4>
         {{else:}}
-          <h4 class="pci2-recomm-text-label">{{=recommendationLabel}} {{=T('for round')}} #{{=roundNumber}}</h4>
+          <h4 class="pci2-recomm-text-label">
+            {{=recommendationLabel}} {{=T('for round')}} #{{=roundNumber}}
+            {{if recommendationStatus != "Ongoing":}}
+            <span> :
+              {{if recommendationStatus == "Recommended":}}<i style="color: #089108">Recommended</i>{{pass}}
+              {{if recommendationStatus == "Revision":}}<i style="color: #ffbf00">Revision needed</i>{{pass}}
+              {{if recommendationStatus == "Rejected":}}<i style="color: #e61919">Rejected</i>{{pass}}
+            </span>
+            {{pass}}
+          </h4>
         {{pass}}
      {{pass}}
      
       <div class="pci2-recomm-text">
+        {{=recommendationTitle}}
 
         {{=recommendationText}}
 

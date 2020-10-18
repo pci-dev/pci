@@ -513,6 +513,8 @@ def suggested_recommenders():
         redirect(request.env.http_referer)
 
     query = db.t_suggested_recommenders.article_id == articleId
+    db.t_suggested_recommenders.article_id.readable = False
+    db.t_suggested_recommenders.article_id.writable = False
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
     db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, text)
@@ -522,19 +524,19 @@ def suggested_recommenders():
     else:
         db.t_suggested_recommenders.emailing.represent = lambda text, row: XML(text) if text else ""
     links = []
-    if art.status == "Awaiting consideration":
-        links.append(
-            dict(
-                header="",
-                body=lambda row: A(
-                    T("Prepare a reminder"),
-                    _class="btn btn-info pci-manager",
-                    _href=URL(c="manager_actions", f="send_suggested_recommender_reminder", vars=dict(suggRecommId=row.id)),
-                )
-                if not (row.declined)
-                else "",
+    # if art.status == "Awaiting consideration":
+    links.append(
+        dict(
+            header="",
+            body=lambda row: A(
+                T("See emails"),
+                _class="btn btn-info pci-manager",
+                _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(suggRecommId=row.suggested_recommender_id, articleId=row.article_id)),
             )
+            if not (row.declined)
+            else "",
         )
+    )
 
     addSuggestedRecommendersButton = A(
         current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)
@@ -553,6 +555,7 @@ def suggested_recommenders():
         exportclasses=expClass,
         fields=[
             db.t_suggested_recommenders.id,
+            db.t_suggested_recommenders.article_id,
             db.t_suggested_recommenders.suggested_recommender_id,
             db.t_suggested_recommenders.declined,
             db.t_suggested_recommenders.email_sent,
@@ -750,24 +753,78 @@ def all_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def suggested_recommender_emails():
-    response.view = "default/info.html"
+    response.view = "default/myLayout.html"
 
-    srId = request.vars["srId"]
-    sr = db.t_suggested_recommenders[srId]
-    if sr is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    myContents = DIV()
-    myContents.append(SPAN(B(T("Suggested recommender: ")), common_small_html.mkUserWithMail(auth, db, sr.suggested_recommender_id)))
-    myContents.append(H2(T("Emails:")))
-    myContents.append(DIV(XML((sr.emailing or "<b>None yet</b>")), _style="margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;"))
+    suggRecommId = request.vars["suggRecommId"]
+    articleId = request.vars["articleId"]
+    suggested_recommender = db.auth_user[suggRecommId]
+
+    db.mail_queue.sending_status.represent = lambda text, row: DIV(
+        SPAN(admin_module.makeMailStatusDiv(text)),
+        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        _class="pci2-flex-column",
+        _style="margin: 5px 10px;",
+    )
+
+    db.mail_queue.id.readable = False
+    db.mail_queue.sending_attempts.readable = False
+
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
+    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
+    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+
+    db.mail_queue.sending_status.writable = False
+    db.mail_queue.sending_attempts.writable = False
+    db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.user_id.writable = False
+    db.mail_queue.mail_template_hashtag.writable = False
+    db.mail_queue.reminder_count.writable = False
+    db.mail_queue.article_id.writable = False
+    db.mail_queue.recommendation_id.writable = False
+
+    if len(request.args) > 2 and request.args[0] == "edit":
+        db.mail_queue.mail_template_hashtag.readable = True
+    else:
+        db.mail_queue.mail_template_hashtag.readable = False
+
+    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+
+    grid = SQLFORM.grid(
+        ((db.mail_queue.dest_mail_address == suggested_recommender.email) & (db.mail_queue.article_id == articleId) & (db.mail_queue.recommendation_id == None)),
+        details=True,
+        editable=lambda row: (row.sending_status == "pending"),
+        deletable=lambda row: (row.sending_status == "pending"),
+        create=False,
+        searchable=True,
+        csv=False,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.mail_queue.id,
+        onvalidation=mail_form_processing,
+        fields=[
+            db.mail_queue.sending_status,
+            db.mail_queue.sending_date,
+            db.mail_queue.sending_attempts,
+            db.mail_queue.dest_mail_address,
+            # db.mail_queue.user_id,
+            db.mail_queue.mail_subject,
+            db.mail_queue.mail_template_hashtag,
+            db.mail_queue.article_id,
+        ],
+        _class="web2py_grid action-button-absolute",
+    )
+
     return dict(
-        pageHelp=getHelp(request, auth, db, "#ManagerSuggestedRecommenderEmails"),
-        customText=getText(request, auth, db, "#ManagerSuggestedRecommenderEmailsText"),
-        titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#ManagerSuggestedRecommenderEmailsTitle"),
-        myBackButton=common_small_html.mkBackButton(),
-        message=myContents,
+        titleIcon="send",
+        pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
+        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
+        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        myBackButton=common_small_html.mkBackButton(target=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=articleId), user_signature=True)),
+        grid=grid,
+        myFinalScript=myScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
 

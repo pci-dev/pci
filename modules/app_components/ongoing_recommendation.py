@@ -318,12 +318,20 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
-            authorsReplyPdfLink = A(current.T("Download author's reply (PDF file)"), _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port))
+            authorsReplyPdfLink = A(
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                current.T("Download author's reply (PDF file)"),
+                _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port),
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
+            )
 
         authorsReplyTrackChangeFileLink = None
         if recomm.track_change:
             authorsReplyTrackChangeFileLink = A(
-                current.T("Download tracked changes file"), _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port)
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                current.T("Download tracked changes file"),
+                _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
         editAuthorsReplyLink = None
@@ -440,9 +448,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
                 if review.review_pdf:
                     pdfLink = A(
+                        I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                         current.T("Download the review (PDF file)"),
                         _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
-                        _style="margin-bottom: 64px;",
+                        _style="font-weight: bold; margin-bottom: 5px; display:block",
                     )
                     reviewVars.update([("pdfLink", pdfLink)])
 
@@ -464,7 +473,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             elif recomm.is_closed:
                 recommendationLabel = current.T("Decision")
             else:
-                recommendationLabel = ""
+                recommendationLabel = current.T("Decision")
 
         # Recommender buttons
         editRecommendationLink = None
@@ -484,9 +493,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         recommendationPdfLink = None
         if hideOngoingRecomm is False and recomm.recommender_file:
             recommendationPdfLink = A(
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download recommender's annotations (PDF)"),
                 _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
-                _style="margin-bottom: 64px;",
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
         inviteReviewerLink = None
@@ -514,9 +524,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),
-            recommendationTitle=H3(recomm.recommendation_title or "") if (hideOngoingRecomm is False) else "",
+            recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hideOngoingRecomm is False) else "",
             recommendationLabel=recommendationLabel,
             recommendationText=recommendationText,
+            recommendationStatus=recomm.recommendation_state,
             recommendationPdfLink=recommendationPdfLink,
             inviteReviewerLink=inviteReviewerLink,
             editRecommendationButtonText=editRecommendationButtonText,
@@ -637,7 +648,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
         recommendationDoi=SPAN(current.T("Recommendation: "), common_small_html.mkDOI(recomm.recommendation_doi)) if (recomm.recommendation_doi) else "",
         manuscriptDoi=SPAN(current.T("Manuscript: "), common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else "",
-        recommendationTitle=H3(recomm.recommendation_title or "") if (recomm.recommendation_title or "") != "" else "",
+        recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (recomm.recommendation_title or "") != "" else "",
         recommendationText=recommendationText,
         editRecommendationLink=editRecommendationLink,
         sendRecommendationLink=sendRecommendationLink,

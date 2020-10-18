@@ -18,9 +18,9 @@
             <i class="glyphicon glyphicon-education"></i>
         </div>
         <div class="step-description">
-            <h3>Suggested recommenders invitations</h3>
+            <h3>Suggested recommenders</h3>
             <p>
-                Suggested recommenders : <b>{{=suggestedRecommendersCount}}</b>
+                Invited : <b>{{=suggestedRecommendersCount}}</b>
                 {{if havingRecommenderClass == "step-done":}}
                     <br/>
                     Recommender : <b><i>{{=A(recommenderName)}}</i></b>
@@ -40,10 +40,10 @@
             <i class="glyphicon glyphicon-envelope"></i>
         </div>
         <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}} : </b> Reviewers invitations</h3>
+            <h3><b style="color: #333">Round {{=roundNumber}} : </b> Reviewers</h3>
             <p>
                 Invited : <b>{{=reviewCount}}</b> <br/>
-                Accepted : <b>{{=acceptedReviewCount}} / 2</b> <br/>
+                Agreed : <b>{{=acceptedReviewCount}}</b> <br/>
             </p>
         </div>
     </div>
@@ -53,9 +53,9 @@
             <i class="glyphicon glyphicon-eye-open"></i>
         </div>
         <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}} : </b>Reviews progression</h3>
+            <h3><b style="color: #333">Round {{=roundNumber}} : </b>Reviews underway</h3>
             <p>
-                Reviews completed : <b>{{=completedReviewCount}} / 2</b>
+                Reviews completed : <b>{{=completedReviewCount}}</b>
             </p>
         </div>
     </div>
@@ -69,15 +69,15 @@
         <h3><b style="color: #333">Round {{=roundNumber}} : </b>Decision by the recommender</h3>
         {{if recommendationStepClass == "step-done":}}
             <p>
-                Decision :
+                
                 {{if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":}}
-                    <b style="color: #089108">Recommended</b>
+                    Decision : <b style="color: #089108">Recommended</b>
                 {{elif recommStatus == "Revision" and managerDecisionDoneClass == "step-done":}}
-                    <b style="color: #ffbf00">Awaiting revision</b>
+                    Decision : <b style="color: #ffbf00">Awaiting revision</b>
                 {{elif recommStatus == "Rejected" and managerDecisionDoneClass == "step-done":}}
-                    <b style="color: #e61919">Rejected</b>
+                    Decision : <b style="color: #e61919">Rejected</b>
                 {{else:}}
-                    <b>Waiting for managing board validation to show</b>
+                    <b>Decision pending validation by the managing board</b>
                 {{pass}}      
             </p>
         {{else:}}

@@ -13,14 +13,14 @@
 
   <!-- Recommendation -->
   {{if showRecommendation:}}
-  {{=recommendationTitle}}
 
   {{if recommendationText or editRecommendationLink:}}
     <div style="margin-top: 20px;">
       
-      <b class="pci2-recomm-text-label">{{=T('Recommendation')}}</b>
+      <h4 class="pci2-recomm-text-label">{{=T('Recommendation')}}</h4>
      
       <div class="pci2-recomm-text">
+        {{=recommendationTitle}}
 
         {{=recommendationText}}
 

@@ -367,8 +367,8 @@ auth.settings.extra_fields["auth_user"] = [
             ),
         ),
     ),
-    Field("recover_email",label=T("Recover email address"), unique=True, type="string", writable=False, readable=False),
-    Field("recover_email_key",label=T("Recover email key"), unique=True, type="string", writable=False, readable=False),
+    Field("recover_email", label=T("Recover email address"), unique=True, type="string", writable=False, readable=False),
+    Field("recover_email_key", label=T("Recover email key"), unique=True, type="string", writable=False, readable=False),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user._singular = T("User")
@@ -890,16 +890,21 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 
 
 def reviewSuggested(s, row):
-    # create reminder
-    emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
-    # renew reminder
-    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
-    emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, row["recommendation_id"])
-    # delete reminder
-    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
-    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionSoonDue", row["recommendation_id"])
-    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue", row["recommendation_id"])
-    emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue", row["recommendation_id"])
+    if row["review_state"] == "Pending":
+        # create reminder
+        emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
+        # renew reminder
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
+        emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, row["recommendation_id"])
+        # delete reminder
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionSoonDue", row["recommendation_id"])
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue", row["recommendation_id"])
+        emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue", row["recommendation_id"])
+
+    if row["review_state"] == "Ask to review":
+        emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
+
     return None
 
 
@@ -915,12 +920,21 @@ def reviewDone(s, f):
         # delete reminder
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitation", o["id"])
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
+
+    elif o["review_state"] == "Ask to review" and f["review_state"] == "Under consideration":
+        emailing.send_to_reviewer_review_request_accepted(session, auth, db, o["id"], f)
+
+    elif o["review_state"] == "Ask to review" and f["review_state"] == "Declined by recommender":
+        emailing.send_to_reviewer_review_request_declined(session, auth, db, o["id"], f)
+
     elif o["review_state"] == "Completed" and f["review_state"] == "Under consideration":
         emailing.send_to_reviewer_review_reopened(session, auth, db, o["id"], f)
+
     elif o["review_state"] == "Pending" and f["review_state"] == "Declined":
         emailing.send_to_recommenders_review_declined(session, auth, db, o["id"])
         # delete reminder
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitation", o["id"])
+
     if o["reviewer_id"] is not None and o["review_state"] == "Under consideration" and f["review_state"] == "Completed":
         emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
         emailing.send_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
@@ -955,15 +969,22 @@ db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(
     )
 )
 
-db.t_suggested_recommenders._after_insert.append(lambda f, i: appendRecommender(f, i))
+db.t_suggested_recommenders._after_insert.append(lambda f, i: appendSuggRecommender(f, i))
+db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommender(s))
 
 
-def appendRecommender(f, i):
+def appendSuggRecommender(f, i):
     a = db.t_articles[f.article_id]
     if a and a["status"] == "Awaiting consideration":
-        # BUG : resend to all send to all 
+        # BUG : resend to all send to all
         emailing.send_to_suggested_recommender(session, auth, db, a["id"], f["suggested_recommender_id"])
         emailing.create_reminder_for_suggested_recommender_invitation(session, auth, db, a["id"], f["suggested_recommender_id"])
+
+
+def deleteSuggRecommender(s):
+    sugg_recomm = s.select().first()
+    article = db.t_articles[sugg_recomm.article_id]
+    emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article["id"], sugg_recomm["suggested_recommender_id"])
 
 
 db.define_table(
