@@ -338,8 +338,39 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             else:
                 mail_vars["addNote"] = ""
 
+            declineLinkTarget = URL(
+                c="recommender_actions",
+                f="decline_new_article_to_recommend",
+                vars=dict(articleId=article.id),
+                scheme=mail_vars["scheme"],
+                host=mail_vars["host"],
+                port=mail_vars["port"],
+            )
+
+            sugg_recommender_buttons = DIV(
+                A(
+                    SPAN(
+                        current.T("Click here before starting the evaluation process"),
+                        _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                    ),
+                    _href=mail_vars["linkTarget"],
+                    _style="text-decoration: none; display: block",
+                ),
+                B(current.T("OR")),
+                A(
+                    SPAN(
+                        current.T("No, thanks, I decline this suggestion"),
+                        _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                    ),
+                    _href=declineLinkTarget,
+                    _style="text-decoration: none; display: block",
+                ),
+                _style="width: 100%; text-align: center; margin-bottom: 25px;",
+            )
+
             hashtag_template = "#RecommenderSuggestedArticle"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
+
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
             delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
@@ -387,8 +418,38 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
         else:
             mail_vars["addNote"] = ""
 
+        declineLinkTarget = URL(
+            c="recommender_actions",
+            f="decline_new_article_to_recommend",
+            vars=dict(articleId=article.id),
+            scheme=mail_vars["scheme"],
+            host=mail_vars["host"],
+            port=mail_vars["port"],
+        )
+
+        sugg_recommender_buttons = DIV(
+            A(
+                SPAN(
+                    current.T("Click here before starting the evaluation process"),
+                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                ),
+                _href=mail_vars["linkTarget"],
+                _style="text-decoration: none; display: block",
+            ),
+            B(current.T("OR")),
+            A(
+                SPAN(
+                    current.T("No, thanks, I decline this suggestion"),
+                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                ),
+                _href=declineLinkTarget,
+                _style="text-decoration: none; display: block",
+            ),
+            _style="width: 100%; text-align: center; margin-bottom: 25px;",
+        )
+
         hashtag_template = "#RecommenderSuggestedArticle"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
         delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
@@ -468,7 +529,7 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
                 mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
                 hashtag_template = "#RecommenderReviewerReviewCompleted"
-                reviewHTML = emailing_parts.getReviewHTML(auth,db, rev.id) 
+                reviewHTML = emailing_parts.getReviewHTML(auth, db, rev.id)
 
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review=reviewHTML)
 
@@ -1422,10 +1483,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             A(
                                 SPAN(
                                     current.T("Validate your account"),
-                                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                                 ),
                                 _href=link,
-                                _style="text-decoration: none;",
+                                _style="text-decoration: none; display: block",
                             ),
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
                         )
@@ -1439,10 +1500,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             A(
                                 SPAN(
                                     current.T("Delete the temporary account"),
-                                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                                 ),
                                 _href=declineLinkTarget,
-                                _style="text-decoration: none;",
+                                _style="text-decoration: none; display: block",
                             ),
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
                         )
@@ -1460,18 +1521,19 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                     A(
                                         SPAN(
                                             current.T("Yes, I agree to review this preprint"),
-                                            _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                            _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                                         ),
                                         _href=linkTarget,
-                                        _style="text-decoration: none;",
+                                        _style="text-decoration: none; display: block",
                                     ),
+                                    B(current.T("OR")),
                                     A(
                                         SPAN(
                                             current.T("No thanks, I'd rather not"),
-                                            _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px",
+                                            _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                                         ),
                                         _href=declineLinkTarget,
-                                        _style="text-decoration: none;",
+                                        _style="text-decoration: none; display: block",
                                     ),
                                     _style="width: 100%; text-align: center; margin-bottom: 25px;",
                                 )

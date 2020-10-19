@@ -44,7 +44,12 @@
         <!-- CONTENT START -->
           {{=content}}
         <!-- CONTENT END -->
-  		{{pass}}
+      {{pass}}
+      
+      {{if 'sugg_recommender_buttons' in globals() and sugg_recommender_buttons is not None:}}
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=sugg_recommender_buttons}}
+      {{pass}}
   	</div>
 
     {{if 'recommendation' in locals() and recommendation is not None:}}

@@ -48,7 +48,7 @@ def getReviewHTML(auth, db, rewiewId):
     reviewAuthorAndDate = SPAN(
         current.T("Reviewed by"),
         " ",
-        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+        common_small_html.mkUser(auth, db, review.reviewer_id, linked=False),
         (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
     )
 
@@ -73,9 +73,7 @@ def getAuthorsReplyHTML(auth, db, recommId):
     recomm = db.t_recommendations[recommId]
     
     authorsReplyPdfLink = ""
-    print("Replypdf")
     if recomm.reply_pdf:
-        print(recomm.reply_pdf)
         authorsReplyPdfLink = A(
             current.T("Download author's reply (PDF file)"),
             _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port),
@@ -83,8 +81,6 @@ def getAuthorsReplyHTML(auth, db, recommId):
         )
 
     authorsReplyTrackChangeFileLink = ""
-    print("Reply track_change")
-    print(recomm.track_change)
     if recomm.track_change:
         authorsReplyTrackChangeFileLink = A(
             current.T("Download tracked changes file"),

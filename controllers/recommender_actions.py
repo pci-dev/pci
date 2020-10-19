@@ -61,8 +61,8 @@ def del_contributor():
             ):
                 db((db.t_press_reviews.id == pressId)).delete()
         if auth.has_membership(role="manager"):
-             db((db.t_press_reviews.id == pressId)).delete()
-        
+            db((db.t_press_reviews.id == pressId)).delete()
+
     redirect(request.env.http_referer)
 
 
@@ -204,6 +204,7 @@ def decline_new_article_to_recommend():
         sug_rec.declined = True
         sug_rec.update_record()
         db.commit()
+        session.flash = T("Suggestion declined")
     redirect(URL(c="recommender", f="my_awaiting_articles"))
 
 
@@ -410,7 +411,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
-        session.flash = "Preprint now appear in \"searching for reviewers\" list"
+        session.flash = 'Preprint now appear in "searching for reviewers" list'
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
 
 
@@ -434,5 +435,5 @@ def make_preprint_not_searching_for_reviewers():
         art.is_searching_reviewers = False
         art.update_record()
         db.commit()
-        session.flash = "Preprint is removed from \"searching for reviewers\" list"
+        session.flash = 'Preprint is removed from "searching for reviewers" list'
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))

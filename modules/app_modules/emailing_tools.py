@@ -175,8 +175,10 @@ def mkFooter():
 
 
 ######################################################################################################################################################################
-def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None):
-    mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
+def insertMailInQueue(
+    auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None, sugg_recommender_buttons=None
+):
+    mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, sugg_recommender_buttons=sugg_recommender_buttons)
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
@@ -245,7 +247,7 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None):
+def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
@@ -256,7 +258,17 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
 
     content_rendered = render(
         filename=MAIL_HTML_LAYOUT,
-        context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=mkFooter(), recommendation=recommendation, review=review, authors_reply=authors_reply),
+        context=dict(
+            subject=subject_without_appname,
+            applogo=applogo,
+            appname=mail_vars["appName"],
+            content=XML(content),
+            footer=mkFooter(),
+            recommendation=recommendation,
+            review=review,
+            authors_reply=authors_reply,
+            sugg_recommender_buttons=sugg_recommender_buttons,
+        ),
     )
 
     return dict(content=content_rendered, subject=subject)
