@@ -1248,15 +1248,13 @@ def email_for_new_reviewer():
                 session.flash = T("User creation failed :-(")
                 redirect(request.env.http_referer)
 
-        
-
         if nbExistingReviews > 0:
             session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
         else:
             # Create review
             # BUG : managers could invite recommender as reviewer (incoherent status)
             reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state=None)  # State will be validated after emailing
-            
+
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 
             if existingUser:
@@ -1972,10 +1970,27 @@ def review_emails():
     db.mail_queue.article_id.writable = False
     db.mail_queue.recommendation_id.writable = False
 
+    db.mail_queue.removed_from_queue.writable = False
+    db.mail_queue.removed_from_queue.readable = False
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
     else:
         db.mail_queue.mail_template_hashtag.readable = False
+
+    links = [
+        dict(
+            header="",
+            body=lambda row: A(
+                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
+                _class="btn btn-default",
+                _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
+            )
+            if row.sending_status == "pending"
+            else "",
+        )
+    ]
 
     myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
@@ -1993,6 +2008,7 @@ def review_emails():
         onvalidation=mail_form_processing,
         fields=[
             db.mail_queue.sending_status,
+            db.mail_queue.removed_from_queue,
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
@@ -2001,6 +2017,8 @@ def review_emails():
             db.mail_queue.mail_template_hashtag,
             db.mail_queue.article_id,
         ],
+        links=links,
+        links_placement="left",
         _class="web2py_grid action-button-absolute",
     )
 

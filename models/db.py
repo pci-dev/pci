@@ -894,7 +894,9 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 
 
 def reviewSuggested(s, row):
-    if row["review_state"] == "Pending":
+    if row["review_state"] == "Ask to review":
+        emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
+    else:
         # create reminder
         emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
         # renew reminder
@@ -905,9 +907,6 @@ def reviewSuggested(s, row):
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionSoonDue", row["recommendation_id"])
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue", row["recommendation_id"])
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue", row["recommendation_id"])
-
-    if row["review_state"] == "Ask to review":
-        emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
 
     return None
 
@@ -1052,6 +1051,7 @@ db.define_table(
 db.define_table(
     "mail_queue",
     Field("id", type="id"),
+    Field("removed_from_queue", type="boolean", label=T("Unscheduled"), default=False),
     Field("sending_status", type="string", length=128, label=T("Sending status"), default="in queue"),
     Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),

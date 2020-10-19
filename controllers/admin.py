@@ -571,12 +571,29 @@ def mailing_queue():
     db.mail_queue.article_id.writable = False
     db.mail_queue.recommendation_id.writable = False
 
+    db.mail_queue.removed_from_queue.writable = False
+    db.mail_queue.removed_from_queue.readable = False
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
     else:
         db.mail_queue.mail_template_hashtag.readable = False
 
     myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+
+    links = [
+        dict(
+            header="",
+            body=lambda row: A(
+                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
+                _class="btn btn-default",
+                _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
+            )
+            if row.sending_status == "pending"
+            else "",
+        )
+    ]
 
     grid = SQLFORM.grid(
         db.mail_queue,
@@ -591,6 +608,7 @@ def mailing_queue():
         onvalidation=mail_form_processing,
         fields=[
             db.mail_queue.sending_status,
+            db.mail_queue.removed_from_queue,
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
@@ -599,6 +617,8 @@ def mailing_queue():
             db.mail_queue.mail_template_hashtag,
             db.mail_queue.article_id,
         ],
+        links=links,
+        links_placement="left",
         _class="web2py_grid action-button-absolute",
     )
 

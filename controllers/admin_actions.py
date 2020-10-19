@@ -150,3 +150,14 @@ def fp_as_pdf():
         session.flash = T("Failed :-(")
         redirect(request.env.http_referer)
 
+def toggle_shedule_mail_from_queue():
+    if "emailId" in request.vars:
+        emailId = request.vars["emailId"]
+    else:
+        session.flash = T("Unavailable")
+        redirect(URL("admin", "mailing_queue", user_signature=True))
+
+    email = db.mail_queue[emailId]
+    email.removed_from_queue = not email.removed_from_queue
+    email.update_record()
+    redirect(request.env.http_referer)
