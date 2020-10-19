@@ -6,7 +6,7 @@ import os
 
 # from gluon.contrib.markdown import WIKI
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import calendar
 from time import sleep
 
@@ -32,7 +32,8 @@ def test_flash():
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def testMyNewsletterMail():
-    emailing.send_newsletter_mail(session, auth, db, auth.user_id)
+    user = db.auth_user[auth.user_id]
+    emailing.send_newsletter_mail(session, auth, db, auth.user_id, user.alerts)
     redirect(request.env.http_referer)
 
 
@@ -41,11 +42,52 @@ def sendNewsletterMails():
     conditions = ["client" not in request, auth.has_membership(role="manager")]
     if any(conditions):
         my_date = date.today()
-        my_day = calendar.day_name[my_date.weekday()]
-        usersQy = db(db.auth_user.alerts.contains(my_day, case_sensitive=False)).select()
 
-        for user in usersQy:
-            emailing.send_newsletter_mail(session, auth, db, user.id)
+        # Weekly newsletter
+        weekly_newsletter_date = my_date - timedelta(days=7)
+        users_with_weekly_newsletter = db(
+            (
+                ((db.auth_user.last_alert != None) & (weekly_newsletter_date >= db.auth_user.last_alert))
+                | ((db.auth_user.last_alert == None) & (weekly_newsletter_date >= db.auth_user.registration_datetime))
+            )
+            & db.auth_user.alerts.contains("Weekly")
+        ).select()
+
+        for user in users_with_weekly_newsletter:
+            print("Weekly newsletter: " + user.first_name + " " + user.last_name)
+            emailing.send_newsletter_mail(session, auth, db, user.id, "Weekly")
+            user.last_alert = datetime.now()
+            user.update_record()
+
+        # Two weeks newsletter
+        two_weeks_newsletter_date = my_date - timedelta(days=14)
+        users_with_two_weeks_newsletter = db(
+            (
+                ((db.auth_user.last_alert != None) & (two_weeks_newsletter_date >= db.auth_user.last_alert))
+                | ((db.auth_user.last_alert == None) & (two_weeks_newsletter_date >= db.auth_user.registration_datetime))
+            )
+            & db.auth_user.alerts.contains("Every two weeks")
+        ).select()
+
+        for user in users_with_two_weeks_newsletter:
+            print("Every two weeks newsletter: " + user.first_name + " " + user.last_name)
+            emailing.send_newsletter_mail(session, auth, db, user.id, "Every two weeks")
+            user.last_alert = datetime.now()
+            user.update_record()
+
+        # Monthly newsletter
+        monthly_newsletter_date = my_date - timedelta(days=30)
+        users_with_monthly_newsletter = db(
+            (
+                ((db.auth_user.last_alert != None) & (monthly_newsletter_date >= db.auth_user.last_alert))
+                | ((db.auth_user.last_alert == None) & (monthly_newsletter_date >= db.auth_user.registration_datetime))
+            )
+            & db.auth_user.alerts.contains("Monthly")
+        ).select()
+
+        for user in users_with_monthly_newsletter:
+            print("Monthly newsletter: " + user.first_name + " " + user.last_name)
+            emailing.send_newsletter_mail(session, auth, db, user.id, "Monthly")
             user.last_alert = datetime.now()
             user.update_record()
 

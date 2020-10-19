@@ -41,11 +41,14 @@
   <div>
     <h4 class="pci2-recomm-text-label">Recommendation</h4>
     <div class="pci2-recomm-text">
-
       {{=DIV(recommText)}} 
 
       {{if pdfLink is not None:}}
         {{=DIV(pdfLink)}}
+      {{pass}}
+
+      {{if recommendationPdfLink:}}
+        {{=recommendationPdfLink}}
       {{pass}}
     </div>
 

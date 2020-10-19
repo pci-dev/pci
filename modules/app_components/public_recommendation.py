@@ -102,6 +102,15 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         pdfUrl = URL("articles", "rec", vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
         pdfLink = A(SPAN(current.T("PDF recommendation"), " ", IMG(_alt="pdf", _src=URL("static", "images/application-pdf.png"))), _href=pdfUrl, _class="btn btn-info pci-public",)
 
+    recommendationPdfLink = None
+    if finalRecomm.recommender_file:
+        recommendationPdfLink = A(
+            I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+            current.T("Download recommender's annotations (PDF)"),
+            _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=scheme, host=host, port=port),
+            _style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; display:block",
+        )
+
     headerContent.update(
         [
             ("recommTitle", finalRecomm.recommendation_title if ((finalRecomm.recommendation_title or "") != "") else current.T("Recommendation"),),
@@ -119,6 +128,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ("recommText", WIKI(finalRecomm.recommendation_comments, safe_mode=False or "")),
             ("pdfLink", pdfLink),
             ("printable", printable),
+            ("recommendationPdfLink", recommendationPdfLink),
         ]
     )
 
@@ -180,12 +190,15 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
 
 ######################################################################################################################################################################
 def getPublicReviewRoundsHtml(auth, db, response, articleId):
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
     recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
 
     recommRound = len(recomms)
     reviewRoundsHtml = DIV()
 
-    indentationLeft = 0
     for recomm in recomms:
         roundNumber = recommRound
 
@@ -223,9 +236,11 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
             pdfLink = None
             if review.review_pdf:
-                pdfLink = DIV(
-                    A(current.T("Download the review (PDF file)"), _href=URL("default", "download", args=review.review_pdf), _style="margin-bottom: 64px;",),
-                    _class="pci-bigtext margin",
+                pdfLink = A(
+                    I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                    current.T("Download the review (PDF file)"),
+                    _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
+                    _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
             reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink))
@@ -236,17 +251,34 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
-            authorsReplyPdfLink = (
-                DIV(
-                    A(current.T("Download author's reply (PDF file)"), _href=URL("default", "download", args=recomm.reply_pdf), _style="margin-bottom: 64px;",),
-                    _class="pci-bigtext margin",
-                ),
+            authorsReplyPdfLink = A(
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                current.T("Download author's reply (PDF file)"),
+                _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port),
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
+            )
+
+        authorsReplyTrackChangeFileLink = None
+        if recomm.track_change:
+            authorsReplyTrackChangeFileLink = A(
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                current.T("Download tracked changes file"),
+                _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
+            )
+
+        recommendationPdfLink = None
+        if recomm.recommender_file:
+            recommendationPdfLink = A(
+                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+                current.T("Download recommender's annotations (PDF)"),
+                _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
+                _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
         recommRound -= 1
 
         componentVars = dict(
-            indentationLeft=indentationLeft,
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
             lastChanges=lastChanges,
@@ -255,9 +287,9 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             reviewsList=reviwesPreparedData,
             authorsReply=authorsReply,
             authorsReplyPdfLink=authorsReplyPdfLink,
+            recommendationPdfLink=recommendationPdfLink,
+            authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
         )
-
-        indentationLeft += 16
 
         reviewRoundsHtml.append(XML(response.render("components/public_review_rounds.html", componentVars)))
 
@@ -326,11 +358,7 @@ def getCommentsTreeHtml(auth, db, response, commentId):
 
     replyToLink = ""
     if auth.user:
-        replyToLink = A(
-            current.T("Reply..."),
-            _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id),),
-            _style="margin: 0",
-        )
+        replyToLink = A(current.T("Reply..."), _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id),), _style="margin: 0",)
 
     componentVars = dict(
         userLink=common_small_html.mkUser_U(auth, db, comment.user_id, linked=True),

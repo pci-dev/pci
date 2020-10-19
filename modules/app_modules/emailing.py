@@ -31,6 +31,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
 from app_modules import emailing_tools
+from app_modules import emailing_parts
 from app_modules import newsletter_module
 
 
@@ -226,10 +227,12 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             mail_vars["tOldStatus"] = current.T(article.status)
             mail_vars["tNewStatus"] = current.T(newStatus)
 
+            authors_reply = None
             if article.status == "Awaiting revision" and newStatus == "Under consideration":
                 mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%a %b %d")
 
                 hashtag_template = "#RecommenderStatusChangedToUnderConsideration"
+                authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, myRecomm.id)
 
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
@@ -241,7 +244,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 hashtag_template = "#RecommenderArticleStatusChanged"
 
             # Fill define template with mail_vars :
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId, authors_reply=authors_reply)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -465,7 +468,9 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
                 mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
 
                 hashtag_template = "#RecommenderReviewerReviewCompleted"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                reviewHTML = emailing_parts.getReviewHTML(auth,db, rev.id) 
+
+                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review=reviewHTML)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
@@ -1547,7 +1552,7 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
 ######################################################################################################################################################################
 ## News letter
 ######################################################################################################################################################################
-def send_newsletter_mail(session, auth, db, userId):
+def send_newsletter_mail(session, auth, db, userId, newsletterType):
     mail_vars = emailing_tools.getMailCommonVars()
 
     user = db.auth_user[userId]
@@ -1555,12 +1560,22 @@ def send_newsletter_mail(session, auth, db, userId):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = user["email"]
 
-    hashtag_template = "#NewsLetter"
+    if newsletterType == "Weekly":
+        hashtag_template = "#NewsLetterWeekly"
+        newsletter_interval = 7
+
+    if newsletterType == "Every two weeks":
+        hashtag_template = "#NewsLetterEveryTwoWeeks"
+        newsletter_interval = 14
+
+    if newsletterType == "Monthly":
+        hashtag_template = "#NewsLetterMonthly"
+        newsletter_interval = 30
 
     # New recommended articles
     new_recommended_articles = db(
         (
-            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date())
+            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
             & (db.t_recommendations.article_id == db.t_articles.id)
             & (db.t_recommendations.recommendation_state == "Recommended")
             & (db.t_articles.status == "Recommended")
@@ -1578,7 +1593,7 @@ def send_newsletter_mail(session, auth, db, userId):
     # New preprint searching for reviewers
     new_searching_for_reviewers_preprint = db(
         (
-            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date())
+            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
             & (db.t_articles.is_searching_reviewers == True)
             & (db.t_articles.status == "Under consideration")
         )
@@ -1599,7 +1614,10 @@ def send_newsletter_mail(session, auth, db, userId):
     newPreprintRequiringRecommenderCount = 0
     if group > 0:
         new_searching_for_recommender_preprint = db(
-            ((db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=7)).date()) & (db.t_articles.status == "Awaiting consideration"))
+            (
+                (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                & (db.t_articles.status == "Awaiting consideration")
+            )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
         k = 0

@@ -125,6 +125,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
                     _title=current.T("Click here in order to cancel this submission"),
                 ),
                 _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
+                _id="cancel-submission-button"
             )
         )  # author's button allowing cancellation
 

@@ -175,8 +175,8 @@ def mkFooter():
 
 
 ######################################################################################################################################################################
-def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None):
-    mail = buildMail(db, hashtag_template, mail_vars, recommendation)
+def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None):
+    mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
@@ -190,7 +190,7 @@ def insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=N
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None):
+def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None):
     reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
 
     if reminder[0]:
@@ -198,7 +198,7 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
 
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 
-        mail = buildMail(db, hashtag_template, mail_vars, recommendation)
+        mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
 
         db.mail_queue.insert(
             sending_status="pending",
@@ -245,7 +245,7 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None):
+def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
@@ -256,7 +256,7 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None):
 
     content_rendered = render(
         filename=MAIL_HTML_LAYOUT,
-        context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=mkFooter(), recommendation=recommendation),
+        context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=mkFooter(), recommendation=recommendation, review=review, authors_reply=authors_reply),
     )
 
     return dict(content=content_rendered, subject=subject)

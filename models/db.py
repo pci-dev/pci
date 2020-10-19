@@ -346,10 +346,14 @@ auth.settings.extra_fields["auth_user"] = [
     Field("cv", type="text", length=2097152, label=T("Educational and work background")),
     Field(
         "alerts",
-        type="list:string",
-        label=T("Alert frequency"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), multiple=True)),
-        widget=SQLFORM.widgets.checkboxes.widget,
+        type="string",
+        label=DIV(
+            SPAN(T("Do you wish to receive the PCI newsletter")) + SPAN(" * ", _style="color:red;"),
+            BR(),
+            SPAN("if you are interested to act as recommender and/or as reviewer, we suggest you to receive the newletter once a week", _style="font-weight: normal; font-style: italic; color: #333"),
+        ),
+        requires=IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly"), zero=None),
+        default="Never",
     ),
     Field("last_alert", type="datetime", label=T("Last alert"), writable=False, readable=False),
     Field("registration_datetime", type="datetime", default=request.now, label=T("Registration date & time"), writable=False, readable=False),

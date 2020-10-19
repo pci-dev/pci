@@ -8,14 +8,14 @@ for (let i = 0; i < action_buttons.length; i++) {
   )[i].offsetHeight;
 
   container = document.createElement("div");
-  var cln = action_buttons[i].innerHTML
-  
-  container.innerHTML = cln
-  action_buttons[i].innerHTML = '';
+  var cln = action_buttons[i].innerHTML;
+
+  container.innerHTML = cln;
+  action_buttons[i].innerHTML = "";
   action_buttons[i].appendChild(container);
-  
-  if(container.childNodes.length > 2 && itemHeight < 120){
-    itemHeight = 120
+
+  if (container.childNodes.length > 2 && itemHeight < 120) {
+    itemHeight = 120;
   }
 
   container.style.height = itemHeight + "px";

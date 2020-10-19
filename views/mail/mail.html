@@ -62,6 +62,36 @@
       </div>
     {{pass}}
 
+    {{if 'review' in locals() and review is not None:}}
+      <div style="
+        background:#f0f0f0 !important;
+        color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        {{=review}}
+      </div>
+    {{pass}}
+
+    {{if 'authors_reply' in locals() and authors_reply is not None:}}
+    <div style="
+        background:#f0f0f0 !important;
+        color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        {{=authors_reply}}
+      </div>
+    {{pass}}
+
     {{if 'newRecommendations' in locals() and newRecommendations is not None and newRecommendationsCount > 0:}}
       <div style="
         background:#ffffff !important;
@@ -74,7 +104,7 @@
         text-align: left;
       ">
         <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
-          <b style="color: #ffbf00">{{=newRecommendationsCount}}</b> new recommendation{{if newRecommendationsCount > 1:}}s{{pass}} this week
+          <b style="color: #ffbf00">{{=newRecommendationsCount}}</b> new recommendation{{if newRecommendationsCount > 1:}}s{{pass}} 
         </h2>
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
         {{=newRecommendations}}

@@ -84,3 +84,16 @@
 	</div>
 </div>
 {{pass}}
+
+<script type="text/javascript">
+	var button = document.getElementById("cancel-submission-button");
+	if (button) {
+		confirmCancellation = function (e) {
+			if (!confirm("Press a button!")) {
+				e.preventDefault()
+			} 
+		}
+		
+		button.onclick = confirmCancellation
+	}
+</script>
