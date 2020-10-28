@@ -757,6 +757,7 @@ def getArticleSubmitter(auth, db, art):
         (db.t_recommendations.article_id == art.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) & (db.t_press_reviews.contributor_id == auth.user_id)
     ).count()
 
+    submitter = None
     if (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role="manager")):
         submitter = db(db.auth_user.id == art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
         if submitter is None:

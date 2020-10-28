@@ -21,10 +21,12 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     h = db(query).select().first()
     if h:
         i = h.id
-        try:
-            c = (h.contents or "") % globals()
-        except:
-            c = h.contents or ""
+        c = replaceMailVars(h.contents or "", globals())
+        # try:
+        #     c = (h.contents or "") % globals()
+        #     c = (h.contents or "") % globals()
+        # except:
+        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -51,6 +53,12 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
 
 ######################################################################################################################################################################
 def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200"):
+    description = myconf.take("app.description")
+    appname = myconf.take("app.name")
+    shortname = myconf.take("app.name")
+    longname = myconf.take("app.longname")
+    contact = myconf.take("contacts.managers")
+
     r0 = ""
     c = ""
     if not isinstance(db, str):
@@ -58,10 +66,12 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
         h = db(query).select().first()
         if h:
             i = h.id
-            try:
-                c = (h.contents or "") % globals()
-            except:
-                c = h.contents or ""
+            c = replaceMailVars(h.contents or "", globals())
+            # try:
+            #     c = (h.contents or "") % globals()
+            #     c = (h.contents or "") % globals()
+            # except:
+            #     c = h.contents or ""
         else:
             i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
     
@@ -85,11 +95,12 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     h = db(query).select().first()
     if h:
         i = h.id
-        try:
-            c = (h.contents or "") % globals()
-            c = (h.contents or "") % globals()
-        except:
-            c = h.contents or ""
+        c = replaceMailVars(h.contents or "", globals())
+        # try:
+        #     c = (h.contents or "") % globals()
+        #     c = (h.contents or "") % globals()
+        # except:
+        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -103,3 +114,13 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     else:
         return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title pci-text-buttons-no-margin"), _class="pci-infotextbox",)
 
+
+
+def replaceMailVars(text, mail_vars):
+    mail_vars_list = mail_vars.keys()
+
+    for var in mail_vars_list:
+        if text.find("{{" + var + "}}") > -1:
+            text = text.replace("{{" + var + "}}", mail_vars[var])
+
+    return text

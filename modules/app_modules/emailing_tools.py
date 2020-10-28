@@ -328,6 +328,6 @@ def replaceMailVars(text, mail_vars):
 
     for var in mail_vars_list:
         if text.find("{{" + var + "}}") > -1:
-            text = text.replace("{{" + var + "}}", "%(" + var + ")s")
+            text = text.replace("{{" + var + "}}", mail_vars[var])
 
-    return text % mail_vars
+    return text

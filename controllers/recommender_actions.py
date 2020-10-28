@@ -282,23 +282,6 @@ def process_opinion():
 
 
 ###############################################################################################################################################################
-# (gab) is this unused ?
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
-def email_to_selected_reviewers():
-    recommId = request.vars["recommId"]
-    recomm = db.t_recommendations[recommId]
-    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
-        session.flash = auth.not_authorized()
-    else:
-        reviewersList = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.reviewer_id != auth.user_id)).select(
-            db.t_reviews.id
-        )
-        emailing.send_to_reviewer_review_invitation(session, auth, db, reviewersList)
-    redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
-
-
-###############################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def add_recommender_as_reviewer():
     recommId = request.vars["recommId"]

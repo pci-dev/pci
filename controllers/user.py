@@ -323,6 +323,8 @@ def edit_my_article():
     deletable = False
     db.t_articles.status.readable = False
     db.t_articles.status.writable = False
+    db.t_articles.cover_letter.readable = True
+    db.t_articles.cover_letter.writable = True
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
         fields = [
@@ -338,11 +340,24 @@ def edit_my_article():
             "abstract",
             "thematics",
             "keywords",
+            "cover_letter",
         ]
         myScript = common_tools.get_template("script", "edit_my_article.js")
 
     else:
-        fields = ["title", "anonymous_submission", "authors", "doi", "ms_version", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords"]
+        fields = [
+            "title",
+            "anonymous_submission",
+            "authors",
+            "doi",
+            "ms_version",
+            "picture_rights_ok",
+            "uploaded_picture",
+            "abstract",
+            "thematics",
+            "keywords",
+            "cover_letter"
+        ]
         myScript = ""
 
     form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, showid=False)

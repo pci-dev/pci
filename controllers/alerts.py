@@ -39,6 +39,7 @@ def testMyNewsletterMail():
 
 # function called daily
 def sendNewsletterMails():
+    print("Cron newsletter start")
     conditions = ["client" not in request, auth.has_membership(role="manager")]
     if any(conditions):
         my_date = date.today()

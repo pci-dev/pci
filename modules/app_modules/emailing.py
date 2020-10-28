@@ -783,51 +783,6 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_reviewer_review_invitation(session, auth, db, reviewsList):
-    print("send_to_reviewer_review_invitation")
-    mail_vars = emailing_tools.getMailCommonVars()
-    reports = []
-
-    for rev in db((db.t_reviews.id.belongs(reviewsList)) & (db.t_reviews.review_state == None)).select():
-        if rev and rev.review_state is None:
-            recomm = db.t_recommendations[rev.recommendation_id]
-            if recomm:
-                if recomm.recommender_id != rev.reviewer_id:
-                    article = db.t_articles[recomm["article_id"]]
-                    if article:
-                        mail_vars["articleTitle"] = article.title
-                        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
-                        mail_vars["linkTarget"] = URL(
-                            c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
-                        )
-                        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
-                        mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
-                        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
-                        if article.anonymous_submission:
-                            mail_vars["articleAuthors"] = current.T("[undisclosed]")
-                        else:
-                            mail_vars["articleAuthors"] = article.authors
-
-                        hashtag_template = "#ReviewerReviewInvitation"
-                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
-
-                        rev.review_state = "Pending"
-                        rev.update_record()
-
-                        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-                    else:
-                        print("send_to_reviewer_review_invitation: Article not found")
-                else:
-                    print("send_to_reviewer_review_invitation: recommender = reviewer")
-            else:
-                print("send_to_reviewer_review_invitation: Recommendation not found")
-        else:
-            print("send_to_reviewer_review_invitation: Review not found")
-
-    emailing_tools.getFlashMessage(session, reports)
-
-
-######################################################################################################################################################################
 def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
     print("send_to_reviewers_article_cancellation")
     mail_vars = emailing_tools.getMailCommonVars()

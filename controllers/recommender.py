@@ -253,7 +253,7 @@ def search_reviewers():
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
 
-    filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
     for fr in filtered:
         qy_reviewers.insert(**fr)
 
@@ -318,81 +318,87 @@ def search_reviewers():
 @auth.requires(auth.has_membership(role="recommender"))
 def article_details():
     printable = "printable" in request.vars
-    articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
-    if art is None:
+    articleId = None
+    if "articleId" in request.vars:
+        articleId = request.vars["articleId"]
+        art = db.t_articles[articleId]
+
+    if articleId is None or art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    amIAllowed = (
-        db(
-            ((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
-            | (
-                (db.t_suggested_recommenders.article_id == articleId)
-                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                & (db.t_suggested_recommenders.declined == False)
-            )
-        ).count()
-        > 0
-    )
-    if (amIAllowed is False) and (art.status == "Awaiting consideration") and (auth.has_membership(role="recommender")):
-        amIAllowed = True
-
-    if amIAllowed:
-        alreadyUnderProcess = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id != auth.user_id)).count() > 0
-
-        if alreadyUnderProcess:
-            contact = myconf.take("contacts.managers")
-            myContents = DIV(
-                SPAN(
-                    "Another recommender has already selected this article (DOI: ",
-                    common_small_html.mkDOI(art.doi),
-                    "), for which you were considering handling the evaluation. If you wish, we can inform the recommender handling this article that you would like to be a co-recommender or a reviewer (which would be much appreciated). If you are willing to help in this way, simply send us a message at: ",
-                ),
-                A(contact, _href="mailto:%s" % contact),
-                SPAN(" stating that you want to become a co-recommender or a reviewer, and we will alert the recommender."),
-                BR(),
-                SPAN(
-                    "Otherwise, you may",
-                    A(T("decline"), _href=URL("recommender_actions", "decline_new_article_to_recommend", vars=dict(articleId=articleId)), _class="btn btn-info"),
-                ),
-                SPAN(" this suggestion."),
-                _class="pci-alreadyUnderProcess",
-            )
-        else:
-            if art.already_published:
-                myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
-            else:
-                myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
-
-        response.title = art.title or myconf.take("app.longname")
-
-        finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
-        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
-
-        if printable:
-            printableClass = "printable"
-            response.view = "default/wrapper_printable.html"
-        else:
-            printableClass = ""
-            response.view = "default/wrapper_normal.html"
-
-        viewToRender = "default/recommended_articles.html"
-
-        return dict(
-            viewToRender=viewToRender,
-            recommTopButtons=recommTopButtons or "",
-            recommHeaderHtml=recommHeaderHtml,
-            recommStatusHeader=recommStatusHeader,
-            printable=printable,
-            pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
-            myContents=myContents,
-            myBackButton=common_small_html.mkBackButton(),
-        )
     else:
-        raise HTTP(403, "403: " + T("Access denied"))
+        amIAllowed = (
+            db(
+                ((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
+                | (
+                    (db.t_suggested_recommenders.article_id == articleId)
+                    & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                    & (db.t_suggested_recommenders.declined == False)
+                )
+            ).count()
+            > 0
+        )
+        if (amIAllowed is False) and (art.status == "Awaiting consideration") and (auth.has_membership(role="recommender")):
+            amIAllowed = True
+
+        if amIAllowed:
+            alreadyUnderProcess = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id != auth.user_id)).count() > 0
+
+            if alreadyUnderProcess:
+                contact = myconf.take("contacts.managers")
+                myContents = DIV(
+                    SPAN(
+                        "Another recommender has already selected this article (DOI: ",
+                        common_small_html.mkDOI(art.doi),
+                        "), for which you were considering handling the evaluation. If you wish, we can inform the recommender handling this article that you would like to be a co-recommender or a reviewer (which would be much appreciated). If you are willing to help in this way, simply send us a message at: ",
+                    ),
+                    A(contact, _href="mailto:%s" % contact),
+                    SPAN(" stating that you want to become a co-recommender or a reviewer, and we will alert the recommender."),
+                    BR(),
+                    SPAN(
+                        "Otherwise, you may",
+                        A(T("decline"), _href=URL("recommender_actions", "decline_new_article_to_recommend", vars=dict(articleId=articleId)), _class="btn btn-info"),
+                    ),
+                    SPAN(" this suggestion."),
+                    _class="pci-alreadyUnderProcess",
+                )
+            else:
+                if art.already_published:
+                    myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+                else:
+                    myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+
+            response.title = art.title or myconf.take("app.longname")
+
+            finalRecomm = (
+                db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
+            )
+            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+            recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
+            recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+
+            if printable:
+                printableClass = "printable"
+                response.view = "default/wrapper_printable.html"
+            else:
+                printableClass = ""
+                response.view = "default/wrapper_normal.html"
+
+            viewToRender = "default/recommended_articles.html"
+
+            return dict(
+                viewToRender=viewToRender,
+                recommTopButtons=recommTopButtons or "",
+                recommHeaderHtml=recommHeaderHtml,
+                recommStatusHeader=recommStatusHeader,
+                printable=printable,
+                pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
+                myContents=myContents,
+                myBackButton=common_small_html.mkBackButton(),
+            )
+        else:
+            raise HTTP(403, "403: " + T("Access denied"))
 
 
 ######################################################################################################################################################################
@@ -1052,7 +1058,13 @@ def email_for_registered_reviewer():
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
-    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
+
+    sender = None
+    if auth.user_id == recomm.recommender_id:
+        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif auth.has_membership(role="manager"):
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
@@ -1162,7 +1174,13 @@ def email_for_new_reviewer():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
+
+    sender = None
+    if auth.user_id == recomm.recommender_id:
+        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif auth.has_membership(role="manager"):
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
@@ -1312,223 +1330,6 @@ def email_for_new_reviewer():
         myBackButton=common_small_html.mkBackButton(),
     )
 
-
-# ######################################################################################################################################################################
-# @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
-# def send_review_reminder():
-#     response.view = "default/myLayout.html"
-
-#     reviewId = request.vars["reviewId"]
-#     if reviewId is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     review = db.t_reviews[reviewId]
-#     if review is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     recomm = db.t_recommendations[review.recommendation_id]
-#     if recomm is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     art = db.t_articles[recomm.article_id]
-#     if art is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     reviewer = db.auth_user[review.reviewer_id]
-#     if reviewer is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     scheme = myconf.take("alerts.scheme")
-#     host = myconf.take("alerts.host")
-#     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-#     site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
-#     destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
-#     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
-#     description = myconf.take("app.description")
-#     thematics = myconf.take("app.thematics")
-#     longname = myconf.take("app.longname")
-#     appName = myconf.take("app.name")
-#     contact = myconf.take("contacts.managers")
-#     reset_password_key = None
-#     declineLinkTarget = None
-#     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-#     art_title = art.title
-#     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-#     # art_doi = (recomm.doi or art.doi)
-#     if (review.review_state or "Pending") == "Pending":
-#         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-#         # NOTE: parallel submission
-#         parallelText = ""
-#         if parallelSubmissionAllowed:
-#             parallelText += (
-#                 """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n"""
-#                 % locals()
-#             )
-#             if art.parallel_submission:
-#                 parallelText += (
-#                     """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n"""
-#                     % locals()
-#                 )
-#         if len(reviewer.reset_password_key or "") > 0:  # even not logged in yet
-#             reset_password_key = reviewer.reset_password_key
-#             hashtag_template = "#DefaultReviewReminderNewUser"
-#             mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-#         else:
-#             declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
-#             hashtag_template = "#DefaultReviewReminderRegisterUser"
-#             mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-
-#     elif review.review_state == "Under consideration":
-#         linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=scheme, host=host, port=port)
-#         hashtag_template = "#DefaultReviewReminderUnderConsideration"
-#         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-
-#     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-#     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
-
-#     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-#     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
-#     form = SQLFORM.factory(
-#         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
-#         Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
-#         Field(
-#             "reviewer_email",
-#             label=T("Reviewer email address"),
-#             type="string",
-#             length=250,
-#             default=reviewer.email,
-#             writable=False,
-#             requires=IS_EMAIL(error_message=T("invalid email!")),
-#         ),
-#         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
-#         Field("message", label=T("Message"), type="text", default=default_message, required=True),
-#     )
-#     form.element(_type="submit")["_value"] = T("Send email")
-#     form.element("textarea[name=message]")["_style"] = "height:500px;"
-
-#     if form.process().accepted:
-#         try:
-#             emailing.send_reviewer_invitation(
-#                 session,
-#                 auth,
-#                 db,
-#                 reviewId,
-#                 replyto_address,
-#                 myconf.take("contacts.managers"),
-#                 hashtag_template,
-#                 request.vars["subject"],
-#                 request.vars["message"],
-#                 reset_password_key,
-#                 linkTarget,
-#                 declineLinkTarget,
-#             )
-#         except Exception as e:
-#             session.flash = (session.flash or "") + T("Email failed.")
-#             raise e  # TODO pass
-#         if auth.user_id == recomm.recommender_id:
-#             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
-#         else:
-#             redirect(URL(c="manager", f="all_recommendations"))
-
-#     return dict(
-#         form=form,
-#         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
-#         titleIcon="envelope",
-#         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-#         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
-#         myBackButton=common_small_html.mkBackButton(),
-#     )
-
-
-# ######################################################################################################################################################################
-# @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
-# def send_review_cancellation():
-#     response.view = "default/myLayout.html"
-
-#     reviewId = request.vars["reviewId"]
-#     if reviewId is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     review = db.t_reviews[reviewId]
-#     if review is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     recomm = db.t_recommendations[review.recommendation_id]
-#     if recomm is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     art = db.t_articles[recomm.article_id]
-#     if art is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     reviewer = db.auth_user[review.reviewer_id]
-#     if reviewer is None:
-#         session.flash = auth.not_authorized()
-#         redirect(request.env.http_referer)
-#     scheme = myconf.take("alerts.scheme")
-#     host = myconf.take("alerts.host")
-#     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-#     destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
-#     sender = common_small_html.mkUser(auth, db, auth.user_id).flatten()
-#     description = myconf.take("app.description")
-#     longname = myconf.take("app.longname")
-#     appName = myconf.take("app.name")
-#     contact = myconf.take("contacts.managers")
-#     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-#     art_title = art.title
-#     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-#     # art_doi = (recomm.doi or art.doi)
-#     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-#     if (review.review_state or "Pending") == "Pending":
-#         hashtag_template = "#DefaultReviewCancellation"
-#         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-#         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-#         default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
-
-#     else:
-#         pass
-#     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-#     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
-#     form = SQLFORM.factory(
-#         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
-#         Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
-#         Field(
-#             "reviewer_email",
-#             label=T("Reviewer email address"),
-#             type="string",
-#             length=250,
-#             default=reviewer.email,
-#             writable=False,
-#             requires=IS_EMAIL(error_message=T("invalid email!")),
-#         ),
-#         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
-#         Field("message", label=T("Message"), type="text", default=default_message, required=True),
-#     )
-#     form.element(_type="submit")["_value"] = T("Send email")
-#     form.element("textarea[name=message]")["_style"] = "height:500px;"
-
-#     if form.process().accepted:
-#         try:
-#             review.update_record(review_state="Cancelled")
-#             emailing.send_reviewer_invitation(
-#                 session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
-#             )
-#         except Exception as e:
-#             session.flash = (session.flash or "") + T("Email failed.")
-#             raise e
-#         if auth.user_id == recomm.recommender_id:
-#             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
-#         else:
-#             redirect(URL(c="manager", f="all_recommendations"))
-
-#     return dict(
-#         form=form,
-#         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
-#         titleIcon="envelope",
-#         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-#         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
-#         myBackButton=common_small_html.mkBackButton(),
-#     )
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
