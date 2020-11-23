@@ -94,7 +94,7 @@ def mkLastRecommendation(auth, db, articleId):
 ######################################################################################################################################################################
 def mkViewEditRecommendationsManagerButton(auth, db, row):
     return A(
-        SPAN(current.T("Check & Edit"), _class="buttontext btn btn-default pci-button"),
+        SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button"),
         _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.article_id)),
         _class="button",
         _title=current.T("View and/or edit article"),

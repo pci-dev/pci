@@ -62,33 +62,33 @@ Cypress.Commands.add(
 
     switch (role) {
       case "manager":
-        cy.contains(".dropdown-toggle", "Manage").click();
+        cy.contains(".dropdown-toggle", "For managers").click();
         cy.contains("a", "All articles").click();
 
         if (status != "not.exist")
-          cy.contains("a", "Check & Edit").first().click();
+          cy.contains("a", "View / Edit").first().click();
         // cy.screenshot()
         break;
 
       case "recommender":
-        cy.contains(".dropdown-toggle", "Recommend").click();
-        cy.contains("a", "Preprints you are handling").click();
+        cy.contains(".dropdown-toggle", "For recommenders").click();
+        cy.contains("a", "Preprint(s) you are handling").click();
 
         if (status != "not.exist")
-          cy.contains("a", "Check & Edit").first().click();
+          cy.contains("a", "View / Edit").first().click();
         // cy.screenshot()
         break;
 
       case "suggested_recommender":
-        cy.contains(".dropdown-toggle", "Recommend").click();
-        cy.contains("a", "requests to handle a preprint").click();
+        cy.contains(".dropdown-toggle", "For recommenders").click();
+        cy.contains("a", "Request(s) to handle a preprint").click();
 
         if (status != "not.exist") cy.contains("a", "View").first().click();
         // cy.screenshot()
         break;
 
       case "reviewer":
-        cy.contains(".dropdown-toggle", "Contribute").click();
+        cy.contains(".dropdown-toggle", "For contributers").click();
         cy.contains("a", "Your reviews").click();
 
         if (status != "not.exist")
@@ -97,8 +97,8 @@ Cypress.Commands.add(
         break;
 
       case "suggested_reviewer":
-        cy.contains(".dropdown-toggle", "Contribute").click();
-        cy.contains("a", "invitations to review a preprint").click();
+        cy.contains(".dropdown-toggle", "For contributers").click();
+        cy.contains("a", "Invitation(s) to review a preprint").click();
 
         if (status != "not.exist")
           cy.contains("a", "Accept or decline").first().click();
@@ -106,7 +106,7 @@ Cypress.Commands.add(
         break;
 
       case "submitter":
-        cy.contains(".dropdown-toggle", "Contribute").click();
+        cy.contains(".dropdown-toggle", "For contributers").click();
         cy.contains("a", "Your submitted preprints").click();
 
         if (status != "not.exist")
@@ -139,12 +139,12 @@ Cypress.Commands.add("pciDeleteWithTestLastArticle", (articleTitle) => {
     cy.pciLogin(user.manager);
   });
 
-  cy.contains(".dropdown-toggle", "Manage").click();
+  cy.contains(".dropdown-toggle", "For managers").click();
   cy.contains("a", "All articles").click();
 
   cy.contains("tr", articleTitle).should("exist");
 
-  cy.contains("a", "Check & Edit").first().click();
+  cy.contains("a", "View / Edit").first().click();
 
   cy.contains("a", "Edit article").click();
 

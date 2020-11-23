@@ -8,7 +8,7 @@
             {{if submissionValidatedClassClass == "step-done":}}
                 <p><b>Submission <b style="color: #089108">validated</b></b></p>
             {{else:}}
-                <p>Waiting for acceptation...</p>
+                <p>Pending...</p>
             {{pass}}
         </div>
     </div>
@@ -82,7 +82,7 @@
             </p>
         {{else:}}
             <p>
-                Waiting for decision...
+                Pending...
             </p>
         {{pass}}
     </div>
@@ -96,7 +96,7 @@
         <h3><b style="color: #333">Round {{=roundNumber}} : </b>Validation of the decision by the managing board</h3>
         {{if managerDecisionDoneClass == "step-done":}}
             <p>
-                <b>Recommender decision <b style="color: #089108">validated</b></b>
+                <b style="color: #089108">Decision made</b>
             </p>
             {{if recommendationLink:}}
                 <div class="pci2-flex-center">
@@ -109,7 +109,7 @@
             {{pass}}
         {{else:}}
             <p>
-                Waiting for decision...
+                Pending...
             </p>
         {{pass}}
     </div>

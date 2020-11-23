@@ -133,7 +133,7 @@ def recommended_articles():
             myRows.append(r)
 
     grid = DIV(
-        DIV(DIV(T("%s articles found") % (totalArticles), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"),
+        DIV(DIV(T("%s items found") % (totalArticles), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"),
         _class="searchRecommendationsDiv",
     )
 
@@ -290,7 +290,7 @@ def all_recommended_articles():
     n = len(allR)
 
     grid = DIV(
-        DIV(DIV(T("%s articles found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
+        DIV(DIV(T("%s items found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
     )
 
     response.view = "default/myLayout.html"

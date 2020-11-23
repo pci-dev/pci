@@ -108,13 +108,13 @@
 
     {{if showSearchingForReviewersButton:}}
       <a class="buttontext btn btn-default"  href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
-        {{=T('Put preprint in "searching for reviewers" list')}}
+        {{=T('Put preprint in the "In need of reviewers" list')}}
       </a>
     {{pass}}
     
     {{if showRemoveSearchingForReviewersButton:}}
       <a class="buttontext btn btn-warning"  href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
-        {{=T('Remove preprint from "searching for reviewers" list ')}}
+        {{=T('Remove preprint from the "In need of reviewers" list ')}}
       </a>
     {{pass}}
   </div>
@@ -141,7 +141,7 @@
           <a class="buttontext btn btn-success" 
             href="{{=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('Yes, I agree to review this preprint')}}
+            {{=T('Yes, I would like to review this preprint')}}
           </a>
           <a class="buttontext btn btn-warning" 
             href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"

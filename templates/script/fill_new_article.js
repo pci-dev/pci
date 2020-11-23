@@ -103,7 +103,7 @@ doi_button_container.classList = "pci2-flex-row pci2-align-items-center";
 doi_button_container.style = "margin: 5px 0 0";
 
 var button = document.createElement("a");
-button.innerHTML = "Auto-fill form with Crossref API";
+button.innerHTML = "Complete form automatically";
 button.classList = "btn btn-default";
 button.style = "margin: 0";
 button.onclick = getCrossrefDatas;

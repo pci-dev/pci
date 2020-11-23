@@ -293,11 +293,11 @@ def add_recommender_as_reviewer():
         reviews = db((db.t_reviews.reviewer_id == recomm.recommender_id) & (db.t_reviews.recommendation_id == recommId)).select()
         if len(reviews) > 0:
             for review in reviews:
-                review.update_record(review_state="Under consideration")
+                review.update_record(review_state="Awaiting review")
                 db.commit()
         else:  # create review
             rid = db.t_reviews.validate_and_insert(
-                recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state="Under consideration"
+                recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state="Awaiting review"
             )
     redirect(request.env.http_referer)
 
@@ -333,7 +333,7 @@ def accept_review_request():
     if rev is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    if rev["review_state"] != "Ask to review":
+    if rev["review_state"] != "Willing to review":
         session.flash = T("Review state has been changed")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
@@ -358,7 +358,7 @@ def decline_review_request():
     if rev is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    if rev["review_state"] != "Ask to review":
+    if rev["review_state"] != "Willing to review":
         session.flash = T("Review state has been changed")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
@@ -394,7 +394,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
-        session.flash = 'Preprint now appear in "searching for reviewers" list'
+        session.flash = 'Preprint now appear in the "In need of reviewers" list'
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
 
 
@@ -418,5 +418,5 @@ def make_preprint_not_searching_for_reviewers():
         art.is_searching_reviewers = False
         art.update_record()
         db.commit()
-        session.flash = 'Preprint is removed from "searching for reviewers" list'
+        session.flash = 'Preprint is removed from the "In need of reviewers" list'
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))

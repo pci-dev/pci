@@ -18,7 +18,7 @@ echo "https://evolbiol.peercommunityin.org/public/rss" | dmtxwrite --encoding=b 
 # cat helpTexts_of_gaia2.sql    | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 # Data changes ---> Shit; deactivate trigger bofore!!
-# echo "UPDATE t_reviews SET review_state='Completed' WHERE review_state LIKE 'Terminated';" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
+# echo "UPDATE t_reviews SET review_state='Review completed' WHERE review_state LIKE 'Terminated';" | ssh peercom@peercom-front1 "psql -h mydb1 -p 5432 -U peercom -d $db_name"
 
 # SYNC SOURCE CODE FROM MBIPI TO WEBSITE
 rsync $rsopts --stats --recursive --perms --links --update --delete --delete-before --exclude='*~' \

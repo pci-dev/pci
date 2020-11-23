@@ -213,7 +213,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             recommendationText = WIKI(recomm.recommendation_comments, safe_mode=False) or ""
             preprintDoi = DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
-        reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=db.t_reviews.id)
+        reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
         reviwesPreparedData = []
 
         for review in reviewsList:

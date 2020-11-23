@@ -306,13 +306,13 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 def mkReviewStateDiv(auth, db, state):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
-    if state == "Pending" or state == "Ask to review":
+    if state == "Awaiting response" or state == "Willing to review":
         color_class = "warning"
     elif state == "Declined by recommender":
         color_class = "danger"
-    elif state == "Under consideration":
+    elif state == "Awaiting review":
         color_class = "info"
-    elif state == "Completed":
+    elif state == "Review completed":
         color_class = "success"
     else:
         color_class = "default"
@@ -373,24 +373,6 @@ def makeArticleThumbnail(auth, db, articleId, size=(150, 150)):
 
 
 ######################################################################################################################################################################
-def makeResourceThumbnail(auth, db, resourceId, size=(150, 150)):
-    rec = db(db.t_resources.id == resourceId).select().last()
-    if rec and rec.resource_logo_data:
-        try:
-            im = Image.open(io.BytesIO(rec.resource_logo_data))
-            width, height = im.size
-            if width > 200 or height > 200:
-                im.thumbnail(size, Image.ANTIALIAS)
-                imgByteArr = io.BytesIO()
-                im.save(imgByteArr, format="PNG")
-                imgByteArr = imgByteArr.getvalue()
-                rec.update_record(resource_logo_data=imgByteArr)
-        except:
-            pass
-    return
-
-
-######################################################################################################################################################################
 # Other images helper
 ######################################################################################################################################################################
 def mkAnonymousMask(auth, db, anon):
@@ -421,7 +403,7 @@ def mkJournalImg(auth, db, press):
 ######################################################################################################################################################################
 def mkViewEditRecommendationsRecommenderButton(auth, db, row):
     return A(
-        SPAN(current.T("Check & Edit"), _class="buttontext btn btn-default pci-button"),
+        SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button"),
         _href=URL(c="recommender", f="recommendations", vars=dict(articleId=row.article_id)),
         _class="button",
         _title=current.T("View and/or edit article"),
@@ -457,11 +439,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id):
         else:
             art_title = art.title
 
-        anchor = DIV(
-            B(art_title),
-            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-            mkDOI(art.doi)
-        )
+        anchor = DIV(B(art_title), DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), mkDOI(art.doi))
     return anchor
 
 
@@ -597,7 +575,7 @@ def mkCoRecommenders(auth, db, row, goBack=URL()):
             hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
     if len(hrevs) > 0:
-        txt = current.T("ADD / DELETE")
+        txt = current.T("ADD / REMOVE")
     else:
         txt = current.T("ADD")
     if art.status == "Under consideration":
@@ -614,7 +592,7 @@ def mkReviewersString(auth, db, articleId):
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
         & (db.t_reviews.anonymously == False)
-        & (db.t_reviews.review_state == "Completed")
+        & (db.t_reviews.review_state == "Review completed")
     ).select(db.t_reviews.reviewer_id, distinct=True)
     if reviewsQy is not None:
         nR = len(reviewsQy)
@@ -632,7 +610,7 @@ def mkReviewersString(auth, db, articleId):
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
         & (db.t_reviews.anonymously == True)
-        & (db.t_reviews.review_state == "Completed")
+        & (db.t_reviews.review_state == "Review completed")
     ).select(db.t_reviews.reviewer_id, distinct=True)
     if reviewsQyAnon is not None:
         nRA = len(reviewsQyAnon)
@@ -689,14 +667,14 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.auth_user.id == db.t_reviews.reviewer_id)
                     & (db.t_reviews.anonymously == False)
-                    & (db.t_reviews.review_state == "Completed")
+                    & (db.t_reviews.review_state == "Review completed")
                 ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
                 na = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.auth_user.id == db.t_reviews.reviewer_id)
                     & (db.t_reviews.anonymously == True)
-                    & (db.t_reviews.review_state == "Completed")
+                    & (db.t_reviews.review_state == "Review completed")
                 ).count(distinct=db.auth_user.id)
                 na1 = 1 if na > 0 else 0
             else:
@@ -777,7 +755,9 @@ def getArticleSubmitter(auth, db, art):
 
 
 ######################################################################################################################################################################
-def mkRecommendersString(auth, db, recomm):
+def mkRecommendersString(
+    auth, db, recomm
+):
     recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
     contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
     n = len(contribsQy)
@@ -791,3 +771,25 @@ def mkRecommendersString(auth, db, recomm):
         recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
     recommendersStr = "".join(recommenders)
     return recommendersStr
+
+
+######################################################################################################################################################################
+def getCoRecommendersMails(db, recommId):
+    contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
+
+    result = []
+    for contrib in contribsQy:
+        result.append(db.auth_user[contrib.contributor_id]["email"])
+
+    return result
+
+
+######################################################################################################################################################################
+def getManagersMails(db):
+    managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
+
+    result = []
+    for manager in managers:
+        result.append(manager.email)
+
+    return result

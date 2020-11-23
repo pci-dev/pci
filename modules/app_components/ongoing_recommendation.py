@@ -59,6 +59,9 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager"):
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
+    if len(recomms) > 0 and auth.user_id == recomms[-1].recommender_id:
+        printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True)
+
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
@@ -93,7 +96,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
         # suggested or any recommender's button for recommendation consideration
         btsAccDec = [
             A(
-                SPAN(current.T("Click here before starting the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
+                SPAN(current.T("Yes, I would like to handle the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
                 _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
                 _class="button",
             ),
@@ -103,7 +106,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
                 A(
-                    SPAN(current.T("No, thanks, I decline this suggestion"), _class="buttontext btn btn-warning pci-recommender"),
+                    SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
                     _href=URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
                     _class="button",
                 ),
@@ -189,9 +192,9 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
             for review in reviews:
                 reviewCount += 1
-                if review.review_state == "Under consideration":
+                if review.review_state == "Awaiting review":
                     acceptedReviewCount += 1
-                if review.review_state == "Completed":
+                if review.review_state == "Review completed":
                     acceptedReviewCount += 1
                     completedReviewCount += 1
 
@@ -353,7 +356,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         else:
             # The recommender is also a reviewer
             for recommenderOwnReviewState in recommenderOwnReviewStates:
-                if recommenderOwnReviewState.review_state == "Completed":
+                if recommenderOwnReviewState.review_state == "Review completed":
                     recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
         reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
@@ -361,10 +364,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         )
 
         for review in reviews:
-            if review.review_state == "Under consideration":
+            if review.review_state == "Awaiting review":
                 existOngoingReview = True
                 nbOnGoing += 1
-            if review.review_state == "Completed":
+            if review.review_state == "Review completed":
                 nbCompleted += 1
 
             # No one is allowd to see ongoing reviews ...
@@ -385,7 +388,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
                 hideOngoingReview = False
             # ...  the reviewer himself once accepted ...
-            if (review.reviewer_id == auth.user_id) and (review.review_state in ("Under consideration", "Completed")):
+            if (review.reviewer_id == auth.user_id) and (review.review_state in ("Awaiting review", "Review completed")):
                 hideOngoingReview = False
             # ...  a reviewer himself once the decision made up ...
             if (
@@ -405,24 +408,24 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
                 hideOngoingReview = False
 
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Ask to review":
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Willing to review":
                 reviewVars.update([("showReviewRequest", True)])
 
             if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
-                if review.review_state == "Pending":
+                if review.review_state == "Awaiting response":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
-                elif review.review_state == "Ask to review" or review.review_state == "Declined by recommender":
+                elif review.review_state == "Willing to review" or review.review_state == "Declined by recommender":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showPendingAskForReview", True)])
                     if review.review_state == "Declined by recommender":
                         reviewVars.update([("declinedByRecommender", True)])
 
-            elif review.review_state == "Pending" or review.review_state == "Declined by recommender":
+            elif review.review_state == "Awaiting response" or review.review_state == "Declined by recommender":
                 hideOngoingReview = True
 
             # reviewer's buttons in order to edit/complete pending review
-            if (review.reviewer_id == auth.user_id) and (review.review_state == "Under consideration") and (art.status == "Under consideration") and not (printable):
+            if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status == "Under consideration") and not (printable):
                 reviewVars.update([("showEditButtons", True)])
 
             if not (hideOngoingReview):

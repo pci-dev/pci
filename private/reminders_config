@@ -7,7 +7,8 @@
 #ReminderRecommenderRevisedDecisionDue = [10]
 #ReminderRecommenderRevisedDecisionOverDue = [14, 18, 22]
 
-#ReminderReviewerReviewInvitation = [5, 8]
+#ReminderReviewerReviewInvitationNewUser = [5, 8]
+#ReminderReviewerReviewInvitationRegisteredUser = [5, 8]
 #ReminderReviewerReviewSoonDue = [14, 19]
 #ReminderReviewerReviewDue = [21]
 #ReminderReviewerReviewOverDue = [25, 29, 33, 37, 40]

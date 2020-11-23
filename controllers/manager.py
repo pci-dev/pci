@@ -152,7 +152,7 @@ def _manage_articles(statuses, whatNext):
             header=T("Actions"),
             body=lambda row: DIV(
                 A(
-                    SPAN(current.T("Check & Edit")),
+                    SPAN(current.T("View / Edit")),
                     _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id), user_signature=True),
                     _class="buttontext btn btn-default pci-button pci-manager",
                     _title=current.T("View and/or edit review"),
@@ -411,7 +411,7 @@ def search_recommenders():
             Field("score", type="double", label=T("Score"), default=0),
             Field("first_name", type="string", length=128, label=T("First name")),
             Field("last_name", type="string", length=128, label=T("Last name")),
-            Field("email", type="string", length=512, label=T("email")),
+            Field("email", type="string", length=512, label=T("e-mail")),
             Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
             Field("city", type="string", label=T("City"), represent=lambda t, r: t if t else ""),
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
@@ -529,7 +529,7 @@ def suggested_recommenders():
         dict(
             header="",
             body=lambda row: A(
-                T("See emails"),
+                T("View e-mails"),
                 _class="btn btn-info pci-manager",
                 _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(suggRecommId=row.suggested_recommender_id, articleId=row.article_id)),
             )
@@ -778,6 +778,7 @@ def suggested_recommender_emails():
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -873,6 +874,7 @@ def article_emails():
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False

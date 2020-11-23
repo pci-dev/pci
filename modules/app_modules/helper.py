@@ -74,12 +74,14 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
             #     c = h.contents or ""
         else:
             i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
-    
+
         if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
             r0 = A(
-                current.T("edit text"), _href=URL(c="custom_help_text", f="help_texts", args=["edit", "help_texts", i], user_signature=True), _class="pci-text-button-edit pci-admin"
+                current.T("edit text"),
+                _href=URL(c="custom_help_text", f="help_texts", args=["edit", "help_texts", i], user_signature=True),
+                _class="pci-text-button-edit pci-admin",
             )
-    
+
         return DIV(
             DIV(r0, _class="pci-text-buttons", _style="max-width:" + maxWidth + "px"),
             DIV(WIKI(c, safe_mode=False), _class="pci-infotext", _style="max-width:" + maxWidth + "px"),
@@ -115,12 +117,22 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
         return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title pci-text-buttons-no-margin"), _class="pci-infotextbox",)
 
 
-
+######################################################################################################################################################################
 def replaceMailVars(text, mail_vars):
     mail_vars_list = mail_vars.keys()
 
     for var in mail_vars_list:
         if text.find("{{" + var + "}}") > -1:
-            text = text.replace("{{" + var + "}}", mail_vars[var])
+            if isinstance(mail_vars[var], str):
+                replacement_var = mail_vars[var]
+            elif isinstance(mail_vars[var], int):
+                replacement_var = str(mail_vars[var])
+            else:
+                try:
+                    replacement_var = mail_vars[var].flatten()
+                except:
+                    replacement_var = str(mail_vars[var])
+
+            text = text.replace("{{" + var + "}}", replacement_var)
 
     return text

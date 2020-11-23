@@ -48,13 +48,13 @@ REMINDERS = get_reminders_from_config()
 
 
 def getMailsInQueue():
-    return db(
-        (db.mail_queue.sending_status.belongs("in queue", "pending")) & (db.mail_queue.removed_from_queue == False) & (db.mail_queue.sending_date <= datetime.now())
-    ).select(orderby=db.mail_queue.sending_date)
+    return db((db.mail_queue.sending_status.belongs("in queue", "pending")) & (db.mail_queue.removed_from_queue == False) & (db.mail_queue.sending_date <= datetime.now())).select(
+        orderby=db.mail_queue.sending_date
+    )
 
 
 def tryToSendMail(mail_item):
-    if mail.send(to=mail_item.dest_mail_address, subject=mail_item.mail_subject, message=mail_item.mail_content):
+    if mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content):
         isSent = True
     else:
         isSent = False
@@ -88,6 +88,7 @@ def prepareNextReminder(mail_item):
             reminder_count=reminder_count + 1,
             sending_date=sending_date,
             dest_mail_address=mail_item["dest_mail_address"],
+            cc_mail_addresses=mail_item["cc_mail_addresses"],
             mail_subject=mail_item["mail_subject"],
             mail_content=mail_item["mail_content"],
             user_id=mail_item["user_id"],

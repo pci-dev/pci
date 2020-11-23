@@ -29,7 +29,7 @@ for (const id_textarea of ids_array) {
       branding: false,
       menubar: false,
       statusbar: false,
-      plugins: "lists link autoresize media image",
+      plugins: "lists link autoresize media image hr",
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,
       toolbar: [
@@ -55,19 +55,11 @@ for (const id_textarea of ids_array) {
         // },
         {
           name: "blockformats",
-          items: [
-            "numlist",
-            "bullist",
-            "blockquote",
-          ],
+          items: ["numlist", "bullist", "blockquote", "hr"],
         },
         {
           name: "mediatype",
-          items: [
-            "image",
-            "media",
-            "mathjax",
-          ],
+          items: ["image", "media", "mathjax"],
         },
       ],
       style_formats: [
@@ -101,7 +93,19 @@ for (const id_textarea of ids_array) {
             
 				blockquote ul {
 				    margin: 0;	
-				}
+        }
+        
+        hr {
+          box-sizing: content-box;
+          height: 0px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+          border-right-width: 0px;
+          border-bottom-width: 0px;
+          border-left-width: 0px;
+          border-top-style: solid;
+          border-top-color: #f8f5f0;
+        }
 			`);
     } else {
       (tinymce_options.content_css = false),
@@ -114,7 +118,19 @@ for (const id_textarea of ids_array) {
 					padding: 10px 20px;
 					margin: 0 0 20px;
 					border-left: 5px solid #dfd7ca;
-				}					
+        }	
+        
+        hr {
+          box-sizing: content-box;
+          height: 0px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+          border-right-width: 0px;
+          border-bottom-width: 0px;
+          border-left-width: 0px;
+          border-top-style: solid;
+          border-top-color: #f8f5f0;
+        }
 			`);
     }
 

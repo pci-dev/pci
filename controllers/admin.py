@@ -162,7 +162,7 @@ def mailing_lists():
     # Special searches: reviewers
     myContents.append(H1(T("Reviewers:")))
     emails = []
-    query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Under consideration", "Completed"]))).select(
+    query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Awaiting review", "Review completed"]))).select(
         db.auth_user.email, groupby=db.auth_user.email
     )
     for user in query:
@@ -178,7 +178,7 @@ def mailing_lists():
         """SELECT DISTINCT auth_user.email FROM auth_user 
 				WHERE auth_user.id NOT IN (SELECT DISTINCT auth_membership.user_id FROM auth_membership) 
 				AND auth_user.id NOT IN (SELECT DISTINCT t_articles.user_id FROM t_articles WHERE t_articles.user_id IS NOT NULL) 
-				AND auth_user.id NOT IN (SELECT DISTINCT t_reviews.reviewer_id FROM t_reviews WHERE t_reviews.reviewer_id IS NOT NULL AND review_state IN ('Under consideration', 'Completed')) 
+				AND auth_user.id NOT IN (SELECT DISTINCT t_reviews.reviewer_id FROM t_reviews WHERE t_reviews.reviewer_id IS NOT NULL AND review_state IN ('Awaiting review', 'Review completed')) 
 				AND auth_user.email IS NOT NULL;"""
     )
     for user_email in query:
@@ -320,50 +320,6 @@ def manage_pdf():
     return dict(titleIcon="duplicate", pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), customText=getText(request, auth, db, "#AdminPdfText"), grid=grid,)
 
 
-######################################################################################################################################################################
-# Supports management
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
-def manage_supports():
-    response.view = "default/myLayout.html"
-
-    grid = SQLFORM.grid(
-        db.t_supports,
-        details=False,
-        editable=True,
-        deletable=True,
-        create=True,
-        searchable=False,
-        maxtextlength=512,
-        paginate=20,
-        csv=csv,
-        exportclasses=expClass,
-        orderby=db.t_supports.support_rank,
-    )
-    return dict(titleIcon="briefcase", customText=getText(request, auth, db, "#AdminSupportsText"), pageTitle=getTitle(request, auth, db, "#AdminSupportsTitle"), grid=grid,)
-
-
-######################################################################################################################################################################
-# Resources management
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
-def manage_resources():
-    response.view = "default/myLayout.html"
-
-    grid = SQLFORM.grid(
-        db.t_resources,
-        details=False,
-        editable=True,
-        deletable=True,
-        create=True,
-        searchable=False,
-        maxtextlength=512,
-        paginate=20,
-        csv=csv,
-        exportclasses=expClass,
-        orderby=db.t_resources.resource_rank,
-    )
-    return dict(titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#AdminResourcesTitle"), customText=getText(request, auth, db, "#AdminResourcesText"), grid=grid,)
-
-
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
 def recap_reviews():
     response.view = "default/myLayout.html"
@@ -404,7 +360,7 @@ def recap_reviews():
 		FROM t_reviews AS w
 		LEFT JOIN auth_user AS wu ON w.reviewer_id = wu.id
 		LEFT JOIN recomms0 ON w.recommendation_id = recomms0.recom_id
-		WHERE w.review_state NOT IN ('Pending', 'Declined', 'Cancelled')
+		WHERE w.review_state NOT IN ('Awaiting response', 'Declined', 'Cancelled')
 		UNION ALL
 		SELECT article_id, recom_id AS recomm_id, recomm_round,
 			'decision'::varchar AS reviewer_num,
@@ -565,6 +521,7 @@ def mailing_queue():
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False

@@ -45,7 +45,7 @@
           </div>
         
           <div class="pci2-flex-center">
-            <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I consider this preprint for review')}}">          
+            <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I would like to review this prepint')}}">          
           </div>
         </form>
       </div>
@@ -55,19 +55,13 @@
       <div class="pci-embeddedEthic" style="padding-top: 30px; text-align: center;">
         {{if isAlreadyReviewer or isSubmitter:}}
           {{if isAlreadyReviewer:}}
-            <p><b>{{=T('You are already a reviewer or asking to review this preprint.')}}</b></p>
+            <p><b>{{=T('You are already a reviewer or have asked to review this preprint.')}}</b></p>
           {{pass}}
           {{if isSubmitter:}}
             <p><b>{{=T('You are the submitter of this preprint.')}}</b></p>
           {{pass}}
-          <a type="submit" class="btn btn-success pci-panelButton" href="{{=URL(c="user", f="recommendations", vars=dict(articleId=articleId))}}">
-            {{=T('Go to recommendation page')}}
-          </a>  
         {{elif isRecommender:}}
-          <p><b>{{=T('You are the recommender of this preprint.')}}</b></p>
-          <a type="submit" class="btn btn-success pci-panelButton" href="{{=URL(c="recommender", f="recommendations", vars=dict(articleId=articleId))}}">
-            {{=T('Go to recommendation page')}}
-          </a>  
+          <p><b>{{=T('You are the recommender of this preprint.')}}</b></p>         
         {{pass}}
       </div>
     </div>

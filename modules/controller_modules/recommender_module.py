@@ -38,15 +38,15 @@ def reopen_review(auth, db, ids):
     if auth.has_membership(role="manager"):
         for myId in ids:
             rev = db.t_reviews[myId]
-            if rev.review_state != "Under consideration":
-                rev.review_state = "Under consideration"
+            if rev.review_state != "Awaiting review":
+                rev.review_state = "Awaiting review"
                 rev.update_record()
     elif auth.has_membership(role="recommender"):
         for myId in ids:
             rev = db.t_reviews[myId]
             recomm = db.t_recommendations[rev.recommendation_id]
-            if (recomm.recommender_id == auth.user_id) and not (rev.review_state == "Under consideration"):
-                rev.review_state = "Under consideration"
+            if (recomm.recommender_id == auth.user_id) and not (rev.review_state == "Awaiting review"):
+                rev.review_state = "Awaiting review"
                 rev.update_record()
 
 
@@ -56,7 +56,7 @@ def reopen_review(auth, db, ids):
 def mkSuggestReviewToButton(auth, db, row, recommId, myGoal):
     if myGoal == "4review":
         anchor = A(
-            SPAN(current.T("Add"), _class="buttontext btn btn-default pci-recommender"),
+            SPAN(current.T("Prepare an invitation"), _class="buttontext btn btn-default pci-recommender"),
             _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=row["id"]), user_signature=True),
             _class="button",
         )

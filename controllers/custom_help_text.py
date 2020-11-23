@@ -65,10 +65,11 @@ def mail_templates():
     db.mail_templates.subject.readable = False
     db.mail_templates.subject.writable = True
 
-    db.mail_templates.contents.represent = lambda text, row: DIV(P(B(row.subject)), DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300"))
+    db.mail_templates.contents.represent = lambda text, row: DIV(P(B(row.subject or "")), DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300"))
 
     db.mail_templates._id.readable = False
     db.mail_templates._id.writable = False
+
 
     grid = SQLFORM.grid(
         db.mail_templates,
@@ -78,7 +79,7 @@ def mail_templates():
         deletable=auth.has_membership(role="developper"),
         paginate=100,
         maxtextlength=4096,
-        csv=csv,
+        csv=False,
         exportclasses=expClass,
         orderby=db.mail_templates.hashtag,
     )

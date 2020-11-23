@@ -263,18 +263,18 @@ def user():
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
     if CRYPT()(form.vars.password_confirmation)[0] != db.auth_user[auth.user_id].password:
-        form.errors.password_confirmation = "Password confirmation error"
+        form.errors.password_confirmation = "Incorrect Password"
 
     mail_already_used = db(db.auth_user.email == form.vars.new_email).count() >= 1
     if mail_already_used:
-        form.errors.new_email = "Email already used"
+        form.errors.new_email = "E-mail already used"
 
     recover_mail_already_used = db(db.auth_user.recover_email == form.vars.new_email).count() >= 1
     if recover_mail_already_used:
-        form.errors.new_email = "Email already used"
+        form.errors.new_email = "E-mail already used"
 
     if form.vars.new_email != form.vars.email_confirmation:
-        form.errors.email_confirmation = "New email and its confirmation does not match"
+        form.errors.email_confirmation = "New e-mail and its confirmation does not match"
 
 
 @auth.requires_login()
@@ -283,24 +283,24 @@ def change_email():
     print("init form")
     form = FORM(
         DIV(
-            LABEL(T("Password confirmation"), _class="control-label col-sm-3"),
+            LABEL(T("Password"), _class="control-label col-sm-3"),
             DIV(INPUT(_name="password_confirmation", _type="password", _class="form-control"), _class="col-sm-9"),
             SPAN(_class="help-block"),
             _class="form-group",
         ),
         DIV(
-            LABEL(T("New email address"), _class="control-label col-sm-3"),
+            LABEL(T("New e-mail address"), _class="control-label col-sm-3"),
             DIV(INPUT(_name="new_email", _class="form-control"), _class="col-sm-9"),
             SPAN(_class="help-block"),
             _class="form-group",
         ),
         DIV(
-            LABEL(T("New email address confirmation"), _class="control-label col-sm-3"),
+            LABEL(T("New e-mail address confirmation"), _class="control-label col-sm-3"),
             DIV(INPUT(_name="email_confirmation", _class="form-control"), _class="col-sm-9"),
             SPAN(_class="help-block"),
             _class="form-group",
         ),
-        DIV(INPUT(_value=T("Change email address"), _type="submit", _class="btn btn-success",), _class="form-group"),
+        DIV(INPUT(_value=T("Change e-mail address"), _type="submit", _class="btn btn-success",), _class="form-group"),
     )
 
     if form.process(onvalidation=change_mail_form_processing).accepted:
@@ -340,7 +340,7 @@ def recover_mail():
         user.registration_key = None
 
         user.update_record()
-        session.flash = T("Email succefully recovered")
+        session.flash = T("E-mail succefully recovered")
         redirect(URL("default", "index"))
 
 

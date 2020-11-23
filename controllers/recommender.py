@@ -201,7 +201,7 @@ def search_reviewers():
         Field("score", type="double", label=T("Score"), default=0),
         Field("first_name", type="string", length=128, label=T("First name")),
         Field("last_name", type="string", length=128, label=T("Last name")),
-        Field("email", type="string", length=512, label=T("email")),
+        Field("email", type="string", length=512, label=T("e-mail")),
         Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
         Field("city", type="string", label=T("City")),
         Field("country", type="string", label=T("Country")),
@@ -886,7 +886,7 @@ def reviews():
         grid = SQLFORM.grid(
             query,
             details=True,
-            editable=lambda row: auth.has_membership(role="manager") or (row.review_state != "Completed" and row.reviewer_id is None),
+            editable=lambda row: auth.has_membership(role="manager") or (row.review_state != "Review completed" and row.reviewer_id is None),
             deletable=auth.has_membership(role="manager"),
             create=auth.has_membership(role="manager"),
             searchable=False,
@@ -984,7 +984,7 @@ def reviewers():
         longname = myconf.take("app.longname")
         myUpperBtn = DIV(
             A(
-                SPAN(current.T("Choose a reviewer among the %s recommenders") % (longname), _class="btn btn-success"),
+                SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
                 _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", exclude=excludeList)),
             ),
             A(
@@ -1027,6 +1027,106 @@ def cancel_email_to_registered_reviewer():
     db(db.t_reviews.id == reviewId).delete()
     # session.flash = T('Reviewer "%s" cancelled') % (common_small_html.mkUser(auth, db, review.reviewer_id).flatten())
     redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
+
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def send_review_cancellation():
+    response.view = "default/myLayout.html"
+
+    reviewId = request.vars["reviewId"]
+    if reviewId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    review = db.t_reviews[reviewId]
+    if review is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    recomm = db.t_recommendations[review.recommendation_id]
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    art = db.t_articles[recomm.article_id]
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    reviewer = db.auth_user[review.reviewer_id]
+    if reviewer is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+
+    sender = None
+    if auth.user_id == recomm.recommender_id:
+        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif auth.has_membership(role="manager"):
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    
+    description = myconf.take("app.description")
+    longname = myconf.take("app.longname")
+    appName = myconf.take("app.name")
+    contact = myconf.take("contacts.managers")
+    art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    art_title = art.title
+    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    # art_doi = (recomm.doi or art.doi)
+    linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+    if (review.review_state or "Awaiting response") == "Awaiting response":
+        hashtag_template = "#DefaultReviewCancellation"
+        mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
+        default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+        default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    else:
+        pass
+    replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
+    form = SQLFORM.factory(
+        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
+        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
+        Field(
+            "reviewer_email",
+            label=T("Reviewer email address"),
+            type="string",
+            length=250,
+            default=reviewer.email,
+            writable=False,
+            requires=IS_EMAIL(error_message=T("invalid email!")),
+        ),
+        Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
+        Field("message", label=T("Message"), type="text", default=default_message, required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Send email")
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
+    if form.process().accepted:
+        try:
+            review.update_record(review_state="Cancelled")
+            emailing.send_reviewer_invitation(
+                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+            )
+        except Exception as e:
+            session.flash = (session.flash or "") + T("Email failed.")
+            raise e
+        if auth.user_id == recomm.recommender_id:
+            redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
+        else:
+            redirect(URL(c="manager", f="all_recommendations"))
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        myBackButton=common_small_html.mkBackButton(),
+    )
+
+
 
 
 ######################################################################################################################################################################
@@ -1096,36 +1196,30 @@ def email_for_registered_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field(
             "cc",
             label=T("CC"),
             type="string",
             length=250,
-            requires=IS_EMAIL(error_message=T("invalid email!")),
+            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
             default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
             writable=False,
         ),
         Field(
             "reviewer_email",
-            label=T("Reviewer email address"),
+            label=T("Reviewer e-mail address"),
             type="string",
             length=250,
             default=reviewer.email,
             writable=False,
-            requires=IS_EMAIL(error_message=T("invalid email!")),
+            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
         ),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
-    form.element(_type="submit")["_value"] = T("Send email")
+    form.element(_type="submit")["_value"] = T("Send e-mail")
     form.element("textarea[name=message]")["_style"] = "height:500px;"
-    form.append(
-        DIV(
-            A(SPAN(T("Cancel invitation")), _class="btn btn-warning", _href=URL(c="recommender", f="cancel_email_to_registered_reviewer", vars=dict(reviewId=reviewId))),
-            _style="margin-top:16px; text-align:center;",
-        )
-    )
 
     if form.process().accepted:
         try:
@@ -1144,7 +1238,7 @@ def email_for_registered_reviewer():
                 declineLinkTarget,
             )
         except Exception as e:
-            session.flash = (session.flash or "") + T("Email failed.")
+            session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id)))
 
@@ -1213,24 +1307,24 @@ def email_for_new_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field(
             "cc",
             label=T("CC"),
             type="string",
             length=250,
-            requires=IS_EMAIL(error_message=T("invalid email!")),
+            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
             default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
             writable=False,
         ),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
-        Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!"))),
+        Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!"))),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
 
-    form.element(_type="submit")["_value"] = T("Send email")
+    form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
         new_user_id = None
@@ -1267,7 +1361,7 @@ def email_for_new_reviewer():
                 redirect(request.env.http_referer)
 
         if nbExistingReviews > 0:
-            session.flash = T('User "%(reviewer_email)s" have already been invited. Email cancelled.') % (request.vars)
+            session.flash = T('User "%(reviewer_email)s" have already been invited. E-mail cancelled.') % (request.vars)
         else:
             # Create review
             # BUG : managers could invite recommender as reviewer (incoherent status)
@@ -1296,7 +1390,7 @@ def email_for_new_reviewer():
                         declineLinkTarget,
                     )
                 except Exception as e:
-                    session.flash = (session.flash or "") + T("Email failed.")
+                    session.flash = (session.flash or "") + T("E-mail failed.")
                     pass
             else:
                 try:
@@ -1316,7 +1410,7 @@ def email_for_new_reviewer():
                         linkTarget,
                     )
                 except Exception as e:
-                    session.flash = (session.flash or "") + T("Email failed.")
+                    session.flash = (session.flash or "") + T("E-mail failed.")
                     pass
 
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
@@ -1713,7 +1807,7 @@ def my_co_recommendations():
 # rev = db.t_reviews[revId]
 # myContents = DIV()
 # myContents.append(SPAN(B(T("Reviewer: ")), common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)))
-# myContents.append(H2(T("Emails:")))
+# myContents.append(H2(T("E-mails:")))
 # myContents.append(
 #     DIV(
 #         # WIKI((rev.emailing or '*None yet*'), safe_mode=False)
@@ -1765,6 +1859,7 @@ def review_emails():
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -1834,6 +1929,117 @@ def review_emails():
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def article_reviews_emails():
+    response.view = "default/myLayout.html"
+
+    articleId = request.vars["articleId"]
+    article = db.t_articles[articleId]
+    recommendation = db(db.t_recommendations.article_id == articleId).select().last()
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+
+    if (recommendation.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    
+
+    reviews = db(db.t_reviews.recommendation_id == recommendation.id).select()
+    reviewers = []
+    for review in reviews:
+        reviewer = db.auth_user[review.reviewer_id]
+        if reviewer:
+            reviewers.append(reviewer["email"])
+
+    db.mail_queue.sending_status.represent = lambda text, row: DIV(
+        SPAN(admin_module.makeMailStatusDiv(text)),
+        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+        _class="pci2-flex-column",
+        _style="margin: 5px 10px;",
+    )
+
+    db.mail_queue.id.readable = False
+    db.mail_queue.sending_attempts.readable = False
+
+    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
+    db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
+    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
+    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+
+    db.mail_queue.sending_status.writable = False
+    db.mail_queue.sending_attempts.writable = False
+    db.mail_queue.dest_mail_address.writable = False
+    db.mail_queue.cc_mail_addresses.writable = False
+    db.mail_queue.user_id.writable = False
+    db.mail_queue.mail_template_hashtag.writable = False
+    db.mail_queue.reminder_count.writable = False
+    db.mail_queue.article_id.writable = False
+    db.mail_queue.recommendation_id.writable = False
+
+    db.mail_queue.removed_from_queue.writable = False
+    db.mail_queue.removed_from_queue.readable = False
+
+    if len(request.args) > 2 and request.args[0] == "edit":
+        db.mail_queue.mail_template_hashtag.readable = True
+    else:
+        db.mail_queue.mail_template_hashtag.readable = False
+
+    links = [
+        dict(
+            header="",
+            body=lambda row: A(
+                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
+                _class="btn btn-default",
+                _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
+            )
+            if row.sending_status == "pending"
+            else "",
+        )
+    ]
+
+    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+
+    grid = SQLFORM.grid(
+        db((db.mail_queue.article_id == articleId) & (db.mail_queue.dest_mail_address.belongs(reviewers))),
+        details=True,
+        editable=lambda row: (row.sending_status == "pending"),
+        deletable=lambda row: (row.sending_status == "pending"),
+        create=False,
+        searchable=True,
+        csv=False,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.mail_queue.id,
+        onvalidation=mail_form_processing,
+        fields=[
+            db.mail_queue.sending_status,
+            db.mail_queue.removed_from_queue,
+            db.mail_queue.sending_date,
+            db.mail_queue.sending_attempts,
+            db.mail_queue.dest_mail_address,
+            # db.mail_queue.user_id,
+            db.mail_queue.mail_subject,
+            db.mail_queue.mail_template_hashtag,
+            db.mail_queue.article_id,
+        ],
+        links=links,
+        links_placement="left",
+        _class="web2py_grid action-button-absolute",
+    )
+
+    return dict(
+        titleIcon="send",
+        pageTitle=getTitle(request, auth, db, "#ArticleReviewsEmailsTitle"),
+        customText=getText(request, auth, db, "#ArticleReviewsEmailsText"),
+        pageHelp=getHelp(request, auth, db, "#ArticleReviewsEmails"),
+        myBackButton=common_small_html.mkBackButton(),
+        grid=grid,
+        myFinalScript=myScript,
+        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+    )
 
 def mail_form_processing(form):
     form.errors = True

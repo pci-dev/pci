@@ -45,7 +45,7 @@ def reviewsOfCancelled(auth, db, art):
     nbReviews = db(
         (db.t_recommendations.article_id == art.id)
         & (db.t_reviews.recommendation_id == db.t_recommendations.id)
-        & (db.t_reviews.review_state.belongs("Under consideration", "Completed"))
+        & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count(distinct=db.t_reviews.id)
     if art.status == "Cancelled" and nbReviews > 0:
 
@@ -71,7 +71,7 @@ def reviewsOfCancelled(auth, db, art):
             myReviews = []
             headerDone = False
             # Check for reviews
-            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=db.t_reviews.id)
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
             for review in reviews:
                 if with_reviews:
                     # display the review
@@ -331,7 +331,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         # suggested or any recommender's button for recommendation consideration
         btsAccDec = [
             A(
-                SPAN(current.T("Click here before starting the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
+                SPAN(current.T("Yes, I would like to handle the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
                 _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
                 _class="button",
             ),
@@ -341,7 +341,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
                 A(
-                    SPAN(current.T("No, thanks, I decline this suggestion"), _class="buttontext btn btn-warning pci-recommender"),
+                    SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
                     _href=URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
                     _class="button",
                 ),
@@ -517,11 +517,11 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 orderby=db.t_reviews.id
             )
             for review in reviews:
-                if review.review_state == "Under consideration":
+                if review.review_state == "Awaiting review":
                     existOngoingReview = True
-                if review.review_state == "Completed":
+                if review.review_state == "Review completed":
                     nbCompleted += 1
-                if review.review_state == "Under consideration":
+                if review.review_state == "Awaiting review":
                     nbOnGoing += 1
             # If the recommender is also a reviewer, did he/she already completed his/her review?
             recommReviewFilledOrNull = False  # Let's say no by default
@@ -533,7 +533,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             else:
                 # The recommender is also a reviewer
                 for recommenderOwnReviewState in recommenderOwnReviewStates:
-                    if recommenderOwnReviewState.review_state == "Completed":
+                    if recommenderOwnReviewState.review_state == "Review completed":
                         recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
             for review in reviews:
@@ -544,7 +544,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
                     hideOngoingReview = False
                 # ...  the reviewer himself once accepted ...
-                if (review.reviewer_id == auth.user_id) and (review.review_state in ("Under consideration", "Completed")):
+                if (review.reviewer_id == auth.user_id) and (review.review_state in ("Under consideration", "Review completed")):
                     hideOngoingReview = False
                 # ...  a reviewer himself once the decision made up ...
                 if (
@@ -572,29 +572,29 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     and not (printable)
                     and not (quiet)
                 ):
-                    if review.review_state == "Pending":
+                    if review.review_state == "Awaiting response":
                         # reviewer's buttons in order to accept/decline pending review
                         myReviews.append(
                             DIV(
                                 A(
-                                    SPAN(current.T("Yes, I agree to review this preprint"), _class="buttontext btn btn-main-action pci-reviewer"),
+                                    SPAN(current.T("Yes, I would like to review this preprint"), _class="buttontext btn btn-main-action pci-reviewer"),
                                     _href=URL(c="user", f="accept_new_review", vars=dict(reviewId=review.id), user_signature=True),
                                     _class="button",
                                 ),
                                 A(
-                                    SPAN(current.T("No thanks, I'd rather not"), _class="buttontext btn btn-default pci-reviewer"),
+                                    SPAN(current.T("No thanks, I would rather not"), _class="buttontext btn btn-default pci-reviewer"),
                                     _href=URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), user_signature=True),
                                     _class="button",
                                 ),
                                 _class="pci-opinionform",
                             )
                         )
-                elif review.review_state == "Pending":
+                elif review.review_state == "Awaiting response":
                     hideOngoingReview = True
 
                 if (
                     (review.reviewer_id == auth.user_id)
-                    and (review.review_state == "Under consideration")
+                    and (review.review_state == "Awaiting review")
                     and (art.status == "Under consideration")
                     and not (printable)
                     and not (quiet)

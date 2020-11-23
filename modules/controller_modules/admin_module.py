@@ -325,7 +325,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
                 history += x + "\n\n\n"
 
             # Check for reviews
-            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Completed")).select(orderby=~db.t_reviews.id)
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=~db.t_reviews.id)
             if len(reviews) > 0:
                 history += "\\subsubsection*{Reviews}\n"
                 history += "\\begin{itemize}\n"
@@ -647,7 +647,7 @@ def mkRecommendersAffiliations(auth, db, recomm):
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
         & (db.t_reviews.anonymously == False)
-        & (db.t_reviews.review_state == "Completed")
+        & (db.t_reviews.review_state == "Review completed")
     ).select(db.t_reviews.reviewer_id, distinct=True)
     # if reviewsQy is not None:
     # nR = len(reviewsQy)
@@ -665,7 +665,7 @@ def mkRecommendersAffiliations(auth, db, recomm):
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
         & (db.t_reviews.anonymously == True)
-        & (db.t_reviews.review_state == "Completed")
+        & (db.t_reviews.review_state == "Review completed")
     ).select(db.t_reviews.reviewer_id, distinct=True)
     # if reviewsQyAnon is not None:
     # nRA = len(reviewsQyAnon)

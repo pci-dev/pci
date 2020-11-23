@@ -87,7 +87,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
     nbReviews = db(
         (db.t_recommendations.article_id == article.id)
         & (db.t_reviews.recommendation_id == db.t_recommendations.id)
-        & (db.t_reviews.review_state.belongs("Under consideration", "Completed"))
+        & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
         track = DIV(_class="pci-trackItem")

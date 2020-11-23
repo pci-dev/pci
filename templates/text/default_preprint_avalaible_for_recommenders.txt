@@ -8,7 +8,7 @@ We would like to inform you that the following preprint has recently been submit
 
 You can obtain information about this submission and accept or decline to handle the evaluation of the preprint by following this link:
 %(linkTarget)s 
-or by going to the %(longname)s website, logging in, and going to 'Requests for input —> Consider preprint submissions' in the top menu.
+or by going to the %(longname)s website, logging in, and going to 'Requests for input —> Preprint(s) in need of a recommender' in the top menu.
 
 The role of a recommender for %(longname)s is very similar to that of a journal editor (finding reviewers, collecting reviews, taking editorial decisions based on reviews), and may lead to the recommendation of the preprint after several rounds of reviews. The evaluation forms the basis of the decision to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint. A preprint recommended by %(longname)s is a complete article that may be used and cited like the ‘classic’ articles published in peer-reviewed journals.
 

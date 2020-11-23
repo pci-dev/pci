@@ -122,9 +122,9 @@ def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
 ######################################################################################################################################################################
 def createMailReport(mail_resu, destPerson, reports):
     if mail_resu:
-        reports.append(dict(error=False, message="email sent to %s" % destPerson))
+        reports.append(dict(error=False, message="e-mail sent to %s" % destPerson))
     else:
-        reports.append(dict(error=True, message="email NOT SENT to %s" % destPerson))
+        reports.append(dict(error=True, message="e-mail NOT SENT to %s" % destPerson))
     return reports
 
 
@@ -180,8 +180,13 @@ def insertMailInQueue(
 ):
     mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, sugg_recommender_buttons=sugg_recommender_buttons)
 
+    ccAddresses = None
+    if "ccAddresses" in mail_vars:
+        ccAddresses = mail_vars["ccAddresses"]
+        
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
+        cc_mail_addresses=ccAddresses,
         mail_subject=mail["subject"],
         mail_content=mail["content"],
         user_id=auth.user_id,
@@ -201,11 +206,16 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 
         mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
+        
+        ccAddresses = None
+        if "ccAddresses" in mail_vars:
+            ccAddresses = mail_vars["ccAddresses"]
 
         db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
             dest_mail_address=mail_vars["destAddress"],
+            cc_mail_addresses=ccAddresses,
             mail_subject=mail["subject"],
             mail_content=mail["content"],
             user_id=auth.user_id,
@@ -328,6 +338,16 @@ def replaceMailVars(text, mail_vars):
 
     for var in mail_vars_list:
         if text.find("{{" + var + "}}") > -1:
-            text = text.replace("{{" + var + "}}", mail_vars[var])
+            if isinstance(mail_vars[var], str):
+                replacement_var = mail_vars[var]
+            elif isinstance(mail_vars[var], int):
+                replacement_var = str(mail_vars[var])
+            else:
+                try:
+                    replacement_var = mail_vars[var].flatten()
+                except:
+                    replacement_var = str(mail_vars[var])
+
+            text = text.replace("{{" + var + "}}", replacement_var)
 
     return text

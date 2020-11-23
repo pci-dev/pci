@@ -350,7 +350,10 @@ auth.settings.extra_fields["auth_user"] = [
         label=DIV(
             SPAN(T("Do you wish to receive the PCI newsletter")) + SPAN(" * ", _style="color:red;"),
             BR(),
-            SPAN("if you are interested to act as recommender and/or as reviewer, we suggest you to receive the newletter once a week", _style="font-weight: normal; font-style: italic; color: #333"),
+            SPAN(
+                "if you are interested to act as recommender and/or as reviewer, we suggest you to receive the newletter once a week",
+                _style="font-weight: normal; font-style: italic; color: #333",
+            ),
         ),
         requires=IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly"), zero=None),
         default="Never",
@@ -371,8 +374,8 @@ auth.settings.extra_fields["auth_user"] = [
             ),
         ),
     ),
-    Field("recover_email", label=T("Recover email address"), unique=True, type="string", writable=False, readable=False),
-    Field("recover_email_key", label=T("Recover email key"), unique=True, type="string", writable=False, readable=False),
+    Field("recover_email", label=T("Recover e-mail address"), unique=True, type="string", writable=False, readable=False),
+    Field("recover_email_key", label=T("Recover e-mail key"), unique=True, type="string", writable=False, readable=False),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user._singular = T("User")
@@ -417,7 +420,7 @@ if myconf.get("captcha.private"):
     auth.settings.register_captcha = None
     auth.settings.retrieve_username_captcha = False
     auth.settings.retrieve_password_captcha = None
-auth.messages.email_sent = "A request of confirmation has been sent to your email address. Please confirm you email address before trying to login."
+auth.messages.email_sent = "A request of confirmation has been sent to your e-mail address. Please confirm you e-mail address before trying to login."
 auth.messages.verify_email_subject = "%s: validate your registration" % myconf.get("app.longname")
 auth.messages.verify_email = (
     """
@@ -516,12 +519,12 @@ for sa in db(db.t_status_article).select():
 db.define_table(
     "t_articles",
     Field("id", type="id"),
-    Field("anonymous_submission", type="boolean", label=T("I wish an anonymous submission (submitter concealed to reviewers)"), default=False),
+    Field("anonymous_submission", type="boolean", label=T("I wish an anonymous submission (submitter concealed from reviewers)"), default=False),
     Field("title", type="string", length=1024, label=T("Title"), requires=IS_NOT_EMPTY()),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=IS_NOT_EMPTY(), represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)")),
-    Field("doi", type="string", label=T("Manuscript most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text)),
-    Field("ms_version", type="string", length=1024, label=T("Manuscript most recent version"), default=""),
+    Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text)),
+    Field("ms_version", type="string", length=1024, label=T("Most recent version of the manuscript"), default=""),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
@@ -547,7 +550,7 @@ db.define_table(
         writable=False,
         readable=False,
         comment=T(
-            "Free text. Indicate in the box above whatever you want. Just be aware that after validation of the submission by the managing board every recommender, invited reviewers, and reviewers will be able to read the cover letter."
+            "You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter."
         ),
     ),
     Field("i_am_an_author", type="boolean", label=T("I am an author of the article and I am acting on behalf of all the authors")),
@@ -688,6 +691,7 @@ def deltaStatus(s, f):
 def newArticle(s, articleId):
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
+        emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
     return None
 
 
@@ -794,39 +798,39 @@ db.define_table(
 )
 
 
-db.define_table(
-    "t_resources",
-    Field("id", type="id", readable=False, writable=False),
-    Field("resource_rank", type="integer", label=T("Rank")),
-    Field("resource_category", type="string", length=250, label=T("Category")),
-    Field("resource_name", type="string", length=512, label=T("Name")),
-    Field("resource_description", type="text", label=T("Description")),
-    # Field('resource_url', type='string', length=512, label=T('URL'), requires=IS_EMPTY_OR(IS_URL())),
-    Field(
-        "resource_logo",
-        type="upload",
-        uploadfield="resource_logo_data",
-        label=T("Logo"),
-        comment=T("Small image (jpg, png, gif) as an illustration"),
-        requires=IS_EMPTY_OR(IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
-    ),
-    Field("resource_logo_data", type="blob", readable=False),
-    Field(
-        "resource_document",
-        type="upload",
-        uploadfield="resource_document_data",
-        comment=T("The document itself"),
-        label=T("Document"),
-        requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
-    ),
-    Field("resource_document_data", type="blob", readable=False),
-    singular=T("Resource"),
-    plural=T("Resources"),
-    migrate=False,
-)
-db.t_resources.resource_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
-db.t_resources._after_insert.append(lambda f, i: insResourceThumb(f, i))
-db.t_resources._after_update.append(lambda s, f: updResourceThumb(s, f))
+# db.define_table(
+#     "t_resources",
+#     Field("id", type="id", readable=False, writable=False),
+#     Field("resource_rank", type="integer", label=T("Rank")),
+#     Field("resource_category", type="string", length=250, label=T("Category")),
+#     Field("resource_name", type="string", length=512, label=T("Name")),
+#     Field("resource_description", type="text", label=T("Description")),
+#     # Field('resource_url', type='string', length=512, label=T('URL'), requires=IS_EMPTY_OR(IS_URL())),
+#     Field(
+#         "resource_logo",
+#         type="upload",
+#         uploadfield="resource_logo_data",
+#         label=T("Logo"),
+#         comment=T("Small image (jpg, png, gif) as an illustration"),
+#         requires=IS_EMPTY_OR(IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
+#     ),
+#     Field("resource_logo_data", type="blob", readable=False),
+#     Field(
+#         "resource_document",
+#         type="upload",
+#         uploadfield="resource_document_data",
+#         comment=T("The document itself"),
+#         label=T("Document"),
+#         requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+#     ),
+#     Field("resource_document_data", type="blob", readable=False),
+#     singular=T("Resource"),
+#     plural=T("Resources"),
+#     migrate=False,
+# )
+# db.t_resources.resource_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
+# db.t_resources._after_insert.append(lambda f, i: insResourceThumb(f, i))
+# db.t_resources._after_update.append(lambda s, f: updResourceThumb(s, f))
 
 
 def insResourceThumb(f, i):
@@ -840,20 +844,20 @@ def updResourceThumb(s, f):
     return None
 
 
-db.define_table(
-    "t_supports",
-    Field("id", type="id", readable=False, writable=False),
-    Field("support_rank", type="integer", label=T("Rank")),
-    Field("support_category", type="string", length=250, label=T("Category")),
-    Field("support_name", type="string", length=512, label=T("Name")),
-    Field("support_url", type="string", length=512, label=T("URL"), requires=IS_EMPTY_OR(IS_URL())),
-    Field("support_logo", type="upload", uploadfield="support_logo_data", label=T("Logo"), requires=IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
-    Field("support_logo_data", type="blob", readable=False),
-    singular=T("Support"),
-    plural=T("Supports"),
-    migrate=False,
-)
-db.t_supports.support_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
+# db.define_table(
+#     "t_supports",
+#     Field("id", type="id", readable=False, writable=False),
+#     Field("support_rank", type="integer", label=T("Rank")),
+#     Field("support_category", type="string", length=250, label=T("Category")),
+#     Field("support_name", type="string", length=512, label=T("Name")),
+#     Field("support_url", type="string", length=512, label=T("URL"), requires=IS_EMPTY_OR(IS_URL())),
+#     Field("support_logo", type="upload", uploadfield="support_logo_data", label=T("Logo"), requires=IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
+#     Field("support_logo_data", type="blob", readable=False),
+#     singular=T("Support"),
+#     plural=T("Supports"),
+#     migrate=False,
+# )
+# db.t_supports.support_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
 
 
 db.define_table(
@@ -868,7 +872,7 @@ db.define_table(
         type="string",
         length=50,
         label=T("Review status"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Pending", "Under consideration", "Ask to review", "Declined by recommender", "Declined", "Completed", "Cancelled"))),
+        requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Review completed", "Cancelled"))),
         writable=False,
     ),
     Field("review", type="text", length=2097152, label=T("Review as text")),
@@ -894,11 +898,9 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 
 
 def reviewSuggested(s, row):
-    if row["review_state"] == "Ask to review":
+    if row["review_state"] == "Willing to review":
         emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
     else:
-        # create reminder
-        emailing.create_reminder_for_reviewer_review_invitation(session, auth, db, row["id"])
         # renew reminder
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
         emailing.create_reminder_for_recommender_new_reviewers_needed(session, auth, db, row["recommendation_id"])
@@ -913,34 +915,44 @@ def reviewSuggested(s, row):
 
 def reviewDone(s, f):
     o = s.select().first()
-    if o["review_state"] == "Pending" and f["review_state"] == "Under consideration":
+    if o["review_state"] == "Awaiting response" and f["review_state"] == "Awaiting review":
         emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
         emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
+        emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o["id"])
         # create reminder
         emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
         emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
         emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
         # delete reminder
-        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitation", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationNewUser", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationRegisteredUser", o["id"])
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
 
-    elif o["review_state"] == "Ask to review" and f["review_state"] == "Under consideration":
+    elif o["review_state"] == "Willing to review" and f["review_state"] == "Awaiting review":
         emailing.send_to_reviewer_review_request_accepted(session, auth, db, o["id"], f)
+        emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o["id"])
 
-    elif o["review_state"] == "Ask to review" and f["review_state"] == "Declined by recommender":
+    elif o["review_state"] == "Willing to review" and f["review_state"] == "Declined by recommender":
         emailing.send_to_reviewer_review_request_declined(session, auth, db, o["id"], f)
 
-    elif o["review_state"] == "Completed" and f["review_state"] == "Under consideration":
+    elif o["review_state"] == "Review completed" and f["review_state"] == "Awaiting review":
         emailing.send_to_reviewer_review_reopened(session, auth, db, o["id"], f)
 
-    elif o["review_state"] == "Pending" and f["review_state"] == "Declined":
+    elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined":
         emailing.send_to_recommenders_review_declined(session, auth, db, o["id"])
         # delete reminder
-        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitation", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationNewUser", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationRegisteredUser", o["id"])
 
-    if o["reviewer_id"] is not None and o["review_state"] == "Under consideration" and f["review_state"] == "Completed":
+    elif o["review_state"] == "Awaiting response" and f["review_state"] == "Cancelled":
+        # delete reminder
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationNewUser", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationRegisteredUser", o["id"])
+
+    if o["reviewer_id"] is not None and o["review_state"] == "Awaiting review" and f["review_state"] == "Review completed":
         emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
         emailing.send_to_thank_reviewer_done(session, auth, db, o["id"], f)  # args: session, auth, db, reviewId, newForm
+        emailing.send_to_admin_all_reviews_completed(session, auth, db, o["id"])
         # create reminder
         emailing.create_reminder_for_recommender_decision_soon_due(session, auth, db, o["id"])
         emailing.create_reminder_for_recommender_decision_due(session, auth, db, o["id"])
@@ -957,7 +969,7 @@ db.define_table(
     Field("id", type="id"),
     Field("article_id", type="reference t_articles", ondelete="RESTRICT", label=T("Article")),
     Field("suggested_recommender_id", type="reference auth_user", ondelete="RESTRICT", label=T("Suggested recommender")),
-    Field("email_sent", type="boolean", default=False, label=T("Email sent")),
+    Field("email_sent", type="boolean", default=False, label=T("E-mail sent")),
     Field("declined", type="boolean", default=False, label=T("Declined")),
     Field("emailing", type="text", length=2097152, label=T("Emails history"), readable=False, writable=False),
     singular=T("Suggested recommender"),
@@ -1055,7 +1067,8 @@ db.define_table(
     Field("sending_status", type="string", length=128, label=T("Sending status"), default="in queue"),
     Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
-    Field("dest_mail_address", type="string", length=256, label=T("Dest email")),
+    Field("dest_mail_address", type="string", length=256, label=T("Dest e-mail")),
+    Field("cc_mail_addresses", type="list:string", label=T("CC e-mails")),
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
     Field("user_id", type="reference auth_user", ondelete="CASCADE", label=T("Sender")),

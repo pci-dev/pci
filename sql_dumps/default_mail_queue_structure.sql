@@ -5,6 +5,7 @@ CREATE TABLE "mail_queue"(
     "sending_attempts" INTEGER,
     "sending_date" TIMESTAMP,
     "dest_mail_address" VARCHAR(256),
+    "cc_mail_addresses" VARCHAR(1024),
     "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE,
     "article_id" INTEGER REFERENCES "t_articles" ("id") ON DELETE CASCADE,
     "recommendation_id" INTEGER REFERENCES "t_recommendations" ("id") ON DELETE CASCADE,
@@ -13,3 +14,5 @@ CREATE TABLE "mail_queue"(
     "mail_template_hashtag" VARCHAR(128),
     "reminder_count" INTEGER
 );
+
+-- ALTER TABLE "public"."mail_queue" ADD COLUMN "cc_mail_addresses" character varying(1024);

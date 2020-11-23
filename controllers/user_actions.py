@@ -151,7 +151,7 @@ def do_accept_new_review():
         raise HTTP(404, "404: " + T("ERROR: Review unavailable"))
     if rev.reviewer_id != auth.user_id:
         raise HTTP(403, "403: " + T("ERROR: Forbidden access"))
-    rev.review_state = "Under consideration"
+    rev.review_state = "Awaiting review"
     rev.no_conflict_of_interest = True
     rev.acceptation_timestamp = datetime.datetime.now()
     rev.update_record()
@@ -174,7 +174,7 @@ def decline_new_review():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="my_reviews"))
 
-    if rev["review_state"] in ["Declined", "Completed", "Cancelled"]:
+    if rev["review_state"] in ["Declined", "Review completed", "Cancelled"]:
         recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
         session.flash = T("Review state has been changed")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
@@ -228,7 +228,7 @@ def do_ask_to_review():
     reviewerId = request.vars.reviewerId
 
     revId = db.t_reviews.update_or_insert(
-        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Ask to review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
+        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Willing to review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
     )
 
     # email to recommender sent at database level
@@ -247,7 +247,7 @@ def review_completed():
     if rev.reviewer_id != auth.user_id:
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="my_reviews"))
-    rev.review_state = "Completed"
+    rev.review_state = "Review completed"
     rev.update_record()
     # email to recommender sent at database level
     redirect(URL(c="user", f="my_reviews"))

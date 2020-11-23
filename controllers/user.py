@@ -126,7 +126,7 @@ def search_recommenders():
             Field("score", type="double", label=T("Score"), default=0),
             Field("first_name", type="string", length=128, label=T("First name")),
             Field("last_name", type="string", length=128, label=T("Last name")),
-            Field("email", type="string", length=512, label=T("email")),
+            Field("email", type="string", length=512, label=T("e-mail")),
             Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
             Field("city", type="string", label=T("City"), represent=lambda t, r: t if t else ""),
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
@@ -579,7 +579,7 @@ def my_reviews():
     if pendingOnly:
         query = (
             (db.t_reviews.reviewer_id == auth.user_id)
-            & (db.t_reviews.review_state == "Pending")
+            & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
             & (db.t_articles.status == "Under consideration")
@@ -590,7 +590,7 @@ def my_reviews():
     else:
         query = (
             (db.t_reviews.reviewer_id == auth.user_id)
-            & (db.t_reviews.review_state != "Pending")
+            & (db.t_reviews.review_state != "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
         )
@@ -635,7 +635,7 @@ def my_reviews():
                         ),
                         _class="text-center",
                     )
-                    if row["review_state"] == "Under consideration"
+                    if row["review_state"] == "Awaiting review"
                     else ""
                 )
                 or "",
@@ -662,7 +662,7 @@ def my_reviews():
                 _class="button",
                 _title=current.T("View and/or edit review"),
             )
-            if row.t_reviews.review_state in ("Pending", "Under consideration", "Completed", "Ask to review")
+            if row.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed", "Willing to review")
             else "",
         ),
     ]
@@ -723,7 +723,7 @@ def accept_new_review():
     if rev["reviewer_id"] != auth.user_id:
         raise HTTP(403, "403: " + T("Forbidden"))
 
-    if rev["review_state"] in ["Declined", "Completed", "Cancelled"]:
+    if rev["review_state"] in ["Declined", "Review completed", "Cancelled"]:
         recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
         session.flash = T("Review state has been changed")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
@@ -840,7 +840,7 @@ def edit_review():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     art = db.t_articles[recomm.article_id]
-    if review.reviewer_id != auth.user_id or review.review_state != "Under consideration" or art.status != "Under consideration":
+    if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:
@@ -1042,7 +1042,7 @@ def articles_awaiting_reviewers():
         dict(
             header="",
             body=lambda row: A(
-                SPAN(current.T("Ask to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
+                SPAN(current.T("Willing to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
                 _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
                 _class="button",
                 _title=current.T("View and/or edit article"),

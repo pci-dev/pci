@@ -155,69 +155,6 @@ def thanks_to_reviewers():
 
 
 ######################################################################################################################################################################
-def supports():
-    response.view = "default/info.html"
-
-    supports = db(db.t_supports).select(
-        db.t_supports.support_name, db.t_supports.support_url, db.t_supports.support_logo, db.t_supports.support_category, orderby=db.t_supports.support_rank
-    )
-    myTable = []
-    myCategory = ""
-    for support in supports:
-        if (support.support_category or "") != myCategory:
-            myCategory = support.support_category or ""
-            myTable.append(TR(TD(H1(myCategory)), TD()))
-        myRow = TR(
-            TD(A(support.support_name or "", _target="blank", _href=support.support_url) if support.support_url else SPAN(support.support_name)),
-            TD(IMG(_src=URL("default", "download", args=support.support_logo), _width=120) if (support.support_logo is not None and support.support_logo != "") else ("")),
-        )
-        myTable.append(myRow)
-    return dict(
-        pageTitle=getTitle(request, auth, db, "#SupportsTitle"),
-        # customText=getText(request, auth, db, '#SupportsInfo'),
-        customText=TABLE(myTable, _class="pci-supports"),
-        shareable=True,
-        currentUrl=URL(c="about", f="supports", host=host, scheme=scheme, port=port),
-    )
-
-
-######################################################################################################################################################################
-def resources():
-    response.view = "default/info.html"
-    resources = db(db.t_resources).select(
-        db.t_resources.resource_name,
-        db.t_resources.resource_description,
-        db.t_resources.resource_logo,
-        db.t_resources.resource_document,
-        db.t_resources.resource_category,
-        orderby=db.t_resources.resource_rank,
-    )
-    myTable = []
-    myCategory = ""
-    for resource in resources:
-        if (resource.resource_category or "") != myCategory:
-            myCategory = resource.resource_category or ""
-            myTable.append(TR(TD(H1(myCategory)), TD()))
-        myRow = TR(
-            TD(SPAN(resource.resource_name)),
-            TD(IMG(_src=URL("default", "download", args=resource.resource_logo), _width=120) if (resource.resource_logo is not None and resource.resource_logo != "") else ("")),
-            TD(SPAN(resource.resource_description)),
-            TD(
-                A(T("Download"), _href=URL("default", "download", args=resource.resource_document))
-                if (resource.resource_document is not None and resource.resource_document != "")
-                else ("")
-            ),
-        )
-        myTable.append(myRow)
-    return dict(
-        pageTitle=getTitle(request, auth, db, "#ResourcesTitle"),
-        customText=TABLE(myTable, _class="pci-resources"),
-        shareable=True,
-        currentUrl=URL(c="about", f="resources", host=host, scheme=scheme, port=port),
-    )
-
-
-######################################################################################################################################################################
 def recommenders():
     myVars = request.vars
     qyKw = ""

@@ -82,7 +82,7 @@ def user_public_page():
                 reviewsQy = db(
                     (db.t_reviews.reviewer_id == userId)
                     & ~(db.t_reviews.anonymously == True)
-                    & (db.t_reviews.review_state == "Completed")
+                    & (db.t_reviews.review_state == "Review completed")
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     # & (db.t_recommendations.recommendation_state == 'Recommended')
                     & (db.t_recommendations.article_id == db.t_articles.id)

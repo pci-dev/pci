@@ -16,7 +16,7 @@ def getReviewsSubTable(auth, db, response, recomm):
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
         db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews._id, orderby=~db.t_reviews.last_change
     )
-    nbUnfinishedReviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Pending", "Under consideration"))).count()
+    nbUnfinishedReviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting response", "Awaiting review"))).count()
     isRecommenderAlsoReviewer = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).count()
 
     allowed_to_see_reviews = True
@@ -35,32 +35,24 @@ def getReviewsSubTable(auth, db, response, recomm):
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )
-            reviewVars["actions"].append(dict(text=current.T("See emails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
+            reviewVars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
     
-            if allowed_to_see_reviews and review.review_state == "Completed":
+            if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
     
             if art.status == "Under consideration" and not (recomm.is_closed):
-                if (review.reviewer_id == auth.user_id) and (review.review_state == "Under consideration"):
+                if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review"):
                     reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
     
-                # if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") in ("Pending", "Under consideration")):
-                #     if review.review_state == "Under consideration":
-                #         btnText = current.T("Prepare an overdue message")
-                #     else:
-                #         btnText = current.T("Prepare a reminder")
-    
-                    # reviewVars["actions"].append(dict(text=btnText, link=URL(c="recommender", f="send_review_reminder", vars=dict(reviewId=review.id))))
-    
-                # if (review.reviewer_id != auth.user_id) and ((review.review_state or "Pending") == "Pending"):
-                #     reviewVars["actions"].append(
-                #         dict(text=current.T("Prepare a cancellation notification"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
-                #     )
+                if (review.reviewer_id != auth.user_id) and ((review.review_state or "Awaiting response") == "Awaiting response"):
+                    reviewVars["actions"].append(
+                        dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
+                    )
     
             reviewList.append(reviewVars)
-            if review.review_state == "Completed":
+            if review.review_state == "Review completed":
                 nbCompleted += 1
-            if review.review_state == "Under consideration":
+            if review.review_state == "Awaiting review":
                 nbOnGoing += 1
 
     showDecisionLink = False
