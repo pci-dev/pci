@@ -311,8 +311,8 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
         for sugg_recommender in suggested_recommenders:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["suggested_recommender_id"])
-            mail_vars["destAddress"] = db.auth_user[sugg_recommender["suggested_recommender_id"]]["auth_user.email"]
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
+            mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
             # TODO: parallel submission
             hashtag_template = "#RecommenderSuggestionNotNeededAnymore"
