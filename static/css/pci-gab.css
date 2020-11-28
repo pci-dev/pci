@@ -272,7 +272,11 @@ div.w2p_flash.alert.custom-disappear {
     rgba(0, 0, 0, 0),
     rgba(239, 243, 247, 255) 15%
   );
-  background-image: -webkit-linear-gradient(left, rgba(239,243,247,0.001) 0%, rgba(239, 243, 247, 255) 15%);
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(239, 243, 247, 0.001) 0%,
+    rgba(239, 243, 247, 255) 15%
+  );
 }
 
 .action-button-absolute
@@ -288,7 +292,11 @@ div.w2p_flash.alert.custom-disappear {
     rgba(0, 0, 0, 0),
     rgba(247, 249, 251, 255) 15%
   );
-  background-image: -webkit-linear-gradient(left,rgba(247, 249, 251,0.001) 0%, rgba(247, 249, 251) 15%);
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(247, 249, 251, 0.001) 0%,
+    rgba(247, 249, 251) 15%
+  );
 }
 
 .tox-tinymce {
@@ -320,7 +328,7 @@ div.w2p_flash.alert.custom-disappear {
   height: 100%;
   width: 100%;
   background: linear-gradient(transparent, gray);
-  background-image: -webkit-linear-gradient(rgba(239,243,247,0.001), gray);
+  background-image: -webkit-linear-gradient(rgba(239, 243, 247, 0.001), gray);
   pointer-events: none;
 }
 
@@ -357,12 +365,19 @@ blockquote {
   font-size: inherit;
 }
 
-.danger-text{
+.danger-text {
   color: #cc0e0e;
 }
 
-.success-text{
+.success-text {
   color: #089108;
+}
+
+td .ellipsis-over-350 {
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1200px) {
@@ -383,6 +398,32 @@ blockquote {
     padding-right: 0px;
   }
 }
+
+.icon-rotating{
+  -webkit-animation: rotating 2s linear infinite;
+  -moz-animation: rotating 2s linear infinite;
+  -ms-animation: rotating 2s linear infinite;
+  -o-animation: rotating 2s linear infinite;
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
 
 @keyframes animOpacity {
   from {

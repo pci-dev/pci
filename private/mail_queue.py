@@ -2,8 +2,12 @@
 import os
 from datetime import datetime, timedelta
 import time
-
 from gluon.contrib.appconfig import AppConfig
+
+try:
+    from systemd import journal
+except:
+    print("no systemd journal")
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.take("config.mail_delay")) or 1.5  # in seconds
@@ -54,9 +58,14 @@ def getMailsInQueue():
 
 
 def tryToSendMail(mail_item):
-    if mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content):
+    try:
+        mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
         isSent = True
-    else:
+    except Exception as err:
+        try:
+            journal.write(err)
+        except:
+            print(err)
         isSent = False
 
     if mail_item.sending_status == "pending":

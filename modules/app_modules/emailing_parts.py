@@ -63,7 +63,7 @@ def getReviewHTML(auth, db, rewiewId):
     return DIV(
         H4(reviewAuthorAndDate, _style="margin-top: 10px; font-weight: bold; color: #555; margin-bottom: 10px"),
         DIV(
-            WIKI(review.review, safe_mode=False),
+            WIKI((review.review if review.review else ""), safe_mode=False),
             pdfLink,
             _style="border-left: 1px solid #e0e0e0; padding: 5px 15px; margin-bottom: 10px;"
         )

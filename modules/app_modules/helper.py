@@ -12,6 +12,7 @@ appname = myconf.take("app.name")
 shortname = myconf.take("app.name")
 longname = myconf.take("app.longname")
 contact = myconf.take("contacts.managers")
+siteUrl = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
 
 ######################################################################################################################################################################
 def getHelp(request, auth, db, myHashtag, myLanguage="default"):

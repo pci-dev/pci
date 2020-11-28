@@ -207,7 +207,7 @@ def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False,
 
 ######################################################################################################################################################################
 def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False):
-    resu = SPAN("")
+    resu = SPAN("?")
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
         if theUser:
@@ -433,13 +433,8 @@ def mkRepresentArticleLightLinked(auth, db, article_id):
     art = db.t_articles[article_id]
 
     if art:
-        if len(art.title) > 40:
-            art_title = art.title[0:40]
-            art_title += "..."
-        else:
-            art_title = art.title
+        anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
 
-        anchor = DIV(B(art_title), DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), mkDOI(art.doi))
     return anchor
 
 
@@ -755,9 +750,7 @@ def getArticleSubmitter(auth, db, art):
 
 
 ######################################################################################################################################################################
-def mkRecommendersString(
-    auth, db, recomm
-):
+def mkRecommendersString(auth, db, recomm):
     recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
     contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
     n = len(contribsQy)

@@ -908,7 +908,7 @@ def add_suggested_recommender():
                             _title=T("Delete"),
                             _style="margin-left:8px;",
                         )
-                        if (art.status == "Pending")
+                        if (art.status == "Pending" or art.status == "Awaiting consideration") 
                         else "",
                     )
                 )
@@ -1004,8 +1004,14 @@ def delete_temp_user():
         vkey = vkey[1]
     if vkey == "":
         vkey = None
-
+        
     user = db(db.auth_user.reset_password_key == vkey).select().last()
+
+    reviews = db(db.t_reviews.reviewer_id == user.id).select()
+
+    for rev in reviews:
+        rev.review_state = "Declined"
+        rev.update_record()
 
     if vkey is not None and user is not None:
         db(db.auth_user.reset_password_key == vkey).delete()

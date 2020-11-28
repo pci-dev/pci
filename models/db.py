@@ -458,7 +458,7 @@ db.auth_user._before_update.append(lambda s, f: newRegistration(s, f))
 def newRegistration(s, f):
     o = s.select().first()
     # BUG: missing key "registration_key" error occurs when password reset and account not confirmed
-    if o.registration_key != "" and f["registration_key"] == "":
+    if o.registration_key != "" and f["registration_key"] == "" and (o["recover_email_key"] is None or o["recover_email_key"] == ""):
         emailing.send_new_user(session, auth, db, o.id)
         emailing.send_admin_new_user(session, auth, db, o.id)
     return None
@@ -900,6 +900,13 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 def reviewSuggested(s, row):
     if row["review_state"] == "Willing to review":
         emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
+    elif row["review_state"] == "Awaiting review":
+        emailing.send_to_thank_reviewer_acceptation(session, auth, db, row["id"])
+        emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"], manual_insert=True)
+        # create reminder
+        emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, row["id"])
+        emailing.create_reminder_for_reviewer_review_due(session, auth, db, row["id"])
+        emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, row["id"])
     else:
         # renew reminder
         emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
@@ -917,7 +924,7 @@ def reviewDone(s, f):
     o = s.select().first()
     if o["review_state"] == "Awaiting response" and f["review_state"] == "Awaiting review":
         emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
-        emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"], f)
+        emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"])
         emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o["id"])
         # create reminder
         emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
@@ -931,6 +938,10 @@ def reviewDone(s, f):
     elif o["review_state"] == "Willing to review" and f["review_state"] == "Awaiting review":
         emailing.send_to_reviewer_review_request_accepted(session, auth, db, o["id"], f)
         emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o["id"])
+        # create reminder
+        emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
+        emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
+        emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
 
     elif o["review_state"] == "Willing to review" and f["review_state"] == "Declined by recommender":
         emailing.send_to_reviewer_review_request_declined(session, auth, db, o["id"], f)

@@ -21,6 +21,14 @@ for (const id_textarea of ids_array) {
       invalid_styles = "font-size font-family background background-color";
     }
 
+    if (id_textarea == "#help_texts_contents"){
+      style_tools = ["styleselect", "forecolor", "removeformat"]
+    } else {
+      style_tools = ["styleselect"]
+      invalid_styles += "font-color"
+    }
+
+
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
       invalid_styles: invalid_styles,
@@ -29,7 +37,8 @@ for (const id_textarea of ids_array) {
       branding: false,
       menubar: false,
       statusbar: false,
-      plugins: "lists link autoresize media image hr",
+      plugins: "paste lists link autoresize media image hr textcolor",
+      paste_as_text: true,
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,
       toolbar: [
@@ -39,7 +48,7 @@ for (const id_textarea of ids_array) {
         },
         {
           name: "styles",
-          items: ["styleselect"],
+          items: style_tools,
         },
         {
           name: "alignment",

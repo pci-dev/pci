@@ -1172,7 +1172,7 @@ def email_for_registered_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    linkTarget = URL(c="user", f="my_reviews", scheme=scheme, host=host, port=port)
+    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
 
     parallelText = ""
@@ -1372,7 +1372,7 @@ def email_for_new_reviewer():
             if existingUser:
                 try:
                     hashtag_template = "#DefaultReviewInvitationRegisterUser"
-                    linkTarget = URL(c="user", f="my_reviews", scheme=scheme, host=host, port=port)
+                    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
                     declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=reviewId), scheme=scheme, host=host, port=port)
 
                     emailing.send_reviewer_invitation(
@@ -1854,7 +1854,7 @@ def review_emails():
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
@@ -1966,7 +1966,7 @@ def article_reviews_emails():
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False

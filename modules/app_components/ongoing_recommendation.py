@@ -44,7 +44,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     # manager buttons
     allowManageRecomms = False
-    if nbRecomms > 0 and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
+    if (nbRecomms > 0 or art.status == "Under consideration") and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
 
     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
@@ -101,7 +101,11 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
                 _class="button",
             ),
         ]
-        amISugg = db((db.t_suggested_recommenders.article_id == art.id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).count()
+        amISugg = db(
+            (db.t_suggested_recommenders.article_id == art.id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+        ).count()
         if amISugg > 0:
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
@@ -111,7 +115,19 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
                     _class="button",
                 ),
             )
-        myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center", _style="margin:10px"))
+
+        haveDeclined = db(
+            (db.t_suggested_recommenders.article_id == art.id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == True)
+        ).count()
+        buttonDivClass = ""
+        if haveDeclined > 0:
+            buttonDivClass = " pci2-flex-column" 
+            btsAccDec.append(BR(),)
+            btsAccDec.append(B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),)
+
+        myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px"))
 
     if (
         (art.user_id == auth.user_id)
@@ -128,7 +144,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
                     _title=current.T("Click here in order to cancel this submission"),
                 ),
                 _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
-                _id="cancel-submission-button"
+                _id="cancel-submission-button",
             )
         )  # author's button allowing cancellation
 
@@ -619,9 +635,10 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
 
         if len(contributors) >= minimal_number_of_corecommenders:
             sendRecommendationLink = URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id), user_signature=True)
-            if len(recomm.recommendation_comments) > 50:
-                # recommender's button allowing recommendation submission, provided there are co-recommenders
-                isRecommendationTooShort = False
+            if recomm.recommendation_comments is not None:
+                if len(recomm.recommendation_comments) > 50:
+                    # recommender's button allowing recommendation submission, provided there are co-recommenders
+                    isRecommendationTooShort = False
             else:
                 isRecommendationTooShort = True
         else:
@@ -652,7 +669,9 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
         recommendationDoi=SPAN(current.T("Recommendation: "), common_small_html.mkDOI(recomm.recommendation_doi)) if (recomm.recommendation_doi) else "",
         manuscriptDoi=SPAN(current.T("Manuscript: "), common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else "",
-        recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (recomm.recommendation_title or "") != "" else "",
+        recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px")
+        if (recomm.recommendation_title or "") != ""
+        else "",
         recommendationText=recommendationText,
         editRecommendationLink=editRecommendationLink,
         sendRecommendationLink=sendRecommendationLink,

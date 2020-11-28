@@ -70,9 +70,14 @@ python web2py.py
 ```
 
 Run mailing queue :
-
 ```bash
 python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
+```
+
+for mailing queue log in journal ctl:
+```bash
+sudo apt-get install libsystemd-dev
+pip install systemd 
 ```
 
 **Don't forget to replace "<app-name>" in the command above.**

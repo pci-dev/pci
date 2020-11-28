@@ -773,7 +773,7 @@ def suggested_recommender_emails():
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
@@ -869,7 +869,7 @@ def article_emails():
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag))
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False

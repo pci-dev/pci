@@ -11,22 +11,19 @@
     <table>
 
       <thead>
+        <td></td>
         <td><b>Reviewer</b></td>
         <td><b>Status</b></td>
         <td><b>Last change</b></td>
-        <td></td>
       </thead>
 
       <tbody>
         {{for review in reviewList:}}
           <tr>
-            <td>{{=review['reviewer']}}</td>
-            <td>{{=review['status']}}</td>
-            <td>{{=review['lastChange']}}</td>
             <td>
               <!-- action button dropdown -->
               <div class="dropdown">
-                <a style="height: 22px; padding: 0 10px;" class="btn btn-default dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <a style="height: 22px; padding: 0 10px; margin-left: 0;" class="btn btn-default dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   Actions
                   <span class="caret"></span>
                 </a>
@@ -39,6 +36,9 @@
                 </ul>
               </div>
             </td>
+            <td>{{=review['reviewer']}}</td>
+            <td>{{=review['status']}}</td>
+            <td>{{=review['lastChange']}}</td>
           </tr>
         {{pass}}
       </tbody>
@@ -48,7 +48,7 @@
   <div class="pci2-flex-row">
     {{if inviteReviewerLink:}}
     <div class="pci2-align-start pci2-flex-grow">
-      <a  style="height: 22px; padding: 0 10px;" class="btn btn-default" href="{{=inviteReviewerLink}}">
+      <a  style="height: 22px; padding: 0 10px;" class="btn btn-info" href="{{=inviteReviewerLink}}">
         <i  class="glyphicon glyphicon-plus" style="margin-right: 5px;"></i>
         {{=T("Invite a reviewer")}}
       </a>

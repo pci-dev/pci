@@ -123,6 +123,8 @@ function getCrossrefDatas() {
   if (!prevent_double_submit) {
     prevent_double_submit = true;
     button.classList = "btn btn-default disabled";
+    
+    error_message.innerHTML = '<div class="pci2-flex-row pci2-align-items-center"><i class="glyphicon glyphicon-refresh icon-rotating" style="color: #ffbf00; font-size: 20px; margin-right:5px"></i> <span>Waiting for Crossref API...</span></div>';
 
     console.log("toto");
     var doi = document.getElementById("t_articles_doi").value;
@@ -141,7 +143,7 @@ function alertContents() {
 
     if (httpRequest.status === 200) {
       fillFormFields(httpRequest.responseText);
-      error_message.innerText = "Some fields has been auto-filled";
+      error_message.innerText = "Some fields have been auto-filled";
       error_message.classList = "success-text";
     } else {
       error_message.innerText = "Error : doi not found";

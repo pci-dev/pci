@@ -201,10 +201,11 @@ def decline_new_article_to_recommend():
     if articleId is not None:
         # NOTE: No security hole as only logged user can be deleted
         sug_rec = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).select().first()
-        sug_rec.declined = True
-        sug_rec.update_record()
-        db.commit()
-        session.flash = T("Suggestion declined")
+        if sug_rec is not None:
+            sug_rec.declined = True
+            sug_rec.update_record()
+            db.commit()
+            session.flash = T("Suggestion declined")
     redirect(URL(c="recommender", f="my_awaiting_articles"))
 
 
@@ -342,7 +343,7 @@ def accept_review_request():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     # db(db.t_reviews.id==reviewId).delete()
-    rev.review_state = "Under consideration"
+    rev.review_state = "Awaiting review"
     rev.update_record()
     # email to recommender sent at database level
     redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))

@@ -231,8 +231,9 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                 )
 
             reviewText = None
-            if len(review.review) > 2:
-                reviewText = WIKI(review.review, safe_mode=False)
+            if review.review:
+                if len(review.review) > 2:
+                    reviewText = WIKI(review.review, safe_mode=False)
 
             pdfLink = None
             if review.review_pdf:
