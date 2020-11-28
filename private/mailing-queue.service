@@ -1,0 +1,12 @@
+[Unit]
+Description=PeerCommunityIn mailing queue service
+After=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+ExecStart=/usr/bin/python3 /home/www-data/web2py_2.20.4/web2py.py -S PCiEvolBiol3 -M -R /home/www-data/web2py_2.20.4/applications/PCiEvolBiol3/private/mail_queue.py
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
