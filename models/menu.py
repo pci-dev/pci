@@ -424,7 +424,6 @@ def _AboutMenu():
 
     aboutMenu += [
         (T("About", lazy=False) + appName, False, URL("about", "about")),
-        (T("Managing Board", lazy=False), False, URL("about", "managers")),
         (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
         (T("Thanks to reviewers", lazy=False), False, URL("about", "thanks_to_reviewers")),
         (T("Code of conduct", lazy=False), False, URL("about", "ethics")),

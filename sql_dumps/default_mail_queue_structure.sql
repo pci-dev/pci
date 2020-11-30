@@ -14,5 +14,3 @@ CREATE TABLE "mail_queue"(
     "mail_template_hashtag" VARCHAR(128),
     "reminder_count" INTEGER
 );
-
--- ALTER TABLE "public"."mail_queue" ADD COLUMN "cc_mail_addresses" character varying(1024);

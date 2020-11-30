@@ -46,20 +46,43 @@
   {{pass}}
 
   <div class="pci2-flex-row">
-    {{if inviteReviewerLink:}}
-    <div class="pci2-align-start pci2-flex-grow">
-      <a  style="height: 22px; padding: 0 10px;" class="btn btn-info" href="{{=inviteReviewerLink}}">
-        <i  class="glyphicon glyphicon-plus" style="margin-right: 5px;"></i>
-        {{=T("Invite a reviewer")}}
-      </a>
+    <div class="pci2-align-start pci2-flex-column pci2-flex-grow">
+      {{if inviteReviewerLink:}}
+        <div>
+          <a  style="height: 22px; padding: 0 10px;" class="btn btn-success" href="{{=inviteReviewerLink}}">
+            <i  class="glyphicon glyphicon-plus" style="margin-right: 5px;"></i>
+            {{=T("Invite a reviewer")}}
+          </a>
+        </div>
+      {{pass}}
+      {{if showSearchingForReviewersButton:}}
+        <div>
+
+          <a class="buttontext btn btn-info" style="height: 22px; padding: 0 10px;" href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+            <i  class="glyphicon glyphicon-inbox" style="margin-right: 5px;"></i>
+            {{=T('Put preprint in the "In need of reviewers" list')}}
+          </a>
+        </div>
+      {{pass}}
+
+      {{if showRemoveSearchingForReviewersButton:}}
+        <div>
+
+          <a class="buttontext btn btn-warning" style="height: 22px; padding: 0 10px;" href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+            <i  class="glyphicon glyphicon-inbox" style="margin-right: 5px;"></i>
+            {{=T('Remove preprint from the "In need of reviewers" list ')}}
+          </a>
+        </div>
+      {{pass}}
     </div>
-    {{pass}}
+
 
     {{if showDecisionLink:}}
       <div class="pci2-justify-end pci2-flex-grow">
 
         {{if writeDecisionLink:}}
           <a style="height: 22px; padding: 0 15px;"  class="btn btn-success" href="{{=writeDecisionLink}}">
+            <i class="glyphicon glyphicon-edit" style="margin-right: 5px;"></i>
             {{=T("Write or edit your decision / recommendation")}}
           </a>
         {{else:}}
@@ -68,6 +91,7 @@
             class="btn btn-default disabled" 
             title="{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}"
           >
+          <i class="glyphicon glyphicon-edit" style="margin-right: 5px;"></i>
             {{=T("Write your decision / recommendation")}}
           </a>
         {{pass}}

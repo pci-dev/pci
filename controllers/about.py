@@ -210,28 +210,3 @@ def recommenders():
         grid=grid,
     )
     return resu
-
-
-# (gab) is this unused ? i put it in about from public
-######################################################################################################################################################################
-def managers():
-
-    query = db(
-        (db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role.belongs("manager", "administrator"))
-    ).select(db.auth_user.ALL, distinct=db.auth_user.last_name | db.auth_user.id, orderby=db.auth_user.last_name | db.auth_user.id)
-    myRows = []
-    for user in query:
-        myRows.append(common_small_html.mkUserRow(auth, db, user, withMail=False, withRoles=True, withPicture=True))
-    grid = DIV(
-        TABLE(THEAD(TR(TH(T("")), TH(T("Name")), TH(T("Affiliation")), TH(T("Roles")))), myRows, _class="web2py_grid pci-UsersTable"), _class="pci2-flex-column pci2-flex-center"
-    )
-
-    response.view = "default/gab_list_layout.html"
-    return dict(
-        # common_small_html.mkBackButton = common_small_html.mkBackButton(),
-        pageTitle=getTitle(request, auth, db, "#PublicManagingBoardTitle"),
-        customText=getText(request, auth, db, "#PublicManagingBoardText"),
-        pageHelp=getHelp(request, auth, db, "#PublicManagingBoardDescription"),
-        grid=grid,
-    )
-

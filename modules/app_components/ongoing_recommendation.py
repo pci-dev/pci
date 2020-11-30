@@ -522,7 +522,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         inviteReviewerLink = None
         showSearchingForReviewersButton = None
         showRemoveSearchingForReviewersButton = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration"):
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status == "Under consideration"):
             inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
             showSearchingForReviewersButton = not art.is_searching_reviewers
             showRemoveSearchingForReviewersButton = art.is_searching_reviewers

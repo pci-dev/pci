@@ -36,19 +36,18 @@ def getReviewsSubTable(auth, db, response, recomm):
                 actions=[],
             )
             reviewVars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
-    
+
             if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
-    
+
             if art.status == "Under consideration" and not (recomm.is_closed):
                 if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review"):
                     reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
-    
+
                 if (review.reviewer_id != auth.user_id) and ((review.review_state or "Awaiting response") == "Awaiting response"):
                     reviewVars["actions"].append(
                         dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                     )
-    
             reviewList.append(reviewVars)
             if review.review_state == "Review completed":
                 nbCompleted += 1
@@ -58,6 +57,8 @@ def getReviewsSubTable(auth, db, response, recomm):
     showDecisionLink = False
     writeDecisionLink = None
     inviteReviewerLink = None
+    showSearchingForReviewersButton = None
+    showRemoveSearchingForReviewersButton = None
     if (
         not (recomm.is_closed)
         and ((recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
@@ -65,13 +66,23 @@ def getReviewsSubTable(auth, db, response, recomm):
     ):
         inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
 
+        showSearchingForReviewersButton = not art.is_searching_reviewers
+        showRemoveSearchingForReviewersButton = art.is_searching_reviewers
+
         showDecisionLink = True
         if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1:
             writeDecisionLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
 
     roundNumber = recomm_round
     componentVars = dict(
-        roundNumber=roundNumber, reviewList=reviewList, showDecisionLink=showDecisionLink, inviteReviewerLink=inviteReviewerLink, writeDecisionLink=writeDecisionLink
+        recommId=recomm.id,
+        roundNumber=roundNumber,
+        reviewList=reviewList,
+        showDecisionLink=showDecisionLink,
+        inviteReviewerLink=inviteReviewerLink,
+        writeDecisionLink=writeDecisionLink,
+        showSearchingForReviewersButton=showSearchingForReviewersButton,
+        showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
     )
 
     return XML(response.render("components/review_sub_table.html", componentVars))

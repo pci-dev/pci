@@ -386,7 +386,7 @@ def make_preprint_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    if recomm.recommender_id != auth.user_id and not recomm.is_closed:
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -396,7 +396,7 @@ def make_preprint_searching_for_reviewers():
         art.update_record()
         db.commit()
         session.flash = 'Preprint now appear in the "In need of reviewers" list'
-        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
+        redirect(request.env.http_referer)
 
 
 ######################################################################################################################################################################
@@ -411,7 +411,7 @@ def make_preprint_not_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    if recomm.recommender_id != auth.user_id and not recomm.is_closed:
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -420,4 +420,4 @@ def make_preprint_not_searching_for_reviewers():
         art.update_record()
         db.commit()
         session.flash = 'Preprint is removed from the "In need of reviewers" list'
-        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=art.id)))
+        redirect(request.env.http_referer)
