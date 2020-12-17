@@ -1,4 +1,4 @@
 # IMPORTANT: These crontab line are for SERVER cron, not web2py crontab
 # eg. for PCiEvolBiol3, runs mail_queue every minute
-* * * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/mail_queue.py >> /tmp/cron.output 2>&1
+* * * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/mail_queue.py >> /tmp/PCiEvolBiol3.cron.output 2>&1
 

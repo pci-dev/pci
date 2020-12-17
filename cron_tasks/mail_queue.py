@@ -10,8 +10,8 @@ except:
     print("no systemd journal")
 
 myconf = AppConfig(reload=True)
-MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; MUST be smaller than cron intervals
-QUEUE_CHECK_INTERVAL = int(myconf.get("config.mail_queue_interval", default=15))  # in seconds # DEPRECATED: now every minute by cron
+MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
+#QUEUE_CHECK_INTERVAL = int(myconf.get("config.mail_queue_interval", default=15))  # in seconds # DEPRECATED: now every minute by cron
 MAIL_MAX_SENDING_ATTEMPTS = int(myconf.get("config.mail_max_sending_attemps", default=3))
 
 # Reminders config
@@ -74,8 +74,6 @@ def tryToSendMail(mail_item):
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
 
-    # wait beetween email sendings
-    time.sleep(MAIL_DELAY)
 
 
 def prepareNextReminder(mail_item):
@@ -157,5 +155,7 @@ for mail_item in mails_in_queue:
 	curr_ts = datetime.now().timestamp()
 	if (curr_ts - start_ts) < 50.0:
 		tryToSendMail(mail_item)
+		# wait beetween email sendings
+		time.sleep(MAIL_DELAY)
 
 
