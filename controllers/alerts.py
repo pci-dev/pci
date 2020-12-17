@@ -36,7 +36,8 @@ def testMyNewsletterMail():
     emailing.send_newsletter_mail(session, auth, db, auth.user_id, user.alerts)
     redirect(request.env.http_referer)
 
-
+# DEPRECATED -- see cron_tasks/newsletter.py
+"""
 # function called daily
 def sendNewsletterMails():
     print("Cron newsletter start")
@@ -93,4 +94,4 @@ def sendNewsletterMails():
             user.update_record()
 
     redirect(request.env.http_referer)
-
+"""

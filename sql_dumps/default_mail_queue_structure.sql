@@ -1,4 +1,4 @@
-CREATE TABLE "mail_queue"(
+CREATE TABLE IF NOT EXISTS "mail_queue" (
     "id" SERIAL PRIMARY KEY,
     "removed_from_queue" BOOLEAN DEFAULT false,
     "sending_status" VARCHAR(128),
