@@ -5,7 +5,7 @@ ip="147.99.64.39"
 # RSS link as datamatrix
 datam="/home/piry/Documents/Labo/PCiEvolBiol/RSS_datamatrix.png"
 # echo "http://147.99.65.220:83/PCiEvolBiol/public/rss" | dmtxwrite --encoding=8 --module=4 --output=$datam
-echo "http://$ip/PCiEvolBiol3/public/rss" | dmtxwrite --encoding=8 --module=4 --output=$datam
+echo -n "http://$ip/PCiEvolBiol3/public/rss" | dmtxwrite --encoding=8 --module=4 --output=$datam
 
 # pci-test
 unison -auto \
