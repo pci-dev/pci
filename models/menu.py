@@ -366,7 +366,7 @@ def _ManagerMenu():
 
     txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"))
 
-    nbPend = db(db.t_articles.status.belongs(("Pending", "Pre-recommended", "Pre-revision", "Pre-rejected"))).count()
+    nbPend = db(db.t_articles.status.belongs(("Pending", "Pre-recommended", "Pre-recommended-private", "Pre-revision", "Pre-rejected"))).count()
     txtPending = str(nbPend) + " " + (T("Pending validation(s)"))
     if nbPend > 0:
         txtPending = SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-time"), txtPending, _class="pci-enhancedMenuItem"), _class="pci-manager")

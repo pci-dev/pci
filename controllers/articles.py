@@ -30,6 +30,7 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 @cache.action(time_expire=30, cache_model=cache.ram, quick="V")
@@ -49,6 +50,7 @@ def last_recomms():
         queryRecommendedArticles = db(
             (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
         ).iterselect(
+            db.t_articles.art_stage_1_id,
             db.t_articles.id,
             db.t_articles.title,
             db.t_articles.authors,
@@ -96,7 +98,7 @@ def last_recomms():
             A(current.T("See all recommendations"), _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
             _style="text-align:center;",
         ),
-        _class="pci-lastArticles-div"
+        _class="pci-lastArticles-div",
     )
 
 
@@ -149,7 +151,7 @@ def recommended_articles():
         currentUrl=URL(c="about", f="recommended_articles", host=host, scheme=scheme, port=port),
         searchableList=True,
         searchForm=searchForm,
-        grid=grid
+        grid=grid,
     )
 
 
@@ -214,6 +216,20 @@ def rec():
     nbRevs = db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count()
     nbReviews = nbRevs + (nbRecomms - 1)
 
+    isStage2 = art.art_stage_1_id is not None
+    stage1Link = None
+    stage2List = None
+    if pciRRactivated and isStage2:
+        # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
+        urlArticle = URL(c="articles", f="rec", vars=dict(id=art.art_stage_1_id))
+        stage1Link = common_small_html.mkRepresentArticleLightLinked(auth, db, art.art_stage_1_id, urlArticle)
+    elif pciRRactivated and not isStage2:
+        stage2Articles = db((db.t_articles.art_stage_1_id == articleId) & (db.t_articles.status == "Recommended")).select()
+        stage2List = []
+        for art_st_2 in stage2Articles:
+            urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
+            stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
+
     # Recommendation Header and Metadata
     recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
@@ -248,7 +264,11 @@ def rec():
         reviewRounds=reviewRounds,
         commentsTreeAndForm=commentsTreeAndForm,
         printableClass=printableClass,
-        myBackButton=common_small_html.mkBackButton()
+        myBackButton=common_small_html.mkBackButton(),
+        pciRRactivated=pciRRactivated,
+        isStage2=isStage2,
+        stage1Link=stage1Link,
+        stage2List=stage2List,
     )
 
 
@@ -301,7 +321,7 @@ def all_recommended_articles():
         pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
         grid=grid,
         shareable=True,
-        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port)
+        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port),
     )
 
 

@@ -70,11 +70,17 @@ python web2py.py
 ```
 
 Run mailing queue :
+In local : 
 ```bash
 python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
 ```
 
-for mailing queue log in journal ctl:
+Via linux service : 
+- Put the private/mailing-queue.service file in /etc/systemd/system/mailing-queue.service
+- Change appname, and web2py path in ExecStart service command
+- ```sudo servicectl start mailing-queue```
+
+To get log in journalctl for mailing queue:
 ```bash
 sudo apt-get install libsystemd-dev
 pip install systemd 

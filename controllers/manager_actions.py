@@ -80,10 +80,25 @@ def do_recommend_article():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    if art.status == "Pre-recommended":
+
+    # PCI RR
+    # update stage 1 article status from "Recommended-private" to "Recommended"
+    if art.art_stage_1_id is not None and art.status == "Pre-recommended":
+        artStage1 = db.t_articles[art.art_stage_1_id]
+        if artStage1 is not None:
+            if artStage1.status == "Recommended-private":
+                artStage1.status = "Recommended"
+                artStage1.update_record()
+
+    # stage 1 recommended privately 
+    if art.status == "Pre-recommended-private":	
+        art.status = "Recommended-private"
+        art.update_record()
+        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))   
+    elif art.status == "Pre-recommended":
         art.status = "Recommended"
         art.update_record()
-        redirect(URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True))
+        redirect(URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True))    
     else:
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
@@ -150,13 +165,4 @@ def set_not_considered():
     redirect(request.env.http_referer)
 
 
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
-def send_suggested_recommender_reminder():
-    if "suggRecommId" in request.vars:
-        suggRecommId = request.vars["suggRecommId"]
-        emailing.send_reminder_to_suggested_recommender(session, auth, db, suggRecommId)
-    else:
-        session.flash = T("Unavailable")
-    redirect(request.env.http_referer)
 

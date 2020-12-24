@@ -1,4 +1,4 @@
-jQuery(document).ready(function() {
+jQuery(document).ready(function () {
   if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
     jQuery("#t_articles_parallel_submission").prop("disabled", true);
   }
@@ -12,7 +12,7 @@ jQuery(document).ready(function() {
     jQuery(":submit").prop("disabled", true);
   }
 
-  jQuery("#t_articles_picture_rights_ok").change(function() {
+  jQuery("#t_articles_picture_rights_ok").change(function () {
     if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
       jQuery("#t_articles_uploaded_picture").prop("disabled", false);
     } else {
@@ -21,7 +21,7 @@ jQuery(document).ready(function() {
     }
   });
 
-  jQuery("#t_articles_already_published").change(function() {
+  jQuery("#t_articles_already_published").change(function () {
     if (jQuery("#t_articles_already_published").prop("checked")) {
       jQuery("#t_articles_article_source__row").show();
     } else {
@@ -29,7 +29,7 @@ jQuery(document).ready(function() {
     }
   });
 
-  jQuery("#t_articles_is_not_reviewed_elsewhere").change(function() {
+  jQuery("#t_articles_is_not_reviewed_elsewhere").change(function () {
     if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
       jQuery("#t_articles_parallel_submission").prop("checked", false);
       jQuery("#t_articles_parallel_submission").prop("disabled", true);
@@ -45,7 +45,7 @@ jQuery(document).ready(function() {
       jQuery(":submit").prop("disabled", true);
     }
   });
-  jQuery("#t_articles_i_am_an_author").change(function() {
+  jQuery("#t_articles_i_am_an_author").change(function () {
     if (
       jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked") |
       jQuery("#t_articles_parallel_submission").prop("checked")
@@ -55,7 +55,7 @@ jQuery(document).ready(function() {
       jQuery(":submit").prop("disabled", true);
     }
   });
-  jQuery("#t_articles_parallel_submission").change(function() {
+  jQuery("#t_articles_parallel_submission").change(function () {
     if (jQuery("#t_articles_parallel_submission").prop("checked")) {
       jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked", false);
       jQuery("#t_articles_is_not_reviewed_elsewhere").prop("disabled", true);
@@ -72,3 +72,13 @@ jQuery(document).ready(function() {
     }
   });
 });
+
+// PCI RR
+let elemPciRR = document.querySelector(
+  "#t_articles_art_stage_1_id option[value='']"
+);
+if (elemPciRR) {
+  document.querySelector(
+    "#t_articles_art_stage_1_id option[value='']"
+  ).innerHTML = "This is a stage 1 submission";
+}

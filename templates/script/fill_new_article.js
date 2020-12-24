@@ -123,8 +123,9 @@ function getCrossrefDatas() {
   if (!prevent_double_submit) {
     prevent_double_submit = true;
     button.classList = "btn btn-default disabled";
-    
-    error_message.innerHTML = '<div class="pci2-flex-row pci2-align-items-center"><i class="glyphicon glyphicon-refresh icon-rotating" style="color: #ffbf00; font-size: 20px; margin-right:5px"></i> <span>Waiting for Crossref API...</span></div>';
+
+    error_message.innerHTML =
+      '<div class="pci2-flex-row pci2-align-items-center"><i class="glyphicon glyphicon-refresh icon-rotating" style="color: #ffbf00; font-size: 20px; margin-right:5px"></i> <span>Waiting for Crossref API...</span></div>';
 
     console.log("toto");
     var doi = document.getElementById("t_articles_doi").value;
@@ -183,4 +184,14 @@ function fillFormFields(data) {
       "t_articles_abstract_ifr"
     ).contentDocument.body.innerHTML = "";
   }
+}
+
+// PCI RR
+let elemPciRR = document.querySelector(
+  "#t_articles_art_stage_1_id option[value='']"
+);
+if (elemPciRR) {
+  document.querySelector(
+    "#t_articles_art_stage_1_id option[value='']"
+  ).innerHTML = "This is a stage 1 submission";
 }

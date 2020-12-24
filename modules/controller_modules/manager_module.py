@@ -34,7 +34,6 @@ trgmLimit = myconf.get("config.trgm_limit") or 0.4
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", default=20)
 
-
 ######################################################################################################################################################################
 ## Manager Modules
 ######################################################################################################################################################################

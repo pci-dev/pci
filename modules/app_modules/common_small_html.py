@@ -240,18 +240,57 @@ def mkStatusArticles(db):
 
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(auth, db, status):
+def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
-    return DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
+
+
+    if showStage:
+        if auth.has_membership(role="manager"):
+            stage1Url = URL(c="manager", f="recommendations" ,vars=dict(articleId=stage1Id))
+        elif auth.has_membership(role="recommender"):
+            stage1Url = URL(c="recommender", f="recommendations" ,vars=dict(articleId=stage1Id))
+            # stage1Url = URL(c="recommender", f="article_details" ,vars=dict(articleId=stage1Id))
+        else:
+            stage1Url = URL(c="user", f="recommendations" ,vars=dict(articleId=stage1Id))
+
+        if stage1Id is not None:
+            result = DIV(
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
+                DIV(
+                    B(current.T("Stage 2")), 
+                    BR(),
+                    B("(", A(current.T("View stage 1"), _href=stage1Url), ")"),
+                    _style="text-align: center; width: 150px;"
+                ), 
+            )
+        else:
+            result = DIV(
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"), 
+            )
+    else:
+        result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
+        
+    return result
+
+
+######################################################################################################################################################################
+def mkStatusSimple(auth, db, status):
+    if statusArticles is None or len(statusArticles) == 0:
+        mkStatusArticles(db)
+    status_txt = (current.T(status)).upper()
+    color_class = statusArticles[status]["color_class"] or "default"
+    hint = statusArticles[status]["explaination"] or ""
+    return SPAN(status_txt, _style="margin: 0; padding:0", _class="pci-status " + color_class, _title=current.T(hint))
 
 
 ######################################################################################################################################################################
 # Builds a coloured status label with pre-decision concealed
-def mkStatusDivUser(auth, db, status):
+def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     if status.startswith("Pre-"):
@@ -261,7 +300,35 @@ def mkStatusDivUser(auth, db, status):
     status_txt = (current.T(status2)).upper()
     color_class = statusArticles[status2]["color_class"] or "default"
     hint = statusArticles[status2]["explaination"] or ""
-    return DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
+
+    if showStage:
+        if auth.has_membership(role="manager"):
+            stage1Url = URL(c="manager", f="recommendations" ,vars=dict(articleId=stage1Id))
+        elif auth.has_membership(role="recommender"):
+            stage1Url = URL(c="recommender", f="recommendations" ,vars=dict(articleId=stage1Id))
+            # stage1Url = URL(c="recommender", f="article_details" ,vars=dict(articleId=stage1Id))
+        else:
+            stage1Url = URL(c="user", f="recommendations" ,vars=dict(articleId=stage1Id))
+            
+        if stage1Id is not None:
+            result = DIV(
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
+                DIV(
+                    B(current.T("Stage 2")), 
+                    BR(),
+                    B("(", A(current.T("View stage 1"), _href=stage1Url), ")"),
+                    _style="text-align: center; width: 150px;"
+                ), 
+            )
+        else:
+            result = DIV(
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"), 
+            )
+    else:
+        result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
+
+    return result
 
 
 ######################################################################################################################################################################
@@ -428,12 +495,43 @@ def mkBackButton(text=current.T("Back"), target=None):
 ######################################################################################################################################################################
 # Article recomm presentation
 ######################################################################################################################################################################
-def mkRepresentArticleLightLinked(auth, db, article_id):
+def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
     anchor = ""
     art = db.t_articles[article_id]
 
     if art:
-        anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
+        if urlArticle:
+            anchor = DIV(
+                A(B(art.title), _href=urlArticle),
+                BR(),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                BR(),
+                mkDOI(art.doi),
+                _class="ellipsis-over-350",
+            )
+        else:
+            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
+
+    return anchor
+
+
+######################################################################################################################################################################
+def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=None):
+    anchor = ""
+    art = db.t_articles[article_id]
+    if art:
+        if urlArticle:
+            anchor = DIV(
+                A(B(art.title), _href=urlArticle),
+                BR(),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                BR(),
+                mkDOI(art.doi),
+                BR(),
+                B(current.T("Status: "), mkStatusSimple(auth, db, art.status)),
+            )
+        else:
+            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
 
     return anchor
 
@@ -765,24 +863,3 @@ def mkRecommendersString(auth, db, recomm):
     recommendersStr = "".join(recommenders)
     return recommendersStr
 
-
-######################################################################################################################################################################
-def getCoRecommendersMails(db, recommId):
-    contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
-
-    result = []
-    for contrib in contribsQy:
-        result.append(db.auth_user[contrib.contributor_id]["email"])
-
-    return result
-
-
-######################################################################################################################################################################
-def getManagersMails(db):
-    managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
-
-    result = []
-    for manager in managers:
-        result.append(manager.email)
-
-    return result

@@ -141,7 +141,6 @@ def recommend_article():
         # db.commit()
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm.article_id)))
 
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def reject_article():

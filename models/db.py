@@ -572,7 +572,8 @@ db.define_table(
         represent=lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else "",
     ),
     Field("is_searching_reviewers", type="boolean", label=T("Open to reviewers"), default=False),
-    Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews"), default=0),
+    Field("art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("Stage 1 reference")),
+    Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -666,7 +667,7 @@ def deltaStatus(s, f):
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
 
-                if f["status"] in ("Awaiting revision", "Rejected", "Recommended"):
+                if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
                     emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
@@ -676,7 +677,7 @@ def deltaStatus(s, f):
                         # delete reminders
                         emailing.delete_all_reminders_from_recommendation_id(db, lr.id)
 
-                if f["status"] == "Recommended":
+                if f["status"] in ("Recommended", "Recommended-private"):
                     # delete reminders
                     print("RECOMMENDED")
                     emailing.delete_all_reminders_from_article_id(db, o["id"])
@@ -763,8 +764,6 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
     "%(first_name)s %(last_name)s %(email)s",
 )
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
-# db.t_recommendations._after_update.append(lambda s,f: closedRecommendation(s,f))
-
 
 def newRecommendation(s, i):
     recomm = db.t_recommendations[i]
@@ -774,14 +773,6 @@ def newRecommendation(s, i):
             if art.already_published:
                 emailing.send_to_thank_recommender_postprint(session, auth, db, i)
     return None
-
-
-# def closedRecommendation(s,f):
-# o = s.select().first()
-# a = db.t_articles[o.article_id]
-# if a.already_published and (o.recommendation_comments or '') != '':
-# pass #TODO: warn co-recommenders
-# return None
 
 
 db.define_table(
@@ -796,68 +787,6 @@ db.define_table(
     plural=T("PDF files"),
     migrate=False,
 )
-
-
-# db.define_table(
-#     "t_resources",
-#     Field("id", type="id", readable=False, writable=False),
-#     Field("resource_rank", type="integer", label=T("Rank")),
-#     Field("resource_category", type="string", length=250, label=T("Category")),
-#     Field("resource_name", type="string", length=512, label=T("Name")),
-#     Field("resource_description", type="text", label=T("Description")),
-#     # Field('resource_url', type='string', length=512, label=T('URL'), requires=IS_EMPTY_OR(IS_URL())),
-#     Field(
-#         "resource_logo",
-#         type="upload",
-#         uploadfield="resource_logo_data",
-#         label=T("Logo"),
-#         comment=T("Small image (jpg, png, gif) as an illustration"),
-#         requires=IS_EMPTY_OR(IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
-#     ),
-#     Field("resource_logo_data", type="blob", readable=False),
-#     Field(
-#         "resource_document",
-#         type="upload",
-#         uploadfield="resource_document_data",
-#         comment=T("The document itself"),
-#         label=T("Document"),
-#         requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
-#     ),
-#     Field("resource_document_data", type="blob", readable=False),
-#     singular=T("Resource"),
-#     plural=T("Resources"),
-#     migrate=False,
-# )
-# db.t_resources.resource_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
-# db.t_resources._after_insert.append(lambda f, i: insResourceThumb(f, i))
-# db.t_resources._after_update.append(lambda s, f: updResourceThumb(s, f))
-
-
-def insResourceThumb(f, i):
-    common_small_html.mkStatusDiv(auth, db, i, size=(150, 150))
-    return None
-
-
-def updResourceThumb(s, f):
-    o = s.select().first()
-    common_small_html.mkStatusDiv(auth, db, o.id, size=(150, 150))
-    return None
-
-
-# db.define_table(
-#     "t_supports",
-#     Field("id", type="id", readable=False, writable=False),
-#     Field("support_rank", type="integer", label=T("Rank")),
-#     Field("support_category", type="string", length=250, label=T("Category")),
-#     Field("support_name", type="string", length=512, label=T("Name")),
-#     Field("support_url", type="string", length=512, label=T("URL"), requires=IS_EMPTY_OR(IS_URL())),
-#     Field("support_logo", type="upload", uploadfield="support_logo_data", label=T("Logo"), requires=IS_IMAGE(extensions=("JPG", "jpg", "jpeg", "PNG", "png", "GIF", "gif"))),
-#     Field("support_logo_data", type="blob", readable=False),
-#     singular=T("Support"),
-#     plural=T("Supports"),
-#     migrate=False,
-# )
-# db.t_supports.support_logo.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
 
 
 db.define_table(

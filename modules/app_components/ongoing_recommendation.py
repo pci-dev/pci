@@ -20,6 +20,7 @@ from controller_modules import manager_module
 
 myconf = AppConfig(reload=True)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ########################################################################################################################################################################
 def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
@@ -123,7 +124,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
         ).count()
         buttonDivClass = ""
         if haveDeclined > 0:
-            buttonDivClass = " pci2-flex-column" 
+            buttonDivClass = " pci2-flex-column"
             btsAccDec.append(BR(),)
             btsAccDec.append(B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),)
 
@@ -308,6 +309,29 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
     nbRecomms = len(recomms)
 
+    amIEngagedInStage2Process = False
+    if pciRRactivated and art.art_stage_1_id is None:
+        authCpt = 0
+        # if currentUser is reviewer of a related stage 2
+        authCpt += db(
+            (db.t_articles.art_stage_1_id == art.id)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.id == db.t_reviews.recommendation_id)
+            & (db.t_reviews.reviewer_id == auth.user_id)
+            & (db.t_reviews.review_state != "Willing to review")
+        ).count()
+        # if currentUser is reviewer of a related stage 2
+        authCpt += db(
+            (db.t_articles.art_stage_1_id == art.id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id == auth.user_id)
+        ).count()
+        # if currentUser is reviewer of a related stage 2
+        if art.status == "Recommended":
+            authCpt += 1
+        amIEngagedInStage2Process = authCpt > 0
+
+    if pciRRactivated and art.status == "Recommended":
+        amIEngagedInStage2Process = True
+
     ###NOTE: here start recommendations display
     iRecomm = 0
     roundNb = nbRecomms + 1
@@ -422,6 +446,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 hideOngoingReview = False
             # ... or a manager, unless submitter or reviewer
             if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
+                hideOngoingReview = False
+
+            # ... or if engaged in stage 2 process (pci RR)
+            if review.review_state == "Review completed" and amIEngagedInStage2Process:
                 hideOngoingReview = False
 
             if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Willing to review":
@@ -571,7 +599,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 ),
                 _class="pci-EditButtons-centered",
             )
-        elif art.status == "Pre-recommended":
+        elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
             managerButton = DIV(
                 A(
                     SPAN(current.T("Validate this recommendation"), _class="buttontext btn btn-success pci-manager"),

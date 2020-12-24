@@ -35,6 +35,7 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 # Common function for articles needing attention
@@ -63,6 +64,7 @@ def fields_awaiting_articles():
         Field("already_published", type="boolean", label=T("Postprint")),
         Field("anonymous_submission", type="boolean", label=T("Anonymous submission")),
         Field("parallel_submission", type="boolean", label=T("Parallel submission")),
+        Field("art_stage_1_id", type="integer"),
     )
     myVars = request.vars
     qyKw = ""
@@ -107,7 +109,9 @@ def fields_awaiting_articles():
         temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
         # temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-        temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
+        temp_db.qy_art.art_stage_1_id.readable = False
+        temp_db.qy_art.art_stage_1_id.writable = False
+        temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
     else:
@@ -122,6 +126,7 @@ def fields_awaiting_articles():
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
     if parallelSubmissionAllowed:
         fields = [
+            temp_db.qy_art.art_stage_1_id,
             temp_db.qy_art.num,
             temp_db.qy_art.score,
             temp_db.qy_art.last_status_change,
@@ -141,6 +146,7 @@ def fields_awaiting_articles():
         ]
     else:
         fields = [
+            temp_db.qy_art.art_stage_1_id,
             temp_db.qy_art.num,
             temp_db.qy_art.score,
             temp_db.qy_art.last_status_change,
@@ -369,6 +375,20 @@ def article_details():
                 else:
                     myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
+            isStage2 = art.art_stage_1_id is not None
+            stage1Link = None
+            stage2List = None
+            if pciRRactivated and isStage2:
+                # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
+                urlArticle = URL(c="recommender", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
+                stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+            elif pciRRactivated and not isStage2:
+                stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
+                stage2List = []
+                for art_st_2 in stage2Articles:
+                    urlArticle = URL(c="recommender", f="recommendations", vars=dict(articleId=art_st_2.id))
+                    stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+
             response.title = art.title or myconf.take("app.longname")
 
             finalRecomm = (
@@ -396,6 +416,10 @@ def article_details():
                 pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
                 myContents=myContents,
                 myBackButton=common_small_html.mkBackButton(),
+                pciRRactivated=pciRRactivated,
+                isStage2=isStage2,
+                stage1Link=stage1Link,
+                stage2List=stage2List,
             )
         else:
             raise HTTP(403, "403: " + T("Access denied"))
@@ -458,7 +482,9 @@ def my_awaiting_articles():
     db.t_articles.keywords.readable = False
 
     db.t_articles.status.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     if len(request.args) == 0:  # we are in grid
         # db.t_articles.doi.readable = False
         # db.t_articles.authors.readable = False
@@ -474,6 +500,7 @@ def my_awaiting_articles():
         # db.t_articles.abstract.represent = lambda text, row: WIKI(text)
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             db.t_articles._id,
@@ -488,6 +515,7 @@ def my_awaiting_articles():
         ]
     else:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             db.t_articles._id,
@@ -580,6 +608,7 @@ def my_recommendations():
         fields = [
             db.t_recommendations.last_change,
             db.t_articles.status,
+            db.t_articles.art_stage_1_id,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             # db.t_recommendations.recommendation_timestamp,
@@ -600,6 +629,7 @@ def my_recommendations():
         fields = [
             db.t_recommendations.last_change,
             db.t_articles.status,
+            db.t_articles.art_stage_1_id,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
             # db.t_recommendations.recommendation_timestamp,
@@ -639,7 +669,9 @@ def my_recommendations():
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
     db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
@@ -750,11 +782,18 @@ def recommendations():
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     # NOTE: 2018-09-05 bug corrected by splitting the query and adding counts; weird but it works
-    countPre = db((db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == articleId)).count()
-    countPost = db(
+    authCount = db((db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == articleId)).count()
+    authCount += db(
         ((db.t_press_reviews.contributor_id == auth.user_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)) & (db.t_recommendations.article_id == articleId)
     ).count()
-    amIAllowed = (countPre + countPost) > 0
+
+    # is allowed if is recommender of a step 2 (user will not have any possible actions, just to observe recommendation process)
+    if pciRRactivated and art.art_stage_1_id is None:
+        authCount += db(
+            (db.t_articles.art_stage_1_id == articleId) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id == auth.user_id)
+        ).count()
+
+    amIAllowed = authCount > 0
     if not (amIAllowed):
         print("Not allowed: userId=%s, articleId=%s" % (auth.user_id, articleId))
         # print(db._lastsql)
@@ -765,6 +804,20 @@ def recommendations():
             myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
         else:
             myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+
+        isStage2 = art.art_stage_1_id is not None
+        stage1Link = None
+        stage2List = None
+        if pciRRactivated and isStage2:
+            # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
+            urlArticle = URL(c="recommender", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
+            stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+        elif pciRRactivated and not isStage2:
+            stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
+            stage2List = []
+            for art_st_2 in stage2Articles:
+                urlArticle = URL(c="recommender", f="recommendations", vars=dict(articleId=art_st_2.id))
+                stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
 
         response.title = art.title or myconf.take("app.longname")
 
@@ -792,6 +845,10 @@ def recommendations():
             pageHelp=getHelp(request, auth, db, "#RecommenderOtherRecommendations"),
             myContents=myContents,
             myBackButton=common_small_html.mkBackButton(),
+            pciRRactivated=pciRRactivated,
+            isStage2=isStage2,
+            stage1Link=stage1Link,
+            stage2List=stage2List,
         )
 
 
@@ -1029,7 +1086,6 @@ def cancel_email_to_registered_reviewer():
     redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
 
 
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def send_review_cancellation():
@@ -1065,7 +1121,7 @@ def send_review_cancellation():
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
     elif auth.has_membership(role="manager"):
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
-    
+
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
@@ -1076,7 +1132,7 @@ def send_review_cancellation():
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Awaiting response") == "Awaiting response":
-        hashtag_template = "#DefaultReviewCancellation"
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
         default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1125,8 +1181,6 @@ def send_review_cancellation():
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
-
-
 
 
 ######################################################################################################################################################################
@@ -1187,7 +1241,7 @@ def email_for_registered_reviewer():
                 % locals()
             )
 
-    hashtag_template = "#DefaultReviewInvitationRegisterUser"
+    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1299,7 +1353,7 @@ def email_for_new_reviewer():
                 % locals()
             )
 
-    hashtag_template = "#DefaultReviewInvitationNewUser"
+    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1371,7 +1425,8 @@ def email_for_new_reviewer():
 
             if existingUser:
                 try:
-                    hashtag_template = "#DefaultReviewInvitationRegisterUser"
+                    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+
                     linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
                     declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=reviewId), scheme=scheme, host=host, port=port)
 
@@ -1394,7 +1449,7 @@ def email_for_new_reviewer():
                     pass
             else:
                 try:
-                    hashtag_template = "#DefaultReviewInvitationNewUser"
+                    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
 
                     emailing.send_reviewer_invitation(
                         session,
@@ -1586,29 +1641,52 @@ def edit_recommendation():
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled"):
+    elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled", "Pre-recommended-private"):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
         nbCoRecomm = db(db.t_press_reviews.recommendation_id == recommId).count()
         isPress = art.already_published
+
+        isStage1 = art.art_stage_1_id is None
+        if pciRRactivated and isStage1:
+            recommendPrivateDivPciRR = SPAN(
+                INPUT(_id="opinion_recommend_private", _name="recommender_opinion", _type="radio", _value="do_recommend_private", _checked=(recomm.recommendation_state == "Recommended"),),
+                B(current.T("I recommend this preprint")),
+                BR(),
+                current.T("but keep it private until a stage 2 is validated"),
+                _class="pci-radio pci-recommend-private btn-success",
+                _style="margin-top: 10px",
+            )
+        else:
+            recommendPrivateDivPciRR = ""
+
         triptyque = DIV(
             DIV(
                 H3(current.T("Your decision")),
-                SPAN(
-                    INPUT(_id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended")),
-                    current.T("I recommend this preprint"),
-                    _class="pci-radio pci-recommend btn-success",
-                ),
-                SPAN(
-                    INPUT(_id="opinion_revise", _name="recommender_opinion", _type="radio", _value="do_revise", _checked=(recomm.recommendation_state == "Revision")),
-                    current.T("This preprint merits a revision"),
-                    _class="pci-radio pci-review btn-default",
-                ),
-                SPAN(
-                    INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state == "Rejected")),
-                    current.T("I reject this preprint"),
-                    _class="pci-radio pci-reject btn-warning",
+                DIV(
+                    DIV(
+                        SPAN(
+                            INPUT(
+                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended")
+                            ),
+                            B(current.T("I recommend this preprint")),
+                            _class="pci-radio pci-recommend btn-success",
+                        ),
+                        recommendPrivateDivPciRR,
+                        _class="pci2-flex-column",
+                    ),
+                    SPAN(
+                        INPUT(_id="opinion_revise", _name="recommender_opinion", _type="radio", _value="do_revise", _checked=(recomm.recommendation_state == "Revision")),
+                        B(current.T("This preprint merits a revision")),
+                        _class="pci-radio pci-review btn-default",
+                    ),
+                    SPAN(
+                        INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state == "Rejected")),
+                        B(current.T("I reject this preprint")),
+                        _class="pci-radio pci-reject btn-warning",
+                    ),
+                    _class="pci2-flex-row pci2-justify-center pci2-align-items-start",
                 ),
                 # TEST # SPAN(INPUT(_id='opinion_none', _name='recommender_opinion', _type='radio', _value='none', _checked=(recomm.recommendation_state=='?')), current.T('I still hesitate'), _class='pci-radio btn-default'),
                 _style="padding:8px; margin-bottom:12px;",
@@ -1652,6 +1730,8 @@ def edit_recommendation():
             if form.vars.save:
                 if form.vars.recommender_opinion == "do_recommend":
                     recomm.recommendation_state = "Recommended"
+                elif form.vars.recommender_opinion == "do_recommend_private":
+                    recomm.recommendation_state = "Recommended"
                 elif form.vars.recommender_opinion == "do_revise":
                     recomm.recommendation_state = "Revision"
                 elif form.vars.recommender_opinion == "do_reject":
@@ -1693,6 +1773,9 @@ def edit_recommendation():
                         if form.vars.recommender_opinion == "do_recommend":
                             recomm.recommendation_state = "Recommended"
                             art.status = "Pre-recommended"
+                        elif form.vars.recommender_opinion == "do_recommend_private":
+                            recomm.recommendation_state = "Recommended"
+                            art.status = "Pre-recommended-private"
                         elif form.vars.recommender_opinion == "do_revise":
                             recomm.recommendation_state = "Revision"
                             art.status = "Pre-revision"
@@ -1742,7 +1825,9 @@ def my_co_recommendations():
     db.t_recommendations._id.label = T("Recommendation")
     db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_articles.status.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     db.t_press_reviews._id.readable = False
     db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
@@ -1759,6 +1844,7 @@ def my_co_recommendations():
         csv=csv,
         exportclasses=expClass,
         fields=[
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             db.t_articles.uploaded_picture,
@@ -1930,7 +2016,6 @@ def review_emails():
     )
 
 
-
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def article_reviews_emails():
     response.view = "default/myLayout.html"
@@ -1943,7 +2028,6 @@ def article_reviews_emails():
     if (recommendation.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    
 
     reviews = db(db.t_reviews.recommendation_id == recommendation.id).select()
     reviewers = []
@@ -2040,6 +2124,7 @@ def article_reviews_emails():
         myFinalScript=myScript,
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
+
 
 def mail_form_processing(form):
     form.errors = True

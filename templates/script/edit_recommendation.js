@@ -6,7 +6,9 @@ jQuery(document).ready(function() {
         jQuery("#t_recommendations_no_conflict_of_interest").prop("checked") &
         ($("#opinion_recommend").prop("checked") |
           $("#opinion_revise").prop("checked") |
-          $("#opinion_reject").prop("checked"))
+          $("#opinion_reject").prop("checked") |
+          $("#opinion_recommend_private").prop("checked")
+        )
       )
     );
   });
@@ -17,7 +19,9 @@ jQuery(document).ready(function() {
         jQuery("#t_recommendations_no_conflict_of_interest").prop("checked") &
         ($("#opinion_recommend").prop("checked") |
           $("#opinion_revise").prop("checked") |
-          $("#opinion_reject").prop("checked"))
+          $("#opinion_reject").prop("checked") |
+          $("#opinion_recommend_private").prop("checked")
+        )
       )
     );
   });
@@ -27,7 +31,9 @@ jQuery(document).ready(function() {
       jQuery("#t_recommendations_no_conflict_of_interest").prop("checked") &
       ($("#opinion_recommend").prop("checked") |
         $("#opinion_revise").prop("checked") |
-        $("#opinion_reject").prop("checked"))
+        $("#opinion_reject").prop("checked") |
+        $("#opinion_recommend_private").prop("checked")
+      )
     )
   );
 });

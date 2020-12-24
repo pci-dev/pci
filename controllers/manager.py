@@ -33,17 +33,18 @@ from app_modules import common_small_html
 
 from controller_modules import admin_module
 
-
-myconf = AppConfig(reload=True)
-
 # frequently used constants
 from app_modules.emailing import MAIL_HTML_LAYOUT, MAIL_DELAY
+
+myconf = AppConfig(reload=True)
 
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit") or 0.4
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", default=20)
+
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 
 ######################################################################################################################################################################
@@ -70,7 +71,9 @@ def pending_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected"], URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(
+        ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"], URL("manager", "pending_articles", host=host, scheme=scheme, port=port)
+    )
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingArticlesTitle")
@@ -126,7 +129,11 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.user_id.represent = lambda text, row: SPAN(
         DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), common_small_html.mkUserWithMail(auth, db, text)
     )
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
+
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     db.t_articles.status.writable = True
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = False
@@ -176,6 +183,7 @@ def _manage_articles(statuses, whatNext):
     ]
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -191,6 +199,7 @@ def _manage_articles(statuses, whatNext):
         ]
     else:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -245,6 +254,20 @@ def recommendations():
     else:
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
+    isStage2 = art.art_stage_1_id is not None
+    stage1Link = None
+    stage2List = None
+    if pciRRactivated and isStage2:
+        # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
+        urlArticle = URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
+        stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+    elif pciRRactivated and not isStage2:
+        stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
+        stage2List = []
+        for art_st_2 in stage2Articles:
+            urlArticle = URL(c="manager", f="recommendations", vars=dict(articleId=art_st_2.id))
+            stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+
     response.title = art.title or myconf.take("app.longname")
 
     # New recommendation function (WIP)
@@ -270,6 +293,10 @@ def recommendations():
         pageHelp=getHelp(request, auth, db, "#ManagerRecommendations"),
         myContents=myContents,
         myBackButton=common_small_html.mkBackButton(),
+        pciRRactivated=pciRRactivated,
+        isStage2=isStage2,
+        stage1Link=stage1Link,
+        stage2List=stage2List,
     )
 
 
@@ -594,14 +621,30 @@ def edit_article():
         redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
     db.t_articles.status.writable = True
     db.t_articles.user_id.writable = True
-    db.t_articles.cover_letter.readable = True
-    db.t_articles.cover_letter.writable = True
+
+    if pciRRactivated:
+        db.t_articles.cover_letter.readable = True
+        db.t_articles.cover_letter.writable = True
+        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
+            IS_IN_DB(db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
+        )
+    else:
+        db.t_articles.art_stage_1_id.readable = False
+        db.t_articles.art_stage_1_id.writable = False
+
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+
+    myFinalScript = SCRIPT(
+        """
+    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
+    """
+    )
+
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -609,6 +652,7 @@ def edit_article():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
         form=form,
+        myFinalScript=myFinalScript,
     )
 
 
@@ -655,6 +699,7 @@ def all_recommendations():
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_recommendations.last_change,
             # db.t_articles.status,
             db.t_recommendations._id,
@@ -675,6 +720,7 @@ def all_recommendations():
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_recommendations.last_change,
             # db.t_articles.status,
             db.t_recommendations._id,
@@ -718,7 +764,9 @@ def all_recommendations():
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
     db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text)
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")

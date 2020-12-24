@@ -28,6 +28,7 @@ from app_modules import common_tools
 
 myconf = AppConfig(reload=True)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False):
@@ -39,6 +40,11 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         scheme = False
         host = False
         port = False
+
+    isStage2 = article.art_stage_1_id is not None
+    stage1Url = None
+    if isStage2:
+        stage1Url = URL(c="articles", f="rec", vars=dict(id=article.art_stage_1_id))
 
     # Get Recommendation
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
@@ -72,6 +78,9 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         recommendationAuthors=SPAN(recommAuthors),
         recommendationTitle=recomm.recommendation_title,
         recommendationShortText=WIKI(recommShortText, safe_mode=False),
+        pciRRactivated=pciRRactivated,
+        isStage2=isStage2,
+        stage1Url=stage1Url,
     )
 
     return XML(response.render("components/article_row_card.html", componentVars))
@@ -107,7 +116,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
         elif article.status == "Cancelled":
             txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN("(", firstDate, " ➜ ", lastDate, "). "),)
 
-        elif article.status == "Under consideration" or article.status == "Pre-recommended" or article.status == "Pre-rejected" or article.status == "Pre-revision":
+        elif article.status == "Under consideration" or article.status == "Pre-recommended" or article.status == "Pre-recommended-private" or article.status == "Pre-rejected" or article.status == "Pre-revision":
             txt = DIV(SPAN(current.T(" is")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus info"), SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),)
 
         elif article.status == "Awaiting revision":

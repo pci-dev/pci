@@ -20,15 +20,19 @@ from app_modules import common_small_html
 
 
 # frequently used constants
+myconf = AppConfig(reload=True)
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 ######################################################################################################################################################################
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():
+
     printable = "printable" in request.vars and request.vars["printable"] == "True"
 
     articleId = request.vars["articleId"]
@@ -42,13 +46,45 @@ def recommendations():
         revCpt += 1  # NOTE: checkings owner rights.
     # NOTE: checking reviewer rights
     revCpt += db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.id == db.t_reviews.recommendation_id) & (db.t_reviews.reviewer_id == auth.user_id)).count()
+
+    # PCI RR
+    if pciRRactivated and art.art_stage_1_id is None:
+        revCpt += db(
+            (db.t_articles.art_stage_1_id == articleId)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.id == db.t_reviews.recommendation_id)
+            & (db.t_reviews.reviewer_id == auth.user_id)
+            & (db.t_reviews.review_state != "Willing to review")
+        ).count()
+        revCpt += db(
+            (db.t_articles.art_stage_1_id == articleId) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id == auth.user_id)
+        ).count()
+
+    if pciRRactivated and art.status == "Recommended":
+        revCpt += 1
+
     if revCpt == 0:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+
+        isStage2 = art.art_stage_1_id is not None
+        stage1Link = None
+        stage2List = None
+        if pciRRactivated and isStage2:
+            # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
+            urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
+            stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+        elif pciRRactivated and not isStage2:
+            stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
+            stage2List = []
+            for art_st_2 in stage2Articles:
+                urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art_st_2.id))
+                stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+
+        # Build recommendation
         response.title = art.title or myconf.take("app.longname")
 
-        # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
         recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
@@ -79,6 +115,10 @@ def recommendations():
             roundNumber=recommendationProgression["roundNumber"],
             isRecommAvalaibleToSubmitter=recommendationProgression["isRecommAvalaibleToSubmitter"],
             myBackButton=common_small_html.mkBackButton(),
+            pciRRactivated=pciRRactivated,
+            isStage2=isStage2,
+            stage1Link=stage1Link,
+            stage2List=stage2List,
         )
 
 
@@ -258,26 +298,37 @@ def fill_new_article():
     db.t_articles.cover_letter.writable = True
     db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
 
-    form = SQLFORM(
-        db.t_articles,
-        fields=[
-            "doi",
-            "ms_version",
-            "anonymous_submission",
-            "title",
-            "authors",
-            "picture_rights_ok",
-            "uploaded_picture",
-            "abstract",
-            "thematics",
-            "keywords",
-            "cover_letter",
-            "i_am_an_author",
-            "is_not_reviewed_elsewhere",
-            "parallel_submission",
-        ],
-        keepvalues=True,
-    )
+    if pciRRactivated:
+        db.t_articles.art_stage_1_id.readable = True
+        db.t_articles.art_stage_1_id.writable = True
+        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
+            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", "%(title)s")
+        )
+    else:
+        db.t_articles.art_stage_1_id.readable = False
+        db.t_articles.art_stage_1_id.writable = False
+
+    fields = []
+    if pciRRactivated:
+        fields = ["art_stage_1_id"]
+    fields += [
+        "doi",
+        "ms_version",
+        "anonymous_submission",
+        "title",
+        "authors",
+        "picture_rights_ok",
+        "uploaded_picture",
+        "abstract",
+        "thematics",
+        "keywords",
+        "cover_letter",
+        "i_am_an_author",
+        "is_not_reviewed_elsewhere",
+        "parallel_submission",
+    ]
+
+    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
     form.element(_type="submit")["_value"] = T("Complete your submission")
     form.element(_type="submit")["_class"] = "btn btn-success"
     if form.process().accepted:
@@ -306,6 +357,7 @@ def fill_new_article():
 ######################################################################################################################################################################
 @auth.requires_login()
 def edit_my_article():
+
     response.view = "default/myLayout.html"
     if not ("articleId" in request.vars):
         session.flash = T("Unavailable")
@@ -325,16 +377,30 @@ def edit_my_article():
     db.t_articles.status.writable = False
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
+
+    if pciRRactivated:
+        db.t_articles.art_stage_1_id.readable = True
+        db.t_articles.art_stage_1_id.writable = True
+        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
+            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
+        )
+    else:
+        db.t_articles.art_stage_1_id.readable = False
+        db.t_articles.art_stage_1_id.writable = False
+
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
-        fields = [
+        fields = []
+        if pciRRactivated:
+            fields = ["art_stage_1_id"]
+        fields += [
+            "doi",
+            "ms_version",
             "title",
             "anonymous_submission",
             "is_not_reviewed_elsewhere",
             "parallel_submission",
             "authors",
-            "doi",
-            "ms_version",
             "picture_rights_ok",
             "uploaded_picture",
             "abstract",
@@ -345,18 +411,21 @@ def edit_my_article():
         myScript = common_tools.get_template("script", "edit_my_article.js")
 
     else:
-        fields = [
+        fields = []
+        if pciRRactivated:
+            fields = ["art_stage_1_id"]
+        fields += [
+            "doi",
+            "ms_version",
             "title",
             "anonymous_submission",
             "authors",
-            "doi",
-            "ms_version",
             "picture_rights_ok",
             "uploaded_picture",
             "abstract",
             "thematics",
             "keywords",
-            "cover_letter"
+            "cover_letter",
         ]
         myScript = ""
 
@@ -460,13 +529,16 @@ def suggested_recommenders():
 # Show my submissions
 @auth.requires_login()
 def my_articles():
+
     response.view = "default/myLayout.html"
 
     query = db.t_articles.user_id == auth.user_id
     db.t_articles.user_id.default = auth.user_id
     db.t_articles.user_id.writable = False
     db.t_articles.auto_nb_recommendations.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text)
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_articles.status.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
     db.t_articles._id.label = T("Article")
@@ -507,6 +579,7 @@ def my_articles():
 
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -526,6 +599,7 @@ def my_articles():
         ]
     else:
         fields = [
+            db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -573,6 +647,7 @@ def my_articles():
 ######################################################################################################################################################################
 @auth.requires_login()
 def my_reviews():
+
     response.view = "default/myLayout.html"
 
     pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
@@ -603,7 +678,11 @@ def my_reviews():
     db.t_articles._id.label = T("Article")
     db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations._id.label = T("Recommendation")
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text)
+    
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
+    
     db.t_reviews.last_change.label = T("Days elapsed")
     db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
     db.t_reviews.reviewer_id.writable = False
@@ -678,6 +757,7 @@ def my_reviews():
         csv=csv,
         exportclasses=expClass,
         fields=[
+            db.t_articles.art_stage_1_id,
             db.t_articles.status,
             db.t_articles._id,
             db.t_reviews._id,
@@ -908,7 +988,7 @@ def add_suggested_recommender():
                             _title=T("Delete"),
                             _style="margin-left:8px;",
                         )
-                        if (art.status == "Pending" or art.status == "Awaiting consideration") 
+                        if (art.status == "Pending" or art.status == "Awaiting consideration")
                         else "",
                     )
                 )
@@ -1004,7 +1084,7 @@ def delete_temp_user():
         vkey = vkey[1]
     if vkey == "":
         vkey = None
-        
+
     user = db(db.auth_user.reset_password_key == vkey).select().last()
 
     reviews = db(db.t_reviews.reviewer_id == user.id).select()

@@ -265,6 +265,11 @@ header {
 
 .doi_url {
   width: 180px;
+  font-style: italic;
+}
+
+.doi_url :not(:hover){
+  opacity: 0.5;
 }
 
 .pci-status {
@@ -650,6 +655,11 @@ header {
 .pci-recommend {
   background-color: #089108;
   color: white;
+}
+
+.pci-recommend-private {
+  background-color: #9fd10a;
+  color: black;
 }
 
 .pci-review {

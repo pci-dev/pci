@@ -35,6 +35,8 @@ from app_modules import old_common
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 MAIL_DELAY = 1.5  # in seconds
 
 # common view for all emails
@@ -106,6 +108,14 @@ def getMailCommonVars():
         siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port")),
     )
 
+######################################################################################################################################################################
+def getCorrectHashtag(hashtag, article=None):
+    if pciRRactivated and article is not None:
+        if article.art_stage_1_id is not None:
+            hashtag += "Stage2"
+        else:
+            hashtag += "Stage1"
+    return hashtag
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
@@ -198,7 +208,10 @@ def insertMailInQueue(
 
 ######################################################################################################################################################################
 def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None):
-    reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
+    hash_temp = hashtag_template
+    hash_temp = hash_temp.replace("Stage1", "")
+    hash_temp = hash_temp.replace("Stage2", "")
+    reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
 
     if reminder[0]:
         elapsed_days = reminder[0]["elapsed_days"][0]

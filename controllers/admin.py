@@ -272,7 +272,13 @@ def article_status():
         paginate=100,
         csv=csv,
         exportclasses=expClass,
-        fields=[db.t_status_article.status, db.t_status_article._id, db.t_status_article.priority_level, db.t_status_article.color_class, db.t_status_article.explaination,],
+        fields=[
+            db.t_status_article.status,
+            db.t_status_article._id,
+            db.t_status_article.priority_level,
+            db.t_status_article.color_class,
+            db.t_status_article.explaination,
+        ],
         orderby=db.t_status_article.priority_level,
     )
     common_small_html.mkStatusArticles(db)
@@ -294,7 +300,7 @@ def manage_pdf():
     # Do the complex query in full sql and return valid ids
     myList = []
     myQy = db.executesql(
-        "SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE a.status IN ('Recommended', 'Pre-recommended') AND r.recommendation_state LIKE 'Recommended';"
+        "SELECT r.id FROM (t_recommendations AS r JOIN t_articles AS a ON (r.article_id=a.id)) LEFT JOIN t_pdf AS p ON r.id=p.recommendation_id WHERE a.status IN ('Recommended', 'Pre-recommended', 'Recommended-private', 'Pre-recommended-private') AND r.recommendation_state LIKE 'Recommended';"
     )
 
     for q in myQy:

@@ -18,6 +18,33 @@
 </div>
 {{pass}}
 
+{{if ('isStage2' in locals() and 'pciRRactivated' in locals()):}}
+	{{if pciRRactivated:}}
+		<div class="pci2-flex-column pci2-align-items-center">
+			<div style="max-width: 800px; width: 100%;">
+			{{if isStage2 and stage1Link:}}
+				<h3><i>This is a stage 2 based on:</i></h3>
+				<!-- link to step 1 -->
+				<div style="padding: 0px 20px; margin-bottom: 15px; border-left: 5px solid #59839855">
+					{{=stage1Link}}
+				</div>
+			{{else:}}
+				<!-- <h2>This is a stage 1</h2> -->
+				{{if 'stage2List' in locals() and stage2List:}}
+					<h3><i>Related stage 2 preprints:</i></h3>
+					<!-- list of steps 2 -->
+					{{for art in stage2List:}}
+						<div style="padding: 0px 20px; margin-bottom: 15px; border-left: 5px solid #59839855">
+							{{=art}}
+						</div>
+					{{pass}}
+				
+				{{pass}}
+			{{pass}}
+			</div>
+		</div>
+	{{pass}}
+{{pass}}
 
 {{if 'myContents' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">

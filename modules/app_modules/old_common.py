@@ -771,7 +771,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     _class="pci-EditButtons-centered",
                 )
             )
-        elif art.status == "Pre-recommended":
+        elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
             myContents.append(
                 DIV(
                     A(
