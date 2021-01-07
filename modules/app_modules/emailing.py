@@ -1795,18 +1795,19 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             if k <= 5:
                 newPreprintRequiringRecommender.append(newsletter_module.makeArticleRow(article, "recommendation"))
 
-    emailing_tools.insertNewsLetterMailInQueue(
-        auth,
-        db,
-        mail_vars,
-        hashtag_template,
-        newRecommendations=newRecommendations,
-        newRecommendationsCount=newRecommendationsCount,
-        newPreprintSearchingForReviewers=newPreprintSearchingForReviewers,
-        newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
-        newPreprintRequiringRecommender=newPreprintRequiringRecommender,
-        newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
-    )
+    if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
+        emailing_tools.insertNewsLetterMailInQueue(
+            auth,
+            db,
+            mail_vars,
+            hashtag_template,
+            newRecommendations=newRecommendations,
+            newRecommendationsCount=newRecommendationsCount,
+            newPreprintSearchingForReviewers=newPreprintSearchingForReviewers,
+            newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
+            newPreprintRequiringRecommender=newPreprintRequiringRecommender,
+            newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
+        )
 
 
 ######################################################################################################################################################################

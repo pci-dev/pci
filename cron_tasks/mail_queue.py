@@ -11,7 +11,7 @@ except:
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
-#QUEUE_CHECK_INTERVAL = int(myconf.get("config.mail_queue_interval", default=15))  # in seconds # DEPRECATED: now every minute by cron
+# QUEUE_CHECK_INTERVAL = int(myconf.get("config.mail_queue_interval", default=15))  # in seconds # DEPRECATED: now every minute by cron
 MAIL_MAX_SENDING_ATTEMPTS = int(myconf.get("config.mail_max_sending_attemps", default=3))
 
 # Reminders config
@@ -73,7 +73,6 @@ def tryToSendMail(mail_item):
 
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
-
 
 
 def prepareNextReminder(mail_item):
@@ -145,17 +144,16 @@ def logSendingStatus(mail_item, isSent):
 ######################################################################################################################################################################
 # Run Mailing Queue Once
 ######################################################################################################################################################################
-#print("Entering sendQueuedMails")
+# print("Entering sendQueuedMails")
 mails_in_queue = getMailsInQueue()
 logMailsInQueue(len(mails_in_queue))
 # As the cron runs every minute, we break when the threshold of 50s is reached.
 # Remaining emails will be sent on next cron.
 start_ts = datetime.now().timestamp()
 for mail_item in mails_in_queue:
-	curr_ts = datetime.now().timestamp()
-	if (curr_ts - start_ts) < 50.0:
-		tryToSendMail(mail_item)
-		# wait beetween email sendings
-		time.sleep(MAIL_DELAY)
-
+    curr_ts = datetime.now().timestamp()
+    if (curr_ts - start_ts) < 50.0:
+        tryToSendMail(mail_item)
+        # wait beetween email sendings
+        time.sleep(MAIL_DELAY)
 

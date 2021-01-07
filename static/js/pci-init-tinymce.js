@@ -21,10 +21,14 @@ for (const id_textarea of ids_array) {
       invalid_styles = "font-size font-family background background-color";
     }
 
+    let safePasteActivated;
+    let style_tools;
     if (id_textarea == "#help_texts_contents"){
       style_tools = ["styleselect", "forecolor", "removeformat"]
+      safePasteActivated = false;
     } else {
       style_tools = ["styleselect"]
+      safePasteActivated = true;
       invalid_styles += "font-color"
     }
 
@@ -38,7 +42,7 @@ for (const id_textarea of ids_array) {
       menubar: false,
       statusbar: false,
       plugins: "paste lists link autoresize media image hr textcolor",
-      paste_as_text: true,
+      paste_as_text: safePasteActivated,
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,
       toolbar: [

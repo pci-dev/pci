@@ -296,7 +296,9 @@ def fill_new_article():
     db.t_articles.already_published.writable = False
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
-    db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
+
+    if parallelSubmissionAllowed:
+        db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
 
     if pciRRactivated:
         db.t_articles.art_stage_1_id.readable = True
@@ -325,8 +327,9 @@ def fill_new_article():
         "cover_letter",
         "i_am_an_author",
         "is_not_reviewed_elsewhere",
-        "parallel_submission",
     ]
+    if parallelSubmissionAllowed:
+        fields += ["parallel_submission"]
 
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
     form.element(_type="submit")["_value"] = T("Complete your submission")
@@ -378,15 +381,40 @@ def edit_my_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
 
+    pciRRjsScript=None
     if pciRRactivated:
-        db.t_articles.art_stage_1_id.readable = True
-        db.t_articles.art_stage_1_id.writable = True
-        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
-            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
-        )
-    else:
-        db.t_articles.art_stage_1_id.readable = False
-        db.t_articles.art_stage_1_id.writable = False
+        havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
+        db.t_articles.cover_letter.readable = True
+        db.t_articles.cover_letter.writable = True
+
+        if not havingStage2Articles:
+            db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
+                IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
+            )
+            pciRRjsScript = SCRIPT(
+                """
+                    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
+                """
+            )
+        else:
+            db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
+            pciRRjsScript = SCRIPT(
+                """
+                    document.querySelector("#t_articles_art_stage_1_id").value = "This is a stage 1 submission";
+                    document.querySelector("#t_articles_art_stage_1_id").disabled = true;
+
+                    var parent = document.querySelector("#t_articles_art_stage_1_id__row > div");
+                    var text = document.createTextNode( "This article already have some related stages 2.");
+                    var child = document.createElement('span');
+
+                    child.style.color = "#fcc24d"
+                    child.style.fontWeight = "bold"
+                    child.style.fontStyle = "italic"
+
+                    child.appendChild(text);
+                    parent.appendChild(child);
+                """
+            )
 
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
@@ -445,6 +473,7 @@ def edit_my_article():
         pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
         myFinalScript=SCRIPT(myScript),
+        pciRRjsScript=pciRRjsScript,
     )
 
 

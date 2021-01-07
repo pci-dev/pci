@@ -623,27 +623,53 @@ def edit_article():
     db.t_articles.user_id.writable = True
 
     if pciRRactivated:
+        havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.cover_letter.readable = True
         db.t_articles.cover_letter.writable = True
-        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
-            IS_IN_DB(db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
-        )
+
+        if not havingStage2Articles:
+            db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
+                IS_IN_DB(db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
+            )
+            myFinalScript = SCRIPT(
+                """
+                    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
+                """
+            )
+        else:
+            db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
+            myFinalScript = SCRIPT(
+                """
+                    document.querySelector("#t_articles_art_stage_1_id").value = "This is a stage 1 submission";
+                    document.querySelector("#t_articles_art_stage_1_id").disabled = true;
+
+                    var parent = document.querySelector("#t_articles_art_stage_1_id__row > div");
+                    var text = document.createTextNode( "This article already have some related stages 2.");
+                    var child = document.createElement('span');
+
+                    child.style.color = "#fcc24d"
+                    child.style.fontWeight = "bold"
+                    child.style.fontStyle = "italic"
+
+                    child.appendChild(text);
+                    parent.appendChild(child);
+                """
+            )
+
+
     else:
         db.t_articles.art_stage_1_id.readable = False
         db.t_articles.art_stage_1_id.writable = False
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
+
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
-    myFinalScript = SCRIPT(
-        """
-    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
-    """
-    )
+    
 
     return dict(
         # myBackButton = common_small_html.mkBackButton(),

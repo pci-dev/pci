@@ -86,9 +86,13 @@ def do_recommend_article():
     if art.art_stage_1_id is not None and art.status == "Pre-recommended":
         artStage1 = db.t_articles[art.art_stage_1_id]
         if artStage1 is not None:
-            if artStage1.status == "Recommended-private":
-                artStage1.status = "Recommended"
-                artStage1.update_record()
+            if artStage1.status.startswith("Recommended"):
+                if artStage1.status == "Recommended-private":
+                    artStage1.status = "Recommended"
+                    artStage1.update_record()
+            else:
+                session.flash = T("Stage 1 article recommendation process is not finished yet")
+                redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
     # stage 1 recommended privately 
     if art.status == "Pre-recommended-private":	
