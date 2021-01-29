@@ -255,5 +255,5 @@ def rss4altmetric():
     # except Exception, e:
     # raise e
     # pass
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True)
+    return u'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + etree.tostring(links, pretty_print=True).decode('utf8')
 
