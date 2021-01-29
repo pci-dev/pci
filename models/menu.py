@@ -125,6 +125,7 @@ def _ToolsMenu():
         # (T('Test ALL e-mail alerts'), False, URL('alerts', 'alertUsers')),
         (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
         (T('RSS for eLife'), False, URL('rss', 'rss4elife', user_signature=False)),
+	(T('RSS for Altmetric'), False, URL('rss', 'rss4altmetric', user_signature=False)),
         (T("Social networks", lazy=False), False, URL("about", "social", user_signature=True)),
     ]
     
