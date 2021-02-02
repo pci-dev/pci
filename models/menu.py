@@ -31,6 +31,20 @@ response.google_analytics_id = None
 # ----------------------------------------------------------------------------------------------------------------------
 appName = " " + myconf.take("app.longname")
 
+# ----------------------------------------------------------------------------------------------------------------------
+# If the app is discontinued add in appconfig.ini [app] section:
+# discontinued = True
+# ; 307 for temporary, 301 for permanent
+# redir_code = 307
+# redir_url = https://www.peercommunityin.org
+# ----------------------------------------------------------------------------------------------------------------------
+discontinued = myconf.get('app.discontinued', default=False)
+if discontinued:
+    redir_code = myconf.get('app.redir_code', default=307)
+    redir_url = myconf.get('app.redir_url', default='https://www.peercommunityin.org')
+    raise HTTP(redir_code, T('Sorry, %(appName)s is discontinued. You are being redirected to <a href="%(redir_url)s">%(redir_url)s</a>') % locals(), Location=redir_url)
+    
+
 # Appends developpers menu (web2py)
 def _DevMenu():
     app = request.application
