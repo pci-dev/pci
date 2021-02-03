@@ -29,6 +29,7 @@ from app_components import article_components
 
 myconf = AppConfig(reload=True)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ########################################################################################################################################################################
 ## Public recommendation
@@ -50,6 +51,19 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     articleInfosCard = article_components.getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False)
 
     headerContent.update([("articleInfosCard", articleInfosCard)])
+
+    isStage2 = art.art_stage_1_id is not None
+    stage1Link = None
+    stage2List = None
+    if pciRRactivated and isStage2:
+        urlArticle = URL(c="articles", f="rec", vars=dict(id=art.art_stage_1_id))
+        stage1Link = common_small_html.mkRepresentArticleLightLinked(auth, db, art.art_stage_1_id, urlArticle)
+    elif pciRRactivated and not isStage2:
+        stage2Articles = db((db.t_articles.art_stage_1_id == art.id) & (db.t_articles.status == "Recommended")).select()
+        stage2List = []
+        for art_st_2 in stage2Articles:
+            urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
+            stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
 
     # Last recommendation
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=~db.t_recommendations.id).last()
@@ -129,6 +143,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ("pdfLink", pdfLink),
             ("printable", printable),
             ("recommendationPdfLink", recommendationPdfLink),
+            ("pciRRactivated", pciRRactivated),
+            ("isStage2", isStage2),
+            ("stage1Link", stage1Link),
+            ("stage2List", stage2List),
         ]
     )
 

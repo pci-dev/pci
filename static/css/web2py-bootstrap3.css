@@ -234,11 +234,19 @@ div.error_wrapper {
 .web2py_console input[type=button],
 .web2py_console button {
 /*     line-height: 20px; */
+    line-height: 16px;
+    margin-right: 2px;
+    display: inline-block;
+    padding: 6px 12px;
+}
+
+.w2p_query_row input[type=button]{
     line-height: 8px;
     margin-right: 2px;
     display: inline-block;
     padding: 6px 12px;
 }
+
 .web2py_counter {
     margin-top: 5px;
     margin-right: 2px;

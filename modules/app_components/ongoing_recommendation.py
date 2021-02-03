@@ -21,6 +21,7 @@ from controller_modules import manager_module
 myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 ########################################################################################################################################################################
 def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
@@ -300,7 +301,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
 
 ########################################################################################################################################################################
-# Preprint recommendation process
+# Preprint recommendation process (rounds, recomms, reviews, author's reply)
 ########################################################################################################################################################################
 def getRecommendationProcess(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationRounds = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
@@ -331,6 +332,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
     if pciRRactivated and art.status == "Recommended":
         amIEngagedInStage2Process = True
+    
+    isScheduledSubmission = False
+    if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        isScheduledSubmission = True
 
     ###NOTE: here start recommendations display
     iRecomm = 0
@@ -584,6 +589,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewsList=reviewsList,
             showSearchingForReviewersButton=showSearchingForReviewersButton,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
+            scheduledSubmissionActivated=scheduledSubmissionActivated,
+            isScheduledSubmission=isScheduledSubmission,
         )
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
 

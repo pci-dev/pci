@@ -36,6 +36,7 @@ myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 MAIL_DELAY = 1.5  # in seconds
 
@@ -108,6 +109,7 @@ def getMailCommonVars():
         siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port")),
     )
 
+
 ######################################################################################################################################################################
 def getCorrectHashtag(hashtag, article=None):
     if pciRRactivated and article is not None:
@@ -115,7 +117,13 @@ def getCorrectHashtag(hashtag, article=None):
             hashtag += "Stage2"
         else:
             hashtag += "Stage1"
+
+    if scheduledSubmissionActivated and article is not None:
+        if article.doi is None and article.scheduled_submission_date is not None:
+            hashtag += "ScheduledSubmission"
+
     return hashtag
+
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
@@ -124,6 +132,45 @@ def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
     item = db(query).select().first()
 
     if item:
+        return dict(subject=item.subject, content=item.contents)
+    else:
+        if scheduledSubmissionActivated and pciRRactivated:
+            return generateNewMailTemplates(db, hashTag, myLanguage)
+        else:
+            return dict(error=True, message="hashtag not found")
+
+
+######################################################################################################################################################################
+def generateNewMailTemplates(db, hashTag, myLanguage):
+    baseHashtag = hashTag
+    baseHashtag = baseHashtag.replace("Stage1", "")
+    baseHashtag = baseHashtag.replace("Stage2", "")
+    baseHashtag = baseHashtag.replace("ScheduledSubmission", "")
+
+    # Create stage 1 template
+    result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission"  , baseHashtag + "Stage1", myLanguage)
+    
+    # Create stage 2 template
+    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission" , baseHashtag + "Stage2", myLanguage)
+
+    if "Stage1" in hashTag:
+        return result1
+    elif "Stage2" in hashTag:
+        return result2
+    else:
+        return dict(error=True, message="hashtag not found")
+
+
+######################################################################################################################################################################
+def insertNewTeamplateInDB(db, newHashTag, baseHashtag, myLanguage):
+    query = (db.mail_templates.hashtag == baseHashtag) & (db.mail_templates.lang == myLanguage)
+    item = db(query).select().first()
+
+    if item:
+        print("new template created :" + newHashTag)
+        db.mail_templates.insert(
+            hashtag=newHashTag, subject=item.subject + " - scheduled submission", contents=item.contents, description=item.description + " (for scheduled submission)"
+        )
         return dict(subject=item.subject, content=item.contents)
     else:
         return dict(error=True, message="hashtag not found")
@@ -193,7 +240,7 @@ def insertMailInQueue(
     ccAddresses = None
     if "ccAddresses" in mail_vars:
         ccAddresses = mail_vars["ccAddresses"]
-        
+
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=ccAddresses,
@@ -211,6 +258,7 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
+    hash_temp = hash_temp.replace("ScheduledSubmission", "")
     reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
 
     if reminder[0]:
@@ -219,7 +267,7 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 
         mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
-        
+
         ccAddresses = None
         if "ccAddresses" in mail_vars:
             ccAddresses = mail_vars["ccAddresses"]

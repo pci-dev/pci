@@ -38,12 +38,12 @@ appName = " " + myconf.take("app.longname")
 # redir_code = 307
 # redir_url = https://www.peercommunityin.org
 # ----------------------------------------------------------------------------------------------------------------------
-discontinued = myconf.get('app.discontinued', default=False)
+discontinued = myconf.get("app.discontinued", default=False)
 if discontinued:
-    redir_code = myconf.get('app.redir_code', default=307)
-    redir_url = myconf.get('app.redir_url', default='https://www.peercommunityin.org')
+    redir_code = myconf.get("app.redir_code", default=307)
+    redir_url = myconf.get("app.redir_url", default="https://www.peercommunityin.org")
     raise HTTP(redir_code, T('Sorry, %(appName)s is discontinued. You are being redirected to <a href="%(redir_url)s">%(redir_url)s</a>') % locals(), Location=redir_url)
-    
+
 
 # Appends developpers menu (web2py)
 def _DevMenu():
@@ -126,7 +126,7 @@ def _ToolsMenu():
     isActive = False
     if ctr == "tools":
         isActive = True
-    
+
     if auth.has_membership(None, None, "administrator"):
         myClass = "pci-admin"
     else:
@@ -138,11 +138,11 @@ def _ToolsMenu():
         (T("Send newsletter now"), False, URL("alerts", "sendNewsletterMails", user_signature=True)),
         # (T('Test ALL e-mail alerts'), False, URL('alerts', 'alertUsers')),
         (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
-        (T('RSS for eLife'), False, URL('rss', 'rss4elife', user_signature=False)),
-	(T('RSS for Altmetric'), False, URL('rss', 'rss4altmetric', user_signature=False)),
+        (T("RSS for eLife"), False, URL("rss", "rss4elife", user_signature=False)),
+        (T("RSS for Altmetric"), False, URL("rss", "rss4altmetric", user_signature=False)),
         (T("Social networks", lazy=False), False, URL("about", "social", user_signature=True)),
     ]
-    
+
     return [
         (SPAN(I(_class="glyphicon glyphicon-wrench"), T("Tools"), _class=myClass), isActive, "#", toolMenu),
     ]
@@ -164,14 +164,22 @@ def _AdminMenu():
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Users & roles")), False, URL("admin", "list_users", user_signature=True)),
                 # (T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Synthesis of reviews")), False, URL("admin", "recap_reviews", user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")), False, URL("admin", "allRecommCitations", user_signature=True)),
+                (
+                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")),
+                    False,
+                    URL("admin", "allRecommCitations", user_signature=True),
+                ),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True)),
                 LI(_class="divider"),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True)),
+                (
+                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")),
+                    False,
+                    URL("custom_help_text", "mail_templates", user_signature=True),
+                ),
                 LI(_class="divider"),
                 (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True)),
             ],
@@ -204,7 +212,7 @@ def _UserMenu():
         & (db.t_articles.status == "Under consideration")
     ).count()
 
-    txtRevPend = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("%s Invitation(s) to review a preprint" % nRevPend), _class="pci-recommender")
+    txtRevPend = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("%s Invitation(s) to review a preprint") % nRevPend, _class="pci-recommender")
 
     if nRevPend > 0:
         txtRevPend = SPAN(txtRevPend, _class="pci-enhancedMenuItem")
@@ -213,18 +221,13 @@ def _UserMenu():
 
     myContributionsMenu.append((txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)))
 
-    
-
     nWaitingForReviewer = db((db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")).count()
-    txtWaitingForReviewer = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("%s Preprint(s) in need of reviewers" % nWaitingForReviewer))
+    txtWaitingForReviewer = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("%s Preprint(s) in need of reviewers") % nWaitingForReviewer)
     if nWaitingForReviewer > 0:
         txtWaitingForReviewer = SPAN(txtWaitingForReviewer, _class="pci-enhancedMenuItem")
         contribMenuClass = "pci-enhancedMenuItem"
 
-    myContributionsMenu.append(
-        (txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True))
-    )
-
+    myContributionsMenu.append((txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True)))
 
     myContributionsMenu.append(
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Submit a preprint")), False, URL("user", "new_submission", user_signature=True))
@@ -289,7 +292,7 @@ def _RecommendationMenu():
     ).count()
     # (gab) proposition à la place de :
     txtPreprintsRecomPend = SPAN(
-        I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), "%s Request(s) to handle a preprint" % nPreprintsRecomPend, _class="pci-recommender"
+        I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, _class="pci-recommender"
     )
     # txtPreprintsRecomPend = SPAN('Do you agree to initiate a recommendation?', _class='pci-recommender')
 
@@ -551,4 +554,3 @@ response.help_about_menu += _AccountMenu()
 # set the language
 if "adminLanguage" in request.cookies and not (request.cookies["adminLanguage"] is None):
     T.force(request.cookies["adminLanguage"].value)
-

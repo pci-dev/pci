@@ -91,7 +91,7 @@ def do_recommend_article():
                     artStage1.status = "Recommended"
                     artStage1.update_record()
             else:
-                session.flash = T("Stage 1 article recommendation process is not finished yet")
+                session.flash = T("Stage 1 report recommendation process is not finished yet")
                 redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
     # stage 1 recommended privately 

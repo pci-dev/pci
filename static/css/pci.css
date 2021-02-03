@@ -722,7 +722,12 @@ header {
 
 /* .pci-w200Cell {max-width:180px; overflow:auto; border:1px solid #000000; border-radius:4px; padding:4px;} */
 .pci-w200Cell {
-  max-width: 200px;
+  max-width: 300px;
+  overflow: auto;
+}
+
+.pci-w300Cell {
+  max-width: 300px;
   overflow: auto;
 }
 

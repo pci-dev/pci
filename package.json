@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "What is PCI ? --------------- The “Peer Community in” project is a non-profit scientific organization aimed at creating specific communities of researchers reviewing and recommending papers in their field. These specific communities are entitled Peer Community in X, e.g. Peer Community in Evolutionary Biology, Peer Community in Microbiology.",
   "dependencies": {},
-  "devDependencies": {
-    "cypress": "^4.5.0"
-  },
   "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+ssh://gabfranck@git.renater.fr:2222/scmrepos/git/pci/pci.git"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^6.3.0"
+  }
 }

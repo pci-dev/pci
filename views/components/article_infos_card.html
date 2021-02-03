@@ -3,13 +3,17 @@
     <div
       class="pci2-flex-column  pci2-article-left-div pci2-article-left-div-short"
     >
-      <div class="pci2-flex-center pci2-flex-grow pci2-article-image-div">
+      <div class="pci2-flex-column pci2-flex-center pci2-flex-grow pci2-article-image-div">
         {{=articleImg}} 
         {{if articleImg == '' :}}
-        <img
-          src="{{=URL('static', 'images/small-background.png')}}"
-          alt="toto"
-        />
+          <img
+            src="{{=URL('static', 'images/small-background.png')}}"
+            alt="toto"
+          />
+        {{pass}}
+
+        {{if pciRRactivated:}}
+          <span class="pci2-article-infos" style="margin-top: 10px;">{{=articleStage}}</span>
         {{pass}}
       </div>
     </div>
@@ -17,8 +21,10 @@
     
     <div class="pci2-flex-row pci2-flex-center">
       <div class="pci2-flex-column pci2-flex-grow">
+        
         <h3>{{=articleTitle}}</h3>
         <span class="pci2-article-infos">{{=articleAuthor}}</span>
+        <span class="pci2-article-infos">{{=articleSource}}</span>
         <span class="pci2-article-infos">{{=articleDoi}}</span>
         <span class="pci2-article-infos">{{=articleVersion}}</span>
       </div>

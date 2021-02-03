@@ -46,6 +46,45 @@
 	{{pass}}
 {{pass}}
 
+{{if ('isScheduledSubmission' in locals()) and ('scheduledSubmissionActivated' in locals()) and ('scheduledSubmissionForm' in locals()) and ('scheduledSubmissionRemaningDays' in locals()):}}
+	{{if scheduledSubmissionActivated and isScheduledSubmission and scheduledSubmissionForm and scheduledSubmissionRemaningDays:}}
+		<div class="pci2-flex-column pci2-align-items-center">
+			<div style="max-width: 800px; width: 100%;">
+				<hr>
+
+				<div style="margin-bottom: 25px; " class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">
+					<h2 class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
+						<i class="glyphicon glyphicon-edit" style="margin-right: 10px;"></i>
+						{{= T('Submit your report')}}
+					</h2>
+				</div>
+			
+				<div>
+					
+					{{if scheduledSubmissionRemaningDays < 0:}}
+						<h4 style="margin: 5px 15px; text-align: center;">
+							<b style="color: #ffbf00;">{{=T('Warning:')}}</b>
+							<span>
+								{{=T("Scheduled submission date has been reached.")}}
+							</span>
+						</h4>
+					{{else:}}
+						<h4 style="margin: 5px 15px; text-align: center;">
+							{{=T("The scheduled submission date will be reached in ")}}
+							<b>
+								{{=scheduledSubmissionRemaningDays}}
+							</b> 
+							{{=T("days.")}}
+						</h4>
+					{{pass}}
+
+					{{=scheduledSubmissionForm}}
+				</div>
+			</div>
+		</div>
+	{{pass}}
+{{pass}}
+
 {{if 'myContents' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
 	<div style="max-width: 800px; width: 100%;">

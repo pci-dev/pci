@@ -2,6 +2,7 @@
 
 import re
 import copy
+from datetime import date
 
 from gluon.contrib.markdown import WIKI
 
@@ -27,6 +28,7 @@ trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 ######################################################################################################################################################################
 # Recommendations of my articles
@@ -68,11 +70,11 @@ def recommendations():
         redirect(request.env.http_referer)
     else:
 
+        # PCI Registered Reports
         isStage2 = art.art_stage_1_id is not None
         stage1Link = None
         stage2List = None
         if pciRRactivated and isStage2:
-            # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
             urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
             stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
         elif pciRRactivated and not isStage2:
@@ -81,6 +83,27 @@ def recommendations():
             for art_st_2 in stage2Articles:
                 urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art_st_2.id))
                 stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+
+        # Scheduled Submission form (doi + manuscript version)
+        isScheduledSubmission = False
+        scheduledSubmissionRemaningDays = None
+        scheduledSubmissionForm = None
+        if scheduledSubmissionActivated and art.status != "Cancelled" and art.user_id == auth.user_id:
+            db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
+            scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
+
+            if art.doi is None and art.scheduled_submission_date is not None:
+                isScheduledSubmission = True
+                scheduledSubmissionRemaningDays = (art.scheduled_submission_date - date.today()).days
+
+            if scheduledSubmissionForm.process().accepted:
+                art.scheduled_submission_date = None
+                art.doi = scheduledSubmissionForm.vars.doi
+                art.ms_version = scheduledSubmissionForm.vars.ms_version
+                art.update_record()
+
+                session.flash = T("Article submitted successfully")
+                redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
 
         # Build recommendation
         response.title = art.title or myconf.take("app.longname")
@@ -119,6 +142,10 @@ def recommendations():
             isStage2=isStage2,
             stage1Link=stage1Link,
             stage2List=stage2List,
+            scheduledSubmissionActivated=scheduledSubmissionActivated,
+            isScheduledSubmission=isScheduledSubmission,
+            scheduledSubmissionForm=scheduledSubmissionForm,
+            scheduledSubmissionRemaningDays=scheduledSubmissionRemaningDays,
         )
 
 
@@ -304,15 +331,26 @@ def fill_new_article():
         db.t_articles.art_stage_1_id.readable = True
         db.t_articles.art_stage_1_id.writable = True
         db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
-            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", "%(title)s")
+            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"')
         )
     else:
         db.t_articles.art_stage_1_id.readable = False
         db.t_articles.art_stage_1_id.writable = False
 
+    if scheduledSubmissionActivated:
+        db.t_articles.scheduled_submission_date.readable = True
+        db.t_articles.scheduled_submission_date.writable = True
+    else:
+        db.t_articles.scheduled_submission_date.readable = False
+        db.t_articles.scheduled_submission_date.writable = False
+
     fields = []
     if pciRRactivated:
-        fields = ["art_stage_1_id"]
+        fields += ["art_stage_1_id"]
+
+    if scheduledSubmissionActivated:
+        fields += ["scheduled_submission_date"]
+
     fields += [
         "doi",
         "ms_version",
@@ -331,7 +369,11 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
+    form = SQLFORM(
+        db.t_articles,
+        fields=fields,
+        keepvalues=True,
+    )
     form.element(_type="submit")["_value"] = T("Complete your submission")
     form.element(_type="submit")["_class"] = "btn btn-success"
     if form.process().accepted:
@@ -381,7 +423,9 @@ def edit_my_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
 
-    pciRRjsScript=None
+    
+
+    pciRRjsScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.cover_letter.readable = True
@@ -416,11 +460,24 @@ def edit_my_article():
                 """
             )
 
+    if scheduledSubmissionActivated:
+        db.t_articles.scheduled_submission_date.readable = True
+        db.t_articles.scheduled_submission_date.writable = True
+    else:
+        db.t_articles.scheduled_submission_date.readable = False
+        db.t_articles.scheduled_submission_date.writable = False
+
+    
+
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
         fields = []
         if pciRRactivated:
             fields = ["art_stage_1_id"]
+        
+        if scheduledSubmissionActivated:
+            fields += ["scheduled_submission_date"]
+
         fields += [
             "doi",
             "ms_version",
@@ -442,6 +499,10 @@ def edit_my_article():
         fields = []
         if pciRRactivated:
             fields = ["art_stage_1_id"]
+        
+        if scheduledSubmissionActivated:
+            fields += ["scheduled_submission_date"]
+            
         fields += [
             "doi",
             "ms_version",
@@ -579,6 +640,9 @@ def my_articles():
     db.t_articles.parallel_submission.readable = False
     db.t_articles.anonymous_submission.readable = False
 
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
     # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
@@ -608,6 +672,7 @@ def my_articles():
 
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
@@ -628,6 +693,7 @@ def my_articles():
         ]
     else:
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
@@ -707,11 +773,11 @@ def my_reviews():
     db.t_articles._id.label = T("Article")
     db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations._id.label = T("Recommendation")
-    
+
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
-    
+
     db.t_reviews.last_change.label = T("Days elapsed")
     db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
     db.t_reviews.reviewer_id.writable = False
@@ -720,39 +786,16 @@ def my_reviews():
     db.t_reviews.recommendation_id.label = T("Recommender")
     db.t_reviews.recommendation_id.represent = lambda text, row: user_module.mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
 
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
+    db.t_articles.doi.readable = False
+    db.t_articles.doi.writable = False
+
     db.t_reviews._id.readable = False
     db.t_reviews.review_state.readable = False
     db.t_reviews.anonymously.readable = False
-    db.t_reviews.review.represent = lambda text, row: DIV(
-        DIV(
-            B("Review status : ", _style="margin-top: -2px; font-size: 14px"),
-            common_small_html.mkReviewStateDiv(auth, db, row["review_state"]),
-            _style="border-bottom: 1px solid #ddd",
-            _class="pci2-flex-row pci2-align-items-center",
-        ),
-        DIV(
-            WIKI(
-                text
-                or DIV(
-                    DIV(
-                        A(
-                            SPAN(current.T("Write, edit or upload your review")),
-                            _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.id)),
-                            _class="btn btn-default",
-                            _style="margin: 20px 10px",
-                        ),
-                        _class="text-center",
-                    )
-                    if row["review_state"] == "Awaiting review"
-                    else ""
-                )
-                or "",
-                safe_mode=False,
-            ),
-            _style="color: #888",
-            _class="pci-div4wiki-large",
-        ),
-    )
+    db.t_reviews.review.readable = False
 
     if pendingOnly:
         db.t_reviews.review.readable = False
@@ -762,6 +805,47 @@ def my_reviews():
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
     links = [
+        dict(
+            header=T("Review as text"),
+            body=lambda row: DIV(
+                DIV(
+                    B("Review status : ", _style="margin-top: -2px; font-size: 14px"),
+                    common_small_html.mkReviewStateDiv(auth, db, row.t_reviews["review_state"]),
+                    _style="border-bottom: 1px solid #ddd",
+                    _class="pci2-flex-row pci2-align-items-center",
+                ),
+                DIV(
+                    WIKI(
+                        row.t_reviews.review
+                        or DIV(
+                            DIV(
+                                A(
+                                    SPAN(current.T("Write, edit or upload your review")),
+                                    _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
+                                    _class="btn btn-default disabled"
+                                    if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                    else "btn btn-default",
+                                    _style="margin: 20px 10px 5px",
+                                ),
+                                I(
+                                    current.T("You will be able to upload you're review as soon as the author submit his preprint."),
+                                )
+                                if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                else "",
+                                _style="margin-bottom: 20px",
+                                _class="text-center pci2-flex-center pci2-flex-column",
+                            )
+                            if row.t_reviews["review_state"] == "Awaiting review"
+                            else ""
+                        )
+                        or "",
+                        safe_mode=False,
+                    ),
+                    _style="color: #888",
+                    _class="pci-div4wiki-large",
+                ),
+            ),
+        ),
         dict(
             header=T(""),
             body=lambda row: A(
@@ -786,7 +870,9 @@ def my_reviews():
         csv=csv,
         exportclasses=expClass,
         fields=[
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.doi,
             db.t_articles.status,
             db.t_articles._id,
             db.t_reviews._id,
@@ -949,7 +1035,12 @@ def edit_review():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     art = db.t_articles[recomm.article_id]
+    # Check if article have correct status
     if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
+        session.flash = T("Unauthorized", lazy=False)
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+    # Check if article is Scheduled submission without doi
+    elif scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:
@@ -1070,20 +1161,13 @@ def edit_reply():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="my_articles"))
     db.t_recommendations.reply_pdf.label = T("OR Upload your reply as PDF file")
-    form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], upload=URL("default", "download"), showid=False)
-    form.element(_type="submit")["_value"] = T("Save")
-    do_complete = DIV(
-        BUTTON(
-            current.T("Save & submit your reply"),
-            _title=current.T("Click here when the revision is completed in order to submit the new version"),
-            _type="submit",
-            _name="completed",
-            _class="buttontext btn btn-success",
-            _style="margin-top:32px;",
-        ),
-        _style="text-align:center;",
-    )
-    form[0].insert(99, do_complete)
+
+    buttons = [
+        INPUT(_type="Submit", _name="save", _class="btn btn-info", _value="Save"),
+        INPUT(_type="Submit", _name="completed", _class="btn btn-success", _value="Save & submit your reply"),
+    ]
+
+    form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], buttons=buttons, upload=URL("default", "download"), showid=False)
 
     if form.process().accepted:
         if request.vars.completed:
@@ -1150,6 +1234,9 @@ def articles_awaiting_reviewers():
     db.t_articles.parallel_submission.readable = False
     db.t_articles.anonymous_submission.readable = False
 
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
     # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
@@ -1176,6 +1263,7 @@ def articles_awaiting_reviewers():
 
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.last_status_change,
             # db.t_articles.status,
             db.t_articles.uploaded_picture,
@@ -1195,6 +1283,7 @@ def articles_awaiting_reviewers():
         ]
     else:
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.last_status_change,
             # db.t_articles.status,
             db.t_articles.uploaded_picture,
@@ -1239,4 +1328,3 @@ def articles_awaiting_reviewers():
         grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
-

@@ -606,12 +606,12 @@ def my_recommendations():
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_recommendations.last_change,
             db.t_articles.status,
             db.t_articles.art_stage_1_id,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
-            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.doi,
             db.t_recommendations.is_closed,
         ]
@@ -627,12 +627,12 @@ def my_recommendations():
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_recommendations.last_change,
             db.t_articles.status,
             db.t_articles.art_stage_1_id,
             db.t_recommendations._id,
             db.t_recommendations.article_id,
-            # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.doi,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommendation_state,
@@ -650,10 +650,8 @@ def my_recommendations():
 
     db.t_recommendations.recommender_id.writable = False
     db.t_recommendations.doi.writable = False
-    # db.t_recommendations.article_id.readable = False
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
-    # db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations.recommender_id.readable = False
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
@@ -668,13 +666,17 @@ def my_recommendations():
         if "t_recommendations" in row
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
+    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+    
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
     grid = SQLFORM.grid(
         query,
         searchable=False,
@@ -1827,11 +1829,15 @@ def my_co_recommendations():
     db.t_articles.status.writable = False
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_press_reviews._id.readable = False
     db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
     db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
+
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
     grid = SQLFORM.grid(
         query,
         searchable=False,
@@ -1844,6 +1850,7 @@ def my_co_recommendations():
         csv=csv,
         exportclasses=expClass,
         fields=[
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,

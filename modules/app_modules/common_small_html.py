@@ -22,6 +22,9 @@ from gluon.sqlhtml import *
 
 myconf = AppConfig(reload=True)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
+
 ######################################################################################################################################################################
 # Time and date
 ######################################################################################################################################################################
@@ -247,34 +250,28 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None):
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
 
-
     if showStage:
         if auth.has_membership(role="manager"):
-            stage1Url = URL(c="manager", f="recommendations" ,vars=dict(articleId=stage1Id))
+            stage1Url = URL(c="manager", f="recommendations", vars=dict(articleId=stage1Id))
         elif auth.has_membership(role="recommender"):
-            stage1Url = URL(c="recommender", f="recommendations" ,vars=dict(articleId=stage1Id))
+            stage1Url = URL(c="recommender", f="recommendations", vars=dict(articleId=stage1Id))
             # stage1Url = URL(c="recommender", f="article_details" ,vars=dict(articleId=stage1Id))
         else:
-            stage1Url = URL(c="user", f="recommendations" ,vars=dict(articleId=stage1Id))
+            stage1Url = URL(c="user", f="recommendations", vars=dict(articleId=stage1Id))
 
         if stage1Id is not None:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
-                DIV(
-                    B(current.T("Stage 2")), 
-                    BR(),
-                    B("(", A(current.T("View stage 1"), _href=stage1Url), ")"),
-                    _style="text-align: center; width: 150px;"
-                ), 
+                DIV(B(current.T("Stage 2")), BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"), _style="text-align: center; width: 150px;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"), 
+                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"),
             )
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
-        
+
     return result
 
 
@@ -303,27 +300,22 @@ def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None):
 
     if showStage:
         if auth.has_membership(role="manager"):
-            stage1Url = URL(c="manager", f="recommendations" ,vars=dict(articleId=stage1Id))
+            stage1Url = URL(c="manager", f="recommendations", vars=dict(articleId=stage1Id))
         elif auth.has_membership(role="recommender"):
-            stage1Url = URL(c="recommender", f="recommendations" ,vars=dict(articleId=stage1Id))
+            stage1Url = URL(c="recommender", f="recommendations", vars=dict(articleId=stage1Id))
             # stage1Url = URL(c="recommender", f="article_details" ,vars=dict(articleId=stage1Id))
         else:
-            stage1Url = URL(c="user", f="recommendations" ,vars=dict(articleId=stage1Id))
-            
+            stage1Url = URL(c="user", f="recommendations", vars=dict(articleId=stage1Id))
+
         if stage1Id is not None:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
-                DIV(
-                    B(current.T("Stage 2")), 
-                    BR(),
-                    B("(", A(current.T("View stage 1"), _href=stage1Url), ")"),
-                    _style="text-align: center; width: 150px;"
-                ), 
+                DIV(B(current.T("Stage 2")), BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"), _style="text-align: center; width: 150px;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"), 
+                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"),
             )
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
@@ -500,17 +492,22 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
     art = db.t_articles[article_id]
 
     if art:
+        # Scheduled submission status (instead of DOI)
+        doi_text = mkDOI(art.doi)
+        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+            doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
+
         if urlArticle:
             anchor = DIV(
                 A(B(art.title), _href=urlArticle),
                 BR(),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
-                mkDOI(art.doi),
+                doi_text,
                 _class="ellipsis-over-350",
             )
         else:
-            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
+            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350")
 
     return anchor
 
@@ -520,18 +517,23 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
     anchor = ""
     art = db.t_articles[article_id]
     if art:
+        # Scheduled submission status (instead of DOI)
+        doi_text = mkDOI(art.doi)
+        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+            doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
+
         if urlArticle:
             anchor = DIV(
                 A(B(art.title), _href=urlArticle),
                 BR(),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
-                mkDOI(art.doi),
+                doi_text,
                 BR(),
                 B(current.T("Status: "), mkStatusSimple(auth, db, art.status)),
             )
         else:
-            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), mkDOI(art.doi), _class="ellipsis-over-350")
+            anchor = DIV(B(art.title), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350")
 
     return anchor
 
@@ -541,10 +543,16 @@ def mkRepresentArticleLight(auth, db, article_id):
     anchor = ""
     art = db.t_articles[article_id]
     if art:
+        # Scheduled submission status (instead of DOI)
+        doi_text = mkDOI(art.doi)
+        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+            doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
+
         anchor = DIV(
             B(art.title),
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-            mkDOI(art.doi),
+            doi_text,
+            BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
             (BR() + SPAN(art.article_source) if art.article_source else ""),
         )
@@ -560,10 +568,17 @@ def mkArticleCellNoRecomm(auth, db, art0):
             art = art0.t_articles
         else:
             art = art0
+
+        # Scheduled submission status (instead of DOI)
+        doi_text = mkDOI(art.doi)
+        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+            doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
+
         anchor = DIV(
             B(art.title),
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-            mkDOI(art.doi),
+            doi_text,
+            BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
             (BR() + SPAN(art.article_source) if art.article_source else ""),
         )
@@ -592,6 +607,10 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
             recommenders = SPAN(recommenders)
             # else:
             # recommenders = mkUser(auth, db, recomm.recommender_id)
+            doi_text = mkDOI(art.doi)
+            if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+                doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
+
             anchor = DIV(
                 B(recomm.recommendation_title),
                 SPAN(current.T(" by ")),
@@ -604,7 +623,8 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 (SPAN(current.T(" in ")) + SPAN(art.article_source) if art.article_source else ""),
                 BR(),
-                mkDOI(art.doi),
+                doi_text,
+                BR(),
                 (SPAN(current.T(" version ") + art.ms_version) if art.ms_version else ""),
             )
     return anchor
@@ -838,7 +858,14 @@ def getArticleSubmitter(auth, db, art):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(mkUser_U(auth, db, submitter, linked=True)),)),
+            I(
+                mkAnonymousArticleField(
+                    auth,
+                    db,
+                    hideSubmitter,
+                    B(mkUser_U(auth, db, submitter, linked=True)),
+                )
+            ),
             I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
         )
     else:
@@ -862,4 +889,3 @@ def mkRecommendersString(auth, db, recomm):
         recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
     recommendersStr = "".join(recommenders)
     return recommendersStr
-

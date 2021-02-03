@@ -29,6 +29,7 @@ from app_modules import common_tools
 myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 ######################################################################################################################################################################
 def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False):
@@ -67,6 +68,11 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
 
     authors = common_tools.getShortText(article.authors, 500) or ""
 
+    # Scheduled submission
+    doi_text = common_small_html.mkDOI(article.doi)
+    if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
+
     componentVars = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
@@ -74,7 +80,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
         articleAuthor=authors,
-        articleDoi=common_small_html.mkDOI(article.doi),
+        articleDoi=doi_text,
         recommendationAuthors=SPAN(recommAuthors),
         recommendationTitle=recomm.recommendation_title,
         recommendationShortText=WIKI(recommShortText, safe_mode=False),
@@ -100,7 +106,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
         track = DIV(_class="pci-trackItem")
-        link = common_small_html.mkDOI(article.doi)
+        
         firstDate = article.upload_timestamp.strftime("%Y-%m-%d")
         lastDate = article.last_status_change.strftime("%Y-%m-%d")
         title = article.title
@@ -108,7 +114,6 @@ def getArticleTrackcRowCard(auth, db, response, article):
             authors = "[anonymous submission]"
         else:
             authors = article.authors
-
         # pci-status
         if article.status == "Recommended":
             txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN(SPAN("(", firstDate, " ➜ ", lastDate, ")"), ". "),)
@@ -125,12 +130,17 @@ def getArticleTrackcRowCard(auth, db, response, article):
         else:
             return None
 
+        # Scheduled submission
+        doi_text = common_small_html.mkDOI(article.doi)
+        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+            doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
+
         componentVars = dict(
             articleId=article.id,
             articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port), _class="pci-trackImg",),
             articleTitle=title,
             articleAuthor=authors,
-            articleDoi=link,
+            articleDoi=doi_text,
             articleStatus=article.status,
             articleStatusText=txt,
         )
@@ -143,10 +153,10 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=True, submittedBy=True):
+def getArticleInfosCard(auth, db, response, article, printable, with_cover_letter=True, submittedBy=True):
     ## NOTE: article facts
-    if art.uploaded_picture is not None and art.uploaded_picture != "":
-        article_img = IMG(_alt="picture", _src=URL("default", "download", args=art.uploaded_picture))
+    if article.uploaded_picture is not None and article.uploaded_picture != "":
+        article_img = IMG(_alt="picture", _src=URL("default", "download", args=article.uploaded_picture))
     else:
         article_img = ""
 
@@ -154,29 +164,45 @@ def getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=Tr
         printableClass = "printable"
     else:
         printableClass = ""
+    
+    articleStage = None
+    if pciRRactivated:
+        if article.art_stage_1_id is not None:
+            articleStage = B(current.T("STAGE #2"))
+        else:
+            articleStage = B(current.T("STAGE #1"))
+    
+     # Scheduled submission
+    doi_text = (common_small_html.mkDOI(article.doi)) if (article.doi) else SPAN("")
+    if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
+    
 
-    doi = sub(r"doi: *", "", (art.doi or ""))
+    doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
 
     articleContent = dict()
     articleContent.update(
         [
-            ("articleVersion", SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else ""),
+            ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
+            ("articleSource", I(article.article_source or "")),
             ("articleImg", article_img),
-            ("articleTitle", art.title or ""),
-            ("articleAuthor", art.authors or ""),
-            ("articleAbstract", WIKI(art.abstract or "", safe_mode=False)),
-            ("articleDoi", (common_small_html.mkDOI(art.doi)) if (art.doi) else SPAN("")),
+            ("articleTitle", article.title or ""),
+            ("articleAuthor", article.authors or ""),
+            ("articleAbstract", WIKI(article.abstract or "", safe_mode=False)),
+            ("articleDoi", doi_text),
             ("article_altmetric", article_altmetric),
             ("printable", printable),
             ("printableClass", printableClass),
+            ("pciRRactivated", pciRRactivated),
+            ("articleStage", articleStage),
         ]
     )
 
-    if with_cover_letter and not art.already_published:
-        articleContent.update([("coverLetter", WIKI(art.cover_letter or "", safe_mode=False))])
+    if with_cover_letter and not article.already_published:
+        articleContent.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=False))])
 
     if submittedBy:
-        articleContent.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, art))])
+        articleContent.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, article))])
 
     return XML(response.render("components/article_infos_card.html", articleContent))

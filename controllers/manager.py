@@ -141,7 +141,7 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.keywords.writable = False
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.auto_nb_recommendations.writable = False
-    db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w200Cell")
+    db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
     db.t_articles._id.label = T("Article")
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
     db.t_articles.upload_timestamp.label = T("Submission date")
@@ -725,6 +725,7 @@ def all_recommendations():
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_recommendations.last_change,
             # db.t_articles.status,
@@ -746,6 +747,7 @@ def all_recommendations():
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
+            db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_recommendations.last_change,
             # db.t_articles.status,
@@ -774,7 +776,6 @@ def all_recommendations():
     # db.t_recommendations.article_id.readable = False
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
-    # db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
     db.t_recommendations.recommender_id.readable = True
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
@@ -789,13 +790,17 @@ def all_recommendations():
         if "t_recommendations" in row
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w200Cell")
+    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
+
     grid = SQLFORM.grid(
         query,
         searchable=False,

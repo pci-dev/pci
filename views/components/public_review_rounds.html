@@ -15,7 +15,8 @@
     <span class="pci2-revision-round-date"><i>{{=lastChanges}}</i></span>
   {{pass}}
 
-  {{if authorsReply is not None:}}
+  
+  {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None):}}
     <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
       {{if authorsReplyPdfLink is not None:}}
@@ -26,7 +27,9 @@
         {{=authorsReplyTrackChangeFileLink}}
       {{pass}}
 
-      {{=authorsReply}}
+      {{if authorsReply is not None:}}
+        {{=authorsReply}}
+      {{pass}}
     </div>
   {{pass}}
 

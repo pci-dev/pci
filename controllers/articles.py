@@ -180,6 +180,10 @@ def rec():
     else:
         session.flash = T("Unavailable")
         redirect(URL("articles", "recommended_articles", user_signature=True))
+    
+    # Remove "reviews" vars from url 
+    if "reviews" in request.vars:
+        redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
 
     # NOTE: check id is numeric!
     if not articleId.isdigit():
@@ -216,20 +220,6 @@ def rec():
     nbRevs = db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count()
     nbReviews = nbRevs + (nbRecomms - 1)
 
-    isStage2 = art.art_stage_1_id is not None
-    stage1Link = None
-    stage2List = None
-    if pciRRactivated and isStage2:
-        # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
-        urlArticle = URL(c="articles", f="rec", vars=dict(id=art.art_stage_1_id))
-        stage1Link = common_small_html.mkRepresentArticleLightLinked(auth, db, art.art_stage_1_id, urlArticle)
-    elif pciRRactivated and not isStage2:
-        stage2Articles = db((db.t_articles.art_stage_1_id == articleId) & (db.t_articles.status == "Recommended")).select()
-        stage2List = []
-        for art_st_2 in stage2Articles:
-            urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
-            stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
-
     # Recommendation Header and Metadata
     recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
@@ -265,10 +255,6 @@ def rec():
         commentsTreeAndForm=commentsTreeAndForm,
         printableClass=printableClass,
         myBackButton=common_small_html.mkBackButton(),
-        pciRRactivated=pciRRactivated,
-        isStage2=isStage2,
-        stage1Link=stage1Link,
-        stage2List=stage2List,
     )
 
 
