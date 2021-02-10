@@ -45,6 +45,7 @@ port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
@@ -694,6 +695,10 @@ def newArticle(s, articleId):
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
+    
+    if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
+        emailing.create_reminder_for_submitter_shceduled_submission_due(session, auth, db, articleId)
+    
     return None
 
 

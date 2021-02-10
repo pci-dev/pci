@@ -254,14 +254,14 @@ def insertMailInQueue(
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None):
+def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None, sending_date_forced=None):
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
     reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
 
-    if reminder[0]:
+    if reminder and reminder[0]:
         elapsed_days = reminder[0]["elapsed_days"][0]
 
         sending_date = datetime.now() + timedelta(days=elapsed_days)
@@ -284,8 +284,26 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
         )
+    
+    if sending_date_forced:
+        mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
 
+        ccAddresses = None
+        if "ccAddresses" in mail_vars:
+            ccAddresses = mail_vars["ccAddresses"]
 
+        db.mail_queue.insert(
+            sending_status="pending",
+            sending_date=sending_date_forced,
+            dest_mail_address=mail_vars["destAddress"],
+            cc_mail_addresses=ccAddresses,
+            mail_subject=mail["subject"],
+            mail_content=mail["content"],
+            user_id=auth.user_id,
+            recommendation_id=recommendation_id,
+            article_id=article_id,
+            mail_template_hashtag=hashtag_template,
+        )
 ######################################################################################################################################################################
 def insertNewsLetterMailInQueue(
     auth,

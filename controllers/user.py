@@ -74,9 +74,13 @@ def recommendations():
         isStage2 = art.art_stage_1_id is not None
         stage1Link = None
         stage2List = None
+
+        # Create related stage 1 link
         if pciRRactivated and isStage2:
             urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
             stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+
+        # Create related stage 2 list
         elif pciRRactivated and not isStage2:
             stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
             stage2List = []
@@ -92,15 +96,36 @@ def recommendations():
             db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
+            # Show form and get remaning days
             if art.doi is None and art.scheduled_submission_date is not None:
                 isScheduledSubmission = True
                 scheduledSubmissionRemaningDays = (art.scheduled_submission_date - date.today()).days
 
+            # Remove scheduled submission date when doi is updated
             if scheduledSubmissionForm.process().accepted:
                 art.scheduled_submission_date = None
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
                 art.update_record()
+                
+                
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+
+                # Send e-mails to reviewers and recommenders
+                emailing.send_to_reviewers_preprint_submitted(session, auth, db, articleId)
+                emailing.send_to_recommender_preprint_submitted(session, auth, db, articleId)
+
+                # Create reminder for reviewers
+                awaitingReviews = db(
+                    (db.t_reviews.recommendation_id == db.t_recommendations.id)
+                    & (db.t_recommendations.article_id == db.t_articles.id)
+                    & (db.t_articles.id == articleId)
+                    & (db.t_reviews.review_state == "Awaiting review")
+                ).select()
+                for review in awaitingReviews:
+                    emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
+                    emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
+                    emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
 
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
@@ -423,8 +448,6 @@ def edit_my_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
 
-    
-
     pciRRjsScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
@@ -467,14 +490,12 @@ def edit_my_article():
         db.t_articles.scheduled_submission_date.readable = False
         db.t_articles.scheduled_submission_date.writable = False
 
-    
-
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
         fields = []
         if pciRRactivated:
             fields = ["art_stage_1_id"]
-        
+
         if scheduledSubmissionActivated:
             fields += ["scheduled_submission_date"]
 
@@ -499,10 +520,10 @@ def edit_my_article():
         fields = []
         if pciRRactivated:
             fields = ["art_stage_1_id"]
-        
+
         if scheduledSubmissionActivated:
             fields += ["scheduled_submission_date"]
-            
+
         fields += [
             "doi",
             "ms_version",

@@ -30,5 +30,5 @@ rm temp1.txt temp2.txt temp3.txt temp4.txt basefile.txt temp_basefile.txt temp_b
 # - copy result.txt inside default.py python list
 # - run black python formatter (auto replace '' by "") on default.py
 # - copy formatting result in a new file result2.txt 
-# - run following command : "sort result2.txt | uniq > result3.txt"
+# - run following command to remove duplicates : "sort result2.txt | uniq > result3.txt"
 # - copy result2.txt inside default.py python list
