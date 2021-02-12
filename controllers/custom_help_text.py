@@ -81,7 +81,7 @@ def mail_templates():
         maxtextlength=4096,
         csv=False,
         exportclasses=expClass,
-        orderby=db.mail_templates.hashtag,
+        orderby=~db.mail_templates.id,
     )
 
     if grid.update_form and grid.update_form.process().accepted:

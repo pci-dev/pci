@@ -15,13 +15,19 @@ def help_generic():
 ######################################################################################################################################################################
 def help_guidelines():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#GuidelinesHelpTitle"), customText=getText(request, auth, db, "#GuidelinesHelpInfo"),)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#GuidelinesHelpTitle"),
+        customText=getText(request, auth, db, "#GuidelinesHelpInfo"),
+    )
 
 
 ######################################################################################################################################################################
 def help_practical():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#PracticalHelpTitle"), customText=getText(request, auth, db, "#PracticalHelpInfo"),)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#PracticalHelpTitle"),
+        customText=getText(request, auth, db, "#PracticalHelpInfo"),
+    )
 
 
 ######################################################################################################################################################################
@@ -46,39 +52,46 @@ def cite():
     )
 
 
-#  (gab) is this used ?
-
-# ######################################################################################################################################################################
-# def help_user():
-# 	response.view='default/info.html'
-# 	return dict(
-# 		pageTitle=getTitle(request, auth, db, '#UserHelpTitle'),
-# 		customText=getText(request, auth, db, '#UserHelpInfo'),
-# 	)
+######################################################################################################################################################################
+def top_guidelines():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#TopGuidelinesTitle"),
+        customText=getText(request, auth, db, "#TopGuidelinesInfo"),
+    )
 
 
-# ######################################################################################################################################################################
-# def help_recommender():
-# 	response.view='default/info.html'
-# 	return dict(
-# 		pageTitle=getTitle(request, auth, db, '#RecommenderHelpTitle'),
-# 		customText=getText(request, auth, db, '#RecommenderHelpInfo'),
-# 	)
+######################################################################################################################################################################
+def guide_for_authors():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#GuideForAuthorsTitle"),
+        customText=getText(request, auth, db, "#GuideForAuthorsInfo"),
+    )
 
 
-# ######################################################################################################################################################################
-# def help_manager():
-# 	response.view='default/info.html'
-# 	return dict(
-# 		pageTitle=getTitle(request, auth, db, '#ManagerHelpTitle'),
-# 		customText=getText(request, auth, db, '#ManagerHelpInfo'),
-# 	)
+######################################################################################################################################################################
+def guide_for_reviewers():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#GuideForReviewersTitle"),
+        customText=getText(request, auth, db, "#GuideForReviewersInfo"),
+    )
 
 
-# ######################################################################################################################################################################
-# def help_admin():
-# 	response.view='default/info.html'
-# 	return dict(
-# 		pageTitle=getTitle(request, auth, db, '#AdministratorHelpTitle'),
-# 		customText=getText(request, auth, db, '#AdministratorHelpInfo'),
-# 	)
+######################################################################################################################################################################
+def guide_for_recommenders():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#GuideForRecommendersTitle"),
+        customText=getText(request, auth, db, "#GuideForRecommendersInfo"),
+    )
+
+
+######################################################################################################################################################################
+def become_a_recommenders():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#BecomeARecommendersTitle"),
+        customText=getText(request, auth, db, "#BecomeARecommendersInfo"),
+    )

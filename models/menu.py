@@ -44,6 +44,8 @@ if discontinued:
     redir_url = myconf.get("app.redir_url", default="https://www.peercommunityin.org")
     raise HTTP(redir_code, T('Sorry, %(appName)s is discontinued. You are being redirected to <a href="%(redir_url)s">%(redir_url)s</a>') % locals(), Location=redir_url)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 
 # Appends developpers menu (web2py)
 def _DevMenu():
@@ -334,9 +336,11 @@ def _RecommendationMenu():
             URL("recommender", "fields_awaiting_articles", user_signature=True),
         )
     )
-    recommendationsMenu.append(
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Recommend a postprint")), False, URL("recommender", "new_submission", user_signature=True))
-    )
+
+    if not pciRRactivated:
+        recommendationsMenu.append(
+            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Recommend a postprint")), False, URL("recommender", "new_submission", user_signature=True))
+        )
 
     recommendationsMenu.append(LI(_class="divider"))
     recommendationsMenu.append(
@@ -356,16 +360,18 @@ def _RecommendationMenu():
             URL("recommender", "my_co_recommendations", vars=dict(pendingOnly=False), user_signature=True),
         )
     )
-    recommendationsMenu.append(
-        (
-            SPAN(
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-certificate"), T("Your recommendations of postprints"), _class="pci-recommender"),
-                _class=classPostprintsOngoing,
-            ),
-            False,
-            URL("recommender", "my_recommendations", vars=dict(pressReviews=True), user_signature=True),
+
+    if not pciRRactivated:
+        recommendationsMenu.append(
+            (
+                SPAN(
+                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-certificate"), T("Your recommendations of postprints"), _class="pci-recommender"),
+                    _class=classPostprintsOngoing,
+                ),
+                False,
+                URL("recommender", "my_recommendations", vars=dict(pressReviews=True), user_signature=True),
+            )
         )
-    )
 
     if colorRequests:
         requestsMenuTitle = SPAN(SPAN(I(_class="glyphicon glyphicon-education"), T("For recommenders"), notificationPin, _class="pci-recommender"), _class="pci-enhancedMenuItem")
@@ -443,8 +449,28 @@ def _AboutMenu():
 
     aboutMenu += [
         (T("About", lazy=False) + appName, False, URL("about", "about")),
-        (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
-        (T("Thanks to reviewers", lazy=False), False, URL("about", "thanks_to_reviewers")),
+    ]
+
+    if pciRRactivated:
+        aboutMenu += [
+            (T("Full Policies and Procedure"), False, URL("about", "full_policies")),
+            LI(_class="divider"),
+            (T("List of PCI RR-friendly Journals"), False, URL("about", "pci_rr_friendly_journals")),
+            (T("List of PCI RR-interested Journals"), False, URL("about", "pci_rr_interested_journals")),
+            (T("Apply to become a Journal Adopter"), False, URL("about", "become_journal_adopter")),
+            (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
+            LI(_class="divider"),
+        ]
+    
+    else:
+        aboutMenu += [
+            LI(_class="divider"),
+            (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
+        ]
+
+    aboutMenu += [
+        (T("Thanks to Reviewers", lazy=False), False, URL("about", "thanks_to_reviewers")),
+        LI(_class="divider"),
         (T("Code of conduct", lazy=False), False, URL("about", "ethics")),
         (T("Contact & credits", lazy=False), False, URL("about", "contact")),
         (T("General Terms of Use", lazy=False), False, URL("about", "gtu")),
@@ -462,6 +488,19 @@ def _HelpMenu():
     showGuideLines = myconf.get("menu.guidelines", False)
 
     helpMenu = []
+
+    if pciRRactivated:
+        helpMenu += [
+            (T("Top Guidelines"), False, URL("help", "guide_for_authors")),
+            LI(_class="divider"),
+            (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
+            LI(_class="divider"),
+            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
+            LI(_class="divider"),
+            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
+            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
+            LI(_class="divider"),
+        ]
 
     helpMenu += [
         (T("How does it work?"), False, URL("help", "help_generic")),

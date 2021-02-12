@@ -26,6 +26,8 @@ from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 ######################################################################################################################################################################
 def loading():
     return DIV(IMG(_alt="Loading...", _src=URL(c="static", f="images/loading.gif")), _id="loading", _style="text-align:center;")
@@ -67,12 +69,19 @@ def index():
     myVarsNext = copy.deepcopy(myVars)
     myVarsNext["maxArticles"] = myVarsNext["maxArticles"] + 10
 
-    lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
+    lastRecomms = FORM(
+        DIV(
+            loading(),
+            _id="lastRecommendations",
+        ),
+    )
 
     lastRecommTitle = H3(
         T("Latest recommendations"),
         A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
+            SPAN(
+                IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),
+            ),
             _href=URL("about", "rss_info"),
             _class="btn btn-default pci-rss-btn",
             _style="float:right;",
@@ -112,6 +121,7 @@ def index():
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
+            pciRRactivated=pciRRactivated,
         )
     else:
         return dict(
@@ -125,6 +135,7 @@ def index():
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
+            pciRRactivated=pciRRactivated,
         )
 
 
@@ -300,7 +311,14 @@ def change_email():
             SPAN(_class="help-block"),
             _class="form-group",
         ),
-        DIV(INPUT(_value=T("Change e-mail address"), _type="submit", _class="btn btn-success",), _class="form-group"),
+        DIV(
+            INPUT(
+                _value=T("Change e-mail address"),
+                _type="submit",
+                _class="btn btn-success",
+            ),
+            _class="form-group",
+        ),
     )
 
     if form.process(onvalidation=change_mail_form_processing).accepted:
@@ -348,19 +366,18 @@ def recover_mail():
 @cache.action()
 def download():
     """
-	allows downloading of uploaded files
-	http://..../[app]/default/download/[filename]
-	"""
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
     return response.download(request, db)
 
 
 # (gab) is this used ?
 def call():
     """
-	exposes services. for example:
-	http://..../[app]/default/call/jsonrpc
-	decorate with @services.jsonrpc the functions to expose
-	supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-	"""
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    """
     return service()
-

@@ -83,7 +83,7 @@ def fields_awaiting_articles():
 
     searchForm = app_forms.searchByThematic(auth, db, myVars)
 
-    filtered = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
+    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
     for fr in filtered:
         qy_art.insert(**fr)

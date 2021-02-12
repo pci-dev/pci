@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.search_articles(mythematics text[], mywords text[], mystatus character varying DEFAULT '''Recommended''::character varying', mylimit real DEFAULT '0.4', all_by_default boolean DEFAULT 'false')
+CREATE OR REPLACE FUNCTION public.search_articles_new(mythematics text[], mywords text[], mystatus character varying DEFAULT '''Recommended''::character varying', mylimit real DEFAULT '0.4', all_by_default boolean DEFAULT 'false')
    RETURNS TABLE (id integer, num integer, score double precision, title text, authors text, article_source character varying, doi character varying, abstract text, upload_timestamp timestamp without time zone, thematics character varying, keywords text, auto_nb_recommendations integer, status character varying, last_status_change timestamp without time zone, uploaded_picture character varying, already_published boolean, anonymous_submission boolean, parallel_submission boolean, art_stage_1_id integer)
   LANGUAGE plpgsql
   ROWS 1000

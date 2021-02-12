@@ -54,12 +54,14 @@
   {{pass}} 
 
   {{if auth.has_membership('recommender'):}}
-    <a
-    	href="{{=URL('recommender', 'new_submission')}}"
-    	class="btn btn-info pci-recommender"
-    >
-    	{{=T("Recommend a postprint")}}
-    </a>
+    {{if 'pciRRactivated' in locals() and pciRRactivated is False:}}
+      <a
+      	href="{{=URL('recommender', 'new_submission')}}"
+      	class="btn btn-info pci-recommender"
+      >
+      	{{=T("Recommend a postprint")}}
+      </a>
+    {{pass}}
     <a
     	href="{{=URL('recommender', 'fields_awaiting_articles')}}"
     	class="btn btn-default pci-recommender"

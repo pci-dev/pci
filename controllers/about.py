@@ -33,7 +33,10 @@ def ethics():
         if db.auth_user[auth.user_id].ethical_code_approved:
             message = DIV(B(T("You have agreed to comply with this code of conduct"), _style="color:green;"), _style="text-align:center; margin:32px;")
         else:
-            pageTitle = DIV(H1("Before login, you must agree to comply with the code of conduct"), pageTitle,)
+            pageTitle = DIV(
+                H1("Before login, you must agree to comply with the code of conduct"),
+                pageTitle,
+            )
             message = FORM(
                 DIV(
                     SPAN(
@@ -77,7 +80,7 @@ def social():
     frames = []
     tweeterAcc = myconf.get("social.tweeter")
     if tweeterAcc:
-        frames.append(H2("Tweeter"))
+        frames.append(H2("Twitter"))
         frames.append(
             DIV(
                 XML(
@@ -151,7 +154,55 @@ def buzz():
 ######################################################################################################################################################################
 def thanks_to_reviewers():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), customText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"),
+        customText=getText(request, auth, db, "#ThanksToReviewersInfo"),
+    )
+
+
+######################################################################################################################################################################
+def full_policies():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#FullPoliciesTitle"),
+        customText=getText(request, auth, db, "#FullPoliciesInfo"),
+    )
+
+
+######################################################################################################################################################################
+def pci_rr_friendly_journals():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#PciRRFriendlyJournalsTitle"),
+        customText=getText(request, auth, db, "#PciRRFriendlyJournalsInfo"),
+    )
+
+
+######################################################################################################################################################################
+def pci_rr_interested_journals():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#PciRRInterestedJournalsTitle"),
+        customText=getText(request, auth, db, "#PciRRInterestedJournalsInfo"),
+    )
+
+
+######################################################################################################################################################################
+def become_journal_adopter():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#BecomeJournalAdopterTitle"),
+        customText=getText(request, auth, db, "#BecomeJournalAdopterInfo"),
+    )
+
+
+######################################################################################################################################################################
+def journal_adopter_faq():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#JournalAdopterFaqTitle"),
+        customText=getText(request, auth, db, "#JournalAdopterFaqInfo"),
+    )
 
 
 ######################################################################################################################################################################

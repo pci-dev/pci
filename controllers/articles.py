@@ -125,7 +125,7 @@ def recommended_articles():
             qyTF.append(re.sub(r"^qy_", "", myVar))
             myVars2[myVar] = myValue
 
-    filtered = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
+    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
 
     totalArticles = len(filtered)
     myRows = []
@@ -287,7 +287,7 @@ def tracking():
 
 ######################################################################################################################################################################
 def all_recommended_articles():
-    allR = db.executesql("SELECT * FROM search_articles(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
+    allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
         r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)

@@ -996,7 +996,7 @@ header {
 }
 
 .pci-footer {
-  max-height: 215px;
+  max-height: 240px;
 }
 
 @media (max-width: 1280px) {
