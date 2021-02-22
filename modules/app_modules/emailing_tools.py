@@ -148,10 +148,10 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
     baseHashtag = baseHashtag.replace("ScheduledSubmission", "")
 
     # Create stage 1 template
-    result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission"  , baseHashtag + "Stage1", myLanguage)
-    
+    result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
+
     # Create stage 2 template
-    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission" , baseHashtag + "Stage2", myLanguage)
+    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
@@ -233,9 +233,28 @@ def mkFooter():
 
 ######################################################################################################################################################################
 def insertMailInQueue(
-    auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None, sugg_recommender_buttons=None
+    auth,
+    db,
+    hashtag_template,
+    mail_vars,
+    recommendation_id=None,
+    recommendation=None,
+    article_id=None,
+    review=None,
+    authors_reply=None,
+    sugg_recommender_buttons=None,
+    reviewer_invitation_buttons=None,
 ):
-    mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, sugg_recommender_buttons=sugg_recommender_buttons)
+    mail = buildMail(
+        db,
+        hashtag_template,
+        mail_vars,
+        recommendation=recommendation,
+        review=review,
+        authors_reply=authors_reply,
+        sugg_recommender_buttons=sugg_recommender_buttons,
+        reviewer_invitation_buttons=reviewer_invitation_buttons,
+    )
 
     ccAddresses = None
     if "ccAddresses" in mail_vars:
@@ -254,7 +273,19 @@ def insertMailInQueue(
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation_id=None, recommendation=None, article_id=None, review=None, authors_reply=None, sending_date_forced=None):
+def insertReminderMailInQueue(
+    auth,
+    db,
+    hashtag_template,
+    mail_vars,
+    recommendation_id=None,
+    recommendation=None,
+    article_id=None,
+    review=None,
+    authors_reply=None,
+    sending_date_forced=None,
+    reviewer_invitation_buttons=None,
+):
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
@@ -266,7 +297,9 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
 
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 
-        mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
+        mail = buildMail(
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons
+        )
 
         ccAddresses = None
         if "ccAddresses" in mail_vars:
@@ -284,9 +317,11 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
         )
-    
+
     if sending_date_forced:
-        mail = buildMail(db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply)
+        mail = buildMail(
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons
+        )
 
         ccAddresses = None
         if "ccAddresses" in mail_vars:
@@ -304,6 +339,8 @@ def insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendat
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
         )
+
+
 ######################################################################################################################################################################
 def insertNewsLetterMailInQueue(
     auth,
@@ -336,7 +373,7 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None):
+def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
@@ -357,6 +394,7 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
             review=review,
             authors_reply=authors_reply,
             sugg_recommender_buttons=sugg_recommender_buttons,
+            reviewer_invitation_buttons=reviewer_invitation_buttons,
         ),
     )
 

@@ -491,7 +491,7 @@ def _HelpMenu():
 
     if pciRRactivated:
         helpMenu += [
-            (T("Top Guidelines"), False, URL("help", "guide_for_authors")),
+            (T("Top Guidelines"), False, URL("help", "top_guidelines")),
             LI(_class="divider"),
             (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
             LI(_class="divider"),

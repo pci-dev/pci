@@ -41,7 +41,7 @@ for (const id_textarea of ids_array) {
       branding: false,
       menubar: false,
       statusbar: false,
-      plugins: "paste lists link autoresize media image hr textcolor",
+      plugins: "table paste lists link autoresize media image hr textcolor",
       paste_as_text: safePasteActivated,
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,
@@ -72,7 +72,7 @@ for (const id_textarea of ids_array) {
         },
         {
           name: "mediatype",
-          items: ["image", "media", "mathjax"],
+          items: ["table", "image", "media", "mathjax"],
         },
       ],
       style_formats: [

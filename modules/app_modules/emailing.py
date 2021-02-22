@@ -1633,9 +1633,9 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             host=mail_vars["host"],
                             port=mail_vars["port"],
                         )
-
-                    content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTON:"))))
-                    content.append(
+                    
+                    reviewer_invitation_buttons = DIV(
+                        P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTON:"))),
                         DIV(
                             A(
                                 SPAN(
@@ -1646,40 +1646,19 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                 _style="text-decoration: none; display: block",
                             ),
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                        )
+                        ),
+                        P(B(current.T('THEN GO TO "For contributers —> Invitation(s) to review a preprint" IN THE TOP MENU')))
                     )
 
-                    content.append(P(B(current.T('THEN GO TO "For contributers —> Invitation(s) to review a preprint" IN THE TOP MENU'))))
-
-                    # declineLinkTarget = URL(
-                    #     a=None, c="user", f="delete_temp_user", vars=dict(key=reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
-                    # )
-                    # content.append(HR())
-                    # content.append(P(current.T("You can also DECLINE and DELETE the temporary account by clicking on this button :")))
-                    # content.append(
-                    #     DIV(
-                    #         A(
-                    #             SPAN(
-                    #                 current.T("Delete the temporary account"),
-                    #                 _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
-                    #             ),
-                    #             _href=declineLinkTarget,
-                    #             _style="text-decoration: none; display: block",
-                    #         ),
-                    #         _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                    #     )
-                    # )
-
-                    create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id)
+                    create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
                 elif linkTarget:
-                    content.append(P())
 
                     if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
-                        content.append(P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:"))))
 
                         if declineLinkTarget:
-                            content.append(
+                            reviewer_invitation_buttons = DIV(
+                                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:"))),
                                 DIV(
                                     A(
                                         SPAN(
@@ -1702,17 +1681,20 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                 )
                             )
 
-                    elif review.review_state == "Awaiting review":
-                        content.append(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))))
-                        content.append(A(linkTarget, _href=linkTarget))
 
-                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id)
+                    elif review.review_state == "Awaiting review":
+                        reviewer_invitation_buttons = DIV(
+                            P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))),
+                            A(linkTarget, _href=linkTarget)
+                        )
+
+                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
                 subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
-                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=emailing_tools.mkFooter()),
+                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=emailing_tools.mkFooter(), reviewer_invitation_buttons=reviewer_invitation_buttons),
                 )
 
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
@@ -2090,7 +2072,7 @@ def delete_reminder_for_one_suggested_recommender(db, hashtag_template, articleI
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, reviewer_invitation_buttons=None):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2121,11 +2103,11 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, reviewer_invitation_buttons=None):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2156,7 +2138,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
 
 ######################################################################################################################################################################

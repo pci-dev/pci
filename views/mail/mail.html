@@ -50,6 +50,11 @@
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
         {{=sugg_recommender_buttons}}
       {{pass}}
+
+      {{if 'reviewer_invitation_buttons' in globals() and reviewer_invitation_buttons is not None:}}
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=reviewer_invitation_buttons}}
+      {{pass}}
   	</div>
 
     {{if 'recommendation' in locals() and recommendation is not None:}}
