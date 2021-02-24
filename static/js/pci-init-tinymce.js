@@ -7,7 +7,7 @@ const ids_array = [
   "#t_recommendations_reply",
   "#mail_templates_contents",
   "#no_table_message",
-  "#mail_queue_mail_content",
+  "#mail_queue_mail_content"
 ];
 
 for (const id_textarea of ids_array) {
@@ -23,15 +23,27 @@ for (const id_textarea of ids_array) {
 
     let safePasteActivated;
     let style_tools;
-    if (id_textarea == "#help_texts_contents"){
-      style_tools = ["styleselect", "forecolor", "removeformat"]
+    if (id_textarea == "#help_texts_contents") {
+      style_tools = ["styleselect", "forecolor", "removeformat"];
       safePasteActivated = false;
+      styleFormats = [
+        { title: "Heading 1", format: "h2" },
+        { title: "Heading 2", format: "h3" },
+        { title: "Heading 3", format: "h4" },
+        { title: "Normal", block: "div" },
+        { title: "Sub text", block: "span", styles: { fontSize: "12px" } }
+      ];
     } else {
-      style_tools = ["styleselect"]
+      style_tools = ["styleselect"];
       safePasteActivated = true;
-      invalid_styles += "font-color"
+      invalid_styles += "font-color";
+      styleFormats = [
+        { title: "Heading 1", format: "h2" },
+        { title: "Heading 2", format: "h3" },
+        { title: "Heading 3", format: "h4" },
+        { title: "Normal", block: "div" }
+      ];
     }
-
 
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
@@ -48,19 +60,19 @@ for (const id_textarea of ids_array) {
       toolbar: [
         {
           name: "history",
-          items: ["undo", "redo"],
+          items: ["undo", "redo"]
         },
         {
           name: "styles",
-          items: style_tools,
+          items: style_tools
         },
         {
           name: "alignment",
-          items: ["alignleft", "aligncenter", "alignright", "alignjustify"],
+          items: ["alignleft", "aligncenter", "alignright", "alignjustify"]
         },
         {
           name: "formatting",
-          items: ["bold", "italic", "underline", "link"],
+          items: ["bold", "italic", "underline", "link"]
         },
         // forecolor (font-color)
         // {
@@ -68,25 +80,20 @@ for (const id_textarea of ids_array) {
         // },
         {
           name: "blockformats",
-          items: ["numlist", "bullist", "blockquote", "hr"],
+          items: ["numlist", "bullist", "blockquote", "hr"]
         },
         {
           name: "mediatype",
-          items: ["table", "image", "media", "mathjax"],
-        },
+          items: ["table", "image", "media", "mathjax"]
+        }
       ],
-      style_formats: [
-        { title: "Heading 1", format: "h2" },
-        { title: "Heading 2", format: "h3" },
-        { title: "Heading 3", format: "h4" },
-        { title: "Normal", block: "div" },
-      ],
+      style_formats: styleFormats,
       mathjax: {
-        lib: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js", //required path to mathjax
+        lib: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" //required path to mathjax
         //symbols: {start: '\\(', end: '\\)'}, //optional: mathjax symbols
         //className: "math-tex", //optional: mathjax element class
         //configUrl: '/your-path-to-plugin/@dimakorotkov/tinymce-mathjax/config.js' //optional: mathjax config js
-      },
+      }
     };
 
     if (id_textarea == "#help_texts_contents") {
