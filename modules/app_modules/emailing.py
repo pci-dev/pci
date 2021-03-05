@@ -1610,6 +1610,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                 mail_vars["destAddress"] = rev["email"]
                 content = DIV(WIKI(message, safe_mode=False))
 
+                reviewer_invitation_buttons = None
+                
                 if reset_password_key:
                     if linkTarget:
                         link = URL(

@@ -26,23 +26,10 @@ for (const id_textarea of ids_array) {
     if (id_textarea == "#help_texts_contents") {
       style_tools = ["styleselect", "forecolor", "removeformat"];
       safePasteActivated = false;
-      styleFormats = [
-        { title: "Heading 1", format: "h2" },
-        { title: "Heading 2", format: "h3" },
-        { title: "Heading 3", format: "h4" },
-        { title: "Normal", block: "div" },
-        { title: "Sub text", block: "span", styles: { fontSize: "12px" } }
-      ];
     } else {
       style_tools = ["styleselect"];
       safePasteActivated = true;
       invalid_styles += "font-color";
-      styleFormats = [
-        { title: "Heading 1", format: "h2" },
-        { title: "Heading 2", format: "h3" },
-        { title: "Heading 3", format: "h4" },
-        { title: "Normal", block: "div" }
-      ];
     }
 
     let tinymce_options = {
@@ -87,7 +74,13 @@ for (const id_textarea of ids_array) {
           items: ["table", "image", "media", "mathjax"]
         }
       ],
-      style_formats: styleFormats,
+      style_formats: [
+        { title: "Heading 1", format: "h2" },
+        { title: "Heading 2", format: "h3" },
+        { title: "Heading 3", format: "h4" },
+        { title: "Normal", block: "div" },
+        { title: "Sub text", inline: "span", classes: "sub-text"}
+      ],
       mathjax: {
         lib: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" //required path to mathjax
         //symbols: {start: '\\(', end: '\\)'}, //optional: mathjax symbols
@@ -126,6 +119,10 @@ for (const id_textarea of ids_array) {
           border-top-style: solid;
           border-top-color: #f8f5f0;
         }
+
+        .sub-text {
+          font-size: 12px !important;
+        }
 			`);
     } else {
       (tinymce_options.content_css = false),
@@ -150,6 +147,10 @@ for (const id_textarea of ids_array) {
           border-left-width: 0px;
           border-top-style: solid;
           border-top-color: #f8f5f0;
+        }
+
+        .sub-text {
+          font-size: 12px !important;
         }
 			`);
     }
