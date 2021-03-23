@@ -31,6 +31,7 @@ csv = False  # no export allowed
 expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 ## Menu Routes
@@ -389,6 +390,7 @@ def recap_reviews():
 		FROM recomms0
 	)
 	SELECT  CASE WHEN a.already_published THEN 'Postprint' ELSE 'Preprint' END AS type_article,
+        a.report_stage,
 		a.title, a.doi AS article_doi, a.id AS article_id,
 		coalesce(au.first_name,'')||' '||coalesce(au.last_name,'') AS submitter,
 		a.upload_timestamp::date AS submission,
@@ -410,16 +412,28 @@ def recap_reviews():
         % locals()
     )
 
-    db.executesql(
-        """SELECT colpivot('_t_%(runId)s', 
-		'SELECT * FROM _v_%(runId)s', 
-		array['type_article', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
-		array['recomm_round', 'reviewer_num'], 
-		'#.reviewer',
-		null
-	);"""
-        % locals()
-    )
+    if pciRRactivated:
+        db.executesql(
+            """SELECT colpivot('_t_%(runId)s', 
+	    	'SELECT * FROM _v_%(runId)s', 
+	    	array['type_article', 'report_stage', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
+	    	array['recomm_round', 'reviewer_num'], 
+	    	'#.reviewer',
+	    	null
+	    );"""
+            % locals()
+        )
+    else:
+        db.executesql(
+            """SELECT colpivot('_t_%(runId)s', 
+	    	'SELECT * FROM _v_%(runId)s', 
+	    	array['type_article', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
+	    	array['recomm_round', 'reviewer_num'], 
+	    	'#.reviewer',
+	    	null
+	    );"""
+            % locals()
+        )
 
     # Get columns as header
     head = TR()

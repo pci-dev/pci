@@ -33,11 +33,18 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     nbRecomms = len(recomms)
 
     if userDiv:
-        statusDiv = DIV(common_small_html.mkStatusBigDivUser(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width",)
+        statusDiv = DIV(
+            common_small_html.mkStatusBigDivUser(auth, db, art.status, printable),
+            _class="pci2-flex-center pci2-full-width",
+        )
     else:
         statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
 
-    myTitle = DIV(IMG(_src=URL(r=request, c="static", f="images/small-background.png")), DIV(statusDiv, _class="pci2-flex-grow"), _class="pci2-flex-row",)
+    myTitle = DIV(
+        IMG(_src=URL(r=request, c="static", f="images/small-background.png")),
+        DIV(statusDiv, _class="pci2-flex-grow"),
+        _class="pci2-flex-row",
+    )
 
     # author's button allowing article edition
     allowEditArticle = False
@@ -61,8 +68,10 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager"):
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
+    recommenderSurveyButton = None
     if len(recomms) > 0 and auth.user_id == recomms[-1].recommender_id:
         printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True)
+        recommenderSurveyButton = True
 
     componentVars = dict(
         statusTitle=myTitle,
@@ -73,6 +82,8 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         articleId=art.id,
         printableUrl=printableUrl,
         printable=printable,
+        pciRRactivated=pciRRactivated,
+        recommenderSurveyButton=recommenderSurveyButton
     )
 
     return XML(response.render("components/recommendation_header.html", componentVars))
@@ -126,8 +137,12 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
         buttonDivClass = ""
         if haveDeclined > 0:
             buttonDivClass = " pci2-flex-column"
-            btsAccDec.append(BR(),)
-            btsAccDec.append(B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),)
+            btsAccDec.append(
+                BR(),
+            )
+            btsAccDec.append(
+                B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),
+            )
 
         myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px"))
 
@@ -332,7 +347,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
     if pciRRactivated and art.status == "Recommended":
         amIEngagedInStage2Process = True
-    
+
     isScheduledSubmission = False
     if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
         isScheduledSubmission = True
@@ -480,7 +495,17 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not (hideOngoingReview):
                 # display the review
                 if review.anonymously:
-                    reviewVars.update([("authors", SPAN(current.T("anonymous reviewer"), (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),),)])
+                    reviewVars.update(
+                        [
+                            (
+                                "authors",
+                                SPAN(
+                                    current.T("anonymous reviewer"),
+                                    (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                ),
+                            )
+                        ]
+                    )
                 else:
                     reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
                     if reviewer is not None:

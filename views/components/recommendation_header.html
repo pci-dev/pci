@@ -14,16 +14,42 @@
       >
   			<i class="glyphicon glyphicon-edit"></i>
   		  {{=T('Edit article')}} 
-  	  </a>
+      </a>
+        {{if 'pciRRactivated' in locals() and pciRRactivated is True:}}
+          <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
+            href="{{=URL(c='user', f='edit_report_survey', vars=dict(articleId=articleId))}}"
+          >
+  		    	<i class="glyphicon glyphicon-edit"></i>
+  		      {{=T('Edit report survey')}} 
+  	      </a>
+        {{pass}}
       {{pass}}
       
+      
       {{if 'allowManageRequest' in locals() and allowManageRequest is True:}}    
-      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
-        href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId))}}"
-      >
-  		  <i class="glyphicon glyphicon-edit"></i>
-        {{=T('Edit article')}} 
-      </a>
+        <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px"
+          href="{{=URL(c='manager', f='edit_article', vars=dict(articleId=articleId))}}"
+        >
+  		    <i class="glyphicon glyphicon-edit"></i>
+          {{=T('Edit article')}} 
+        </a>
+        {{if 'pciRRactivated' in locals() and pciRRactivated is True:}}
+          <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
+            href="{{=URL(c='manager', f='edit_report_survey', vars=dict(articleId=articleId))}}"
+          >
+  		    	<i class="glyphicon glyphicon-edit"></i>
+  		      {{=T('Edit report survey')}} 
+  	      </a>
+        {{pass}}
+      {{pass}}
+
+      {{if 'pciRRactivated' in locals() and pciRRactivated is True and 'recommenderSurveyButton' in locals() and recommenderSurveyButton:}}
+        <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
+          href="{{=URL(c='recommender', f='show_report_survey', vars=dict(articleId=articleId))}}"
+        >
+  		  	<i class="glyphicon glyphicon-edit"></i>
+  		    {{=T('Show report survey')}} 
+  	    </a>
       {{pass}}
       
       {{if 'manageRecommendersButton' in locals() and manageRecommendersButton is not None:}}

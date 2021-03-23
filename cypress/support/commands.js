@@ -88,7 +88,7 @@ Cypress.Commands.add(
         break;
 
       case "reviewer":
-        cy.contains(".dropdown-toggle", "For contributers").click();
+        cy.contains(".dropdown-toggle", "For contributors").click();
         cy.contains("a", "Your reviews").click();
 
         if (status != "not.exist")
@@ -97,7 +97,7 @@ Cypress.Commands.add(
         break;
 
       case "suggested_reviewer":
-        cy.contains(".dropdown-toggle", "For contributers").click();
+        cy.contains(".dropdown-toggle", "For contributors").click();
         cy.contains("a", "Invitation(s) to review a preprint").click();
 
         if (status != "not.exist")
@@ -106,7 +106,7 @@ Cypress.Commands.add(
         break;
 
       case "submitter":
-        cy.contains(".dropdown-toggle", "For contributers").click();
+        cy.contains(".dropdown-toggle", "For contributors").click();
         cy.contains("a", "Your submitted preprints").click();
 
         if (status != "not.exist")

@@ -447,8 +447,8 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should show 'Request(s) to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "For contributers").should("exist");
-      cy.contains(".dropdown-toggle", "For contributers").click();
+      cy.contains(".pci-enhancedMenuItem", "For contributors").should("exist");
+      cy.contains(".dropdown-toggle", "For contributors").click();
 
       cy.contains(
         ".pci-enhancedMenuItem",
@@ -517,7 +517,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
-      cy.contains(".dropdown-toggle", "For contributers").click();
+      cy.contains(".dropdown-toggle", "For contributors").click();
       cy.contains("a", "Your reviews").click();
 
       cy.get(".cyp-review-state").first().should("contain", "COMPLETED");
@@ -537,8 +537,8 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
-      cy.contains(".pci-enhancedMenuItem", "For contributers").should("exist");
-      cy.contains(".dropdown-toggle", "For contributers").click();
+      cy.contains(".pci-enhancedMenuItem", "For contributors").should("exist");
+      cy.contains(".dropdown-toggle", "For contributors").click();
 
       cy.contains(
         ".pci-enhancedMenuItem",
@@ -607,7 +607,7 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
-      cy.contains(".dropdown-toggle", "For contributers").click();
+      cy.contains(".dropdown-toggle", "For contributors").click();
       cy.contains("a", "Your reviews").click();
 
       cy.get(".cyp-review-state").first().should("contain", "COMPLETED");

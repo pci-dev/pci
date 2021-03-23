@@ -291,7 +291,7 @@
     "First name(s)": "First name(s)",
     "Forbidden access": "Forbidden access",
     "Forbidden": "Forbidden",
-    "For contributers": "For contributers",
+    "For contributors": "For contributors",
     "For managers": "For managers",
     "Forms and Validators": "Forms and Validators",
     "For recommenders": "For recommenders",
@@ -323,7 +323,7 @@
     "I agree to post my review within %s": "I agree to post my review within %s",
     "I agree to send invitations to 5-10 potential reviewers within the next 24 hours": "I agree to send invitations to 5-10 potential reviewers within the next 24 hours",
     "I agree to write a recommendation text": "I agree to write a recommendation text",
-    "I am an author of the article and I am acting on behalf of all the authors": "I am an author of the article and I am acting on behalf of all the authors",
+    "I am an author of the article and I am acting on behalf of all authors": "I am an author of the article and I am acting on behalf of all authors",
     "I cancel this recommendation request": "I cancel this recommendation request",
     "I declare that I have no conflict of interest with the authors or the content of the article": "I declare that I have no conflict of interest with the authors or the content of the article",
     "I declare that I have no conflict of interest with the authors or the content of the article: ": "I declare that I have no conflict of interest with the authors or the content of the article: ",
@@ -815,7 +815,7 @@
     "Thanks to reviewers": "Thanks to reviewers",
     "The Core": "The Core",
     "Thematic fields": "Thematic fields",
-    'THEN GO TO "For contributers —> Invitation(s) to review a preprint" IN THE TOP MENU': 'THEN GO TO "For contributers —> Invitation(s) to review a preprint" IN THE TOP MENU',
+    'THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU': 'THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU',
     "The output of the file is a dictionary that was rendered by the view %s": "The output of the file is a dictionary that was rendered by the view %s",
     'The "query" is a condition like "db.table1.field1==\'value\'". Something like "db.table1.field1==db.table2.field2" results in a SQL JOIN.': 'The "query" is a condition like "db.table1.field1==\'value\'". Something like "db.table1.field1==db.table2.field2" results in a SQL JOIN.',
     "The scheduled submission date will be reached in ": "The scheduled submission date will be reached in ",
@@ -941,4 +941,5 @@
     "You will be able to upload you're review as soon as the author submit his report": "You will be able to upload you're review as soon as the author submit his report",
     "You will be able to upload you're review as soon as the author submit his report.": "You will be able to upload you're review as soon as the author submit his report.",
     " (YOU) ": " (YOU) ",
+    "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.": "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
 }

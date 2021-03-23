@@ -855,6 +855,119 @@ def recommendations():
 
 
 ######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender"))
+def show_report_survey():
+    response.view = "default/myLayout.html"
+
+    if not ("articleId" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(URL("all_articles", user_signature=True))
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("all_articles", user_signature=True))
+
+    survey = db(db.t_report_survey.article_id == articleId).select().last()
+    if survey is None:
+        session.flash = T("Unavailable")
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+
+
+    db.t_report_survey._id.readable = False
+    db.t_report_survey._id.writable = False
+
+    if art.report_stage == "STAGE 1":  # STAGE 1 survey
+        fields = [
+            "Q1",
+            "Q2",
+            "Q3",
+            "Q4",
+            "Q5",
+            "Q6",
+            "Q7",
+            "Q8",
+            "Q9",
+            "Q10",
+            "Q11",
+            "Q11_details",
+            "Q12",
+            "Q12_details",
+            "Q13",
+            "Q13_details",
+            "Q14",
+            "Q15",
+            "Q16",
+            "Q17",
+            "Q18",
+            "Q19",
+            "Q20",
+            "Q21",
+            "Q22",
+            "Q23",
+            "Q24",
+            "Q24_1",
+            "Q24_1_details",
+        ]
+
+    else:  # STAGE 2 survey
+        db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
+            db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+        )
+
+        fields = [
+            "temp_art_stage_1_id",
+            "Q25",
+            "Q26",
+            "Q26_details",
+            "Q27",
+            "Q27_details",
+            "Q28",
+            "Q28_details",
+            "Q29",
+            "Q30",
+            "Q31",
+        ]
+
+    form = SQLFORM(
+        db.t_report_survey,
+        survey.id,
+        fields=fields,
+        readonly=True,
+    )
+
+    if form.process().accepted:
+        doUpdateArticle = False
+        if form.vars.Q10 is not None:
+            art.scheduled_submission_date = form.vars.Q10
+            art.doi = None
+            doUpdateArticle = True
+
+        if form.vars.temp_art_stage_1_id is not None:
+            art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if doUpdateArticle == True:
+            art.update_record()
+
+        session.flash = T("Article submitted", lazy=False)
+        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+    elif form.errors:
+        response.flash = T("Form has errors", lazy=False)
+
+    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    response.view = "default/gab_form_layout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#RecommenderReportSurvey"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#RecommenderReportSurveyTitle"),
+        customText=getText(request, auth, db, "#RecommenderReportSurveyText", maxWidth="800"),
+        form=form,
+        myFinalScript=SCRIPT(myScript),
+    )
+
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def one_review():
     response.view = "default/myLayout.html"
@@ -880,7 +993,7 @@ def one_review():
     db.t_reviews.review.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
-    db.t_reviews.review.represent = lambda text, row: WIKI(text, safe_mode=False)
+    db.t_reviews.review.represent = lambda text, row: WIKI(text or '', safe_mode=False)
     form = SQLFORM(
         db.t_reviews,
         record=revId,

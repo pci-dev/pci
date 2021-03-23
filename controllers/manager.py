@@ -45,6 +45,7 @@ parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=Fal
 not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", default=20)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 
 ######################################################################################################################################################################
@@ -132,8 +133,13 @@ def _manage_articles(statuses, whatNext):
 
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.report_stage.writable = False
+    db.t_articles.report_stage.readable = False
 
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+    )
+
     db.t_articles.status.writable = True
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = False
@@ -184,6 +190,7 @@ def _manage_articles(statuses, whatNext):
     if parallelSubmissionAllowed:
         fields = [
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -200,6 +207,7 @@ def _manage_articles(statuses, whatNext):
     else:
         fields = [
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -624,23 +632,25 @@ def edit_article():
 
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
-        db.t_articles.cover_letter.readable = True
-        db.t_articles.cover_letter.writable = True
+        db.t_articles.report_stage.readable = True
+        db.t_articles.report_stage.writable = True
+
+        if art.report_stage == "STAGE 2":
+            db.t_articles.art_stage_1_id.readable = True
+            db.t_articles.art_stage_1_id.writable = True
+        else:
+            db.t_articles.art_stage_1_id.readable = False
+            db.t_articles.art_stage_1_id.writable = False
 
         if not havingStage2Articles:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
                 IS_IN_DB(db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
             )
-            myFinalScript = SCRIPT(
-                """
-                    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
-                """
-            )
+            myFinalScript = None
         else:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
             myFinalScript = SCRIPT(
                 """
-                    document.querySelector("#t_articles_art_stage_1_id").value = "This is a stage 1 submission";
                     document.querySelector("#t_articles_art_stage_1_id").disabled = true;
 
                     var parent = document.querySelector("#t_articles_art_stage_1_id__row > div");
@@ -655,11 +665,19 @@ def edit_article():
                     parent.appendChild(child);
                 """
             )
-
-
     else:
+        db.t_articles.report_stage.readable = False
+        db.t_articles.report_stage.writable = False
+
         db.t_articles.art_stage_1_id.readable = False
         db.t_articles.art_stage_1_id.writable = False
+
+    if scheduledSubmissionActivated:
+        db.t_articles.scheduled_submission_date.readable = True
+        db.t_articles.scheduled_submission_date.writable = True
+    else:
+        db.t_articles.report_stage.readable = False
+        db.t_articles.report_stage.writable = False
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
 
@@ -669,8 +687,6 @@ def edit_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
-    
-
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -679,6 +695,120 @@ def edit_article():
         pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
         form=form,
         myFinalScript=myFinalScript,
+    )
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def edit_report_survey():
+    response.view = "default/myLayout.html"
+
+    if not ("articleId" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(URL("all_articles", user_signature=True))
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("all_articles", user_signature=True))
+
+    survey = db(db.t_report_survey.article_id == articleId).select().last()
+    if survey is None:
+        survey = db.t_report_survey.insert(article_id = articleId, temp_art_stage_1_id=art.art_stage_1_id)
+        session.flash = T("New survey created")
+        # redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+
+
+    db.t_report_survey._id.readable = False
+    db.t_report_survey._id.writable = False
+
+    if art.report_stage == "STAGE 1":  # STAGE 1 survey
+        fields = [
+            "Q1",
+            "Q2",
+            "Q3",
+            "Q4",
+            "Q5",
+            "Q6",
+            "Q7",
+            "Q8",
+            "Q9",
+            "Q10",
+            "Q11",
+            "Q11_details",
+            "Q12",
+            "Q12_details",
+            "Q13",
+            "Q13_details",
+            "Q14",
+            "Q15",
+            "Q16",
+            "Q17",
+            "Q18",
+            "Q19",
+            "Q20",
+            "Q21",
+            "Q22",
+            "Q23",
+            "Q24",
+            "Q24_1",
+            "Q24_1_details",
+        ]
+
+    else:  # STAGE 2 survey
+        db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
+            db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+        )
+
+        fields = [
+            "temp_art_stage_1_id",
+            "Q25",
+            "Q26",
+            "Q26_details",
+            "Q27",
+            "Q27_details",
+            "Q28",
+            "Q28_details",
+            "Q29",
+            "Q30",
+            "Q31",
+        ]
+
+    form = SQLFORM(
+        db.t_report_survey,
+        survey.id,
+        fields=fields,
+        keepvalues=True,
+    )
+
+    if form.process().accepted:
+        doUpdateArticle = False
+        if form.vars.Q10 is not None:
+            art.scheduled_submission_date = form.vars.Q10
+            art.doi = None
+            doUpdateArticle = True
+
+        if form.vars.temp_art_stage_1_id is not None:
+            art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if doUpdateArticle == True:
+            art.update_record()
+
+        session.flash = T("Article submitted", lazy=False)
+        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+    elif form.errors:
+        response.flash = T("Form has errors", lazy=False)
+
+    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    response.view = "default/gab_form_layout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#ManagerReportSurvey"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#ManagerReportSurveyTitle"),
+        customText=getText(request, auth, db, "#ManagerReportSurveyText", maxWidth="800"),
+        form=form,
+        myFinalScript=SCRIPT(myScript),
     )
 
 
@@ -727,6 +857,7 @@ def all_recommendations():
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_recommendations.last_change,
             # db.t_articles.status,
             db.t_recommendations._id,
@@ -749,6 +880,7 @@ def all_recommendations():
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_recommendations.last_change,
             # db.t_articles.status,
             db.t_recommendations._id,
@@ -791,9 +923,16 @@ def all_recommendations():
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
     db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
+    
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
+    db.t_articles.report_stage.writable = False
+    db.t_articles.report_stage.readable = False
+
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+    )
+
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")

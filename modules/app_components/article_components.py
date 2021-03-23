@@ -167,10 +167,10 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
     
     articleStage = None
     if pciRRactivated:
-        if article.art_stage_1_id is not None:
-            articleStage = B(current.T("STAGE #2"))
+        if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
+            articleStage = B(current.T("STAGE 2"))
         else:
-            articleStage = B(current.T("STAGE #1"))
+            articleStage = B(current.T("STAGE 1"))
     
      # Scheduled submission
     doi_text = (common_small_html.mkDOI(article.doi)) if (article.doi) else SPAN("")

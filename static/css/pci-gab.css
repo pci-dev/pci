@@ -359,6 +359,29 @@ td .ellipsis-over-350 {
   white-space: nowrap;
 }
 
+#t_report_survey_Q4__label,
+#t_report_survey_Q14__label,
+#t_report_survey_Q18__label,
+#t_report_survey_Q19__label,
+#t_report_survey_Q25__label,
+#t_report_survey_Q29__label {
+  font-weight: bold !important;
+}
+
+.web2py_radiowidget td{
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+}
+.web2py_radiowidget td label{
+  font-weight: normal !important;
+}
+
+.message-level-0{
+  color: #fcc24d;
+  font-weight: bold !important;
+}
+
 @media (max-width: 1200px) {
   .pci2-recomm-backButtonDiv {
     position: relative;

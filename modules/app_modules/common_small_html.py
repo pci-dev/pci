@@ -241,9 +241,19 @@ def mkStatusArticles(db):
         statusArticles[sa["status"]] = sa
 
 
+
+######################################################################################################################################################################
+def mkStatusSimple(auth, db, status):
+    if statusArticles is None or len(statusArticles) == 0:
+        mkStatusArticles(db)
+    status_txt = (current.T(status)).upper()
+    color_class = statusArticles[status]["color_class"] or "default"
+    hint = statusArticles[status]["explaination"] or ""
+    return SPAN(status_txt, _style="margin: 0; padding:0", _class="pci-status " + color_class, _title=current.T(hint))
+
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None):
+def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set"):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
@@ -260,34 +270,33 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None):
             stage1Url = URL(c="user", f="recommendations", vars=dict(articleId=stage1Id))
 
         if stage1Id is not None:
+            reportStage = "STAGE 2"
+            stage1Link = SPAN(BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"))
+        else:
+            reportStage = "STAGE 1"
+            stage1Link = ""
+
+        if reportStage is not None:
             result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
-                DIV(B(current.T("Stage 2")), BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"), _style="text-align: center; width: 150px;"),
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+                DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"),
+                DIV(B(current.T("Stage not set")), stage1Link, _style="text-align: center; width: 150px;"),
             )
+
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
 
     return result
 
 
-######################################################################################################################################################################
-def mkStatusSimple(auth, db, status):
-    if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
-    status_txt = (current.T(status)).upper()
-    color_class = statusArticles[status]["color_class"] or "default"
-    hint = statusArticles[status]["explaination"] or ""
-    return SPAN(status_txt, _style="margin: 0; padding:0", _class="pci-status " + color_class, _title=current.T(hint))
-
 
 ######################################################################################################################################################################
 # Builds a coloured status label with pre-decision concealed
-def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None):
+def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set"):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     if status.startswith("Pre-"):
@@ -308,15 +317,23 @@ def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None):
             stage1Url = URL(c="user", f="recommendations", vars=dict(articleId=stage1Id))
 
         if stage1Id is not None:
+            reportStage = "STAGE 2"
+            stage1Link = SPAN(BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"))
+        else:
+            reportStage = "STAGE 1"
+            stage1Link = ""
+
+        if reportStage is not None:
             result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center"),
-                DIV(B(current.T("Stage 2")), BR(), B("(", A(current.T("View stage 1"), _href=stage1Url), ")"), _style="text-align: center; width: 150px;"),
+                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+                DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage 1")), _style="text-align: center; width: 150px;"),
+                DIV(B(current.T("Stage not set")), stage1Link, _style="text-align: center; width: 150px;"),
             )
+
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
 

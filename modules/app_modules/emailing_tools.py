@@ -113,7 +113,7 @@ def getMailCommonVars():
 ######################################################################################################################################################################
 def getCorrectHashtag(hashtag, article=None):
     if pciRRactivated and article is not None:
-        if article.art_stage_1_id is not None:
+        if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
         else:
             hashtag += "Stage1"

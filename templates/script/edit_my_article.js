@@ -73,89 +73,89 @@ jQuery(document).ready(function () {
   });
 });
 
-// PCI RR
-let elemPciRR = document.querySelector(
-  "#t_articles_art_stage_1_id option[value='']"
-);
-if (elemPciRR) {
-  document.querySelector(
-    "#t_articles_art_stage_1_id option[value='']"
-  ).innerHTML = "This is a stage 1 submission";
-}
+// // PCI RR
+// let elemPciRR = document.querySelector(
+//   "#t_articles_art_stage_1_id option[value='']"
+// );
+// if (elemPciRR) {
+//   document.querySelector(
+//     "#t_articles_art_stage_1_id option[value='']"
+//   ).innerHTML = "This is a stage 1 submission";
+// }
 
 
 
-// Scheduled submission
-let elemScheduledSubmission = document.querySelector(
-  "#t_articles_scheduled_submission_date__row"
-);
-let scheduledSubmissionInput = document.querySelector(
-  "#t_articles_scheduled_submission_date"
-);
+// // Scheduled submission
+// let elemScheduledSubmission = document.querySelector(
+//   "#t_articles_scheduled_submission_date__row"
+// );
+// let scheduledSubmissionInput = document.querySelector(
+//   "#t_articles_scheduled_submission_date"
+// );
 
-if (elemScheduledSubmission) {
-  elemScheduledSubmission.style.display = "none";
+// if (elemScheduledSubmission) {
+//   elemScheduledSubmission.style.display = "none";
 
-  let checkboxFormGroup = document.createElement("div");
-  checkboxFormGroup.classList = "form-group";
-  elemScheduledSubmission.before(checkboxFormGroup);
+//   let checkboxFormGroup = document.createElement("div");
+//   checkboxFormGroup.classList = "form-group";
+//   elemScheduledSubmission.before(checkboxFormGroup);
 
-  let checkboxContainer = document.createElement("div");
-  checkboxContainer.classList = "col-sm-3";
-  checkboxFormGroup.appendChild(checkboxContainer);
+//   let checkboxContainer = document.createElement("div");
+//   checkboxContainer.classList = "col-sm-3";
+//   checkboxFormGroup.appendChild(checkboxContainer);
 
-  let checkboxContainer2 = document.createElement("div");
-  checkboxContainer2.classList = "checkbox";
-  checkboxContainer.appendChild(checkboxContainer2);
+//   let checkboxContainer2 = document.createElement("div");
+//   checkboxContainer2.classList = "checkbox";
+//   checkboxContainer.appendChild(checkboxContainer2);
 
-  let checkboxLabel = document.createElement("label");
-  checkboxContainer2.appendChild(checkboxLabel);
+//   let checkboxLabel = document.createElement("label");
+//   checkboxContainer2.appendChild(checkboxLabel);
 
-  let checkboxInput = document.createElement("input");
-  checkboxInput.setAttribute("type", "checkbox");
-  checkboxInput.id = "checkbox-scheduled-submission";
-  checkboxInput.onchange = toggleScheduledSubmission;
-  checkboxLabel.appendChild(checkboxInput);
+//   let checkboxInput = document.createElement("input");
+//   checkboxInput.setAttribute("type", "checkbox");
+//   checkboxInput.id = "checkbox-scheduled-submission";
+//   checkboxInput.onchange = toggleScheduledSubmission;
+//   checkboxLabel.appendChild(checkboxInput);
 
-  checkboxText = document.createTextNode(
-    "This is a scheduled submission (no doi yet)"
-  );
-  checkboxLabel.appendChild(checkboxText);
+//   checkboxText = document.createTextNode(
+//     "This is a scheduled submission (no doi yet)"
+//   );
+//   checkboxLabel.appendChild(checkboxText);
 
-  if (scheduledSubmissionInput && scheduledSubmissionInput.value != ""){
-    let elem = document.querySelector("#checkbox-scheduled-submission");
-    elem.checked = true
-    toggleScheduledSubmission()
-  }
-}
+//   if (scheduledSubmissionInput && scheduledSubmissionInput.value != ""){
+//     let elem = document.querySelector("#checkbox-scheduled-submission");
+//     elem.checked = true
+//     toggleScheduledSubmission()
+//   }
+// }
 
-function toggleScheduledSubmission() {
-  let scheduledSubmissionRow = document.querySelector(
-    "#t_articles_scheduled_submission_date__row"
-  );
-  let scheduledSubmissionInput = document.querySelector(
-    "#t_articles_scheduled_submission_date"
-  );
+// function toggleScheduledSubmission() {
+//   let scheduledSubmissionRow = document.querySelector(
+//     "#t_articles_scheduled_submission_date__row"
+//   );
+//   let scheduledSubmissionInput = document.querySelector(
+//     "#t_articles_scheduled_submission_date"
+//   );
 
-  let doiRow = document.querySelector("#t_articles_doi__row");
-  let doiInput = document.querySelector("#t_articles_doi");
+//   let doiRow = document.querySelector("#t_articles_doi__row");
+//   let doiInput = document.querySelector("#t_articles_doi");
 
-  let msVersionRow = document.querySelector("#t_articles_ms_version__row");
-  let msVersionInput = document.querySelector("#t_articles_ms_version");
+//   let msVersionRow = document.querySelector("#t_articles_ms_version__row");
+//   let msVersionInput = document.querySelector("#t_articles_ms_version");
 
-  let elem = document.querySelector("#checkbox-scheduled-submission");
+//   let elem = document.querySelector("#checkbox-scheduled-submission");
 
-  // if scheduled subbmission is checked
-  if (elem.checked) {
-    doiRow.style.display = "none";
-    msVersionRow.style.display = "none";
-    msVersionInput.value = "";
-    doiInput.value = "";
-    scheduledSubmissionRow.style.display = "flex";
-  } else {
-    scheduledSubmissionRow.style.display = "none";
-    scheduledSubmissionInput.value = "";
-    doiRow.style.display = "flex";
-    msVersionRow.style.display = "flex";
-  }
-}
+//   // if scheduled subbmission is checked
+//   if (elem.checked) {
+//     doiRow.style.display = "none";
+//     msVersionRow.style.display = "none";
+//     msVersionInput.value = "";
+//     doiInput.value = "";
+//     scheduledSubmissionRow.style.display = "flex";
+//   } else {
+//     scheduledSubmissionRow.style.display = "none";
+//     scheduledSubmissionInput.value = "";
+//     doiRow.style.display = "flex";
+//     msVersionRow.style.display = "flex";
+//   }
+// }

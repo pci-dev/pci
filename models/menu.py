@@ -266,7 +266,7 @@ def _UserMenu():
         )
 
     return [
-        (SPAN(I(_class="glyphicon glyphicon-edit"), T("For contributers"), notificationPin, _class=contribMenuClass), isActive, "#", myContributionsMenu),
+        (SPAN(I(_class="glyphicon glyphicon-edit"), T("For contributors"), notificationPin, _class=contribMenuClass), isActive, "#", myContributionsMenu),
     ]
 
 
@@ -453,7 +453,7 @@ def _AboutMenu():
 
     if pciRRactivated:
         aboutMenu += [
-            (T("Full Policies and Procedure"), False, URL("about", "full_policies")),
+            (T("Full Policies and Procedures"), False, URL("about", "full_policies")),
             LI(_class="divider"),
             (T("List of PCI RR-friendly Journals"), False, URL("about", "pci_rr_friendly_journals")),
             (T("List of PCI RR-interested Journals"), False, URL("about", "pci_rr_interested_journals")),
@@ -491,20 +491,19 @@ def _HelpMenu():
 
     if pciRRactivated:
         helpMenu += [
-            (T("Top Guidelines"), False, URL("help", "top_guidelines")),
-            LI(_class="divider"),
             (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
             LI(_class="divider"),
             (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
             LI(_class="divider"),
             (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
             (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
+            (T("TOP Guidelines"), False, URL("help", "top_guidelines")),
             LI(_class="divider"),
         ]
-
-    helpMenu += [
-        (T("How does it work?"), False, URL("help", "help_generic")),
-    ]
+    else:
+        helpMenu += [
+            (T("How does it work?"), False, URL("help", "help_generic")),
+        ]
 
     if showGuideLines:
         helpMenu += [
@@ -514,8 +513,12 @@ def _HelpMenu():
     helpMenu += [
         (T("How to ...?"), False, URL("help", "help_practical")),
         (T("FAQs", lazy=False), False, URL("help", "faq")),
-        (T("How should you cite an article?", lazy=False), False, URL("help", "cite")),
     ]
+
+    if not pciRRactivated:
+        helpMenu += [
+            (T("How should you cite an article?", lazy=False), False, URL("help", "cite")),
+        ]
 
     return [(SPAN(I(_class="glyphicon glyphicon-question-sign"), T("Help")), isActive, "#", helpMenu)]
 

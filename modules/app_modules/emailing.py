@@ -1534,6 +1534,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 
     emailing_tools.getFlashMessage(session, reports)
 
+
 ######################################################################################################################################################################
 # Mail for Scheduled submission
 ##########################c############################################################################################################################################
@@ -1592,6 +1593,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
         # Build reports :
         emailing_tools.getFlashMessage(session, reports)
 
+
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
@@ -1611,7 +1613,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                 content = DIV(WIKI(message, safe_mode=False))
 
                 reviewer_invitation_buttons = None
-                
+
                 if reset_password_key:
                     if linkTarget:
                         link = URL(
@@ -1635,7 +1637,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             host=mail_vars["host"],
                             port=mail_vars["port"],
                         )
-                    
+
                     reviewer_invitation_buttons = DIV(
                         P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTON:"))),
                         DIV(
@@ -1649,7 +1651,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             ),
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
                         ),
-                        P(B(current.T('THEN GO TO "For contributers —> Invitation(s) to review a preprint" IN THE TOP MENU')))
+                        P(B(current.T('THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU'))),
                     )
 
                     create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
@@ -1680,15 +1682,11 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                         _style="text-decoration: none; display: block",
                                     ),
                                     _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                                )
+                                ),
                             )
 
-
                     elif review.review_state == "Awaiting review":
-                        reviewer_invitation_buttons = DIV(
-                            P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))),
-                            A(linkTarget, _href=linkTarget)
-                        )
+                        reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
                     create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
@@ -1696,7 +1694,14 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
-                    context=dict(subject=subject_without_appname, applogo=applogo, appname=mail_vars["appName"], content=XML(content), footer=emailing_tools.mkFooter(), reviewer_invitation_buttons=reviewer_invitation_buttons),
+                    context=dict(
+                        subject=subject_without_appname,
+                        applogo=applogo,
+                        appname=mail_vars["appName"],
+                        content=XML(content),
+                        footer=emailing_tools.mkFooter(),
+                        reviewer_invitation_buttons=reviewer_invitation_buttons,
+                    ),
                 )
 
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
@@ -1774,6 +1779,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = user["email"]
 
+    newsletter_interval = None
     if newsletterType == "Weekly":
         hashtag_template = "#NewsLetterWeekly"
         newsletter_interval = 7
@@ -1787,60 +1793,63 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         newsletter_interval = 30
 
     # New recommended articles
-    new_recommended_articles = db(
-        (
-            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-            & (db.t_recommendations.article_id == db.t_articles.id)
-            & (db.t_recommendations.recommendation_state == "Recommended")
-            & (db.t_articles.status == "Recommended")
-        )
-    ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-
-    i = 0
-    newRecommendations = DIV()
-    newRecommendationsCount = len(new_recommended_articles)
-    for article in new_recommended_articles:
-        i += 1
-        if i <= 5:
-            newRecommendations.append(newsletter_module.makeArticleWithRecommRow(auth, db, article))
-
-    # New preprint searching for reviewers
-    new_searching_for_reviewers_preprint = db(
-        (
-            (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-            & (db.t_articles.is_searching_reviewers == True)
-            & (db.t_articles.status == "Under consideration")
-        )
-    ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
-
-    j = 0
-    newPreprintSearchingForReviewers = DIV()
-    newPreprintSearchingForReviewersCount = len(new_searching_for_reviewers_preprint)
-    for article in new_searching_for_reviewers_preprint:
-        j += 1
-        if j <= 5:
-            newPreprintSearchingForReviewers.append(newsletter_module.makeArticleRow(article, "review"))
-
-    # New preprint requiring recommender
-    group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
-
-    newPreprintRequiringRecommender = None
+    newRecommendationsCount = 0
     newPreprintRequiringRecommenderCount = 0
-    if group > 0:
-        new_searching_for_recommender_preprint = db(
+    newPreprintSearchingForReviewersCount = 0
+    if newsletter_interval is not None:
+        new_recommended_articles = db(
             (
                 (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-                & (db.t_articles.status == "Awaiting consideration")
+                & (db.t_recommendations.article_id == db.t_articles.id)
+                & (db.t_recommendations.recommendation_state == "Recommended")
+                & (db.t_articles.status == "Recommended")
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
-        k = 0
-        newPreprintRequiringRecommender = DIV()
-        newPreprintRequiringRecommenderCount = len(new_searching_for_recommender_preprint)
-        for article in new_searching_for_recommender_preprint:
-            k += 1
-            if k <= 5:
-                newPreprintRequiringRecommender.append(newsletter_module.makeArticleRow(article, "recommendation"))
+        i = 0
+        newRecommendations = DIV()
+        newRecommendationsCount = len(new_recommended_articles)
+        for article in new_recommended_articles:
+            i += 1
+            if i <= 5:
+                newRecommendations.append(newsletter_module.makeArticleWithRecommRow(auth, db, article))
+
+        # New preprint searching for reviewers
+        new_searching_for_reviewers_preprint = db(
+            (
+                (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                & (db.t_articles.is_searching_reviewers == True)
+                & (db.t_articles.status == "Under consideration")
+            )
+        ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+
+        j = 0
+        newPreprintSearchingForReviewers = DIV()
+        newPreprintSearchingForReviewersCount = len(new_searching_for_reviewers_preprint)
+        for article in new_searching_for_reviewers_preprint:
+            j += 1
+            if j <= 5:
+                newPreprintSearchingForReviewers.append(newsletter_module.makeArticleRow(article, "review"))
+
+        # New preprint requiring recommender
+        group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
+
+        newPreprintRequiringRecommender = None
+        if group > 0:
+            new_searching_for_recommender_preprint = db(
+                (
+                    (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                    & (db.t_articles.status == "Awaiting consideration")
+                )
+            ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
+
+            k = 0
+            newPreprintRequiringRecommender = DIV()
+            newPreprintRequiringRecommenderCount = len(new_searching_for_recommender_preprint)
+            for article in new_searching_for_recommender_preprint:
+                k += 1
+                if k <= 5:
+                    newPreprintRequiringRecommender.append(newsletter_module.makeArticleRow(article, "recommendation"))
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
         emailing_tools.insertNewsLetterMailInQueue(
@@ -1955,11 +1964,11 @@ def create_reminder_for_submitter_shceduled_submission_due(session, auth, db, ar
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
-
-        # do not user getCorrectHashtag here to avoid fake name 
+        # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionDue"
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=article.scheduled_submission_date)
+
 
 ######################################################################################################################################################################
 def delete_reminder_for_submitter(db, hashtag_template, articleId):

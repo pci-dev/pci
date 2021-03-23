@@ -107,8 +107,7 @@ def recommendations():
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
                 art.update_record()
-                
-                
+
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
 
                 # Send e-mails to reviewers and recommenders
@@ -353,28 +352,20 @@ def fill_new_article():
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
 
     if pciRRactivated:
-        db.t_articles.art_stage_1_id.readable = True
-        db.t_articles.art_stage_1_id.writable = True
-        db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
-            IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"')
-        )
+        db.t_articles.report_stage.readable = True
+        db.t_articles.report_stage.writable = True
     else:
-        db.t_articles.art_stage_1_id.readable = False
-        db.t_articles.art_stage_1_id.writable = False
+        db.t_articles.report_stage.readable = False
+        db.t_articles.report_stage.writable = False
 
-    if scheduledSubmissionActivated:
-        db.t_articles.scheduled_submission_date.readable = True
-        db.t_articles.scheduled_submission_date.writable = True
-    else:
-        db.t_articles.scheduled_submission_date.readable = False
-        db.t_articles.scheduled_submission_date.writable = False
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
 
     fields = []
     if pciRRactivated:
-        fields += ["art_stage_1_id"]
-
-    if scheduledSubmissionActivated:
-        fields += ["scheduled_submission_date"]
+        fields += ["report_stage"]
 
     fields += [
         "doi",
@@ -408,7 +399,10 @@ def fill_new_article():
         # for thema in form.vars.thematics:
         # myVars['qy_'+thema] = 'on'
         # myVars['qyKeywords'] = form.vars.keywords
-        redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
+        if pciRRactivated:
+            redirect(URL(c="user", f="fill_report_survey", vars=myVars, user_signature=True))
+        else:
+            redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
@@ -458,16 +452,11 @@ def edit_my_article():
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
                 IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
             )
-            pciRRjsScript = SCRIPT(
-                """
-                    document.querySelector("#t_articles_art_stage_1_id option[value='']").innerHTML = "This is a stage 1 submission"
-                """
-            )
+            pciRRjsScript = None
         else:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
             pciRRjsScript = SCRIPT(
                 """
-                    document.querySelector("#t_articles_art_stage_1_id").value = "This is a stage 1 submission";
                     document.querySelector("#t_articles_art_stage_1_id").disabled = true;
 
                     var parent = document.querySelector("#t_articles_art_stage_1_id__row > div");
@@ -482,22 +471,29 @@ def edit_my_article():
                     parent.appendChild(child);
                 """
             )
-
-    if scheduledSubmissionActivated:
-        db.t_articles.scheduled_submission_date.readable = True
-        db.t_articles.scheduled_submission_date.writable = True
+    
+    if pciRRactivated:
+        db.t_articles.report_stage.readable = True
+        db.t_articles.report_stage.writable = True
     else:
-        db.t_articles.scheduled_submission_date.readable = False
-        db.t_articles.scheduled_submission_date.writable = False
+        db.t_articles.report_stage.readable = False
+        db.t_articles.report_stage.writable = False
+
+
+    db.t_articles.art_stage_1_id.readable = False
+    db.t_articles.art_stage_1_id.writable = False
+    db.t_articles.scheduled_submission_date.readable = False
+    db.t_articles.scheduled_submission_date.writable = False
 
     if parallelSubmissionAllowed and art.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
         fields = []
         if pciRRactivated:
-            fields = ["art_stage_1_id"]
-
-        if scheduledSubmissionActivated:
-            fields += ["scheduled_submission_date"]
+            fields = ["report_stage"]
+            if art.report_stage == "STAGE 2":
+                fields += ["art_stage_1_id"]
+                db.t_articles.art_stage_1_id.readable = True
+                db.t_articles.art_stage_1_id.writable = True
 
         fields += [
             "doi",
@@ -519,10 +515,11 @@ def edit_my_article():
     else:
         fields = []
         if pciRRactivated:
-            fields = ["art_stage_1_id"]
-
-        if scheduledSubmissionActivated:
-            fields += ["scheduled_submission_date"]
+            fields = ["report_stage"]
+            if art.report_stage == "STAGE 2":
+                fields += ["art_stage_1_id"]
+                db.t_articles.art_stage_1_id.readable = True
+                db.t_articles.art_stage_1_id.writable = True
 
         fields += [
             "doi",
@@ -545,7 +542,14 @@ def edit_my_article():
 
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
+
+        if form.vars.report_stage == "STAGE 1":
+            article = db.t_articles[articleId]
+            article.art_stage_1_id = None
+            article.update_record()
+
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(
@@ -556,6 +560,248 @@ def edit_my_article():
         form=form,
         myFinalScript=SCRIPT(myScript),
         pciRRjsScript=pciRRjsScript,
+    )
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def fill_report_survey():
+    response.view = "default/myLayout.html"
+
+    if not ("articleId" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(URL("my_articles", user_signature=True))
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("my_articles", user_signature=True))
+    if art.status not in ("Pending", "Awaiting revision"):
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+    if art.user_id != auth.user_id:
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+
+    if art.report_stage == "STAGE 1":
+        fields = [
+            "Q1",
+            "Q2",
+            "Q3",
+            "Q4",
+            "Q5",
+            "Q6",
+            "Q7",
+            "Q8",
+            "Q9",
+            "Q10",
+            "Q11",
+            "Q11_details",
+            "Q12",
+            "Q12_details",
+            "Q13",
+            "Q13_details",
+            "Q14",
+            "Q15",
+            "Q16",
+            "Q17",
+            "Q18",
+            "Q19",
+            "Q20",
+            "Q21",
+            "Q22",
+            "Q23",
+            "Q24",
+            "Q24_1",
+            "Q24_1_details",
+        ]
+    else: # STAGE 2 survey
+        db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
+            db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+        )
+
+        fields = [
+            "temp_art_stage_1_id",
+            "Q25",
+            "Q26",
+            "Q26_details",
+            "Q27",
+            "Q27_details",
+            "Q28",
+            "Q28_details",
+            "Q29",
+            "Q30",
+            "Q31",
+        ]
+
+    form = SQLFORM(
+        db.t_report_survey,
+        fields=fields,
+        keepvalues=True,
+    )
+    form.element(_type="submit")["_value"] = T("Complete your submission")
+    form.element(_type="submit")["_class"] = "btn btn-success"
+
+    if form.process().accepted:
+        surveyId = form.vars.id
+        survey = db.t_report_survey[surveyId]
+        survey.article_id = articleId
+        survey.update_record()
+
+        doUpdateArticle = False
+        if form.vars.Q10 is not None:
+            art.scheduled_submission_date = form.vars.Q10
+            art.doi = None
+            doUpdateArticle = True
+
+        if form.vars.temp_art_stage_1_id is not None:
+            art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if doUpdateArticle == True:
+            art.update_record()
+
+        session.flash = T("Article submitted", lazy=False)
+        myVars = dict(articleId=articleId)
+        # for thema in form.vars.thematics:
+        # myVars['qy_'+thema] = 'on'
+        # myVars['qyKeywords'] = form.vars.keywords
+        redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
+    elif form.errors:
+        response.flash = T("Form has errors", lazy=False)
+
+    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    response.view = "default/gab_form_layout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#FillReportSurvey"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#FillReportSurveyTitle"),
+        customText=getText(request, auth, db, "#FillReportSurveyText", maxWidth="800"),
+        form=form,
+        myFinalScript=SCRIPT(myScript),
+    )
+
+
+######################################################################################################################################################################
+@auth.requires_login()
+def edit_report_survey():
+    response.view = "default/myLayout.html"
+
+    if not ("articleId" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(URL("my_articles", user_signature=True))
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art == None:
+        session.flash = T("Unavailable")
+        redirect(URL("my_articles", user_signature=True))
+    if art.status not in ("Pending", "Awaiting revision"):
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+    if art.user_id != auth.user_id:
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+
+    survey = db(db.t_report_survey.article_id == articleId).select().last()
+    if survey is None:
+        session.flash = T("No survey yet, please fill this form.")        
+        survey = db.t_report_survey.insert(article_id = articleId, temp_art_stage_1_id=art.art_stage_1_id)
+
+
+    db.t_report_survey._id.readable = False
+    db.t_report_survey._id.writable = False
+
+    if art.report_stage == "STAGE 1": # STAGE 1 survey
+        fields = [
+            "Q1",
+            "Q2",
+            "Q3",
+            "Q4",
+            "Q5",
+            "Q6",
+            "Q7",
+            "Q8",
+            "Q9",
+            "Q10",
+            "Q11",
+            "Q11_details",
+            "Q12",
+            "Q12_details",
+            "Q13",
+            "Q13_details",
+            "Q14",
+            "Q15",
+            "Q16",
+            "Q17",
+            "Q18",
+            "Q19",
+            "Q20",
+            "Q21",
+            "Q22",
+            "Q23",
+            "Q24",
+            "Q24_1",
+            "Q24_1_details",
+        ]
+
+    else: # STAGE 2 survey
+        db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
+            db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+        )
+
+        fields = [
+            "temp_art_stage_1_id",
+            "Q25",
+            "Q26",
+            "Q26_details",
+            "Q27",
+            "Q27_details",
+            "Q28",
+            "Q28_details",
+            "Q29",
+            "Q30",
+            "Q31",
+        ]
+
+    form = SQLFORM(
+        db.t_report_survey,
+        survey.id,
+        fields=fields,
+        keepvalues=True,
+    )
+
+    if form.process().accepted:
+        doUpdateArticle = False
+        if form.vars.Q10 is not None:
+            art.scheduled_submission_date = form.vars.Q10
+            art.doi = None
+            doUpdateArticle = True
+
+        if form.vars.temp_art_stage_1_id is not None:
+            art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if doUpdateArticle == True:
+            art.update_record()
+
+        session.flash = T("Article submitted", lazy=False)
+        myVars = dict(articleId=articleId)
+        # for thema in form.vars.thematics:
+        # myVars['qy_'+thema] = 'on'
+        # myVars['qyKeywords'] = form.vars.keywords
+        redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
+    elif form.errors:
+        response.flash = T("Form has errors", lazy=False)
+
+    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    response.view = "default/gab_form_layout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#EditReportSurvey"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#EditReportSurveyTitle"),
+        customText=getText(request, auth, db, "#EditReportSurveyText", maxWidth="800"),
+        form=form,
+        myFinalScript=SCRIPT(myScript),
     )
 
 
@@ -649,7 +895,9 @@ def my_articles():
     db.t_articles.auto_nb_recommendations.writable = False
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
+    db.t_articles.report_stage.writable = False
+    db.t_articles.report_stage.readable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage)
     db.t_articles.status.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
     db.t_articles._id.label = T("Article")
@@ -695,6 +943,7 @@ def my_articles():
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -716,6 +965,7 @@ def my_articles():
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
             # db.t_articles.uploaded_picture,
@@ -797,7 +1047,9 @@ def my_reviews():
 
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
+    db.t_articles.report_stage.writable = False
+    db.t_articles.report_stage.readable = False
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage)
 
     db.t_reviews.last_change.label = T("Days elapsed")
     db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
@@ -893,6 +1145,7 @@ def my_reviews():
         fields=[
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
+            db.t_articles.report_stage,
             db.t_articles.doi,
             db.t_articles.status,
             db.t_articles._id,
