@@ -12,7 +12,7 @@ csv = True  # export allowed
 expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 
 
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def help_texts():
     response.view = "default/myLayout.html"
 
@@ -21,13 +21,13 @@ def help_texts():
     else:
         redirect_url = URL()
     db.help_texts.lang.writable = False
-    db.help_texts.hashtag.writable = auth.has_membership(role="developper")
+    db.help_texts.hashtag.writable = auth.has_membership(role="developer")
     db.help_texts.contents.represent = lambda text, row: DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300")
     db.help_texts._id.readable = False
     db.help_texts._id.writable = False
     grid = SQLFORM.grid(
         db.help_texts,
-        create=auth.has_membership(role="developper"),
+        create=auth.has_membership(role="developer"),
         deletable=False,
         paginate=100,
         maxtextlength=4096,
@@ -50,7 +50,7 @@ def help_texts():
     )
 
 
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mail_templates():
     response.view = "default/myLayout.html"
 
@@ -60,7 +60,7 @@ def mail_templates():
         redirect_url = URL()
 
     db.mail_templates.lang.writable = False
-    db.mail_templates.hashtag.writable = auth.has_membership(role="developper")
+    db.mail_templates.hashtag.writable = auth.has_membership(role="developer")
 
     db.mail_templates.subject.readable = False
     db.mail_templates.subject.writable = True
@@ -75,8 +75,8 @@ def mail_templates():
         db.mail_templates,
         details=False,
         editable=True,
-        create=auth.has_membership(role="developper"),
-        deletable=auth.has_membership(role="developper"),
+        create=auth.has_membership(role="developer"),
+        deletable=auth.has_membership(role="developer"),
         paginate=100,
         maxtextlength=4096,
         csv=False,
@@ -94,7 +94,7 @@ def mail_templates():
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#MailTemplatesTitle"), customText=getText(request, auth, db, "#MailTemplatesText"), grid=grid,)
 
 
-@auth.requires(auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="developer"))
 def transfer_help():
     response.view = "default/myLayout.html"
     db.help_texts.truncate()

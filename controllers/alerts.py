@@ -24,13 +24,13 @@ myconf = AppConfig(reload=True)
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 
 
-@auth.requires(auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="developer"))
 def test_flash():
     session.flash = "Coucou !"
     redirect(request.env.http_referer)
 
 
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testMyNewsletterMail():
     user = db.auth_user[auth.user_id]
     emailing.send_newsletter_mail(session, auth, db, auth.user_id, user.alerts)

@@ -65,5 +65,9 @@
 {{=absoluteButtonScript}}
 {{pass}}
 
+{{if 'deleteFileButtonsScript' in locals():}}
+{{=deleteFileButtonsScript}}
+{{pass}}
+
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>

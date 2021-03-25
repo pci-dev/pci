@@ -47,7 +47,7 @@ if discontinued:
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 
-# Appends developpers menu (web2py)
+# Appends developers menu (web2py)
 def _DevMenu():
     app = request.application
     ctr = request.controller
@@ -574,15 +574,15 @@ if auth.has_membership(None, None, "manager"):
     response.menu += _ManagerMenu()
     response.footer_menu += _ManagerMenu()
 
-if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developper"):
+if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developer"):
     response.menu += _AdminMenu()
     response.footer_menu += _AdminMenu()
 
-if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developper"):
+if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developer"):
     response.menu += _ToolsMenu()
     response.footer_menu += _ToolsMenu()
 
-if auth.has_membership(None, None, "developper"):
+if auth.has_membership(None, None, "developer"):
     response.menu += _DevMenu()
 
 response.footer_menu += _AboutMenu()

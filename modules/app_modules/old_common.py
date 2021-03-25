@@ -199,7 +199,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         # ,A(current.T('PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id)), _class='btn btn-info')
         # ,A(current.T('Complete PDF Recommendation'), _href=URL(c='admin', f='rec_as_pdf', vars=dict(articleId=art.id, withHistory=1)), _class='btn btn-info')
         # ,_style='text-align:right; margin-top:12px; margin-bottom:8px;'
-        # ) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developper'))) else ''
+        # ) if ((auth.has_membership(role='administrator') or auth.has_membership(role='developer'))) else ''
         ,
         img,
         H3(art.title or ""),

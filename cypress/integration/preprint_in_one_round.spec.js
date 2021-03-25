@@ -15,7 +15,7 @@ describe("Preprint recommended in one round", () => {
       manager = user.manager;
       recommender = user.recommender;
       reviewer_1 = user.co_recommender;
-      reviewer_2 = user.developper;
+      reviewer_2 = user.developer;
     });
   });
 
@@ -327,7 +327,7 @@ describe("Preprint recommended in one round", () => {
       );
     });
 
-    it("Should search for reviewer 2 (developper user)", () => {
+    it("Should search for reviewer 2 (developer user)", () => {
       cy.contains(
         ".btn",
         "Choose a reviewer from the PCI Evol Biol DEV database"

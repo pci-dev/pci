@@ -115,7 +115,7 @@ Create cypress/fixtures/user.json file and fill it with the users credentials fo
     "mail": "[FILL WITH USER MAIL]",
     "password": "[FILL WITH USER PASSWORD]"
   },
-  "developper": {
+  "developer": {
     "firstname": "[FILL WITH USER FIRSTNAME]",
     "lastname": "[FILL WITH USER lASTNAME]",
     "mail": "[FILL WITH USER MAIL]",
@@ -194,8 +194,8 @@ static/
   fonts/ # Static fonts files
 
 templates/
-  mail/ # Html templates for mails (most of content is text here)
-  text/ # Long text templates
+  # mail/ # Html templates for mails (most of content is text here)
+  # text/ # Long text templates
   js/ # JavaScript templates (used to perform actions client-side)
 
 cypress/

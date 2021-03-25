@@ -46,7 +46,7 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
         ),
     ]
 
-    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
         r0 += [A(SPAN(current.T("edit help")), _href=URL(c="custom_help_text", f="help_texts", args=["edit", "help_texts", i], user_signature=True), _class="pci-help-button-edit")]
 
     return DIV(DIV(r0, _class="pci-help-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-helptext", _style="display:none;",), _class="pci-helper",)
@@ -76,7 +76,7 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
         else:
             i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
-        if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+        if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
             r0 = A(
                 current.T("edit text"),
                 _href=URL(c="custom_help_text", f="help_texts", args=["edit", "help_texts", i], user_signature=True),
@@ -107,12 +107,12 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
-    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
         r0 = A(
             current.T("edit title"), _href=URL(c="custom_help_text", f="help_texts", args=["edit", "help_texts", i], user_signature=True), _class="pci-text-button-edit pci-admin"
         )
 
-    if c != "" and (auth.has_membership(role="administrator") or auth.has_membership(role="developper")):
+    if c != "" and (auth.has_membership(role="administrator") or auth.has_membership(role="developer")):
         return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title"), _class="pci-infotextbox",)
     else:
         return DIV(DIV(r0, _class="pci-text-buttons"), DIV(WIKI(c, safe_mode=False), _class="pci-text-title pci-text-buttons-no-margin"), _class="pci-infotextbox",)

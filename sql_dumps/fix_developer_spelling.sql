@@ -1,0 +1,1 @@
+UPDATE auth_group SET role = 'developer' WHERE role = 'developper';

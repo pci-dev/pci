@@ -29,7 +29,7 @@ myconf = AppConfig(reload=True)
 ## (gab) Helper => move to modules ?
 ######################################################################################################################################################################
 def mkRoles(row, auth, db):
-    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
         resu = ""
         if row.id:
             roles = db.v_roles[row.id]
@@ -40,7 +40,7 @@ def mkRoles(row, auth, db):
 
 ######################################################################################################################################################################
 def set_as_recommender(ids, auth, db):
-    if auth.has_membership(role="administrator") or auth.has_membership(role="developper"):
+    if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
 
         # get recommender group id
         recommRoleId = (db(db.auth_group.role == "recommender").select(db.auth_group.id).last())["id"]

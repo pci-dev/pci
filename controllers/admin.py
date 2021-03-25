@@ -36,7 +36,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def list_users():
     selectable = None
     links = None
@@ -132,7 +132,7 @@ def list_users():
 
 ######################################################################################################################################################################
 # Prepares lists of email addresses by role
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_lists():
     response.view = "default/myLayout.html"
 
@@ -199,12 +199,12 @@ def mailing_lists():
 
 ######################################################################################################################################################################
 # Display the list of thematic fields
-# Can be modified only by developper and administrator
+# Can be modified only by developer and administrator
 @auth.requires_login()
 def thematics_list():
     response.view = "default/myLayout.html"
 
-    write_auth = auth.has_membership("administrator") or auth.has_membership("developper")
+    write_auth = auth.has_membership("administrator") or auth.has_membership("developer")
     db.t_thematics._id.readable = False
     grid = SQLFORM.grid(
         db.t_thematics,
@@ -230,7 +230,7 @@ def thematics_list():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def allRecommCitations():
     response.view = "default/myLayout.html"
 
@@ -251,14 +251,14 @@ def allRecommCitations():
 
 ######################################################################################################################################################################
 # Lists article status
-# writable by developpers only!!
+# writable by developers only!!
 @auth.requires(
-    auth.has_membership(role="recommender") or auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper")
+    auth.has_membership(role="recommender") or auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer")
 )
 def article_status():
     response.view = "default/myLayout.html"
 
-    write_auth = auth.has_membership("developper")
+    write_auth = auth.has_membership("developer")
     db.t_status_article._id.label = T("Coded representation")
     db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
     db.t_status_article.status.writable = write_auth
@@ -294,7 +294,7 @@ def article_status():
 
 ######################################################################################################################################################################
 # PDF management
-@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def manage_pdf():
     response.view = "default/myLayout.html"
 
@@ -327,7 +327,7 @@ def manage_pdf():
     return dict(titleIcon="duplicate", pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), customText=getText(request, auth, db, "#AdminPdfText"), grid=grid,)
 
 
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def recap_reviews():
     response.view = "default/myLayout.html"
 
@@ -486,7 +486,7 @@ def recap_reviews():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def rec_as_latex():
     response.view = "default/info.html"
 
@@ -510,7 +510,7 @@ def rec_as_latex():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testRedir():
     session.flash = "redirect!"
     url = URL("default", "index", user_signature=True)  # , scheme=scheme, host=host, port=port)
@@ -518,7 +518,7 @@ def testRedir():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_queue():
     response.view = "default/myLayout.html"
 

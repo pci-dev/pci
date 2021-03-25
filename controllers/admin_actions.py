@@ -31,7 +31,7 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testMail():
     print("starting test mail")
     emailing.send_test_mail(session, auth, db, auth.user_id)
@@ -41,7 +41,7 @@ def testMail():
 ######################################################################################################################################################################
 ## (gab) note : Unused functions ?
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeAllUserImages():
     for userId in db(db.auth_user.uploaded_picture != None).select(db.auth_user.id):
         common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
@@ -49,7 +49,7 @@ def resizeAllUserImages():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeAllArticleImages():
     for articleId in db(db.t_articles.uploaded_picture != None).select(db.t_articles.id):
         common_small_html.makeArticleThumbnail(auth, db, articleId, size=(150, 150))
@@ -57,14 +57,14 @@ def resizeAllArticleImages():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeUserImages(ids):
     for userId in ids:
         common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def rec_as_pdf():
     if "articleId" in request.vars:
         articleId = request.vars["articleId"]
@@ -109,7 +109,7 @@ def rec_as_pdf():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def fp_as_pdf():
     if "articleId" in request.vars:
         articleId = request.vars["articleId"]

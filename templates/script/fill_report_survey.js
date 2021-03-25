@@ -1,4 +1,4 @@
-// select input
+// select input with details box
 toggleElementDetailsOnChange(
   "#t_report_survey_Q11_details__row",
   "#t_report_survey_Q11",
@@ -16,7 +16,7 @@ toggleElementDetailsOnChange(
   [2]
 );
 
-// radio button
+// radio button with details box
 toggleRadioElementDetailsOnChange("#t_report_survey_Q13_details__row", "Q13", [
   2,
   3
@@ -84,7 +84,7 @@ function toggleRadioElementDetailsOnChange(
         if (details_div) {
           details_div.style.display = "none";
         }
-        
+
         item.onchange = function() {
           if (details_div) {
             details_div.style.display = "none";
@@ -110,6 +110,38 @@ function toggleRadioElementDetailsOnChange(
     });
   }
 }
+
+// Q10 showing depends on Q1 answer (hidden by default)
+function toggleQ10onChange() {
+  let Q10_div = document.querySelector("#t_report_survey_Q10__row");
+  let Q1_select = document.querySelector("#t_report_survey_Q1");
+
+  if (Q1_select && Q1_select.selectedIndex == 2) {
+    if (Q10_div) {
+      Q10_div.style.display = "flex";
+    }
+  } else {
+    if (Q10_div) {
+      Q10_div.style.display = "none";
+    }
+  }
+
+  if (Q1_select) {
+    Q1_select.addEventListener("change", event => {
+      Q10_div = document.querySelector("#t_report_survey_Q10__row");
+      if (event.target.selectedIndex == 2) {
+        if (Q10_div) {
+          Q10_div.style.display = "flex";
+        }
+      } else {
+        if (Q10_div) {
+          Q10_div.style.display = "none";
+        }
+      }
+    });
+  }
+}
+toggleQ10onChange()
 
 // Set title for all options
 optionsItems = document.querySelectorAll("form select option");

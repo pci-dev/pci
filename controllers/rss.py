@@ -21,6 +21,8 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 ######################################################################################################################################################################
 # sub function called by cache.ram below
 def _rss_cacher(maxArticles):
@@ -36,8 +38,22 @@ def _rss_cacher(maxArticles):
     # thisLink = URL(c='public', f='rss', scheme=scheme, host=host, port=port)
     link = URL(c="public", f="rss", scheme=scheme, host=host, port=port)
 
+    if pciRRactivated:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_articles.report_stage == "STAGE 2")
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+    else:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+
     query = db(
-        (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
+        item_query
     ).iterselect(
         db.t_articles.id,
         db.t_articles.title,
@@ -135,11 +151,24 @@ def rss4bioRxiv():
     managingEditor = "%(contact)s (%(title)s contact)" % locals()
     favicon = XML(URL(c="static", f="images/favicon.png", scheme=scheme, host=host, port=port))
 
+    if pciRRactivated:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_articles.report_stage == "STAGE 2")
+            & (db.t_articles.already_published == False)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+    else:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_articles.already_published == False)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+
     query = db(
-        (db.t_articles.status == "Recommended")
-        & (db.t_articles.already_published == False)
-        & (db.t_recommendations.article_id == db.t_articles.id)
-        & (db.t_recommendations.recommendation_state == "Recommended")
+        item_query
     ).iterselect(
         db.t_articles.id,
         db.t_articles.title,
@@ -204,11 +233,25 @@ def rss4altmetric():
     favicon = XML(URL(c="static", f="images/favicon.png", scheme=scheme, host=host, port=port))
     response.headers["Content-Type"] = "application/rss+xml"
     response.view = "rsslayout.rss"
+
+    if pciRRactivated:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_articles.report_stage == "STAGE 2")
+            & (db.t_articles.already_published == False)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+    else:
+        item_query = (
+            (db.t_articles.status == "Recommended")
+            & (db.t_articles.already_published == False)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_recommendations.recommendation_state == "Recommended")
+        )
+
     query = db(
-        (db.t_articles.status == "Recommended")
-        & (db.t_articles.already_published == False)
-        & (db.t_recommendations.article_id == db.t_articles.id)
-        & (db.t_recommendations.recommendation_state == "Recommended")
+        item_query
     ).iterselect(
         db.t_articles.id,
         db.t_articles.title,
