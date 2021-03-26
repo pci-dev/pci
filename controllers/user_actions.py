@@ -253,6 +253,90 @@ def review_completed():
     redirect(URL(c="user", f="my_reviews"))
 
 
+
+@auth.requires_login()
+def delete_recommendation_file():
+    response.view = "default/myLayout.html"
+
+    if not ("recommId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    
+    recomm = db.t_recommendations[request.vars.recommId]
+
+    if recomm is None:
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+    
+    art = db.t_articles[recomm.article_id]
+    if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and (art.status == "Awaiting revision")):
+        session.flash = T("Unauthorized", lazy=False)
+        redirect(URL(c="user", f="my_articles"))
+
+    if not ("fileType" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+    else:
+        print(request.vars.fileType)
+        if request.vars.fileType == "reply_pdf":
+            recomm.reply_pdf = None
+            recomm.reply_pdf_data = None
+            recomm.update_record()
+        elif request.vars.fileType == "track_change":
+            recomm.track_change = None
+            recomm.track_change_data = None
+            recomm.update_record()
+        else:
+            session.flash = T("Unavailable")
+            redirect(request.env.http_referer)
+
+    session.flash = T("File successfully deleted")
+    
+    redirect(request.env.http_referer)
+
+
+
+@auth.requires_login()
+def delete_review_file():
+    if "reviewId" not in request.vars:
+        raise HTTP(404, "404: " + T("ID Unavailable"))
+    reviewId = request.vars["reviewId"]
+
+    review = db.t_reviews[reviewId]
+    if review is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    recomm = db.t_recommendations[review.recommendation_id]
+    if recomm is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    art = db.t_articles[recomm.article_id]
+    # Check if article have correct status
+    if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
+        session.flash = T("Unauthorized", lazy=False)
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+    # Check if article is Scheduled submission without doi
+    elif scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        session.flash = T("Unauthorized", lazy=False)
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+
+    if not ("fileType" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+    else:
+        print(request.vars.fileType)
+        if request.vars.fileType == "review_pdf":
+            review.review_pdf = None
+            review.review_pdf_data = None
+            review.update_record()
+        else:
+            session.flash = T("Unavailable")
+            redirect(request.env.http_referer)
+
+    session.flash = T("File successfully deleted")
+    
+    redirect(request.env.http_referer)
+
 ######################################################################################################################################################################
 ## (gab) Unused ?
 ######################################################################################################################################################################

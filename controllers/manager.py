@@ -407,8 +407,10 @@ def manage_recommendations():
         pageTitle=getTitle(request, auth, db, "#ManageRecommendationsTitle"),
         content=myContents,
         grid=grid,
+        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_file_buttons_manager.js"), _type="text/javascript"),
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
+
 
 
 ######################################################################################################################################################################
@@ -839,7 +841,7 @@ def manage_comments():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developper"))
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def all_recommendations():
     response.view = "default/myLayout.html"
 
@@ -1009,7 +1011,7 @@ def suggested_recommender_emails():
         dict(
             header="",
             body=lambda row: A(
-                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
@@ -1111,7 +1113,7 @@ def article_emails():
         dict(
             header="",
             body=lambda row: A(
-                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),

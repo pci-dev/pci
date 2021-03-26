@@ -204,6 +204,9 @@ def decline_new_article_to_recommend():
             sug_rec.declined = True
             sug_rec.update_record()
             db.commit()
+            
+            emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", articleId, auth.user_id)
+
             session.flash = T("Suggestion declined")
     redirect(URL(c="recommender", f="my_awaiting_articles"))
 
@@ -420,3 +423,49 @@ def make_preprint_not_searching_for_reviewers():
         db.commit()
         session.flash = 'Preprint is removed from the "In need of reviewers" list'
         redirect(request.env.http_referer)
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def delete_recommendation_file():
+    recommId = request.vars["recommId"]
+    recomm = db.t_recommendations[recommId]
+    art = db.t_articles[recomm.article_id]
+    isPress = None
+
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+
+    if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled", "Pre-recommended-private"):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    if not ("recommId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    if not ("fileType" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+    else:
+        print(request.vars.fileType)
+        if request.vars.fileType == "reply_pdf":
+            recomm.reply_pdf = None
+            recomm.reply_pdf_data = None
+            recomm.update_record()
+        elif request.vars.fileType == "track_change":
+            recomm.track_change = None
+            recomm.track_change_data = None
+            recomm.update_record()
+        elif request.vars.fileType == "recommender_file":
+            recomm.recommender_file = None
+            recomm.recommender_file_data = None
+            recomm.update_record()
+        else:
+            session.flash = T("Unavailable")
+            redirect(request.env.http_referer)
+
+    session.flash = T("File successfully deleted")
+    
+    redirect(request.env.http_referer)

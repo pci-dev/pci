@@ -811,7 +811,7 @@ def edit_report_survey():
 @auth.requires_login()
 def suggested_recommenders():
     response.view = "default/myLayout.html"
-    write_auth = auth.has_membership("administrator") or auth.has_membership("developper")
+    write_auth = auth.has_membership("administrator") or auth.has_membership("developer")
     query = db.t_suggested_recommenders.article_id == request.vars["articleId"]
     db.t_suggested_recommenders._id.readable = False
     grid = SQLFORM.grid(
@@ -1350,6 +1350,7 @@ def edit_review():
         pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
         form=form,
         myFinalScript=SCRIPT(myScript),
+        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_review_file_buttons_user.js"), _type="text/javascript"),
     )
 
 
@@ -1459,6 +1460,7 @@ def edit_reply():
         customText=getText(request, auth, db, "#UserEditReplyText"),
         pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
         form=form,
+        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_user.js"), _type="text/javascript"),
     )
 
 

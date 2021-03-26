@@ -317,7 +317,15 @@ def search_reviewers():
     )
 
     response.view = "default/gab_list_layout.html"
-    return dict(pageHelp=pageHelp, titleIcon="search", pageTitle=pageTitle, customText=customText, myBackButton=common_small_html.mkBackButton(), searchForm=searchForm, grid=grid,)
+    return dict(
+        pageHelp=pageHelp,
+        titleIcon="search",
+        pageTitle=pageTitle,
+        customText=customText,
+        myBackButton=common_small_html.mkBackButton(),
+        searchForm=searchForm,
+        grid=grid,
+    )
 
 
 ######################################################################################################################################################################
@@ -673,7 +681,7 @@ def my_recommendations():
     db.t_recommendations.doi.readable = False
     db.t_recommendations.last_change.readable = True
     db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-    
+
     db.t_articles.scheduled_submission_date.readable = False
     db.t_articles.scheduled_submission_date.writable = False
 
@@ -873,7 +881,6 @@ def show_report_survey():
         session.flash = T("Unavailable")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
-
     db.t_report_survey._id.readable = False
     db.t_report_survey._id.writable = False
 
@@ -993,7 +1000,7 @@ def one_review():
     db.t_reviews.review.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.writable = auth.has_membership(role="manager")
     db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
-    db.t_reviews.review.represent = lambda text, row: WIKI(text or '', safe_mode=False)
+    db.t_reviews.review.represent = lambda text, row: WIKI(text or "", safe_mode=False)
     form = SQLFORM(
         db.t_reviews,
         record=revId,
@@ -1515,7 +1522,10 @@ def email_for_new_reviewer():
                 my_crypt = CRYPT(key=auth.settings.hmac_key)
                 crypt_pass = my_crypt(auth.random_password())[0]
                 new_user_id = db.auth_user.insert(
-                    first_name=request.vars["reviewer_first_name"], last_name=request.vars["reviewer_last_name"], email=request.vars["reviewer_email"], password=crypt_pass,
+                    first_name=request.vars["reviewer_first_name"],
+                    last_name=request.vars["reviewer_last_name"],
+                    email=request.vars["reviewer_email"],
+                    password=crypt_pass,
                 )
                 # reset password link
                 new_user = db.auth_user(new_user_id)
@@ -1627,7 +1637,10 @@ def add_contributor():
                 )
             )
         if len(contributorsList) > 0:
-            myContents = DIV(LABEL(T("Co-recommenders:")), UL(contributorsList),)
+            myContents = DIV(
+                LABEL(T("Co-recommenders:")),
+                UL(contributorsList),
+            )
         else:
             myContents = ""
 
@@ -1766,7 +1779,13 @@ def edit_recommendation():
         isStage1 = art.art_stage_1_id is None
         if pciRRactivated and isStage1:
             recommendPrivateDivPciRR = SPAN(
-                INPUT(_id="opinion_recommend_private", _name="recommender_opinion", _type="radio", _value="do_recommend_private", _checked=(recomm.recommendation_state == "Recommended"),),
+                INPUT(
+                    _id="opinion_recommend_private",
+                    _name="recommender_opinion",
+                    _type="radio",
+                    _value="do_recommend_private",
+                    _checked=(recomm.recommendation_state == "Recommended"),
+                ),
                 B(current.T("I recommend this preprint")),
                 BR(),
                 current.T("but keep it private until a stage 2 is validated"),
@@ -1921,6 +1940,7 @@ def edit_recommendation():
             pageTitle=pageTitle,
             myFinalScript=SCRIPT(myScript),
             myBackButton=common_small_html.mkBackButton(),
+            deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_recommender.js"), _type="text/javascript"),
         )
 
 
@@ -2084,7 +2104,7 @@ def review_emails():
         dict(
             header="",
             body=lambda row: A(
-                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
@@ -2194,7 +2214,7 @@ def article_reviews_emails():
         dict(
             header="",
             body=lambda row: A(
-                (T("Sheduled") if row.removed_from_queue == False else T("Unsheduled")),
+                (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),

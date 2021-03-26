@@ -169,4 +169,40 @@ def set_not_considered():
     redirect(request.env.http_referer)
 
 
+@auth.requires(auth.has_membership(role="manager"))
+def delete_recommendation_file():
 
+    if not ("recommId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    
+    recomm = db.t_recommendations[request.vars.recommId]
+
+    if recomm is None:
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+
+    if not ("fileType" in request.vars):
+        session.flash = T("Unavailable")
+        redirect(request.env.http_referer)
+    else:
+        print(request.vars.fileType)
+        if request.vars.fileType == "reply_pdf":
+            recomm.reply_pdf = None
+            recomm.reply_pdf_data = None
+            recomm.update_record()
+        elif request.vars.fileType == "track_change":
+            recomm.track_change = None
+            recomm.track_change_data = None
+            recomm.update_record()
+        elif request.vars.fileType == "recommender_file":
+            recomm.recommender_file = None
+            recomm.recommender_file_data = None
+            recomm.update_record()
+        else:
+            session.flash = T("Unavailable")
+            redirect(request.env.http_referer)
+
+    session.flash = T("File successfully deleted")
+    
+    redirect(request.env.http_referer)
