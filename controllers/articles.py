@@ -98,7 +98,7 @@ def last_recomms():
                 _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
                 _class="btn btn-default" + moreState,
             ),
-            A(current.T("See all recommendations"), _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
+            A(current.T("See all recommendations"), _id="seeAllBtn", _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
             _style="text-align:center;",
         ),
         # Reload mathjax to display math formula (and not latex code)

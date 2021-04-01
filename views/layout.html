@@ -19,20 +19,18 @@
     <!-- Speaking of Google, don't forget to set your site up:
          http://google.com/webmasters -->
     <meta name="google-site-verification" content="">
-    <!-- include stylesheets -->
-    <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap3.css')}}"/>
+
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700" rel="stylesheet"> 
     <link rel="icon" type="image/png" href="{{=URL('static','images/favicon.png')}}" />
     <link rel="shortcut icon" type="image/x-icon" href="{{=URL('static','images/favicon.ico')}}" />
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}" />
 
-    
+    <!-- include stylesheets -->
+    <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap3.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci.css')}}"/>
-    
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/pci-gab-common.css')}}"/>
-    
     <link rel="stylesheet" href="{{=URL('static','css/components/navbar.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/page-title.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/recommendations.css')}}"/>
@@ -40,7 +38,6 @@
     <link rel="stylesheet" href="{{=URL('static','css/components/thematic-search.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/user-public-profile.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/components/web2py-forms.css')}}"/>
-
     <link rel="stylesheet" href="{{=URL('static','css/pci-timo.css')}}"/>
   
     <!-- All JavaScript at the bottom, except for Modernizr which enables
@@ -85,27 +82,45 @@
     {{pass}}
 
     <!-- Navbar ======================================= -->
-    <nav class="navbar navbar-default navbar-static-top" role="navigation">
-      <div class="navbar-header">
-             
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        {{=response.logo or ''}}
+    <nav class="navbar">
+      <div class="main-logo">
+        <a href="/">
+          <img src="{{=URL('static','images/pci-logo.png')}}" id="pci-logo">
+        </a>
       </div>
-      
-      <div class="collapse navbar-collapse navbar-ex1-collapse">
-        {{if response.menu:}}
-          {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
-        {{pass}}
-        <ul class="nav navbar-nav navbar-right">
-          {{if response.help_about_menu:}}
-            {{=MENU(response.help_about_menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
-          {{pass}}
-        </ul>
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" onclick="lock_body()">
+            <img src="{{=URL('static','images/burger-white.png')}}" id="pci-burger">  
+          </button>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+
+          <ul class="nav navbar-nav flex-container">
+            <li class="flex-item"><a href="/">Home</a></li>
+            <hr class="hr-nav hide-desktop">
+            <li class="flex-item"><a href="/">Articles</a></li>
+            <hr class="hr-nav hide-desktop">
+            <li class="flex-item"><a href="/">About</a></li>
+            <hr class="hr-nav hide-desktop">
+            <li class="flex-item"><a href="/">Help</a></li>
+            <hr class="hr-nav hide-desktop">
+            <li class="flex-item">
+              <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
+                {{=T('Log in')}}
+              </a>
+            </li>
+            <li class="flex-item">
+              <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
+              {{=T("Submit a preprint")}}
+            </a>
+            </li>
+            <li class="flex-item">
+              {{=searchForm}}
+            </li>
+            <hr class="hr-nav hide-desktop">
+          </ul>
+        </div>
       </div>
     </nav>
     
@@ -120,7 +135,7 @@
     {{pass}}
 
     <!-- Begin page content -->
-    <div class="container-fluid main-container" id="main-content">
+    <div class="container-fluid main-container flex-container" id="main-content">
       {{if left_sidebar_enabled:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
@@ -160,15 +175,145 @@
 		{{pass}}
 	
     <!-- The footer =============================== -->
-	  <footer class="footer span12" id="footer">
-	  	<div class="footer-content">
+	  <footer class="footer span12 flex-container" id="footer">
+      <div class="footer-sub flex-item">
+        <header>
+          <h1 class="pci-h1">FOLLOW US</h1>
+        </header>
+        <hr class="hr-footer">
+        <div class="footer-sub-text">
+          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
+          @PeerCommunityIn
+        </div>
+      </div>
+
+      <div class="footer-sub flex-item recommenders">
+        <header>
+          <h1 class="pci-h1">RECOMMEN&shy;DERS</h1>
+        </header>
+        <hr class="hr-footer">
+        <div class="footer-sub-text">
+          CORINA LOGAN<br>
+          ANNA EKLOF<br>
+          JULIA ASTEGIANO<br>
+          BEN PHILLIPS<br>
+          CYRILLE GRAVEL<br>
+          DOMINIQUE GRAVEL<br>
+          TIM COULSON<br>
+          FRANCOIS MASSOL<br>
+          <strong>MORE RECOMMENDERS</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
+        </div>
+      </div>
+
+      <div class="footer-sub flex-item supporters">
+        <header>
+          <h1 class="pci-h1">SUPPORTERS</h1>
+        </header>
+        <hr class="hr-footer">
+        <div class="footer-sub-text">
+          <img src="{{=URL('static','images/pci-arrow.png')}}"><br>
+          <a href="#">
+            <strong>ALL SUPPORTERS</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-sub flex-item memberships">
+        <header>
+          <h1 class="pci-h1">MEMBERSHIPS & INDEXING</h1>
+        </header>
+        <hr class="hr-footer">
+        <div class="footer-sub-text">
+          <img src="{{=URL('static','images/pci-arrow.png')}}"><br>
+          <a href="#">
+            <strong>SEE ALL</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
+          </a>
+        </div>
+      </div>
+
+      <div class="grey-footer footer-sub">
+        <div class="flex-item">
+          <img src="{{=URL('static','images/pci-logo.png')}}">
+        </div>
+        <div class="flex-item">
+          <div class="footer-sub-text">
+            ARTICLES<br>
+            <a href="">
+              Search articles
+            </a><br>
+            <a href="">
+              All recommended articles
+            </a><br>
+          </div>
+          <div class="footer-sub-text">
+            ABOUT<br>
+            <a href="">
+              About PCI
+            </a><br>
+            <a href="">
+              General Terms of use
+            </a><br>
+            <a href="">
+              Code of conduct
+            </a><br>
+            <a href="">
+              Supporting organisations
+            </a><br>
+            <a href="">
+              Recommenders
+            </a><br>
+            <a href="">
+              Thanks to reviewers
+            </a><br>
+            <a href="">
+              Resources
+            </a><br>
+            <a href="">
+              Contact & credits
+            </a><br>
+          </div>
+          <div class="footer-sub-text">
+            HELP<br>
+            <a href="">
+              How does it work?
+            </a><br>
+            <a href="">
+              How to...?
+            </a><br>
+            <a href="">
+              FAQs
+            </a><br>
+            <a href="">
+              How should you cite an article?
+            </a><br>
+          </div>
+
+        </div>
+
+        <div class="footer-sub-text suffix">
+          PCI Evol Biol is the first community
+          of the non-profit organization
+          Peer Community In. The goal
+          of Peer Community In is to
+          promote scientific knowledge.
+          Authors of comments, reviews
+          and recommendations retain
+          copyright0 under CC BY-ND.
+          Contact & credits. Publication
+          director/directeur de la
+          publication: Denis Bourguet. ISSN:
+          2551-668X
+        </div>
+      </div>
+
+	  	<!--div class="footer-content">
 	  		{{block footer}}
 	  		{{if response.footer_menu:}}
 	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
 	  		{{pass}}
 	  		  {{=getText(request, auth, db, '#Footer')}}
 	  		{{end}}
-	  	</div>
+	  	</div-->
     </footer>
   
     <!-- Share page on social media link =============================== -->
@@ -213,6 +358,7 @@
         }
       });    
     </script>
+    <script type="text/javascript" src="{{=URL('static','js/scripts_base.js')}}"></script>
 <!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
 	</body>
 </html>

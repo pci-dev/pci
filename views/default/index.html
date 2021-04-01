@@ -21,7 +21,7 @@
 <!-- 	<H1 style="background:red; padding:8px; margin-bottom:12px; border-radius:16px;">Maintenance scheduled today... Please, don't use it for the moment!<br>Sorry for any inconvenience...</H1> -->
 <!-- 	{{pass}} -->
 
-<div style="margin-top:20px; margin-bottom:20px; text-align:center;">
+<div style="margin-top:20px; margin-bottom:20px; text-align:left;">
   {{if auth.user:}}
     <a
       href="{{=URL('user', 'new_submission')}}"
@@ -69,6 +69,9 @@
     	{{=T("Preprints requiring a recommender")}}
     </a>
   {{pass}}
+  <div class="search-wrapper">
+    {{=searchForm}}
+  </div>
 </div>  
 
 {{if 'pageTitle' in locals():}}
@@ -96,8 +99,6 @@
   
   <div id="lastRecommendationsDiv">
     {{=lastRecommTitle}}
-
-    {{=searchForm}}
 
     {{if 'lastRecomms' in locals():}}
     	{{=lastRecomms}}

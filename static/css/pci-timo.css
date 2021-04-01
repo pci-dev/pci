@@ -1,12 +1,401 @@
 @media only screen and (min-width: 320px) {
     /* For mobile phones: */
+    html {
+        font-size: 10px;
+        hyphens: auto;
+    }
 
+    #myNavbar {
+        position: absolute;
+        background-color: white;
+        z-index: 1;
+        width: 100%;
+        padding-left: 2rem!important;
+    }
+
+    .navbar {
+        position: fixed;
+        z-index: 1;
+        background-color: white;
+        border-bottom: .1rem solid #d5d2d2;
+    }
+
+    .navbar-toggle {
+        float: left;
+        filter: invert();
+        padding-top: 1rem;
+    }
+
+    .btn-default:hover {
+        background-color: unset;
+    }
+
+    #pci-logo {
+        width: 80%;
+        max-width: 30rem;
+        float:right;
+        padding: 1rem;
+    }
+
+    #pci-burger {
+        width: 2rem;
+    }
+
+    .navbar .nav > li > a {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: black;
+    }
+
+    .hr-nav {
+        border-top: .1rem solid #938e8e;
+        margin: .5rem 1rem;
+    }
+
+    .navbar-nav {
+        margin-top: 0;
+    }
+
+    #cyp-login-button {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 8rem;
+        border-radius: 0;
+        margin: 1.5rem .5rem 1.5rem 1rem;
+        text-align: left;
+    }
+
+    #myNavbar .flex-item .pci-public {
+        color: white;
+    }
+
+    .pci-public {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 16rem;
+        border-radius: 0;
+        margin: 1.5rem .5rem .5rem 1rem;
+        text-align: left;
+    }
+
+    .pci-recommender {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 25rem;
+        border-radius: 0;
+        margin: .5rem .5rem 1.5rem 1rem;
+        text-align: left;
+    }
+
+    .nav .flex-item .pci2-thematic-link-div {
+        display: none;
+    }
+
+    .nav .flex-item .pci2-search-button,
+    .search-wrapper .pci2-search-button {
+        display: none;
+    }
+
+    .nav .flex-item .pci2-search-input,
+    .search-wrapper .pci2-search-input {
+        margin-left: 1rem;
+        width: 90%;
+        border-radius: 0;
+        border-top-color: #938e8e;
+        border-right-color: #938e8e;
+        border-bottom-color: #938e8e;
+        border-left-color: #938e8e;
+        height: 4rem;
+    }
+
+    #pci-home-header {
+        padding-top: 10rem;
+    }
+
+    #pci-home-header img {
+        margin-left: 0;
+        min-width: 28rem;
+    }
+
+    .pci2-thematic-link-div {
+        padding-top: 1rem;
+        margin-left: .5rem;
+    }
+
+    #lastRecommendationsDiv {
+        margin-left: .5rem;
+    }
+
+    .pci-pageTitleText {
+        color: black;
+        text-transform: uppercase;
+        font-size: 3rem;
+    }
+
+    .pci2-article-row {
+        padding: .7rem 0;
+    }
+
+    .pci2-article-row > .pci2-flex-column > i > span {
+        color: rgba(0,150,190);
+    }
+
+    .pci2-article-row > .pci2-flex-column > i {
+        font-style: unset;
+    }
+
+    .pci2-article-row:nth-child(2n+1),
+    .pci2-article-row:nth-child(2n){
+        background-color: unset;
+    }
+
+    .pci2-articles-list .pci2-flex-center {
+        text-align: center;
+    }
+
+    .pci2-articles-list .pci-preprintTag {
+        text-align: left;
+    }
+
+    .pci2-article-infos {
+        text-transform: uppercase;
+        color: rgba(0,150,190);
+        margin-top: 1rem;
+    }
+
+    .doi_url {
+        color: #938e8e;
+        font-style: unset;
+    }
+
+    .pci2-article-recommendation-div {
+        background-color: rgba(0,0,0,.05);
+        padding: 1rem;
+    }
+
+    .pci2-flex-row {
+        border-bottom: .1rem solid #938e8e;
+    }
+
+    .pci-preprintTagText {
+        padding-left: 0;
+    }
+
+    .pci2-article-row h3 {
+        line-height: 1.5;
+    }
+
+    .pci2-article-image-div > img {
+        min-width: 20rem;
+        max-width: 90%;
+        max-height: unset;
+        margin: auto;
+    }
+
+    .pci2-article-row h4 {
+        line-height: 1.7;
+    }
+
+    .pci2-article-recommendation-div {
+        line-height: 1.5;
+    }
+
+    .pci2-article-recommendation-div p {
+        line-height: 1.6;
+    }
+
+    .pci2-articles-list .pci-public {
+        width: 6rem;
+        font-style: normal;
+    }
+
+    .pci2-article-row {
+        margin-bottom: 2.5rem;
+        padding-bottom: 3rem;
+    }
+
+    #moreLatestBtn {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 10rem;
+        border-radius: 0;
+        margin: .5rem .5rem 1.5rem 1rem;
+    }
+
+    #seeAllBtn {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 20rem;
+        border-radius: 0;
+        margin: auto;
+    }
+
+    .pci-h1 {
+        text-shadow: none;
+        color: black!important;
+    }
+
+    .footer-sub {
+        padding: 0 2rem;
+    }
+
+    .hr-footer {
+        border-top: .1rem solid black
+    }
+
+    #pci-twitter {
+        width: 4rem;
+    }
+
+    .footer-sub-text {
+        font-size: 1.4rem;
+    }
+
+    .recommenders .footer-sub-text {
+        line-height: 3;
+    }
+
+    .footer-sub {
+        padding-bottom: 3rem;
+    }
+
+    .grey-footer {
+        background-color: rgba(0,0,0,.05);
+        padding-top: 1rem;
+        width: 100vw;
+        position: relative;
+        left: -1.7rem;
+        line-height: 2;
+    }
+
+    .footer-sub a {
+        color: black;
+    }
+
+    .grey-footer .footer-sub-text {
+        padding-top: 1rem;
+        padding-bottom: 3rem;
+    }
+
+    .suffix {
+        color: #646464;
+    }
+
+    #footer {
+        padding-top: 5rem;
+        padding-bottom: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .grey-footer .flex-item > img {
+        width: 90%;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    .hide-desktop {
+        display: block;
+    }
 }
 
 
 @media only screen and (min-width: 576px) {
     /* Bootstrap and large phones: */
+    .navbar {
+        width: 100%;
+    }
 
+    #pci-logo {
+        position: relative;
+        right: 40%;
+    }
+
+    .navbar-toggle {
+        padding-top: 2rem;
+    }
+    
+    #pci-home-header img {
+        width: 45rem;
+    }
+    #cyp-login-button {
+        padding-bottom: 1rem;
+    }
+
+    #myNavbar .flex-item .pci-public {
+        padding-bottom: 1rem;
+    }
+
+    .pci-public {
+        margin-top: 0;
+    }
+
+    .pci-public,
+    .pci-recommender {
+        display: inline;
+        padding: 1rem;
+    }
+
+    .search-wrapper {
+        margin-top: 3rem;
+    }
+
+    .pci2-thematic-link {
+        width: 92%;
+    }
+
+    .pci2-flex-column-mobile {
+        flex-direction: row;
+    }
+
+    .pci2-article-image-div > img {
+        margin-top: 1rem;
+    }
+
+    .pci2-flex-grow {
+        flex-grow: unset;
+    }
+
+    .pci2-article-recommendation-div {
+        padding-bottom: 2rem;
+    }
+
+    #moreLatestBtn, #seeAllBtn {
+        display: inline;
+        padding: 1rem 2rem;
+        margin-right: 1rem;
+    }
+
+    #footer {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    #footer .flex-item {
+        width: 45%;
+    }
+
+    .grey-footer {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding-top: 5rem;
+        left: 0;
+    }
+
+    .grey-footer .flex-item > img {
+        width: 22rem;
+        padding-top: 1.5rem;
+        padding-right: 1rem;
+    }
+
+    .grey-footer .suffix {
+        padding-top: 5rem;
+    }
 }
 
 
@@ -23,5 +412,11 @@
 
 @media only screen and (min-width: 1200px) {
     /* For desktop and upward: */
+    .hide-mobile {
+        display: block;
+    }
 
+    .hide-desktop {
+        display: none;
+    }
 }
