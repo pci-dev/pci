@@ -11,6 +11,7 @@
         z-index: 1;
         width: 100%;
         padding-left: 2rem!important;
+        padding-top: 2rem!important;
     }
 
     .navbar {
@@ -18,11 +19,11 @@
         z-index: 1;
         background-color: white;
         border-bottom: .1rem solid #d5d2d2;
+        width: 100%;
     }
 
     .navbar-toggle {
         float: left;
-        filter: invert();
         padding-top: 1rem;
     }
 
@@ -30,11 +31,21 @@
         background-color: unset;
     }
 
+    .btn-default:active, .btn-default.active,
+    .open > .dropdown-toggle.btn-default,
+    .btn-default:focus, .btn-default.focus {
+        background-color: unset;
+    }
+    
+
     #pci-logo {
         width: 80%;
-        max-width: 30rem;
-        float:right;
+        max-width: 25rem;
         padding: 1rem;
+        position: absolute;
+        left: 6rem;
+        padding-left: 0;
+        z-index: 2;
     }
 
     #pci-burger {
@@ -69,6 +80,10 @@
         color: white;
     }
 
+    .pci2-thematics-div {
+        position: absolute;
+    }
+
     .pci-public {
         color: white;
         background-color: rgba(0,150,190);
@@ -99,6 +114,7 @@
     .nav .flex-item .pci2-search-input,
     .search-wrapper .pci2-search-input {
         margin-left: 1rem;
+        margin-top: 1rem;
         width: 90%;
         border-radius: 0;
         border-top-color: #938e8e;
@@ -294,8 +310,41 @@
         padding-bottom: 2rem;
     }
 
+    .arrow-links {
+        width: 1.5rem;
+        margin-left: 1rem;
+        margin-bottom: .5rem;
+    }
+
+    .img-supporter {
+        width: 15rem;
+    }
+
+    .img-supporter-2 {
+        width: 15rem;
+        padding-bottom: 4rem;
+    }
+
+    #ms {
+        position: relative;
+        bottom: 4rem;
+        left: 2rem;
+    }
+
+    .left-sidebar {
+        display: none;
+    }
+
     .hide-mobile {
         display: none;
+    }
+
+    .hide-below-tablet {
+        display: none;
+    }
+
+    .show-below-tablet {
+        display: block;
     }
 
     .hide-desktop {
@@ -308,15 +357,16 @@
     /* Bootstrap and large phones: */
     .navbar {
         width: 100%;
+        padding-bottom: 2rem;
     }
 
     #pci-logo {
-        position: relative;
-        right: 40%;
+        padding-top: 1.5rem;
     }
 
     .navbar-toggle {
-        padding-top: 2rem;
+        margin-top: 2rem;
+        padding-bottom: 1rem;
     }
     
     #pci-home-header img {
@@ -401,17 +451,207 @@
 
 @media only screen and (min-width: 768px) {
     /* Tablets : */
+    #myNavbar {
+        display: none;
+        padding-top: 8rem!important;
+    }
 
+    #myNavbar ul li {
+        float: unset;
+    }
+
+    .navbar-toggle {
+        display: block;
+        z-index: 2;
+    }
+
+    .container-fluid {
+        padding-left: 0;
+    }
+
+    .navbar-nav {
+        width: 100%;
+    }
+
+    .navbar .nav > li > a {
+        font-size: 1.6rem;
+    }
+
+    .pci-public {
+        width: 17rem;
+    }
+
+    #pci-logo {
+        padding-top: 2rem;
+    }
+
+    #pci-home-header img {
+        width: 64rem;
+    }
+
+    #main-content {
+        padding: 2rem 4rem;
+    }
+
+    .footer-sub .hide-below-tablet {
+        margin-top: 10rem;
+    }
+
+    #footer .flex-item {
+        width: 50%;
+    }
+
+    .grey-footer .flex-item > img {
+        width: 30rem;
+    }
+
+    .grey-footer {
+        padding: 5rem;
+    }
+
+    .hide-below-tablet {
+        display: block;
+    }
+
+    .show-below-tablet {
+        display: none;
+    }
+}
+
+
+@media only screen and (min-width: 961px) {
+    .col-md-9 {
+        width: 100%;
+    }
 }
 
 
 @media only screen and (min-width: 992px) {
     /* For landscape tablets: */
+    .navbar {
+        top: 0;
+    }
 
 }
 
 @media only screen and (min-width: 1200px) {
     /* For desktop and upward: */
+    html {
+        max-width: 120rem;
+        margin: auto;
+    }
+
+    .navbar {
+        border-bottom: 0;
+        padding-bottom: 8rem;
+    }
+
+    .navbar-nav {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .navbar-collapse.collapse {
+        display: block;
+    }
+
+    .navbar-toggle {
+        display: none;
+    }
+
+    #cyp-login-button {
+        margin-top: 0;
+    }
+
+    .collapse:not(.show) {
+        display: block;
+    }
+
+    #myNavbar {
+        display: block;
+        position: absolute;
+        background-color: transparent;
+        height: unset;
+        padding-bottom: 2rem;
+        padding-top: 2rem!important;
+        left: 60%;
+    }
+
+    #myNavbar .submit-btn,
+    #myNavbar .search-btn {
+        display: none;
+    }
+
+    .left-sidebar {
+        display: block;
+        padding-top: 3rem;
+    }
+
+    .col-md-9 {
+        width: 73%;
+    }
+
+    #pci-home-header {
+        padding-left: 6rem;
+    }
+
+    .col-md-3 {
+        position: relative;
+        top: 0;
+    }
+
+    .col-md-9 > div > .pci-public,
+    .col-md-9 > div > .pci-recommender {
+        display: none;
+    }
+
+    #pci-home-header {
+        text-align: left;
+    }
+
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #footer .sub-flex {
+        display: flex;
+        flex-direction: row;
+        width: 75%;
+    }
+
+    #footer .first-flex {
+        width: 25%;
+    }
+
+    .sub-flex > div {
+        width: 33%;
+    }
+
+    .grey-footer .flex-item > img {
+        width: 25rem;
+    }
+
+    .left-sidebar .grey-footer {
+        width: 100%;
+        padding: 1rem;
+        background-color: transparent;
+        flex-direction: column;
+    }
+
+    .left-sidebar .grey-footer {
+        display: none;
+    }
+
+    .left-sidebar .hide-desktop {
+        display: block!important;
+    }
+
+
+
+
+
+
     .hide-mobile {
         display: block;
     }
@@ -419,4 +659,5 @@
     .hide-desktop {
         display: none;
     }
+
 }

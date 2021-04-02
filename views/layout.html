@@ -63,13 +63,17 @@
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use
+    # Gabriel, I tinkered with this setup as you can see below;
+    # Please feel free to correct the way the parameters are 
+    # created, but please leave the settings as they are
+    # (left sidebar enabled && right disabled && middle column is mc1)
     mc0 = 'col-md-12'
     mc1 = 'col-md-9'
     mc2 = 'col-md-6'
-    left_sidebar_enabled = globals().get('left_sidebar_enabled', False)
+    left_sidebar_enabled = True # globals().get('left_sidebar_enabled', False)
     right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
-    middle_column = {0: mc0, 1: mc1, 2: mc2}[
-    (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
+    middle_column = mc1 # {0: mc0, 1: mc1, 2: mc2}[
+    #(left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
   </head>
   <body>
@@ -85,13 +89,13 @@
     <nav class="navbar">
       <div class="main-logo">
         <a href="/">
-          <img src="{{=URL('static','images/pci-logo.png')}}" id="pci-logo">
+          <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
         </a>
       </div>
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" onclick="lock_body()">
-            <img src="{{=URL('static','images/burger-white.png')}}" id="pci-burger">  
+            <img src="{{=URL('static','images/pci-burger-default.svg')}}" id="pci-burger">  
           </button>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
@@ -110,12 +114,12 @@
                 {{=T('Log in')}}
               </a>
             </li>
-            <li class="flex-item">
+            <li class="flex-item submit-btn">
               <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
               {{=T("Submit a preprint")}}
             </a>
             </li>
-            <li class="flex-item">
+            <li class="flex-item search-btn">
               {{=searchForm}}
             </li>
             <hr class="hr-nav hide-desktop">
@@ -135,12 +139,11 @@
     {{pass}}
 
     <!-- Begin page content -->
-    <div class="container-fluid main-container flex-container" id="main-content">
+    <div class="container-fluid main-container flex-container row" id="main-content">
       {{if left_sidebar_enabled:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
-            <h3>Left Sidebar</h3>
-            <p></p>
+            {{include 'snippets/footer.html'}}
             {{end}}
         </div>
       {{pass}}
@@ -151,7 +154,7 @@
         {{end}}
       </div>
 
-      {{if right_sidebar_enabled:}}
+      {{if right_sidebar_enabled and False:}}
         <div class="col-md-3">
             {{block right_sidebar}}
             <h3>Right Sidebar</h3>
@@ -176,136 +179,7 @@
 	
     <!-- The footer =============================== -->
 	  <footer class="footer span12 flex-container" id="footer">
-      <div class="footer-sub flex-item">
-        <header>
-          <h1 class="pci-h1">FOLLOW US</h1>
-        </header>
-        <hr class="hr-footer">
-        <div class="footer-sub-text">
-          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
-          @PeerCommunityIn
-        </div>
-      </div>
-
-      <div class="footer-sub flex-item recommenders">
-        <header>
-          <h1 class="pci-h1">RECOMMEN&shy;DERS</h1>
-        </header>
-        <hr class="hr-footer">
-        <div class="footer-sub-text">
-          CORINA LOGAN<br>
-          ANNA EKLOF<br>
-          JULIA ASTEGIANO<br>
-          BEN PHILLIPS<br>
-          CYRILLE GRAVEL<br>
-          DOMINIQUE GRAVEL<br>
-          TIM COULSON<br>
-          FRANCOIS MASSOL<br>
-          <strong>MORE RECOMMENDERS</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
-        </div>
-      </div>
-
-      <div class="footer-sub flex-item supporters">
-        <header>
-          <h1 class="pci-h1">SUPPORTERS</h1>
-        </header>
-        <hr class="hr-footer">
-        <div class="footer-sub-text">
-          <img src="{{=URL('static','images/pci-arrow.png')}}"><br>
-          <a href="#">
-            <strong>ALL SUPPORTERS</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
-          </a>
-        </div>
-      </div>
-
-      <div class="footer-sub flex-item memberships">
-        <header>
-          <h1 class="pci-h1">MEMBERSHIPS & INDEXING</h1>
-        </header>
-        <hr class="hr-footer">
-        <div class="footer-sub-text">
-          <img src="{{=URL('static','images/pci-arrow.png')}}"><br>
-          <a href="#">
-            <strong>SEE ALL</strong><a href=""><img src="{{=URL('static','images/pci-arrow.png')}}"></a>
-          </a>
-        </div>
-      </div>
-
-      <div class="grey-footer footer-sub">
-        <div class="flex-item">
-          <img src="{{=URL('static','images/pci-logo.png')}}">
-        </div>
-        <div class="flex-item">
-          <div class="footer-sub-text">
-            ARTICLES<br>
-            <a href="">
-              Search articles
-            </a><br>
-            <a href="">
-              All recommended articles
-            </a><br>
-          </div>
-          <div class="footer-sub-text">
-            ABOUT<br>
-            <a href="">
-              About PCI
-            </a><br>
-            <a href="">
-              General Terms of use
-            </a><br>
-            <a href="">
-              Code of conduct
-            </a><br>
-            <a href="">
-              Supporting organisations
-            </a><br>
-            <a href="">
-              Recommenders
-            </a><br>
-            <a href="">
-              Thanks to reviewers
-            </a><br>
-            <a href="">
-              Resources
-            </a><br>
-            <a href="">
-              Contact & credits
-            </a><br>
-          </div>
-          <div class="footer-sub-text">
-            HELP<br>
-            <a href="">
-              How does it work?
-            </a><br>
-            <a href="">
-              How to...?
-            </a><br>
-            <a href="">
-              FAQs
-            </a><br>
-            <a href="">
-              How should you cite an article?
-            </a><br>
-          </div>
-
-        </div>
-
-        <div class="footer-sub-text suffix">
-          PCI Evol Biol is the first community
-          of the non-profit organization
-          Peer Community In. The goal
-          of Peer Community In is to
-          promote scientific knowledge.
-          Authors of comments, reviews
-          and recommendations retain
-          copyright0 under CC BY-ND.
-          Contact & credits. Publication
-          director/directeur de la
-          publication: Denis Bourguet. ISSN:
-          2551-668X
-        </div>
-      </div>
-
+      {{include 'snippets/footer.html'}}   
 	  	<!--div class="footer-content">
 	  		{{block footer}}
 	  		{{if response.footer_menu:}}
