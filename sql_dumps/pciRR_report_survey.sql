@@ -1,3 +1,10 @@
+ALTER TABLE "t_articles"
+  ADD COLUMN "report_stage" VARCHAR(128),
+  ADD COLUMN "art_stage_1_id" integer,
+  ADD FOREIGN KEY ("art_stage_1_id") REFERENCES "public"."t_articles"("id") ON DELETE SET NULL;
+  
+ALTER TABLE "t_articles" ADD COLUMN "scheduled_submission_date" date;
+
 CREATE TABLE IF NOT EXISTS "t_report_survey" (
     "id" SERIAL PRIMARY KEY,
     "article_id" INTEGER REFERENCES "t_articles" ("id") ON DELETE CASCADE,
@@ -48,6 +55,3 @@ ALTER TABLE "t_report_survey"
 
 ALTER TABLE "t_articles"       
   ADD COLUMN "report_stage" VARCHAR(128);
-
--- UPDATE "t_articles" SET "report_stage" = 'STAGE 1' WHERE "art_stage_1_id" IS NULL;
--- UPDATE "t_articles" SET "report_stage" = 'STAGE 2' WHERE "report_stage" IS NULL;

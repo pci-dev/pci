@@ -42,7 +42,13 @@ def list_users():
     links = None
     create = True  # allow create buttons
     if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):
-        selectable = [(T("Add role 'recommender' to selected users"), lambda ids: [admin_module.set_as_recommender(ids, auth, db)], "btn btn-info pci-admin",)]
+        selectable = [
+            (
+                T("Add role 'recommender' to selected users"),
+                lambda ids: [admin_module.set_as_recommender(ids, auth, db)],
+                "btn btn-info pci-admin",
+            )
+        ]
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
     db.auth_user.registration_datetime.readable = True
 
@@ -67,7 +73,6 @@ def list_users():
         # db.auth_user.city,
         # db.auth_user.country,
         # db.auth_user.thematics,
-        # db.auth_user.alerts,
         db.auth_membership.user_id,
         db.auth_membership.group_id,
         db.t_articles.id,
@@ -93,6 +98,12 @@ def list_users():
         db.t_comments.comment_datetime,
         db.t_comments.parent_id,
     ]
+
+    if len(request.args) is not 0:  # grid view
+        fields += [
+            db.auth_user.last_alert,
+        ]
+
     db.auth_user._id.readable = True
     db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(auth, db, i, linked=True)
     db.t_reviews.recommendation_id.label = T("Article DOI")
@@ -100,17 +111,36 @@ def list_users():
     db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
     db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
+
+    db.auth_user.last_alert.readable = True
+
     grid = SQLFORM.smartgrid(
         db.auth_user,
         fields=fields,
-        linked_tables=["auth_user", "auth_membership", "t_articles", "t_recommendations", "t_reviews", "t_press_reviews", "t_comments",],
+        linked_tables=[
+            "auth_user",
+            "auth_membership",
+            "t_articles",
+            "t_recommendations",
+            "t_reviews",
+            "t_press_reviews",
+            "t_comments",
+        ],
         links=links,
         csv=False,
         exportclasses=dict(auth_user=expClass, auth_membership=expClass),
         editable=dict(auth_user=True, auth_membership=False),
         details=dict(auth_user=True, auth_membership=False),
         searchable=dict(auth_user=True, auth_membership=False),
-        create=dict(auth_user=create, auth_membership=create, t_articles=create, t_recommendations=create, t_reviews=create, t_press_reviews=create, t_comments=create,),
+        create=dict(
+            auth_user=create,
+            auth_membership=create,
+            t_articles=create,
+            t_recommendations=create,
+            t_reviews=create,
+            t_press_reviews=create,
+            t_comments=create,
+        ),
         selectable=selectable,
         maxtextlength=250,
         paginate=25,
@@ -239,7 +269,15 @@ def allRecommCitations():
     ).select(db.t_recommendations.ALL, orderby=db.t_recommendations.last_change)
     grid = OL()
     for myRecomm in allRecomms:
-        grid.append(LI(common_small_html.mkRecommCitation(auth, db, myRecomm), BR(), B("Recommends: "), common_small_html.mkArticleCitation(auth, db, myRecomm), P(),))
+        grid.append(
+            LI(
+                common_small_html.mkRecommCitation(auth, db, myRecomm),
+                BR(),
+                B("Recommends: "),
+                common_small_html.mkArticleCitation(auth, db, myRecomm),
+                P(),
+            )
+        )
     return dict(
         titleIcon="education",
         pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
@@ -252,9 +290,7 @@ def allRecommCitations():
 ######################################################################################################################################################################
 # Lists article status
 # writable by developers only!!
-@auth.requires(
-    auth.has_membership(role="recommender") or auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer")
-)
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def article_status():
     response.view = "default/myLayout.html"
 
@@ -324,7 +360,12 @@ def manage_pdf():
         fields=[db.t_pdf.recommendation_id, db.t_pdf.pdf],
         orderby=~db.t_pdf.id,
     )
-    return dict(titleIcon="duplicate", pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"), customText=getText(request, auth, db, "#AdminPdfText"), grid=grid,)
+    return dict(
+        titleIcon="duplicate",
+        pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"),
+        customText=getText(request, auth, db, "#AdminPdfText"),
+        grid=grid,
+    )
 
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
@@ -505,7 +546,14 @@ def rec_as_latex():
     bib = admin_module.recommBibtex(articleId)
     latFP = admin_module.frontPageLatex(articleId)
     latRec = admin_module.recommLatex(articleId, withHistory)
-    message = DIV(H2("BibTex:"), PRE(bib), H2("Front page:"), PRE(latFP), H2("Recommendation:"), PRE(latRec),)
+    message = DIV(
+        H2("BibTex:"),
+        PRE(bib),
+        H2("Front page:"),
+        PRE(latFP),
+        H2("Recommendation:"),
+        PRE(latRec),
+    )
     return dict(message=message)
 
 
@@ -578,7 +626,7 @@ def mailing_queue():
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
         create=False,
-        searchable=True,
+        searchable=False,
         paginate=50,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
@@ -637,4 +685,3 @@ def mail_form_processing(form):
         args = request.args
         args[0] = "view"
         redirect(URL("admin", "mailing_queue", args=args, user_signature=True))
-

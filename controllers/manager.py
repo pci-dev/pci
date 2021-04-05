@@ -632,6 +632,7 @@ def edit_article():
     db.t_articles.status.writable = True
     db.t_articles.user_id.writable = True
 
+    myFinalScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.report_stage.readable = True
@@ -648,7 +649,6 @@ def edit_article():
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
                 IS_IN_DB(db((db.t_articles.user_id == art.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
             )
-            myFinalScript = None
         else:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
             myFinalScript = SCRIPT(
@@ -680,6 +680,8 @@ def edit_article():
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
+        db.t_articles.scheduled_submission_date.readable = False
+        db.t_articles.scheduled_submission_date.writable = False
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
 
@@ -688,7 +690,7 @@ def edit_article():
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
-
+        
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
