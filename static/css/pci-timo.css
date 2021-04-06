@@ -55,6 +55,28 @@
     .navbar .nav > li > a {
         font-size: 1.4rem;
         font-weight: 800;
+        color: #3e3f3a;
+    }
+
+    #articles-nav,
+    #about-nav,
+    #help-nav {
+        padding-bottom: 2rem;
+    }
+
+    #articles-nav ul,
+    #about-nav ul,
+    #help-nav ul {
+        list-style-type: disc;
+    }
+
+    #main-content {
+        width: 100%;
+    }
+
+    #articles-nav ul a,
+    #about-nav ul a,
+    #help-nav ul a {
         color: black;
     }
 
@@ -107,12 +129,14 @@
     }
 
     .nav .flex-item .pci2-search-button,
-    .search-wrapper .pci2-search-button {
+    .search-wrapper .pci2-search-button,
+    .pci2-search-form .pci2-search-button {
         display: none;
     }
 
     .nav .flex-item .pci2-search-input,
-    .search-wrapper .pci2-search-input {
+    .search-wrapper .pci2-search-input,
+    .pci2-search-form .pci2-search-input {
         margin-left: 1rem;
         margin-top: 1rem;
         width: 90%;
@@ -248,7 +272,7 @@
 
     .pci-h1 {
         text-shadow: none;
-        color: black!important;
+        color: #3e3f3a!important;
     }
 
     .footer-sub {
@@ -330,6 +354,82 @@
         bottom: 4rem;
         left: 2rem;
     }
+
+    /* TEXT PAGES */
+    #pci-small-header {
+        padding-top: 9rem;
+    }
+
+    .pci2-thematic-link {
+        padding-right: 2rem;
+    }
+
+    .pci2-search-form {
+        margin-left: 2rem;
+    }
+
+    .searchRecommendationsDiv {
+        margin-left: 3rem;
+        margin-top: 3rem;
+    }
+
+    .pci-nResults {
+        padding-bottom: 1rem;
+    }
+
+    .pci2-articles-list .pci2-flex-center {
+        padding-top: 1rem;
+    }
+
+    .pci-infotext {
+        margin-left: 3rem;
+        margin-top: 2rem;
+    }
+
+    h2 {
+        font-size: 2.5rem;
+        line-height: 1.4;
+        padding-bottom: 1rem;
+    }
+
+    h2 span {
+        color: #3e3f3a;
+        text-transform: uppercase;
+    }
+
+    .pci-infotext iframe {
+        width: 100%;
+        height: auto;
+    }
+
+    .pci-infotext > p,
+    .pci-infotext > div > p,
+    .pci-infotext hr {
+        display: none;
+    }
+
+    .pci-infotext > div,
+    .pci-infotext > div > div {
+        padding-bottom: 2rem;
+        line-height: 1.6!important;
+    }
+
+    .pci-infotext > h3 {
+        margin-top: 0;
+    }
+
+    .pci-infotext > h2 {
+        line-height: 1.4!important;
+        margin-top: 0!important;
+    }
+
+    .pci-infotext div div div div div div img {
+        padding-top: 3rem;
+        margin-left: 2rem;
+    }
+
+
+
 
     .left-sidebar {
         display: none;
@@ -446,6 +546,20 @@
     .grey-footer .suffix {
         padding-top: 5rem;
     }
+
+    #pci-small-header {
+        padding-top: 14rem;
+    }
+
+    .searchRecommendationsDiv {
+        margin-top: 5rem;
+    }
+
+    .pci-infotext iframe {
+        height: 22rem;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+    }
 }
 
 
@@ -454,6 +568,13 @@
     #myNavbar {
         display: none;
         padding-top: 8rem!important;
+    }
+
+    #articles-nav ul li,
+    #about-nav ul li,
+    #help-nav ul li {
+        padding-top: .5rem;
+        font-size: 1.3rem;
     }
 
     #myNavbar ul li {
@@ -509,6 +630,11 @@
         padding: 5rem;
     }
 
+    #pci-small-header {
+        width: 80%;
+        margin: auto;
+    }
+
     .hide-below-tablet {
         display: block;
     }
@@ -516,6 +642,24 @@
     .show-below-tablet {
         display: none;
     }
+
+    .pci-infotext > h2 {
+        font-size: 2.6rem;
+    }
+
+    .pci-infotext iframe {
+        height: 34rem;
+    }
+
+    h2 span {
+        color: #3e3f3a!important;
+        text-transform: uppercase;
+    }
+
+    .pci-infotext h2 {
+        margin: 3rem 0!important;
+    }
+
 }
 
 
@@ -531,7 +675,6 @@
     .navbar {
         top: 0;
     }
-
 }
 
 @media only screen and (min-width: 1200px) {
@@ -563,10 +706,6 @@
         margin-top: 0;
     }
 
-    .collapse:not(.show) {
-        display: block;
-    }
-
     #myNavbar {
         display: block;
         position: absolute;
@@ -575,6 +714,23 @@
         padding-bottom: 2rem;
         padding-top: 2rem!important;
         left: 60%;
+    }
+
+    #articles-nav,
+    #about-nav,
+    #help-nav {
+        position: absolute;
+        background-color: white;
+        padding-right: 1rem;
+        padding-top: 1rem;
+        width: 20rem;
+    }
+
+
+    #articles-nav ul,
+    #about-nav ul,
+    #help-nav ul {
+        padding-left: 3rem;
     }
 
     #myNavbar .submit-btn,
@@ -589,10 +745,12 @@
 
     .col-md-9 {
         width: 73%;
+        border-left: .1rem solid black;
     }
 
     #pci-home-header {
         padding-left: 6rem;
+        border-left: 0;
     }
 
     .col-md-3 {
@@ -612,6 +770,10 @@
     .row {
         margin-left: 0;
         margin-right: 0;
+    }
+
+    #footer {
+        padding-top: 0;
     }
 
     #footer .sub-flex {
@@ -647,6 +809,28 @@
         display: block!important;
     }
 
+    #pci-small-header,
+    #pci-home-header {
+        width: 72%;
+        height: 34rem;
+        padding-bottom: 4rem;
+    }
+
+    .pci-infotextbox {
+        padding-right: 10rem;
+    }
+
+    .pci-infotext > h2 {
+        font-size: 4rem;
+        line-height: 1!important;
+    }
+
+    .col-md-3 {
+        padding-top: 0;
+    }
+
+    
+
 
 
 
@@ -659,5 +843,13 @@
     .hide-desktop {
         display: none;
     }
+}
+
+
+@media only screen and (min-width: 1700px) {
+    #myNavbar {
+        left: 52%;
+    }
+
 
 }

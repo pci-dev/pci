@@ -23,7 +23,15 @@ function lock_body() {
         }
         burger.src = '/pci/static/images/pci-burger-default.svg';
     }
-
-
 }
+
+
+// remove all empty containers, as they litter the layout
+var all_ps = document.querySelectorAll('p');
+for (var i = 0; i<all_ps.length; i++) {
+    if (all_ps[i].innerHTML == '' || all_ps[i].innerHTML == '&nbsp;' || all_ps[i].innerHTML == '&nbsp;&nbsp;') {
+        all_ps[i].style.display = 'none';
+    }
+}
+
 

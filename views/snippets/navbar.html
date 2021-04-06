@@ -1,0 +1,119 @@
+<nav class="navbar">
+    <div class="main-logo">
+      <a href="/">
+        <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
+      </a>
+    </div>
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" onclick="lock_body()">
+          <img src="{{=URL('static','images/pci-burger-default.svg')}}" id="pci-burger">  
+        </button>
+      </div>
+      <div class="collapse navbar-collapse" id="myNavbar">
+
+        <ul class="nav navbar-nav flex-container">
+          <li class="flex-item"><a href="/">Home</a></li>
+          <hr class="hr-nav hide-desktop">
+          <li class="flex-item" data-toggle="collapse" data-target="#articles-nav">
+            <a>Articles</a>
+            <div class="collapse" id ="articles-nav">
+              <ul>
+                <li>
+                  <a href="{{=URL('articles', 'recommended_articles')}}">
+                    Search
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('articles', 'all_recommended_articles')}}">
+                    Recommended Articles
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <hr class="hr-nav hide-desktop">
+          <li class="flex-item" data-toggle="collapse" data-target="#about-nav">
+            <a>About</a>
+            <div class="collapse" id ="about-nav">
+              <ul>
+                <li>
+                  <a href="{{=URL('about', 'about')}}">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('about', 'recommenders')}}">
+                    Recommenders
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('about', 'thanks_to_reviewers')}}">
+                    Thanks to reviewers
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('about', 'ethics')}}">
+                    Code of conduct
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('about', 'contact')}}">
+                    Contact & credits
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('about', 'gtu')}}">
+                    General Terms of Use
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <hr class="hr-nav hide-desktop">
+          <li class="flex-item" data-toggle="collapse" data-target="#help-nav">
+            <a>Help</a>
+            <div class="collapse" id ="help-nav">
+              <ul>
+                <li>
+                  <a href="{{=URL('help', 'help_generic')}}">
+                    How does it work?
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('help', 'help_practical')}}">
+                    How to...?
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('help', 'faq')}}">
+                    FAQs
+                  </a>
+                </li>
+                <li>
+                  <a href="{{=URL('help', 'cite')}}">
+                    How should you cite an article?
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <hr class="hr-nav hide-desktop">
+          <li class="flex-item">
+            <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
+              {{=T('Log in')}}
+            </a>
+          </li>
+          <li class="flex-item submit-btn">
+            <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
+            {{=T("Submit a preprint")}}
+          </a>
+          </li>
+          <li class="flex-item search-btn">
+
+          </li>
+          <hr class="hr-nav hide-desktop">
+        </ul>
+      </div>
+    </div>
+  </nav>

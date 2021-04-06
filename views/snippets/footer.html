@@ -4,8 +4,10 @@
     </header>
     <hr class="hr-footer">
     <div class="footer-sub-text">
-      <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
-      @PeerCommunityIn
+      <a href="https://twitter.com/PeerCommunityIn" target="_blank">
+        <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
+        @PeerCommunityIn
+      </a>
     </div>
 
     <div class="hide-below-tablet">
@@ -41,7 +43,7 @@
       DOMINIQUE GRAVEL<br>
       TIM COULSON<br>
       FRANCOIS MASSOL<br>
-      <strong>MORE RECOMMENDERS</strong><a href=""><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
+      <a href="https://peercommunityin.org/pci-network/" target="_blank"><strong>MORE RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
     </div>
 
     <div class="hide-below-tablet">
@@ -105,52 +107,52 @@
     <div class="flex-item sub-flex">
       <div class="footer-sub-text">
         ARTICLES<br>
-        <a href="">
+        <a href="{{=URL('articles', 'recommended_articles')}}">
           Search articles
         </a><br>
-        <a href="">
+        <a href="{{=URL('articles', 'all_recommended_articles')}}">
           All recommended articles
         </a><br>
       </div>
       <div class="footer-sub-text">
         ABOUT<br>
-        <a href="">
+        <a href="{{=URL('about', 'about')}}">
           About PCI
         </a><br>
-        <a href="">
+        <a href="{{=URL('about', 'gtu')}}">
           General Terms of use
         </a><br>
-        <a href="">
+        <a href="{{=URL('about', 'ethics')}}">
           Code of conduct
         </a><br>
-        <a href="">
+        <a href="https://peercommunityin.org/pci-network/">
           Supporting organisations
         </a><br>
-        <a href="">
+        <a href="{{=URL('about', 'recommenders')}}">
           Recommenders
         </a><br>
-        <a href="">
+        <a href="{{=URL('about', 'thanks_to_reviewers')}}">
           Thanks to reviewers
         </a><br>
-        <a href="">
+        <a href="https://peercommunityin.org/movies-and-posters/">
           Resources
         </a><br>
-        <a href="">
+        <a href="{{=URL('about', 'contact')}}">
           Contact & credits
         </a><br>
       </div>
       <div class="footer-sub-text">
         HELP<br>
-        <a href="">
+        <a href="{{=URL('help', 'help_generic')}}">
           How does it work?
         </a><br>
-        <a href="">
+        <a href="{{=URL('help', 'help_practical')}}">
           How to...?
         </a><br>
-        <a href="">
+        <a href="{{=URL('help', 'faq')}}">
           FAQs
         </a><br>
-        <a href="">
+        <a href="{{=URL('help', 'cite')}}">
           How should you cite an article?
         </a><br>
       </div>

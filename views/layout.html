@@ -86,57 +86,23 @@
     {{pass}}
 
     <!-- Navbar ======================================= -->
-    <nav class="navbar">
-      <div class="main-logo">
-        <a href="/">
-          <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
-        </a>
-      </div>
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" onclick="lock_body()">
-            <img src="{{=URL('static','images/pci-burger-default.svg')}}" id="pci-burger">  
-          </button>
-        </div>
-        <div class="collapse navbar-collapse" id="myNavbar">
+    {{include 'snippets/navbar.html'}}
 
-          <ul class="nav navbar-nav flex-container">
-            <li class="flex-item"><a href="/">Home</a></li>
-            <hr class="hr-nav hide-desktop">
-            <li class="flex-item"><a href="/">Articles</a></li>
-            <hr class="hr-nav hide-desktop">
-            <li class="flex-item"><a href="/">About</a></li>
-            <hr class="hr-nav hide-desktop">
-            <li class="flex-item"><a href="/">Help</a></li>
-            <hr class="hr-nav hide-desktop">
-            <li class="flex-item">
-              <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
-                {{=T('Log in')}}
-              </a>
-            </li>
-            <li class="flex-item submit-btn">
-              <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
-              {{=T("Submit a preprint")}}
-            </a>
-            </li>
-            <li class="flex-item search-btn">
-              {{=searchForm}}
-            </li>
-            <hr class="hr-nav hide-desktop">
-          </ul>
-        </div>
-      </div>
-    </nav>
-    
     <!-- Masthead ===================================== -->    
     {{block header}}
+    <header id='pci-home-header' class="col-md-9">
+      <span>
+      <img src="{{=URL(c='static', f='images/background.png')}}">
+      {{if 'smallSearch' in locals():}}
+      <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+      {{pass}}
+      </span>
+      </header>
+
     {{end}}
     <!-- Main ========================================= -->
 
     <!-- Page Title -->
-    {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
-      {{include 'snippets/page_title.html'}}   
-    {{pass}}
 
     <!-- Begin page content -->
     <div class="container-fluid main-container flex-container row" id="main-content">
@@ -154,11 +120,10 @@
         {{end}}
       </div>
 
-      {{if right_sidebar_enabled and False:}}
+      {{if right_sidebar_enabled:}}
         <div class="col-md-3">
             {{block right_sidebar}}
-            <h3>Right Sidebar</h3>
-            <p></p>
+              {{include 'snippets/footer.html'}}
             {{end}}
         </div>
       {{pass}}
