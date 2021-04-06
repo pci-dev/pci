@@ -109,8 +109,38 @@
       {{if left_sidebar_enabled:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
-            {{include 'snippets/footer.html'}}
-            {{end}}
+            {{if auth.user:}}
+            <a
+              href="{{=URL('user', 'new_submission')}}"
+              class="btn btn-success pci-public"
+            >
+              {{=T("Submit a preprint")}}
+            </a>
+        
+            {{else:}}
+            <a
+              href="{{=URL('user', 'new_submission')}}"
+              class="btn btn-success pci-public"
+              >
+              {{=T("Submit a preprint")}}
+            </a>
+            <a
+              href="{{=URL(c='default', f='user', args=['login'])}}"
+              class="btn btn-default"
+              id="cyp-login-button"
+            >
+              {{=T('Log in')}}
+            </a>
+            <label>{{=T(' or ')}}</label>
+            <a
+              href="{{=URL(c='default', f='user', args=['register'])}}"
+              class="btn btn-info"
+            >
+              {{=T('Register')}}
+            </a>
+          {{pass}} 
+          {{include 'snippets/footer.html'}}
+          {{end}}
         </div>
       {{pass}}
 

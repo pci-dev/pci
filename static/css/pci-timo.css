@@ -111,8 +111,16 @@
         background-color: rgba(0,150,190);
         width: 16rem;
         border-radius: 0;
-        margin: 1.5rem .5rem .5rem 1rem;
+        margin: 1.5rem .5rem 2rem 3rem;
         text-align: left;
+    }
+
+    .col-md-9 .pci-public {
+        margin-left: 3rem;
+    }
+
+    nav .pci-public {
+        margin-left: 1rem;
     }
 
     .pci-recommender {
@@ -120,7 +128,7 @@
         background-color: rgba(0,150,190);
         width: 25rem;
         border-radius: 0;
-        margin: .5rem .5rem 1.5rem 1rem;
+        margin: .5rem .5rem 1.5rem 3rem;
         text-align: left;
     }
 
@@ -149,7 +157,7 @@
     }
 
     #pci-home-header {
-        padding-top: 10rem;
+        padding-top: 11rem;
     }
 
     #pci-home-header img {
@@ -163,7 +171,7 @@
     }
 
     #lastRecommendationsDiv {
-        margin-left: .5rem;
+        margin-left: 2.5rem;
     }
 
     .pci-pageTitleText {
@@ -428,6 +436,12 @@
         margin-left: 2rem;
     }
 
+    .pci-UsersTable {
+        margin: 0 1rem 0 3rem;
+    }
+
+
+
 
 
 
@@ -472,6 +486,7 @@
     #pci-home-header img {
         width: 45rem;
     }
+
     #cyp-login-button {
         padding-bottom: 1rem;
     }
@@ -488,6 +503,10 @@
     .pci-recommender {
         display: inline;
         padding: 1rem;
+    }
+
+    .pci-public {
+        margin-top: 3rem;
     }
 
     .search-wrapper {
@@ -559,6 +578,10 @@
         height: 22rem;
         margin-top: 1rem;
         margin-bottom: 2rem;
+    }
+
+    .pci-UsersTable {
+        margin-bottom: 7rem;
     }
 }
 
@@ -763,6 +786,14 @@
         display: none;
     }
 
+    .left-sidebar .pci-public {
+        margin-left: 2.3rem;
+    }
+
+    .first-pci-h1 {
+        padding-top: 5rem;
+    }
+
     #pci-home-header {
         text-align: left;
     }
@@ -812,7 +843,7 @@
     #pci-small-header,
     #pci-home-header {
         width: 72%;
-        height: 34rem;
+        height: 38rem;
         padding-bottom: 4rem;
     }
 

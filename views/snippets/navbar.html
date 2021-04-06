@@ -109,9 +109,11 @@
             {{=T("Submit a preprint")}}
           </a>
           </li>
-          <li class="flex-item search-btn">
-
-          </li>
+          {{if 'searchForm' in locals():}}
+            <li class="flex-item search-btn">
+              {{=searchForm}}
+            </li>
+          {{ pass}}
           <hr class="hr-nav hide-desktop">
         </ul>
       </div>
