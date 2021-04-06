@@ -1,9 +1,15 @@
+ALTER TABLE public.t_articles DISABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE public.t_articles DISABLE TRIGGER distinct_words_trigger;
+
 ALTER TABLE "t_articles"
   ADD COLUMN "report_stage" VARCHAR(128),
+  ADD COLUMN "scheduled_submission_date" date,
   ADD COLUMN "art_stage_1_id" integer,
   ADD FOREIGN KEY ("art_stage_1_id") REFERENCES "public"."t_articles"("id") ON DELETE SET NULL;
-  
-ALTER TABLE "t_articles" ADD COLUMN "scheduled_submission_date" date;
+  -- ALTER TABLE "t_articles" ADD COLUMN "scheduled_submission_date" date;
+
+ALTER TABLE public.t_articles ENABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE public.t_articles ENABLE TRIGGER distinct_words_trigger;
 
 CREATE TABLE IF NOT EXISTS "t_report_survey" (
     "id" SERIAL PRIMARY KEY,
@@ -52,6 +58,3 @@ CREATE TABLE IF NOT EXISTS "t_report_survey" (
 
 ALTER TABLE "t_report_survey"
     ADD FOREIGN KEY ("temp_art_stage_1_id") REFERENCES "t_articles"("id") ON DELETE SET NULL;
-
-ALTER TABLE "t_articles"       
-  ADD COLUMN "report_stage" VARCHAR(128);
