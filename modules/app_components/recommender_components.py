@@ -40,6 +40,10 @@ def getReviewsSubTable(auth, db, response, recomm):
             if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
 
+            if review.review_state == "Willing to review":
+                reviewVars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_review_request", vars=dict(reviewId=review.id))))
+                reviewVars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_review_request", vars=dict(reviewId=review.id))))
+
             if art.status == "Under consideration" and not (recomm.is_closed):
                 if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review"):
                     reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))

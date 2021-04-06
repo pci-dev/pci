@@ -23,6 +23,7 @@ describe("Preprint recommended in one round", () => {
     Cypress.Cookies.preserveOnce(
       "session_id_admin",
       "session_id_pci",
+      "session_id_pcidev",
       "session_id_welcome"
     );
   });
@@ -370,25 +371,25 @@ describe("Preprint recommended in one round", () => {
       cy.contains(".w2p_flash", "e-mail sent to Titi Toto").should("exist");
     });
 
-    it("Should show article under status 'RECOMMENDATION PROCESS UNDERWAY'", () => {
+    it("Should show article under status 'HANDLING PROCESS UNDERWAY'", () => {
       cy.contains("a", "Done").click();
       cy.contains("tr", articleTitle).should("exist");
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
   });
 
   //######################################################################################################################################
-  describe("3 - Review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("3 - Review invitations sent => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -399,7 +400,7 @@ describe("Preprint recommended in one round", () => {
         manager,
         "manager",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -410,7 +411,7 @@ describe("Preprint recommended in one round", () => {
         recommender,
         "recommender",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -421,7 +422,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_1,
         "suggested_reviewer",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -432,7 +433,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_2,
         "suggested_reviewer",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -462,7 +463,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -552,7 +553,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -619,14 +620,14 @@ describe("Preprint recommended in one round", () => {
   });
 
   //######################################################################################################################################
-  describe("4 - Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("4 - Reviews submitted => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -637,7 +638,7 @@ describe("Preprint recommended in one round", () => {
         manager,
         "manager",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -648,7 +649,7 @@ describe("Preprint recommended in one round", () => {
         recommender,
         "recommender",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -659,7 +660,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_1,
         "reviewer",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -670,7 +671,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_2,
         "reviewer",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -699,7 +700,7 @@ describe("Preprint recommended in one round", () => {
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should write recommendation decision", () => {
@@ -752,7 +753,7 @@ describe("Preprint recommended in one round", () => {
         submitter,
         "submitter",
         "5-Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -785,7 +786,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_1,
         "reviewer",
         "5-Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -796,7 +797,7 @@ describe("Preprint recommended in one round", () => {
         reviewer_2,
         "reviewer",
         "5-Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });

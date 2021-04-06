@@ -2258,8 +2258,9 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recommCount = db((db.t_recommendations.article_id == article.id)).count()
 
-    if recomm and article:
+    if recomm and article and recommCount == 1:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
@@ -2278,8 +2279,9 @@ def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, reco
 
     recomm = db.t_recommendations[recommId]
     article = db((db.t_articles.id == recomm.article_id)).select().last()
+    recommCount = db((db.t_recommendations.article_id == article.id)).count()
 
-    if recomm and article:
+    if recomm and article and recommCount == 1:
         count_reviews_under_consideration = db(
             (db.t_reviews.recommendation_id == recommId) & ((db.t_reviews.review_state == "Awaiting review") | (db.t_reviews.review_state == "Review completed"))
         ).count()

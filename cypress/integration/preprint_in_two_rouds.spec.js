@@ -24,9 +24,11 @@ describe("Preprint recommended in two round", () => {
     Cypress.Cookies.preserveOnce(
       "session_id_admin",
       "session_id_pci",
+      "session_id_pcidev",
       "session_id_welcome"
     );
   });
+
   describe("Submitter : Preprint submission", () => {
     before(() => {
       // log as normal_user
@@ -369,25 +371,25 @@ describe("Preprint recommended in two round", () => {
       cy.contains(".w2p_flash", "e-mail sent to Titi Toto").should("exist");
     });
 
-    it("Should show article under status 'RECOMMENDATION PROCESS UNDERWAY'", () => {
+    it("Should show article under status 'HANDLING PROCESS UNDERWAY'", () => {
       cy.contains("a", "Done").click();
       cy.contains("tr", articleTitle).should("exist");
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
   });
 
   //######################################################################################################################################
-  describe("3 - Review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("3 - Review invitations sent => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -398,7 +400,7 @@ describe("Preprint recommended in two round", () => {
         manager,
         "manager",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -409,7 +411,7 @@ describe("Preprint recommended in two round", () => {
         recommender,
         "recommender",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -420,7 +422,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "suggested_reviewer",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -431,7 +433,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "suggested_reviewer",
         "3-Review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -461,7 +463,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -551,7 +553,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -618,14 +620,14 @@ describe("Preprint recommended in two round", () => {
   });
 
   //######################################################################################################################################
-  describe("4 - Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("4 - Reviews submitted => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -636,7 +638,7 @@ describe("Preprint recommended in two round", () => {
         manager,
         "manager",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -647,7 +649,7 @@ describe("Preprint recommended in two round", () => {
         recommender,
         "recommender",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -658,7 +660,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "reviewer",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -669,7 +671,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "reviewer",
         "4-Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -698,7 +700,7 @@ describe("Preprint recommended in two round", () => {
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should write recommendation decision", () => {
@@ -750,7 +752,7 @@ describe("Preprint recommended in two round", () => {
         submitter,
         "submitter",
         "5-Round1 decision sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -783,7 +785,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "reviewer",
         "5-Round1 decision sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -794,7 +796,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "reviewer",
         "5-Round1 decision sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -856,7 +858,7 @@ describe("Preprint recommended in two round", () => {
   });
 
   //##################################################################################################################################
-  describe("6 - Round #1 decision validatied => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("6 - Round #1 decision validatied => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
@@ -942,7 +944,7 @@ describe("Preprint recommended in two round", () => {
         );
       });
 
-      cy.get('button[name="completed"]').click();
+      cy.get('input[name="completed"]').click();
     });
 
     it("=> mail sent to manager and recommender", () => {
@@ -980,7 +982,7 @@ describe("Preprint recommended in two round", () => {
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
 
       cy.contains("a", "Invite a reviewer").first().click();
     });
@@ -1031,26 +1033,26 @@ describe("Preprint recommended in two round", () => {
       );
     });
 
-    it("Should show article under status 'RECOMMENDATION PROCESS UNDERWAY'", () => {
+    it("Should show article under status 'HANDLING PROCESS UNDERWAY'", () => {
       cy.contains("a", "Done").click();
 
       cy.contains("tr", articleTitle).should("exist");
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
   });
 
   //######################################################################################################################################
-  describe("7 - Round #2 review invitations sent => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("7 - Round #2 review invitations sent => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "7-Round2 review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1061,7 +1063,7 @@ describe("Preprint recommended in two round", () => {
         manager,
         "manager",
         "7-Round2 review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1072,7 +1074,7 @@ describe("Preprint recommended in two round", () => {
         recommender,
         "recommender",
         "7-Round2 review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1083,7 +1085,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "suggested_reviewer",
         "7-Round2 review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1094,7 +1096,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "suggested_reviewer",
         "7-Round2 review invitations sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1124,7 +1126,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -1214,7 +1216,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.get(".pci-status")
         .first()
-        .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+        .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should accept to review article", () => {
@@ -1281,14 +1283,14 @@ describe("Preprint recommended in two round", () => {
   });
 
   //######################################################################################################################################
-  describe("8 - Round #2 Reviews submitted => check status : RECOMMENDATION PROCESS UNDERWAY", () => {
+  describe("8 - Round #2 Reviews submitted => check status : HANDLING PROCESS UNDERWAY", () => {
     it("=> submitter : article correct status", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         submitter,
         "submitter",
         "8-Round2 Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1299,7 +1301,7 @@ describe("Preprint recommended in two round", () => {
         manager,
         "manager",
         "8-Round2 Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1310,7 +1312,7 @@ describe("Preprint recommended in two round", () => {
         recommender,
         "recommender",
         "8-Round2 Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1321,7 +1323,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "reviewer",
         "8-Round2 Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1332,7 +1334,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "reviewer",
         "8-Round2 Reviews submitted",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1361,7 +1363,7 @@ describe("Preprint recommended in two round", () => {
 
       // cy.get(".pci-status")
       //   .first()
-      //   .should("contain", "RECOMMENDATION PROCESS UNDERWAY");
+      //   .should("contain", "HANDLING PROCESS UNDERWAY");
     });
 
     it("Should write recommendation decision", () => {
@@ -1414,7 +1416,7 @@ describe("Preprint recommended in two round", () => {
         submitter,
         "submitter",
         "9-Round2 Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1447,7 +1449,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_1,
         "reviewer",
         "9-Round2 Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });
@@ -1458,7 +1460,7 @@ describe("Preprint recommended in two round", () => {
         reviewer_2,
         "reviewer",
         "9-Round2 Recommendation sent",
-        "RECOMMENDATION PROCESS UNDERWAY",
+        "HANDLING PROCESS UNDERWAY",
         articleTitle
       );
     });

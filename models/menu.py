@@ -329,9 +329,19 @@ def _RecommendationMenu():
     else:
         classPostprintsOngoing = ""
 
+    nPreprintsRequireRecomm = db(
+        (db.t_articles.status == "Awaiting consideration")
+    ).count()
+    print(nPreprintsRequireRecomm)
+    if nPreprintsRequireRecomm > 0:
+        classPreprintsRequireRecomm = "pci-enhancedMenuItem"
+    else:
+        classPreprintsRequireRecomm = ""
+    
+
     recommendationsMenu.append(
         (
-            SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint(s) in need of a recommender"), _class="pci-recommender"),
+            SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint(s) in need of a recommender"), _class="pci-recommender"), _class=classPreprintsRequireRecomm),
             False,
             URL("recommender", "fields_awaiting_articles", user_signature=True),
         )

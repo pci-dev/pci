@@ -844,7 +844,7 @@
     "Twitter": "Twitter",
     "unable to parse csv file": "unable to parse csv file",
     "Unavailable": "Unavailable",
-    "Under consideration": "Recommendation process underway",
+    "Under consideration": "Handling process underway",
     "UNDER REVIEW": "UNDER REVIEW",
     "[undisclosed]": "[undisclosed]",
     "Unknown": "Unknown",
