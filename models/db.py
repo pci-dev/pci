@@ -531,7 +531,7 @@ db.define_table(
     Field("authors", type="string", length=4096, label=T("Authors"), requires=IS_NOT_EMPTY(), represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)")),
     Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text)),
-    Field("ms_version", type="string", length=1024, label=T("Most recent version of the manuscript"), default=""),
+    Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(', (e.g. v1)')), default=""),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),

@@ -133,7 +133,12 @@ def recommendations():
         response.title = art.title or myconf.take("app.longname")
 
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+
+        if pciRRactivated and art.user_id != auth.user_id:
+            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, False)
+        else:
+            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+        
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
@@ -390,7 +395,12 @@ def fill_new_article():
         fields=fields,
         keepvalues=True,
     )
-    form.element(_type="submit")["_value"] = T("Complete your submission")
+    
+    if pciRRactivated:
+        form.element(_type="submit")["_value"] = T("Continue your submission")
+    else:
+        form.element(_type="submit")["_value"] = T("Complete your submission")
+
     form.element(_type="submit")["_class"] = "btn btn-success"
     if form.process().accepted:
         articleId = form.vars.id
