@@ -1037,13 +1037,13 @@ db.define_table(
     # Field("stage_number", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), default=False, requires=IS_IN_SET(("STAGE 1", "STAGE 2"))),
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field(
-        "Q1",
+        "q1",
         type="string",
         label=T("Does the submission include a complete Stage 1 report for regular review or a Stage 1 RR snapshot for scheduled review?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))),
     ),
     Field(
-        "Q2",
+        "q2",
         type="string",
         label=T(
             "Does the Stage 1 report or snapshot propose a regular RR that is intended to produce a single Stage 2 publication, or does it propose a programmatic RR that is intended to produce multiple Stage 2 publications?"
@@ -1051,19 +1051,19 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))),
     ),
     Field(
-        "Q3",
+        "q3",
         type="string",
         label=T("Is the Stage 1 report or snapshot already published (e.g. at a repository) or is it currently being archived privately?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))),
     ),
     Field(
-        "Q4",
+        "q4",
         type="boolean",
         label=T("If submitting a RR snapshot, the authors confirm that they have used the PCI RR snapshot template and adhered to all requirements stated in the template"),
         default=False,
     ),
     Field(
-        "Q5",
+        "q5",
         type="string",
         length=2000,
         label=T(
@@ -1072,7 +1072,7 @@ db.define_table(
     ),
     # Need name
     Field(
-        "Q6",
+        "q6",
         type="string",
         label=SPAN(
             T("If the authors are submitting a full Stage 1 report (rather than a Stage 1 snapshot), and the report describes at least one "),
@@ -1096,7 +1096,7 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q7",
+        "q7",
         type="string",
         label=SPAN(
             T("Putting aside any preliminary results reported in the Stage 1 report, select which of the following scenarios applies to the data that will be the focus of the "),
@@ -1121,7 +1121,7 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q8",
+        "q8",
         type="string",
         length=2000,
         label=T(
@@ -1129,7 +1129,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q9",
+        "q9",
         type="string",
         length=2000,
         label=T(
@@ -1137,7 +1137,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q10",
+        "q10",
         type="date",
         label=SPAN(
             T("Choose a date "),
@@ -1152,31 +1152,31 @@ db.define_table(
         ),
     ),
     Field(
-        "Q11",
+        "q11",
         type="string",
         label=T("Are all necessary approvals, such as ethics or regulatory permissions, in place for the proposed research?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))),
     ),
     Field(
-        "Q11_details",
+        "q11_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q12",
+        "q12",
         type="string",
         label=T("Is all necessary support (e.g. funding, facilities) in place for the proposed research?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))),
     ),
     Field(
-        "Q12_details",
+        "q12_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q13",
+        "q13",
         type="string",
         label=SPAN(
             SPAN(
@@ -1204,13 +1204,13 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q13_details",
+        "q13_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q14",
+        "q14",
         type="boolean",
         label=SPAN(
             T(
@@ -1224,7 +1224,7 @@ db.define_table(
         default=False,
     ),
     Field(
-        "Q15",
+        "q15",
         type="text",
         label=SPAN(
             T("For each author who currently has an account on the OSF ("),
@@ -1237,7 +1237,7 @@ db.define_table(
         default=T("[First name] [Surname], [URL]\n[First name] [Surname], [URL]\ne.g. Chris Chambers, https://osf.io/pkm67/"),
     ),
     Field(
-        "Q16",
+        "q16",
         type="string",
         label=T(
             "If the submission achieves Stage 1 in-principle acceptance, authors can instruct PCI RR to either make the registered Stage 1 manuscript immediately public on the OSF or instead register it under a private embargo for up to 4 years from the date of registration. If authors choose a private embargo, the embargo will be released and the registered protocol made public when any one of the following conditions are met: (a) submission of the Stage 2 manuscript for a regular RR, or the *FIRST* Stage 2 manuscript in a planned series of Stage 2 manuscripts linked to a programmatic RR; (b) withdrawal of the submission after in-principle acceptance and consequent triggering of a Withdrawn Registration; or (c) natural expiry of the embargo period. Please choose the authors’ preferred method of registration following Stage 1 in-principle acceptance."
@@ -1252,7 +1252,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q17",
+        "q17",
         type="string",
         label=T(
             "If choosing a private embargo please enter the duration of the embargo following in-principle acceptance. This can be specified either as a duration (e.g. “2 years”) or as a specific future date. The embargo period must be less than 4 years. Any entries that exceed this permissible maximum will be treated by PCI RR as “4 years”."
@@ -1260,7 +1260,7 @@ db.define_table(
         length=128,
     ),
     Field(
-        "Q18",
+        "q18",
         type="boolean",
         label=T(
             "The authors confirm that if they withdraw their report following Stage 1 in-principle acceptance then they agree to PCI RR (a) lifting any applicable private embargo on the registered Stage 1 protocol, thus making the protocol public on the OSF; and (b) publishing a short summary of the preregistered study, which will include the abstract of the Stage 1 submission, the URL of the registered Stage 1 protocol on the OSF, all Stage 1 reviews and decision letters, the PCI RR recommendation text, and a stated reason for the withdrawal."
@@ -1268,7 +1268,7 @@ db.define_table(
         default=False,
     ),
     Field(
-        "Q19",
+        "q19",
         type="boolean",
         label=T(
             "Should Stage 1 in-principle acceptance be forthcoming, authors will be asked to provide PCI RR with an estimated submission date for the completed Stage 2 manuscript (or manuscripts, in the case of programmatic RRs). This deadline can be readily altered in consultation with the recommenders (e.g. in case of delays requiring additional time to complete the research). However, in the event that the authors (a) fail to submit the Stage 2 manuscript within 6 months of the mutually agreed deadline, while also (b) becoming non-responsive during this period to enquiries from PCI RR, then the manuscript will be considered by PCI RR to be de facto withdrawn, triggering publication of a Withdrawn Registration. Please confirm the authors’ agreement to these conditions."
@@ -1276,7 +1276,7 @@ db.define_table(
         default=False,
     ),
     Field(
-        "Q20",
+        "q20",
         type="string",
         label=SPAN(
             T(
@@ -1295,7 +1295,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q21",
+        "q21",
         type="string",
         label=T(
             "Should Stage 1 in-principle acceptance be forthcoming, would the authors prefer the Stage 1 recommendation and reviews to appear immediately on the PCI RR website along with a link to the Stage 1 report, or would they prefer to delay the publication of the Stage 1 recommendation and reviews until final Stage 2 acceptance (published all at once with the Stage 2 reviews)? This choice has no impact on automatic offers of publication by PCI RR-friendly journals, but electing to publish the Stage 1 reviews sooner may facilitate offers of IPA from PCI RR-interested journals due to the peer evaluations being accessible to those journal editors. Note that authors can exercise this choice regardless of whether they instruct PCI RR to register the Stage 1 manuscript publicly or under a private embargo. Where the authors choose to publish the Stage 1 reviews and recommendation at the point of IPA, but ALSO instruct PCI RR to register the report under a private embargo, then the URL to the Stage 1 report will still be published alongside the Stage 1 reviews and recommendation, but the Stage 1 report contained within the URL will be automatically accessible only to PCI RR, the authors, and the list of PCI RR-interested journals (if the authors answered YES to the previous question)."
@@ -1310,7 +1310,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q22",
+        "q22",
         type="string",
         label=SPAN(
             T(
@@ -1331,7 +1331,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q23",
+        "q23",
         type="string",
         label=T(
             "Please anticipate the approximate amount of time it will take to complete the research and submit a Stage 2 manuscript following Stage 1 in-principle acceptance. If the authors are submitting a programmatic RR then estimate this duration for each of the anticipated Stage 2 outputs (e.g. +12 months after IPA for Stage 2 RR.1, +18 months after IPA for Stage 2 RR.2, +24 months after IPA for Stage 2 RR.3, etc.)."
@@ -1339,14 +1339,14 @@ db.define_table(
         length=128,
     ),
     Field(
-        "Q24",
+        "q24",
         type="date",
         label=T(
             "Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility"
         ),
     ),
     Field(
-        "Q24_1",
+        "q24_1",
         type="string",
         label=T("Date flexibility:"),
         requires=IS_EMPTY_OR(
@@ -1359,7 +1359,7 @@ db.define_table(
         ),
     ),
     Field(
-        "Q24_1_details",
+        "q24_1_details",
         type="text",
         label=T("details"),
         length=2000,
@@ -1367,7 +1367,7 @@ db.define_table(
     # Stage 2 questions
     Field("temp_art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("Please select the related stage 1 report:")),
     Field(
-        "Q25",
+        "q25",
         type="boolean",
         label=T(
             "In addition to meeting conventional citation standards for published articles, where applicable, I confirm that any references to published data sets, software, program code, or other methods are cited in the manuscript."
@@ -1375,7 +1375,7 @@ db.define_table(
         default=False,
     ),
     Field(
-        "Q26",
+        "q26",
         type="string",
         label=T(
             T("Have all raw and processed "),
@@ -1398,13 +1398,13 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q26_details",
+        "q26_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q27",
+        "q27",
         type="string",
         label=SPAN(
             T("Have all "),
@@ -1426,13 +1426,13 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q27_details",
+        "q27_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q28",
+        "q28",
         type="string",
         label=SPAN(
             T("Has all "),
@@ -1452,13 +1452,13 @@ db.define_table(
         widget=SQLFORM.widgets.radio.widget,
     ),
     Field(
-        "Q28_details",
+        "q28_details",
         type="text",
         label=T("details"),
         length=2000,
     ),
     Field(
-        "Q29",
+        "q29",
         type="boolean",
         label=T(
             'The authors confirm that the following statement is correct: "We report how we determined our sample size, all data exclusions (if any), all inclusion/exclusion criteria, whether inclusion/exclusion criteria were established prior to data analysis, all manipulations, and all measures in the study", elaborated as necessary in the main text.'
@@ -1466,7 +1466,7 @@ db.define_table(
         default=False,
     ),
     Field(
-        "Q30",
+        "q30",
         type="string",
         label=SPAN(
             T(
@@ -1480,7 +1480,7 @@ db.define_table(
         length=256,
     ),
     Field(
-        "Q31",
+        "q31",
         type="string",
         label=SPAN(
             T("If the authors are submitting a Stage 2 manuscript associated with a "),
