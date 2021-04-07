@@ -127,6 +127,7 @@ def index():
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
             pciRRactivated=pciRRactivated,
+            tweeterAcc=tweeterAcc,
         )
     else:
         return dict(
@@ -141,6 +142,7 @@ def index():
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
             pciRRactivated=pciRRactivated,
+            tweeterAcc=tweeterAcc,
         )
 
 

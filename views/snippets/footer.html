@@ -4,10 +4,17 @@
     </header>
     <hr class="hr-footer">
     <div class="footer-sub-text">
-      <a href="https://twitter.com/PeerCommunityIn" target="_blank">
-        <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
-        @PeerCommunityIn
-      </a>
+      {{ if 'tweeterAcc' in locals(): }}
+        <a href="https://twitter.com/{{=tweeterAcc}}" target="_blank">
+          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
+          @{{=tweeterAcc}}
+        </a>
+      {{ else: }}
+        <a href="https://twitter.com/PeerCommunityIn" target="_blank">
+          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
+          @PeerCommunityIn
+        </a>
+      {{ pass }}
     </div>
 
     <div class="hide-below-tablet">

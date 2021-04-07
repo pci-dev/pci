@@ -10,11 +10,13 @@ def index():
 
 def help_generic():
     response.view = "default/info.html"
+    tweeterAcc = myconf.get("social.tweeter")
     return dict(
         pageTitle=getTitle(request, auth, db, "#GenericHelpTitle"),
         customText=getText(request, auth, db, "#GenericHelpInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="help_generic", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
@@ -28,17 +30,24 @@ def help_guidelines():
 ######################################################################################################################################################################
 def help_practical():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#PracticalHelpTitle"), customText=getText(request, auth, db, "#PracticalHelpInfo"),)
+    tweeterAcc = myconf.get("social.tweeter")
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#PracticalHelpTitle"),
+        customText=getText(request, auth, db, "#PracticalHelpInfo"),
+        tweeterAcc=tweeterAcc,
+    )
 
 
 ######################################################################################################################################################################
 def faq():
     response.view = "default/info.html"
+    tweeterAcc = myconf.get("social.tweeter")
     return dict(
         pageTitle=getTitle(request, auth, db, "#FAQTitle"),
         customText=getText(request, auth, db, "#FAQInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="faq", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
@@ -46,11 +55,13 @@ def faq():
 ######################################################################################################################################################################
 def cite():
     response.view = "default/info.html"
+    tweeterAcc = myconf.get("social.tweeter")
     return dict(
         pageTitle=getTitle(request, auth, db, "#CiteTitle"),
         customText=getText(request, auth, db, "#CiteInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="cite", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 

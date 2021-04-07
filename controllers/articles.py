@@ -110,6 +110,7 @@ def last_recomms():
 ######################################################################################################################################################################
 # Recommended articles search & list (public)
 def recommended_articles():
+    tweeterAcc = myconf.get("social.tweeter")
     myVars = request.vars
     qyKwArr = []
     qyTF = []
@@ -161,6 +162,7 @@ def recommended_articles():
         searchableList=True,
         searchForm=searchForm,
         grid=grid,
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
@@ -297,6 +299,7 @@ def tracking():
 
 ######################################################################################################################################################################
 def all_recommended_articles():
+    tweeterAcc = myconf.get("social.tweeter")
     allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
@@ -322,6 +325,7 @@ def all_recommended_articles():
         grid=grid,
         shareable=True,
         currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
