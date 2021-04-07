@@ -53,7 +53,7 @@
     }
 
     .navbar .nav > li > a {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 800;
         color: #3e3f3a;
     }
@@ -89,13 +89,32 @@
         margin-top: 0;
     }
 
-    #cyp-login-button {
+    #cyp-login-button,
+    #cyp-logout-button,
+    #submit_record__row .btn,
+    .pci2-full-width .btn {
         color: white;
         background-color: rgba(0,150,190);
         width: 8rem;
         border-radius: 0;
         margin: 1.5rem .5rem 1.5rem 1rem;
         text-align: left;
+    }
+
+    #cyp-logout-button {
+        width: 10rem;
+    }
+
+    .pci-infotext h4,
+    .pci-infotext ul {
+        line-height: 1.6;
+        font-size: 1.5rem;
+
+    }
+
+    .pci2-flex-center {
+        margin-left: 3rem;
+        width: 94%;
     }
 
     #myNavbar .flex-item .pci-public {
@@ -109,10 +128,14 @@
     .pci-public {
         color: white;
         background-color: rgba(0,150,190);
-        width: 16rem;
+        width: 14rem;
         border-radius: 0;
         margin: 1.5rem .5rem 2rem 3rem;
         text-align: left;
+    }
+
+    .submit-btn .pci-public {
+        width: 16rem;
     }
 
     .col-md-9 .pci-public {
@@ -175,7 +198,7 @@
     }
 
     .pci-pageTitleText {
-        color: black;
+        color: #555555;
         text-transform: uppercase;
         font-size: 3rem;
     }
@@ -296,7 +319,7 @@
     }
 
     .footer-sub-text {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
     }
 
     .recommenders .footer-sub-text {
@@ -394,6 +417,20 @@
         margin-top: 2rem;
     }
 
+    #auth_user_uploaded_picture {
+        width: 100%;
+    }
+
+    #captcha__row iframe {
+        width: 100%;
+        position: relative;
+        left: -2rem;
+    }
+
+    .col-md-9 .form-horizontal {
+        margin-left: 3rem;
+    }
+
     h2 {
         font-size: 2.5rem;
         line-height: 1.4;
@@ -410,8 +447,6 @@
         height: auto;
     }
 
-    .pci-infotext > p,
-    .pci-infotext > div > p,
     .pci-infotext hr {
         display: none;
     }
@@ -426,9 +461,25 @@
         margin-top: 0;
     }
 
-    .pci-infotext > h2 {
+    .pci-infotext > h2,
+    .pci-infotext h1 {
         line-height: 1.4!important;
         margin-top: 0!important;
+        text-transform: uppercase;
+        font-size: 2.5rem;
+    }
+
+    .pci-infotext > font > ul {
+        padding-bottom: 4rem;
+    }
+
+    .pci-infotext ol li {
+        line-height: 1.6;
+    }
+
+    .pci-infotext img {
+        width: 100%;
+        padding: 2rem 0;
     }
 
     .pci-infotext div div div div div div img {
@@ -441,6 +492,13 @@
     }
 
 
+    #submit_record__row .pci2-lost-password-link {
+        width: 12.5rem;
+    }
+
+    #submit_record__row .btn-success {
+        width: 7rem;
+    }
 
 
 
@@ -487,7 +545,8 @@
         width: 45rem;
     }
 
-    #cyp-login-button {
+    #cyp-login-button,
+    #cyp-logout-button {
         padding-bottom: 1rem;
     }
 
@@ -597,7 +656,7 @@
     #about-nav ul li,
     #help-nav ul li {
         padding-top: .5rem;
-        font-size: 1.3rem;
+        font-size: 1.5rem;
     }
 
     #myNavbar ul li {
@@ -618,7 +677,7 @@
     }
 
     .navbar .nav > li > a {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
 
     .pci-public {
@@ -698,6 +757,10 @@
     .navbar {
         top: 0;
     }
+
+    .pci-infotext img {
+        max-width: 70rem;
+    }
 }
 
 @media only screen and (min-width: 1200px) {
@@ -725,7 +788,8 @@
         display: none;
     }
 
-    #cyp-login-button {
+    #cyp-login-button,
+    #cyp-logout-button {
         margin-top: 0;
     }
 
@@ -766,6 +830,29 @@
         padding-top: 3rem;
     }
 
+    .side-button-bar .btn-info {
+        color: white;
+        background-color: rgba(0,150,190);
+        width: 8rem;
+        border-radius: 0;
+        margin: 1.5rem .5rem 1.5rem .5rem;
+        text-align: left;
+    }
+
+    .side-button-bar #cyp-login-button {
+        margin-bottom: 0;
+        padding-bottom: .5rem;
+        width: 7rem;
+    }
+
+    .search-wrapper {
+        margin-top: 0;
+    }
+
+    .pci-infotext {
+        margin-top: 0;
+    }
+
     .col-md-9 {
         width: 73%;
         border-left: .1rem solid black;
@@ -779,6 +866,8 @@
     .col-md-3 {
         position: relative;
         top: 0;
+        right: -.1rem;
+        border-right: .1rem solid black;
     }
 
     .col-md-9 > div > .pci-public,
@@ -853,6 +942,7 @@
 
     .pci-infotext > h2 {
         font-size: 4rem;
+        margin-top: 0!important;
         line-height: 1!important;
     }
 
@@ -860,7 +950,10 @@
         padding-top: 0;
     }
 
-    
+    .pci-infotext > h3 {
+        padding-bottom: 3rem;
+        border-bottom: .1rem solid #598398;
+    }
 
 
 

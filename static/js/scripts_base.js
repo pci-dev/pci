@@ -1,3 +1,12 @@
+// remove all empty containers, as they litter the layout
+var all_ps = document.querySelectorAll('p');
+for (var i = 0; i<all_ps.length; i++) {
+    if (all_ps[i].innerHTML == '' || all_ps[i].innerHTML == '&nbsp;' || all_ps[i].innerHTML == '&nbsp;&nbsp;') {
+        all_ps[i].style.display = 'none';
+    }
+}
+
+
 var scroll_lock = false;
 function lock_body() {
     /* this function locks page scrolling while navigation bar is open; */
@@ -26,12 +35,17 @@ function lock_body() {
 }
 
 
-// remove all empty containers, as they litter the layout
-var all_ps = document.querySelectorAll('p');
-for (var i = 0; i<all_ps.length; i++) {
-    if (all_ps[i].innerHTML == '' || all_ps[i].innerHTML == '&nbsp;' || all_ps[i].innerHTML == '&nbsp;&nbsp;') {
-        all_ps[i].style.display = 'none';
+function subnavs(subnav) {
+    // only one of the sub navigations must be open at one time
+    // so that they do not overlap;
+    // this function closes all sub navigations except for the one clicked
+    var sub_navs = document.querySelectorAll('.subnav');
+    for (var i = 0; i<sub_navs.length; i++) {
+        if (sub_navs[i] != subnav) {
+            sub_navs[i].classList.remove('in');
+        }
     }
+
+
+    
 }
-
-

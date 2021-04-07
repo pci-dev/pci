@@ -21,7 +21,7 @@
 <!-- 	<H1 style="background:red; padding:8px; margin-bottom:12px; border-radius:16px;">Maintenance scheduled today... Please, don't use it for the moment!<br>Sorry for any inconvenience...</H1> -->
 <!-- 	{{pass}} -->
 
-<div style="margin-top:20px; margin-bottom:20px; text-align:left;">
+<div style="margin-top:0px; margin-bottom:20px; text-align:left;">
   {{if auth.user:}}
     <a
       href="{{=URL('user', 'new_submission')}}"
@@ -36,20 +36,6 @@
     	class="btn btn-success pci-public"
       >
     	{{=T("Submit a preprint")}}
-    </a>
-    <a
-    	href="{{=URL(c='default', f='user', args=['login'])}}"
-      class="btn btn-default"
-      id="cyp-login-button"
-    >
-    	{{=T('Log in')}}
-    </a>
-    <label>{{=T(' or ')}}</label>
-    <a
-    	href="{{=URL(c='default', f='user', args=['register'])}}"
-    	class="btn btn-info"
-    >
-    	{{=T('Register')}}
     </a>
   {{pass}} 
 
