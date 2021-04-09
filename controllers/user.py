@@ -138,7 +138,7 @@ def recommendations():
             recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, False)
         else:
             recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
-        
+
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
@@ -359,6 +359,8 @@ def fill_new_article():
     if pciRRactivated:
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
+        db.t_articles.sub_thematics.readable = True
+        db.t_articles.sub_thematics.writable = True
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -382,20 +384,23 @@ def fill_new_article():
         "uploaded_picture",
         "abstract",
         "thematics",
+    ]
+
+    if pciRRactivated:
+        fields += ["sub_thematics"]
+
+    fields += [
         "keywords",
         "cover_letter",
         "i_am_an_author",
         "is_not_reviewed_elsewhere",
     ]
+
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    form = SQLFORM(
-        db.t_articles,
-        fields=fields,
-        keepvalues=True,
-    )
-    
+    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
+
     if pciRRactivated:
         form.element(_type="submit")["_value"] = T("Continue your submission")
     else:
@@ -481,14 +486,15 @@ def edit_my_article():
                     parent.appendChild(child);
                 """
             )
-    
+
     if pciRRactivated:
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
+        db.t_articles.sub_thematics.readable = True
+        db.t_articles.sub_thematics.writable = True
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
-
 
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
@@ -517,6 +523,11 @@ def edit_my_article():
             "uploaded_picture",
             "abstract",
             "thematics",
+        ]
+        if pciRRactivated:
+            fields += ["sub_thematics"]
+
+        fields += [
             "keywords",
             "cover_letter",
         ]
@@ -541,6 +552,12 @@ def edit_my_article():
             "uploaded_picture",
             "abstract",
             "thematics",
+        ]
+        
+        if pciRRactivated:
+            fields += ["sub_thematics"]
+
+        fields += [
             "keywords",
             "cover_letter",
         ]
@@ -559,7 +576,7 @@ def edit_my_article():
             article.update_record()
 
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
-        
+
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(
@@ -595,60 +612,56 @@ def fill_report_survey():
 
     if art.report_stage == "STAGE 1":
         fields = [
-            "Q1",
-            "Q2",
-            "Q3",
-            "Q4",
-            "Q5",
-            "Q6",
-            "Q7",
-            "Q8",
-            "Q9",
-            "Q10",
-            "Q11",
-            "Q11_details",
-            "Q12",
-            "Q12_details",
-            "Q13",
-            "Q13_details",
-            "Q14",
-            "Q15",
-            "Q16",
-            "Q17",
-            "Q18",
-            "Q19",
-            "Q20",
-            "Q21",
-            "Q22",
-            "Q23",
-            "Q24",
-            "Q24_1",
-            "Q24_1_details",
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+            "q5",
+            "q6",
+            "q7",
+            "q8",
+            "q9",
+            "q10",
+            "q11",
+            "q11_details",
+            "q12",
+            "q12_details",
+            "q13",
+            "q13_details",
+            "q14",
+            "q15",
+            "q16",
+            "q17",
+            "q18",
+            "q19",
+            "q20",
+            "q21",
+            "q22",
+            "q23",
+            "q24",
+            "q24_1",
+            "q24_1_details",
         ]
-    else: # STAGE 2 survey
+    else:  # STAGE 2 survey
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
             db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
         )
 
         fields = [
             "temp_art_stage_1_id",
-            "Q25",
-            "Q26",
-            "Q26_details",
-            "Q27",
-            "Q27_details",
-            "Q28",
-            "Q28_details",
-            "Q29",
-            "Q30",
-            "Q31",
+            "q25",
+            "q26",
+            "q26_details",
+            "q27",
+            "q27_details",
+            "q28",
+            "q28_details",
+            "q29",
+            "q30",
+            "q31",
         ]
 
-    form = SQLFORM(
-        db.t_report_survey,
-        fields=fields,
-        keepvalues=True,
-    )
+    form = SQLFORM(db.t_report_survey, fields=fields, keepvalues=True,)
     form.element(_type="submit")["_value"] = T("Complete your submission")
     form.element(_type="submit")["_class"] = "btn btn-success"
 
@@ -714,71 +727,65 @@ def edit_report_survey():
 
     survey = db(db.t_report_survey.article_id == articleId).select().last()
     if survey is None:
-        session.flash = T("No survey yet, please fill this form.")        
-        survey = db.t_report_survey.insert(article_id = articleId, temp_art_stage_1_id=art.art_stage_1_id)
-
+        session.flash = T("No survey yet, please fill this form.")
+        survey = db.t_report_survey.insert(article_id=articleId, temp_art_stage_1_id=art.art_stage_1_id)
 
     db.t_report_survey._id.readable = False
     db.t_report_survey._id.writable = False
 
-    if art.report_stage == "STAGE 1": # STAGE 1 survey
+    if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
-            "Q1",
-            "Q2",
-            "Q3",
-            "Q4",
-            "Q5",
-            "Q6",
-            "Q7",
-            "Q8",
-            "Q9",
-            "Q10",
-            "Q11",
-            "Q11_details",
-            "Q12",
-            "Q12_details",
-            "Q13",
-            "Q13_details",
-            "Q14",
-            "Q15",
-            "Q16",
-            "Q17",
-            "Q18",
-            "Q19",
-            "Q20",
-            "Q21",
-            "Q22",
-            "Q23",
-            "Q24",
-            "Q24_1",
-            "Q24_1_details",
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+            "q5",
+            "q6",
+            "q7",
+            "q8",
+            "q9",
+            "q10",
+            "q11",
+            "q11_details",
+            "q12",
+            "q12_details",
+            "q13",
+            "q13_details",
+            "q14",
+            "q15",
+            "q16",
+            "q17",
+            "q18",
+            "q19",
+            "q20",
+            "q21",
+            "q22",
+            "q23",
+            "q24",
+            "q24_1",
+            "q24_1_details",
         ]
 
-    else: # STAGE 2 survey
+    else:  # STAGE 2 survey
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
             db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
         )
 
         fields = [
             "temp_art_stage_1_id",
-            "Q25",
-            "Q26",
-            "Q26_details",
-            "Q27",
-            "Q27_details",
-            "Q28",
-            "Q28_details",
-            "Q29",
-            "Q30",
-            "Q31",
+            "q25",
+            "q26",
+            "q26_details",
+            "q27",
+            "q27_details",
+            "q28",
+            "q28_details",
+            "q29",
+            "q30",
+            "q31",
         ]
 
-    form = SQLFORM(
-        db.t_report_survey,
-        survey.id,
-        fields=fields,
-        keepvalues=True,
-    )
+    form = SQLFORM(db.t_report_survey, survey.id, fields=fields, keepvalues=True,)
 
     if form.process().accepted:
         doUpdateArticle = False
@@ -907,7 +914,9 @@ def my_articles():
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+    )
     db.t_articles.status.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
     db.t_articles._id.label = T("Article")
@@ -1059,7 +1068,9 @@ def my_reviews():
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage)
+    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+    )
 
     db.t_reviews.last_change.label = T("Days elapsed")
     db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
@@ -1110,9 +1121,7 @@ def my_reviews():
                                     else "btn btn-default",
                                     _style="margin: 20px 10px 5px",
                                 ),
-                                I(
-                                    current.T("You will be able to upload you're review as soon as the author submit his preprint."),
-                                )
+                                I(current.T("You will be able to upload you're review as soon as the author submit his preprint."),)
                                 if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
                                 else "",
                                 _style="margin-bottom: 20px",

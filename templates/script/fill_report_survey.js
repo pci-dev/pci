@@ -1,35 +1,35 @@
 // select input with details box
 toggleElementDetailsOnChange(
-  "#t_report_survey_Q11_details__row",
-  "#t_report_survey_Q11",
+  "#t_report_survey_q11_details__row",
+  "#t_report_survey_q11",
   [2]
 );
 toggleElementDetailsOnChange(
-  "#t_report_survey_Q12_details__row",
-  "#t_report_survey_Q12",
+  "#t_report_survey_q12_details__row",
+  "#t_report_survey_q12",
   [2]
 );
 
 toggleElementDetailsOnChange(
-  "#t_report_survey_Q24_1_details__row",
-  "#t_report_survey_Q24_1",
+  "#t_report_survey_q24_1_details__row",
+  "#t_report_survey_q24_1",
   [2]
 );
 
 // radio button with details box
-toggleRadioElementDetailsOnChange("#t_report_survey_Q13_details__row", "Q13", [
+toggleRadioElementDetailsOnChange("#t_report_survey_q13_details__row", "q13", [
   2,
   3
 ]);
-toggleRadioElementDetailsOnChange("#t_report_survey_Q26_details__row", "Q26", [
+toggleRadioElementDetailsOnChange("#t_report_survey_q26_details__row", "q26", [
   2,
   3
 ]);
-toggleRadioElementDetailsOnChange("#t_report_survey_Q27_details__row", "Q27", [
+toggleRadioElementDetailsOnChange("#t_report_survey_q27_details__row", "q27", [
   2,
   3
 ]);
-toggleRadioElementDetailsOnChange("#t_report_survey_Q28_details__row", "Q28", [
+toggleRadioElementDetailsOnChange("#t_report_survey_q28_details__row", "q28", [
   2,
   3
 ]);
@@ -113,8 +113,8 @@ function toggleRadioElementDetailsOnChange(
 
 // Q10 showing depends on Q1 answer (hidden by default)
 function toggleQ10onChange() {
-  let Q10_div = document.querySelector("#t_report_survey_Q10__row");
-  let Q1_select = document.querySelector("#t_report_survey_Q1");
+  let Q10_div = document.querySelector("#t_report_survey_q10__row");
+  let Q1_select = document.querySelector("#t_report_survey_q1");
 
   if (Q1_select && Q1_select.selectedIndex == 2) {
     if (Q10_div) {
@@ -128,7 +128,7 @@ function toggleQ10onChange() {
 
   if (Q1_select) {
     Q1_select.addEventListener("change", event => {
-      Q10_div = document.querySelector("#t_report_survey_Q10__row");
+      Q10_div = document.querySelector("#t_report_survey_q10__row");
       if (event.target.selectedIndex == 2) {
         if (Q10_div) {
           Q10_div.style.display = "flex";
@@ -152,11 +152,11 @@ if (optionsItems) {
 }
 
 // Message alert if level 0 submission
-let levelRadioItems = document.querySelectorAll('input[name="Q7"]');
+let levelRadioItems = document.querySelectorAll('input[name="q7"]');
 var isAlertMessageShown = false;
 if (levelRadioItems) {
   let messagediv = document.querySelector(
-    "#t_report_survey_Q7__row .help-block"
+    "#t_report_survey_q7__row .help-block"
   );
 
   levelRadioItems.forEach(item => {

@@ -581,6 +581,7 @@ db.define_table(
     Field("is_searching_reviewers", type="boolean", label=T("Open to reviewers"), default=False),
     Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_EMPTY_OR(IS_IN_SET(("STAGE 1", "STAGE 2")))),
     Field("art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("Related stage 1 report")),
+    Field("sub_thematics", type="string", label=T("Sub-field")),
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date")),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     format="%(title)s (%(authors)s)",
@@ -1344,7 +1345,7 @@ db.define_table(
         "q24",
         type="date",
         label=T(
-            "Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility"
+            "Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility. If authors have an inflexible data collection start date and have not received in principle acceptance (IPA) before this date, they may begin collecting data but must adjust the bias-control level accordingly (e.g., if the initial submission was Level 6, it would then drop to Level 3, 2, or 1). There are several points to consider when dropping to a lower bias-control level. First, there is a greater risk of Stage 1 rejection if concerns with the study procedures raised in the Stage 1 review process can no longer be addressed due to data collection commencing and crucial parts of the methodology being immutable from that point forward. Second, the number of PCI RR-friendly journals that will automatically accept the Stage 2 RR may be reduced because adopting journals can set a minimum bias-control level that exceeds the requirements of PCI RR (for example, the submission would become ineligible for automatic acceptance in a PCI RR-friendly journal that sets a minimum requirement of Level 4 or higher). Third, as explained in the table, reducing the bias-control level increases the stringency of steps required to minimise bias and increase rigour (e.g., through the adoption of a more conservative statistical threshold, or blinded analyst, etc). Finally, it is essential that, despite the drop in bias-control level, the manuscript remains at Level 1 or higher: if authors begin to discover the conclusions (or likely conclusions) of the research prior to IPA then they would risk dropping to Level 0 and the manuscript would no longer be eligible for consideration at PCI RR."
         ),
     ),
     Field(

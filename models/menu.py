@@ -332,7 +332,6 @@ def _RecommendationMenu():
     nPreprintsRequireRecomm = db(
         (db.t_articles.status == "Awaiting consideration")
     ).count()
-    print(nPreprintsRequireRecomm)
     if nPreprintsRequireRecomm > 0:
         classPreprintsRequireRecomm = "pci-enhancedMenuItem"
     else:
@@ -471,14 +470,10 @@ def _AboutMenu():
             (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
             LI(_class="divider"),
         ]
-    
-    else:
-        aboutMenu += [
-            LI(_class="divider"),
-            (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
-        ]
 
     aboutMenu += [
+        LI(_class="divider"),
+        (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
         (T("Thanks to Reviewers", lazy=False), False, URL("about", "thanks_to_reviewers")),
         LI(_class="divider"),
         (T("Code of conduct", lazy=False), False, URL("about", "ethics")),

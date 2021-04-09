@@ -637,6 +637,8 @@ def edit_article():
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
+        db.t_articles.sub_thematics.readable = True
+        db.t_articles.sub_thematics.writable = True
 
         if art.report_stage == "STAGE 2":
             db.t_articles.art_stage_1_id.readable = True
@@ -728,35 +730,35 @@ def edit_report_survey():
 
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
-            "Q1",
-            "Q2",
-            "Q3",
-            "Q4",
-            "Q5",
-            "Q6",
-            "Q7",
-            "Q8",
-            "Q9",
-            "Q10",
-            "Q11",
-            "Q11_details",
-            "Q12",
-            "Q12_details",
-            "Q13",
-            "Q13_details",
-            "Q14",
-            "Q15",
-            "Q16",
-            "Q17",
-            "Q18",
-            "Q19",
-            "Q20",
-            "Q21",
-            "Q22",
-            "Q23",
-            "Q24",
-            "Q24_1",
-            "Q24_1_details",
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+            "q5",
+            "q6",
+            "q7",
+            "q8",
+            "q9",
+            "q10",
+            "q11",
+            "q11_details",
+            "q12",
+            "q12_details",
+            "q13",
+            "q13_details",
+            "q14",
+            "q15",
+            "q16",
+            "q17",
+            "q18",
+            "q19",
+            "q20",
+            "q21",
+            "q22",
+            "q23",
+            "q24",
+            "q24_1",
+            "q24_1_details",
         ]
 
     else:  # STAGE 2 survey
@@ -766,16 +768,16 @@ def edit_report_survey():
 
         fields = [
             "temp_art_stage_1_id",
-            "Q25",
-            "Q26",
-            "Q26_details",
-            "Q27",
-            "Q27_details",
-            "Q28",
-            "Q28_details",
-            "Q29",
-            "Q30",
-            "Q31",
+            "q25",
+            "q26",
+            "q26_details",
+            "q27",
+            "q27_details",
+            "q28",
+            "q28_details",
+            "q29",
+            "q30",
+            "q31",
         ]
 
     form = SQLFORM(

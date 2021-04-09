@@ -58,3 +58,7 @@ CREATE TABLE IF NOT EXISTS "t_report_survey" (
 
 ALTER TABLE "t_report_survey"
     ADD FOREIGN KEY ("temp_art_stage_1_id") REFERENCES "t_articles"("id") ON DELETE SET NULL;
+
+
+ALTER TABLE "t_articles"
+  ADD COLUMN "sub_thematics" VARCHAR(128);

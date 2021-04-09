@@ -359,12 +359,12 @@ td .ellipsis-over-350 {
   white-space: nowrap;
 }
 
-#t_report_survey_Q4__label,
-#t_report_survey_Q14__label,
-#t_report_survey_Q18__label,
-#t_report_survey_Q19__label,
-#t_report_survey_Q25__label,
-#t_report_survey_Q29__label {
+#t_report_survey_q4__label,
+#t_report_survey_q14__label,
+#t_report_survey_q18__label,
+#t_report_survey_q19__label,
+#t_report_survey_q25__label,
+#t_report_survey_q29__label {
   font-weight: bold !important;
 }
 

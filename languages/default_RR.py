@@ -938,5 +938,6 @@
     "You visited the url %s": "You visited the url %s",
     "You will be able to upload you're review as soon as the author submit his preprint.": "You will be able to upload you're review as soon as the author submit his report.",
     " (YOU) ": " (YOU) ",
-    "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.": "This report has not been published or sent for review elsewhere. I agree not to submit this report to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
+    "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.": "This report has not been published or sent for review elsewhere. I agree not to submit this report to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.",
+    "You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter.": "You can indicate anything you want in the box, but be aware that all recommenders and the managing board will be able to read the cover letter.",
 }
