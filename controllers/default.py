@@ -46,8 +46,8 @@ def index():
 
     myPanel = []
     tweeterAcc = myconf.get("social.tweeter")
-    tweetHash = myconf.get("social.tweethash")
-    tweeterId = myconf.get("social.tweeter_id")
+    #tweetHash = myconf.get("social.tweethash")
+    #tweeterId = myconf.get("social.tweeter_id")
     if tweeterAcc:
         myPanel.append(
             XML(

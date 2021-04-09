@@ -409,7 +409,7 @@ mail.settings.server = myconf.get("smtp.server")
 # mail.settings.server = 'logging' if request.is_local else myconf.get('smtp.server')
 mail.settings.sender = myconf.get("smtp.sender")
 mail.settings.login = myconf.get("smtp.login")
-mail.settings.tls = myconf.get("smtp.tls") or False
+mail.settings.tls = myconf.get("smtp.tls") or True
 mail.settings.ssl = myconf.get("smtp.ssl") or False
 
 # -------------------------------------------------------------------------
@@ -503,6 +503,8 @@ db.define_table(
     Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#"),
     Field("lang", type="string", length=10, label=T("Language"), default="default"),
     Field("contents", type="text", length=1048576, label=T("Contents")),
+    rname='public.help_texts_3', # HACK for safe migration purposes
+    sequence_name='public.help_texts_id_seq',
     format="%(hashtag)s",
     migrate=False,
 )
