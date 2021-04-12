@@ -429,7 +429,7 @@ def fill_new_article():
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
         customText=getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=SCRIPT(myScript) or "",
     )
 
 
@@ -457,7 +457,7 @@ def edit_my_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
 
-    pciRRjsScript = None
+    pciRRjsScript = ""
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.cover_letter.readable = True
@@ -467,7 +467,7 @@ def edit_my_article():
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
                 IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
             )
-            pciRRjsScript = None
+            pciRRjsScript = ""
         else:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
             pciRRjsScript = SCRIPT(
@@ -563,9 +563,14 @@ def edit_my_article():
         ]
         myScript = ""
 
-    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, showid=False)
+    buttons = [
+        A("Cancel", _class='btn btn-default', _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
+        INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
+    ]
 
-    form.element(_type="submit")["_value"] = T("Save")
+    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, buttons=buttons, showid=False)
+
+    # form.element(_type="submit")["_value"] = T("Save")
 
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
@@ -1457,19 +1462,19 @@ def edit_reply():
     db.t_recommendations.reply_pdf.label = T("OR Upload your reply as PDF file")
 
     buttons = [
-        INPUT(_type="Submit", _name="save", _class="btn btn-info", _value="Save"),
-        INPUT(_type="Submit", _name="completed", _class="btn btn-success", _value="Save & submit your reply"),
+        A("Cancel", _class='btn btn-default', _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
+        INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
     form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], buttons=buttons, upload=URL("default", "download"), showid=False)
 
     if form.process().accepted:
-        if request.vars.completed:
-            session.flash = T("Reply completed", lazy=False)
-            redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
-        else:
-            session.flash = T("Reply saved", lazy=False)
-            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        # if request.vars.completed:
+        #     session.flash = T("Reply completed", lazy=False)
+        #     redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
+        # else:
+        session.flash = T("Reply saved", lazy=False)
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(

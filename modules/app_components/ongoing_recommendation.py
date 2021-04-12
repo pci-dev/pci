@@ -590,6 +590,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False) if (hideOngoingRecomm is False) else ""
 
         componentVars = dict(
+            articleId=art.id,
             recommId=recomm.id,
             printable=printable,
             roundNumber=roundNb,

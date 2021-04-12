@@ -31,11 +31,50 @@
       {{pass}}
 
       {{if editAuthorsReplyLink is not None:}}
-        <a class="buttontext btn btn-default" 
-          href="{{=editAuthorsReplyLink}}"
-        >
-          {{=T('Write, edit or upload your reply to the recommender')}}
-        </a>
+        {{if authorsReply is None and authorsReplyPdfLink is None:}}
+          {{=T("First deposit the new version of your preprint on the preprint server")}}
+          <div class="pci2-flex-column">
+
+            <a class="buttontext btn btn-default" 
+              href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
+            >
+              {{=T('Edit your article data')}}
+            </a>
+
+            <a class="buttontext btn btn-info" 
+              href="{{=editAuthorsReplyLink}}"
+            >
+              {{=T('Write or upload your reply to the recommender')}}
+            </a>
+
+            <a disabled class="buttontext btn btn-success">
+              SEND RESUBMISSION
+            </a>
+          </div>
+
+        {{else:}}
+          <!-- Edit article -->
+          <div class="pci2-flex-column">
+
+            <a class="buttontext btn btn-default" 
+              href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
+            >
+              {{=T('Edit your article data')}}
+            </a>
+
+            <a class="buttontext btn btn-info" 
+              href="{{=editAuthorsReplyLink}}"
+            >
+              {{=T('Write or upload your reply to the recommender')}}
+            </a>
+
+            <a class="buttontext btn btn-success"
+              href="{{=URL(c="user_actions", f="article_revised", vars=dict(articleId=articleId), user_signature=True)}}"
+            >
+              SEND RESUBMISSION
+            </a>
+          </div>
+        {{pass}}
       {{pass}}
     </div>
   {{pass}}
