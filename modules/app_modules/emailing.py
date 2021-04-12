@@ -1792,11 +1792,11 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         hashtag_template = "#NewsLetterMonthly"
         newsletter_interval = 30
 
-    # New recommended articles
     newRecommendationsCount = 0
     newPreprintRequiringRecommenderCount = 0
     newPreprintSearchingForReviewersCount = 0
     if newsletter_interval is not None:
+        # New recommended articles
         new_recommended_articles = db(
             (
                 (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())

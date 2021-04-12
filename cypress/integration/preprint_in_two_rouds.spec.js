@@ -932,7 +932,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.contains(
         "a",
-        "Write, edit or upload your reply to the recommender"
+        "Write or upload your reply to the recommender"
       ).click();
 
       cy.fixture("fake_datas").then((datas) => {
@@ -944,7 +944,13 @@ describe("Preprint recommended in two round", () => {
         );
       });
 
-      cy.get('input[name="completed"]').click();
+      cy.get('input[type="submit"]').click();
+
+      cy.contains(
+        "a",
+        "SEND RESUBMISSION"
+      ).click();
+
     });
 
     it("=> mail sent to manager and recommender", () => {

@@ -2,7 +2,6 @@
   "name": "pcidev",
   "version": "1.0.0",
   "description": "What is PCI ? --------------- The “Peer Community in” project is a non-profit scientific organization aimed at creating specific communities of researchers reviewing and recommending papers in their field. These specific communities are entitled Peer Community in X, e.g. Peer Community in Evolutionary Biology, Peer Community in Microbiology.",
-  "dependencies": {},
   "scripts": {},
   "repository": {
     "type": "git",

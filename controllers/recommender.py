@@ -886,8 +886,8 @@ def show_report_survey():
 
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
-            "q1", ALTER TABLE t_report_survey RENAME COLUMN "Q1" TO q1;
-            "q2", ALTER TABLE t_report_survey RENAME COLUMN "Q2" TO q2;
+            "q1", 
+            "q2", 
             "q3",
             "q4",
             "q5",
