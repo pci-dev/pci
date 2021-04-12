@@ -756,12 +756,7 @@ def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
             mail_vars["articleTitle"] = article.title
             mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
             mail_vars["linkTarget"] = URL(
-                c="recommender",
-                f="recommendations",
-                scheme=mail_vars["scheme"],
-                host=mail_vars["host"],
-                port=mail_vars["port"],
-                vars=dict(articleId=article.id),
+                c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
             )
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
@@ -1864,6 +1859,23 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             newPreprintRequiringRecommender=newPreprintRequiringRecommender,
             newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
         )
+
+
+######################################################################################################################################################################
+def delete_newsletter_mail(session, auth, db, userId):
+    user = db.auth_user[userId]
+
+    if user is not None:
+        db(
+            (
+                (db.mail_queue.dest_mail_address == user.email)
+                & (
+                    (db.mail_queue.mail_template_hashtag == "#NewsLetterWeekly")
+                    | (db.mail_queue.mail_template_hashtag == "#NewsLetterEveryTwoWeeks")
+                    | (db.mail_queue.mail_template_hashtag == "#NewsLetterMonthly")
+                )
+            )
+        ).delete()
 
 
 ######################################################################################################################################################################

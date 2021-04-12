@@ -33,6 +33,7 @@ def test_flash():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testMyNewsletterMail():
     user = db.auth_user[auth.user_id]
+    emailing.delete_newsletter_mail(session, auth, db, auth.user_id)
     emailing.send_newsletter_mail(session, auth, db, auth.user_id, user.alerts)
     redirect(request.env.http_referer)
 
@@ -57,6 +58,7 @@ def sendNewsletterMails():
 
         for user in users_with_weekly_newsletter:
             print("Weekly newsletter: " + user.first_name + " " + user.last_name)
+            emailing.delete_newsletter_mail(session, auth, db, user.id)
             emailing.send_newsletter_mail(session, auth, db, user.id, "Weekly")
             user.last_alert = datetime.now()
             user.update_record()
@@ -73,6 +75,7 @@ def sendNewsletterMails():
 
         for user in users_with_two_weeks_newsletter:
             print("Every two weeks newsletter: " + user.first_name + " " + user.last_name)
+            emailing.delete_newsletter_mail(session, auth, db, user.id)
             emailing.send_newsletter_mail(session, auth, db, user.id, "Every two weeks")
             user.last_alert = datetime.now()
             user.update_record()
@@ -89,6 +92,7 @@ def sendNewsletterMails():
 
         for user in users_with_monthly_newsletter:
             print("Monthly newsletter: " + user.first_name + " " + user.last_name)
+            emailing.delete_newsletter_mail(session, auth, db, user.id)
             emailing.send_newsletter_mail(session, auth, db, user.id, "Monthly")
             user.last_alert = datetime.now()
             user.update_record()

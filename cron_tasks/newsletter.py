@@ -40,6 +40,7 @@ if any(conditions):
 
     for user in users_with_weekly_newsletter:
         print("Weekly newsletter: " + user.first_name + " " + user.last_name)
+        emailing.delete_newsletter_mail(session, auth, db, user.id)
         emailing.send_newsletter_mail(session, auth, db, user.id, "Weekly")
         user.last_alert = datetime.now()
         user.update_record()
@@ -56,6 +57,7 @@ if any(conditions):
 
     for user in users_with_two_weeks_newsletter:
         print("Every two weeks newsletter: " + user.first_name + " " + user.last_name)
+        emailing.delete_newsletter_mail(session, auth, db, user.id)
         emailing.send_newsletter_mail(session, auth, db, user.id, "Every two weeks")
         user.last_alert = datetime.now()
         user.update_record()
@@ -72,6 +74,7 @@ if any(conditions):
 
     for user in users_with_monthly_newsletter:
         print("Monthly newsletter: " + user.first_name + " " + user.last_name)
+        emailing.delete_newsletter_mail(session, auth, db, user.id)
         emailing.send_newsletter_mail(session, auth, db, user.id, "Monthly")
         user.last_alert = datetime.now()
         user.update_record()
