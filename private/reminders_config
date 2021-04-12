@@ -17,6 +17,6 @@
 #ReminderSubmitterSuggestedRecommenderNeeded = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 #ReminderSubmitterNewSuggestedRecommenderNeeded = [10]
 #ReminderSubmitterRevisedVersionWarning = [7]
-#ReminderSubmitterRevisedVersionNeeded = [30, 60, 90]
+#ReminderSubmitterRevisedVersionNeeded = [60, 90]
 
 #ReminderSuggestedRecommenderInvitation = [5, 9]

@@ -4,5 +4,7 @@
 * * * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/mail_queue.py >> /tmp/PCiEvolBiol3.cron.output 2>&1
 # and runs newsletter every 6 hours
 0 */6 * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/newsletter.py >> /tmp/PCiEvolBiol3.cron.output 2>&1
+# and runs delete old mails from queue every 6 hours (Article process completed for more than 60 days).
+0 */6 * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/delete_old_article_mails.py >> /tmp/PCiEvolBiol3.cron.output 2>&1
 # m h  dom mon dow   command
 

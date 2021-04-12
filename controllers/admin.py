@@ -99,7 +99,7 @@ def list_users():
         db.t_comments.parent_id,
     ]
 
-    if len(request.args) is not 0:  # grid view
+    if len(request.args) != 0:  # grid view
         fields += [
             db.auth_user.last_alert,
         ]
