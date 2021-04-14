@@ -25,16 +25,30 @@
     .navbar-toggle {
         float: left;
         padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 
     .btn-default:hover {
-        background-color: unset;
+        background-color: inherit;
+    }
+    
+    .pci2-thematics-button,
+    .pci2-thematics-button:hover {
+        background-color: rgba(0,150,190);
+        border-radius: 0;
+    }
+
+    .btn:hover,
+    .btn:active,
+    .btn:focus {
+        box-shadow: unset;
+        -webkit-box-shadow: unset;
     }
 
     .btn-default:active, .btn-default.active,
     .open > .dropdown-toggle.btn-default,
     .btn-default:focus, .btn-default.focus {
-        background-color: unset;
+        background-color: rgba(0,150,190);
     }
     
 
@@ -58,6 +72,19 @@
         color: #3e3f3a;
     }
 
+    .navbar .nav > li > a:hover {
+        color: #0096be;
+        background-color: unset;
+    }
+
+    .navbar .nav > li > .pci-public:hover {
+        background-color: #0096be;
+    }
+
+    .btn-success:hover {
+        background-color: #0096be;
+    }
+
     #articles-nav,
     #about-nav,
     #help-nav {
@@ -67,7 +94,7 @@
     #articles-nav ul,
     #about-nav ul,
     #help-nav ul {
-        list-style-type: disc;
+        list-style-type: none;
     }
 
     #main-content {
@@ -77,7 +104,8 @@
     #articles-nav ul a,
     #about-nav ul a,
     #help-nav ul a {
-        color: black;
+        color: rgb(62, 63, 58);
+        font-family: 'Open Sans', sans-serif;
     }
 
     .hr-nav {
@@ -95,27 +123,97 @@
     .pci2-full-width .btn {
         color: white;
         background-color: rgba(0,150,190);
-        width: 8rem;
+        width: auto;
         border-radius: 0;
         margin: 1.5rem .5rem 1.5rem 1rem;
         text-align: left;
     }
 
+    #cyp-login-button,
     #cyp-logout-button {
-        width: 10rem;
+        width: 8rem;
     }
+
+    .pci-infotext {
+        text-align: left;
+    }
+
 
     .pci-infotext h4,
     .pci-infotext ul {
         line-height: 1.6;
         font-size: 1.5rem;
-
     }
 
     .pci2-flex-center {
         margin-left: 3rem;
         width: 94%;
+        align-items: baseline;
     }
+
+    .pci2-justify-center #pci-ArticleHeader .pci2-flex-center {
+        margin-left: 1rem;
+    }
+
+    .pci2-justify-center #pci-ArticleHeader {
+        border: 0;
+    }
+
+    .pci2-justify-center .pci2-content-900px {
+        margin-left: 2rem;
+        border: 0;
+    }
+
+    .pci2-flex-row > .pci2-flex-center > .pci2-flex-center {
+        margin-left: 0;
+    }
+
+    .pci2-twitter-link {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+
+    .pci2-justify-center .pci2-content-900px .pci2-flex-row {
+        border: 0;
+    }
+
+    .pci2-yellow-link:hover .glyphicon, .pci2-yellow-link:focus .glyphicon,
+    .pci2-yellow-link .glyphicon {
+        color: rgba(0,150,190);
+    }
+
+    .pci2-tool-link-right .glyphicon {
+        margin-right: .5rem;
+    }
+
+    .pci2-user-stats-div .pci2-flex-row,
+    .pci2-article-list-titled .pci2-flex-row {
+        border: 0;
+    }
+
+    h2.pci2-recomm-article-h2 .pci2-main-color-text {
+        font-size: 2.4rem!important;
+    }
+
+
+    .pci-status-big.success:not(.printable) {
+        background-color: rgba(0,150,190);
+        margin-bottom: 1rem;
+        border-radius: 0;
+    }
+
+    .pci2-yellow-link:hover, .pci2-yellow-link:focus {
+        color: rgba(0,150,190);
+    }
+
+    .pci2-recomm-backButtonDiv {
+        margin-left: 2rem;
+    }
+
+    .pci2-recomm-backButtonDiv a {
+        border: 0;
+    }
+
 
     #myNavbar .flex-item .pci-public {
         color: white;
@@ -254,6 +352,7 @@
 
     .pci2-article-row h3 {
         line-height: 1.5;
+        font-size: 2rem;
     }
 
     .pci2-article-image-div > img {
@@ -304,6 +403,7 @@
     .pci-h1 {
         text-shadow: none;
         color: #3e3f3a!important;
+        font-size: 2.5rem;
     }
 
     .footer-sub {
@@ -341,6 +441,11 @@
 
     .footer-sub a {
         color: black;
+    }
+
+    .footer-sub a:hover {
+        text-decoration: unset;
+        color: #0096be;
     }
 
     .grey-footer .footer-sub-text {
@@ -397,6 +502,10 @@
 
     .pci2-search-form {
         margin-left: 2rem;
+    }
+
+    nav .pci2-search-form {
+        margin-left: 0;
     }
 
     .searchRecommendationsDiv {
@@ -482,13 +591,19 @@
         padding: 2rem 0;
     }
 
+    .pci-infotext div div div div div div div div > p > a > img {
+        width: 20rem;
+    }
+
+
     .pci-infotext div div div div div div img {
         padding-top: 3rem;
         margin-left: 2rem;
     }
 
     .pci-UsersTable {
-        margin: 0 1rem 0 3rem;
+        margin: 0 1rem 0 0;
+        width: 100%;
     }
 
 
@@ -554,8 +669,9 @@
         padding-bottom: 1rem;
     }
 
-    .pci-public {
+    nav .pci-public {
         margin-top: 0;
+        margin-bottom: 0;
     }
 
     .pci-public,
@@ -666,6 +782,11 @@
     .navbar-toggle {
         display: block;
         z-index: 2;
+    }
+
+    .pci2-thematic-link .glyphicon {
+        font-size: 1.2rem;
+        margin-top: .2rem;
     }
 
     .container-fluid {

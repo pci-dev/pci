@@ -44,8 +44,16 @@ function subnavs(subnav) {
         if (sub_navs[i] != subnav) {
             sub_navs[i].classList.remove('in');
         }
-    }
+    }   
+}
 
 
-    
+// these 2 functions serve as hover effects of the navigation burger on mobile
+function change_img() {
+    var nav_burger = document.querySelector('#pci-burger');
+    nav_burger.setAttribute('src', '/pci/static/images/pci-burger-active-03.svg');
+}
+function change_back() {
+    var nav_burger = document.querySelector('#pci-burger');
+    nav_burger.setAttribute('src', '/pci/static/images/pci-burger-default.svg');
 }

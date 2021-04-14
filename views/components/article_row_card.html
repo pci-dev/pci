@@ -1,16 +1,6 @@
 <div class="pci2-flex-row pci2-article-row pci2-flex-column-mobile">
   <div class="pci2-flex-column  pci2-article-left-div">
     <i>{{=articleDate}}</i>
-    <div
-      class="pci2-flex-center pci2-flex-grow pci2-article-image-div"
-      onclick="window.open('{{=articleUrl}}')"
-    >
-      {{=articleImg}} 
-      {{if articleImg == '':}}
-      <img src="{{=URL('static', 'images/small-background.png')}}" alt="toto" />
-      {{pass}}
-    </div>
-
     {{if pciRRactivated:}}
       <div class="pci-preprintTag">
         {{if isStage2:}}
@@ -21,6 +11,19 @@
         {{pass}}
       </div>
     {{pass}}
+    <div
+      class="pci2-flex-center pci2-flex-grow pci2-article-image-div"
+      onclick="window.open('{{=articleUrl}}')">
+
+      {{=articleImg}} 
+      
+
+      {{if articleImg == '':}}
+      <img src="{{=URL('static', 'images/small-background.png')}}" alt="toto" />
+      {{pass}}
+    </div>
+
+
       
     {{if isAlreadyPublished:}}
     <div class="pci-preprintTag">
