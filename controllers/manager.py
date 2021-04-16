@@ -640,6 +640,11 @@ def edit_article():
         db.t_articles.sub_thematics.readable = True
         db.t_articles.sub_thematics.writable = True
 
+        db.t_articles.record_url_version.readable = True
+        db.t_articles.record_url_version.writable = True
+        db.t_articles.record_id_version.readable = True
+        db.t_articles.record_id_version.writable = True
+
         if art.report_stage == "STAGE 2":
             db.t_articles.art_stage_1_id.readable = True
             db.t_articles.art_stage_1_id.writable = True

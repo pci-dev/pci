@@ -361,6 +361,11 @@ def fill_new_article():
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
         db.t_articles.sub_thematics.writable = True
+
+        db.t_articles.record_url_version.readable = True
+        db.t_articles.record_url_version.writable = True
+        db.t_articles.record_id_version.readable = True
+        db.t_articles.record_id_version.writable = True
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -377,6 +382,12 @@ def fill_new_article():
     fields += [
         "doi",
         "ms_version",
+    ]
+
+    if pciRRactivated:
+        fields += ["record_url_version", "record_id_version"]
+
+    fields += [
         "anonymous_submission",
         "title",
         "authors",
@@ -492,6 +503,12 @@ def edit_my_article():
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
         db.t_articles.sub_thematics.writable = True
+
+        db.t_articles.record_url_version.readable = True
+        db.t_articles.record_url_version.writable = True
+        db.t_articles.record_id_version.readable = True
+        db.t_articles.record_id_version.writable = True
+
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -514,6 +531,12 @@ def edit_my_article():
         fields += [
             "doi",
             "ms_version",
+        ]
+
+        if pciRRactivated:
+            fields += ["record_url_version", "record_id_version"]
+
+        fields += [
             "title",
             "anonymous_submission",
             "is_not_reviewed_elsewhere",
@@ -545,6 +568,12 @@ def edit_my_article():
         fields += [
             "doi",
             "ms_version",
+        ]
+
+        if pciRRactivated:
+            fields += ["record_url_version", "record_id_version"]
+
+        fields += [
             "title",
             "anonymous_submission",
             "authors",
@@ -553,7 +582,7 @@ def edit_my_article():
             "abstract",
             "thematics",
         ]
-        
+
         if pciRRactivated:
             fields += ["sub_thematics"]
 
@@ -564,7 +593,7 @@ def edit_my_article():
         myScript = ""
 
     buttons = [
-        A("Cancel", _class='btn btn-default', _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
+        A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
@@ -1462,7 +1491,7 @@ def edit_reply():
     db.t_recommendations.reply_pdf.label = T("OR Upload your reply as PDF file")
 
     buttons = [
-        A("Cancel", _class='btn btn-default', _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
+        A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 

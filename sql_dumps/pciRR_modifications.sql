@@ -62,3 +62,8 @@ ALTER TABLE "t_report_survey"
 
 ALTER TABLE "t_articles"
   ADD COLUMN "sub_thematics" VARCHAR(128);
+
+
+ALTER TABLE "t_articles"
+  ADD COLUMN "record_url_version" VARCHAR(128),
+  ADD COLUMN "record_id_version" VARCHAR(128);

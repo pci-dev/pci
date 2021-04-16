@@ -533,7 +533,7 @@ db.define_table(
     Field("authors", type="string", length=4096, label=T("Authors"), requires=IS_NOT_EMPTY(), represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)")),
     Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text)),
-    Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(', (e.g. v1)')), default=""),
+    Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. v1)')), default=""),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
@@ -579,9 +579,13 @@ db.define_table(
         represent=lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else "",
     ),
     Field("is_searching_reviewers", type="boolean", label=T("Open to reviewers"), default=False),
+    # PCI RR
     Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_EMPTY_OR(IS_IN_SET(("STAGE 1", "STAGE 2")))),
     Field("art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("Related stage 1 report")),
     Field("sub_thematics", type="string", label=T("Sub-field")),
+    Field("record_url_version", type="string", label=T("Version of record URL (if different from above; e.g., if the VOR file is difficult to read but it is the version-tracked document showing track changes, or if the DOI refers to a whole repository rather than the file in it that is being submitted)")),
+    Field("record_id_version", type="string", label=T("Version of record unique identifier (e.g., GitHub commit identifier)")),
+
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date")),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     format="%(title)s (%(authors)s)",
