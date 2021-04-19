@@ -36,6 +36,8 @@ for (const id_textarea of ids_array) {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
       invalid_styles: invalid_styles,
       selector: id_textarea,
+      // Remove auto conversion to relative url 
+      convert_urls: false,
       branding: false,
       menubar: false,
       statusbar: false,
