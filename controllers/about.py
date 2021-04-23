@@ -168,6 +168,13 @@ def full_policies():
         customText=getText(request, auth, db, "#FullPoliciesInfo"),
     )
 
+######################################################################################################################################################################
+def pci_partners():
+    response.view = "default/info.html"
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#PciPartnersTitle"),
+        customText=getText(request, auth, db, "#PciPartnersInfo"),
+    )
 
 ######################################################################################################################################################################
 def pci_rr_friendly_journals():

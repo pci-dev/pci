@@ -473,6 +473,10 @@ def _AboutMenu():
             (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
             LI(_class="divider"),
         ]
+    else:
+        aboutMenu += [
+            (T("PCI-partner and PCI-friendly journals"), False, URL("about", "pci_partners")),
+        ]
 
     aboutMenu += [
         LI(_class="divider"),
@@ -511,6 +515,14 @@ def _HelpMenu():
     else:
         helpMenu += [
             (T("How does it work?"), False, URL("help", "help_generic")),
+            LI(_class="divider"),
+            (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
+            LI(_class="divider"),
+            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
+            LI(_class="divider"),
+            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
+            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
+            LI(_class="divider"),
         ]
 
     if showGuideLines:
@@ -604,3 +616,6 @@ response.help_about_menu += _AccountMenu()
 # set the language
 if "adminLanguage" in request.cookies and not (request.cookies["adminLanguage"] is None):
     T.force(request.cookies["adminLanguage"].value)
+
+
+# 
