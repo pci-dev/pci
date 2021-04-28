@@ -134,6 +134,10 @@ def rss():
 # </link>
 # </links>
 
+def rss4biorxiv():
+    result = rss4bioRxiv()
+    return result
+
 def rss4elife():
     result = rss4bioRxiv()
     return result
