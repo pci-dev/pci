@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS "t_report_survey" (
 
 ALTER TABLE "t_report_survey" DROP CONSTRAINT IF EXISTS treportsurvey_tarticles_fkey;
 ALTER TABLE "t_report_survey" DROP CONSTRAINT IF EXISTS t_report_survey_article_id_fkey;
-ALTER TABLE "t_report_survey" ADD CONSTRAINT treportsurvey_tarticles_fkey FOREIGN KEY ("article_id") REFERENCES public.t_articles("id") ON UPDATE CASCADE DELETE CASCADE;
+ALTER TABLE "t_report_survey" ADD CONSTRAINT treportsurvey_tarticles_fkey FOREIGN KEY ("article_id") REFERENCES public.t_articles("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE "t_report_survey" DROP CONSTRAINT IF EXISTS t_report_survey_temp_art_stage_1_id_fkey;
 ALTER TABLE "t_report_survey" DROP CONSTRAINT IF EXISTS treportsurvey_tarticles_stage1_fkey;
