@@ -991,11 +991,11 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
                 if parallelSubmissionAllowed:
                     mail_vars[
                         "parallelText"
-                    ] += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
+                    ] += """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
                     if article.parallel_submission:
                         mail_vars[
                             "parallelText"
-                        ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.""" % mail_vars
+                        ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
@@ -2116,11 +2116,11 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         if parallelSubmissionAllowed:
             mail_vars[
                 "parallelText"
-            ] += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
+            ] += """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
             if article.parallel_submission:
                 mail_vars[
                     "parallelText"
-                ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.""" % mail_vars
+                ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
@@ -2151,11 +2151,11 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         if parallelSubmissionAllowed:
             mail_vars[
                 "parallelText"
-            ] += """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
+            ] += """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.""" % mail_vars
             if article.parallel_submission:
                 mail_vars[
                     "parallelText"
-                ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.""" % mail_vars
+                ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 

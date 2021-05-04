@@ -1342,7 +1342,8 @@ def email_for_registered_reviewer():
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
 
     description = myconf.take("app.description")
-    longname = myconf.take("app.longname")
+    longname = myconf.take("app.longname") # DEPRECATED: for compatibility purpose; to be removed after checkings
+    appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
@@ -1354,12 +1355,12 @@ def email_for_registered_reviewer():
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
-            """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n"""
+            """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.\n"""
             % locals()
         )
         if art.parallel_submission:
             parallelText += (
-                """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n"""
+                """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
 
@@ -1452,7 +1453,8 @@ def email_for_new_reviewer():
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
 
     description = myconf.take("app.description")
-    longname = myconf.take("app.longname")
+    longname = myconf.take("app.longname") # DEPRECATED
+    appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
@@ -1466,12 +1468,12 @@ def email_for_new_reviewer():
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
-            """Note that if the authors abandon the process at %(longname)s after reviewers have written their reports, we will post the reviewers' reports on the %(longname)s website as recognition of their work and in order to enable critical discussion.\n"""
+            """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.\n"""
             % locals()
         )
         if art.parallel_submission:
             parallelText += (
-                """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(longname)s, and hope you will agree to review this preprint.\n"""
+                """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
 
