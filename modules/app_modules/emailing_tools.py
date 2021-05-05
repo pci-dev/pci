@@ -103,6 +103,7 @@ def getMailCommonVars():
         appDescription=myconf.take("app.description"),
         appName=myconf.take("app.name"),
         appLongName=myconf.take("app.longname"),
+        longname=myconf.take("app.longname"),  # DEPRECATED: for compatibility purposes; to be removed after checking
         appThematics=myconf.take("app.thematics"),
         appContactMail=myconf.take("contacts.managers"),
         appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers")),

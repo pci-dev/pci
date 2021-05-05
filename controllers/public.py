@@ -30,7 +30,10 @@ def user_public_page():
 
                 name = LI(B(nameTitle))
                 addr = LI(I((user.laboratory or ""), ", ", (user.institution or ""), ", ", (user.city or ""), ", ", (user.country or ""),))
-                thema = LI(", ".join(user.thematics))
+                uthema = user.thematics
+                if not isinstance(uthema, list):
+                    uthema = [uthema]
+                thema = LI(", ".join(uthema))
                 mail = LI(A(" [%s]" % user.email, _href="mailto:%s" % user.email) if withMail else "")
 
                 if user.uploaded_picture is not None and user.uploaded_picture != "":
