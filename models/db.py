@@ -556,7 +556,7 @@ db.define_table(
         "cover_letter",
         type="text",
         length=2097152,
-        label=T("Cover letter"),
+        label=T("Cover letter (for the initial submission only, not for resubmissions)"),
         writable=False,
         readable=False,
         comment=T("You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter."),
