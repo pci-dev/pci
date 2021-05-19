@@ -15,6 +15,13 @@ The “Peer Community in” project is a non-profit scientific organization aime
 Intsall Python 3.6 or greater
 Intsall PostgreSql 9.6 or greater
 
+Suggestion: use a python virtual env
+
+```bash
+type -t mkvirtualenv || sudo apt-get install virtualenvwrapper
+mkvirtualenv pci --python=`which python3`
+```
+
 Install python dependencies :
 
 ```bash
