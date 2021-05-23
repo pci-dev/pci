@@ -3,6 +3,9 @@
 import time
 import re
 import copy
+import exiftool
+import os
+import io
 
 from gluon.contrib.markdown import WIKI
 
@@ -46,8 +49,8 @@ def index():
 
     myPanel = []
     tweeterAcc = myconf.get("social.tweeter")
-    #tweetHash = myconf.get("social.tweethash")
-    #tweeterId = myconf.get("social.tweeter_id")
+    # tweetHash = myconf.get("social.tweethash")
+    # tweeterId = myconf.get("social.tweeter_id")
     if tweeterAcc:
         myPanel.append(
             XML(
@@ -69,19 +72,12 @@ def index():
     myVarsNext = copy.deepcopy(myVars)
     myVarsNext["maxArticles"] = myVarsNext["maxArticles"] + 10
 
-    lastRecomms = FORM(
-        DIV(
-            loading(),
-            _id="lastRecommendations",
-        ),
-    )
+    lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
 
     lastRecommTitle = H3(
         T("Latest recommendations"),
         A(
-            SPAN(
-                IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),
-            ),
+            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
             _href=URL("about", "rss_info"),
             _class="btn btn-default pci-rss-btn",
             _style="float:right;",
@@ -311,14 +307,7 @@ def change_email():
             SPAN(_class="help-block"),
             _class="form-group",
         ),
-        DIV(
-            INPUT(
-                _value=T("Change e-mail address"),
-                _type="submit",
-                _class="btn btn-success",
-            ),
-            _class="form-group",
-        ),
+        DIV(INPUT(_value=T("Change e-mail address"), _type="submit", _class="btn btn-success",), _class="form-group",),
     )
 
     if form.process(onvalidation=change_mail_form_processing).accepted:
@@ -362,17 +351,53 @@ def recover_mail():
         redirect(URL("default", "index"))
 
 
-# (gab) is this used ?
-@cache.action()
+# @cache.action()
 def download():
     """
     allows downloading of uploaded files
     http://..../[app]/default/download/[filename]
     """
-    return response.download(request, db)
+
+    if request.args[0].endswith(".pdf"):
+        redirect(URL("default", "stream_pdf", args=request.args[0], scheme=scheme, host=host, port=port))
+    else:
+        file_to_download = response.download(request, db)
+        return file_to_download
 
 
-# (gab) is this used ?
+def stream_pdf():
+
+    filename = request.args[0]
+
+    match_regex = re.match("(.*?)\.(.*?)\.", filename)
+    table_name = match_regex.group(1)
+    table_file_field = match_regex.group(2)
+
+    row = db(db[table_name][table_file_field] == filename).select().first()
+
+    table_file_data_field = table_file_field + "_data"
+
+    file_data_bytes = row[table_file_data_field]
+
+
+    try:
+        # create temp file
+        file_to_download = os.path.join(request.folder, "tmp", "attachments", filename)
+        temp_file = open(file_to_download, 'wb')
+        temp_file.write(file_data_bytes)
+        temp_file.close()
+
+        # erase metadata
+        os.system('exiftool -overwrite_original -all:all="" ' + file_to_download)
+
+        result = response.stream(file_to_download)
+    except Exception as e:
+        print("ERROR : metadata NOT erased")
+        print(e)
+        result = response.download(request, db)
+    return result
+
+
 def call():
     """
     exposes services. for example:
