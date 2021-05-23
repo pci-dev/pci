@@ -96,8 +96,6 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     c = ""
     query = (db.help_texts.hashtag == myHashtag) & (db.help_texts.lang == myLanguage)
     h = db(query).select().first()
-    print(query)
-    print(h)
     if h:
         i = h.id
         c = replaceMailVars(h.contents or "", globals())
