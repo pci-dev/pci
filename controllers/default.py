@@ -3,7 +3,6 @@
 import time
 import re
 import copy
-import exiftool
 import os
 import io
 

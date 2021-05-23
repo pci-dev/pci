@@ -1,4 +1,4 @@
-install: web2py pydeps postgresql
+install: web2py pydeps postgresql additional
 
 
 web2py:
@@ -11,6 +11,9 @@ pydeps:
 
 postgresql:
 	sudo apt-get install -y postgresql postgresql-contrib
+
+additional:
+	sudo apt-get install -y libimage-exiftool-perl
 
 db:
 	$(psql) -c "CREATE ROLE pci_admin WITH LOGIN PASSWORD 'admin4pci'"
