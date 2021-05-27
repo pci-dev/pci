@@ -88,15 +88,19 @@
     <!-- Navbar ======================================= -->
     {{include 'snippets/navbar.html'}}
 
-    <!-- Masthead ===================================== -->    
+    <!-- Masthead ===================================== -->
     {{block header}}
-    <header id='pci-home-header' class="col-md-9">
-      <span>
-      <img src="{{=URL(c='static', f='images/background.png')}}">
-      {{if 'smallSearch' in locals():}}
-      <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
-      {{pass}}
-      </span>
+    {{if auth.user:}}
+      <header id='pci-home-header-large' class="col-md-9">
+    {{else:}}
+      <header id='pci-home-header' class="col-md-9">
+    {{pass}}
+        <span>
+          <img src="{{=URL(c='static', f='images/background.png')}}">
+          {{if 'smallSearch' in locals():}}
+            <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+          {{pass}}
+        </span>
       </header>
 
     {{end}}

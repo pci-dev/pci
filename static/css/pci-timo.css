@@ -281,9 +281,16 @@
         padding-top: 11rem;
     }
 
-    #pci-home-header img {
+    #pci-home-header-large {
+        padding-top: 11rem;
+        margin-bottom: 4rem;
+    }
+
+    #pci-home-header img,
+    #pci-home-header-large img {
         margin-left: 0;
         min-width: 28rem;
+        width: 28rem;
     }
 
     .pci2-thematic-link-div {
@@ -656,7 +663,8 @@
         padding-bottom: 1rem;
     }
     
-    #pci-home-header img {
+    #pci-home-header img,
+    #pci-home-header-large img {
         width: 45rem;
     }
 
@@ -801,6 +809,12 @@
         font-size: 1.5rem;
     }
 
+    .navbar .nav > li > .dropdown-toggle .pci-recommender {
+        margin: 0 0 .5rem 0;
+        padding: .5rem 0;
+        width: 16rem;
+    }
+
     .pci-public {
         width: 17rem;
     }
@@ -809,8 +823,13 @@
         padding-top: 2rem;
     }
 
-    #pci-home-header img {
+    #pci-home-header img,
+    #pci-home-header-large img {
         width: 64rem;
+    }
+
+    #pci-home-header-large {
+        padding-top: 23rem;
     }
 
     #main-content {
@@ -881,6 +900,10 @@
 
     .pci-infotext img {
         max-width: 70rem;
+    }
+
+    #pci-home-header-large {
+        padding-top: 17rem;
     }
 }
 
@@ -979,7 +1002,8 @@
         border-left: .1rem solid black;
     }
 
-    #pci-home-header {
+    #pci-home-header,
+    #pci-home-header-large {
         padding-left: 6rem;
         border-left: 0;
     }
@@ -1004,7 +1028,8 @@
         padding-top: 5rem;
     }
 
-    #pci-home-header {
+    #pci-home-header,
+    #pci-home-header-large {
         text-align: left;
     }
 
@@ -1051,7 +1076,8 @@
     }
 
     #pci-small-header,
-    #pci-home-header {
+    #pci-home-header,
+    #pci-home-header-large {
         width: 72%;
         height: 38rem;
         padding-bottom: 4rem;

@@ -1,4 +1,13 @@
 <nav class="navbar">
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+      {{if auth.user:}}
+        {{if response.menu:}}
+        {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
+      {{else:}}
+        <p>MISTE</p>
+      {{pass}}
+      {{pass}}
+    </div>
     <div class="main-logo">
       <a href="{{=URL(c='default', f='index')}}">
         <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
