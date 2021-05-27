@@ -170,11 +170,7 @@ def full_policies():
 
 ######################################################################################################################################################################
 def pci_partners():
-    response.view = "default/info.html"
-    return dict(
-        pageTitle=getTitle(request, auth, db, "#PciPartnersTitle"),
-        customText=getText(request, auth, db, "#PciPartnersInfo"),
-    )
+    redirect("https://peercommunityin.org/pci-and-journals/")
 
 ######################################################################################################################################################################
 def pci_rr_friendly_journals():

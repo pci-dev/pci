@@ -23,10 +23,10 @@ from app_modules import common_small_html
 myconf = AppConfig(reload=True)
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 
-print("Cron newsletter start")
 conditions = ["client" not in request, auth.has_membership(role="manager")]
 if any(conditions):
     my_date = date.today()
+    print("Cron newsletter start : " + str(my_date)) 
 
     # Weekly newsletter
     weekly_newsletter_date = my_date - timedelta(days=7)

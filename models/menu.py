@@ -455,8 +455,6 @@ def _AboutMenu():
     if ctr == "about":
         isActive = True
 
-    showGuideLines = myconf.get("menu.guidelines", False)
-
     aboutMenu = []
 
     aboutMenu += [
@@ -512,8 +510,20 @@ def _HelpMenu():
             (T("TOP Guidelines"), False, URL("help", "top_guidelines")),
             LI(_class="divider"),
         ]
-    else:
+    elif showGuideLines:
         helpMenu += [
+            (T("How does it work?"), False, URL("help", "help_generic")),
+            LI(_class="divider"),
+            (T("Submission guidelines"), False, URL("help", "help_guidelines")),
+            LI(_class="divider"),
+            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
+            LI(_class="divider"),
+            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
+            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
+            LI(_class="divider"),
+        ]
+    else:
+         helpMenu += [
             (T("How does it work?"), False, URL("help", "help_generic")),
             LI(_class="divider"),
             (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
@@ -524,12 +534,7 @@ def _HelpMenu():
             (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
             LI(_class="divider"),
         ]
-
-    if showGuideLines:
-        helpMenu += [
-            (T("Submission guidelines"), False, URL("help", "help_guidelines")),
-        ]
-
+        
     helpMenu += [
         (T("How to ...?"), False, URL("help", "help_practical")),
         (T("FAQs", lazy=False), False, URL("help", "faq")),

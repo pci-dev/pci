@@ -12,3 +12,4 @@ cypress/videos
 cypress/screenshots
 cypress/fixtures/users.json
 package-lock.json
+tmp/*
