@@ -176,4 +176,12 @@ END;
 $function$;
 
 -- 28/05/2021 : rename a mail_template hashtag to better fit its content.
-UPDATE public.mail_templates SET hashtag = '#AdminArticleResubmited' WHERE hashtag = '#ManagersArticleResubmited';
+-- UPDATE public.mail_templates SET hashtag = '#AdminArticleResubmited' WHERE hashtag = '#ManagersArticleResubmited';
+-- SP 2021-05-28 : copy instead of renaming ; check sequence value before
+SELECT pg_catalog.setval('mail_templates_id_seq', (SELECT max(id)+1 FROM public.mail_templates), true);
+INSERT INTO public.mail_templates (hashtag, lang, subject, description, contents)
+    SELECT '#AdminArticleResubmited', t.lang, t.subject, t.description, t.contents
+    FROM public.mail_templates AS t
+    WHERE t.hashtag = '#ManagersArticleResubmited';
+
+
