@@ -241,7 +241,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommendationStepClass = "step-done"
                 recommStatus = recomm.recommendation_state
 
-            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and recomm.reply is not None):
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
                 managerDecisionDoneClass = "step-done"
 
             if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
@@ -249,7 +249,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             else:
                 managerDecisionDoneStepClass = "progress-last-step-div"
 
-            if (roundNumber < totalRecomm) and (recomm.reply is not None) and (len(recomm.reply) > 0):
+            if (roundNumber < totalRecomm) and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None)):
                 authorsReplyClass = "step-done"
 
             if roundNumber == totalRecomm and recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
