@@ -196,7 +196,7 @@ def fields_awaiting_articles():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="recommender"))
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def search_reviewers():
     # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
     temp_db = DAL("sqlite:memory")
@@ -284,48 +284,53 @@ def search_reviewers():
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
-    temp_db.qy_reviewers.num.readable = False
-    temp_db.qy_reviewers.score.readable = False
-    grid = SQLFORM.grid(
-        qy_reviewers,
-        editable=False,
-        deletable=False,
-        create=False,
-        details=False,
-        searchable=False,
-        maxtextlength=250,
-        paginate=1000,
-        csv=csv,
-        exportclasses=expClass,
-        fields=[
-            temp_db.qy_reviewers.num,
-            temp_db.qy_reviewers.score,
-            temp_db.qy_reviewers.uploaded_picture,
-            temp_db.qy_reviewers.first_name,
-            temp_db.qy_reviewers.last_name,
-            temp_db.qy_reviewers.email,
-            temp_db.qy_reviewers.laboratory,
-            temp_db.qy_reviewers.institution,
-            temp_db.qy_reviewers.city,
-            temp_db.qy_reviewers.country,
-            temp_db.qy_reviewers.thematics,
-            temp_db.qy_reviewers.excluded,
-        ],
-        links=links,
-        orderby=temp_db.qy_reviewers.num,
-        args=request.args,
-    )
+    
+    if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        temp_db.qy_reviewers.num.readable = False
+        temp_db.qy_reviewers.score.readable = False
+        grid = SQLFORM.grid(
+            qy_reviewers,
+            editable=False,
+            deletable=False,
+            create=False,
+            details=False,
+            searchable=False,
+            maxtextlength=250,
+            paginate=1000,
+            csv=csv,
+            exportclasses=expClass,
+            fields=[
+                temp_db.qy_reviewers.num,
+                temp_db.qy_reviewers.score,
+                temp_db.qy_reviewers.uploaded_picture,
+                temp_db.qy_reviewers.first_name,
+                temp_db.qy_reviewers.last_name,
+                temp_db.qy_reviewers.email,
+                temp_db.qy_reviewers.laboratory,
+                temp_db.qy_reviewers.institution,
+                temp_db.qy_reviewers.city,
+                temp_db.qy_reviewers.country,
+                temp_db.qy_reviewers.thematics,
+                temp_db.qy_reviewers.excluded,
+            ],
+            links=links,
+            orderby=temp_db.qy_reviewers.num,
+            args=request.args,
+        )
 
-    response.view = "default/gab_list_layout.html"
-    return dict(
-        pageHelp=pageHelp,
-        titleIcon="search",
-        pageTitle=pageTitle,
-        customText=customText,
-        myBackButton=common_small_html.mkBackButton(),
-        searchForm=searchForm,
-        grid=grid,
-    )
+        response.view = "default/gab_list_layout.html"
+        return dict(
+            pageHelp=pageHelp,
+            titleIcon="search",
+            pageTitle=pageTitle,
+            customText=customText,
+            myBackButton=common_small_html.mkBackButton(),
+            searchForm=searchForm,
+            grid=grid,
+        )
 
 
 ######################################################################################################################################################################
