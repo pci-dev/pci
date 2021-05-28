@@ -46,6 +46,8 @@ if discontinued:
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+showGuideLines = myconf.get("menu.guidelines", default=False)
+
 
 # Appends developers menu (web2py)
 def _DevMenu():
@@ -491,8 +493,6 @@ def _HelpMenu():
     isActive = False
     if ctr == "help":
         isActive = True
-
-    showGuideLines = myconf.get("menu.guidelines", False)
 
     helpMenu = []
 
