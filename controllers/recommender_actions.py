@@ -212,7 +212,7 @@ def decline_new_article_to_recommend():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="recommender"))
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def suggest_review_to():
     reviewerId = request.vars["reviewerId"]
     if reviewerId is None:
