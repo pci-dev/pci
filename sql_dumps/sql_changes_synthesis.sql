@@ -175,6 +175,5 @@ BEGIN
 END;
 $function$;
 
-
-
-
+-- 28/05/2021 : rename a mail_template hashtag to better fit its content.
+UPDATE public.mail_templates SET hashtag = '#AdminArticleResubmited' WHERE hashtag = '#ManagersArticleResubmited';
