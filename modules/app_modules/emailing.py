@@ -1241,7 +1241,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
             recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             if article.status == "Awaiting revision":
-                hashtag_template = emailing_tools.getCorrectHashtag("#ManagersArticleResubmited", article)
+                hashtag_template = emailing_tools.getCorrectHashtag("#AdminArticleResubmited", article)
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#ManagersArticleConsideredForRecommendation", article)
 
@@ -1257,7 +1257,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ManagersArticleStatusChanged", article)
 
-        if hashtag_template == emailing_tools.getCorrectHashtag("#ManagersArticleResubmited", article):
+        if hashtag_template == emailing_tools.getCorrectHashtag("#AdminArticleResubmited", article):
             admins = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "administrator")).select(
                 db.auth_user.ALL
             )
