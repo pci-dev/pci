@@ -12,6 +12,8 @@ from app_modules.helper import *
 from gluon.utils import web2py_uuid
 
 from app_components import app_forms
+from app_modules import common_tools
+
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -38,6 +40,10 @@ def loading():
 ######################################################################################################################################################################
 # Home page (public)
 def index():
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    
     response.view = "default/index.html"
 
     # NOTE: do not delete: kept for later use
@@ -356,16 +362,14 @@ def download():
     allows downloading of uploaded files
     http://..../[app]/default/download/[filename]
     """
-
     if request.args[0].endswith(".pdf"):
-        redirect(URL("default", "stream_pdf", args=request.args[0], scheme=scheme, host=host, port=port))
+        redirect(URL("default", "stream_pdf", args=request.args[0]))
     else:
         file_to_download = response.download(request, db)
         return file_to_download
 
 
 def stream_pdf():
-
     filename = request.args[0]
 
     match_regex = re.match("(.*?)\.(.*?)\.", filename)
@@ -381,6 +385,7 @@ def stream_pdf():
 
     try:
         # create temp file
+        filename = filename[:150] + ".pdf"
         file_to_download = os.path.join(request.folder, "tmp", "attachments", filename)
         temp_file = open(file_to_download, 'wb')
         temp_file.write(file_data_bytes)
