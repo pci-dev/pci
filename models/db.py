@@ -503,8 +503,8 @@ db.define_table(
     Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#"),
     Field("lang", type="string", length=10, label=T("Language"), default="default"),
     Field("contents", type="text", length=1048576, label=T("Contents")),
-    # rname='public.help_texts_3', # HACK for safe migration purposes
-    # sequence_name='public.help_texts_id_seq',
+    rname='public.help_texts_3', # HACK for safe migration purposes
+    sequence_name='public.help_texts_id_seq',
     format="%(hashtag)s",
     migrate=False,
 )

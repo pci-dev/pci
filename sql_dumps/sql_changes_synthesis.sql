@@ -179,6 +179,7 @@ $function$;
 -- UPDATE public.mail_templates SET hashtag = '#AdminArticleResubmited' WHERE hashtag = '#ManagersArticleResubmited';
 -- SP 2021-05-28 : copy instead of renaming ; check sequence value before
 SELECT pg_catalog.setval('mail_templates_id_seq', (SELECT max(id)+1 FROM public.mail_templates), true);
+DELETE FROM public.mail_templates WHERE hashtag LIKE '#AdminArticleResubmited';
 INSERT INTO public.mail_templates (hashtag, lang, subject, description, contents)
     SELECT '#AdminArticleResubmited', t.lang, t.subject, t.description, t.contents
     FROM public.mail_templates AS t
