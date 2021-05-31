@@ -1503,7 +1503,7 @@ def edit_reply():
         #     redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
         # else:
         session.flash = T("Reply saved", lazy=False)
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     return dict(

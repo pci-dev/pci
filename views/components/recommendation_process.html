@@ -15,7 +15,7 @@
 
   <!-- Authors Reply -->
   {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None) or (editAuthorsReplyLink is not None):}}
-    <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
+    <h4 class="pci2-round-review-sub-title" id="author-reply">{{=T('Author\'s Reply')}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
 
       {{if authorsReplyPdfLink is not None:}}
@@ -33,42 +33,56 @@
       {{if editAuthorsReplyLink is not None:}}
         {{if authorsReply is None and authorsReplyPdfLink is None:}}
           {{=T("First deposit the new version of your preprint on the preprint server")}}
-          <div class="pci2-flex-column">
+          <div class="pci2-flex-column pci2-flex-center">
 
-            <a class="buttontext btn btn-default" 
-              href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
-            >
-              {{=T('Edit your article data')}}
-            </a>
+            <div class="pci2-flex-row pci2-full-width">
+              <a class="buttontext btn btn-default pci2-flex-center"
+                style="flex: 1;" 
+                href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
+              >
+                {{=T('Update your article data')}}
+              </a>
 
-            <a class="buttontext btn btn-info" 
-              href="{{=editAuthorsReplyLink}}"
-            >
-              {{=T('Write or upload your reply to the recommender')}}
-            </a>
-
-            <a disabled class="buttontext btn btn-success">
+              <a class="buttontext btn btn-info pci2-flex-center"
+                style="flex: 1;" 
+                href="{{=editAuthorsReplyLink}}"
+                >
+                {{=T('Write or upload your reply to the recommender')}}
+              </a>
+            </div>
+            <b>
+              and then
+            </b>
+            <a disabled style="font-size: 20px; height: 35px" class="buttontext btn btn-success pci2-flex-center pci2-full-width">
               SEND RESUBMISSION
             </a>
           </div>
 
         {{else:}}
           <!-- Edit article -->
-          <div class="pci2-flex-column">
+          <div class="pci2-flex-column pci2-flex-center">
 
-            <a class="buttontext btn btn-default" 
-              href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
-            >
-              {{=T('Edit your article data')}}
-            </a>
+            <div class="pci2-flex-row pci2-full-width">
+              <a class="buttontext btn btn-default pci2-flex-center" 
+                style="flex: 1;" 
+                href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
+              >
+                {{=T('Edit your article data')}}
+              </a>
+            
+              <a class="buttontext btn btn-info pci2-flex-center"
+                style="flex: 1;"  
+                href="{{=editAuthorsReplyLink}}"
+              >
+                {{=T('Edit your reply to the recommender')}}
+              </a>
+            </div>
+            
+            <b>
+              and then
+            </b>
 
-            <a class="buttontext btn btn-info" 
-              href="{{=editAuthorsReplyLink}}"
-            >
-              {{=T('Write or upload your reply to the recommender')}}
-            </a>
-
-            <a class="buttontext btn btn-success"
+            <a style="font-size: 20px; height: 35px" class="buttontext btn btn-success pci2-flex-center pci2-full-width"
               href="{{=URL(c="user_actions", f="article_revised", vars=dict(articleId=articleId), user_signature=True)}}"
             >
               SEND RESUBMISSION
