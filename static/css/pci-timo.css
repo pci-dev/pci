@@ -91,6 +91,10 @@
         padding-bottom: 2rem;
     }
 
+    .main-container {
+        margin-top: 1rem;
+    }
+
     #articles-nav ul,
     #about-nav ul,
     #help-nav ul {
@@ -115,6 +119,10 @@
 
     .navbar-nav {
         margin-top: 0;
+    }
+
+    .fade-transparent-text {
+        max-height: 4rem;
     }
 
     #cyp-login-button,
@@ -278,12 +286,12 @@
     }
 
     #pci-home-header {
-        padding-top: 11rem;
+        padding-top: 8rem;
     }
 
     #pci-home-header-large {
-        padding-top: 11rem;
-        margin-bottom: 4rem;
+        padding-top: 7rem;
+        margin-bottom: 1rem;
     }
 
     #pci-home-header img,
@@ -314,6 +322,7 @@
 
     .pci2-article-row > .pci2-flex-column > i > span {
         color: rgba(0,150,190);
+        font-size: 1.2rem;
     }
 
     .pci2-article-row > .pci2-flex-column > i {
@@ -336,12 +345,16 @@
     .pci2-article-infos {
         text-transform: uppercase;
         color: rgba(0,150,190);
-        margin-top: 1rem;
+        font-size: 1.2rem;
     }
 
     .doi_url {
         color: #938e8e;
         font-style: unset;
+    }
+
+    .social-links-div {
+        display: none;
     }
 
     .pci2-article-recommendation-div {
@@ -359,7 +372,7 @@
 
     .pci2-article-row h3 {
         line-height: 1.5;
-        font-size: 2rem;
+        font-size: 1.7rem;
     }
 
     .pci2-article-image-div > img {
@@ -370,7 +383,8 @@
     }
 
     .pci2-article-row h4 {
-        line-height: 1.7;
+        line-height: 1.5;
+        font-size: 1.4rem;
     }
 
     .pci2-article-recommendation-div {
@@ -418,7 +432,9 @@
     }
 
     .hr-footer {
-        border-top: .1rem solid black
+        border-top: .1rem solid black;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
     }
 
     #pci-twitter {
@@ -430,7 +446,7 @@
     }
 
     .recommenders .footer-sub-text {
-        line-height: 3;
+        line-height: 2.5;
     }
 
     .footer-sub {
@@ -457,7 +473,7 @@
 
     .grey-footer .footer-sub-text {
         padding-top: 1rem;
-        padding-bottom: 3rem;
+        padding-bottom: 1rem;
     }
 
     .suffix {
@@ -485,16 +501,17 @@
 
     .img-supporter {
         width: 15rem;
+        margin-bottom: 1rem;
     }
 
     .img-supporter-2 {
         width: 15rem;
-        padding-bottom: 4rem;
+        padding-bottom: 2rem;
     }
 
     #ms {
         position: relative;
-        bottom: 4rem;
+        bottom: 1rem;
         left: 2rem;
     }
 
@@ -662,15 +679,27 @@
         margin-top: 2rem;
         padding-bottom: 1rem;
     }
+
+    #pci-home-header {
+        padding-top: 10rem;
+    }
     
     #pci-home-header img,
     #pci-home-header-large img {
         width: 45rem;
     }
 
+    #pci-home-header-large {
+        padding-top: 9rem;
+    }
+
     #cyp-login-button,
     #cyp-logout-button {
         padding-bottom: 1rem;
+    }
+
+    .main-container {
+        margin-top: 2rem;
     }
 
     #myNavbar .flex-item .pci-public {
@@ -743,10 +772,6 @@
         width: 22rem;
         padding-top: 1.5rem;
         padding-right: 1rem;
-    }
-
-    .grey-footer .suffix {
-        padding-top: 5rem;
     }
 
     #pci-small-header {
@@ -825,19 +850,20 @@
 
     #pci-home-header img,
     #pci-home-header-large img {
-        width: 64rem;
+        width: 55rem;
     }
 
     #pci-home-header-large {
         padding-top: 23rem;
+        margin-left: 4rem;
     }
 
     #main-content {
-        padding: 2rem 4rem;
+        padding: 0 4rem 2rem 4rem;
     }
 
     .footer-sub .hide-below-tablet {
-        margin-top: 10rem;
+        margin-top: 4rem;
     }
 
     #footer .flex-item {
@@ -849,7 +875,7 @@
     }
 
     .grey-footer {
-        padding: 5rem;
+        padding: 2rem 5rem;
     }
 
     #pci-small-header {
@@ -903,7 +929,11 @@
     }
 
     #pci-home-header-large {
-        padding-top: 17rem;
+        padding-top: 15rem;
+    }
+
+    #pci-home-header {
+        padding-top: 8rem;
     }
 }
 
@@ -944,7 +974,7 @@
         height: unset;
         padding-bottom: 2rem;
         padding-top: 2rem!important;
-        left: 60%;
+        left: 50%;
     }
 
     #articles-nav,
@@ -964,9 +994,12 @@
         padding-left: 3rem;
     }
 
-    #myNavbar .submit-btn,
     #myNavbar .search-btn {
         display: none;
+    }
+
+    #pci-ArticleHeader {
+        margin-top: 3rem;
     }
 
     .left-sidebar {
@@ -999,7 +1032,16 @@
 
     .col-md-9 {
         width: 73%;
-        border-left: .1rem solid black;
+        border-right: .1rem solid black;
+    }
+
+    #pci-home-header,
+    #pci-home-header-large {
+        border: 0;
+    }
+
+    #pci-home-header {
+        padding-top: 7rem;
     }
 
     #pci-home-header,
@@ -1011,8 +1053,8 @@
     .col-md-3 {
         position: relative;
         top: 0;
-        right: -.1rem;
-        border-right: .1rem solid black;
+        left: -.1rem;
+        border-left: .1rem solid black;
     }
 
     .col-md-9 > div > .pci-public,
@@ -1078,9 +1120,17 @@
     #pci-small-header,
     #pci-home-header,
     #pci-home-header-large {
-        width: 72%;
-        height: 38rem;
+        width: 100%;
+        height: 27rem;
         padding-bottom: 4rem;
+    }
+
+    #pci-home-header-large {
+        height: 35rem;
+    }
+
+    .col-md-3 {
+        width: 27.2rem;
     }
 
     .pci-infotextbox {
@@ -1088,7 +1138,7 @@
     }
 
     .pci-infotext > h2 {
-        font-size: 4rem;
+        font-size: 3rem;
         margin-top: 0!important;
         line-height: 1!important;
     }
@@ -1102,11 +1152,6 @@
         border-bottom: .1rem solid #598398;
     }
 
-
-
-
-
-
     .hide-mobile {
         display: block;
     }
@@ -1116,11 +1161,3 @@
     }
 }
 
-
-@media only screen and (min-width: 1700px) {
-    #myNavbar {
-        left: 52%;
-    }
-
-
-}

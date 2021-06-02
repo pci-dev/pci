@@ -62,7 +62,7 @@
     
     {{block head}}{{end}}
     {{
-    # using sidebars need to know what sidebar you want to use
+    # using sidebars need to know what sidebar you want to use.
     # Gabriel, I tinkered with this setup as you can see below;
     # Please feel free to correct the way the parameters are 
     # created, but please leave the settings as they are
@@ -70,8 +70,8 @@
     mc0 = 'col-md-12'
     mc1 = 'col-md-9'
     mc2 = 'col-md-6'
-    left_sidebar_enabled = True # globals().get('left_sidebar_enabled', False)
-    right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
+    left_sidebar_enabled = False # globals().get('left_sidebar_enabled', False)
+    right_sidebar_enabled = True #globals().get('right_sidebar_enabled', False)
     middle_column = mc1 # {0: mc0, 1: mc1, 2: mc2}[
     #(left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
@@ -110,13 +110,11 @@
 
     <!-- Begin page content -->
     <div class="container-fluid main-container flex-container row" id="main-content">
-      {{if left_sidebar_enabled:}}
+      {{if left_sidebar_enabled and False:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
             {{if auth.user:}}
-            <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
-              {{=T("Submit a preprint")}}
-            </a>
+
         
             {{else:}}
             <div class="side-button-bar">
@@ -140,12 +138,30 @@
         {{end}}
       </div>
 
-      {{if right_sidebar_enabled and False:}}
-        <div class="col-md-3">
+      {{if right_sidebar_enabled:}}
+        <!--div class="col-md-3">
             {{block right_sidebar}}
               {{include 'snippets/footer.html'}}
             {{end}}
-        </div>
+        </div-->
+        <div class="col-md-3 left-sidebar">
+          {{block left_sidebar}}
+          {{if auth.user:}}
+      
+          {{else:}}
+          <div class="side-button-bar">
+            <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
+              {{=T('Log in')}}
+            </a>
+            <label>{{=T(' or ')}}</label>
+            <a href="{{=URL(c='default', f='user', args=['register'])}}" class="btn btn-info">
+              {{=T('Register')}}
+            </a>
+          </div>
+        {{pass}} 
+        {{include 'snippets/footer.html'}}
+        {{end}}
+      </div>
       {{pass}}
 
     </div>
