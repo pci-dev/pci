@@ -128,6 +128,7 @@ def index():
             script=myScript,
             pciRRactivated=pciRRactivated,
             tweeterAcc=tweeterAcc,
+            panel=None,
         )
     else:
         return dict(
