@@ -153,8 +153,12 @@
         font-size: 1.5rem;
     }
 
+    #pci-home-header img {
+        max-width: 100%;
+    }
+
     .pci2-flex-center {
-        margin-left: 3rem;
+        margin-left: .5rem;
         width: 94%;
         align-items: baseline;
     }
@@ -402,7 +406,7 @@
 
     .pci2-article-row {
         margin-bottom: 2.5rem;
-        padding-bottom: 3rem;
+        padding-bottom: .5rem;
     }
 
     #moreLatestBtn {
@@ -434,11 +438,13 @@
     .hr-footer {
         border-top: .1rem solid black;
         margin-top: 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0;
     }
 
     #pci-twitter {
         width: 4rem;
+        margin-top: 1rem;
+        margin-left: 1.5rem;
     }
 
     .footer-sub-text {
@@ -501,7 +507,6 @@
 
     .img-supporter {
         width: 15rem;
-        margin-bottom: 1rem;
     }
 
     .img-supporter-2 {
@@ -693,9 +698,12 @@
         padding-top: 9rem;
     }
 
-    #cyp-login-button,
-    #cyp-logout-button {
+    #cyp-login-button {
         padding-bottom: 1rem;
+    }
+
+    #cyp-logout-button {
+        padding-bottom: .5rem;
     }
 
     .main-container {
@@ -863,7 +871,7 @@
     }
 
     .footer-sub .hide-below-tablet {
-        margin-top: 4rem;
+        margin-top: 2rem;
     }
 
     #footer .flex-item {
@@ -946,7 +954,12 @@
 
     .navbar {
         border-bottom: 0;
-        padding-bottom: 8rem;
+        max-width: 120rem;
+    }
+
+    .navbar > .container-fluid {
+        float: right;
+        padding-right: 7.5rem;
     }
 
     .navbar-nav {
@@ -969,12 +982,11 @@
 
     #myNavbar {
         display: block;
-        position: absolute;
+        position: relative;
         background-color: transparent;
         height: unset;
         padding-bottom: 2rem;
         padding-top: 2rem!important;
-        left: 50%;
     }
 
     #articles-nav,
@@ -1000,6 +1012,20 @@
 
     #pci-ArticleHeader {
         margin-top: 3rem;
+    }
+
+    .search-wrapper .pci2-search-input, .pci2-search-form .pci2-search-input,
+    .pci2-thematic-link-div,
+    #lastRecommendationsDiv {
+        margin-left: 0;
+    }
+
+    .pci2-thematic-link {
+        padding-left: 0;
+    }
+
+    .pci2-search-form {
+        margin-left: .5rem;
     }
 
     .left-sidebar {
@@ -1063,11 +1089,11 @@
     }
 
     .left-sidebar .pci-public {
-        margin-left: 2.3rem;
+        margin-left: 1rem;
     }
 
     .first-pci-h1 {
-        padding-top: 5rem;
+        padding-top: 1rem;
     }
 
     #pci-home-header,
@@ -1121,12 +1147,12 @@
     #pci-home-header,
     #pci-home-header-large {
         width: 100%;
-        height: 27rem;
+        height: 24rem;
         padding-bottom: 4rem;
     }
 
     #pci-home-header-large {
-        height: 35rem;
+        height: 32rem;
     }
 
     .col-md-3 {
@@ -1157,7 +1183,6 @@
     }
 
     .hide-desktop {
-        display: none;
+        display: none!important;
     }
 }
-

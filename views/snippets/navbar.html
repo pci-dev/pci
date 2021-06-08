@@ -108,22 +108,16 @@
             </div>
           </li>
           <hr class="hr-nav hide-desktop">
-          <li class="flex-item">
+          <li class="flex-item hide-desktop">
             {{if auth.user:}}
             <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
               {{=T('Log out')}}
             </a>
-
             {{ else: }}
               <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
                 {{=T('Log in')}}
               </a>
             {{ pass }}
-          </li>
-          <li class="flex-item submit-btn">
-            <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
-            {{=T("Submit a preprint")}}
-          </a>
           </li>
           {{if 'searchForm' in locals():}}
             <li class="flex-item search-btn">
