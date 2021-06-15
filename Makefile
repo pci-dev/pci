@@ -21,6 +21,7 @@ db:
 	$(psql) main < sql_dumps/insert_default_help_texts.sql
 	$(psql) main < sql_dumps/insert_default_mail_templates.sql
 	$(psql) main < sql_dumps/t_status_article.sql
+	$(psql) main -c "insert into help_texts_3 select * from help_texts"
 
 db.clean:
 	$(psql) -c "drop database if exists main"
