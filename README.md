@@ -12,27 +12,23 @@ The “Peer Community in” project is a non-profit scientific organization aime
 
 ## Install project
 
-Intsall Python 3.6 or greater
-Intsall PostgreSql 9.6 or greater
+Requirements: Python (3.6 or greater), PostgreSql (9.6 or greater), web2py.
 
-Install python dependencies :
+Suggestion: use a python virtual env
 
 ```bash
-pip install requierment.txt
+make py.venv
 ```
 
-Create PostgreSql database
-
-Import help texts :
+Install all required components:
 
 ```bash
-
+make install
 ```
 
-Create admin user :
-
+Create PostgreSql database and user
 ```bash
-
+make db
 ```
 
 Create or fill the configuration file with your credentials :
@@ -66,7 +62,7 @@ tweeter_access_token_secret =
 Run project :
 
 ```bash
-python web2py.py
+make start
 ```
 
 Run mailing queue :

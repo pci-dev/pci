@@ -1,0 +1,8 @@
+pydal
+yatl
+furl
+lxml
+orderedmultidict
+psycopg2-binary
+dateutils
+pillow
