@@ -45,7 +45,7 @@ COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
--- Name: alert_last_recommended_article_ids_for_user(integer); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: alert_last_recommended_article_ids_for_user(integer); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.alert_last_recommended_article_ids_for_user(userid integer) RETURNS integer[]
@@ -73,10 +73,10 @@ END;
 $_$;
 
 
-ALTER FUNCTION public.alert_last_recommended_article_ids_for_user(userid integer) OWNER TO piry;
+ALTER FUNCTION public.alert_last_recommended_article_ids_for_user(userid integer) OWNER TO pci_admin;
 
 --
--- Name: auto_last_change_recommendation_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: auto_last_change_recommendation_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.auto_last_change_recommendation_trigger_function() RETURNS trigger
@@ -98,10 +98,10 @@ CREATE FUNCTION public.auto_last_change_recommendation_trigger_function() RETURN
 $$;
 
 
-ALTER FUNCTION public.auto_last_change_recommendation_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.auto_last_change_recommendation_trigger_function() OWNER TO pci_admin;
 
 --
--- Name: auto_last_change_review_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: auto_last_change_review_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.auto_last_change_review_trigger_function() RETURNS trigger
@@ -123,10 +123,10 @@ CREATE FUNCTION public.auto_last_change_review_trigger_function() RETURNS trigge
 $$;
 
 
-ALTER FUNCTION public.auto_last_change_review_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.auto_last_change_review_trigger_function() OWNER TO pci_admin;
 
 --
--- Name: auto_last_status_change_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: auto_last_status_change_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.auto_last_status_change_trigger_function() RETURNS trigger
@@ -148,10 +148,10 @@ CREATE FUNCTION public.auto_last_status_change_trigger_function() RETURNS trigge
 $$;
 
 
-ALTER FUNCTION public.auto_last_status_change_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.auto_last_status_change_trigger_function() OWNER TO pci_admin;
 
 --
--- Name: auto_nb_recommendations_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: auto_nb_recommendations_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.auto_nb_recommendations_trigger_function() RETURNS trigger
@@ -173,10 +173,10 @@ CREATE FUNCTION public.auto_nb_recommendations_trigger_function() RETURNS trigge
 $$;
 
 
-ALTER FUNCTION public.auto_nb_recommendations_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.auto_nb_recommendations_trigger_function() OWNER TO pci_admin;
 
 --
--- Name: colpivot(character varying, character varying, character varying[], character varying[], character varying, character varying); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: colpivot(character varying, character varying, character varying[], character varying[], character varying, character varying); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.colpivot(out_table character varying, in_query character varying, key_cols character varying[], class_cols character varying[], value_e character varying, col_order character varying) RETURNS void
@@ -295,10 +295,10 @@ CREATE FUNCTION public.colpivot(out_table character varying, in_query character 
 $$;
 
 
-ALTER FUNCTION public.colpivot(out_table character varying, in_query character varying, key_cols character varying[], class_cols character varying[], value_e character varying, col_order character varying) OWNER TO piry;
+ALTER FUNCTION public.colpivot(out_table character varying, in_query character varying, key_cols character varying[], class_cols character varying[], value_e character varying, col_order character varying) OWNER TO pci_admin;
 
 --
--- Name: distinct_words_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: distinct_words_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.distinct_words_trigger_function() RETURNS trigger
@@ -365,10 +365,10 @@ CREATE FUNCTION public.distinct_words_trigger_function() RETURNS trigger
 $$;
 
 
-ALTER FUNCTION public.distinct_words_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.distinct_words_trigger_function() OWNER TO pci_admin;
 
 --
--- Name: get_distinct_word_id(character varying); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: get_distinct_word_id(character varying); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.get_distinct_word_id(myword character varying) RETURNS integer
@@ -387,10 +387,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.get_distinct_word_id(myword character varying) OWNER TO piry;
+ALTER FUNCTION public.get_distinct_word_id(myword character varying) OWNER TO pci_admin;
 
 --
--- Name: propagate_field_deletion_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: propagate_field_deletion_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.propagate_field_deletion_function() RETURNS trigger
@@ -410,10 +410,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.propagate_field_deletion_function() OWNER TO piry;
+ALTER FUNCTION public.propagate_field_deletion_function() OWNER TO pci_admin;
 
 --
--- Name: rewords_article(integer); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: rewords_article(integer); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.rewords_article(articleid integer) RETURNS void
@@ -459,10 +459,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.rewords_article(articleid integer) OWNER TO piry;
+ALTER FUNCTION public.rewords_article(articleid integer) OWNER TO pci_admin;
 
 --
--- Name: search_articles(text[], text[], character varying, real, boolean); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: search_articles(text[], text[], character varying, real, boolean); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.search_articles(mythematics text[], mywords text[], mystatus character varying DEFAULT 'Recommended'::character varying, mylimit real DEFAULT 0.4, all_by_default boolean DEFAULT false) RETURNS TABLE(id integer, num integer, score double precision, title text, authors text, article_source character varying, doi character varying, abstract text, upload_timestamp timestamp without time zone, thematics character varying, keywords text, auto_nb_recommendations integer, status character varying, last_status_change timestamp without time zone, uploaded_picture character varying, already_published boolean, anonymous_submission boolean, parallel_submission boolean)
@@ -521,10 +521,10 @@ END;
 $_$;
 
 
-ALTER FUNCTION public.search_articles(mythematics text[], mywords text[], mystatus character varying, mylimit real, all_by_default boolean) OWNER TO piry;
+ALTER FUNCTION public.search_articles(mythematics text[], mywords text[], mystatus character varying, mylimit real, all_by_default boolean) OWNER TO pci_admin;
 
 --
--- Name: search_articles_new(text[], text[], character varying, real, boolean); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: search_articles_new(text[], text[], character varying, real, boolean); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.search_articles_new(mythematics text[], mywords text[], mystatus character varying DEFAULT '''Recommended''::character varying'::character varying, mylimit real DEFAULT '0.400000006'::real, all_by_default boolean DEFAULT false) RETURNS TABLE(id integer, num integer, score double precision, title text, authors text, article_source character varying, doi character varying, abstract text, upload_timestamp timestamp without time zone, thematics character varying, keywords text, auto_nb_recommendations integer, status character varying, last_status_change timestamp without time zone, uploaded_picture character varying, already_published boolean, anonymous_submission boolean, parallel_submission boolean, art_stage_1_id integer)
@@ -583,10 +583,10 @@ END;
 $_$;
 
 
-ALTER FUNCTION public.search_articles_new(mythematics text[], mywords text[], mystatus character varying, mylimit real, all_by_default boolean) OWNER TO piry;
+ALTER FUNCTION public.search_articles_new(mythematics text[], mywords text[], mystatus character varying, mylimit real, all_by_default boolean) OWNER TO pci_admin;
 
 --
--- Name: search_recommenders(text[], text[], integer[]); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: search_recommenders(text[], text[], integer[]); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.search_recommenders(mythematics text[], mywords text[], exclude integer[] DEFAULT ARRAY[]::integer[]) RETURNS TABLE(id integer, num integer, score double precision, first_name character varying, last_name character varying, email character varying, uploaded_picture character varying, city character varying, country character varying, laboratory character varying, institution character varying, thematics character varying, excluded boolean)
@@ -645,10 +645,10 @@ END;
 $_$;
 
 
-ALTER FUNCTION public.search_recommenders(mythematics text[], mywords text[], exclude integer[]) OWNER TO piry;
+ALTER FUNCTION public.search_recommenders(mythematics text[], mywords text[], exclude integer[]) OWNER TO pci_admin;
 
 --
--- Name: search_reviewers(text[], text[], integer[]); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: search_reviewers(text[], text[], integer[]); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.search_reviewers(mythematics text[], mywords text[], exclude integer[] DEFAULT ARRAY[]::integer[]) RETURNS TABLE(id integer, num integer, score double precision, first_name character varying, last_name character varying, email character varying, uploaded_picture character varying, city character varying, country character varying, laboratory character varying, institution character varying, thematics character varying, roles character varying, excluded boolean)
@@ -709,10 +709,10 @@ END;
 $_$;
 
 
-ALTER FUNCTION public.search_reviewers(mythematics text[], mywords text[], exclude integer[]) OWNER TO piry;
+ALTER FUNCTION public.search_reviewers(mythematics text[], mywords text[], exclude integer[]) OWNER TO pci_admin;
 
 --
--- Name: set_auto_keywords(integer); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: set_auto_keywords(integer); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.set_auto_keywords(my_id integer) RETURNS void
@@ -732,10 +732,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.set_auto_keywords(my_id integer) OWNER TO piry;
+ALTER FUNCTION public.set_auto_keywords(my_id integer) OWNER TO pci_admin;
 
 --
--- Name: set_auto_nb_agreements(integer); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: set_auto_nb_agreements(integer); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.set_auto_nb_agreements(my_id integer) RETURNS void
@@ -752,10 +752,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.set_auto_nb_agreements(my_id integer) OWNER TO piry;
+ALTER FUNCTION public.set_auto_nb_agreements(my_id integer) OWNER TO pci_admin;
 
 --
--- Name: set_auto_nb_recommendations(integer); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: set_auto_nb_recommendations(integer); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.set_auto_nb_recommendations(my_id integer) RETURNS void
@@ -770,10 +770,10 @@ END;
 $$;
 
 
-ALTER FUNCTION public.set_auto_nb_recommendations(my_id integer) OWNER TO piry;
+ALTER FUNCTION public.set_auto_nb_recommendations(my_id integer) OWNER TO pci_admin;
 
 --
--- Name: user_words_trigger_function(); Type: FUNCTION; Schema: public; Owner: piry
+-- Name: user_words_trigger_function(); Type: FUNCTION; Schema: public; Owner: pci_admin
 --
 
 CREATE FUNCTION public.user_words_trigger_function() RETURNS trigger
@@ -815,12 +815,12 @@ CREATE FUNCTION public.user_words_trigger_function() RETURNS trigger
 $$;
 
 
-ALTER FUNCTION public.user_words_trigger_function() OWNER TO piry;
+ALTER FUNCTION public.user_words_trigger_function() OWNER TO pci_admin;
 
 SET default_tablespace = '';
 
 --
--- Name: auth_cas; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_cas; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_cas (
@@ -833,10 +833,10 @@ CREATE TABLE public.auth_cas (
 );
 
 
-ALTER TABLE public.auth_cas OWNER TO piry;
+ALTER TABLE public.auth_cas OWNER TO pci_admin;
 
 --
--- Name: auth_cas_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_cas_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_cas_id_seq
@@ -847,17 +847,17 @@ CREATE SEQUENCE public.auth_cas_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_cas_id_seq OWNER TO piry;
+ALTER TABLE public.auth_cas_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_cas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_cas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_cas_id_seq OWNED BY public.auth_cas.id;
 
 
 --
--- Name: auth_event; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_event; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_event (
@@ -870,10 +870,10 @@ CREATE TABLE public.auth_event (
 );
 
 
-ALTER TABLE public.auth_event OWNER TO piry;
+ALTER TABLE public.auth_event OWNER TO pci_admin;
 
 --
--- Name: auth_event_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_event_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_event_id_seq
@@ -884,17 +884,17 @@ CREATE SEQUENCE public.auth_event_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_event_id_seq OWNER TO piry;
+ALTER TABLE public.auth_event_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_event_id_seq OWNED BY public.auth_event.id;
 
 
 --
--- Name: auth_group; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_group; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_group (
@@ -904,10 +904,10 @@ CREATE TABLE public.auth_group (
 );
 
 
-ALTER TABLE public.auth_group OWNER TO piry;
+ALTER TABLE public.auth_group OWNER TO pci_admin;
 
 --
--- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_group_id_seq
@@ -918,17 +918,17 @@ CREATE SEQUENCE public.auth_group_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_group_id_seq OWNER TO piry;
+ALTER TABLE public.auth_group_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_group_id_seq OWNED BY public.auth_group.id;
 
 
 --
--- Name: auth_membership; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_membership; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_membership (
@@ -938,10 +938,10 @@ CREATE TABLE public.auth_membership (
 );
 
 
-ALTER TABLE public.auth_membership OWNER TO piry;
+ALTER TABLE public.auth_membership OWNER TO pci_admin;
 
 --
--- Name: auth_membership_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_membership_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_membership_id_seq
@@ -952,17 +952,17 @@ CREATE SEQUENCE public.auth_membership_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_membership_id_seq OWNER TO piry;
+ALTER TABLE public.auth_membership_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_membership_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_membership_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_membership_id_seq OWNED BY public.auth_membership.id;
 
 
 --
--- Name: auth_permission; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_permission; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_permission (
@@ -974,10 +974,10 @@ CREATE TABLE public.auth_permission (
 );
 
 
-ALTER TABLE public.auth_permission OWNER TO piry;
+ALTER TABLE public.auth_permission OWNER TO pci_admin;
 
 --
--- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_permission_id_seq
@@ -988,17 +988,17 @@ CREATE SEQUENCE public.auth_permission_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_permission_id_seq OWNER TO piry;
+ALTER TABLE public.auth_permission_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_permission_id_seq OWNED BY public.auth_permission.id;
 
 
 --
--- Name: auth_user; Type: TABLE; Schema: public; Owner: piry
+-- Name: auth_user; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.auth_user (
@@ -1028,10 +1028,10 @@ CREATE TABLE public.auth_user (
 );
 
 
-ALTER TABLE public.auth_user OWNER TO piry;
+ALTER TABLE public.auth_user OWNER TO pci_admin;
 
 --
--- Name: auth_user_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: auth_user_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.auth_user_id_seq
@@ -1042,17 +1042,17 @@ CREATE SEQUENCE public.auth_user_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.auth_user_id_seq OWNER TO piry;
+ALTER TABLE public.auth_user_id_seq OWNER TO pci_admin;
 
 --
--- Name: auth_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: auth_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.auth_user_id_seq OWNED BY public.auth_user.id;
 
 
 --
--- Name: help_texts; Type: TABLE; Schema: public; Owner: piry
+-- Name: help_texts; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.help_texts (
@@ -1063,10 +1063,10 @@ CREATE TABLE public.help_texts (
 );
 
 
-ALTER TABLE public.help_texts OWNER TO piry;
+ALTER TABLE public.help_texts OWNER TO pci_admin;
 
 --
--- Name: help_texts_3; Type: TABLE; Schema: public; Owner: piry
+-- Name: help_texts_3; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.help_texts_3 (
@@ -1077,10 +1077,10 @@ CREATE TABLE public.help_texts_3 (
 );
 
 
-ALTER TABLE public.help_texts_3 OWNER TO piry;
+ALTER TABLE public.help_texts_3 OWNER TO pci_admin;
 
 --
--- Name: help_texts_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: help_texts_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.help_texts_id_seq
@@ -1091,17 +1091,17 @@ CREATE SEQUENCE public.help_texts_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.help_texts_id_seq OWNER TO piry;
+ALTER TABLE public.help_texts_id_seq OWNER TO pci_admin;
 
 --
--- Name: help_texts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: help_texts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.help_texts_id_seq OWNED BY public.help_texts.id;
 
 
 --
--- Name: mail_queue; Type: TABLE; Schema: public; Owner: piry
+-- Name: mail_queue; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.mail_queue (
@@ -1122,10 +1122,10 @@ CREATE TABLE public.mail_queue (
 );
 
 
-ALTER TABLE public.mail_queue OWNER TO piry;
+ALTER TABLE public.mail_queue OWNER TO pci_admin;
 
 --
--- Name: mail_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: mail_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.mail_queue_id_seq
@@ -1137,17 +1137,17 @@ CREATE SEQUENCE public.mail_queue_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.mail_queue_id_seq OWNER TO piry;
+ALTER TABLE public.mail_queue_id_seq OWNER TO pci_admin;
 
 --
--- Name: mail_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: mail_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.mail_queue_id_seq OWNED BY public.mail_queue.id;
 
 
 --
--- Name: mail_templates; Type: TABLE; Schema: public; Owner: piry
+-- Name: mail_templates; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.mail_templates (
@@ -1160,10 +1160,10 @@ CREATE TABLE public.mail_templates (
 );
 
 
-ALTER TABLE public.mail_templates OWNER TO piry;
+ALTER TABLE public.mail_templates OWNER TO pci_admin;
 
 --
--- Name: mail_templates_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: mail_templates_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.mail_templates_id_seq
@@ -1175,17 +1175,17 @@ CREATE SEQUENCE public.mail_templates_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.mail_templates_id_seq OWNER TO piry;
+ALTER TABLE public.mail_templates_id_seq OWNER TO pci_admin;
 
 --
--- Name: mail_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: mail_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.mail_templates_id_seq OWNED BY public.mail_templates.id;
 
 
 --
--- Name: scheduler_run; Type: TABLE; Schema: public; Owner: piry
+-- Name: scheduler_run; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.scheduler_run (
@@ -1201,10 +1201,10 @@ CREATE TABLE public.scheduler_run (
 );
 
 
-ALTER TABLE public.scheduler_run OWNER TO piry;
+ALTER TABLE public.scheduler_run OWNER TO pci_admin;
 
 --
--- Name: scheduler_run_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: scheduler_run_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.scheduler_run_id_seq
@@ -1215,17 +1215,17 @@ CREATE SEQUENCE public.scheduler_run_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.scheduler_run_id_seq OWNER TO piry;
+ALTER TABLE public.scheduler_run_id_seq OWNER TO pci_admin;
 
 --
--- Name: scheduler_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: scheduler_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.scheduler_run_id_seq OWNED BY public.scheduler_run.id;
 
 
 --
--- Name: scheduler_task; Type: TABLE; Schema: public; Owner: piry
+-- Name: scheduler_task; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.scheduler_task (
@@ -1255,10 +1255,10 @@ CREATE TABLE public.scheduler_task (
 );
 
 
-ALTER TABLE public.scheduler_task OWNER TO piry;
+ALTER TABLE public.scheduler_task OWNER TO pci_admin;
 
 --
--- Name: scheduler_task_deps; Type: TABLE; Schema: public; Owner: piry
+-- Name: scheduler_task_deps; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.scheduler_task_deps (
@@ -1270,10 +1270,10 @@ CREATE TABLE public.scheduler_task_deps (
 );
 
 
-ALTER TABLE public.scheduler_task_deps OWNER TO piry;
+ALTER TABLE public.scheduler_task_deps OWNER TO pci_admin;
 
 --
--- Name: scheduler_task_deps_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: scheduler_task_deps_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.scheduler_task_deps_id_seq
@@ -1284,17 +1284,17 @@ CREATE SEQUENCE public.scheduler_task_deps_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.scheduler_task_deps_id_seq OWNER TO piry;
+ALTER TABLE public.scheduler_task_deps_id_seq OWNER TO pci_admin;
 
 --
--- Name: scheduler_task_deps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: scheduler_task_deps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.scheduler_task_deps_id_seq OWNED BY public.scheduler_task_deps.id;
 
 
 --
--- Name: scheduler_task_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: scheduler_task_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.scheduler_task_id_seq
@@ -1305,17 +1305,17 @@ CREATE SEQUENCE public.scheduler_task_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.scheduler_task_id_seq OWNER TO piry;
+ALTER TABLE public.scheduler_task_id_seq OWNER TO pci_admin;
 
 --
--- Name: scheduler_task_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: scheduler_task_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.scheduler_task_id_seq OWNED BY public.scheduler_task.id;
 
 
 --
--- Name: scheduler_worker; Type: TABLE; Schema: public; Owner: piry
+-- Name: scheduler_worker; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.scheduler_worker (
@@ -1330,10 +1330,10 @@ CREATE TABLE public.scheduler_worker (
 );
 
 
-ALTER TABLE public.scheduler_worker OWNER TO piry;
+ALTER TABLE public.scheduler_worker OWNER TO pci_admin;
 
 --
--- Name: scheduler_worker_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: scheduler_worker_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.scheduler_worker_id_seq
@@ -1344,17 +1344,17 @@ CREATE SEQUENCE public.scheduler_worker_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.scheduler_worker_id_seq OWNER TO piry;
+ALTER TABLE public.scheduler_worker_id_seq OWNER TO pci_admin;
 
 --
--- Name: scheduler_worker_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: scheduler_worker_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.scheduler_worker_id_seq OWNED BY public.scheduler_worker.id;
 
 
 --
--- Name: t_articles; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_articles; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_articles (
@@ -1392,10 +1392,10 @@ CREATE TABLE public.t_articles (
 );
 
 
-ALTER TABLE public.t_articles OWNER TO piry;
+ALTER TABLE public.t_articles OWNER TO pci_admin;
 
 --
--- Name: t_articles_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_articles_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_articles_id_seq
@@ -1406,17 +1406,17 @@ CREATE SEQUENCE public.t_articles_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_articles_id_seq OWNER TO piry;
+ALTER TABLE public.t_articles_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_articles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_articles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_articles_id_seq OWNED BY public.t_articles.id;
 
 
 --
--- Name: t_articles_words; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_articles_words; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_articles_words (
@@ -1426,10 +1426,10 @@ CREATE TABLE public.t_articles_words (
 );
 
 
-ALTER TABLE public.t_articles_words OWNER TO piry;
+ALTER TABLE public.t_articles_words OWNER TO pci_admin;
 
 --
--- Name: t_comments; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_comments; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_comments (
@@ -1442,10 +1442,10 @@ CREATE TABLE public.t_comments (
 );
 
 
-ALTER TABLE public.t_comments OWNER TO piry;
+ALTER TABLE public.t_comments OWNER TO pci_admin;
 
 --
--- Name: t_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_comments_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_comments_id_seq
@@ -1456,17 +1456,17 @@ CREATE SEQUENCE public.t_comments_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_comments_id_seq OWNER TO piry;
+ALTER TABLE public.t_comments_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_comments_id_seq OWNED BY public.t_comments.id;
 
 
 --
--- Name: t_distinct_words_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_distinct_words_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_distinct_words_id_seq
@@ -1477,10 +1477,10 @@ CREATE SEQUENCE public.t_distinct_words_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_distinct_words_id_seq OWNER TO piry;
+ALTER TABLE public.t_distinct_words_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_distinct_words; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_distinct_words; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_distinct_words (
@@ -1489,10 +1489,10 @@ CREATE TABLE public.t_distinct_words (
 );
 
 
-ALTER TABLE public.t_distinct_words OWNER TO piry;
+ALTER TABLE public.t_distinct_words OWNER TO pci_admin;
 
 --
--- Name: t_thematics; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_thematics; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_thematics (
@@ -1501,10 +1501,10 @@ CREATE TABLE public.t_thematics (
 );
 
 
-ALTER TABLE public.t_thematics OWNER TO piry;
+ALTER TABLE public.t_thematics OWNER TO pci_admin;
 
 --
--- Name: t_keywords_list_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_keywords_list_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_keywords_list_id_seq
@@ -1515,17 +1515,17 @@ CREATE SEQUENCE public.t_keywords_list_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_keywords_list_id_seq OWNER TO piry;
+ALTER TABLE public.t_keywords_list_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_keywords_list_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_keywords_list_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_keywords_list_id_seq OWNED BY public.t_thematics.id;
 
 
 --
--- Name: t_pdf; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_pdf; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_pdf (
@@ -1536,10 +1536,10 @@ CREATE TABLE public.t_pdf (
 );
 
 
-ALTER TABLE public.t_pdf OWNER TO piry;
+ALTER TABLE public.t_pdf OWNER TO pci_admin;
 
 --
--- Name: t_pdf_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_pdf_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_pdf_id_seq
@@ -1550,17 +1550,17 @@ CREATE SEQUENCE public.t_pdf_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_pdf_id_seq OWNER TO piry;
+ALTER TABLE public.t_pdf_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_pdf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_pdf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_pdf_id_seq OWNED BY public.t_pdf.id;
 
 
 --
--- Name: t_press_reviews; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_press_reviews; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_press_reviews (
@@ -1570,10 +1570,10 @@ CREATE TABLE public.t_press_reviews (
 );
 
 
-ALTER TABLE public.t_press_reviews OWNER TO piry;
+ALTER TABLE public.t_press_reviews OWNER TO pci_admin;
 
 --
--- Name: t_press_review_contributors_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_press_review_contributors_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_press_review_contributors_id_seq
@@ -1584,17 +1584,17 @@ CREATE SEQUENCE public.t_press_review_contributors_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_press_review_contributors_id_seq OWNER TO piry;
+ALTER TABLE public.t_press_review_contributors_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_press_review_contributors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_press_review_contributors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_press_review_contributors_id_seq OWNED BY public.t_press_reviews.id;
 
 
 --
--- Name: t_recommendations; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_recommendations; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_recommendations (
@@ -1623,10 +1623,10 @@ CREATE TABLE public.t_recommendations (
 );
 
 
-ALTER TABLE public.t_recommendations OWNER TO piry;
+ALTER TABLE public.t_recommendations OWNER TO pci_admin;
 
 --
--- Name: t_recommendations_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_recommendations_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_recommendations_id_seq
@@ -1637,17 +1637,17 @@ CREATE SEQUENCE public.t_recommendations_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_recommendations_id_seq OWNER TO piry;
+ALTER TABLE public.t_recommendations_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_recommendations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_recommendations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_recommendations_id_seq OWNED BY public.t_recommendations.id;
 
 
 --
--- Name: t_report_survey; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_report_survey; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_report_survey (
@@ -1696,10 +1696,10 @@ CREATE TABLE public.t_report_survey (
 );
 
 
-ALTER TABLE public.t_report_survey OWNER TO piry;
+ALTER TABLE public.t_report_survey OWNER TO pci_admin;
 
 --
--- Name: t_report_survey_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_report_survey_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_report_survey_id_seq
@@ -1711,17 +1711,17 @@ CREATE SEQUENCE public.t_report_survey_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_report_survey_id_seq OWNER TO piry;
+ALTER TABLE public.t_report_survey_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_report_survey_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_report_survey_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_report_survey_id_seq OWNED BY public.t_report_survey.id;
 
 
 --
--- Name: t_resources; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_resources; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_resources (
@@ -1737,10 +1737,10 @@ CREATE TABLE public.t_resources (
 );
 
 
-ALTER TABLE public.t_resources OWNER TO piry;
+ALTER TABLE public.t_resources OWNER TO pci_admin;
 
 --
--- Name: t_resources_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_resources_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_resources_id_seq
@@ -1751,17 +1751,17 @@ CREATE SEQUENCE public.t_resources_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_resources_id_seq OWNER TO piry;
+ALTER TABLE public.t_resources_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_resources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_resources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_resources_id_seq OWNED BY public.t_resources.id;
 
 
 --
--- Name: t_reviews; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_reviews; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_reviews (
@@ -1781,10 +1781,10 @@ CREATE TABLE public.t_reviews (
 );
 
 
-ALTER TABLE public.t_reviews OWNER TO piry;
+ALTER TABLE public.t_reviews OWNER TO pci_admin;
 
 --
--- Name: t_reviewers_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_reviewers_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_reviewers_id_seq
@@ -1795,17 +1795,17 @@ CREATE SEQUENCE public.t_reviewers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_reviewers_id_seq OWNER TO piry;
+ALTER TABLE public.t_reviewers_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_reviewers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_reviewers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_reviewers_id_seq OWNED BY public.t_reviews.id;
 
 
 --
--- Name: t_status_article; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_status_article; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_status_article (
@@ -1817,10 +1817,10 @@ CREATE TABLE public.t_status_article (
 );
 
 
-ALTER TABLE public.t_status_article OWNER TO piry;
+ALTER TABLE public.t_status_article OWNER TO pci_admin;
 
 --
--- Name: t_status_article_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_status_article_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_status_article_id_seq
@@ -1831,17 +1831,17 @@ CREATE SEQUENCE public.t_status_article_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_status_article_id_seq OWNER TO piry;
+ALTER TABLE public.t_status_article_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_status_article_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_status_article_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_status_article_id_seq OWNED BY public.t_status_article.id;
 
 
 --
--- Name: t_suggested_recommenders; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_suggested_recommenders (
@@ -1854,10 +1854,10 @@ CREATE TABLE public.t_suggested_recommenders (
 );
 
 
-ALTER TABLE public.t_suggested_recommenders OWNER TO piry;
+ALTER TABLE public.t_suggested_recommenders OWNER TO pci_admin;
 
 --
--- Name: t_suggested_recommenders_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_suggested_recommenders_id_seq
@@ -1868,17 +1868,17 @@ CREATE SEQUENCE public.t_suggested_recommenders_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_suggested_recommenders_id_seq OWNER TO piry;
+ALTER TABLE public.t_suggested_recommenders_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_suggested_recommenders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
 --
 
 ALTER SEQUENCE public.t_suggested_recommenders_id_seq OWNED BY public.t_suggested_recommenders.id;
 
 
 --
--- Name: t_supports_id_seq; Type: SEQUENCE; Schema: public; Owner: piry
+-- Name: t_supports_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
 CREATE SEQUENCE public.t_supports_id_seq
@@ -1889,10 +1889,10 @@ CREATE SEQUENCE public.t_supports_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.t_supports_id_seq OWNER TO piry;
+ALTER TABLE public.t_supports_id_seq OWNER TO pci_admin;
 
 --
--- Name: t_supports; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_supports; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_supports (
@@ -1906,10 +1906,10 @@ CREATE TABLE public.t_supports (
 );
 
 
-ALTER TABLE public.t_supports OWNER TO piry;
+ALTER TABLE public.t_supports OWNER TO pci_admin;
 
 --
--- Name: t_user_words; Type: TABLE; Schema: public; Owner: piry
+-- Name: t_user_words; Type: TABLE; Schema: public; Owner: pci_admin
 --
 
 CREATE TABLE public.t_user_words (
@@ -1919,10 +1919,10 @@ CREATE TABLE public.t_user_words (
 );
 
 
-ALTER TABLE public.t_user_words OWNER TO piry;
+ALTER TABLE public.t_user_words OWNER TO pci_admin;
 
 --
--- Name: v_article_recommender; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_article_recommender; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_article_recommender AS
@@ -1934,10 +1934,10 @@ CREATE VIEW public.v_article_recommender AS
   GROUP BY a.id;
 
 
-ALTER TABLE public.v_article_recommender OWNER TO piry;
+ALTER TABLE public.v_article_recommender OWNER TO pci_admin;
 
 --
--- Name: v_last_recommendation; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_last_recommendation; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_last_recommendation AS
@@ -1949,10 +1949,10 @@ CREATE VIEW public.v_last_recommendation AS
   GROUP BY u.id;
 
 
-ALTER TABLE public.v_last_recommendation OWNER TO piry;
+ALTER TABLE public.v_last_recommendation OWNER TO pci_admin;
 
 --
--- Name: v_recommendation_contributors; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_recommendation_contributors; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_recommendation_contributors AS
@@ -1964,10 +1964,10 @@ CREATE VIEW public.v_recommendation_contributors AS
   GROUP BY r.id;
 
 
-ALTER TABLE public.v_recommendation_contributors OWNER TO piry;
+ALTER TABLE public.v_recommendation_contributors OWNER TO pci_admin;
 
 --
--- Name: v_reviewers; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_reviewers; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_reviewers AS
@@ -1984,10 +1984,10 @@ CREATE VIEW public.v_reviewers AS
   GROUP BY r.id;
 
 
-ALTER TABLE public.v_reviewers OWNER TO piry;
+ALTER TABLE public.v_reviewers OWNER TO pci_admin;
 
 --
--- Name: v_reviewers_named; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_reviewers_named; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_reviewers_named AS
@@ -2004,10 +2004,10 @@ CREATE VIEW public.v_reviewers_named AS
   GROUP BY r.id;
 
 
-ALTER TABLE public.v_reviewers_named OWNER TO piry;
+ALTER TABLE public.v_reviewers_named OWNER TO pci_admin;
 
 --
--- Name: v_roles; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_roles; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_roles AS
@@ -2019,10 +2019,10 @@ CREATE VIEW public.v_roles AS
   GROUP BY auth_user.id;
 
 
-ALTER TABLE public.v_roles OWNER TO piry;
+ALTER TABLE public.v_roles OWNER TO pci_admin;
 
 --
--- Name: v_suggested_recommenders; Type: VIEW; Schema: public; Owner: piry
+-- Name: v_suggested_recommenders; Type: VIEW; Schema: public; Owner: pci_admin
 --
 
 CREATE VIEW public.v_suggested_recommenders AS
@@ -2034,178 +2034,178 @@ CREATE VIEW public.v_suggested_recommenders AS
   GROUP BY a.id;
 
 
-ALTER TABLE public.v_suggested_recommenders OWNER TO piry;
+ALTER TABLE public.v_suggested_recommenders OWNER TO pci_admin;
 
 --
--- Name: auth_cas id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_cas id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_cas ALTER COLUMN id SET DEFAULT nextval('public.auth_cas_id_seq'::regclass);
 
 
 --
--- Name: auth_event id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_event id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_event ALTER COLUMN id SET DEFAULT nextval('public.auth_event_id_seq'::regclass);
 
 
 --
--- Name: auth_group id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_group id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_group ALTER COLUMN id SET DEFAULT nextval('public.auth_group_id_seq'::regclass);
 
 
 --
--- Name: auth_membership id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_membership id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_membership ALTER COLUMN id SET DEFAULT nextval('public.auth_membership_id_seq'::regclass);
 
 
 --
--- Name: auth_permission id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_permission id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_permission ALTER COLUMN id SET DEFAULT nextval('public.auth_permission_id_seq'::regclass);
 
 
 --
--- Name: auth_user id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: auth_user id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_user ALTER COLUMN id SET DEFAULT nextval('public.auth_user_id_seq'::regclass);
 
 
 --
--- Name: help_texts id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: help_texts id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.help_texts ALTER COLUMN id SET DEFAULT nextval('public.help_texts_id_seq'::regclass);
 
 
 --
--- Name: mail_queue id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: mail_queue id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_queue ALTER COLUMN id SET DEFAULT nextval('public.mail_queue_id_seq'::regclass);
 
 
 --
--- Name: mail_templates id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: mail_templates id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_templates ALTER COLUMN id SET DEFAULT nextval('public.mail_templates_id_seq'::regclass);
 
 
 --
--- Name: scheduler_run id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: scheduler_run id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_run ALTER COLUMN id SET DEFAULT nextval('public.scheduler_run_id_seq'::regclass);
 
 
 --
--- Name: scheduler_task id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: scheduler_task id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task ALTER COLUMN id SET DEFAULT nextval('public.scheduler_task_id_seq'::regclass);
 
 
 --
--- Name: scheduler_task_deps id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: scheduler_task_deps id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task_deps ALTER COLUMN id SET DEFAULT nextval('public.scheduler_task_deps_id_seq'::regclass);
 
 
 --
--- Name: scheduler_worker id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: scheduler_worker id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_worker ALTER COLUMN id SET DEFAULT nextval('public.scheduler_worker_id_seq'::regclass);
 
 
 --
--- Name: t_articles id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_articles id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles ALTER COLUMN id SET DEFAULT nextval('public.t_articles_id_seq'::regclass);
 
 
 --
--- Name: t_comments id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_comments id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_comments ALTER COLUMN id SET DEFAULT nextval('public.t_comments_id_seq'::regclass);
 
 
 --
--- Name: t_pdf id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_pdf id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_pdf ALTER COLUMN id SET DEFAULT nextval('public.t_pdf_id_seq'::regclass);
 
 
 --
--- Name: t_press_reviews id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_press_reviews id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_press_reviews ALTER COLUMN id SET DEFAULT nextval('public.t_press_review_contributors_id_seq'::regclass);
 
 
 --
--- Name: t_recommendations id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_recommendations id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_recommendations ALTER COLUMN id SET DEFAULT nextval('public.t_recommendations_id_seq'::regclass);
 
 
 --
--- Name: t_report_survey id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_report_survey id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_report_survey ALTER COLUMN id SET DEFAULT nextval('public.t_report_survey_id_seq'::regclass);
 
 
 --
--- Name: t_resources id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_resources id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_resources ALTER COLUMN id SET DEFAULT nextval('public.t_resources_id_seq'::regclass);
 
 
 --
--- Name: t_reviews id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_reviews id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_reviews ALTER COLUMN id SET DEFAULT nextval('public.t_reviewers_id_seq'::regclass);
 
 
 --
--- Name: t_status_article id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_status_article id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_status_article ALTER COLUMN id SET DEFAULT nextval('public.t_status_article_id_seq'::regclass);
 
 
 --
--- Name: t_suggested_recommenders id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_suggested_recommenders ALTER COLUMN id SET DEFAULT nextval('public.t_suggested_recommenders_id_seq'::regclass);
 
 
 --
--- Name: t_thematics id; Type: DEFAULT; Schema: public; Owner: piry
+-- Name: t_thematics id; Type: DEFAULT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_thematics ALTER COLUMN id SET DEFAULT nextval('public.t_keywords_list_id_seq'::regclass);
 
 
 --
--- Name: auth_cas auth_cas_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_cas auth_cas_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_cas
@@ -2213,7 +2213,7 @@ ALTER TABLE ONLY public.auth_cas
 
 
 --
--- Name: auth_event auth_event_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_event auth_event_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_event
@@ -2221,7 +2221,7 @@ ALTER TABLE ONLY public.auth_event
 
 
 --
--- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_group
@@ -2229,7 +2229,7 @@ ALTER TABLE ONLY public.auth_group
 
 
 --
--- Name: auth_membership auth_membership_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_membership auth_membership_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_membership
@@ -2237,7 +2237,7 @@ ALTER TABLE ONLY public.auth_membership
 
 
 --
--- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_permission
@@ -2245,7 +2245,7 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- Name: auth_user auth_user_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_user auth_user_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_user
@@ -2253,7 +2253,7 @@ ALTER TABLE ONLY public.auth_user
 
 
 --
--- Name: auth_user auth_user_recover_email_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_user auth_user_recover_email_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_user
@@ -2261,7 +2261,7 @@ ALTER TABLE ONLY public.auth_user
 
 
 --
--- Name: auth_user auth_user_recover_email_key_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_user auth_user_recover_email_key_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_user
@@ -2269,7 +2269,7 @@ ALTER TABLE ONLY public.auth_user
 
 
 --
--- Name: auth_user authuser_email_unique; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_user authuser_email_unique; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_user
@@ -2277,7 +2277,7 @@ ALTER TABLE ONLY public.auth_user
 
 
 --
--- Name: help_texts help_texts_language_hashtag_unique; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: help_texts help_texts_language_hashtag_unique; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.help_texts
@@ -2285,7 +2285,7 @@ ALTER TABLE ONLY public.help_texts
 
 
 --
--- Name: help_texts help_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: help_texts help_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.help_texts
@@ -2293,7 +2293,7 @@ ALTER TABLE ONLY public.help_texts
 
 
 --
--- Name: mail_queue mail_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: mail_queue mail_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_queue
@@ -2301,7 +2301,7 @@ ALTER TABLE ONLY public.mail_queue
 
 
 --
--- Name: mail_templates mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: mail_templates mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_templates
@@ -2309,7 +2309,7 @@ ALTER TABLE ONLY public.mail_templates
 
 
 --
--- Name: scheduler_run scheduler_run_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_run scheduler_run_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_run
@@ -2317,7 +2317,7 @@ ALTER TABLE ONLY public.scheduler_run
 
 
 --
--- Name: scheduler_task_deps scheduler_task_deps_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_task_deps scheduler_task_deps_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task_deps
@@ -2325,7 +2325,7 @@ ALTER TABLE ONLY public.scheduler_task_deps
 
 
 --
--- Name: scheduler_task scheduler_task_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_task scheduler_task_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task
@@ -2333,7 +2333,7 @@ ALTER TABLE ONLY public.scheduler_task
 
 
 --
--- Name: scheduler_task scheduler_task_uuid_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_task scheduler_task_uuid_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task
@@ -2341,7 +2341,7 @@ ALTER TABLE ONLY public.scheduler_task
 
 
 --
--- Name: scheduler_worker scheduler_worker_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_worker scheduler_worker_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_worker
@@ -2349,7 +2349,7 @@ ALTER TABLE ONLY public.scheduler_worker
 
 
 --
--- Name: scheduler_worker scheduler_worker_worker_name_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_worker scheduler_worker_worker_name_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_worker
@@ -2357,7 +2357,7 @@ ALTER TABLE ONLY public.scheduler_worker
 
 
 --
--- Name: t_articles t_articles_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles t_articles_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles
@@ -2365,7 +2365,7 @@ ALTER TABLE ONLY public.t_articles
 
 
 --
--- Name: t_comments t_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_comments t_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_comments
@@ -2373,7 +2373,7 @@ ALTER TABLE ONLY public.t_comments
 
 
 --
--- Name: t_distinct_words t_distinct_words_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_distinct_words t_distinct_words_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_distinct_words
@@ -2381,7 +2381,7 @@ ALTER TABLE ONLY public.t_distinct_words
 
 
 --
--- Name: t_distinct_words t_distinct_words_word_unique; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_distinct_words t_distinct_words_word_unique; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_distinct_words
@@ -2389,7 +2389,7 @@ ALTER TABLE ONLY public.t_distinct_words
 
 
 --
--- Name: t_thematics t_keywords_list_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_thematics t_keywords_list_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_thematics
@@ -2397,7 +2397,7 @@ ALTER TABLE ONLY public.t_thematics
 
 
 --
--- Name: t_pdf t_pdf_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_pdf t_pdf_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_pdf
@@ -2405,7 +2405,7 @@ ALTER TABLE ONLY public.t_pdf
 
 
 --
--- Name: t_pdf t_pdf_recommendation_id_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_pdf t_pdf_recommendation_id_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_pdf
@@ -2413,7 +2413,7 @@ ALTER TABLE ONLY public.t_pdf
 
 
 --
--- Name: t_press_reviews t_press_review_contributors_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_press_reviews t_press_review_contributors_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_press_reviews
@@ -2421,7 +2421,7 @@ ALTER TABLE ONLY public.t_press_reviews
 
 
 --
--- Name: t_recommendations t_recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_recommendations t_recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_recommendations
@@ -2429,7 +2429,7 @@ ALTER TABLE ONLY public.t_recommendations
 
 
 --
--- Name: t_report_survey t_report_survey_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_report_survey t_report_survey_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_report_survey
@@ -2437,7 +2437,7 @@ ALTER TABLE ONLY public.t_report_survey
 
 
 --
--- Name: t_resources t_resources_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_resources t_resources_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_resources
@@ -2445,7 +2445,7 @@ ALTER TABLE ONLY public.t_resources
 
 
 --
--- Name: t_reviews t_reviewers_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_reviews t_reviewers_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_reviews
@@ -2453,7 +2453,7 @@ ALTER TABLE ONLY public.t_reviews
 
 
 --
--- Name: t_status_article t_status_article_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_status_article t_status_article_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_status_article
@@ -2461,7 +2461,7 @@ ALTER TABLE ONLY public.t_status_article
 
 
 --
--- Name: t_status_article t_status_article_status_key; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_status_article t_status_article_status_key; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_status_article
@@ -2469,7 +2469,7 @@ ALTER TABLE ONLY public.t_status_article
 
 
 --
--- Name: t_suggested_recommenders t_suggested_recommenders_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders t_suggested_recommenders_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_suggested_recommenders
@@ -2477,7 +2477,7 @@ ALTER TABLE ONLY public.t_suggested_recommenders
 
 
 --
--- Name: t_supports t_supports_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_supports t_supports_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_supports
@@ -2485,7 +2485,7 @@ ALTER TABLE ONLY public.t_supports
 
 
 --
--- Name: t_articles_words tarticleswords_pkey; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles_words tarticleswords_pkey; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles_words
@@ -2493,7 +2493,7 @@ ALTER TABLE ONLY public.t_articles_words
 
 
 --
--- Name: t_press_reviews tpressreviewcontribs_unique; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_press_reviews tpressreviewcontribs_unique; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_press_reviews
@@ -2501,7 +2501,7 @@ ALTER TABLE ONLY public.t_press_reviews
 
 
 --
--- Name: t_suggested_recommenders tsuggestedrecommenders_unique; Type: CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders tsuggestedrecommenders_unique; Type: CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_suggested_recommenders
@@ -2509,98 +2509,98 @@ ALTER TABLE ONLY public.t_suggested_recommenders
 
 
 --
--- Name: help_idx; Type: INDEX; Schema: public; Owner: piry
+-- Name: help_idx; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX help_idx ON public.help_texts USING btree (hashtag, lang);
 
 
 --
--- Name: t_articles_last_status_change_idx; Type: INDEX; Schema: public; Owner: piry
+-- Name: t_articles_last_status_change_idx; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX t_articles_last_status_change_idx ON public.t_articles USING btree (last_status_change DESC NULLS LAST);
 
 
 --
--- Name: t_distinct_words_word_idx; Type: INDEX; Schema: public; Owner: piry
+-- Name: t_distinct_words_word_idx; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX t_distinct_words_word_idx ON public.t_distinct_words USING btree (word);
 
 
 --
--- Name: tdistinctwords_gist; Type: INDEX; Schema: public; Owner: piry
+-- Name: tdistinctwords_gist; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX tdistinctwords_gist ON public.t_distinct_words USING gist (word public.gist_trgm_ops);
 
 
 --
--- Name: trecommendations_articleid_idx; Type: INDEX; Schema: public; Owner: piry
+-- Name: trecommendations_articleid_idx; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX trecommendations_articleid_idx ON public.t_recommendations USING btree (article_id);
 
 
 --
--- Name: tuserwords_idx; Type: INDEX; Schema: public; Owner: piry
+-- Name: tuserwords_idx; Type: INDEX; Schema: public; Owner: pci_admin
 --
 
 CREATE INDEX tuserwords_idx ON public.t_user_words USING gist (word public.gist_trgm_ops);
 
 
 --
--- Name: t_recommendations auto_last_change_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_recommendations auto_last_change_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER auto_last_change_trigger BEFORE INSERT OR DELETE OR UPDATE OF recommendation_state ON public.t_recommendations FOR EACH ROW EXECUTE PROCEDURE public.auto_last_change_recommendation_trigger_function();
 
 
 --
--- Name: t_reviews auto_last_change_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_reviews auto_last_change_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER auto_last_change_trigger BEFORE INSERT OR DELETE OR UPDATE OF review_state ON public.t_reviews FOR EACH ROW EXECUTE PROCEDURE public.auto_last_change_review_trigger_function();
 
 
 --
--- Name: t_articles auto_last_status_change_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_articles auto_last_status_change_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER auto_last_status_change_trigger BEFORE INSERT OR UPDATE OF status ON public.t_articles FOR EACH ROW EXECUTE PROCEDURE public.auto_last_status_change_trigger_function();
 
 
 --
--- Name: t_recommendations auto_nb_recommendations_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_recommendations auto_nb_recommendations_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER auto_nb_recommendations_trigger AFTER INSERT OR DELETE OR UPDATE ON public.t_recommendations FOR EACH ROW EXECUTE PROCEDURE public.auto_nb_recommendations_trigger_function();
 
 
 --
--- Name: t_articles distinct_words_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_articles distinct_words_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER distinct_words_trigger AFTER INSERT OR UPDATE OF title, abstract, keywords, authors ON public.t_articles FOR EACH ROW EXECUTE PROCEDURE public.distinct_words_trigger_function();
 
 
 --
--- Name: t_thematics propagate_field_deletion_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: t_thematics propagate_field_deletion_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER propagate_field_deletion_trigger AFTER DELETE OR UPDATE OF keyword ON public.t_thematics FOR EACH ROW EXECUTE PROCEDURE public.propagate_field_deletion_function();
 
 
 --
--- Name: auth_user user_words_trigger; Type: TRIGGER; Schema: public; Owner: piry
+-- Name: auth_user user_words_trigger; Type: TRIGGER; Schema: public; Owner: pci_admin
 --
 
 CREATE TRIGGER user_words_trigger AFTER INSERT OR DELETE OR UPDATE OF first_name, last_name, city, country, laboratory, institution, thematics ON public.auth_user FOR EACH ROW EXECUTE PROCEDURE public.user_words_trigger_function();
 
 
 --
--- Name: auth_cas auth_cas_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_cas auth_cas_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_cas
@@ -2608,7 +2608,7 @@ ALTER TABLE ONLY public.auth_cas
 
 
 --
--- Name: auth_event auth_event_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_event auth_event_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_event
@@ -2616,7 +2616,7 @@ ALTER TABLE ONLY public.auth_event
 
 
 --
--- Name: auth_membership auth_membership_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_membership auth_membership_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_membership
@@ -2624,7 +2624,7 @@ ALTER TABLE ONLY public.auth_membership
 
 
 --
--- Name: auth_membership auth_membership_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_membership auth_membership_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_membership
@@ -2632,7 +2632,7 @@ ALTER TABLE ONLY public.auth_membership
 
 
 --
--- Name: auth_permission auth_permission_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: auth_permission auth_permission_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.auth_permission
@@ -2640,7 +2640,7 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- Name: mail_queue mail_queue_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: mail_queue mail_queue_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_queue
@@ -2648,7 +2648,7 @@ ALTER TABLE ONLY public.mail_queue
 
 
 --
--- Name: mail_queue mail_queue_recommendation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: mail_queue mail_queue_recommendation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_queue
@@ -2656,7 +2656,7 @@ ALTER TABLE ONLY public.mail_queue
 
 
 --
--- Name: mail_queue mail_queue_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: mail_queue mail_queue_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.mail_queue
@@ -2664,7 +2664,7 @@ ALTER TABLE ONLY public.mail_queue
 
 
 --
--- Name: scheduler_run scheduler_run_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_run scheduler_run_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_run
@@ -2672,7 +2672,7 @@ ALTER TABLE ONLY public.scheduler_run
 
 
 --
--- Name: scheduler_task_deps scheduler_task_deps_task_child_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: scheduler_task_deps scheduler_task_deps_task_child_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.scheduler_task_deps
@@ -2680,7 +2680,7 @@ ALTER TABLE ONLY public.scheduler_task_deps
 
 
 --
--- Name: t_articles t_articles_art_stage_1_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles t_articles_art_stage_1_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles
@@ -2688,7 +2688,7 @@ ALTER TABLE ONLY public.t_articles
 
 
 --
--- Name: t_articles t_articles_suggested_recommender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles t_articles_suggested_recommender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles
@@ -2696,7 +2696,7 @@ ALTER TABLE ONLY public.t_articles
 
 
 --
--- Name: t_articles t_articles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles t_articles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles
@@ -2704,7 +2704,7 @@ ALTER TABLE ONLY public.t_articles
 
 
 --
--- Name: t_comments t_comments_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_comments t_comments_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_comments
@@ -2712,7 +2712,7 @@ ALTER TABLE ONLY public.t_comments
 
 
 --
--- Name: t_comments t_comments_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_comments t_comments_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_comments
@@ -2720,7 +2720,7 @@ ALTER TABLE ONLY public.t_comments
 
 
 --
--- Name: t_comments t_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_comments t_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_comments
@@ -2728,7 +2728,7 @@ ALTER TABLE ONLY public.t_comments
 
 
 --
--- Name: t_pdf t_pdf_recommendation_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_pdf t_pdf_recommendation_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_pdf
@@ -2736,7 +2736,7 @@ ALTER TABLE ONLY public.t_pdf
 
 
 --
--- Name: t_press_reviews t_press_review_contributors_contributor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_press_reviews t_press_review_contributors_contributor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_press_reviews
@@ -2744,7 +2744,7 @@ ALTER TABLE ONLY public.t_press_reviews
 
 
 --
--- Name: t_recommendations t_recommendations_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_recommendations t_recommendations_article_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_recommendations
@@ -2752,7 +2752,7 @@ ALTER TABLE ONLY public.t_recommendations
 
 
 --
--- Name: t_recommendations t_recommendations_recommender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_recommendations t_recommendations_recommender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_recommendations
@@ -2760,7 +2760,7 @@ ALTER TABLE ONLY public.t_recommendations
 
 
 --
--- Name: t_reviews t_reviewers_recommendation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_reviews t_reviewers_recommendation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_reviews
@@ -2768,7 +2768,7 @@ ALTER TABLE ONLY public.t_reviews
 
 
 --
--- Name: t_reviews t_reviewers_reviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_reviews t_reviewers_reviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_reviews
@@ -2776,7 +2776,7 @@ ALTER TABLE ONLY public.t_reviews
 
 
 --
--- Name: t_articles tarticles_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles tarticles_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles
@@ -2784,7 +2784,7 @@ ALTER TABLE ONLY public.t_articles
 
 
 --
--- Name: t_articles_words tarticleswords_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles_words tarticleswords_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles_words
@@ -2792,7 +2792,7 @@ ALTER TABLE ONLY public.t_articles_words
 
 
 --
--- Name: t_articles_words tarticleswords_tdistinctwords_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_articles_words tarticleswords_tdistinctwords_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_articles_words
@@ -2800,7 +2800,7 @@ ALTER TABLE ONLY public.t_articles_words
 
 
 --
--- Name: t_press_reviews tpressreview_trecommendation_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_press_reviews tpressreview_trecommendation_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_press_reviews
@@ -2808,7 +2808,7 @@ ALTER TABLE ONLY public.t_press_reviews
 
 
 --
--- Name: t_report_survey treportsurvey_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_report_survey treportsurvey_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_report_survey
@@ -2816,7 +2816,7 @@ ALTER TABLE ONLY public.t_report_survey
 
 
 --
--- Name: t_report_survey treportsurvey_tarticles_stage1_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_report_survey treportsurvey_tarticles_stage1_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_report_survey
@@ -2824,7 +2824,7 @@ ALTER TABLE ONLY public.t_report_survey
 
 
 --
--- Name: t_suggested_recommenders tsuggestedrecommenders_authusers_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders tsuggestedrecommenders_authusers_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_suggested_recommenders
@@ -2832,7 +2832,7 @@ ALTER TABLE ONLY public.t_suggested_recommenders
 
 
 --
--- Name: t_suggested_recommenders tsuggestedrecommenders_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_suggested_recommenders tsuggestedrecommenders_tarticles_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_suggested_recommenders
@@ -2840,7 +2840,7 @@ ALTER TABLE ONLY public.t_suggested_recommenders
 
 
 --
--- Name: t_user_words tuserwords_authuser_fkey; Type: FK CONSTRAINT; Schema: public; Owner: piry
+-- Name: t_user_words tuserwords_authuser_fkey; Type: FK CONSTRAINT; Schema: public; Owner: pci_admin
 --
 
 ALTER TABLE ONLY public.t_user_words

@@ -13,7 +13,7 @@ postgresql:
 	sudo apt-get install -y postgresql postgresql-contrib
 
 db:
-	$(psql) -c "CREATE ROLE piry WITH LOGIN PASSWORD 'piry4pci-ofa'"
+	$(psql) -c "CREATE ROLE pci_admin WITH LOGIN PASSWORD 'admin4pci'"
 	$(psql) -c "CREATE DATABASE main"
 	$(psql) main -c "CREATE EXTENSION unaccent"
 	$(psql) main < sql_dumps/pci_evolbiol_test.sql
@@ -25,7 +25,7 @@ db:
 
 db.clean:
 	$(psql) -c "drop database if exists main"
-	$(psql) -c "drop role if exists piry"
+	$(psql) -c "drop role if exists pci_admin"
 
 psql = sudo -iu postgres psql
 
