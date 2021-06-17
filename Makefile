@@ -40,6 +40,10 @@ stop:
 	PID=`ps aux | grep web2py.py | grep -v grep | awk '{print $$2}'` ;\
 	[ "$$PID" ] && kill $$PID || echo "no running"
 
+start: private/appconfig.ini
+private/appconfig.ini:
+	cp private/sample.appconfig.ini private/appconfig.ini
+
 test.install:
 	sudo apt-get install npm
 	sudo npm install -g n
