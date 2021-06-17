@@ -31,42 +31,15 @@ Create PostgreSql database and user
 make db
 ```
 
-Create or fill the configuration file with your credentials :
-
-```ini
-# private/appconfig.ini
-[db]
-uri = postgres:psycopg2://<db_user>:<db_password>@<db_host>:<db_port>/<db_name>
-
-[smtp]
-server =
-sender =
-login =
-tls =
-ssl =
-
-[captcha]
-public =
-private =
-
-[social]
-tweeter =
-tweethash =
-tweeter_id =
-tweeter_consumer_key =
-tweeter_consumer_secret =
-tweeter_access_token =
-tweeter_access_token_secret =
-```
-
-Run project :
+Run the PCI server:
 
 ```bash
 make start
 ```
+(creates default config in private/appconfig.ini)
 
-Run mailing queue :
-In local : 
+Run mailing queue:
+On local host:
 ```bash
 python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
 ```
@@ -93,59 +66,25 @@ pip install systemd
 - NodeJs >= 10
 - npm >= 6 (come with nodejs)
 
-Install nodejs dependencies :
+Install all test components:
 
 ```bash
-npm install
+make test.install
 ```
 
 #### create / configure test users :
 
-Create cypress/fixtures/user.json file and fill it with the users credentials for each roles as follow :
-
-```json
-{
-  "admin": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  },
-  "developer": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  },
-  "manager": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  },
-  "recommender": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  },
-  "co_recommender": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  },
-  "normal_user": {
-    "firstname": "[FILL WITH USER FIRSTNAME]",
-    "lastname": "[FILL WITH USER lASTNAME]",
-    "mail": "[FILL WITH USER MAIL]",
-    "password": "[FILL WITH USER PASSWORD]"
-  }
-}
+```bash
+make test.setup
 ```
 
 #### Run tests :
 
+```bash
+make test
+```
+
+or live:
 ```bash
 npx cypress open
 ```
