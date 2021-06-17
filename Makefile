@@ -39,3 +39,18 @@ start:
 stop:
 	PID=`ps aux | grep web2py.py | grep -v grep | awk '{print $$2}'` ;\
 	[ "$$PID" ] && kill $$PID || echo "no running"
+
+test.install:
+	sudo apt-get install npm
+	sudo npm install -g n
+	sudo n stable
+	sudo npm install -g npm@latest
+	npm install
+
+test.setup:
+	$(psql) main < sql_dumps/insert_test_users.sql
+	cp cypress/fixtures/_users.json cypress/fixtures/users.json
+
+
+test:
+	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
