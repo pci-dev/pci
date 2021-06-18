@@ -11,6 +11,3 @@ INSERT INTO t_thematics (keyword) VALUES ('TEST');
 
 -- apply migration step 2021-05-21 (sql_changes_synthesis.sql)
 ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS website VARCHAR(1024);
-
-\i sql_dumps/insert_default_help_texts.sql
-\i sql_dumps/insert_default_mail_templates.sql
