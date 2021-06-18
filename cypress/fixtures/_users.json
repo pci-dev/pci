@@ -1,38 +1,38 @@
 {
   "admin": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "admin",
+    "lastname": "dude",
+    "mail": "admin@pci.org",
+    "password": "pci"
   },
   "developer": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "developer",
+    "lastname": "dude",
+    "mail": "developer@pci.org",
+    "password": "pci"
   },
   "manager": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "manager",
+    "lastname": "dude",
+    "mail": "manager@pci.org",
+    "password": "pci"
   },
   "recommender": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "recommender",
+    "lastname": "dude",
+    "mail": "recommender@pci.org",
+    "password": "pci"
   },
   "co_recommender": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "reviewer",
+    "lastname": "dude",
+    "mail": "reviewer@pci.org",
+    "password": "pci"
   },
   "normal_user": {
-    "firstname": "",
-    "lastname": "",
-    "mail": "",
-    "password": ""
+    "firstname": "user",
+    "lastname": "dude",
+    "mail": "user@pci.org",
+    "password": "pci"
   }
 }

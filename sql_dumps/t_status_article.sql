@@ -17,7 +17,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Data for Name: t_status_article; Type: TABLE DATA; Schema: public; Owner: piry
+-- Data for Name: t_status_article; Type: TABLE DATA; Schema: public; Owner: pci_admin
 --
 
 COPY public.t_status_article (id, status, color_class, explaination, priority_level) FROM stdin;
@@ -36,7 +36,7 @@ COPY public.t_status_article (id, status, color_class, explaination, priority_le
 
 
 --
--- Name: t_status_article_id_seq; Type: SEQUENCE SET; Schema: public; Owner: piry
+-- Name: t_status_article_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pci_admin
 --
 
 SELECT pg_catalog.setval('public.t_status_article_id_seq', 12, true);
