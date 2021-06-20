@@ -97,7 +97,11 @@ def tryToSendMail(mail_item):
 def prepareNextReminder(mail_item):
     reminder_count = mail_item["reminder_count"]
 
-    reminder = list(filter(lambda item: item["hashtag"] == mail_item["mail_template_hashtag"], REMINDERS))
+    hashtag_template = mail_item["mail_template_hashtag"]
+    hashtag_template = hashtag_template.replace("Stage1", "")
+    hashtag_template = hashtag_template.replace("Stage2", "")
+
+    reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
 
     if reminder[0] and len(reminder[0]["elapsed_days"]) >= reminder_count + 1:
         current_reminder_elapsed_days = reminder[0]["elapsed_days"][reminder_count]
