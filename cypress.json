@@ -5,6 +5,6 @@
   "video": false,
   "env": {
     "withScreenshots": false,
-    "keepArticle": false
+    "keepArticle": true
   }
 }

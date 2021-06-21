@@ -1137,8 +1137,7 @@ def my_reviews():
             header=T("Review as text"),
             body=lambda row: DIV(
                 DIV(
-                    B("Review status : ", _style="margin-top: -2px; font-size: 14px"),
-                    common_small_html.mkReviewStateDiv(auth, db, row.t_reviews["review_state"]),
+                    DIV(B("Review status : ", _style="margin-top: -2px; font-size: 14px"), common_small_html.mkReviewStateDiv(auth, db, row.t_reviews["review_state"])),
                     _style="border-bottom: 1px solid #ddd",
                     _class="pci2-flex-row pci2-align-items-center",
                 ),
