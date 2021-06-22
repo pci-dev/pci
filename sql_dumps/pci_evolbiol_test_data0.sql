@@ -9,6 +9,5 @@ SELECT setval('public.auth_user_id_seq', 2, true);
 INSERT INTO auth_membership (user_id, group_id) SELECT 1, id FROM auth_group;
 INSERT INTO t_thematics (keyword) VALUES ('TEST');
 
-
-\i sql_dumps/insert_default_help_texts.sql
-\i sql_dumps/insert_default_mail_templates.sql
+-- apply migration step 2021-05-21 (sql_changes_synthesis.sql)
+ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS website VARCHAR(1024);
