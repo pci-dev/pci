@@ -32,7 +32,7 @@ def makeArticleWithRecommRow(auth, db, article):
             TD(DIV(common_small_html.mkLastChange(article.last_status_change), DIV(article_img, _style="margin-top: 10px")), _style="vertical-align: top; width: 150px"),
             TD(
                 DIV(
-                    H3(article.title, _style="margin: 0 0 5px; font-weight: bold"),
+                    H3(WIKI(article.title or "", safe_mode=False), _style="margin: 0 0 5px; font-weight: bold"),
                     LABEL(article.authors, _style="margin: 0 0 15px; font-weight: normal; color: #888"),
                     DIV(
                         H4(recomm.recommendation_title, _style="margin: 0 0 5px; font-weight: bold; font-style: italic;"),
@@ -79,7 +79,7 @@ def makeArticleRow(article, linkType):
             TD(DIV(common_small_html.mkLastChange(article.last_status_change), DIV(article_img, _style="margin-top: 10px")), _style="vertical-align: top; width: 150px"),
             TD(
                 DIV(
-                    H3(article.title, _style="margin: 0 0 5px; font-weight: bold"),
+                    H3(WIKI(article.title or "", safe_mode=False), _style="margin: 0 0 5px; font-weight: bold"),
                     LABEL(article.authors, _style="margin: 0 0 5px; font-weight: normal; color: #888"),
                     P(common_small_html.mkDOI(article.doi), _style="margin: 0 0 15px;"),
                     target_link,

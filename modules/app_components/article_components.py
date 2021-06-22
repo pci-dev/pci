@@ -76,7 +76,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     componentVars = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
-        articleTitle=article.title,
+        articleTitle=WIKI(article.title or "", safe_mode=False),
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
         articleAuthor=authors,
@@ -106,10 +106,10 @@ def getArticleTrackcRowCard(auth, db, response, article):
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
         track = DIV(_class="pci-trackItem")
-        
+
         firstDate = article.upload_timestamp.strftime("%Y-%m-%d")
         lastDate = article.last_status_change.strftime("%Y-%m-%d")
-        title = article.title
+        title = WIKI(article.title or "", safe_mode=False)
         if article.anonymous_submission:
             authors = "[anonymous submission]"
         else:
@@ -121,7 +121,13 @@ def getArticleTrackcRowCard(auth, db, response, article):
         elif article.status == "Cancelled":
             txt = DIV(SPAN(current.T(" was")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus default"), SPAN("(", firstDate, " ➜ ", lastDate, "). "),)
 
-        elif article.status == "Under consideration" or article.status == "Pre-recommended" or article.status == "Pre-recommended-private" or article.status == "Pre-rejected" or article.status == "Pre-revision":
+        elif (
+            article.status == "Under consideration"
+            or article.status == "Pre-recommended"
+            or article.status == "Pre-recommended-private"
+            or article.status == "Pre-rejected"
+            or article.status == "Pre-revision"
+        ):
             txt = DIV(SPAN(current.T(" is")), SPAN(current.T("UNDER REVIEW"), _class="pci-trackStatus info"), SPAN("(", current.T("Submitted on"), " ", firstDate, ")"),)
 
         elif article.status == "Awaiting revision":
@@ -164,19 +170,18 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
         printableClass = "printable"
     else:
         printableClass = ""
-    
+
     articleStage = None
     if pciRRactivated:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             articleStage = B(current.T("STAGE 2"))
         else:
             articleStage = B(current.T("STAGE 1"))
-    
-     # Scheduled submission
+
+    # Scheduled submission
     doi_text = (common_small_html.mkDOI(article.doi)) if (article.doi) else SPAN("")
     if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
-    
 
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
@@ -187,7 +192,7 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
             ("articleSource", I(article.article_source or "")),
             ("articleImg", article_img),
-            ("articleTitle", article.title or ""),
+            ("articleTitle", WIKI(article.title or "", safe_mode=False)),
             ("articleAuthor", article.authors or ""),
             ("articleAbstract", WIKI(article.abstract or "", safe_mode=False)),
             ("articleDoi", doi_text),

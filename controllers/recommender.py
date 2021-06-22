@@ -1255,7 +1255,7 @@ def send_review_cancellation():
     appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = art.title
+    art_title = WIKI(art.title or "", safe_mode=False)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
@@ -1352,7 +1352,7 @@ def email_for_registered_reviewer():
     appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = art.title
+    art_title = WIKI(art.title or "", safe_mode=False)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
     linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
@@ -1468,7 +1468,7 @@ def email_for_new_reviewer():
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = art.title
+    art_title = WIKI(art.title or "", safe_mode=False)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # NOTE: 4 parallel submission
     parallelText = ""
