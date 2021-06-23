@@ -7,6 +7,7 @@ sessions/*
 static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/*.ini
+private/reminders_config
 node_modules
 cypress/videos
 cypress/screenshots
