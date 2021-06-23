@@ -46,6 +46,8 @@ if discontinued:
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+showGuideLines = myconf.get("menu.guidelines", default=False)
+
 
 # Appends developers menu (web2py)
 def _DevMenu():
@@ -138,8 +140,6 @@ def _ToolsMenu():
         (T("Send me a test e-mail"), False, URL("admin_actions", "testMail", user_signature=True)),
         (T("Send me the newsletter"), False, URL("alerts", "testMyNewsletterMail", user_signature=True)),
         (T("test delete mail"), False, URL("alerts", "testDeleteMail", user_signature=True)),
-
-        
         (T("Send newsletter now"), False, URL("alerts", "sendNewsletterMails", user_signature=True)),
         # (T('Test ALL e-mail alerts'), False, URL('alerts', 'alertUsers')),
         (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
@@ -332,18 +332,18 @@ def _RecommendationMenu():
     else:
         classPostprintsOngoing = ""
 
-    nPreprintsRequireRecomm = db(
-        (db.t_articles.status == "Awaiting consideration")
-    ).count()
+    nPreprintsRequireRecomm = db((db.t_articles.status == "Awaiting consideration")).count()
     if nPreprintsRequireRecomm > 0:
         classPreprintsRequireRecomm = "pci-enhancedMenuItem"
     else:
         classPreprintsRequireRecomm = ""
-    
 
     recommendationsMenu.append(
         (
-            SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint(s) in need of a recommender"), _class="pci-recommender"), _class=classPreprintsRequireRecomm),
+            SPAN(
+                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint(s) in need of a recommender"), _class="pci-recommender"),
+                _class=classPreprintsRequireRecomm,
+            ),
             False,
             URL("recommender", "fields_awaiting_articles", user_signature=True),
         )
@@ -358,8 +358,7 @@ def _RecommendationMenu():
     recommendationsMenu.append(
         (
             SPAN(
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Preprint(s) you are handling"), _class="pci-recommender"),
-                _class=classPreprintsOngoing,
+                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Preprint(s) you are handling"), _class="pci-recommender"), _class=classPreprintsOngoing,
             ),
             False,
             URL("recommender", "my_recommendations", vars=dict(pressReviews=False), user_signature=True),
@@ -495,8 +494,6 @@ def _HelpMenu():
     if ctr == "help":
         isActive = True
 
-    showGuideLines = myconf.get("menu.guidelines", False)
-
     helpMenu = []
 
     if pciRRactivated:
@@ -623,4 +620,5 @@ if "adminLanguage" in request.cookies and not (request.cookies["adminLanguage"] 
     T.force(request.cookies["adminLanguage"].value)
 
 
-# 
+#
+

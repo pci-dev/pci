@@ -113,6 +113,7 @@ def list_users():
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
 
     db.auth_user.last_alert.readable = True
+    db.auth_user.last_alert.writable = True
 
     grid = SQLFORM.smartgrid(
         db.auth_user,
