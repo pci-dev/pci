@@ -1196,7 +1196,6 @@ def send_to_managers(session, auth, db, articleId, newStatus):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
     article = db.t_articles[articleId]
     if article:
         recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
@@ -1270,6 +1269,8 @@ def send_to_managers(session, auth, db, articleId, newStatus):
                 reports = emailing_tools.createMailReport(True, "manager " + (admin.email or ""), reports)
 
         else:
+            managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
+
             for manager in managers:
                 mail_vars["destAddress"] = manager.email
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)

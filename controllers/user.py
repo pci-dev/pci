@@ -1212,6 +1212,7 @@ def my_reviews():
         links=links,
         orderby=~db.t_reviews.last_change | ~db.t_reviews.review_state,
         _class="web2py_grid action-button-absolute",
+        upload=URL("default", "download")
     )
     if pendingOnly:
         titleIcon = "envelope"

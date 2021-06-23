@@ -1091,6 +1091,7 @@ def reviews():
             ],
             selectable=selectable,
             _class="web2py_grid action-button-absolute",
+            upload=URL("default", "download")
         )
 
         # This script renames the "Add record" button
