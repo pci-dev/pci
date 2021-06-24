@@ -163,7 +163,7 @@ def reviewsOfCancelled(auth, db, art):
 ######################################################################################################################################################################
 ##WARNING The most sensitive function of the whole website!!
 ##WARNING Be *VERY* careful with rights management
-def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False):
+def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False, to_submitter=False):
     class FakeSubmitter(object):
         id = None
         first_name = ""
@@ -544,7 +544,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
                     hideOngoingReview = False
                 # ...  the reviewer himself once accepted ...
-                if (review.reviewer_id == auth.user_id) and (review.review_state in ("Under consideration", "Review completed")):
+                if (review.reviewer_id == auth.user_id) and (review.review_state in ("Awaiting review", "Review completed")):
                     hideOngoingReview = False
                 # ...  a reviewer himself once the decision made up ...
                 if (
@@ -614,33 +614,35 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     # display the review
                     # myReviews.append(HR())
                     # buttons allowing to edit and validate the review
-                    if review.anonymously:
-                        myReviews.append(
-                            SPAN(
-                                I(
-                                    current.T("Reviewed by")
-                                    + " "
-                                    + current.T("anonymous reviewer")
-                                    + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
-                                )
-                            )
-                        )
-                    else:
-                        reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-                        if reviewer is not None:
+                    if review.review_state in ("Awaiting review", "Review completed") or to_submitter == False:
+                        if review.anonymously:
                             myReviews.append(
                                 SPAN(
                                     I(
                                         current.T("Reviewed by")
                                         + " "
-                                        + (reviewer.first_name or "")
-                                        + " "
-                                        + (reviewer.last_name or "")
+                                        + current.T("anonymous reviewer")
                                         + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
                                     )
                                 )
                             )
-                    myReviews.append(BR())
+                        else:
+                            reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+                            if reviewer is not None:
+                                myReviews.append(
+                                    SPAN(
+                                        I(
+                                            current.T("Reviewed by")
+                                            + " "
+                                            + (reviewer.first_name or "")
+                                            + " "
+                                            + (reviewer.last_name or "")
+                                            + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                                        )
+                                    )
+                                )
+                        myReviews.append(BR())
+
                     if len(review.review or "") > 2:
                         myReviews.append(DIV(WIKI(review.review, safe_mode=False), _class="pci-bigtext margin"))
                         if review.review_pdf:
