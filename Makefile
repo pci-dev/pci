@@ -54,10 +54,15 @@ test.install:
 	sudo npm install -g npm@latest
 	npm install
 
-test.setup:
-	$(psql) main < sql_dumps/insert_test_users.sql
-	cp cypress/fixtures/_users.json cypress/fixtures/users.json
+test.setup: test.db cypress/fixtures/users.json
 
+test.db:
+	$(psql) main < sql_dumps/insert_test_users.sql
+
+cypress/fixtures/%:
+	cp _$@ $@
+
+test.reset: stop db.clean db test.setup start
 
 test:
 	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
