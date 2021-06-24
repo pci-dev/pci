@@ -49,7 +49,7 @@ for (const id_textarea of ids_array) {
       branding: false,
       menubar: false,
       statusbar: false,
-      plugins: "table paste lists link autoresize media image hr textcolor",
+      plugins: "table paste lists link autoresize media image hr",
       paste_as_text: safePasteActivated,
       toolbar_sticky: true,
       autoresize_bottom_margin: 15,

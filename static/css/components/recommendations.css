@@ -41,12 +41,17 @@
   color: #888;
 }
 
-.pci2-article-row h3 {
+.pci2-article-row h3,
+.article-title {
+  font-size: 16px;
   margin: 0;
   margin-bottom: 3px;
-  font-size: 18px;
   font-weight: bold;
   color: #555;
+}
+
+.pci2-article-row h3 {
+  font-size: 18px;
 }
 
 .pci2-article-row h4 {
@@ -55,6 +60,11 @@
   font-size: 16px;
   font-weight: bold;
   color: #555;
+}
+
+.pci2-article-row h3 p,
+.article-title p {
+  margin: 0;
 }
 
 .pci2-article-infos {

@@ -224,7 +224,7 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 /* remove logo from footer */
-.footer-content a>img {
+.footer-content a > img {
   display: none;
 }
 
@@ -239,7 +239,7 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 /* see template/script/action_button_absolute.js */
-.action-button-absolute .web2py_htmltable>table>tbody>tr>td:last-child {
+.action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
   min-width: 180px;
   min-height: 105px;
   padding: 0;
@@ -248,7 +248,13 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 /* see template/script/action_button_absolute.js */
-.action-button-absolute .web2py_htmltable>table>tbody>tr>td:last-child>div {
+.action-button-absolute
+  .web2py_htmltable
+  > table
+  > tbody
+  > tr
+  > td:last-child
+  > div {
   position: absolute;
   right: 15px;
   padding-right: 10px;
@@ -260,23 +266,43 @@ div.w2p_flash.alert.custom-disappear {
   width: 100%;
 }
 
-.action-button-absolute .web2py_htmltable>table>tbody>tr.even>td:last-child>div {
-  background: linear-gradient(90deg,
-      rgba(0, 0, 0, 0),
-      rgba(239, 243, 247, 255) 15%);
-  background-image: -webkit-linear-gradient(left,
-      rgba(239, 243, 247, 0.001) 0%,
-      rgba(239, 243, 247, 255) 15%);
+.action-button-absolute
+  .web2py_htmltable
+  > table
+  > tbody
+  > tr.even
+  > td:last-child
+  > div {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(239, 243, 247, 255) 15%
+  );
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(239, 243, 247, 0.001) 0%,
+    rgba(239, 243, 247, 255) 15%
+  );
 }
 
-.action-button-absolute .web2py_htmltable>table>tbody>tr.odd>td:last-child>div {
+.action-button-absolute
+  .web2py_htmltable
+  > table
+  > tbody
+  > tr.odd
+  > td:last-child
+  > div {
   background: #f7f9fb;
-  background: linear-gradient(90deg,
-      rgba(0, 0, 0, 0),
-      rgba(247, 249, 251, 255) 15%);
-  background-image: -webkit-linear-gradient(left,
-      rgba(247, 249, 251, 0.001) 0%,
-      rgba(247, 249, 251) 15%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(247, 249, 251, 255) 15%
+  );
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(247, 249, 251, 0.001) 0%,
+    rgba(247, 249, 251) 15%
+  );
 }
 
 .tox-tinymce {
@@ -326,7 +352,7 @@ div.w2p_export_menu {
 }
 
 /* replace blockquote to Red disclaimer in Help_text*/
-.pci-infotext>blockquote {
+.pci-infotext > blockquote {
   border-radius: 5px;
   border: 2px solid #cc0e0e;
   padding: 10px;
@@ -370,17 +396,33 @@ td .ellipsis-over-350 {
   font-weight: bold !important;
 }
 
-.web2py_radiowidget td{
+.web2py_radiowidget td {
   display: flex;
   flex-direction: row;
   margin-top: 5px;
 }
-.web2py_radiowidget td label{
+.web2py_radiowidget td label {
   font-weight: normal !important;
 }
 
-.message-level-0{
+.message-level-0 {
   color: #fcc24d;
+  font-weight: bold !important;
+}
+
+.test-toto {
+  padding: 12px 16px;
+  border: 1px solid #dfd7ca;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+h4 p,
+h3 p{
+  margin: 0;
+}
+
+#t_articles_title_ifr body p {
   font-weight: bold !important;
 }
 
@@ -428,7 +470,6 @@ td .ellipsis-over-350 {
     transform: rotate(360deg);
   }
 }
-
 
 @keyframes animOpacity {
   from {

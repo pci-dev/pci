@@ -45,7 +45,7 @@ describe("Preprint recommended in two round", () => {
 
     it("Should submit form with bad title", () => {
       cy.fixture("fake_datas").then((datas) => {
-        cy.get("#t_articles_title").typeFast("Tototototototot totoo");
+        cy.get("#t_articles_title_ifr").typeTinymce("Tototototototot totoo");
         cy.get("#t_articles_authors").typeFast(
           submitter.firstname + " " + submitter.lastname
         );
@@ -117,10 +117,10 @@ describe("Preprint recommended in two round", () => {
 
       cy.contains("a", "Edit article").click();
 
-      cy.get("#t_articles_title").clear();
+      cy.get("#t_articles_title_ifr").clearTinymce();
 
       cy.fixture("fake_datas").then((datas) => {
-        cy.get("#t_articles_title").typeFast(
+        cy.get("#t_articles_title_ifr").typeTinymce(
           articleTitle + " " + datas.small_text
         );
       });
@@ -323,9 +323,10 @@ describe("Preprint recommended in two round", () => {
 
     it("=> mail sent to reviewer 1", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should search for reviewer 2 (developer user)", () => {
@@ -348,9 +349,10 @@ describe("Preprint recommended in two round", () => {
 
     it("=> mail sent to reviewer 2", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should invite reviewer outside PCI database", () => {
@@ -487,9 +489,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should write and submit review", () => {
@@ -512,9 +515,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
@@ -577,9 +581,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should write and submit review", () => {
@@ -602,9 +607,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
@@ -689,9 +695,10 @@ describe("Preprint recommended in two round", () => {
       cy.contains(".pci-enhancedMenuItem", "For recommenders").should("exist");
       cy.contains(".dropdown-toggle", "For recommenders").click();
 
-      cy.contains(".pci-enhancedMenuItem", "Preprint(s) you are handling").should(
-        "exist"
-      );
+      cy.contains(
+        ".pci-enhancedMenuItem",
+        "Preprint(s) you are handling"
+      ).should("exist");
       cy.contains("a", "Preprint(s) you are handling").click();
     });
 
@@ -837,19 +844,22 @@ describe("Preprint recommended in two round", () => {
 
     it("=> mail sent to all involved", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to manager " + manager.mail).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to manager " + manager.mail
+      ).should("exist");
       cy.contains(
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
       cy.contains(
         ".w2p_flash",
         "e-mail sent to submitter " + submitter.firstname
@@ -930,10 +940,7 @@ describe("Preprint recommended in two round", () => {
     it("Should write and submit author's reply", () => {
       cy.contains("a", "View / Edit").first().click();
 
-      cy.contains(
-        "a",
-        "Write or upload your reply to the recommender"
-      ).click();
+      cy.contains("a", "Write or upload your reply to the recommender").click();
 
       cy.fixture("fake_datas").then((datas) => {
         // cy.get("#t_recommendations_reply").typeFast(
@@ -946,11 +953,7 @@ describe("Preprint recommended in two round", () => {
 
       cy.get('input[type="submit"]').click();
 
-      cy.contains(
-        "a",
-        "SEND RESUBMISSION"
-      ).click();
-
+      cy.contains("a", "SEND RESUBMISSION").click();
     });
 
     it("=> mail sent to manager and recommender", () => {
@@ -977,9 +980,10 @@ describe("Preprint recommended in two round", () => {
       cy.contains(".pci-enhancedMenuItem", "For recommenders").should("exist");
       cy.contains(".dropdown-toggle", "For recommenders").click();
 
-      cy.contains(".pci-enhancedMenuItem", "Preprint(s) you are handling").should(
-        "exist"
-      );
+      cy.contains(
+        ".pci-enhancedMenuItem",
+        "Preprint(s) you are handling"
+      ).should("exist");
       cy.contains("a", "Preprint(s) you are handling").click();
     });
 
@@ -1011,9 +1015,10 @@ describe("Preprint recommended in two round", () => {
       cy.get("input[type=submit]").click();
 
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should search for reviewer 2 (developer user)", () => {
@@ -1034,9 +1039,10 @@ describe("Preprint recommended in two round", () => {
       cy.get("input[type=submit]").click();
 
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should show article under status 'HANDLING PROCESS UNDERWAY'", () => {
@@ -1156,9 +1162,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should write and submit review", () => {
@@ -1181,9 +1188,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
@@ -1246,9 +1254,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should write and submit review", () => {
@@ -1271,9 +1280,10 @@ describe("Preprint recommended in two round", () => {
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
     });
 
     it("Should have 'Request(s) to handle a preprint' enhanced menu", () => {
@@ -1358,9 +1368,10 @@ describe("Preprint recommended in two round", () => {
       cy.contains(".pci-enhancedMenuItem", "For recommenders").should("exist");
       cy.contains(".dropdown-toggle", "For recommenders").click();
 
-      cy.contains(".pci-enhancedMenuItem", "Preprint(s) you are handling").should(
-        "exist"
-      );
+      cy.contains(
+        ".pci-enhancedMenuItem",
+        "Preprint(s) you are handling"
+      ).should("exist");
       cy.contains("a", "Preprint(s) you are handling").click();
     });
 
@@ -1507,19 +1518,22 @@ describe("Preprint recommended in two round", () => {
 
     it("=> mail sent to all involved", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to manager " + manager.mail).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to manager " + manager.mail
+      ).should("exist");
       cy.contains(
         ".w2p_flash",
         "e-mail sent to " + recommender.firstname
       ).should("exist");
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_1.firstname).should(
-        "exist"
-      );
-      cy.contains(".w2p_flash", "e-mail sent to " + reviewer_2.firstname).should(
-        "exist"
-      );
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_1.firstname
+      ).should("exist");
+      cy.contains(
+        ".w2p_flash",
+        "e-mail sent to " + reviewer_2.firstname
+      ).should("exist");
       cy.contains(
         ".w2p_flash",
         "e-mail sent to submitter " + submitter.firstname

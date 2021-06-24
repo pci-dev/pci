@@ -98,6 +98,8 @@ def last_recomms():
             A(current.T("See all recommendations"), _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
             _style="text-align:center;",
         ),
+        # Reload mathjax to display math formula (and not latex code)
+        SCRIPT("MathJax.typeset();", _type='text/javascript'),
         _class="pci-lastArticles-div",
     )
 
