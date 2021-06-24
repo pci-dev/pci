@@ -19,4 +19,4 @@ docker image inspect pci:latest &> /dev/null || {
 	docker build -t pci .
 }
 
-docker run $OPTIONS -p 8000:8000 -v "$PWD:/pci" pci "$@"
+docker run $OPTIONS -p 8000:8001 -v "$PWD:/pci" pci "$@"

@@ -115,7 +115,7 @@ docker build -t pci .
 A./ one-shot, throw-away
 
 ```bash
-docker run --rm -it -p 8000:8000 pci
+docker run --rm -it -p 8001:8001 pci
 ```
 
 use ^C to quit.
@@ -124,7 +124,7 @@ use ^C to quit.
 B./ long-running, keep state
 
 ```bash
-docker run -d -p 8000:8000 pci
+docker run -d -p 8001:8001 pci
 ```
 
 use `docker stop` and `docker start` to stop/restart.
@@ -134,13 +134,13 @@ use `docker rm` to dispose.
 C./ one-shot, throw away, with local dev env mapping
 
 ```bash
-docker run --rm -it -p 8000:8000 -v `pwd`:/pci pci
+docker run --rm -it -p 8001:8001 -v `pwd`:/pci pci
 ```
 
 ### Use the containerized PCI
 
 ```bash
-browse http://localhost:8000/pci
+browse http://localhost:8001/pci
 ```
 
 ```bash

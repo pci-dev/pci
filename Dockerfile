@@ -57,4 +57,4 @@ ENV PCI_PASSWORD pci
 
 CMD	[ "/entrypoint.sh" ]
 
-EXPOSE 8000
+EXPOSE 8001
