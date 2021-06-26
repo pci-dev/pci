@@ -14,7 +14,7 @@ perl -pe '{s/(\".*?\")\, lazy=False(.*)/\1: \1,/g}' temp3.txt > temp4.txt
 # Copy default language file
 cp languages/default.py temp_basefile.txt
 
-perl -pe '{s/\ \ \ \ //g}' temp_basefile.txt > temp_basefile2.txt
+perl -pe '{s/\ \ \ \ //g}' temp_basefile.txt > basefile.txt
 
 # Remove first and last lines
 sed -i '1d' basefile.txt
@@ -24,7 +24,7 @@ sed '$d' basefile.txt >> temp4.txt
 # Remove duplicates
 sort temp4.txt -o temp4.txt
 sort temp4.txt | uniq > result.txt
-rm temp1.txt temp2.txt temp3.txt temp4.txt basefile.txt temp_basefile.txt temp_basefile2.txt
+rm temp1.txt temp2.txt temp3.txt temp4.txt basefile.txt temp_basefile.txt
 
 # NEXT STEPS (remove some duplicates caused by '' and "") :
 # - copy result.txt inside default.py python list
