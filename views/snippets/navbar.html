@@ -1,29 +1,42 @@
 <nav class="navbar">
-    <div class="collapse navbar-collapse navbar-ex1-collapse">
+    
       {{if auth.user:}}
+      <div class="collapse navbar-collapse navbar-ex1-collapse">
         {{if response.menu:}}
-        {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
-      {{else:}}
-        <p>MISTE</p>
+          {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
+        {{pass}}
+        {{if response.help_about_menu:}}
+          {{=MENU(response.help_about_menu, _class='nav navbar-nav bam', li_class='dropdown', ul_class='dropdown-menu')}}
+        {{pass}}
+        {{else:}}
+        <div class="collapse navbar-collapse-alt navbar-ex1-collapse">
+        <a href="/pci/default/index">
+            <img src="/pci/static/images/small-background.png" style="height:60px">
+          </a>
       {{pass}}
-      {{pass}}
+      
     </div>
     <div class="main-logo">
       <a href="{{=URL(c='default', f='index')}}">
         <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
       </a>
     </div>
+
+    {{if auth.user:}}
     <div class="container-fluid">
+    {{else:}}
+    <div class="container-fluid-alt">
+    {{pass}}
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" onclick="lock_body()" onmouseover="change_img()" onmouseout="change_back()">
           <img src="{{=URL('static','images/pci-burger-default.svg')}}" id="pci-burger">  
         </button>
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
-
         <ul class="nav navbar-nav flex-container">
-          <li class="flex-item"><a href="/">Home</a></li>
+          <li class="flex-item"><a href="/" id="no-lefty">Home</a></li>
           <hr class="hr-nav hide-desktop">
+          {{if not auth.user:}}
           <li class="flex-item" data-toggle="collapse" data-target="#articles-nav" onclick="subnavs(this)">
             <a>Articles</a>
             <div class="collapse subnav" id ="articles-nav">
@@ -42,8 +55,11 @@
             </div>
           </li>
           <hr class="hr-nav hide-desktop">
+          
+          {{pass}}
           <li class="flex-item" data-toggle="collapse" data-target="#about-nav" onclick="subnavs(this)">
             <a>About</a>
+            <span class="caret"></span>
             <div class="collapse subnav" id ="about-nav">
               <ul>
                 <li>
@@ -82,6 +98,7 @@
           <hr class="hr-nav hide-desktop">
           <li class="flex-item" data-toggle="collapse" data-target="#help-nav" onclick="subnavs(this)">
             <a>Help</a>
+            <span class="caret"></span>
             <div class="collapse subnav" id ="help-nav">
               <ul>
                 <li>

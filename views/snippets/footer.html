@@ -23,11 +23,10 @@
       </header>
       <hr class="hr-footer">
       <div class="footer-sub-text">
-        <img class="img-supporter" src="{{=URL('static','images/inrae.jpg')}}"><br>
+        {{=getText(request, auth, db, '#SideBarSponsor')}}
+        
         <div id="ms">MAIN SPONSOR</div>
-        <img class="img-supporter" src="{{=URL('static','images/leuven.jpg')}}"><br>
-        <img class="img-supporter" src="{{=URL('static','images/liege.jpg')}}"><br>
-        <img class="img-supporter" src="{{=URL('static','images/sorbonne.jpg')}}"><br>
+        {{=getText(request, auth, db, '#SideBarSupporters')}}
         <a href="https://peercommunityin.org/pci-network/" target="_blank">
           <strong>ALL SUPPORTERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
         </a>
@@ -42,32 +41,33 @@
     </header>
     <hr class="hr-footer">
     <div class="footer-sub-text">
-      CORINA LOGAN<br>
-      ANNA EKLOF<br>
-      JULIA ASTEGIANO<br>
-      BEN PHILLIPS<br>
-      CYRILLE GRAVEL<br>
-      DOMINIQUE GRAVEL<br>
-      TIM COULSON<br>
-      FRANCOIS MASSOL<br>
-      <a href="https://peercommunityin.org/pci-network/" target="_blank"><strong>RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
+      {{=getText(request, auth, db, '#SideBarManagingBoard')}}
+      <a href="/pci/about/recommenders"><strong>RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
     </div>
 
     <div class="hide-below-tablet">
       <header>
-        <h1 class="pci-h1">MEMBERSHIPS & INDEXING</h1>
+        <h1 class="pci-h1">MEMBER OF</h1>
       </header>
       <hr class="hr-footer">
       <div class="footer-sub-text">
-        <img class="img-supporter" src="{{=URL('static','images/europe-pmc.jpg')}}"><br>
-        <img class="img-supporter" src="{{=URL('static','images/pubpeerlogo.png')}}"><br>
-        <img class="img-supporter" src="{{=URL('static','images/altmetric.jpg')}}"><br>
-        <img class="img-supporter-2" src="{{=URL('static','images/GSlogo.png')}}"><br>
-        <img class="img-supporter-2" src="{{=URL('static','images/openairelogo.png')}}"><br>
-        <img class="img-supporter-2" src="{{=URL('static','images/dimensionlogo.png')}}"><br>
-        <a href="https://peercommunityin.org/pci-network/" target="_blank">
+        <img class="img-supporter img-supporter-3" src="{{=URL('static','images/Logo-COPE.png')}}"><br>
+        <img class="img-supporter" src="{{=URL('static','images/crossref-logo-landscape-200.svg')}}"><br>
+        <img class="img-supporter img-supporter-3" src="{{=URL('static','images/clockss-boxed-logo-150w.png')}}"><br>
+        <img class="img-supporter" src="{{=URL('static','images/crossref-similarity-check-logo-200.svg')}}"><br>
+        <!--a href="https://peercommunityin.org/pci-network/" target="_blank">
           <strong>SEE ALL</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
-        </a>
+        </a-->
+      </div>
+    </div>
+
+    <div class="hide-below-tablet">
+      <header>
+        <h1 class="pci-h1">INDEX BY</h1>
+      </header>
+      <hr class="hr-footer">
+      <div class="footer-sub-text">
+        {{=getText(request, auth, db, '#SideBarIndex')}}
       </div>
     </div>
   </div>
@@ -78,11 +78,9 @@
     </header>
     <hr class="hr-footer">
     <div class="footer-sub-text">
-      <img class="img-supporter" src="{{=URL('static','images/inrae.jpg')}}"><br>
+      {{=getText(request, auth, db, '#SideBarSponsor')}}
       <div id="ms">MAIN SPONSOR</div>
-      <img class="img-supporter" src="{{=URL('static','images/leuven.jpg')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/liege.jpg')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/sorbonne.jpg')}}"><br>
+      {{=getText(request, auth, db, '#SideBarSupporters')}}
       <a href="https://peercommunityin.org/pci-network/" target="_blank">
         <strong>ALL SUPPORTERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
       </a>
@@ -91,19 +89,27 @@
 
   <div class="footer-sub flex-item memberships show-below-tablet">
     <header>
-      <h1 class="pci-h1">MEMBERSHIPS & INDEXING</h1>
+      <h1 class="pci-h1">MEMBER OF</h1>
     </header>
     <hr class="hr-footer">
     <div class="footer-sub-text">
-      <img class="img-supporter" src="{{=URL('static','images/europe-pmc.jpg')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/pubpeerlogo.png')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/altmetric.jpg')}}"><br>
-      <img class="img-supporter-2" src="{{=URL('static','images/GSlogo.png')}}"><br>
-      <img class="img-supporter-2" src="{{=URL('static','images/openairelogo.png')}}"><br>
-      <img class="img-supporter-2" src="{{=URL('static','images/dimensionlogo.png')}}"><br>
-      <a href="https://peercommunityin.org/pci-network/" target="_blank">
+      <img class="img-supporter img-supporter-3" src="{{=URL('static','images/Logo-COPE.png')}}"><br>
+      <img class="img-supporter" src="{{=URL('static','images/crossref-logo-landscape-200.svg')}}"><br>
+      <img class="img-supporter img-supporter-3" src="{{=URL('static','images/clockss-boxed-logo-150w.png')}}"><br>
+      <img class="img-supporter" src="{{=URL('static','images/crossref-similarity-check-logo-200.svg')}}"><br>
+    <!--a href="https://peercommunityin.org/pci-network/" target="_blank">
         <strong>SEE ALL</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
-      </a>
+      </a-->
+    </div>
+  </div>
+
+  <div class="footer-sub flex-item memberships show-below-tablet">
+    <header>
+      <h1 class="pci-h1">INDEX BY</h1>
+    </header>
+    <hr class="hr-footer">
+    <div class="footer-sub-text">
+      {{=getText(request, auth, db, '#SideBarIndex')}}
     </div>
   </div>
 
@@ -167,17 +173,6 @@
     </div>
 
     <div class="footer-sub-text suffix">
-      PCI Evol Biol is the first community
-      of the non-profit organization
-      Peer Community In. The goal
-      of Peer Community In is to
-      promote scientific knowledge.
-      Authors of comments, reviews
-      and recommendations retain
-      copyright0 under CC BY-ND.
-      Contact & credits. Publication
-      director/directeur de la
-      publication: Denis Bourguet. ISSN:
-      2551-668X
+      {{=getText(request, auth, db, '#NewFooterSubtext')}}
     </div>
   </div>

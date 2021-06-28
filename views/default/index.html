@@ -3,9 +3,9 @@
 
 {{block header}}
   {{if auth.user:}}
-    <header id='pci-home-header-large' class="col-md-9">
+    <header id='pci-home-header-large'>
   {{else:}}
-    <header id='pci-home-header' class="col-md-9">
+    <header id='pci-home-header'>
   {{pass}}
   <span>
     <img src="{{=URL(c='static', f='images/background.png')}}">
@@ -40,6 +40,9 @@
     	class="btn btn-success pci-public"
       >
     	{{=T("Submit a preprint")}}
+    </a>
+    <a href="{{=URL(c='default', f='user', args=['register'])}}" class="btn btn-success pci-public pci-register hide-desktop">
+      {{=T('Register')}}
     </a>
   {{pass}} 
 

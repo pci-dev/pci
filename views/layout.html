@@ -71,12 +71,22 @@
     mc1 = 'col-md-9'
     mc2 = 'col-md-6'
     left_sidebar_enabled = False # globals().get('left_sidebar_enabled', False)
-    right_sidebar_enabled = True #globals().get('right_sidebar_enabled', False)
-    middle_column = mc1 # {0: mc0, 1: mc1, 2: mc2}[
-    #(left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
+    right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
+    middle_column = {0: mc0, 1: mc1, 2: mc2}[
+    (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
+
+    
     }}
+
   </head>
   <body>
+    {{if request.controller == 'about' or request.function == 'index' or request.controller == 'help' or request.controller == 'articles':}}
+    {{right_sidebar_enabled = True}}
+    {{middle_column = mc1}}
+    {{else:}}
+    {{right_sidebar_enabled = False}}
+    {{middle_column = mc0}}
+    {{pass}}
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     {{if session.flash_status != 'warning': }}
     <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
@@ -90,26 +100,27 @@
 
     <!-- Masthead ===================================== -->
     {{block header}}
-    {{if auth.user:}}
-      <header id='pci-home-header-large' class="col-md-9">
-    {{else:}}
-      <header id='pci-home-header' class="col-md-9">
-    {{pass}}
-        <span>
-          <img src="{{=URL(c='static', f='images/background.png')}}">
-          {{if 'smallSearch' in locals():}}
-            <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
-          {{pass}}
-        </span>
-      </header>
-
+    {{if request.function == 'index':}}
+        <header id='pci-home-header'>
+          <span>
+            <img src="{{=URL(c='static', f='images/background.png')}}">
+            {{if 'smallSearch' in locals():}}
+              <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+            {{pass}}
+          </span>
+        </header>
+      {{pass}}
     {{end}}
     <!-- Main ========================================= -->
 
     <!-- Page Title -->
 
     <!-- Begin page content -->
-    <div class="container-fluid main-container flex-container row" id="main-content">
+    {{if request.function == 'index':}}
+      <div class="container-fluid main-container flex-container row" id="main-content">
+    {{else:}}
+      <div class="container-fluid main-container flex-container row top-pad" id="main-content">
+    {{pass}}
       {{if left_sidebar_enabled and False:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
@@ -129,24 +140,30 @@
                 {{=T('Register')}}
               </a>
             </div>
-          {{pass}} 
+          {{pass}}
           {{include 'snippets/footer.html'}}
           {{end}}
         </div>
-      {{pass}}
+        {{pass}}
 
-      <div class="{{=middle_column}}">
-        {{block center}}
-        {{include}}
-        {{end}}
-      </div>
+        <div class="{{=middle_column}}">
+          {{if not right_sidebar_enabled:}}
+            {{if auth.user:}}
+            <div class="logout-btn-alt">
+              <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
+                {{=T('Log out')}}
+              </a>
+            </div>
+            {{pass}}
+          {{pass}}
 
-      {{if right_sidebar_enabled:}}
-        <!--div class="col-md-3">
-            {{block right_sidebar}}
-              {{include 'snippets/footer.html'}}
-            {{end}}
-        </div-->
+          {{block center}}
+          {{include}}
+          {{end}}
+        </div>
+
+        {{if right_sidebar_enabled:}}
+
         <div class="col-md-3 left-sidebar">
           {{block left_sidebar}}
           {{if auth.user:}}
@@ -173,7 +190,7 @@
               {{=T("Submit a preprint")}}
             </a>
           </div>
-        {{pass}} 
+        {{pass}}
         {{include 'snippets/footer.html'}}
         {{end}}
       </div>

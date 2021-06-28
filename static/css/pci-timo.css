@@ -12,6 +12,7 @@
         width: 100%;
         padding-left: 2rem!important;
         padding-top: 2rem!important;
+        height: 100vh!important;
     }
 
     .navbar {
@@ -50,8 +51,14 @@
     .btn-default:focus, .btn-default.focus {
         background-color: rgba(0,150,190);
     }
-    
 
+
+    .navbar-header > .btn-default:active,
+    .navbar-header > .btn-default:hover,
+    .navbar-header > .btn-default:focus {
+        background-color: transparent!important;
+    }
+    
     #pci-logo {
         width: 80%;
         max-width: 25rem;
@@ -79,6 +86,10 @@
 
     .navbar .nav > li > .pci-public:hover {
         background-color: #0096be;
+    }
+
+    .logout-btn-alt {
+        float: right;
     }
 
     .btn-success:hover {
@@ -125,6 +136,15 @@
         max-height: 4rem;
     }
 
+    .bam {
+        width: auto;
+    }
+
+    .navbar .bam > li:nth-of-type(1),
+    .navbar .bam > li:nth-of-type(2) {
+        display: none;
+    }
+
     #cyp-login-button,
     #cyp-logout-button,
     #submit_record__row .btn,
@@ -145,7 +165,6 @@
     .pci-infotext {
         text-align: left;
     }
-
 
     .pci-infotext h4,
     .pci-infotext ul {
@@ -183,6 +202,10 @@
     .pci2-twitter-link {
         margin-left: 1rem;
         margin-right: 1rem;
+    }
+
+    .tweeterPanel {
+        display: none;
     }
 
     .pci2-justify-center .pci2-content-900px .pci2-flex-row {
@@ -244,6 +267,11 @@
         text-align: left;
     }
 
+    .pci-register {
+        width: 8rem;
+        margin-top: 0;
+    }
+
     .submit-btn .pci-public {
         width: 16rem;
     }
@@ -264,6 +292,15 @@
         margin: .5rem .5rem 1.5rem 3rem;
         text-align: left;
     }
+
+    span > .pci-recommender,
+    span.pci-recommender {
+        background-color: unset;
+        color: #3e3f3a;
+        margin-left: 0;
+        padding-left: 0;
+    }
+
 
     .nav .flex-item .pci2-thematic-link-div {
         display: none;
@@ -296,6 +333,10 @@
     #pci-home-header-large {
         padding-top: 7rem;
         margin-bottom: 1rem;
+    }
+
+    .btn-default:hover {
+        background-color: #0096be!important;
     }
 
     #pci-home-header img,
@@ -452,7 +493,8 @@
     }
 
     .recommenders .footer-sub-text {
-        line-height: 2.5;
+        line-height: 1.8;
+        font-size: 1.3rem;
     }
 
     .footer-sub {
@@ -465,7 +507,7 @@
         width: 100vw;
         position: relative;
         left: -1.7rem;
-        line-height: 2;
+        line-height: 1.4;
     }
 
     .footer-sub a {
@@ -514,6 +556,12 @@
         padding-bottom: 2rem;
     }
 
+    .img-supporter-3 {
+        width: 10rem;
+        padding-bottom: 1rem;
+        padding-top: .5rem;
+    }
+
     #ms {
         position: relative;
         bottom: 1rem;
@@ -555,6 +603,20 @@
         margin-top: 2rem;
     }
 
+    .left-sidebar .pci-infotext {
+        margin-left: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .left-sidebar .pci-infotext > p {
+        margin: 0;
+    }
+
+    #myNavbar .caret {
+        display: none;
+    }
+
     #auth_user_uploaded_picture {
         width: 100%;
     }
@@ -586,7 +648,7 @@
     }
 
     .pci-infotext hr {
-        display: none;
+        border-top-color: #3e3f3a!important;
     }
 
     .pci-infotext > div,
@@ -620,6 +682,10 @@
         padding: 2rem 0;
     }
 
+    .left-sidebar .pci-infotext img {
+        padding: 0;
+    }
+
     .pci-infotext div div div div div div div div > p > a > img {
         width: 20rem;
     }
@@ -644,8 +710,12 @@
         width: 7rem;
     }
 
-
-
+    .footer {
+        margin-left: 1.6rem!important;
+        margin-right: 1.6rem!important;
+        padding-left: 0!important;
+        padding-right: 0!important
+    }
 
     .left-sidebar {
         display: none;
@@ -809,6 +879,12 @@
         padding-top: 8rem!important;
     }
 
+
+    .navbar > .navbar-collapse .navbar-nav {
+        float: unset;
+        display: inline-block;
+    }
+
     #articles-nav ul li,
     #about-nav ul li,
     #help-nav ul li {
@@ -830,12 +906,17 @@
         margin-top: .2rem;
     }
 
-    .container-fluid {
+    .container-fluid,
+    .container-fluid-alt {
         padding-left: 0;
     }
 
     .navbar-nav {
-        width: 100%;
+        width: 72%;
+    }
+
+    .bam {
+        width: 9rem;
     }
 
     .navbar .nav > li > a {
@@ -843,9 +924,15 @@
     }
 
     .navbar .nav > li > .dropdown-toggle .pci-recommender {
-        margin: 0 0 .5rem 0;
-        padding: .5rem 0;
+        margin: 0 0 0rem 0;
+        padding: 0rem 0;
         width: 16rem;
+        text-align: left;
+    }
+
+    .navbar .nav > li > .dropdown-toggle i {
+        text-align: center;
+
     }
 
     .pci-public {
@@ -867,7 +954,7 @@
     }
 
     #main-content {
-        padding: 0 4rem 2rem 4rem;
+        padding: 0 0 2rem 0;
     }
 
     .footer-sub .hide-below-tablet {
@@ -937,7 +1024,7 @@
     }
 
     #pci-home-header-large {
-        padding-top: 15rem;
+        padding-top:8rem;
     }
 
     #pci-home-header {
@@ -957,18 +1044,68 @@
         max-width: 120rem;
     }
 
+    .top-pad {
+        padding-top: 10rem!important;
+    }
+
+    .main-logo {
+        display: none;
+    }
+
     .navbar > .container-fluid {
+        display: inline-block;
+        width: 20rem;
+        padding-right: 0;
+        padding-left: 1rem;
+    }
+
+    #myNavbar .caret {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        margin-left: 1.5rem;
+    }
+
+    .nav > li > a {
+        padding-bottom: 0;
+    }
+
+    .navbar > .container-fluid-alt {
+        display: block;
         float: right;
-        padding-right: 7.5rem;
+        width: unset;
+    }
+
+    #pci-logo {
+        left: 0;
     }
 
     .navbar-nav {
         display: flex;
         flex-direction: row;
+        width: 92%;
+    }
+
+    .bam {
+        width: 6rem;
+        padding-bottom: 1.3rem;
+        padding-right: .5rem;
     }
 
     .navbar-collapse.collapse {
-        display: block;
+        display: inline-block;
+        width: 82%;
+        padding-right: 0;
+    }
+
+    .navbar-collapse-alt.collapse { 
+        display: inline-block;
+        width: 90rem;
+        padding-right: 0;
+    }
+
+    .navbar-collapse {
+        padding-right: 0!important;
     }
 
     .navbar-toggle {
@@ -980,13 +1117,24 @@
         margin-top: 0;
     }
 
+    .nav > li > a {
+        padding-right: 1.2rem;
+        padding-left: 1.2rem;
+    }
+
     #myNavbar {
         display: block;
         position: relative;
         background-color: transparent;
-        height: unset;
-        padding-bottom: 2rem;
+        height: auto!important;
+        padding-bottom: 1.3rem!important;
         padding-top: 2rem!important;
+        padding-left: 0!important;
+        padding-right: 0!important;
+    }
+
+    #no-lefty {
+        padding-left: 0;
     }
 
     #articles-nav,
@@ -1057,7 +1205,8 @@
     }
 
     .col-md-9 {
-        width: 73%;
+        width: 75%;
+        padding-left: 0;
         border-right: .1rem solid black;
     }
 
@@ -1067,12 +1216,12 @@
     }
 
     #pci-home-header {
-        padding-top: 7rem;
+        padding-top: 6rem;
     }
 
     #pci-home-header,
     #pci-home-header-large {
-        padding-left: 6rem;
+        padding-left: 0;
         border-left: 0;
     }
 
@@ -1081,6 +1230,9 @@
         top: 0;
         left: -.1rem;
         border-left: .1rem solid black;
+        width: 25%;
+        padding-top: 0;
+        padding-right: 0;
     }
 
     .col-md-9 > div > .pci-public,
@@ -1108,6 +1260,8 @@
 
     #footer {
         padding-top: 0;
+        padding-left: 0;
+        padding-right: 0;
     }
 
     #footer .sub-flex {
@@ -1147,16 +1301,15 @@
     #pci-home-header,
     #pci-home-header-large {
         width: 100%;
-        height: 24rem;
+        height: 22rem;
         padding-bottom: 4rem;
     }
 
     #pci-home-header-large {
-        height: 32rem;
-    }
+        width: 100%;
+        height: 22rem;
+        padding-bottom: 4rem;
 
-    .col-md-3 {
-        width: 27.2rem;
     }
 
     .pci-infotextbox {
@@ -1169,13 +1322,9 @@
         line-height: 1!important;
     }
 
-    .col-md-3 {
-        padding-top: 0;
-    }
-
     .pci-infotext > h3 {
         padding-bottom: 3rem;
-        border-bottom: .1rem solid #598398;
+        /*border-bottom: .1rem solid #598398;*/
     }
 
     .hide-mobile {
