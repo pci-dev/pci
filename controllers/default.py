@@ -386,7 +386,9 @@ def stream_pdf():
     try:
         # create temp file
         filename = filename[:150] + ".pdf"
-        file_to_download = os.path.join(request.folder, "tmp", "attachments", filename)
+        attachments_dir = os.path.join(request.folder, "tmp", "attachments")
+        os.makedirs(attachments_dir, exist_ok=True)
+        file_to_download = os.path.join(attachments_dir, filename)
         temp_file = open(file_to_download, 'wb')
         temp_file.write(file_data_bytes)
         temp_file.close()
