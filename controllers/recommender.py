@@ -38,6 +38,9 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
+def index():
+    return my_awaiting_articles()
+
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role="recommender"))
 def fields_awaiting_articles():

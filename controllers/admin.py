@@ -36,6 +36,9 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
+def index():
+    return list_users()
+
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def list_users():
     selectable = None

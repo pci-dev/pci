@@ -51,6 +51,9 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
+def index():
+    return pending_articles()
+
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
