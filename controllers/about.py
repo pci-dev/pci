@@ -25,6 +25,11 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 ######################################################################################################################################################################
 ## Routes
 ######################################################################################################################################################################
+
+def version():
+    version = os.popen("git log --decorate --oneline HEAD -1").read().strip()
+    return dict(version=version)
+
 def ethics():
     pageTitle = getTitle(request, auth, db, "#EthicsTitle")
     customText = getText(request, auth, db, "#EthicsInfo")
