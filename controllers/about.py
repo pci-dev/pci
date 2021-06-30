@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from subprocess import Popen, PIPE, STDOUT
 
 # import os.path
 import re
@@ -25,6 +26,17 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 ######################################################################################################################################################################
 ## Routes
 ######################################################################################################################################################################
+
+def version():
+    version = Popen(
+        "git log --decorate --oneline HEAD -1" \
+            .split(" "),
+        cwd=request.folder,
+        stdout=PIPE,
+        stderr=STDOUT,
+    ).stdout.read().strip()
+    return dict(version=version)
+
 def ethics():
     pageTitle = getTitle(request, auth, db, "#EthicsTitle")
     customText = getText(request, auth, db, "#EthicsInfo")
