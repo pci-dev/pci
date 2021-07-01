@@ -61,6 +61,7 @@ def _DevMenu():
             False,
             "#",
             [
+                (T("Current GIT version"), False, URL("about", "version", user_signature=True)),
                 (T("TEST: Recommenders country map"), False, URL("maps", "recommenders_map", user_signature=True)),
                 (T("TEST: Redirection"), False, URL("admin", "testRedir", user_signature=True)),
                 # LI(_class="divider"),

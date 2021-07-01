@@ -28,6 +28,8 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 ######################################################################################################################################################################
 
 def version():
+    pageTitle = getTitle(request, auth, db, "#VersionTitle")
+    customText = getText(request, auth, db, "#VersionInfo")
     version = Popen(
         "git log --decorate --oneline HEAD -1" \
             .split(" "),
@@ -35,7 +37,10 @@ def version():
         stdout=PIPE,
         stderr=STDOUT,
     ).stdout.read().strip()
-    return dict(version=version)
+    #return dict(version=version)
+    response.view = "default/info.html"
+    return dict(pageTitle=pageTitle, customText=customText, message=version, shareable=False, currentUrl=URL(c="about", f="version", host=host, scheme=scheme, port=port))
+
 
 def ethics():
     pageTitle = getTitle(request, auth, db, "#EthicsTitle")
