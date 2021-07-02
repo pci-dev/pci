@@ -42,7 +42,7 @@
     <hr class="hr-footer">
     <div class="footer-sub-text">
       {{=getText(request, auth, db, '#SideBarManagingBoard')}}
-      <a href="/pci/about/recommenders"><strong>RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
+      <a href="{{=URL('about','recommenders')}}"><strong>RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
     </div>
 
     <div class="hide-below-tablet">
@@ -132,27 +132,27 @@
         <a href="{{=URL('about', 'about')}}">
           About PCI
         </a><br>
-        <a href="{{=URL('about', 'gtu')}}">
-          General Terms of use
-        </a><br>
-        <a href="{{=URL('about', 'ethics')}}">
-          Code of conduct
-        </a><br>
-        <a href="https://peercommunityin.org/pci-network/">
-          Supporting organisations
-        </a><br>
         <a href="{{=URL('about', 'recommenders')}}">
           Recommenders
         </a><br>
         <a href="{{=URL('about', 'thanks_to_reviewers')}}">
           Thanks to reviewers
         </a><br>
-        <a href="https://peercommunityin.org/movies-and-posters/">
-          Resources
+        <a href="{{=URL('about', 'ethics')}}">
+          Code of conduct
         </a><br>
         <a href="{{=URL('about', 'contact')}}">
           Contact & credits
         </a><br>
+        <a href="{{=URL('about', 'gtu')}}">
+          General Terms of use
+        </a><br>
+        <!--a href="https://peercommunityin.org/pci-network/">
+          Supporting organisations
+        </a><br>
+        <a href="https://peercommunityin.org/movies-and-posters/">
+          Resources
+        </a><br-->
       </div>
       <div class="footer-sub-text">
         HELP<br>

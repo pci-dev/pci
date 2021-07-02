@@ -90,6 +90,7 @@
 
     .logout-btn-alt {
         float: right;
+        height: 0;
     }
 
     .btn-success:hover {
@@ -295,7 +296,7 @@
 
     span > .pci-recommender,
     span.pci-recommender {
-        background-color: unset;
+        background-color: unset!important;
         color: #3e3f3a;
         margin-left: 0;
         padding-left: 0;
@@ -337,6 +338,10 @@
 
     .btn-default:hover {
         background-color: #0096be!important;
+    }
+
+    .button > .buttontext:hover {
+        background-color: unset!important;
     }
 
     #pci-home-header img,
@@ -388,7 +393,6 @@
     }
 
     .pci2-article-infos {
-        text-transform: uppercase;
         color: rgba(0,150,190);
         font-size: 1.2rem;
     }
@@ -707,7 +711,7 @@
     }
 
     #submit_record__row .btn-success {
-        width: 7rem;
+        width: auto;
     }
 
     .footer {
@@ -715,6 +719,18 @@
         margin-right: 1.6rem!important;
         padding-left: 0!important;
         padding-right: 0!important
+    }
+
+    .supporters .footer-sub-text .pci-infotext img,
+    .memberships .footer-sub-text .pci-infotext img {
+        padding: 0;
+        max-width: 17rem;
+    }
+
+    .supporters .footer-sub-text .pci-infotext,
+    .memberships .footer-sub-text .pci-infotext {
+        margin-left: 0;
+        padding-left: 0;
     }
 
     .left-sidebar {
@@ -770,6 +786,10 @@
 
     #cyp-login-button {
         padding-bottom: 1rem;
+    }
+
+    .pci2-article-recommendation-div > div {
+        margin-top: 1.5rem;
     }
 
     #cyp-logout-button {
@@ -1003,6 +1023,15 @@
         margin: 3rem 0!important;
     }
 
+    .hide-below-tablet .footer-sub-text .pci-infotext img {
+        padding: 0;
+        max-width: 17rem;
+    }
+
+    .hide-below-tablet .footer-sub-text .pci-infotext {
+        margin-left: 0;
+        padding-left: 0;
+    }
 }
 
 
@@ -1083,11 +1112,15 @@
     .navbar-nav {
         display: flex;
         flex-direction: row;
-        width: 92%;
+        width: 87%;
+    }
+
+    .container-fluid .navbar-nav {
+        width: 100%;
     }
 
     .bam {
-        width: 6rem;
+        width: auto;
         padding-bottom: 1.3rem;
         padding-right: .5rem;
     }
@@ -1144,9 +1177,16 @@
         background-color: white;
         padding-right: 1rem;
         padding-top: 1rem;
-        width: 20rem;
+        width: 21rem;
     }
 
+    #help-nav {
+        right: 0;
+    }
+
+    #about-nav {
+        right: -6rem;
+    }
 
     #articles-nav ul,
     #about-nav ul,

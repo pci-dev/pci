@@ -34,7 +34,7 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav flex-container">
-          <li class="flex-item"><a href="/" id="no-lefty">Home</a></li>
+          <li class="flex-item"><a href="{{=URL(c='default', f='index')}}" id="no-lefty">Home</a></li>
           <hr class="hr-nav hide-desktop">
           {{if not auth.user:}}
           <li class="flex-item" data-toggle="collapse" data-target="#articles-nav" onclick="subnavs(this)">
@@ -129,7 +129,6 @@
                     Become a Recommender
                   </a>
                 </li>
-                <hr/>
                 <li>
                   <a href="{{=URL('help', 'help_practical')}}">
                     How to...?
