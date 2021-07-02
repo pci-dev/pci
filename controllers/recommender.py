@@ -1355,6 +1355,8 @@ def email_for_registered_reviewer():
     art_title = WIKI(art.title or "", safe_mode=False)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
+    reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+
     linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
 
@@ -1470,6 +1472,9 @@ def email_for_new_reviewer():
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = WIKI(art.title or "", safe_mode=False)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+
+    reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+
     # NOTE: 4 parallel submission
     parallelText = ""
     if parallelSubmissionAllowed:
