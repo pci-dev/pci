@@ -1099,6 +1099,8 @@ ALTER TABLE public.help_texts_id_seq OWNER TO pci_admin;
 
 ALTER SEQUENCE public.help_texts_id_seq OWNED BY public.help_texts.id;
 
+ALTER TABLE public.help_texts_3 ALTER COLUMN id SET DEFAULT nextval('public.help_texts_id_seq');
+
 
 --
 -- Name: mail_queue; Type: TABLE; Schema: public; Owner: pci_admin
