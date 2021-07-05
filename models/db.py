@@ -1550,6 +1550,17 @@ db.define_table(
     migrate=False,
 )
 
+##---------------------- COAR Notify notifications -----------------------
+
+db.define_table(
+    "t_coar_notification",
+    Field("id", type="id"),
+    Field("created", type="datetime"),
+    Field("rdf_type", type="string", label="Space-separated type URIs"),
+    Field("body", type="string", label="JSON-LD serialization of notification body"),
+)
+
+
 ##-------------------------------- Views ---------------------------------
 db.define_table(
     "v_last_recommendation",
