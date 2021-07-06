@@ -436,7 +436,7 @@
     "More...": "More...",
     "Most recent DOI (or URL)": "Most recent DOI (or URL)",
     "Most recent recommendations in:": "Most recent recommendations in:",
-    "Most recent version of the manuscript": "Most recent version of the manuscript",
+    "Most recent version of the manuscript": "Most recent version of the manuscript at the above DOI/URL",
     "My closed articles recommendations": "My closed reports recommendations",
     "My closed press-review recommendations": "My closed press-review recommendations",
     "My closed recommendations": "My closed recommendations",
