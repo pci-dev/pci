@@ -693,6 +693,14 @@ def edit_article():
         db.t_articles.scheduled_submission_date.readable = False
         db.t_articles.scheduled_submission_date.writable = False
 
+    if not pciRRactivated:
+        db.t_articles.sub_thematics.readable = False
+        db.t_articles.sub_thematics.writable = False
+        db.t_articles.record_id_version.readable = False
+        db.t_articles.record_id_version.writable = False
+        db.t_articles.record_url_version.readable = False
+        db.t_articles.record_url_version.writable = False
+
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
 
     if form.process().accepted:
