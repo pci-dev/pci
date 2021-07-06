@@ -33,6 +33,9 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
+def index():
+    return recommended_articles()
+
 @cache.action(time_expire=30, cache_model=cache.ram, quick="V")
 def last_recomms():
     if "maxArticles" in request.vars:

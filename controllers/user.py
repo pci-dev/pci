@@ -31,6 +31,9 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 ######################################################################################################################################################################
+def index():
+    return my_reviews()
+
 # Recommendations of my articles
 @auth.requires_login()
 def recommendations():

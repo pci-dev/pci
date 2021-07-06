@@ -1,4 +1,4 @@
-describe("Check help pages", () => {
+describe("Check toplevel pages", () => {
 
   describe("Help menu without login", () => {
     before(() => {
@@ -105,6 +105,82 @@ describe("Check help pages", () => {
     it("Should show page cite", () => {
       cy.visit(site_url + "help/cite");
       cy.contains(".pci-text-title", "How should you cite an article?").should("exist");
+    });
+
+  });
+
+  describe("Main URLs without login", () => {
+
+    let site_url;
+
+    before(() => {
+      cy.fixture("config").then((config) => {
+	      site_url = config.site_url;
+      });
+    });
+
+    it("Should show page articles/", () => {
+      cy.visit(site_url + "articles/");
+      cy.contains(".pci-text-title", "Search articles").should("exist");
+    });
+
+    it("Should show page about/", () => {
+      cy.visit(site_url + "about/");
+      cy.contains(".pci-text-title", /^About /).should("exist");
+    });
+
+    it("Should show page help/", () => {
+      cy.visit(site_url + "help/");
+      cy.contains(".pci-text-title", "How does it work?").should("exist");
+    });
+
+  });
+
+  describe("Main URLs with login", () => {
+
+    let site_url;
+
+    before(() => {
+      cy.fixture("config").then((config) => {
+        site_url = config.site_url;
+      });
+    });
+
+    beforeEach(() => {
+      cy.fixture("users").then((user) => {
+        cy.pciLogin(user.admin);
+      });
+    });
+
+    it("Should show page user/", () => {
+      cy.visit(site_url + "user/");
+      cy.contains(".pci-text-title", "Your reviews").should("exist");
+    });
+
+    it("Should show page recommender/", () => {
+      cy.fixture("users").then((user) => {
+        cy.pciLogin(user.recommender);
+      });
+      cy.visit(site_url + "recommender/");
+      cy.contains(".pci-text-title", "Requests to handle a preprint").should("exist");
+    });
+
+    it("Should show page manager/", () => {
+      cy.fixture("users").then((user) => {
+        cy.pciLogin(user.manager);
+      });
+      cy.visit(site_url + "manager/");
+      cy.contains(".pci-text-title", "Pending validations").should("exist");
+    });
+
+    it("Should show page admin/", () => {
+      cy.visit(site_url + "admin/");
+      cy.contains(".pci-text-title", "Users & roles").should("exist");
+    });
+
+    it("Should show page public/", () => {
+      cy.visit(site_url + "public/");
+      cy.contains(".pci-text-title", /'s profile$/).should("exist");
     });
 
   });

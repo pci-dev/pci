@@ -2,6 +2,10 @@
 from app_modules.helper import *
 
 ######################################################################################################################################################################
+def index():
+    return help_generic()
+
+
 def help_generic():
     response.view = "default/info.html"
     return dict(
