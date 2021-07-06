@@ -371,7 +371,7 @@ def fill_new_article():
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
 
-        db.t_articles.report_stage.requires=IS_NOT_EMPTY()
+        db.t_articles.report_stage.requires=IS_IN_SET(("STAGE 1", "STAGE 2"))
         db.t_articles.ms_version.requires=IS_NOT_EMPTY()
         db.t_articles.doi.requires=IS_NOT_EMPTY()
         db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
@@ -523,7 +523,7 @@ def edit_my_article():
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
         
-        db.t_articles.report_stage.requires=IS_NOT_EMPTY()
+        db.t_articles.report_stage.requires=IS_IN_SET(("STAGE 1", "STAGE 2"))
         db.t_articles.ms_version.requires=IS_NOT_EMPTY()
         db.t_articles.doi.requires=IS_NOT_EMPTY()
         db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
