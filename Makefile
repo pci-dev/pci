@@ -40,8 +40,8 @@ start:
 	web2py/web2py.py --password pci &
 
 stop:
-	PID=`ps aux | grep web2py.py | grep -v grep | awk '{print $$2}'` ;\
-	[ "$$PID" ] && kill $$PID || echo "no running"
+	@PID=`ps -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
+	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
 
 start: private/appconfig.ini private/reminders_config
 private/%:
@@ -60,7 +60,7 @@ test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
 cypress/fixtures/%:
-	cp _$@ $@
+	cp $(dir $@)_$(notdir $@) $@
 
 test.reset: stop db.clean db test.setup start
 
