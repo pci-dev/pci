@@ -370,6 +370,16 @@ def fill_new_article():
         db.t_articles.record_url_version.writable = True
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
+
+        db.t_articles.report_stage.requires=IS_NOT_EMPTY()
+        db.t_articles.ms_version.requires=IS_NOT_EMPTY()
+        db.t_articles.doi.requires=IS_NOT_EMPTY()
+        db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
+        db.t_articles.record_id_version.requires=IS_NOT_EMPTY()
+        db.t_articles.sub_thematics.requires=IS_NOT_EMPTY()
+        db.t_articles.cover_letter.requires=IS_NOT_EMPTY()
+        db.t_articles.keywords.requires=IS_NOT_EMPTY()
+
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -512,7 +522,15 @@ def edit_my_article():
         db.t_articles.record_url_version.writable = True
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
-
+        
+        db.t_articles.report_stage.requires=IS_NOT_EMPTY()
+        db.t_articles.ms_version.requires=IS_NOT_EMPTY()
+        db.t_articles.doi.requires=IS_NOT_EMPTY()
+        db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
+        db.t_articles.record_id_version.requires=IS_NOT_EMPTY()
+        db.t_articles.sub_thematics.requires=IS_NOT_EMPTY()
+        db.t_articles.cover_letter.requires=IS_NOT_EMPTY()
+        db.t_articles.keywords.requires=IS_NOT_EMPTY()
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
