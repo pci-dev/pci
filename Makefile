@@ -60,7 +60,7 @@ test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
 cypress/fixtures/%:
-	cp _$@ $@
+	cp $(dir $@)_$(notdir $@) $@
 
 test.reset: stop db.clean db test.setup start
 
