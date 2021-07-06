@@ -1779,6 +1779,7 @@ CREATE TABLE public.t_reviews (
     review_pdf character varying(512),
     review_pdf_data bytea,
     acceptation_timestamp timestamp without time zone,
+    quick_decline_key character varying(512),
     emailing text
 );
 
