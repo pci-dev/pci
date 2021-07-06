@@ -17,22 +17,26 @@ toggleElementDetailsOnChange(
 );
 
 // radio button with details box
-toggleRadioElementDetailsOnChange("#t_report_survey_q13_details__row", "q13", [
-  2,
-  3
-]);
-toggleRadioElementDetailsOnChange("#t_report_survey_q26_details__row", "q26", [
-  2,
-  3
-]);
-toggleRadioElementDetailsOnChange("#t_report_survey_q27_details__row", "q27", [
-  2,
-  3
-]);
-toggleRadioElementDetailsOnChange("#t_report_survey_q28_details__row", "q28", [
-  2,
-  3
-]);
+toggleRadioElementDetailsOnChange(
+  "#t_report_survey_q13_details__row",
+  "q13",
+  [2, 3]
+);
+toggleRadioElementDetailsOnChange(
+  "#t_report_survey_q26_details__row",
+  "q26",
+  [2, 3]
+);
+toggleRadioElementDetailsOnChange(
+  "#t_report_survey_q27_details__row",
+  "q27",
+  [2, 3]
+);
+toggleRadioElementDetailsOnChange(
+  "#t_report_survey_q28_details__row",
+  "q28",
+  [2, 3]
+);
 
 function toggleElementDetailsOnChange(
   details_div_id,
@@ -53,7 +57,7 @@ function toggleElementDetailsOnChange(
   }
 
   if (select_input) {
-    select_input.addEventListener("change", event => {
+    select_input.addEventListener("change", (event) => {
       details_div = document.querySelector(details_div_id);
       if (indexes.includes(event.target.selectedIndex)) {
         if (details_div) {
@@ -79,13 +83,13 @@ function toggleRadioElementDetailsOnChange(
   let details_div = document.querySelector(details_div_id);
 
   if (levelRadioItems) {
-    levelRadioItems.forEach(item => {
+    levelRadioItems.forEach((item) => {
       if (item) {
         if (details_div) {
           details_div.style.display = "none";
         }
 
-        item.onchange = function() {
+        item.onchange = function () {
           if (details_div) {
             details_div.style.display = "none";
           }
@@ -93,7 +97,7 @@ function toggleRadioElementDetailsOnChange(
       }
     });
 
-    indexes.forEach(item => {
+    indexes.forEach((item) => {
       if (levelRadioItems[item - 1]) {
         if (levelRadioItems[item - 1].checked) {
           if (details_div) {
@@ -101,7 +105,7 @@ function toggleRadioElementDetailsOnChange(
           }
         }
 
-        levelRadioItems[item - 1].onchange = function() {
+        levelRadioItems[item - 1].onchange = function () {
           if (details_div) {
             details_div.style.display = "flex";
           }
@@ -116,7 +120,16 @@ function toggleQ10onChange() {
   let Q10_div = document.querySelector("#t_report_survey_q10__row");
   let Q1_select = document.querySelector("#t_report_survey_q1");
 
-  if (Q1_select && Q1_select.selectedIndex == 2) {
+  // text value for recommender
+  let Q1_value_for_recomm = document.querySelector(
+    "#t_report_survey_q1__row > .col-sm-9"
+  );
+
+  if (
+    (Q1_select && Q1_select.selectedIndex == 2) ||
+    (Q1_value_for_recomm &&
+      Q1_value_for_recomm.innerText == "RR SNAPSHOT FOR SCHEDULED REVIEW")
+  ) {
     if (Q10_div) {
       Q10_div.style.display = "flex";
     }
@@ -127,7 +140,7 @@ function toggleQ10onChange() {
   }
 
   if (Q1_select) {
-    Q1_select.addEventListener("change", event => {
+    Q1_select.addEventListener("change", (event) => {
       Q10_div = document.querySelector("#t_report_survey_q10__row");
       if (event.target.selectedIndex == 2) {
         if (Q10_div) {
@@ -141,12 +154,12 @@ function toggleQ10onChange() {
     });
   }
 }
-toggleQ10onChange()
+toggleQ10onChange();
 
 // Set title for all options
 optionsItems = document.querySelectorAll("form select option");
 if (optionsItems) {
-  optionsItems.forEach(function(item) {
+  optionsItems.forEach(function (item) {
     item.title = item.innerText;
   });
 }
@@ -159,15 +172,15 @@ if (levelRadioItems) {
     "#t_report_survey_q7__row .help-block"
   );
 
-  levelRadioItems.forEach(item => {
-    item.onchange = function() {
+  levelRadioItems.forEach((item) => {
+    item.onchange = function () {
       messagediv.innerText = "";
     };
   });
 
   let level0item = levelRadioItems[levelRadioItems.length - 2];
   if (level0item) {
-    level0item.onchange = function() {
+    level0item.onchange = function () {
       messagediv.innerText =
         "Level 0 reports are not eligible for submission to PCI RR because there is no a priori bias control";
       messagediv.classList.add("message-level-0");
