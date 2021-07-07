@@ -2,7 +2,7 @@
 
 # import pprint
 # pp = pprint.PrettyPrinter(indent=4)
-
+from app_modules.coar_notify import COARNotifier
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
@@ -948,6 +948,8 @@ def reviewDone(s, f):
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewSoonDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewOverDue", o["id"])
+        # COAR notification
+        COARNotifier(db).review_completed(o)
     return None
 
 
