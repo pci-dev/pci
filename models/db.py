@@ -799,6 +799,7 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
     "%(first_name)s %(last_name)s %(email)s",
 )
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
+db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i))
 
 
 def newRecommendation(s, i):
@@ -809,6 +810,17 @@ def newRecommendation(s, i):
             if art.already_published:
                 emailing.send_to_thank_recommender_postprint(session, auth, db, i)
     return None
+
+
+def recommendationUpdated(s, updated_recommendation):
+    original_recommendation = s.select().first()
+    if (
+        not original_recommendation.is_closed
+        and updated_recommendation.get('is_closed')
+        and updated_recommendation.get('recommendation_state') == "Recommended"
+    ):
+        # COAR notification
+        COARNotifier(db).article_endorsed(updated_recommendation)
 
 
 db.define_table(

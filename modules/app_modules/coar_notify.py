@@ -132,3 +132,17 @@ class COARNotifier:
             "object": self._review_as_jsonld(review),
         }
         self.send_notification(notification)
+
+    def article_endorsed(self, recommendation):
+        """Notify that an article has received an endorsement via a recommendation.
+
+        This implements Step 5 of Scenario 3 from COAR Notify. See
+        https://notify.coar-repositories.org/scenarios/1/ for more information.
+        """
+        recommender = self.db.auth_user[recommendation.recommender_id]
+        notification = {
+            "type": ["Announce", "coar-notify:EndorsementSuccess"],
+            "actor": self._user_as_jsonld(recommender),
+            "object": self._recommendation_as_jsonld(recommendation),
+        }
+        self.send_notification(notification)
