@@ -92,23 +92,25 @@ class COARNotifier:
         print(response)
 
     def _review_as_jsonld(self, review):
+        recommendation = self.db.t_recommendations[review.recommendation_id]
+        article = self.db.t_articles[recommendation.article_id]
         return {
             "id": f"{self.base_url}review/{review.id}",
             "type": ["Document", "sorg:Review"],
-            "coar-notify:reviews": self._recommendation_as_jsonld(
-                self.db.t_recommendations[review.recommendation_id]
-            ),
+            "coar-notify:reviews": self._article_as_jsonld(article),
         }
 
     def _recommendation_as_jsonld(self, recommendation):
         article = self.db.t_articles[recommendation.article_id]
         return {
-            **self._article_as_jsonld(article),
-            "id": f"{self.base_url}user/recommendations?articleId={article.id}",
+            "id": f"{self.base_url}articles/rec?articleId={article.id}",
+            "coar-notify:endorses": self._article_as_jsonld(article),
+            "type": ["Page", "sorg:WebPage"],
         }
 
     def _article_as_jsonld(self, article):
         return {
+            "id": f"{self.base_url}user/recommendations?articleId={article.id}",
             "ietf:cite-as": article.doi,
         }
 
