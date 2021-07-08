@@ -40,7 +40,7 @@ start:
 	web2py/web2py.py --password pci &
 
 stop:
-	@PID=`ps -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
+	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
 	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
 
 start: private/appconfig.ini private/reminders_config
