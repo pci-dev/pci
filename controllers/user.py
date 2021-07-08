@@ -26,6 +26,7 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
+reviewLimitText = myconf.get("config.review_limit_text", default="three weeks")
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -1266,10 +1267,13 @@ def accept_new_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""))))
     else:
-        if isParallel:
-            due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+        if parallelSubmissionAllowed:
+            if isParallel:
+                due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+            else:
+                due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
         else:
-            due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
+            due_time = reviewLimitText
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
         dueTime = due_time
@@ -1309,10 +1313,13 @@ def ask_to_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
     else:
-        if isParallel:
-            due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+        if parallelSubmissionAllowed:
+            if isParallel:
+                due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+            else:
+                due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
         else:
-            due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
+            due_time = reviewLimitText
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_ask_to_review")
         dueTime = due_time
