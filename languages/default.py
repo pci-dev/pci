@@ -503,6 +503,7 @@
     "Parent comment": "Parent comment",
     "Password fields don't match": "Password fields don't match",
     "Password": "Password",
+    "PCI and journals": "PCI and journals",
     "PDF file": "PDF file",
     "PDF files": "PDF files",
     "PDF Front page": "PDF Front page",
