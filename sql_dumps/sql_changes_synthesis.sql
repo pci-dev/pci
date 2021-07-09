@@ -188,3 +188,5 @@ INSERT INTO public.mail_templates (hashtag, lang, subject, description, contents
     FROM public.mail_templates AS t
     WHERE t.hashtag = '#ManagersArticleResubmited';
 
+-- 14/07/2021
+ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS quick_decline_key character varying(512);
