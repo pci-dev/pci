@@ -459,6 +459,9 @@ def _AboutMenu():
 
     aboutMenu += [
         (T("About", lazy=False) + appName, False, URL("about", "about")),
+    ]
+
+    if not pciRRactivated: aboutMenu += [
         (T("PCI and journals", lazy=False), False, "https://peercommunityin.org/pci-and-journals/"),
     ]
 
