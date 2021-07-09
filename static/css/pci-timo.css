@@ -177,13 +177,13 @@
         max-width: 100%;
     }
 
-    .pci2-flex-center {
+    /*.pci2-flex-center {
         margin-left: .5rem;
         width: 94%;
         align-items: baseline;
-    }
+    }*/
 
-    .progress-step-div .pci2-flex-center {
+    /*.progress-step-div .pci2-flex-center {
         width: 7.5rem;
         margin-left: -4rem;
         align-items: center;
@@ -192,7 +192,7 @@
     .pci2-articles-list .pci2-flex-center {
         width: 100%;
         align-items: inherit;
-    }
+    }*/
 
     .pci2-justify-center #pci-ArticleHeader .pci2-flex-center {
         margin-left: 1rem;
@@ -407,6 +407,14 @@
         font-size: 1.2rem;
     }
 
+    .upper-btn-left,
+    .accept-btn-left,
+    .content-btn-left {
+        display: flex;
+        justify-content: start;
+        padding-left: 3rem;
+    }
+
     .doi_url {
         color: #938e8e;
         font-style: unset;
@@ -421,9 +429,9 @@
         padding: 1rem;
     }
 
-    .pci2-flex-row {
+    /*.pci2-flex-row {
         border-bottom: .1rem solid #938e8e;
-    }
+    }*/
 
     .pci2-articles-list .pci2-flex-row {
         border-bottom: 0;
@@ -849,9 +857,9 @@
         margin-top: 1rem;
     }
 
-    .pci2-flex-grow {
+    /*.pci2-flex-grow {
         flex-grow: unset;
-    }
+    }*/
 
     .pci2-article-recommendation-div {
         padding-bottom: 2rem;

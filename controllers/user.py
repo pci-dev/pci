@@ -1651,7 +1651,8 @@ def add_suggested_recommender():
         )
         myAcceptBtn = DIV(
             A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", user_signature=True)),
-            _style="margin-top:16px; text-align:center;",
+            _style="margin-top:16px; text-align:left;padding-left:30px;",
+            _class="pci2-complete-ur-submission",
         )
         return dict(
             titleIcon="education",
