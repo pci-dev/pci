@@ -475,10 +475,6 @@ def _AboutMenu():
             (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
             LI(_class="divider"),
         ]
-    # else:
-    #     aboutMenu += [
-    #         (T("PCI and journals"), False, URL("about", "pci_partners")),
-    #     ]
 
     aboutMenu += [
         LI(_class="divider"),
