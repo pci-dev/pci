@@ -9,14 +9,16 @@ INSERT INTO auth_user ("id", "first_name", "last_name", "email", "password", "re
 
 -- assign users roles
 --
---  2 | recommender   | 
---  3 | manager       | 
---  4 | administrator | 
---  5 | developper    | 
+--  1 | recommender   |
+--  2 | manager       |
+--  3 | administrator |
+--  4 | developper    |
 
-insert into auth_membership ("user_id", "group_id") values (2, 4);
-insert into auth_membership ("user_id", "group_id") values (3, 5);
-insert into auth_membership ("user_id", "group_id") values (4, 3);
-insert into auth_membership ("user_id", "group_id") values (5, 2);
-insert into auth_membership ("user_id", "group_id") values (6, 2);
+insert into auth_membership ("user_id", "group_id") values (2, 3);
+insert into auth_membership ("user_id", "group_id") values (3, 4);
+insert into auth_membership ("user_id", "group_id") values (4, 2);
+insert into auth_membership ("user_id", "group_id") values (5, 1);
+insert into auth_membership ("user_id", "group_id") values (6, 1);
 -- normal user (user_id=7) => no role assigned
+
+SELECT setval('public.auth_user_id_seq', 7);
