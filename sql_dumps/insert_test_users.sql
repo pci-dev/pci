@@ -20,3 +20,5 @@ insert into auth_membership ("user_id", "group_id") values (4, 3);
 insert into auth_membership ("user_id", "group_id") values (5, 2);
 insert into auth_membership ("user_id", "group_id") values (6, 2);
 -- normal user (user_id=7) => no role assigned
+
+SELECT setval('public.auth_user_id_seq', 7);
