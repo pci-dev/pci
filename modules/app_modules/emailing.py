@@ -1618,6 +1618,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                 content = DIV(WIKI(message, safe_mode=False))
 
                 reviewer_invitation_buttons = None
+                button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block;"
 
                 if reset_password_key:
                     if linkTarget:
@@ -1649,7 +1650,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             A(
                                 SPAN(
                                     current.T("ACCEPT OR DECLINE"),
-                                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                                    _style=button_style + "background: #93c54b",
                                 ),
                                 _href=link,
                                 _style="text-decoration: none; display: block",
@@ -1672,7 +1673,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                     A(
                                         SPAN(
                                             current.T("Yes, I would like to review this preprint"),
-                                            _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                                            _style=button_style + "background: #93c54b",
                                         ),
                                         _href=linkTarget,
                                         _style="text-decoration: none; display: block",
@@ -1681,7 +1682,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                                     A(
                                         SPAN(
                                             current.T("No thanks, I would rather not"),
-                                            _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                                            _style=button_style + "background: #f47c3c",
                                         ),
                                         _href=declineLinkTarget,
                                         _style="text-decoration: none; display: block",
