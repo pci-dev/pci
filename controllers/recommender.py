@@ -1559,8 +1559,15 @@ def email_for_new_reviewer():
             session.flash = T('User "%(reviewer_email)s" have already been invited. E-mail cancelled.') % (request.vars)
         else:
             # Create review
+            quickDeclineKey = web2py_uuid()
+
             # BUG : managers could invite recommender as reviewer (incoherent status)
-            reviewId = db.t_reviews.insert(recommendation_id=recommId, reviewer_id=new_user_id, review_state=None)  # State will be validated after emailing
+            reviewId = db.t_reviews.insert(
+                    recommendation_id=recommId,
+                    reviewer_id=new_user_id,
+                    review_state=None,                  # State will be validated after emailing
+                    quick_decline_key=quickDeclineKey,
+            )
 
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 
@@ -1592,6 +1599,11 @@ def email_for_new_reviewer():
                 try:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
 
+                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
+                        id=reviewId,
+                        key=quickDeclineKey,
+                    ))
+
                     emailing.send_reviewer_invitation(
                         session,
                         auth,
@@ -1604,6 +1616,7 @@ def email_for_new_reviewer():
                         request.vars["message"],
                         reset_password_key,
                         linkTarget,
+                        declineLinkTarget,
                     )
                 except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")

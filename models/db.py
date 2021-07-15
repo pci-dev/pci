@@ -836,6 +836,7 @@ db.define_table(
     Field("acceptation_timestamp", type="datetime", label=T("Acceptation timestamp"), writable=False),
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
     Field("emailing", type="text", length=2097152, label=T("Emails sent"), readable=False, writable=False),
+    Field("quick_decline_key", type="text", length=512, label=T("Quick decline key"), readable=False, writable=False),
     singular=T("Review"),
     plural=T("Reviews"),
     migrate=False,
