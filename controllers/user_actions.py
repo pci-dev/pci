@@ -187,6 +187,32 @@ def decline_new_review():
 
 
 ######################################################################################################################################################################
+def decline_review(): # no auth required
+    reviewId = request.vars["id"]
+    quickDeclineKey = request.vars["key"]
+
+    review = db.t_reviews[reviewId]
+
+    if review is None:
+        message = "Review '{}' not found".format(reviewId)
+    elif review["review_state"] in ["Declined", "Review completed", "Cancelled"]:
+        message = "Review '{}' can no longer be declined".format(reviewId)
+    elif review.quick_decline_key != quickDeclineKey:
+        message = "Incorrect decline key: '{}'".format(quickDeclineKey)
+    else:
+        review.review_state = "Declined"
+        review.update_record()
+
+        user = db.auth_user[review.reviewer_id]
+        db(db.auth_user.id == review.reviewer_id).delete()
+
+        message = "Declined review={}, declineKey={}, user={}".format(review.id, quickDeclineKey, user.email)
+
+    response.view = "default/info.html"
+    return dict(message=message)
+
+
+######################################################################################################################################################################
 @auth.requires_login()
 def do_ask_to_review():
     if "articleId" not in request.vars:
