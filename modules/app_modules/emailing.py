@@ -1658,6 +1658,18 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
                         ),
                         P(B(current.T('THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU'))),
+                        P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
+                        DIV(
+                            A(
+                                SPAN(
+                                    current.T("DECLINE"),
+                                    _style=button_style + "background: #c54b4b",
+                                ),
+                                _href=declineLinkTarget,
+                                _style="text-decoration: none; display: block",
+                            ),
+                            _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                        ),
                     )
 
                     create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
