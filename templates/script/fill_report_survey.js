@@ -118,6 +118,7 @@ function toggleRadioElementDetailsOnChange(
 // Q10 showing depends on Q1 answer (hidden by default)
 function toggleQ10onChange() {
   let Q10_div = document.querySelector("#t_report_survey_q10__row");
+  let Q10_input = document.querySelector("#t_report_survey_q10__row input");
   let Q1_select = document.querySelector("#t_report_survey_q1");
 
   // text value for recommender
@@ -131,11 +132,13 @@ function toggleQ10onChange() {
       Q1_value_for_recomm.innerText == "RR SNAPSHOT FOR SCHEDULED REVIEW")
   ) {
     if (Q10_div) {
-      Q10_div.style.display = "flex";
+      Q10_div.style.opacity = 1;
+      Q10_input.disabled = true;
     }
   } else {
     if (Q10_div) {
-      Q10_div.style.display = "none";
+      Q10_div.style.opacity = 0.5;
+      Q10_input.disabled = true;
     }
   }
 
@@ -144,11 +147,13 @@ function toggleQ10onChange() {
       Q10_div = document.querySelector("#t_report_survey_q10__row");
       if (event.target.selectedIndex == 2) {
         if (Q10_div) {
-          Q10_div.style.display = "flex";
+          Q10_div.style.opacity = 1;
+          Q10_input.disabled = false;
         }
       } else {
         if (Q10_div) {
-          Q10_div.style.display = "none";
+          Q10_div.style.opacity = 0.5;
+          Q10_input.disabled = true;
         }
       }
     });

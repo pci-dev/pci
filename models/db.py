@@ -1155,7 +1155,9 @@ db.define_table(
         "q10",
         type="date",
         label=SPAN(
-            T("10. Choose a date "),
+            T("10. ONLY for Stage 1 RR Snapshots submitted for Scheduled Review:"),
+            BR(),
+            T("Choose a date "),
             SPAN("no sooner", _style="text-decoration: underline"),
             T(
                 " than 6 weeks from today by which the full manuscript will be submitted if the RR snapshot is invited to the next stage. The authors can submit their Stage 1 report at any time leading up to this date, but note that (1) they must submit their Stage 1 report for evaluation "
