@@ -820,7 +820,12 @@ def recommendationUpdated(s, updated_recommendation):
         and updated_recommendation.get('recommendation_state') == "Recommended"
     ):
         # COAR notification
-        COARNotifier(db).article_endorsed(updated_recommendation)
+        coar_notifier = COARNotifier(db)
+        for review in db(
+                db.t_reviews.recommendation_id == original_recommendation.id
+        ).select():
+            coar_notifier.review_completed(review)
+        coar_notifier.article_endorsed(updated_recommendation)
 
 
 db.define_table(
@@ -960,8 +965,6 @@ def reviewDone(s, f):
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewSoonDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewDue", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewOverDue", o["id"])
-        # COAR notification
-        COARNotifier(db).review_completed(o)
     return None
 
 
