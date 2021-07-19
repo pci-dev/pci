@@ -1360,9 +1360,15 @@ def email_for_registered_reviewer():
 
     reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
 
-    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-    declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=review.id), scheme=scheme, host=host, port=port)
+    if not review.quick_decline_key:
+        review.quick_decline_key = web2py_uuid()
+        review.update_record()
 
+    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+    declineLinkTarget = URL(c="user_actions", f="decline_review", scheme=scheme, host=host, port=port, vars=dict(
+        id=review.id,
+        key=review.quick_decline_key,
+    ))
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
@@ -1576,7 +1582,11 @@ def email_for_new_reviewer():
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
 
                     linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-                    declineLinkTarget = URL(c="user_actions", f="decline_new_review", vars=dict(reviewId=reviewId), scheme=scheme, host=host, port=port)
+                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
+                        id=reviewId,
+                        key=quickDeclineKey,
+                    ),
+                    scheme=scheme, host=host, port=port)
 
                     emailing.send_reviewer_invitation(
                         session,
@@ -1602,7 +1612,8 @@ def email_for_new_reviewer():
                     declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
                         id=reviewId,
                         key=quickDeclineKey,
-                    ))
+                    ),
+                    scheme=scheme, host=host, port=port)
 
                     emailing.send_reviewer_invitation(
                         session,
