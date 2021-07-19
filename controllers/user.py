@@ -371,14 +371,14 @@ def fill_new_article():
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
 
-        db.t_articles.report_stage.requires=IS_IN_SET(("STAGE 1", "STAGE 2"))
-        db.t_articles.ms_version.requires=IS_NOT_EMPTY()
-        db.t_articles.doi.requires=IS_NOT_EMPTY()
-        db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
-        db.t_articles.record_id_version.requires=IS_NOT_EMPTY()
-        db.t_articles.sub_thematics.requires=IS_NOT_EMPTY()
-        db.t_articles.cover_letter.requires=IS_NOT_EMPTY()
-        db.t_articles.keywords.requires=IS_NOT_EMPTY()
+        db.t_articles.report_stage.requires = IS_IN_SET(("STAGE 1", "STAGE 2"))
+        db.t_articles.ms_version.requires = IS_NOT_EMPTY()
+        db.t_articles.doi.requires = IS_NOT_EMPTY()
+        db.t_articles.record_url_version.requires = IS_NOT_EMPTY()
+        db.t_articles.record_id_version.requires = IS_NOT_EMPTY()
+        db.t_articles.sub_thematics.requires = IS_NOT_EMPTY()
+        db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
+        db.t_articles.keywords.requires = IS_NOT_EMPTY()
 
     else:
         db.t_articles.report_stage.readable = False
@@ -522,15 +522,15 @@ def edit_my_article():
         db.t_articles.record_url_version.writable = True
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
-        
-        db.t_articles.report_stage.requires=IS_IN_SET(("STAGE 1", "STAGE 2"))
-        db.t_articles.ms_version.requires=IS_NOT_EMPTY()
-        db.t_articles.doi.requires=IS_NOT_EMPTY()
-        db.t_articles.record_url_version.requires=IS_NOT_EMPTY()
-        db.t_articles.record_id_version.requires=IS_NOT_EMPTY()
-        db.t_articles.sub_thematics.requires=IS_NOT_EMPTY()
-        db.t_articles.cover_letter.requires=IS_NOT_EMPTY()
-        db.t_articles.keywords.requires=IS_NOT_EMPTY()
+
+        db.t_articles.report_stage.requires = IS_IN_SET(("STAGE 1", "STAGE 2"))
+        db.t_articles.ms_version.requires = IS_NOT_EMPTY()
+        db.t_articles.doi.requires = IS_NOT_EMPTY()
+        db.t_articles.record_url_version.requires = IS_NOT_EMPTY()
+        db.t_articles.record_id_version.requires = IS_NOT_EMPTY()
+        db.t_articles.sub_thematics.requires = IS_NOT_EMPTY()
+        db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
+        db.t_articles.keywords.requires = IS_NOT_EMPTY()
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -667,6 +667,54 @@ def fill_report_survey():
         redirect(URL("my_articles", user_signature=True))
 
     if art.report_stage == "STAGE 1":
+        db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
+        db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
+        db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
+        # db.t_report_survey.q4.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q5.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q6.requires = IS_IN_SET(
+            (
+                "YES - THE RESEARCH INVOLVES AT LEAST SOME QUANTITATIVE HYPOTHESIS-TESTING AND THE REPORT INCLUDES A STUDY DESIGN TEMPLATE",
+                "YES - EVEN THOUGH THE RESEARCH DOESN’T INVOLVE ANY QUANTITATIVE HYPOTHESIS-TESTING, THE REPORT NEVERTHELESS INCLUDES A STUDY DESIGN TEMPLATE",
+                "NO - THE REPORT DOES NOT INCLUDE ANY QUANTITATIVE STUDIES THAT TEST HYPOTHESES OR PREDICTIONS. NO STUDY DESIGN TEMPLATE IS INCLUDED.",
+                "N/A - THE SUBMISSION IS A STAGE 1 SNAPSHOT, NOT A STAGE 1 REPORT",
+            )
+        )
+        db.t_report_survey.q7.requires = IS_IN_SET(
+            (
+                "No part of the data or evidence that will be used to answer the research question yet exists and no part will be generated until after IPA [Level 6]",
+                "ALL of the data or evidence that will be used to answer the research question already exist, but are currently inaccessible to the authors and thus unobservable prior to IPA (e.g. held by a gatekeeper) [Level 5]",
+                "At least some of the data/evidence that will be used to answer the research question already exists AND is accessible in principle to the authors (e.g. residing in a public database or with a colleague), BUT the authors certify that they have not yet accessed any part of that data/evidence [Level 4]",
+                "At least some data/evidence that will be used to the answer the research question has been previously accessed by the authors (e.g. downloaded or otherwise received), but the authors certify that they have not yet observed ANY part of the data/evidence [Level 3]",
+                "At least some data/evidence that will be used to answer the research question has been accessed and partially observed by the authors, but the authors certify that they have not yet observed the key variables within the data that will be used to answer the research question AND they have taken additional steps to maximise bias control and rigour (e.g. conservative statistical threshold; recruitment of a blinded analyst; robustness testing, multiverse/specification analysis, or other approach) [Level 2]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, but the authors certify that they have not yet performed ANY of their preregistered analyses, and in addition they have taken stringent steps to reduce the risk of bias [Level 1]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
+            )
+        )
+        db.t_report_survey.q8.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q9.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q13.requires = IS_IN_SET(
+            (
+                "YES",
+                "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
+                "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
+            )
+        )
+        # db.t_report_survey.q14.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q15.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
+        db.t_report_survey.q17.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q18.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q19.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q20.requires = IS_IN_SET(("YES - please alert PCI RR-interested journals in the event of IPA, as described above", "NO",))
+        db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
+        db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
+        db.t_report_survey.q23.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24_1.requires = IS_NOT_EMPTY()
+
         fields = [
             "q1",
             "q2",
@@ -702,6 +750,38 @@ def fill_report_survey():
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
             db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
         )
+
+        # db.t_report_survey.q25.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q26.requires = IS_IN_SET(
+            (
+                T("YES - All data are contained in manuscript"),
+                T(
+                    "YES - Enter URL of the repository containing the data, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)"
+                ),
+                T(
+                    "NO - Please state the ethical or legal reasons why study data are not publicly archived and explain how the data supporting the reported results can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement."
+                ),
+            )
+        )
+        db.t_report_survey.q27.requires = IS_IN_SET(
+            (
+                "YES - All digital materials are contained in manuscript",
+                "YES - Enter URL of the repository containing the digital materials, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)",
+                "NO - Please state the ethical or legal reasons why digital study materials are not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - There are no digital study materials of any kind",
+            )
+        )
+        db.t_report_survey.q28.requires = IS_IN_SET(
+            (
+                "YES - All code is contained in manuscript",
+                "YES - Enter URL of the repository containing the analysis code/scripts",
+                "NO - Please state the ethical or legal reasons why analysis code is not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - No analysis code/scripts were used in any part of the data analysis",
+            )
+        )
+        # db.t_report_survey.q29.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q30.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
 
         fields = [
             "temp_art_stage_1_id",
@@ -790,6 +870,54 @@ def edit_report_survey():
     db.t_report_survey._id.writable = False
 
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
+        db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
+        db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
+        db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
+        # db.t_report_survey.q4.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q5.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q6.requires = IS_IN_SET(
+            (
+                "YES - THE RESEARCH INVOLVES AT LEAST SOME QUANTITATIVE HYPOTHESIS-TESTING AND THE REPORT INCLUDES A STUDY DESIGN TEMPLATE",
+                "YES - EVEN THOUGH THE RESEARCH DOESN’T INVOLVE ANY QUANTITATIVE HYPOTHESIS-TESTING, THE REPORT NEVERTHELESS INCLUDES A STUDY DESIGN TEMPLATE",
+                "NO - THE REPORT DOES NOT INCLUDE ANY QUANTITATIVE STUDIES THAT TEST HYPOTHESES OR PREDICTIONS. NO STUDY DESIGN TEMPLATE IS INCLUDED.",
+                "N/A - THE SUBMISSION IS A STAGE 1 SNAPSHOT, NOT A STAGE 1 REPORT",
+            )
+        )
+        db.t_report_survey.q7.requires = IS_IN_SET(
+            (
+                "No part of the data or evidence that will be used to answer the research question yet exists and no part will be generated until after IPA [Level 6]",
+                "ALL of the data or evidence that will be used to answer the research question already exist, but are currently inaccessible to the authors and thus unobservable prior to IPA (e.g. held by a gatekeeper) [Level 5]",
+                "At least some of the data/evidence that will be used to answer the research question already exists AND is accessible in principle to the authors (e.g. residing in a public database or with a colleague), BUT the authors certify that they have not yet accessed any part of that data/evidence [Level 4]",
+                "At least some data/evidence that will be used to the answer the research question has been previously accessed by the authors (e.g. downloaded or otherwise received), but the authors certify that they have not yet observed ANY part of the data/evidence [Level 3]",
+                "At least some data/evidence that will be used to answer the research question has been accessed and partially observed by the authors, but the authors certify that they have not yet observed the key variables within the data that will be used to answer the research question AND they have taken additional steps to maximise bias control and rigour (e.g. conservative statistical threshold; recruitment of a blinded analyst; robustness testing, multiverse/specification analysis, or other approach) [Level 2]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, but the authors certify that they have not yet performed ANY of their preregistered analyses, and in addition they have taken stringent steps to reduce the risk of bias [Level 1]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
+            )
+        )
+        db.t_report_survey.q8.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q9.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q13.requires = IS_IN_SET(
+            (
+                "YES",
+                "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
+                "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
+            )
+        )
+        # db.t_report_survey.q14.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q15.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
+        db.t_report_survey.q17.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q18.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q19.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q20.requires = IS_IN_SET(("YES - please alert PCI RR-interested journals in the event of IPA, as described above", "NO",))
+        db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
+        db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
+        db.t_report_survey.q23.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24_1.requires = IS_NOT_EMPTY()
+        
         fields = [
             "q1",
             "q2",
@@ -826,6 +954,38 @@ def edit_report_survey():
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
             db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
         )
+
+        # db.t_report_survey.q25.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q26.requires = IS_IN_SET(
+            (
+                T("YES - All data are contained in manuscript"),
+                T(
+                    "YES - Enter URL of the repository containing the data, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)"
+                ),
+                T(
+                    "NO - Please state the ethical or legal reasons why study data are not publicly archived and explain how the data supporting the reported results can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement."
+                ),
+            )
+        )
+        db.t_report_survey.q27.requires = IS_IN_SET(
+            (
+                "YES - All digital materials are contained in manuscript",
+                "YES - Enter URL of the repository containing the digital materials, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)",
+                "NO - Please state the ethical or legal reasons why digital study materials are not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - There are no digital study materials of any kind",
+            )
+        )
+        db.t_report_survey.q28.requires = IS_IN_SET(
+            (
+                "YES - All code is contained in manuscript",
+                "YES - Enter URL of the repository containing the analysis code/scripts",
+                "NO - Please state the ethical or legal reasons why analysis code is not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - No analysis code/scripts were used in any part of the data analysis",
+            )
+        )
+        # db.t_report_survey.q29.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q30.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
 
         fields = [
             "temp_art_stage_1_id",
@@ -1234,7 +1394,7 @@ def my_reviews():
         links=links,
         orderby=~db.t_reviews.last_change | ~db.t_reviews.review_state,
         _class="web2py_grid action-button-absolute",
-        upload=URL("default", "download")
+        upload=URL("default", "download"),
     )
     if pendingOnly:
         titleIcon = "envelope"
