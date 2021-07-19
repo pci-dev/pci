@@ -2276,16 +2276,15 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
+    reviewer = db.auth_user[review.reviewer_id]
 
-    if review and recomm:
-        review_mail = db.auth_user[review.reviewer_id]["email"]
-
-        db((db.mail_queue.dest_mail_address == review_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)).delete()
+    if reviewer and recomm:
+        db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
         if pciRRactivated:
             hashtag_template_rr = hashtag_template + "Stage"
             db(
-                (db.mail_queue.dest_mail_address == review_mail)
+                (db.mail_queue.dest_mail_address == reviewer.email)
                 & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
                 & (db.mail_queue.recommendation_id == recomm.id)
             ).delete()
