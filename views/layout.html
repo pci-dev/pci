@@ -172,7 +172,7 @@
     </footer>
   
     <!-- Share page on social media link =============================== -->
-    {{if 'shareable' in globals():}}
+    {{if 'shareable' in globals() and 'pciRRactivated' in globals() and not pciRRactivated:}}
       {{include 'snippets/social_links.html'}}   
     {{pass}}
 

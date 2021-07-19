@@ -157,6 +157,7 @@ def recommended_articles():
         searchableList=True,
         searchForm=searchForm,
         grid=grid,
+        pciRRactivated=pciRRactivated,
     )
 
 
@@ -185,8 +186,8 @@ def rec():
     else:
         session.flash = T("Unavailable")
         redirect(URL("articles", "recommended_articles", user_signature=True))
-    
-    # Remove "reviews" vars from url 
+
+    # Remove "reviews" vars from url
     if "reviews" in request.vars:
         redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
 
@@ -313,6 +314,7 @@ def all_recommended_articles():
         grid=grid,
         shareable=True,
         currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port),
+        pciRRactivated=pciRRactivated,
     )
 
 
