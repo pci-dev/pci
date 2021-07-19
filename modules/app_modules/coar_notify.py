@@ -1,8 +1,11 @@
+import datetime
+import functools
+import io
+import json
+import typing
 import uuid
 
-import json
-
-import functools
+import rdflib
 import requests
 
 from gluon.contrib.appconfig import AppConfig
@@ -10,6 +13,9 @@ from gluon.contrib.appconfig import AppConfig
 __all__ = ["COARNotifier"]
 
 myconf = AppConfig(reload=True)
+
+ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
 
 
 @functools.lru_cache()
@@ -23,6 +29,37 @@ def _get_requests_session() -> requests.Session:
     session = requests.Session()
     session.headers["User-Agent"] = f"pci ({myconf['coar_notify']['base_url'].strip()})"
     return session
+
+
+class COARNotifyException(Exception):
+    message = "COAR Notify exception"
+
+
+class COARNotifyParseException(COARNotifyException):
+    message = "Couldn't parse message body."
+
+
+class COARNotifyNoUniqueSubjectException(COARNotifyException):
+    message = (
+        "Exactly one resource in notification body must be an Activity Streams "
+        "Announce instance."
+    )
+
+
+class COARNotifyMissingOrigin(COARNotifyException):
+    message = "The Announcement is missing an activitystreams:origin property"
+
+
+class COARNotifyMissingTarget(COARNotifyException):
+    message = "The Announcement is missing an activitystreams:target property"
+
+
+class COARNotifyMissingOriginInbox(COARNotifyException):
+    message = "The origin is missing an ldp:inbox URI property"
+
+
+class COARNotifyMissingTargetInbox(COARNotifyException):
+    message = "The target is missing an ldp:inbox URI property"
 
 
 class COARNotifier:
@@ -83,13 +120,19 @@ class COARNotifier:
             **notification,
         }
 
+        serialized_notification = json.dumps(notification, indent=2)
+
         response = session.post(
             inbox_url,
-            data=json.dumps(notification, indent=2),
+            data=serialized_notification,
             headers={"Content-Type": "application/ld+json"},
         )
 
-        print(response)
+        self.record_notification(
+            body=io.BytesIO(serialized_notification.encode()),
+            direction="Outbound",
+            http_status=response.status_code,
+        )
 
     def _review_as_jsonld(self, review):
         recommendation = self.db.t_recommendations[review.recommendation_id]
@@ -148,3 +191,68 @@ class COARNotifier:
             "object": self._recommendation_as_jsonld(recommendation),
         }
         self.send_notification(notification)
+
+    def record_notification(
+        self,
+        *,
+        body: io.BytesIO,
+        body_format: str = "json-ld",
+        http_status: int = None,
+        direction: typing.Literal["Inbound", "Outbound"],
+        base: str = None,
+    ) -> None:
+        """Records a notification in the database for logging purposes.
+
+        This method does some validation:
+
+        * ensures that the notification can be parsed into RDF
+        * ensures that it contains a single activitystreams:Announce
+        * ensures that there is an origin and a target, and that both have an ldp:inbox
+
+        body can either be a JSON-LD-style dictionary, or a BytesIO.
+        base, if specified, provides the base URL for resolving absolute URLs
+        """
+        graph = rdflib.Graph()
+
+        try:
+            graph.parse(body, format=body_format, base=base or "https://invalid/")
+        except Exception as e:
+            raise COARNotifyParseException from e
+
+        subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
+        if len(subjects) != 1:
+            raise COARNotifyNoUniqueSubjectException
+        subject = subjects[0]
+
+        origin = graph.value(subject, ACTIVITYSTREAMS.origin)
+        target = graph.value(subject, ACTIVITYSTREAMS.target)
+
+        if not origin:
+            raise COARNotifyMissingOrigin
+        if not target:
+            raise COARNotifyMissingTarget
+
+        origin_inbox = graph.value(origin, LDP.inbox)
+        target_inbox = graph.value(target, LDP.inbox)
+
+        if not isinstance(origin_inbox, rdflib.URIRef):
+            raise COARNotifyMissingOriginInbox
+        if not isinstance(target_inbox, rdflib.URIRef):
+            raise COARNotifyMissingTargetInbox
+
+        self.db.t_coar_notification.insert(
+            created=datetime.datetime.now(tz=datetime.timezone.utc),
+            rdf_type=" ".join(
+                str(type)
+                for type in graph.objects(subject, rdflib.RDF.type)
+                if type != ACTIVITYSTREAMS.Announce
+            ),
+            body=(
+                json.dumps(body)
+                if body_format == "json-ld" and isinstance(body, dict)
+                else graph.serialize(format="json-ld")
+            ),
+            direction=direction,
+            inbox_url=str(origin_inbox if direction == "Inbound" else target_inbox),
+            http_status=http_status,
+        )
