@@ -1077,20 +1077,20 @@ db.define_table(
         label=T("4. If submitting a RR snapshot, the authors confirm that they have used the PCI RR snapshot template and adhered to all requirements stated in the template"),
         default=False,
     ),
-    Field(
-        "q5",
-        type="string",
-        length=2000,
-        label=T(
-            "5. Please provide an accessible URL to the Stage 1 report or Stage 1 snapshot. The link can be a private, view-only URL, but must not include any access restrictions (e.g. login barriers)"
-        ),
-    ),
+    # Field(
+    #     "q5",
+    #     type="string",
+    #     length=2000,
+    #     label=T(
+    #         "5. Please provide an accessible URL to the Stage 1 report or Stage 1 snapshot. The link can be a private, view-only URL, but must not include any access restrictions (e.g. login barriers)"
+    #     ),
+    # ),
     # Need name
     Field(
         "q6",
         type="string",
         label=SPAN(
-            T("6. If the authors are submitting a full Stage 1 report (rather than a Stage 1 snapshot), and the report describes at least one "),
+            T("5. If the authors are submitting a full Stage 1 report (rather than a Stage 1 snapshot), and the report describes at least one "),
             I(T("quantitative ")),
             T("study that tests hypotheses or predictions, please confirm that the report also contains a Study Design Template as outlined in "),
             A("Section 2.16 of the Guide to Authors. ", _href=URL(c="help", f="guide_for_authors#h_27513965735331613309625021"), _target="_blank"),
@@ -1114,7 +1114,7 @@ db.define_table(
         "q7",
         type="string",
         label=SPAN(
-            T("7. Putting aside any preliminary results reported in the Stage 1 report, select which of the following scenarios applies to the data that will be the focus of the "),
+            T("6. Putting aside any preliminary results reported in the Stage 1 report, select which of the following scenarios applies to the data that will be the focus of the "),
             SPAN("proposed", _style="text-decoration: underline"),
             T(" research to be conducted "),
             SPAN("after", _style="text-decoration: underline"),
@@ -1140,7 +1140,7 @@ db.define_table(
         type="string",
         length=2000,
         label=T(
-            "8. Suggested reviewers. Suggest up to 5 reviewers that you recommend. In making these suggestions, the authors confirm that none of the authors have collaborated, published, or held joint research funding with any of these potential reviewers in the last 5 years."
+            "7. Suggested reviewers. Suggest up to 5 reviewers that you recommend. In making these suggestions, the authors confirm that none of the authors have collaborated, published, or held joint research funding with any of these potential reviewers in the last 5 years."
         ),
     ),
     Field(
@@ -1148,14 +1148,14 @@ db.define_table(
         type="string",
         length=2000,
         label=T(
-            "9. Opposed reviewers. Choose up to 5 reviewers that you oppose, including the reasons for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
+            "8. Opposed reviewers. Choose up to 5 reviewers that you oppose, including the reasons for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
         ),
     ),
     Field(
         "q10",
         type="date",
         label=SPAN(
-            T("10. ONLY for Stage 1 RR Snapshots submitted for Scheduled Review:"),
+            T("9. ONLY for Stage 1 RR Snapshots submitted for Scheduled Review:"),
             BR(),
             T("Choose a date "),
             SPAN("no sooner", _style="text-decoration: underline"),
@@ -1171,25 +1171,25 @@ db.define_table(
     Field(
         "q11",
         type="string",
-        label=T("11. Are all necessary approvals, such as ethics or regulatory permissions, in place for the proposed research?"),
+        label=T("10. Are all necessary approvals, such as ethics or regulatory permissions, in place for the proposed research?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))),
     ),
     Field(
         "q11_details",
         type="text",
-        label=T("11a. details"),
+        label=T("10a. details"),
         length=2000,
     ),
     Field(
         "q12",
         type="string",
-        label=T("12. Is all necessary support (e.g. funding, facilities) in place for the proposed research?"),
+        label=T("11. Is all necessary support (e.g. funding, facilities) in place for the proposed research?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))),
     ),
     Field(
         "q12_details",
         type="text",
-        label=T("12a. details"),
+        label=T("11a. details"),
         length=2000,
     ),
     Field(
@@ -1198,7 +1198,7 @@ db.define_table(
         label=SPAN(
             SPAN(
                 T(
-                    "13. The TOP guidelines establish a series of modular standards for transparency and reproducibility in published research. Before completing next questions, authors should ensure that they are familiar with the "
+                    "12. The TOP guidelines establish a series of modular standards for transparency and reproducibility in published research. Before completing next questions, authors should ensure that they are familiar with the "
                 ),
                 A("TOP policy requirements for PCI RR.", _href=URL("help", "top_guidelines"), _target="_blank"),
                 _style="color: black",
@@ -1223,7 +1223,7 @@ db.define_table(
     Field(
         "q13_details",
         type="text",
-        label=T("13a. details"),
+        label=T("12a. details"),
         length=2000,
     ),
     Field(
@@ -1231,7 +1231,7 @@ db.define_table(
         type="boolean",
         label=SPAN(
             T(
-                "14. In the event of the submission achieving Stage 1 in-principle acceptance, the authors confirm that they agree to PCI RR registering the approved protocol on their behalf on the Open Science Framework (OSF) using OSF’s dedicated Stage 1 RR registration mechanism "
+                "13. In the event of the submission achieving Stage 1 in-principle acceptance, the authors confirm that they agree to PCI RR registering the approved protocol on their behalf on the Open Science Framework (OSF) using OSF’s dedicated Stage 1 RR registration mechanism "
             ),
             A("https://osf.io/rr/", _href="https://osf.io/rr/", _target="_blank"),
             T(
@@ -1244,7 +1244,7 @@ db.define_table(
         "q15",
         type="text",
         label=SPAN(
-            T("15. For each author who currently has an account on the OSF ("),
+            T("14. For each author who currently has an account on the OSF ("),
             A("https://osf.io/", _href="https://osf.io/", _target="_blank"),
             T(
                 "), in the text box below, please provide their name and the URL of their OSF home page. In the event of the Stage 1 report receiving in-principle acceptance, PCI RR will include these authors as contributors to the OSF registration. It is not required that all authors have an OSF account, but only authors with an OSF account will be included by PCI RR as contributors to the report on the OSF. At least ONE author must have an OSF account to ensure that the report is linked to at least one member of the authoring team. In the event of Stage 2 acceptance, authors without an OSF account will still be named as authors on the final article. List the names and URLs below in the following format, ensuring that each URL is live and valid."
@@ -1257,7 +1257,7 @@ db.define_table(
         "q16",
         type="string",
         label=T(
-            "16. If the submission achieves Stage 1 in-principle acceptance, authors can instruct PCI RR to either make the registered Stage 1 manuscript immediately public on the OSF or instead register it under a private embargo for up to 4 years from the date of registration. If authors choose a private embargo, the embargo will be released and the registered protocol made public when any one of the following conditions are met: (a) submission of the Stage 2 manuscript for a regular RR, or the *FIRST* Stage 2 manuscript in a planned series of Stage 2 manuscripts linked to a programmatic RR; (b) withdrawal of the submission after in-principle acceptance and consequent triggering of a Withdrawn Registration; or (c) natural expiry of the embargo period. Please choose the authors’ preferred method of registration following Stage 1 in-principle acceptance."
+            "15. If the submission achieves Stage 1 in-principle acceptance, authors can instruct PCI RR to either make the registered Stage 1 manuscript immediately public on the OSF or instead register it under a private embargo for up to 4 years from the date of registration. If authors choose a private embargo, the embargo will be released and the registered protocol made public when any one of the following conditions are met: (a) submission of the Stage 2 manuscript for a regular RR, or the *FIRST* Stage 2 manuscript in a planned series of Stage 2 manuscripts linked to a programmatic RR; (b) withdrawal of the submission after in-principle acceptance and consequent triggering of a Withdrawn Registration; or (c) natural expiry of the embargo period. Please choose the authors’ preferred method of registration following Stage 1 in-principle acceptance."
         ),
         requires=IS_EMPTY_OR(
             IS_IN_SET(
@@ -1272,7 +1272,7 @@ db.define_table(
         "q17",
         type="string",
         label=T(
-            "17. If choosing a private embargo please enter the duration of the embargo following in-principle acceptance. This can be specified either as a duration (e.g. “2 years”) or as a specific future date. The embargo period must be less than 4 years. Any entries that exceed this permissible maximum will be treated by PCI RR as “4 years”."
+            "16. If choosing a private embargo please enter the duration of the embargo following in-principle acceptance. This can be specified either as a duration (e.g. “2 years”) or as a specific future date. The embargo period must be less than 4 years. Any entries that exceed this permissible maximum will be treated by PCI RR as “4 years”."
         ),
         length=128,
     ),
@@ -1280,7 +1280,7 @@ db.define_table(
         "q18",
         type="boolean",
         label=T(
-            "18. The authors confirm that if they withdraw their report following Stage 1 in-principle acceptance then they agree to PCI RR (a) lifting any applicable private embargo on the registered Stage 1 protocol, thus making the protocol public on the OSF; and (b) publishing a short summary of the preregistered study, which will include the abstract of the Stage 1 submission, the URL of the registered Stage 1 protocol on the OSF, all Stage 1 reviews and decision letters, the PCI RR recommendation text, and a stated reason for the withdrawal."
+            "17. The authors confirm that if they withdraw their report following Stage 1 in-principle acceptance then they agree to PCI RR (a) lifting any applicable private embargo on the registered Stage 1 protocol, thus making the protocol public on the OSF; and (b) publishing a short summary of the preregistered study, which will include the abstract of the Stage 1 submission, the URL of the registered Stage 1 protocol on the OSF, all Stage 1 reviews and decision letters, the PCI RR recommendation text, and a stated reason for the withdrawal."
         ),
         default=False,
     ),
@@ -1288,7 +1288,7 @@ db.define_table(
         "q19",
         type="boolean",
         label=T(
-            "19. Should Stage 1 in-principle acceptance be forthcoming, authors will be asked to provide PCI RR with an estimated submission date for the completed Stage 2 manuscript (or manuscripts, in the case of programmatic RRs). This deadline can be readily altered in consultation with the recommenders (e.g. in case of delays requiring additional time to complete the research). However, in the event that the authors (a) fail to submit the Stage 2 manuscript within 6 months of the mutually agreed deadline, while also (b) becoming non-responsive during this period to enquiries from PCI RR, then the manuscript will be considered by PCI RR to be de facto withdrawn, triggering publication of a Withdrawn Registration. Please confirm the authors’ agreement to these conditions."
+            "18. Should Stage 1 in-principle acceptance be forthcoming, authors will be asked to provide PCI RR with an estimated submission date for the completed Stage 2 manuscript (or manuscripts, in the case of programmatic RRs). This deadline can be readily altered in consultation with the recommenders (e.g. in case of delays requiring additional time to complete the research). However, in the event that the authors (a) fail to submit the Stage 2 manuscript within 6 months of the mutually agreed deadline, while also (b) becoming non-responsive during this period to enquiries from PCI RR, then the manuscript will be considered by PCI RR to be de facto withdrawn, triggering publication of a Withdrawn Registration. Please confirm the authors’ agreement to these conditions."
         ),
         default=False,
     ),
@@ -1297,7 +1297,7 @@ db.define_table(
         type="string",
         label=SPAN(
             T(
-                "20. Should Stage 1 in-principle acceptance be forthcoming, would the authors like the current list of PCI RR-interested journals to be alerted? Doing so may (but is not guaranteed to) lead to one or more of these journals issuing an offer of Stage 1 in-principle acceptance. Answering YES to this question will result in PCI RR-interested journals having access to the author names, stated contact details, reviews and recommendation (if authors agree to publish this at the point of IPA -- see next question), and the URL to the Stage 1 report registered by PCI RR (even if preregistered under a private embargo). Authors must explicitly consent to permit PCI RR-interested journals to access this information, and PCI RR-interested journals are required to confirm that they will keep submissions confidential. Note that PCI RR-friendly journals will not be specifically alerted, and need not be, because PCI RR-friendly journals automatically offer IPA to any Stage 1 submission recommended by PCI RR without needing to inspect the content (subject to meeting any additional procedural requirements listed "
+                "19. Should Stage 1 in-principle acceptance be forthcoming, would the authors like the current list of PCI RR-interested journals to be alerted? Doing so may (but is not guaranteed to) lead to one or more of these journals issuing an offer of Stage 1 in-principle acceptance. Answering YES to this question will result in PCI RR-interested journals having access to the author names, stated contact details, reviews and recommendation (if authors agree to publish this at the point of IPA -- see next question), and the URL to the Stage 1 report registered by PCI RR (even if preregistered under a private embargo). Authors must explicitly consent to permit PCI RR-interested journals to access this information, and PCI RR-interested journals are required to confirm that they will keep submissions confidential. Note that PCI RR-friendly journals will not be specifically alerted, and need not be, because PCI RR-friendly journals automatically offer IPA to any Stage 1 submission recommended by PCI RR without needing to inspect the content (subject to meeting any additional procedural requirements listed "
             ),
             A(T("here"), _href=URL("about", "pci_rr_friendly_journals"), _target="_blank"),
             T(")."),
@@ -1315,7 +1315,7 @@ db.define_table(
         "q21",
         type="string",
         label=T(
-            "21. Should Stage 1 in-principle acceptance be forthcoming, would the authors prefer the Stage 1 recommendation and reviews to appear immediately on the PCI RR website along with a link to the Stage 1 report, or would they prefer to delay the publication of the Stage 1 recommendation and reviews until final Stage 2 acceptance (published all at once with the Stage 2 reviews)? This choice has no impact on automatic offers of publication by PCI RR-friendly journals, but electing to publish the Stage 1 reviews sooner may facilitate offers of IPA from PCI RR-interested journals due to the peer evaluations being accessible to those journal editors. Note that authors can exercise this choice regardless of whether they instruct PCI RR to register the Stage 1 manuscript publicly or under a private embargo. Where the authors choose to publish the Stage 1 reviews and recommendation at the point of IPA, but ALSO instruct PCI RR to register the report under a private embargo, then the URL to the Stage 1 report will still be published alongside the Stage 1 reviews and recommendation, but the Stage 1 report contained within the URL will be automatically accessible only to PCI RR, the authors, and the list of PCI RR-interested journals (if the authors answered YES to the previous question)."
+            "20. Should Stage 1 in-principle acceptance be forthcoming, would the authors prefer the Stage 1 recommendation and reviews to appear immediately on the PCI RR website along with a link to the Stage 1 report, or would they prefer to delay the publication of the Stage 1 recommendation and reviews until final Stage 2 acceptance (published all at once with the Stage 2 reviews)? This choice has no impact on automatic offers of publication by PCI RR-friendly journals, but electing to publish the Stage 1 reviews sooner may facilitate offers of IPA from PCI RR-interested journals due to the peer evaluations being accessible to those journal editors. Note that authors can exercise this choice regardless of whether they instruct PCI RR to register the Stage 1 manuscript publicly or under a private embargo. Where the authors choose to publish the Stage 1 reviews and recommendation at the point of IPA, but ALSO instruct PCI RR to register the report under a private embargo, then the URL to the Stage 1 report will still be published alongside the Stage 1 reviews and recommendation, but the Stage 1 report contained within the URL will be automatically accessible only to PCI RR, the authors, and the list of PCI RR-interested journals (if the authors answered YES to the previous question)."
         ),
         requires=IS_EMPTY_OR(
             IS_IN_SET(
@@ -1331,7 +1331,7 @@ db.define_table(
         type="string",
         label=SPAN(
             T(
-                "22. Would the authors like PCI RR to invite reviewers on the condition that the reviewers agree to waive anonymity and thereby sign their reviews? This option can be useful where the authors intend to eventually publish their RR in a PCI RR-friendly journal that requires reviews to be signed in order to automatically accept PCI RR recommendations (see "
+                "21. Would the authors like PCI RR to invite reviewers on the condition that the reviewers agree to waive anonymity and thereby sign their reviews? This option can be useful where the authors intend to eventually publish their RR in a PCI RR-friendly journal that requires reviews to be signed in order to automatically accept PCI RR recommendations (see "
             ),
             A("list of Journal Adopters", _href=URL("about", "pci_rr_friendly_journals"), _target="_blank"),
             T(
@@ -1351,7 +1351,7 @@ db.define_table(
         "q23",
         type="string",
         label=T(
-            "23. Please anticipate the approximate amount of time it will take to complete the research and submit a Stage 2 manuscript following Stage 1 in-principle acceptance. If the authors are submitting a programmatic RR then estimate this duration for each of the anticipated Stage 2 outputs (e.g. +12 months after IPA for Stage 2 RR.1, +18 months after IPA for Stage 2 RR.2, +24 months after IPA for Stage 2 RR.3, etc.)."
+            "22. Please anticipate the approximate amount of time it will take to complete the research and submit a Stage 2 manuscript following Stage 1 in-principle acceptance. If the authors are submitting a programmatic RR then estimate this duration for each of the anticipated Stage 2 outputs (e.g. +12 months after IPA for Stage 2 RR.1, +18 months after IPA for Stage 2 RR.2, +24 months after IPA for Stage 2 RR.3, etc.)."
         ),
         length=128,
     ),
@@ -1359,13 +1359,13 @@ db.define_table(
         "q24",
         type="date",
         label=T(
-            "24. Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility. If authors have an inflexible data collection start date and have not received in principle acceptance (IPA) before this date, they may begin collecting data but must adjust the bias-control level accordingly (e.g., if the initial submission was Level 6, it would then drop to Level 3, 2, or 1). There are several points to consider when dropping to a lower bias-control level. First, there is a greater risk of Stage 1 rejection if concerns with the study procedures raised in the Stage 1 review process can no longer be addressed due to data collection commencing and crucial parts of the methodology being immutable from that point forward. Second, the number of PCI RR-friendly journals that will automatically accept the Stage 2 RR may be reduced because adopting journals can set a minimum bias-control level that exceeds the requirements of PCI RR (for example, the submission would become ineligible for automatic acceptance in a PCI RR-friendly journal that sets a minimum requirement of Level 4 or higher). Third, as explained in the table, reducing the bias-control level increases the stringency of steps required to minimise bias and increase rigour (e.g., through the adoption of a more conservative statistical threshold, or blinded analyst, etc). Finally, it is essential that, despite the drop in bias-control level, the manuscript remains at Level 1 or higher: if authors begin to discover the conclusions (or likely conclusions) of the research prior to IPA then they would risk dropping to Level 0 and the manuscript would no longer be eligible for consideration at PCI RR."
+            "23. Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility. If authors have an inflexible data collection start date and have not received in principle acceptance (IPA) before this date, they may begin collecting data but must adjust the bias-control level accordingly (e.g., if the initial submission was Level 6, it would then drop to Level 3, 2, or 1). There are several points to consider when dropping to a lower bias-control level. First, there is a greater risk of Stage 1 rejection if concerns with the study procedures raised in the Stage 1 review process can no longer be addressed due to data collection commencing and crucial parts of the methodology being immutable from that point forward. Second, the number of PCI RR-friendly journals that will automatically accept the Stage 2 RR may be reduced because adopting journals can set a minimum bias-control level that exceeds the requirements of PCI RR (for example, the submission would become ineligible for automatic acceptance in a PCI RR-friendly journal that sets a minimum requirement of Level 4 or higher). Third, as explained in the table, reducing the bias-control level increases the stringency of steps required to minimise bias and increase rigour (e.g., through the adoption of a more conservative statistical threshold, or blinded analyst, etc). Finally, it is essential that, despite the drop in bias-control level, the manuscript remains at Level 1 or higher: if authors begin to discover the conclusions (or likely conclusions) of the research prior to IPA then they would risk dropping to Level 0 and the manuscript would no longer be eligible for consideration at PCI RR."
         ),
     ),
     Field(
         "q24_1",
         type="string",
-        label=T("24a. Date flexibility:"),
+        label=T("23a. Date flexibility:"),
         requires=IS_EMPTY_OR(
             IS_IN_SET(
                 (
@@ -1378,7 +1378,7 @@ db.define_table(
     Field(
         "q24_1_details",
         type="text",
-        label=T("24b. details"),
+        label=T("23b. details"),
         length=2000,
     ),
     # Stage 2 questions

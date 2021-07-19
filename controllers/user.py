@@ -671,7 +671,7 @@ def fill_report_survey():
         db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
         db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
         # db.t_report_survey.q4.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q5.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q5.requires = IS_NOT_EMPTY()
         db.t_report_survey.q6.requires = IS_IN_SET(
             (
                 "YES - THE RESEARCH INVOLVES AT LEAST SOME QUANTITATIVE HYPOTHESIS-TESTING AND THE REPORT INCLUDES A STUDY DESIGN TEMPLATE",
@@ -720,7 +720,7 @@ def fill_report_survey():
             "q2",
             "q3",
             "q4",
-            "q5",
+            # "q5",
             "q6",
             "q7",
             "q8",
@@ -874,7 +874,7 @@ def edit_report_survey():
         db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
         db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
         # db.t_report_survey.q4.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q5.requires = IS_NOT_EMPTY()
+        # db.t_report_survey.q5.requires = IS_NOT_EMPTY()
         db.t_report_survey.q6.requires = IS_IN_SET(
             (
                 "YES - THE RESEARCH INVOLVES AT LEAST SOME QUANTITATIVE HYPOTHESIS-TESTING AND THE REPORT INCLUDES A STUDY DESIGN TEMPLATE",
@@ -923,7 +923,7 @@ def edit_report_survey():
             "q2",
             "q3",
             "q4",
-            "q5",
+            # "q5",
             "q6",
             "q7",
             "q8",
