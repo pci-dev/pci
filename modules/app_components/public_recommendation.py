@@ -264,7 +264,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
-            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink))
+            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink, id=review.id))
 
         authorsReply = None
         if recomm.reply:

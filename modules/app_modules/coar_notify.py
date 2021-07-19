@@ -95,7 +95,7 @@ class COARNotifier:
         recommendation = self.db.t_recommendations[review.recommendation_id]
         article = self.db.t_articles[recommendation.article_id]
         return {
-            "id": f"{self.base_url}review/{review.id}",
+            "id": f"{self.base_url}articles/rec?articleId={article.id}#review-{review.id}",
             "type": ["Document", "sorg:Review"],
             "coar-notify:reviews": self._article_as_jsonld(article),
         }
