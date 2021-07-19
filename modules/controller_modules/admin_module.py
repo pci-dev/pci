@@ -24,6 +24,7 @@ from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 ## (gab) Helper => move to modules ?
@@ -333,7 +334,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
                     # display the review
                     if review.anonymously:
                         x = latex_escape(
-                            current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                            current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                         )
                         history += "\\item{%s}\\par\n" % x
                     else:
@@ -341,7 +342,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
                             current.T("Reviewed by")
                             + " "
                             + common_small_html.mkUser(auth, db, review.reviewer_id, linked=False).flatten()
-                            + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                            + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                         )
                         history += "\\item{%s}\\par\n" % x
                     if len(review.review or "") > 2:

@@ -32,6 +32,8 @@ from app_modules import common_tools
 
 myconf = AppConfig(reload=True)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ######################################################################################################################################################################
 # Show reviews of cancelled articles for CNeuro
 def reviewsOfCancelled(auth, db, art):
@@ -81,7 +83,7 @@ def reviewsOfCancelled(auth, db, art):
                                 current.T("Reviewed by")
                                 + " "
                                 + current.T("anonymous reviewer")
-                                + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                                + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                             )
                         )
                     else:
@@ -90,7 +92,7 @@ def reviewsOfCancelled(auth, db, art):
                                 current.T("Reviewed by"),
                                 " ",
                                 common_small_html.mkUser(auth, db, review.reviewer_id, linked=not (printable)),
-                                (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                             )
                         )
                     myReviews.append(BR())
@@ -141,7 +143,7 @@ def reviewsOfCancelled(auth, db, art):
                 DIV(
                     HR(),
                     H3("Revision round #%s" % recommRound),
-                    SPAN(I(recomm.last_change.strftime("%Y-%m-%d") + " ")) if recomm.last_change else "",
+                    SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else "",
                     H2(recomm.recommendation_title if ((recomm.recommendation_title or "") != "") else T("Decision")),
                     H4(current.T(" by "), SPAN(whoDidIt))  # mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
                     # ,SPAN(SPAN(current.T('Recommendation:')+' '), common_small_html.mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
@@ -210,7 +212,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         DIV(
             I(current.T("Submitted by ")),
             I(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or "") + " " + (submitter.last_name or ""))),
-            I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
+            I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
         if (art.already_published is False)
         else "",
@@ -379,9 +381,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         nbOnGoing = 0
         myRound = DIV()
         recommender = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-        whoDidIt = common_small_html.getRecommAndReviewAuthors(
-            auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
-        )
+        whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
         ###NOTE: POST-PRINT ARTICLE
         if art.already_published:
@@ -399,7 +399,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     common_small_html.mkDOI(recomm.recommendation_doi),
                     BR(),
                     SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi) + BR()) if (recomm.doi != art.doi) else SPAN(""),
-                    I(recomm.last_change.strftime("%Y-%m-%d")) if recomm.last_change else "",
+                    I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT)) if recomm.last_change else "",
                     DIV(WIKI((recomm.recommendation_comments or ""), safe_mode=False), _class="pci-bigtext margin"),
                     _class="pci-recommendation-div",
                 )
@@ -614,15 +614,39 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     # display the review
                     # myReviews.append(HR())
                     # buttons allowing to edit and validate the review
+<<<<<<< HEAD
                     if review.review_state in ("Awaiting review", "Review completed") or to_submitter == False:
                         if review.anonymously:
+=======
+                    if review.anonymously:
+                        myReviews.append(
+                            SPAN(
+                                I(
+                                    current.T("Reviewed by")
+                                    + " "
+                                    + current.T("anonymous reviewer")
+                                    + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
+                                )
+                            )
+                        )
+                    else:
+                        reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+                        if reviewer is not None:
+>>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
                             myReviews.append(
                                 SPAN(
                                     I(
                                         current.T("Reviewed by")
                                         + " "
+<<<<<<< HEAD
                                         + current.T("anonymous reviewer")
                                         + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+=======
+                                        + (reviewer.first_name or "")
+                                        + " "
+                                        + (reviewer.last_name or "")
+                                        + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
+>>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
                                     )
                                 )
                             )
@@ -728,10 +752,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 )
 
             truc = DIV(
-                H3(tit2)
-                # ,SPAN(I(current.T('by ')+' '+(recommender.first_name if recommender else None or '')+' '+(recommender.last_name if recommender else None or '')+(', '+recomm.last_change.strftime('%Y-%m-%d %H:%M') if recomm.last_change else '')))
-                ,
-                I(SPAN(current.T("by ")), SPAN(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
+                H3(tit2),
+                I(SPAN(current.T("by ")), SPAN(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
                 BR(),
                 SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
                 SPAN(" " + current.T("version") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),

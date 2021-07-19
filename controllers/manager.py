@@ -47,6 +47,7 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 ## Menu Routes

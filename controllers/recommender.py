@@ -37,6 +37,8 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ######################################################################################################################################################################
 def index():
     return my_awaiting_articles()
