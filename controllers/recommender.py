@@ -1612,7 +1612,8 @@ def email_for_new_reviewer():
                     declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
                         id=reviewId,
                         key=quickDeclineKey,
-                    ))
+                    ),
+                    scheme=scheme, host=host, port=port)
 
                     emailing.send_reviewer_invitation(
                         session,
