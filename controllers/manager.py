@@ -635,6 +635,9 @@ def edit_article():
     db.t_articles.status.writable = True
     db.t_articles.user_id.writable = True
 
+    db.t_articles.cover_letter.readable = True
+    db.t_articles.cover_letter.writable = True
+
     myFinalScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
