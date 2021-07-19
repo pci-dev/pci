@@ -1575,6 +1575,9 @@ db.define_table(
     Field("created", type="datetime"),
     Field("rdf_type", type="string", label="Space-separated type URIs"),
     Field("body", type="string", label="JSON-LD serialization of notification body"),
+    Field("direction", type="string", label="Inbound or Outbound"),
+    Field("http_status", type="integer", label="HTTP Status for outboard messages"),
+    Field("inbox_url", type="string", label="Remote inbox for notification"),
 )
 
 

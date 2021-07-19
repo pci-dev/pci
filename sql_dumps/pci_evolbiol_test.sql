@@ -1933,7 +1933,10 @@ CREATE TABLE public.t_coar_notification (
     id integer NOT NULL,
     created timestamp without time zone NOT NULL,
     rdf_type character varying NOT NULL,
-    body character varying NOT NULL
+    body character varying NOT NULL,
+    direction character varying NOT NULL,
+    http_status integer,
+    inbox_url character varying NOT NULL
 );
 
 
