@@ -204,11 +204,10 @@ def decline_review(): # no auth required
         review.update_record()
 
         user = db.auth_user[review.reviewer_id]
-        if user and user.registration_key: # user (auto-created) did not register yet
+        if user and user.reset_password_key: # user (auto-created) did not register yet
             db(db.auth_user.id == review.reviewer_id).delete()
 
-        message = "Declined review={}, declineKey={}, user={}".format(
-                review.id, quickDeclineKey, user.email if user else None)
+        message = T("Thank you for taking the time to decline this invitation!")
 
     response.view = "default/info.html"
     return dict(message=message)
