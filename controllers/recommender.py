@@ -1050,7 +1050,8 @@ def reviews():
         db.t_reviews.recommendation_id.readable = False
         db.t_reviews.reviewer_id.writable = auth.has_membership(role="manager")
         db.t_reviews.reviewer_id.default = auth.user_id
-        db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+        db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) \
+                if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id)
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
         db.t_reviews.review.writable = auth.has_membership(role="manager")
@@ -1091,6 +1092,7 @@ def reviews():
                 db.t_reviews.review,
                 db.t_reviews.review_pdf,
                 db.t_reviews.emailing,
+                db.t_reviews.reviewer_details,
             ],
             selectable=selectable,
             _class="web2py_grid action-button-absolute",
