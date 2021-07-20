@@ -1,13 +1,10 @@
-import datetime
-from json import JSONDecodeError
-
 import cgi
 import http
 import rdflib
 import typing
-from rdflib import RDF
 
 from app_modules.helper import *
+from app_modules.coar_notify import COARNotifyException, COARNotifier
 
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
@@ -47,34 +44,17 @@ def inbox():
                 f"Content-Type must be one of {', '.join(sorted(_rdflib_parser_media_types))})",
             )
 
-        graph = rdflib.Graph()
-
+        coar_notifier = COARNotifier(db)
         try:
-            graph.parse(request.body, format=_rdflib_parser_media_types[content_type])
-        except Exception:
-            raise HTTP(
-                http.HTTPStatus.BAD_REQUEST.value, "Couldn't parse message body."
+            coar_notifier.record_notification(
+                body=request.body,
+                body_format=_rdflib_parser_media_types[content_type],
+                direction="Inbound",
             )
-
-        subjects = list(graph.subjects(RDF.type, ACTIVITYSTREAMS.Announce))
-        if len(subjects) != 1:
-            raise HTTP(
-                http.HTTPStatus.BAD_REQUEST.value,
-                "Exactly one resource in notification body must be an Activity Streams Announce instance.",
-            )
-        subject = subjects[0]
-
-        db.t_coar_notification.insert(
-            created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=" ".join(
-                str(type)
-                for type in graph.objects(subject, RDF.type)
-                if type != ACTIVITYSTREAMS.Announce
-            ),
-            body=graph.serialize(format="json-ld"),
-        )
-
-        raise HTTP(status=http.HTTPStatus.ACCEPTED.value, body='')
+        except COARNotifyException as e:
+            raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value, body=e.message) from e
+        else:
+            raise HTTP(status=http.HTTPStatus.ACCEPTED.value, body='')
     else:
         raise HTTP(
             http.HTTPStatus.METHOD_NOT_ALLOWED.value,
