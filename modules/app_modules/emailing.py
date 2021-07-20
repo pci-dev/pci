@@ -1645,7 +1645,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                         )
 
                     reviewer_invitation_buttons = DIV(
-                        P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:"))),
+                        P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
                         DIV(
                             A(
                                 SPAN(
@@ -1680,7 +1680,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
 
                         if declineLinkTarget:
                             reviewer_invitation_buttons = DIV(
-                                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:"))),
+                                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
                                 DIV(
                                     A(
                                         SPAN(

@@ -832,7 +832,7 @@
     "Timeline": "Timeline",
     "Timestamp": "Timestamp",
     "Title": "Title",
-    "TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:": "TO ACCEPT OR DECLINE CLICK ON THE FOLLOWING BUTTONS:",
+    "TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:": "TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:",
     "Today": "Today",
     "Toggle reviews": "Toggle reviews",
     "Toggle thematic fields": "Toggle thematic fields",
