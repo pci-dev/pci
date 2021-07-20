@@ -846,6 +846,11 @@ db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
+db.t_reviews._after_insert.append(lambda s, row: setReviewerDetails(row))
+
+def setReviewerDetails(row):
+    row.reviewer_details = common_small_html.mkUserWithMail(auth, db, row.reviewer_id)
+    row.update_record()
 
 
 def reviewSuggested(s, row):
