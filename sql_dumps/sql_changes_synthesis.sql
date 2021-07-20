@@ -190,3 +190,4 @@ INSERT INTO public.mail_templates (hashtag, lang, subject, description, contents
 
 -- 14/07/2021
 ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS quick_decline_key character varying(512);
+ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS reviewer_details character varying(512);

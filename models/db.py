@@ -837,6 +837,7 @@ db.define_table(
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
     Field("emailing", type="text", length=2097152, label=T("Emails sent"), readable=False, writable=False),
     Field("quick_decline_key", type="text", length=512, label=T("Quick decline key"), readable=False, writable=False),
+    Field("reviewer_details", type="text", length=512, label=T("Reviewer details"), readable=False, writable=False),
     singular=T("Review"),
     plural=T("Reviews"),
     migrate=False,
@@ -845,6 +846,11 @@ db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
+db.t_reviews._after_insert.append(lambda s, row: setReviewerDetails(row))
+
+def setReviewerDetails(row):
+    row.reviewer_details = common_small_html.mkUserWithMail(auth, db, row.reviewer_id)
+    row.update_record()
 
 
 def reviewSuggested(s, row):
