@@ -1,3 +1,5 @@
+import logging
+
 import datetime
 import functools
 import io
@@ -11,6 +13,8 @@ import requests
 from gluon.contrib.appconfig import AppConfig
 
 __all__ = ["COARNotifier"]
+
+logger = logging.getLogger(__name__)
 
 myconf = AppConfig(reload=True)
 
@@ -122,16 +126,33 @@ class COARNotifier:
 
         serialized_notification = json.dumps(notification, indent=2)
 
-        response = session.post(
-            inbox_url,
-            data=serialized_notification,
-            headers={"Content-Type": "application/ld+json"},
-        )
+        try:
+            response = session.post(
+                self.inbox_url,
+                data=serialized_notification,
+                headers={"Content-Type": "application/ld+json"},
+            )
+        except requests.exceptions.RequestException as e:
+            # Repurpose Cloudflare's unofficial status codes
+            # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Cloudflare
+            if isinstance(e, requests.exceptions.ConnectionError):
+                http_status = 521  # Web Server Is Down
+            elif isinstance(e, requests.exceptions.ConnectTimeout):
+                http_status = 522  # Connection Timed Out
+            elif isinstance(e, requests.exceptions.ReadTimeout):
+                http_status = 524  # A Timeout Occurred
+            elif isinstance(e, requests.exceptions.SSLError):
+                http_status = 525  # SSL Handshake Failed
+            else:
+                http_status = 520  # Web Server Returned an Unknown Error
+            logger.exception("Request exception when POSTing COAR Notification")
+        else:
+            http_status = response.status_code
 
         self.record_notification(
             body=io.BytesIO(serialized_notification.encode()),
             direction="Outbound",
-            http_status=response.status_code,
+            http_status=http_status,
         )
 
     def _review_as_jsonld(self, review):
