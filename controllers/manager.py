@@ -317,14 +317,10 @@ def recommendations():
 def manage_recommendations():
     response.view = "default/myLayout.html"
 
-    if not ("articleId" in request.vars):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
     if art is None:
-        session.flash = T("Unavailable")
-        redirect(request.env.http_referer)
+        redirect(URL(c="manager", f="all_recommendations"))
 
     query = db.t_recommendations.article_id == articleId
     db.t_recommendations.recommender_id.default = auth.user_id
@@ -352,12 +348,18 @@ def manage_recommendations():
             ),
         )
     ]
+
+    def getReviewers(row):
+        reviews = db(db.t_reviews.recommendation_id==row.id).select()
+        return ", ".join([re.sub(r'<span><span>([^<]+)</span>.*', r'\1',
+                            review.reviewer_details) for review in reviews])
+
     if not (art.already_published):
         links += [
             dict(
                 header=T("Reviews"),
                 body=lambda row: A(
-                    (db.v_reviewers[(row.get("t_recommendations") or row).id]).reviewers or "ADD REVIEWER",
+                    getReviewers(row) or "ADD REVIEWER",
                     _href=URL(c="recommender", f="reviews", vars=dict(recommId=(row.get("t_recommendations") or row).id)),
                 ),
             )

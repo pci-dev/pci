@@ -1138,32 +1138,36 @@ def reviewers():
 
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
+    if not recomm:
+        return my_recommendations()
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        reviewersListSel = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
-            db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id
+        reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
+            db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
         reviewersList = []
         reviewersIds = [auth.user_id]
         selfFlag = False
         selfFlagCancelled = False
         for con in reviewersListSel:
-            if con.t_reviews.review_state is None:  # delete this unfinished review declaration
+            if con.review_state is None:  # delete this unfinished review declaration
                 db(db.t_reviews.id == con.t_reviews.id).delete()
             else:
-                if recomm.recommender_id == con.auth_user.id:
+                reviewer_id = con.reviewer_id
+                if recomm.recommender_id == reviewer_id:
                     selfFlag = True
-                    if con.t_reviews.review_state == "Cancelled":
+                    if con.review_state == "Cancelled":
                         selfFlagCancelled = True
-                reviewersIds.append(con.auth_user.id)
+                reviewersIds.append(reviewer_id)
                 reviewersList.append(
                     LI(
-                        common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
+                        TAG(con.reviewer_details) if con.reviewer_details else \
+                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
                         " ",
-                        B(T(" (YOU) ")) if con.auth_user.id == recomm.recommender_id else "",
-                        I("(" + (con.t_reviews.review_state or "") + ")"),
+                        B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
+                        I("(" + (con.review_state or "") + ")"),
                     )
                 )
         excludeList = ",".join(map(str, reviewersIds))
