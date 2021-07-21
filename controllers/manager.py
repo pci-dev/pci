@@ -317,14 +317,10 @@ def recommendations():
 def manage_recommendations():
     response.view = "default/myLayout.html"
 
-    if not ("articleId" in request.vars):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
     if art is None:
-        session.flash = T("Unavailable")
-        redirect(request.env.http_referer)
+        redirect(URL(c="manager", f="all_recommendations"))
 
     query = db.t_recommendations.article_id == articleId
     db.t_recommendations.recommender_id.default = auth.user_id
