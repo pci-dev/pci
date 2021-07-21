@@ -1170,7 +1170,7 @@ def reviewers():
                         I("(" + (con.review_state or "") + ")"),
                     )
                 )
-        excludeList = ",".join(map(str, reviewersIds))
+        excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
             myContents = DIV(H3(T("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
         else:
