@@ -14,7 +14,7 @@ def getReviewsSubTable(auth, db, response, recomm):
     art = db.t_articles[recomm.article_id]
     recomm_round = db((db.t_recommendations.article_id == recomm.article_id) & (db.t_recommendations.id <= recomm.id)).count()
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
-        db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews._id, orderby=~db.t_reviews.last_change
+        db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews._id, db.t_reviews.reviewer_details, orderby=~db.t_reviews.last_change
     )
     nbUnfinishedReviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting response", "Awaiting review"))).count()
     isRecommenderAlsoReviewer = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).count()
@@ -28,9 +28,9 @@ def getReviewsSubTable(auth, db, response, recomm):
 
     reviewList = []
     for review in reviews:
-        if review.reviewer_id is not None:
             reviewVars = dict(
-                reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
+                reviewer=TAG(review.reviewer_details) if review.reviewer_details else \
+                         common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
                 status=common_small_html.mkReviewStateDiv(auth, db, review.review_state),
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
