@@ -352,12 +352,18 @@ def manage_recommendations():
             ),
         )
     ]
+
+    def getReviewers(row):
+        reviews = db(db.t_reviews.recommendation_id==row.id).select()
+        return ", ".join([re.sub(r'<span><span>([^<]+)</span>.*', r'\1',
+                            review.reviewer_details) for review in reviews])
+
     if not (art.already_published):
         links += [
             dict(
                 header=T("Reviews"),
                 body=lambda row: A(
-                    (db.v_reviewers[(row.get("t_recommendations") or row).id]).reviewers or "ADD REVIEWER",
+                    getReviewers(row) or "ADD REVIEWER",
                     _href=URL(c="recommender", f="reviews", vars=dict(recommId=(row.get("t_recommendations") or row).id)),
                 ),
             )
