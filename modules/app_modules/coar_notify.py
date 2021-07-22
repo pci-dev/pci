@@ -36,6 +36,7 @@ def _get_requests_session() -> requests.Session:
 
 
 class COARNotifyException(Exception):
+    """Base exception from which all other COAR Notify exceptions derive."""
     message = "COAR Notify exception"
 
 
