@@ -20,10 +20,14 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
+from app_modules import common_tools
+
 myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
+
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # Time and date
@@ -36,7 +40,7 @@ def mkLastChange(t):
         elif d.days == 1:
             return SPAN(current.T("Yesterday"))
         else:
-            tdt = t.strftime("%Y-%m-%d ")
+            tdt = t.strftime(DEFAULT_DATE_FORMAT + " ")
             return SPAN(tdt)
     else:
         return ""
@@ -45,16 +49,12 @@ def mkLastChange(t):
 ######################################################################################################################################################################
 def mkElapsedDays(t):
     if t:
-        tdt = SPAN(t.strftime("%Y-%m-%d"), _style="font-size:7pt;")
         d = datetime.datetime.now() - t
         if d.days == 0:
-            # return SPAN(current.T('Today'), BR(), tdt)
             return SPAN(current.T("Today"))
         elif d.days == 1:
-            # return SPAN(current.T('Yesterday'), BR(), tdt)
             return SPAN(current.T("Yesterday"))
         else:
-            # return SPAN(current.T('%s days ago') % (d.days), BR(), tdt)
             return SPAN(current.T("%s days ago") % (d.days))
     else:
         return ""
@@ -515,11 +515,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
         if urlArticle:
             anchor = DIV(
-                A(B(art.title or "", _class="article-title"), _href=urlArticle),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-                BR(),
-                doi_text,
-                _class="ellipsis-over-350",
+                A(B(art.title), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350",
             )
         else:
             anchor = DIV(
@@ -886,7 +882,7 @@ def getArticleSubmitter(auth, db, art):
         result = DIV(
             I(current.T("Submitted by ")),
             I(mkAnonymousArticleField(auth, db, hideSubmitter, B(mkUser_U(auth, db, submitter, linked=True)),)),
-            I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
+            I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:
         result = ""

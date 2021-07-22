@@ -16,8 +16,8 @@ from gluon.contrib.markdown import WIKI
 from app_modules.helper import *
 
 from controller_modules import admin_module
-from app_modules import emailing
 from app_modules import common_small_html
+from app_modules import common_tools
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -32,6 +32,8 @@ expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidd
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 ## Menu Routes

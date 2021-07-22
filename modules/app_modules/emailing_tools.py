@@ -213,7 +213,7 @@ def getMailFooter():
 
 ######################################################################################################################################################################
 # Footer for all mails
-def mkFooter():
+def mkFooter(db):
     # init mail_vars with common infos
     mail_vars = getMailCommonVars()
 
@@ -229,7 +229,12 @@ def mkFooter():
         port=mail_vars["port"],
     )
 
-    return XML(getMailFooter() % mail_vars)
+    footer_template = getMailTemplateHashtag(db, "#EmailFooterTemplate")
+    if 'content' in footer_template and footer_template["content"]:
+        footer_content = replaceMailVars(footer_template["content"], mail_vars)
+        return XML(footer_content)
+    else:
+        return XML(getMailFooter() % mail_vars)
 
 
 ######################################################################################################################################################################
@@ -390,7 +395,7 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
             applogo=applogo,
             appname=mail_vars["appName"],
             content=XML(content),
-            footer=mkFooter(),
+            footer=mkFooter(db),
             recommendation=recommendation,
             review=review,
             authors_reply=authors_reply,
@@ -442,7 +447,7 @@ def buildNewsLetterMail(
             newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
             newPreprintRequiringRecommender=XML(newPreprintRequiringRecommender),
             newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
-            footer=mkFooter(),
+            footer=mkFooter(db),
             mail_vars=mail_vars,
         ),
     )

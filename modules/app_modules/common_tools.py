@@ -8,6 +8,7 @@ import gluon.http
 from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def takePort(p):
@@ -33,6 +34,13 @@ def getShortText(text, length):
         text = text[0:length] + "..."
     return text
 
+
+######################################################################################################################################################################
+def getDefaultDateFormat():
+    if pciRRactivated:
+        return "%d %b %Y"
+    else:
+        return "%Y-%m-%d"
 
 ######################################################################################################################################################################
 def pci_redirect(url):

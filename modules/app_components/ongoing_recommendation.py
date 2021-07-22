@@ -23,6 +23,8 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ########################################################################################################################################################################
 def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
     scheme = myconf.take("alerts.scheme")
@@ -506,7 +508,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                 "authors",
                                 SPAN(
                                     current.T("anonymous reviewer"),
-                                    (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                                 ),
                             )
                         ]
@@ -520,7 +522,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                     "authors",
                                     SPAN(
                                         common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                        (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+                                        (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                                     ),
                                 )
                             ]
@@ -605,7 +607,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             authorsReplyPdfLink=authorsReplyPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
             editAuthorsReplyLink=editAuthorsReplyLink,
-            recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
+            recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),
             recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hideOngoingRecomm is False) else "",
@@ -732,7 +734,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     componentVars = dict(
         printable=printable,
         showRecommendation=True,
-        recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime("%Y-%m-%d %H:%M") if recomm.last_change else "")),
+        recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
         recommendationDoi=SPAN(current.T("Recommendation: "), common_small_html.mkDOI(recomm.recommendation_doi)) if (recomm.recommendation_doi) else "",
         manuscriptDoi=SPAN(current.T("Manuscript: "), common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else "",
         recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px")

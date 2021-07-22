@@ -30,6 +30,7 @@ from app_modules import common_tools
 
 myconf = AppConfig(reload=True)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # RSS MODULES
@@ -117,7 +118,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
         url=url,
         recommender=recommendersStr,
         reviewers=reviewersStr,
-        date=created_on.strftime("%Y-%m-%d"),
+        date=created_on.strftime(DEFAULT_DATE_FORMAT),
         logo=XML(URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
         doi=row.doi,
         recomm_doi=recomm_doi,

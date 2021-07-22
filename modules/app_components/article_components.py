@@ -31,6 +31,8 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ######################################################################################################################################################################
 def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False):
     if fullURL:
@@ -106,9 +108,9 @@ def getArticleTrackcRowCard(auth, db, response, article):
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
         track = DIV(_class="pci-trackItem")
-
-        firstDate = article.upload_timestamp.strftime("%Y-%m-%d")
-        lastDate = article.last_status_change.strftime("%Y-%m-%d")
+        
+        firstDate = article.upload_timestamp.strftime(DEFAULT_DATE_FORMAT)
+        lastDate = article.last_status_change.strftime(DEFAULT_DATE_FORMAT)
         title = article.title
         if article.anonymous_submission:
             authors = "[anonymous submission]"

@@ -1717,7 +1717,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                         applogo=applogo,
                         appname=mail_vars["appName"],
                         content=XML(content),
-                        footer=emailing_tools.mkFooter(),
+                        footer=emailing_tools.mkFooter(db),
                         reviewer_invitation_buttons=reviewer_invitation_buttons,
                     ),
                 )

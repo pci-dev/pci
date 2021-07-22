@@ -32,10 +32,14 @@ from app_modules import common_tools
 from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
+
+parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
+
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # Mailing parts
@@ -49,7 +53,7 @@ def getReviewHTML(auth, db, rewiewId):
         current.T("Reviewed by"),
         " ",
         common_small_html.mkUser(auth, db, review.reviewer_id, linked=False),
-        (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else ""),
+        (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
     )
 
     pdfLink = ""
