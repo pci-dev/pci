@@ -42,7 +42,7 @@ describe("Preprint recommendation setup for review", () => {
     });
 
     it("Should submit the submission form", () => {
-      cy.get("#t_articles_title_ifr").typeTinymce(articleTitle);
+      cy.get("#t_articles_title").typeFast(articleTitle);
       cy.get("#t_articles_authors").typeFast(submitter.firstname + " " + submitter.lastname);
       cy.get("#t_articles_doi").typeFast(data.doi);
       // cy.get("#t_articles_abstract").typeFast("Abstract " + data.long_text);

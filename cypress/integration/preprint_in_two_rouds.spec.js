@@ -45,7 +45,7 @@ describe("Preprint recommended in two round", () => {
 
     it("Should submit form with bad title", () => {
       cy.fixture("fake_datas").then((datas) => {
-        cy.get("#t_articles_title_ifr").typeTinymce("Tototototototot totoo");
+        cy.get("#t_articles_title").typeFast("Tototototototot totoo");
         cy.get("#t_articles_authors").typeFast(
           submitter.firstname + " " + submitter.lastname
         );
@@ -117,10 +117,10 @@ describe("Preprint recommended in two round", () => {
 
       cy.contains("a", "Edit article").click();
 
-      cy.get("#t_articles_title_ifr").clearTinymce();
+      cy.get("#t_articles_title").clear();
 
       cy.fixture("fake_datas").then((datas) => {
-        cy.get("#t_articles_title_ifr").typeTinymce(
+        cy.get("#t_articles_title").typeFast(
           articleTitle + " " + datas.small_text
         );
       });
