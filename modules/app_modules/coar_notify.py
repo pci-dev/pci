@@ -191,6 +191,9 @@ class COARNotifier:
         This implements Step 3 of Scenario 1 from COAR Notify. See
         https://notify.coar-repositories.org/scenarios/1/ for more information.
         """
+        if not self.enabled:
+            return
+
         reviewer = self.db.auth_user[review.reviewer_id]
         notification = {
             "type": ["Announce", "coar-notify:ReviewSuccess"],
@@ -205,6 +208,9 @@ class COARNotifier:
         This implements Step 5 of Scenario 3 from COAR Notify. See
         https://notify.coar-repositories.org/scenarios/1/ for more information.
         """
+        if not self.enabled:
+            return
+
         recommender = self.db.auth_user[recommendation.recommender_id]
         notification = {
             "type": ["Announce", "coar-notify:EndorsementSuccess"],

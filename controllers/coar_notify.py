@@ -19,6 +19,12 @@ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
 
 
 def inbox():
+    coar_notifier = COARNotifier(db)
+
+    # There is no inbox if COAR Notify is not enabled.
+    if not coar_notifier.enabled:
+        raise HTTP(status=http.HTTPStatus.NOT_FOUND.value)
+
     if request.method == "OPTIONS":
         response.headers.update(
             {
@@ -44,7 +50,6 @@ def inbox():
                 f"Content-Type must be one of {', '.join(sorted(_rdflib_parser_media_types))})",
             )
 
-        coar_notifier = COARNotifier(db)
         try:
             coar_notifier.record_notification(
                 body=request.body,
