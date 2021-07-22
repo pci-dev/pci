@@ -515,15 +515,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
         if urlArticle:
             anchor = DIV(
-<<<<<<< HEAD
-                A(B(art.title or "", _class="article-title"), _href=urlArticle),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
-                BR(),
-                doi_text,
-                _class="ellipsis-over-350",
-=======
                 A(B(art.title), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350",
->>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
             )
         else:
             anchor = DIV(
@@ -890,11 +882,7 @@ def getArticleSubmitter(auth, db, art):
         result = DIV(
             I(current.T("Submitted by ")),
             I(mkAnonymousArticleField(auth, db, hideSubmitter, B(mkUser_U(auth, db, submitter, linked=True)),)),
-<<<<<<< HEAD
-            I(art.upload_timestamp.strftime(" %Y-%m-%d %H:%M") if art.upload_timestamp else ""),
-=======
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
->>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
         )
     else:
         result = ""

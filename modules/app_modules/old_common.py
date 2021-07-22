@@ -614,10 +614,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     # display the review
                     # myReviews.append(HR())
                     # buttons allowing to edit and validate the review
-<<<<<<< HEAD
-                    if review.review_state in ("Awaiting review", "Review completed") or to_submitter == False:
-                        if review.anonymously:
-=======
                     if review.anonymously:
                         myReviews.append(
                             SPAN(
@@ -632,21 +628,15 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     else:
                         reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
                         if reviewer is not None:
->>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
                             myReviews.append(
                                 SPAN(
                                     I(
                                         current.T("Reviewed by")
                                         + " "
-<<<<<<< HEAD
-                                        + current.T("anonymous reviewer")
-                                        + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
-=======
                                         + (reviewer.first_name or "")
                                         + " "
                                         + (reviewer.last_name or "")
                                         + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
->>>>>>> b2133f2 (add DEFAULT_DATE_FORMAT to format date differently for RR and other PCIs)
                                     )
                                 )
                             )
@@ -661,7 +651,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                                             + (reviewer.first_name or "")
                                             + " "
                                             + (reviewer.last_name or "")
-                                            + (", " + review.last_change.strftime("%Y-%m-%d %H:%M") if review.last_change else "")
+                                            + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                                         )
                                     )
                                 )
