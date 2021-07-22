@@ -39,7 +39,10 @@ def user_public_page():
                 addr = LI(I((user.laboratory or ""), ", ", (user.institution or ""), ", ", (user.city or ""), ", ", (user.country or ""),))
                 uthema = user.thematics
                 if not isinstance(uthema, list):
-                    uthema = [uthema]
+                    if uthema is None:
+                        uthema = []
+                    else:
+                        uthema = [uthema]
                 thema = LI(", ".join(uthema))
                 mail = LI(A(" [%s]" % user.email, _href="mailto:%s" % user.email) if withMail else "")
 
