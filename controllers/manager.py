@@ -353,7 +353,7 @@ def manage_recommendations():
     def getReviewers(row):
         reviews = db(db.t_reviews.recommendation_id==row.id).select()
         return ", ".join([re.sub(r'<span><span>([^<]+)</span>.*', r'\1',
-                            review.reviewer_details) for review in reviews])
+                            (review.reviewer_details or '')) for review in reviews])
 
     if not (art.already_published):
         links += [
