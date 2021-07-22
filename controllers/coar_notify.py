@@ -55,6 +55,7 @@ def inbox():
                 body=request.body,
                 body_format=_rdflib_parser_media_types[content_type],
                 direction="Inbound",
+                base=coar_notifier.base_url + 'coar_notify/inbox/',
             )
         except COARNotifyException as e:
             raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value, body=e.message) from e
