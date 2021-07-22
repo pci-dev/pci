@@ -220,7 +220,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             acceptedReviewCount = 0
             completedReviewCount = 0
 
-            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Cancelled")).select(
                 orderby=db.t_reviews.id
             )
 

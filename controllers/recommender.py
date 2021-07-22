@@ -1170,7 +1170,7 @@ def reviewers():
                         I("(" + (con.review_state or "") + ")"),
                     )
                 )
-        excludeList = ",".join(map(str, reviewersIds))
+        excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
             myContents = DIV(H3(T("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
         else:
@@ -2103,7 +2103,9 @@ def review_emails():
 
     reviewId = request.vars["reviewId"]
     review = db.t_reviews[reviewId]
-    reviewer = db.auth_user[review.reviewer_id]
+    if not review:
+        redirect(URL(c="recommender", f="my_recommendations"))
+
     recommendation = db.t_recommendations[review.recommendation_id]
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
@@ -2162,8 +2164,10 @@ def review_emails():
 
     myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
+    reviewer = db.auth_user[review.reviewer_id]
+    reviewerEmail = reviewer.email if reviewer else None
     grid = SQLFORM.grid(
-        ((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.recommendation_id == recommendation.id)),
+        ((db.mail_queue.dest_mail_address == reviewerEmail) & (db.mail_queue.recommendation_id == recommendation.id)),
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
