@@ -1,3 +1,5 @@
+function init_article_title_tinymce_editor() {
+
 const ids_array_inline = ["#t_articles_title"];
 
 for (const id_textarea of ids_array_inline) {
@@ -67,4 +69,6 @@ for (const id_textarea of ids_array_inline) {
 
     tinymce.init(tinymce_options);
   }
+}
+
 }
