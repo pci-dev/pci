@@ -76,7 +76,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     componentVars = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
-        articleTitle=WIKI(article.title or "", safe_mode=False),
+        articleTitle=article.title,
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
         articleAuthor=authors,
@@ -109,7 +109,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
         firstDate = article.upload_timestamp.strftime("%Y-%m-%d")
         lastDate = article.last_status_change.strftime("%Y-%m-%d")
-        title = WIKI(article.title or "", safe_mode=False)
+        title = article.title
         if article.anonymous_submission:
             authors = "[anonymous submission]"
         else:
@@ -192,7 +192,7 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
             ("articleSource", I(article.article_source or "")),
             ("articleImg", article_img),
-            ("articleTitle", WIKI(article.title or "", safe_mode=False)),
+            ("articleTitle", article.title or ""),
             ("articleAuthor", article.authors or ""),
             ("articleAbstract", WIKI(article.abstract or "", safe_mode=False)),
             ("articleDoi", doi_text),

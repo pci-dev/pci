@@ -159,7 +159,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
 ######################################################################################################################################################################
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
-    desc = "A recommendation of: " + (art.authors or "") + " " + (WIKI(art.title or "", safe_mode=False)) + " " + (art.doi or "")
+    desc = "A recommendation of: " + (art.authors or "") + " " + (art.title or "") + " " + (art.doi or "")
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
