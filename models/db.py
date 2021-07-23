@@ -587,7 +587,7 @@ db.define_table(
     Field("record_url_version", type="string", label=T("Version of record URL (if different from above; e.g., if the VOR file is difficult to read but it is the version-tracked document showing track changes, or if the DOI refers to a whole repository rather than the file in it that is being submitted)")),
     Field("record_id_version", type="string", label=T("Version of record unique identifier (e.g., GitHub commit identifier)")),
 
-    Field("scheduled_submission_date", type="date", label=T("Scheduled submission date")),
+    Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
@@ -1167,6 +1167,7 @@ db.define_table(
                 " than this date to preserve the timeline of scheduled review, and (2) if they submit earlier then this date the manuscript will not be reviewed earlier than scheduled. This deadline, once selected, cannot be extended and if the authors fail to submit by the deadline, the scheduled review will be cancelled."
             ),
         ),
+        requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')),
     ),
     Field(
         "q11",
@@ -1361,6 +1362,7 @@ db.define_table(
         label=T(
             "23. Please enter the planned start date for the research (e.g. to commence data collection) and indicate whether this start date is flexible. If the date is not flexible, please explain the reasons for the lack of flexibility. If authors have an inflexible data collection start date and have not received in principle acceptance (IPA) before this date, they may begin collecting data but must adjust the bias-control level accordingly (e.g., if the initial submission was Level 6, it would then drop to Level 3, 2, or 1). There are several points to consider when dropping to a lower bias-control level. First, there is a greater risk of Stage 1 rejection if concerns with the study procedures raised in the Stage 1 review process can no longer be addressed due to data collection commencing and crucial parts of the methodology being immutable from that point forward. Second, the number of PCI RR-friendly journals that will automatically accept the Stage 2 RR may be reduced because adopting journals can set a minimum bias-control level that exceeds the requirements of PCI RR (for example, the submission would become ineligible for automatic acceptance in a PCI RR-friendly journal that sets a minimum requirement of Level 4 or higher). Third, as explained in the table, reducing the bias-control level increases the stringency of steps required to minimise bias and increase rigour (e.g., through the adoption of a more conservative statistical threshold, or blinded analyst, etc). Finally, it is essential that, despite the drop in bias-control level, the manuscript remains at Level 1 or higher: if authors begin to discover the conclusions (or likely conclusions) of the research prior to IPA then they would risk dropping to Level 0 and the manuscript would no longer be eligible for consideration at PCI RR."
         ),
+        requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')),
     ),
     Field(
         "q24_1",
