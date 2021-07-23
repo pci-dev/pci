@@ -188,6 +188,9 @@ ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS website VARCHAR(1024);
 --     FROM public.mail_templates AS t
 --     WHERE t.hashtag = '#ManagersArticleResubmited';
 
+-- 05/07/2021
+ALTER TABLE public.help_texts_3 ALTER COLUMN id SET DEFAULT nextval('public.help_texts_id_seq');
+
 -- 14/07/2021
 ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS quick_decline_key character varying(512);
 ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS reviewer_details character varying(512);
