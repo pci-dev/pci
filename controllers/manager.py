@@ -801,7 +801,7 @@ def edit_report_survey():
         db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
         db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
         db.t_report_survey.q23.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q24.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24.requires = IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')
         db.t_report_survey.q24_1.requires = IS_NOT_EMPTY()
         
         fields = [
