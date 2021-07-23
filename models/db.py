@@ -351,7 +351,7 @@ auth.settings.extra_fields["auth_user"] = [
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
     Field("cv", type="text", length=2097152, label=T("Educational and work background")),
-    Field("website", type="string", length=1024, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
+    Field("website", type="string", length=4096, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
     Field(
         "alerts",
         type="string",

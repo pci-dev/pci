@@ -194,3 +194,6 @@ ALTER TABLE public.help_texts_3 ALTER COLUMN id SET DEFAULT nextval('public.help
 -- 14/07/2021
 ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS quick_decline_key character varying(512);
 ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS reviewer_details character varying(512);
+
+-- 23/07/2021
+ALTER TABLE public.auth_user ALTER COLUMN website TYPE varchar(4096);
