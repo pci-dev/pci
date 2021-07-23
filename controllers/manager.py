@@ -353,7 +353,12 @@ def manage_recommendations():
     def getReviewers(row):
         reviews = db(db.t_reviews.recommendation_id==row.id).select()
         return ", ".join([re.sub(r'<span><span>([^<]+)</span>.*', r'\1',
-                            review.reviewer_details) for review in reviews])
+                            getReviewerDetails(review)) for review in reviews])
+
+    def getReviewerDetails(review):
+        return review.reviewer_details or (
+                str(common_small_html.mkUserWithMail(auth, db, review.reviewer_id))
+                    .replace("<span>?</span>", "?"))
 
     if not (art.already_published):
         links += [
