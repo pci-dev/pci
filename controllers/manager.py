@@ -780,8 +780,8 @@ def edit_report_survey():
                 "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
             )
         )
-        db.t_report_survey.q8.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q9.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
+        db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
         db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
         db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
         db.t_report_survey.q13.requires = IS_IN_SET(
@@ -792,17 +792,17 @@ def edit_report_survey():
             )
         )
         # db.t_report_survey.q14.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q15.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q15.requires = [IS_NOT_EMPTY(), IS_LENGTH(2000, 0)]
         db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
-        db.t_report_survey.q17.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q17.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
         # db.t_report_survey.q18.requires = IS_NOT_EMPTY()
         # db.t_report_survey.q19.requires = IS_NOT_EMPTY()
         db.t_report_survey.q20.requires = IS_IN_SET(("YES - please alert PCI RR-interested journals in the event of IPA, as described above", "NO",))
         db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
         db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
-        db.t_report_survey.q23.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q23.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
         db.t_report_survey.q24.requires = IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')
-        db.t_report_survey.q24_1.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q24_1.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
         
         fields = [
             "q1",
@@ -870,7 +870,7 @@ def edit_report_survey():
             )
         )
         # db.t_report_survey.q29.requires = IS_NOT_EMPTY()
-        db.t_report_survey.q30.requires = IS_NOT_EMPTY()
+        db.t_report_survey.q30.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
         db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
 
         fields = [

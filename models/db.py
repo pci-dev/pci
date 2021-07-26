@@ -583,9 +583,9 @@ db.define_table(
     # PCI RR
     Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_EMPTY_OR(IS_IN_SET(("STAGE 1", "STAGE 2")))),
     Field("art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("Related stage 1 report")),
-    Field("sub_thematics", type="string", label=T("Sub-field")),
-    Field("record_url_version", type="string", label=T("Version of record URL (if different from above; e.g., if the VOR file is difficult to read but it is the version-tracked document showing track changes, or if the DOI refers to a whole repository rather than the file in it that is being submitted)")),
-    Field("record_id_version", type="string", label=T("Version of record unique identifier (e.g., GitHub commit identifier)")),
+    Field("sub_thematics", requires=IS_EMPTY_OR(IS_LENGTH(512, 0)),length=512, type="string", label=T("Sub-field")),
+    Field("record_url_version", requires=IS_EMPTY_OR(IS_LENGTH(512, 0)),length=512, type="string", label=T("Version of record URL (if different from above; e.g., if the VOR file is difficult to read but it is the version-tracked document showing track changes, or if the DOI refers to a whole repository rather than the file in it that is being submitted)")),
+    Field("record_id_version", requires=IS_EMPTY_OR(IS_LENGTH(512, 0)),length=512, type="string", label=T("Version of record unique identifier (e.g., GitHub commit identifier)")),
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
@@ -1138,18 +1138,20 @@ db.define_table(
     Field(
         "q8",
         type="string",
-        length=2000,
+        length=1024,
         label=T(
             "7. Suggested reviewers. Suggest up to 5 reviewers that you recommend. In making these suggestions, the authors confirm that none of the authors have collaborated, published, or held joint research funding with any of these potential reviewers in the last 5 years."
         ),
+        requires=IS_EMPTY_OR(IS_LENGTH(1024), 0)
     ),
     Field(
         "q9",
         type="string",
-        length=2000,
+        length=1024,
         label=T(
             "8. Opposed reviewers. Choose up to 5 reviewers that you oppose, including the reasons for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
         ),
+        requires=IS_EMPTY_OR(IS_LENGTH(1024), 0)
     ),
     Field(
         "q10",
