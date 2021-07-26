@@ -196,7 +196,7 @@ def decline_review(): # no auth required
     if review is None:
         message = "Review '{}' not found".format(reviewId)
     elif review["review_state"] in ["Declined", "Review completed", "Cancelled"]:
-        message = "Review '{}' can no longer be declined".format(reviewId)
+        message = T("You have already declined this invitation to review")
     elif review.quick_decline_key != quickDeclineKey:
         message = "Incorrect decline key: '{}'".format(quickDeclineKey)
     else:
