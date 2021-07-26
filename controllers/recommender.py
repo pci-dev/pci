@@ -1155,7 +1155,7 @@ def reviewers():
         selfFlagCancelled = False
         for con in reviewersListSel:
             if con.review_state is None:  # delete this unfinished review declaration
-                db(db.t_reviews.id == con.t_reviews.id).delete()
+                db(db.t_reviews.id == con.id).delete()
             else:
                 reviewer_id = con.reviewer_id
                 if recomm.recommender_id == reviewer_id:
