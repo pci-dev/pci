@@ -187,6 +187,11 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
 
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
+    
+    if article.anonymous_submission and article.status is not "Recommended":
+        authors = "[anonymous submission]"
+    else:
+        authors = article.authors
 
     articleContent = dict()
     articleContent.update(
@@ -195,7 +200,7 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
             ("articleSource", I(article.article_source or "")),
             ("articleImg", article_img),
             ("articleTitle", article.title or ""),
-            ("articleAuthor", article.authors or ""),
+            ("articleAuthor", authors or ""),
             ("articleAbstract", WIKI(article.abstract or "", safe_mode=False)),
             ("articleDoi", doi_text),
             ("article_altmetric", article_altmetric),
