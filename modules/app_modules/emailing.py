@@ -2041,7 +2041,11 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
 
             mail_vars["articleDoi"] = article.doi
             mail_vars["articleTitle"] = article.title
-            mail_vars["articleAuthors"] = article.authors
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = current.T("[undisclosed]")
+            else:
+                mail_vars["articleAuthors"] = article.authors
+                
             mail_vars["linkTarget"] = URL(
                 c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
@@ -2061,9 +2065,14 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
         mail_vars["destAddress"] = db.auth_user[suggRecommId]["email"]
 
+        if article.anonymous_submission:
+            mail_vars["articleAuthors"] = current.T("[undisclosed]")
+        else:
+            mail_vars["articleAuthors"] = article.authors
+
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = article.title
-        mail_vars["articleAuthors"] = article.authors
+
         mail_vars["linkTarget"] = URL(
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
         )
@@ -2128,10 +2137,14 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     if review and recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
+        
+        if article.anonymous_submission:
+            mail_vars["articleAuthors"] = current.T("[undisclosed]")
+        else:
+            mail_vars["articleAuthors"] = article.authors
 
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = article.title
-        mail_vars["articleAuthors"] = article.authors
         mail_vars["myReviewsLink"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         
@@ -2165,10 +2178,14 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
     if review and recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
+        
+        if article.anonymous_submission:
+            mail_vars["articleAuthors"] = current.T("[undisclosed]")
+        else:
+            mail_vars["articleAuthors"] = article.authors
 
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = article.title
-        mail_vars["articleAuthors"] = article.authors
         mail_vars["myReviewsLink"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
@@ -2206,9 +2223,13 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = current.T("[undisclosed]")
+            else:
+                mail_vars["articleAuthors"] = article.authors
+
             mail_vars["articleDoi"] = article.doi
             mail_vars["articleTitle"] = article.title
-            mail_vars["articleAuthors"] = article.authors
             mail_vars["myReviewsLink"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["reviewDueDate"] = str((datetime.datetime.now() + datetime.timedelta(days=reviewLimitDays)).date())
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
@@ -2234,9 +2255,13 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
+            
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = current.T("[undisclosed]")
+            else:
+                mail_vars["articleAuthors"] = article.authors
 
             mail_vars["articleTitle"] = article.title
-            mail_vars["articleAuthors"] = article.authors
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
@@ -2261,8 +2286,12 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = current.T("[undisclosed]")
+            else:
+                mail_vars["articleAuthors"] = article.authors
+
             mail_vars["articleTitle"] = article.title
-            mail_vars["articleAuthors"] = article.authors
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
@@ -2302,8 +2331,8 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
-        mail_vars["articleTitle"] = article.title
         mail_vars["articleAuthors"] = article.authors
+        mail_vars["articleTitle"] = article.title
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
         mail_vars["reviewLimitText"] = reviewLimitText
