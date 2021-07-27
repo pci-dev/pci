@@ -1053,7 +1053,7 @@ db.define_table(
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field(
         "q1",
-        type="string",
+        type="string", length=1024,
         label=T("1. Does the submission include a complete Stage 1 report for regular review or a Stage 1 RR snapshot for scheduled review?"),
         requires=IS_EMPTY_OR(IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))),
     ),
