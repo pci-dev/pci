@@ -840,6 +840,7 @@ def edit_report_survey():
             "q24",
             "q24_1",
             "q24_1_details",
+            "q32",
         ]
 
     else:  # STAGE 2 survey
@@ -891,6 +892,7 @@ def edit_report_survey():
             "q29",
             "q30",
             "q31",
+            "q32",
         ]
 
     form = SQLFORM(

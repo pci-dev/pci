@@ -1523,6 +1523,14 @@ db.define_table(
             )
         ),
     ),
+    Field(
+        "q32",
+        type="boolean",
+        label=T(
+            "I agree to make my submission immediately viewable by PCI RR users in the \"Reports in need of reviewers\" section of the PCI RR website"
+        ),
+        default=False,
+    ),
     migrate=False,
 )
 
