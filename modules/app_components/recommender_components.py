@@ -87,6 +87,7 @@ def getReviewsSubTable(auth, db, response, recomm):
         writeDecisionLink=writeDecisionLink,
         showSearchingForReviewersButton=showSearchingForReviewersButton,
         showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
+        isArticleSubmitter=(art.user_id == auth.user_id),
     )
 
     return XML(response.render("components/review_sub_table.html", componentVars))

@@ -8,48 +8,63 @@
   </div>
 
   {{if len(reviewList) > 0:}}
-    <table>
+    {{if isArticleSubmitter:}}
+      <p>
+        {{=T("Reviewers hidden cause you are the submitter of this preprint")}}
+      </p> 
+    {{else:}}
+      <table>
 
-      <thead>
-        <td></td>
-        <td><b>Reviewer</b></td>
-        <td><b>Status</b></td>
-        <td><b>Last change</b></td>
-      </thead>
+        <thead>
+          <td></td>
+          <td><b>Reviewer</b></td>
+          <td><b>Status</b></td>
+          <td><b>Last change</b></td>
+        </thead>
 
-      <tbody>
-        {{for review in reviewList:}}
-          <tr>
-            <td>
-              <!-- action button dropdown -->
-              <div class="dropdown">
-                <a style="height: 22px; padding: 0 10px; margin-left: 0;" class="btn btn-default dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Actions
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                  {{for action in review['actions']:}}
-                    <li>
-                      <a class="dropdown-item" href="{{=action['link']}}">{{=action['text']}}</a>
-                    </li>
-                  {{pass}}
-                </ul>
-              </div>
-            </td>
-            <td>{{=review['reviewer']}}</td>
-            <td>{{=review['status']}}</td>
-            <td>{{=review['lastChange']}}</td>
-          </tr>
-        {{pass}}
-      </tbody>
-    </table>
+        <tbody>
+          {{for review in reviewList:}}
+            <tr>
+              <td>
+                <!-- action button dropdown -->
+                <div class="dropdown">
+                  <a style="height: 22px; padding: 0 10px; margin-left: 0;" class="btn btn-default dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    {{for action in review['actions']:}}
+                      <li>
+                        <a class="dropdown-item" href="{{=action['link']}}">{{=action['text']}}</a>
+                      </li>
+                    {{pass}}
+                  </ul>
+                </div>
+              </td>
+              <td>{{=review['reviewer']}}</td>
+              <td>{{=review['status']}}</td>
+              <td>{{=review['lastChange']}}</td>
+            </tr>
+          {{pass}}
+        </tbody>
+      </table>
+    {{pass}}
+
   {{pass}}
 
   <div class="pci2-flex-row">
     <div class="pci2-align-start pci2-flex-column pci2-flex-grow">
       {{if inviteReviewerLink:}}
         <div>
-          <a  style="height: 22px; padding: 0 10px;" class="btn btn-success" href="{{=inviteReviewerLink}}">
+          <a
+            {{if isArticleSubmitter:}} 
+              disabled 
+            {{else:}}
+              href="{{=inviteReviewerLink}}"
+            {{pass}}
+            style="height: 22px; padding: 0 10px;" 
+            class="btn btn-success" 
+          >
             <i  class="glyphicon glyphicon-plus" style="margin-right: 5px;"></i>
             {{=T("Invite a reviewer")}}
           </a>
@@ -58,7 +73,15 @@
       {{if showSearchingForReviewersButton:}}
         <div>
 
-          <a class="buttontext btn btn-info" style="height: 22px; padding: 0 10px;" href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+          <a 
+            {{if isArticleSubmitter:}} 
+              disabled 
+            {{else:}}
+              href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}"
+            {{pass}}
+            class="buttontext btn btn-info" 
+            style="height: 22px; padding: 0 10px;" 
+          >
             <i  class="glyphicon glyphicon-inbox" style="margin-right: 5px;"></i>
             {{=T('Put preprint in the "In need of reviewers" list')}}
           </a>
@@ -67,8 +90,15 @@
 
       {{if showRemoveSearchingForReviewersButton:}}
         <div>
-
-          <a class="buttontext btn btn-warning" style="height: 22px; padding: 0 10px;" href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+          <a 
+            {{if isArticleSubmitter:}} 
+              disabled 
+            {{else:}}
+              href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}"
+            {{pass}}
+            class="buttontext btn btn-warning" 
+            style="height: 22px; padding: 0 10px;" 
+          >
             <i  class="glyphicon glyphicon-inbox" style="margin-right: 5px;"></i>
             {{=T('Remove preprint from the "In need of reviewers" list ')}}
           </a>
@@ -81,7 +111,15 @@
       <div class="pci2-justify-end pci2-flex-grow">
 
         {{if writeDecisionLink:}}
-          <a style="height: 22px; padding: 0 15px;"  class="btn btn-success" href="{{=writeDecisionLink}}">
+          <a 
+            {{if isArticleSubmitter:}} 
+              disabled 
+            {{else:}}
+              href="{{writeDecisionLink}}"
+            {{pass}}
+            style="height: 22px; padding: 0 15px;" 
+            class="btn btn-success" 
+          >
             <i class="glyphicon glyphicon-edit" style="margin-right: 5px;"></i>
             {{=T("Write or edit your decision / recommendation")}}
           </a>

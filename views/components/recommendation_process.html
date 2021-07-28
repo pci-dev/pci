@@ -154,19 +154,40 @@
   
   <div class="pci2-flex-row pci2-flex-center pci2-full-width" style="margin-top: 20px">
     {{if inviteReviewerLink:}}
-      <a class="buttontext btn btn-success"  href="{{=inviteReviewerLink}}">
+      <a
+        {{if isArticleSubmitter:}}
+          disabled
+        {{else:}}
+          href="{{=inviteReviewerLink}}"
+        {{pass}}
+        class="buttontext btn btn-success"  
+      >
         {{=T('Invite a reviewer')}}
       </a>
     {{pass}}
 
     {{if showSearchingForReviewersButton:}}
-      <a class="buttontext btn btn-default"  href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+      <a 
+        {{if isArticleSubmitter:}}
+          disabled
+        {{else:}}
+          href="{{=URL(c='recommender_actions', f='make_preprint_searching_for_reviewers', vars=dict(recommId=recommId))}}"
+        {{pass}}
+        class="buttontext btn btn-default"  
+      >
         {{=T('Put preprint in the "In need of reviewers" list')}}
       </a>
     {{pass}}
     
     {{if showRemoveSearchingForReviewersButton:}}
-      <a class="buttontext btn btn-warning"  href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}">
+      <a 
+        {{if isArticleSubmitter:}}
+          disabled
+        {{else:}}
+          href="{{=URL(c='recommender_actions', f='make_preprint_not_searching_for_reviewers', vars=dict(recommId=recommId))}}"
+        {{pass}}
+        class="buttontext btn btn-warning"  
+      >
         {{=T('Remove preprint from the "In need of reviewers" list ')}}
       </a>
     {{pass}}
