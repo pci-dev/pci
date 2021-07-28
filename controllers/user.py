@@ -741,6 +741,7 @@ def fill_report_survey():
             "q24",
             "q24_1",
             "q24_1_details",
+            "q32",
         ]
     else:  # STAGE 2 survey
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
@@ -791,6 +792,7 @@ def fill_report_survey():
             "q29",
             "q30",
             "q31",
+            "q32",
         ]
 
     form = SQLFORM(db.t_report_survey, fields=fields, keepvalues=True,)
@@ -944,6 +946,7 @@ def edit_report_survey():
             "q24",
             "q24_1",
             "q24_1_details",
+            "q32",
         ]
 
     else:  # STAGE 2 survey
@@ -995,6 +998,7 @@ def edit_report_survey():
             "q29",
             "q30",
             "q31",
+            "q32",
         ]
 
     form = SQLFORM(db.t_report_survey, survey.id, fields=fields, keepvalues=True,)
