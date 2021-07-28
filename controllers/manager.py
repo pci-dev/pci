@@ -715,7 +715,13 @@ def edit_article():
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
 
     if form.process().accepted:
-        response.flash = T("Article saved", lazy=False)
+        if form.vars.doi != art.doi:
+            lastRecomm = db((db.t_recommendations.article_id == art.id)).select().last()
+            if lastRecomm is not None:
+                lastRecomm.doi = form.vars.doi
+                lastRecomm.update_record()
+
+        session.flash = T("Article saved", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
