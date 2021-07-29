@@ -205,4 +205,4 @@ ALTER TABLE public.t_articles
   ALTER COLUMN record_id_version TYPE character varying(512);
 
 -- 28/07/2021
-ALTER TABLE public.t_report_survey ADD COLUMN q32 boolean;
+ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q32 boolean;
