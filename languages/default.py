@@ -64,6 +64,7 @@
     "A recommendation of ": "A recommendation of ",
     "A recommendation of the preprint ": "A recommendation of the preprint ",
     "A revision was requested to the authors.": "A revision was requested to the authors.",
+    "Are you sure you want to decline this invitation in the name of ":"Are you sure you want to decline this invitation in the name of ",
     "Are you sure you want to delete this object?": "Are you sure you want to delete this object?",
     "Article already peer-reviewed?": "Article already peer-reviewed?",
     "Article": "Article",
