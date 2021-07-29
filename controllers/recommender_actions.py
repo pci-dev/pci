@@ -288,7 +288,7 @@ def del_reviewer_with_confirmation():
         if reviewer is not None:
             content = DIV(
                 P(
-                    B(T("Are you sure to decline this review in the name of ")),
+                    B(T("Are you sure you want to decline this invitation in the name of ")),
                     B(reviewer.first_name),
                     " ",
                     B(reviewer.last_name),
