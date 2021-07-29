@@ -174,7 +174,7 @@ def decline_new_review():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="my_reviews"))
 
-    if rev["review_state"] in ["Declined", "Review completed", "Cancelled"]:
+    if rev["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
         recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
         session.flash = T("Review state has been changed")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
@@ -195,7 +195,7 @@ def decline_review(): # no auth required
 
     if review is None:
         message = "Review '{}' not found".format(reviewId)
-    elif review["review_state"] in ["Declined", "Review completed", "Cancelled"]:
+    elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
         message = T("You have already declined this invitation to review")
     elif review.quick_decline_key != quickDeclineKey:
         message = "Incorrect decline key: '{}'".format(quickDeclineKey)

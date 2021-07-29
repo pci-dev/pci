@@ -422,7 +422,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 if recommenderOwnReviewState.review_state == "Review completed":
                     recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
-        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
             orderby=db.t_reviews.id
         )
 

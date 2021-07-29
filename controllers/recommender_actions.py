@@ -270,6 +270,66 @@ def del_reviewer():
 
 
 ######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def del_reviewer_with_confirmation():
+    response.view = "default/myLayout.html"
+
+    reviewId = request.vars["reviewId"]
+    rediectUrl = request.vars["rediectUrl"]
+
+    if reviewId and rediectUrl: 
+        review = db(db.t_reviews.id == reviewId).select().last()
+        reviewer = db(db.auth_user.id == review.reviewer_id).select().last()
+        
+        if review.review_state != "Awaiting response":
+            redirect(request.env.http_referer)
+            session.flas(T("Unauthorized"), lazy=False)
+        # Show reviewer's cedentials
+        if reviewer is not None:
+            content = DIV(
+                P(
+                    B(T("Are you sure to decline this review in the name of ")),
+                    B(reviewer.first_name),
+                    " ",
+                    B(reviewer.last_name),
+                    " (",
+                    I(reviewer.email),
+                    ") ",
+                    B("?"),
+                    _style="text-align: center; font-size: 16px"
+                )
+            )
+        else: 
+            content = DIV(
+                P(
+                    B(T("Are you sure to decline this review of this ")),
+                    I(T("[unknown user] ?")),
+                    _style="text-align: center; font-size: 16px"
+                )
+            )
+
+        form = FORM.confirm(T('Decline this review'), {'Back': rediectUrl})
+        
+        if form.accepted:
+            if auth.has_membership(role="manager"):
+                if db((db.t_reviews.id == reviewId) & (db.t_recommendations.id == db.t_reviews.recommendation_id)).count() > 0:
+                    review.review_state = "Declined manually"
+                    review.update_record()
+            else:
+                if db((db.t_reviews.id == reviewId) & (db.t_recommendations.id == db.t_reviews.recommendation_id) & (db.t_recommendations.recommender_id == auth.user_id)).count() > 0:
+                    review.review_state = "Declined manually"
+                    review.update_record()
+
+            redirect(rediectUrl)
+
+    
+        return dict(content=content, form=DIV(form, _class="confirmation-form"))
+
+    redirect(request.env.http_referer)
+
+
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def process_opinion():
     if "recommender_opinion" in request.vars and "recommId" in request.vars:

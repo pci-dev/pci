@@ -821,7 +821,7 @@ db.define_table(
         type="string",
         length=50,
         label=T("Review status"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Review completed", "Cancelled"))),
+        requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Declined manually", "Review completed", "Cancelled"))),
         writable=False,
     ),
     Field("review", type="text", length=2097152, label=T("Review as text")),
@@ -908,6 +908,10 @@ def reviewDone(s, f):
     elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined":
         emailing.send_to_recommenders_review_declined(session, auth, db, o["id"])
         # delete reminder
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationNewUser", o["id"])
+        emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationRegisteredUser", o["id"])
+
+    elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined manually":
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationNewUser", o["id"])
         emailing.delete_reminder_for_reviewer(db, "#ReminderReviewerReviewInvitationRegisteredUser", o["id"])
 

@@ -10,7 +10,7 @@ from app_modules import common_small_html
 
 
 ######################################################################################################################################################################
-def getReviewsSubTable(auth, db, response, recomm):
+def getReviewsSubTable(auth, db, response, request, recomm):
     art = db.t_articles[recomm.article_id]
     recomm_round = db((db.t_recommendations.article_id == recomm.article_id) & (db.t_recommendations.id <= recomm.id)).count()
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
@@ -52,6 +52,17 @@ def getReviewsSubTable(auth, db, response, recomm):
                     reviewVars["actions"].append(
                         dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                     )
+            if review.review_state == "Awaiting response" and art.status != "Recommended":
+                reviewVars["actions"].append(
+                    dict(
+                        text=current.T("Decline invitation manually"), 
+                        link=URL(c="recommender_actions", f="del_reviewer_with_confirmation", vars=dict(
+                            reviewId=review.id, 
+                            rediectUrl=URL(args=request.args, vars=request.get_vars)
+                        ))
+                    )
+                )
+
             reviewList.append(reviewVars)
             if review.review_state == "Review completed":
                 nbCompleted += 1
