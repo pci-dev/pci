@@ -513,7 +513,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             # Check for reviews
             existOngoingReview = False
             myReviews = DIV()
-            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
                 orderby=db.t_reviews.id
             )
             for review in reviews:

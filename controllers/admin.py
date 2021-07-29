@@ -414,7 +414,7 @@ def recap_reviews():
 		FROM t_reviews AS w
 		LEFT JOIN auth_user AS wu ON w.reviewer_id = wu.id
 		LEFT JOIN recomms0 ON w.recommendation_id = recomms0.recom_id
-		WHERE w.review_state NOT IN ('Awaiting response', 'Declined', 'Cancelled')
+		WHERE w.review_state NOT IN ('Awaiting response', 'Declined', 'Declined manually', 'Cancelled')
 		UNION ALL
 		SELECT article_id, recom_id AS recomm_id, recomm_round,
 			'decision'::varchar AS reviewer_num,

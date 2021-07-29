@@ -199,7 +199,7 @@ ALTER TABLE public.t_reviews ADD COLUMN IF NOT EXISTS reviewer_details character
 ALTER TABLE public.auth_user ALTER COLUMN website TYPE varchar(4096);
 
 -- 26/07/2021
-ALTER TABLE "public"."t_articles"
-  ALTER COLUMN "sub_thematics" TYPE character varying(512),
-  ALTER COLUMN "record_url_version" TYPE character varying(512),
-  ALTER COLUMN "record_id_version" TYPE character varying(512);
+ALTER TABLE public.t_articles
+  ALTER COLUMN sub_thematics TYPE character varying(512),
+  ALTER COLUMN record_url_version TYPE character varying(512),
+  ALTER COLUMN record_id_version TYPE character varying(512);

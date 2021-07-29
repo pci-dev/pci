@@ -71,3 +71,19 @@ input[name=alerts]+label {
 .checkbox label {
     font-weight: normal !important
 }
+
+/* confirmation form (page confirmation before item deletion) */
+.confirmation-form{
+    width: 100%;    
+}
+
+.confirmation-form form{
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+}
+
+
+.confirmation-form form input[type="submit"]{
+    background-color: #d9534f;
+}
