@@ -624,6 +624,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
             scheduledSubmissionActivated=scheduledSubmissionActivated,
             isScheduledSubmission=isScheduledSubmission,
+            isArticleSubmitter=(art.user_id == auth.user_id),
         )
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
 

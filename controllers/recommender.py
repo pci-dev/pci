@@ -1140,6 +1140,12 @@ def reviewers():
 
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
+
+    if recomm:
+        article= db.t_articles[recomm.article_id]
+        if article.user_id == auth.user_id:
+            session.flash = auth.not_authorized()
+            redirect(request.env.http_referer)
     if not recomm:
         return my_recommendations()
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
