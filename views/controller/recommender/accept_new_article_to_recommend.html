@@ -20,56 +20,115 @@
       <input value="{{=articleId}}" type="hidden" name="articleId" />
       <input value="true" type="hidden" name="ethics_approved" />
       
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="interesting" id="interesting" value="yes"> 
-          <b>{{=T("I find the preprint interesting")}}</b>
-          <span>{{=T(" and therefore worth sending out for peer-review.")}}</span>
-        </label>
-      </div>
+      {{if pciRRactivated:}}
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="interesting" id="interesting" value="yes"> 
+            <b>{{=T("I agree to consider this submission for in-depth peer review.")}}</b>
+          </label>
+        </div>
 
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="invitations" id="invitations" value="yes"> 
-          <b>{{=T("I agree to send invitations to 5-10 potential reviewers within the next 24 hours")}}</b>
-          <span>{{=T(" and then to send reminders and/or new invitations until I find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.")}}</span>
-        </label>
-      </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="invitations" id="invitations" value="yes"> 
+            <b>
+              {{=T("If I judge the submission to be ")}}
+              <a href="{{=URL(c='help', f='guide_for_recommenders', anchor="#h_1245019342271613643227798")}}">{{=T(" review-ready")}}</a>
+              {{=T(" then I agree to send invitations to 5-10 potential reviewers within the next 24 hours")}}
+            </b>
+            <span>{{=T(" and then to send reminders and/or new invitations until I find at least two (and ideally three) reviewers willing to review the submission.")}}</span>
+          </label>
+        </div>
 
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="ten_days" id="ten_days" value="yes"> 
-          <b>{{=T("I agree to post my decision")}}</b>
-          <span>{{=T(" or to write my recommendation text ")}}</span>
-          <b>{{=T("within 10 days")}}</b>
-          <span>{{=T(" of receiving the reviews.")}}</span>
-        </label>
-      </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="ten_days" id="ten_days" value="yes"> 
+            <b>
+              {{=T("I agree to write")}}
+              <a href="{{=URL(c='help', f='guide_for_recommenders', anchor="#h_1245019342271613643227798")}}">{{=T(" a recommendation text")}}</a>
+            </b>
+            <span>{{=T(" if I decide to recommend this report for %s at the end of the evaluation process.") % appLongname}}</span>
+          </label>
+        </div>
 
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="recomm_text" id="recomm_text" value="yes"> 
-          <b>{{=T("I agree to write a recommendation text")}}</b>
-          <span>{{=T(" if I decide to recommend this preprint for %s at the end of the evaluation process.") % appLongname}}</span>
-        </label>
-      </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="recomm_text" id="recomm_text" value="yes"> 
+            <b>{{=T("I agree to post my decision")}}</b>
+            <span>{{=T(" or to write my recommendation text")}}</span>
+            <b>{{=T(" within 10 days")}}</b>
+            <span>{{=T(" of receiving a complete set of reviews.")}}</span>
+          </label>
+        </div>
 
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
-          <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the article: ")}}</b>
-          <span>{{=T("I should not handle articles written by close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation.")}}</span>
-          <a href="{{=URL(c='about', f='ethics')}}">{{=T("See the code of ethical conduct.")}}</a>
-        </label>
-      </div>
-            
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"  name="commitments" id="commitments" value="yes"> 
-          <i>{{=T("I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.") % appLongname}}</i>
-        </label>
-      </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
+            <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the report:")}}</b>
+            <span>{{=T(" I should not handle reports written by close colleagues, including people belonging to the same laboratory/unit/department in the last four years, people with whom I have published in the last four years, with whom I have received joint funding in the last four years, or with whom I am currently writing a manuscript or submitting a grant proposal.")}}</span>
+            <a href="{{=URL(c='about', f='ethics')}}">{{=T("See the code of ethical conduct.")}}</a>
+          </label>
+        </div>
 
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="commitments" id="commitments" value="yes"> 
+            <i>{{=T("I understand that if I do not meet these commitments, the managing board of %s reserves the right to reassign responsibility for the evaluation of this submission.") % appLongname}}</i>
+          </label>
+        </div>
+        
+      {{else:}}
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="interesting" id="interesting" value="yes"> 
+            <b>{{=T("I find the preprint interesting")}}</b>
+            <span>{{=T(" and therefore worth sending out for peer-review.")}}</span>
+          </label>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="invitations" id="invitations" value="yes"> 
+            <b>{{=T("I agree to send invitations to 5-10 potential reviewers within the next 24 hours")}}</b>
+            <span>{{=T(" and then to send reminders and/or new invitations until I find at least two reviewers willing to review the preprint. This process of finding reviews should take no more than a week.")}}</span>
+          </label>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="ten_days" id="ten_days" value="yes"> 
+            <b>{{=T("I agree to post my decision")}}</b>
+            <span>{{=T(" or to write my recommendation text ")}}</span>
+            <b>{{=T("within 10 days")}}</b>
+            <span>{{=T(" of receiving the reviews.")}}</span>
+          </label>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="recomm_text" id="recomm_text" value="yes"> 
+            <b>{{=T("I agree to write a recommendation text")}}</b>
+            <span>{{=T(" if I decide to recommend this preprint for %s at the end of the evaluation process.") % appLongname}}</span>
+          </label>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
+            <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the article: ")}}</b>
+            <span>{{=T("I should not handle articles written by close colleagues (people belonging to the same laboratory/unit/department in the last four years, people with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or written by family members, friends, or anyone for whom bias might affect the nature of my evaluation.")}}</span>
+            <a href="{{=URL(c='about', f='ethics')}}">{{=T("See the code of ethical conduct.")}}</a>
+          </label>
+        </div>
+        
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"  name="commitments" id="commitments" value="yes"> 
+            <i>{{=T("I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.") % appLongname}}</i>
+          </label>
+        </div>
+      {{pass}}
+        
       <div class="pci2-flex-center">
         <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I will handle the evaluation process')}}">          
       </div>
