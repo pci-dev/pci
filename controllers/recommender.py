@@ -603,7 +603,7 @@ def accept_new_article_to_recommend():
 
     response.view = "controller/recommender/accept_new_article_to_recommend.html"
     return dict(
-        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongname=appLongname, hiddenVarsForm=hiddenVarsForm, articleId=articleId
+        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongname=appLongname, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
     )
 
 
