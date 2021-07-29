@@ -161,35 +161,36 @@ def _AdminMenu():
     if ctr == "admin":
         isActive = True
 
-    return [
+    adminMenu = [
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Users & roles")), False, URL("admin", "list_users", user_signature=True)),
+        # (T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Synthesis of reviews")), False, URL("admin", "recap_reviews", user_signature=True)),
         (
-            SPAN(I(_class="glyphicon glyphicon-cog"), T("Admin"), _class="pci-admin"),
-            isActive,
-            "#",
-            [
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Users & roles")), False, URL("admin", "list_users", user_signature=True)),
-                # (T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Synthesis of reviews")), False, URL("admin", "recap_reviews", user_signature=True)),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")),
-                    False,
-                    URL("admin", "allRecommCitations", user_signature=True),
-                ),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True)),
-                LI(_class="divider"),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")),
-                    False,
-                    URL("custom_help_text", "mail_templates", user_signature=True),
-                ),
-                LI(_class="divider"),
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True)),
-            ],
+            SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")),
+            False,
+            URL("admin", "allRecommCitations", user_signature=True),
         ),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True))
+    ]
+
+    if pciRRactivated: 
+        adminMenu.append((
+                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue Search")),
+                False,
+                URL("admin", "mailing_queue", vars=dict(searchable=True), user_signature=True),
+        ))
+
+    adminMenu.append(LI(_class="divider"))
+    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)))
+    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)))
+    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)))
+    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True),))
+    adminMenu.append(LI(_class="divider"))
+    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True)))
+
+    return [
+        (SPAN(I(_class="glyphicon glyphicon-cog"), T("Admin"), _class="pci-admin"), isActive, "#", adminMenu),
     ]
 
 
@@ -461,9 +462,10 @@ def _AboutMenu():
         (T("About", lazy=False) + appName, False, URL("about", "about")),
     ]
 
-    if not pciRRactivated: aboutMenu += [
-        (T("PCI and journals", lazy=False), False, "https://peercommunityin.org/pci-and-journals/"),
-    ]
+    if not pciRRactivated:
+        aboutMenu += [
+            (T("PCI and journals", lazy=False), False, "https://peercommunityin.org/pci-and-journals/"),
+        ]
 
     if pciRRactivated:
         aboutMenu += [
@@ -473,7 +475,6 @@ def _AboutMenu():
             (T("List of PCI RR-interested Journals"), False, URL("about", "pci_rr_interested_journals")),
             (T("Apply to become a Journal Adopter"), False, URL("about", "become_journal_adopter")),
             (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
-            LI(_class="divider"),
         ]
 
     aboutMenu += [
@@ -521,7 +522,7 @@ def _HelpMenu():
             LI(_class="divider"),
         ]
     else:
-         helpMenu += [
+        helpMenu += [
             (T("How does it work?"), False, URL("help", "help_generic")),
             LI(_class="divider"),
             (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
@@ -532,7 +533,7 @@ def _HelpMenu():
             (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
             LI(_class="divider"),
         ]
-        
+
     helpMenu += [
         (T("How to ...?"), False, URL("help", "help_practical")),
         (T("FAQs", lazy=False), False, URL("help", "faq")),

@@ -575,6 +575,8 @@ def testRedir():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_queue():
     response.view = "default/myLayout.html"
+    
+    searchable = "searchable" in request.vars and request.vars["searchable"] == "True"
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
@@ -632,7 +634,7 @@ def mailing_queue():
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
         create=False,
-        searchable=False,
+        searchable=searchable,
         paginate=50,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
