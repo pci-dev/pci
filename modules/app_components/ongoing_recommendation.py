@@ -356,6 +356,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         isScheduledSubmission = True
 
     ###NOTE: here start recommendations display
+    amIRecommender = False
     iRecomm = 0
     roundNb = nbRecomms + 1
     for recomm in recomms:
@@ -365,6 +366,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         nbOnGoing = 0
         whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
+        # Am I a recommender?
+        if recomm.recommender_id == auth.user_id:
+            amIRecommender = True
+        # Am I a co recommender?
         amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
         # Am I a reviewer?
         amIReviewer = (
@@ -631,42 +636,48 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     # Manager button
     managerButton = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
-        if art.status == "Pending":
+        if amIRecommender or amICoRecommender:
             managerButton = DIV(
-                A(
-                    SPAN(current.T("Validate this submission"), _class="buttontext btn btn-success pci-manager"),
-                    _href=URL(c="manager_actions", f="do_validate_article", vars=dict(articleId=art.id), user_signature=True),
-                    _title=current.T("Click here to validate this request and start recommendation process"),
-                ),
-                _class="pci-EditButtons-centered",
+                B(current.T("Note: you also served as the Recommender for this submission, please ensure that another member of the Managing Board performs the validation")),
+                _class="pci2-flex-center"
             )
-        elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
-            managerButton = DIV(
-                A(
-                    SPAN(current.T("Validate this recommendation"), _class="buttontext btn btn-success pci-manager"),
-                    _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
-                    _title=current.T("Click here to validate recommendation of this article"),
-                ),
-                _class="pci-EditButtons-centered",
-            )
-        elif art.status == "Pre-revision":
-            managerButton = DIV(
-                A(
-                    SPAN(current.T("Validate this decision"), _class="buttontext btn btn-info pci-manager"),
-                    _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
-                    _title=current.T("Click here to validate revision of this article"),
-                ),
-                _class="pci-EditButtons-centered",
-            )
-        elif art.status == "Pre-rejected":
-            managerButton = DIV(
-                A(
-                    SPAN(current.T("Validate this rejection"), _class="buttontext btn btn-info pci-manager"),
-                    _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
-                    _title=current.T("Click here to validate the rejection of this article"),
-                ),
-                _class="pci-EditButtons-centered",
-            )
+        else:
+            if art.status == "Pending":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Validate this submission"), _class="buttontext btn btn-success pci-manager"),
+                        _href=URL(c="manager_actions", f="do_validate_article", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate this request and start recommendation process"),
+                    ),
+                    _class="pci-EditButtons-centered",
+                )
+            elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Validate this recommendation"), _class="buttontext btn btn-success pci-manager"),
+                        _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate recommendation of this article"),
+                    ),
+                    _class="pci-EditButtons-centered",
+                )
+            elif art.status == "Pre-revision":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Validate this decision"), _class="buttontext btn btn-info pci-manager"),
+                        _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate revision of this article"),
+                    ),
+                    _class="pci-EditButtons-centered",
+                )
+            elif art.status == "Pre-rejected":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Validate this rejection"), _class="buttontext btn btn-info pci-manager"),
+                        _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate the rejection of this article"),
+                    ),
+                    _class="pci-EditButtons-centered",
+                )
 
     return DIV(recommendationRounds, managerButton or "")
 
