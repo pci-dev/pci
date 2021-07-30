@@ -563,6 +563,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 # ... or a manager, unless submitter or reviewer
                 if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
                     hideOngoingReview = False
+                # ... but, if review was declined by recommender, hide it
+                if review.review_state == "Declined by recommender":
+                    hideOngoingReview = True
+
                 # print("hideOngoingReview=%s") % (hideOngoingReview)
 
                 if (
