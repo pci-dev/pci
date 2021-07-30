@@ -392,7 +392,8 @@ td .ellipsis-over-350 {
 #t_report_survey_q18__label,
 #t_report_survey_q19__label,
 #t_report_survey_q25__label,
-#t_report_survey_q29__label {
+#t_report_survey_q29__label,
+#t_report_survey_q32__label {
   font-weight: bold !important;
 }
 
