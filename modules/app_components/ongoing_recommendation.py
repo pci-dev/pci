@@ -356,7 +356,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         isScheduledSubmission = True
 
     ###NOTE: here start recommendations display
-    amIRecommender = False
+    amIinRecommenderList = False
+    amIinCoRecommenderList = False
     iRecomm = 0
     roundNb = nbRecomms + 1
     for recomm in recomms:
@@ -368,9 +369,11 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
         # Am I a recommender?
         if recomm.recommender_id == auth.user_id:
-            amIRecommender = True
+            amIinRecommenderList = True
         # Am I a co recommender?
         amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+        if amICoRecommender:
+            amIinCoRecommenderList = True
         # Am I a reviewer?
         amIReviewer = (
             db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
@@ -636,7 +639,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     # Manager button
     managerButton = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
-        if amIRecommender or amICoRecommender:
+        if amIinRecommenderList or amIinCoRecommenderList:
             managerButton = DIV(
                 B(current.T("Note: you also served as the Recommender for this submission, please ensure that another member of the Managing Board performs the validation")),
                 _class="pci2-flex-center"
