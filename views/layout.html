@@ -96,7 +96,22 @@
     {{pass}}
 
     <!-- Navbar ======================================= -->
-    {{include 'snippets/navbar.html'}}
+    <nav class="navbar">
+      <div class="collapse navbar-collapse navbar-ex1-collapse">
+        {{if response.menu:}}
+          {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
+        {{pass}}
+        {{if response.help_about_menu:}}
+          {{=MENU(response.help_about_menu, _class='nav navbar-nav bam', li_class='dropdown', ul_class='dropdown-menu')}}
+        {{pass}}
+      </div>
+  
+      <div class="main-logo">
+        <a href="{{=URL(c='default', f='index')}}">
+          <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
+        </a>
+      </div>
+    </nav>  
 
     <!-- Masthead ===================================== -->
     {{block header}}
