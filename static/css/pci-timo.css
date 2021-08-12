@@ -954,6 +954,14 @@
         padding-top: 8rem!important;
     }
 
+    .pci2-articles-list > .pci2-flex-center {
+        justify-content: left;
+    }
+
+    .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
+        flex-grow: 1;
+    }
+
     .pci2-articles-list .pci2-article-row .pci2-flex-column {
         flex-grow: 1;
         padding-left: 1rem;
