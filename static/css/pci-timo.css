@@ -1194,6 +1194,14 @@
         padding-right: .5rem;
     }
 
+    .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
+        position: relative;
+    }
+
+    .web2py_htmltable {
+        overflow-x: unset;
+    }
+
     .navbar-collapse.collapse {
         display: inline-block;
         width: 82%;
