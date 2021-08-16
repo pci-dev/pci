@@ -1146,7 +1146,7 @@ db.define_table(
         label=T(
             "7. Suggested reviewers. Suggest up to 5 reviewers that you recommend. In making these suggestions, the authors confirm that none of the authors have collaborated, published, or held joint research funding with any of these potential reviewers in the last 5 years."
         ),
-        requires=IS_EMPTY_OR(IS_LENGTH(1024), 0)
+        requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))
     ),
     Field(
         "q9",
@@ -1155,7 +1155,7 @@ db.define_table(
         label=T(
             "8. Opposed reviewers. Choose up to 5 reviewers that you oppose, including the reasons for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
         ),
-        requires=IS_EMPTY_OR(IS_LENGTH(1024), 0)
+        requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))
     ),
     Field(
         "q10",
