@@ -5,9 +5,13 @@ from gluon.html import *
 from gluon.template import render
 from gluon.tools import Mail
 from gluon.sqlhtml import *
+from gluon.contrib.appconfig import AppConfig
 
 from app_modules import common_small_html
 
+myconf = AppConfig(reload=True)
+
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def getReviewsSubTable(auth, db, response, request, recomm):
@@ -85,7 +89,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
         showRemoveSearchingForReviewersButton = art.is_searching_reviewers
 
         showDecisionLink = True
-        if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1:
+        if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1 or (pciRRactivated and art.art_stage_1_id is None):
             writeDecisionLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
 
     roundNumber = recomm_round
