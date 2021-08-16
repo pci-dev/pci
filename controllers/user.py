@@ -1565,11 +1565,10 @@ def edit_review():
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.anonymously.label = T("I wish to remain anonymous")
-        # db.t_reviews.anonymously.writable = review.reviewer_id != recomm.recommender_id
         db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
         form = SQLFORM(
-            db.t_reviews, record=review, fields=["anonymously", "review", "review_pdf", "no_conflict_of_interest"], showid=False, buttons=buttons, upload=URL("default", "download")
+            db.t_reviews, record=review, fields=["anonymously", "review", "review_pdf", "no_conflict_of_interest"], showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
 
         if form.process().accepted:
