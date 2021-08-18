@@ -171,23 +171,20 @@ def _AdminMenu():
             URL("admin", "allRecommCitations", user_signature=True),
         ),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True))
-    ]
-
-    if pciRRactivated: 
-        adminMenu.append((
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True)),
+        (
                 SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue Search")),
                 False,
                 URL("admin", "mailing_queue", vars=dict(searchable=True), user_signature=True),
-        ))
-
-    adminMenu.append(LI(_class="divider"))
-    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)))
-    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)))
-    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)))
-    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True),))
-    adminMenu.append(LI(_class="divider"))
-    adminMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True)))
+        ),    
+        LI(_class="divider"),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True)),
+        LI(_class="divider"),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True))
+    ]
 
     return [
         (SPAN(I(_class="glyphicon glyphicon-cog"), T("Admin"), _class="pci-admin"), isActive, "#", adminMenu),
