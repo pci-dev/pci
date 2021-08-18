@@ -1617,6 +1617,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
             if rev:
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
                 mail_vars["destAddress"] = rev["email"]
+
+                message = emailing_tools.replaceMailVars(message, mail_vars)
                 content = DIV(WIKI(message, safe_mode=False))
 
                 reviewer_invitation_buttons = None

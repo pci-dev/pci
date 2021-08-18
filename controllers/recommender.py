@@ -1790,14 +1790,7 @@ def contributions():
             exportclasses=expClass,
             fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
         )
-        # myAcceptBtn = DIV(
-        # A(SPAN(current.T('Write recommendation now'), _class='buttontext btn btn-info'),
-        # _href=URL(c='recommender', f='edit_recommendation', vars=dict(recommId=recommId))),
-        # A(SPAN(current.T('Later'), _class='buttontext btn btn-info'),
-        # _href=URL(c='recommender', f='my_recommendations')),
-        # _style='margin-top:16px; text-align:center;'
-        # )
-        # This script renames the "Add record" button
+        
         myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),

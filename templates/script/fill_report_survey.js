@@ -133,7 +133,7 @@ function toggleQ10onChange() {
   ) {
     if (Q10_div) {
       Q10_div.style.opacity = 1;
-      Q10_input.disabled = true;
+      Q10_input.disabled = false;
     }
   } else {
     if (Q10_div) {
