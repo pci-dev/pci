@@ -23,6 +23,7 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import emailing_tools
+from app_modules import emailing_vars
 
 # to change to common
 from controller_modules import admin_module
@@ -1396,6 +1397,12 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
+    
+    if pciRRactivated:
+        report_surey = db(db.t_report_survey.article_id == art.id).select().last()
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
+        programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
+        signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
@@ -1512,7 +1519,14 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
-
+    
+    # PCi RR specific mail vars based on report survey answers
+    if pciRRactivated:
+        report_surey = db(db.t_report_survey.article_id == art.id).select().last()
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
+        programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
+        signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+    
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
