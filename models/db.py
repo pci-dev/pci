@@ -661,6 +661,7 @@ def deltaStatus(s, f):
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 # delete reminders
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderReviewersNeeded", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionSoonDue", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionDue", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionOverDue", o["id"])
