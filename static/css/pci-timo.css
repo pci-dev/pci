@@ -469,7 +469,7 @@
 
     .pci2-article-image-div > img {
         min-width: 20rem;
-        max-width: 90%;
+        max-width: 20rem;
         max-height: unset;
         margin: auto;
     }
@@ -968,7 +968,7 @@
     }
 
     .pci2-articles-list .pci2-article-row .pci2-article-left-div {
-        max-width: 30rem;
+        max-width: 20rem;
     }
 
     .pci2-articles-list .pci2-flex-center {
@@ -1212,7 +1212,7 @@
 
     .navbar-collapse.collapse {
         display: inline-block;
-        width: 82%;
+        width: 100%;
         padding-right: 0;
     }
 
