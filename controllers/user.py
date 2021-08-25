@@ -806,8 +806,8 @@ def fill_report_survey():
         survey.update_record()
 
         doUpdateArticle = False
-        if form.vars.Q10 is not None:
-            art.scheduled_submission_date = form.vars.Q10
+        if form.vars.q10 is not None:
+            art.scheduled_submission_date = form.vars.q10
             art.doi = None
             doUpdateArticle = True
 
@@ -1005,8 +1005,8 @@ def edit_report_survey():
 
     if form.process().accepted:
         doUpdateArticle = False
-        if form.vars.Q10 is not None:
-            art.scheduled_submission_date = form.vars.Q10
+        if form.vars.q10 is not None:
+            art.scheduled_submission_date = form.vars.q10
             art.doi = None
             doUpdateArticle = True
 
