@@ -63,6 +63,9 @@ def getManagersMails(db):
     return result
 
 
+######################################################################################################################################################################
+# PCI RR vars
+######################################################################################################################################################################
 def getPCiRRinvitationTexts(report_surey):
     programmaticRR_invitation_text = ""
     signedreview_invitation_text = ""
@@ -86,6 +89,21 @@ def getPCiRRinvitationTexts(report_surey):
             )
 
     return dict(programmaticRR_invitation_text=programmaticRR_invitation_text, signedreview_invitation_text=signedreview_invitation_text,)
+
+
+######################################################################################################################################################################
+def getPCiRRScheduledSubmissionsVars(report_surey):
+    ScheduledSubmissionDate = ""
+    ScheduledSubmissionLatestReviewStartDate = ""
+    reviewDueDate = ""
+    snapshot_url = ""
+
+    return dict(
+        ScheduledSubmissionDate=ScheduledSubmissionDate,
+        ScheduledSubmissionLatestReviewStartDate=ScheduledSubmissionLatestReviewStartDate,
+        reviewDueDate=reviewDueDate,
+        snapshot_url=snapshot_url,
+    )
 
 
 # def getArticleVars(db, articleId=None, article=None, anonymousAuthors=False):

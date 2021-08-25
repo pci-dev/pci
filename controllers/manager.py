@@ -936,7 +936,7 @@ def edit_report_survey():
         doUpdateArticle = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
 
         if form.vars.temp_art_stage_1_id is not None:
