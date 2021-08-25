@@ -82,7 +82,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
 
     # Scheduled submission
     doi_text = common_small_html.mkDOI(article.doi)
-    if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
     componentVars = dict(
