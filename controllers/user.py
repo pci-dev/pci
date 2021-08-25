@@ -938,7 +938,10 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
-    if art.status not in ("Pending", "Awaiting revision"):
+    if art.status not in ("Pending", "Awaiting revision") and not scheduledSubmissionActivated:
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+    if art.status in ("Under consideration", "Awaiting consideration") and scheduledSubmissionActivated and art.scheduled_submission_date is None:
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     if art.user_id != auth.user_id:
