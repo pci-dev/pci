@@ -82,7 +82,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
 
     # Scheduled submission
     doi_text = common_small_html.mkDOI(article.doi)
-    if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
     componentVars = dict(
@@ -150,7 +150,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
         # Scheduled submission
         doi_text = common_small_html.mkDOI(article.doi)
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
             doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
         componentVars = dict(
@@ -206,7 +206,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
 
     # Scheduled submission
     doi_text = (common_small_html.mkDOI(article.doi)) if (article.doi) else SPAN("")
-    if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
     doi_button = A(SPAN(current.T("Read preprint in preprint server"), _class="btn btn-success"), _href=article.doi, _target="blank")

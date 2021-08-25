@@ -407,7 +407,7 @@ def delete_review_file():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     # Check if article is Scheduled submission without doi
-    elif scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+    elif scheduledSubmissionActivated and art.scheduled_submission_date is not None:
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
 

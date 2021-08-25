@@ -106,7 +106,7 @@ def recommendations():
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
             # Show form and get remaning days
-            if art.doi is None and art.scheduled_submission_date is not None:
+            if  art.scheduled_submission_date is not None:
                 isScheduledSubmission = True
                 scheduledSubmissionRemaningDays = (art.scheduled_submission_date - date.today()).days
 
@@ -1014,7 +1014,7 @@ def fill_report_survey():
         prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
             prepareReminders = True
 
@@ -1222,7 +1222,7 @@ def edit_report_survey():
         prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
             prepareReminders = True
 
@@ -1538,12 +1538,12 @@ def my_reviews():
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
                                     _class="btn btn-default disabled"
-                                    if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                    if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None))
                                     else "btn btn-default",
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
-                                if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                if ((scheduledSubmissionActivated) and (row.t_articles.scheduled_submission_date is not None))
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1748,7 +1748,7 @@ def edit_review():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     # Check if article is Scheduled submission without doi
-    elif scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+    elif scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:

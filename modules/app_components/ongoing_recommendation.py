@@ -373,7 +373,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         amIEngagedInStage2Process = True
 
     isScheduledSubmission = False
-    if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
         isScheduledSubmission = True
 
     isPendingRecommenderAcceptation = db(

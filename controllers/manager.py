@@ -1105,7 +1105,7 @@ def edit_report_survey():
         prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
             prepareReminders = True
 

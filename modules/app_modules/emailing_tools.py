@@ -95,7 +95,7 @@ def getCorrectHashtag(hashtag, article=None):
             hashtag += "Stage1"
 
     if scheduledSubmissionActivated and article is not None:
-        if article.doi is None and article.scheduled_submission_date is not None:
+        if  article.scheduled_submission_date is not None:
             hashtag += "ScheduledSubmission"
 
     return hashtag

@@ -499,7 +499,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
     if art:
         # Scheduled submission status (instead of DOI)
         doi_text = mkDOI(art.doi)
-        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         if urlArticle:
@@ -525,7 +525,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
     if art:
         # Scheduled submission status (instead of DOI)
         doi_text = mkDOI(art.doi)
-        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         if urlArticle:
@@ -557,7 +557,7 @@ def mkRepresentArticleLight(auth, db, article_id):
     if art:
         # Scheduled submission status (instead of DOI)
         doi_text = mkDOI(art.doi)
-        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         anchor = DIV(
@@ -583,7 +583,7 @@ def mkArticleCellNoRecomm(auth, db, art0):
 
         # Scheduled submission status (instead of DOI)
         doi_text = mkDOI(art.doi)
-        if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         anchor = DIV(
@@ -620,7 +620,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
             # else:
             # recommenders = mkUser(auth, db, recomm.recommender_id)
             doi_text = mkDOI(art.doi)
-            if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+            if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
                 doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
             anchor = DIV(

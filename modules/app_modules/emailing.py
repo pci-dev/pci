@@ -2409,7 +2409,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2442,7 +2442,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2473,7 +2473,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
