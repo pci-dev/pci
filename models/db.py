@@ -835,9 +835,6 @@ def newArticle(s, articleId):
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
 
-    if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
-        emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
-
     return None
 
 
