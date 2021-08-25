@@ -243,7 +243,7 @@
     "Edit reply": "Edit reply",
     "edit text": "edit text",
     "edit title": "edit title",
-    "Educational and work background": "Educational and work background",
+    "Educational and work background": "Areas of expertise",
     "Elapsed days": "Elapsed days",
     "Email and SMS": "Email and SMS",
     "e-mail": "e-mail",
