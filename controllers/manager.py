@@ -31,6 +31,7 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import emailing_tools
 from app_modules import common_small_html
+from app_modules import emailing
 
 from controller_modules import admin_module
 
@@ -934,10 +935,12 @@ def edit_report_survey():
 
     if form.process().accepted:
         doUpdateArticle = False
+        prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
             # art.doi = None
             doUpdateArticle = True
+            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -945,6 +948,10 @@ def edit_report_survey():
 
         if doUpdateArticle == True:
             art.update_record()
+        
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.create_reminder_for_submitter_shceduled_submission_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
