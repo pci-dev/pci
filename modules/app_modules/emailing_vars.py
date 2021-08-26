@@ -37,6 +37,8 @@ scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ######################################################################################################################################################################
 # Mailing parts
 ######################################################################################################################################################################
@@ -100,17 +102,26 @@ def getPCiRRinvitationTexts(report_surey):
 
 
 ######################################################################################################################################################################
-def getPCiRRScheduledSubmissionsVars(report_surey):
-    ScheduledSubmissionDate = ""
-    ScheduledSubmissionLatestReviewStartDate = ""
-    reviewDueDate = ""
-    snapshot_url = ""
+def getPCiRRScheduledSubmissionsVars(db, article):
+    scheduledSubmissionDate = ""
+    scheduledSubmissionLatestReviewStartDate = ""
+    scheduledReviewDueDate = ""
+    snapshotUrl = ""
+
+    if article.scheduled_submission_date is not None:
+        scheduledSubmissionDate = article.scheduled_submission_date.strftime(DEFAULT_DATE_FORMAT)
+        scheduledSubmissionLatestReviewStartDate = (article.scheduled_submission_date + timedelta(days=7)).strftime(DEFAULT_DATE_FORMAT)
+        scheduledReviewDueDate = (article.scheduled_submission_date + timedelta(days=21)).strftime(DEFAULT_DATE_FORMAT)
+
+    report_survey = db(db.t_report_survey.article_id == article.id).select().last()
+    if report_survey:
+        snapshotUrl = report_survey.q1_1
 
     return dict(
-        ScheduledSubmissionDate=ScheduledSubmissionDate,
-        ScheduledSubmissionLatestReviewStartDate=ScheduledSubmissionLatestReviewStartDate,
-        reviewDueDate=reviewDueDate,
-        snapshot_url=snapshot_url,
+        scheduledSubmissionDate=scheduledSubmissionDate,
+        scheduledSubmissionLatestReviewStartDate=scheduledSubmissionLatestReviewStartDate,
+        scheduledReviewDueDate=scheduledReviewDueDate,
+        snapshotUrl=snapshotUrl,
     )
 
 
@@ -135,4 +146,3 @@ def getPCiRRScheduledSubmissionsVars(report_surey):
 #         )
 
 #         return mail_vars
-

@@ -1593,7 +1593,13 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
+
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
@@ -1742,6 +1748,13 @@ def email_for_new_reviewer():
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
