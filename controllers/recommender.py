@@ -898,6 +898,8 @@ def show_report_survey():
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
             "q1",
+            "q1_1",
+            "q1_2",
             "q2",
             "q3",
             "q4",

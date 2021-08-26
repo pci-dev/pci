@@ -115,51 +115,66 @@ function toggleRadioElementDetailsOnChange(
   }
 }
 
-// Q10 showing depends on Q1 answer (hidden by default)
-function toggleQ10onChange() {
-  let Q10_div = document.querySelector("#t_report_survey_q10__row");
-  let Q10_input = document.querySelector("#t_report_survey_q10__row input");
-  let Q1_select = document.querySelector("#t_report_survey_q1");
+function disableQuestionOnChange(question_id, answer_id, awaited_answer) {
+  let toggledInputDiv = document.querySelector(question_id + "__row");
+  let toggledInput = document.querySelector(question_id + "__row input");
+  let answerSelect = document.querySelector(answer_id);
 
-  // text value for recommender
-  let Q1_value_for_recomm = document.querySelector(
-    "#t_report_survey_q1__row > .col-sm-9"
+  if (!toggledInput) {
+    toggledInput = document.querySelector(question_id + "__row select");
+  }
+  // text value for recommender (view mode =/= edit mode)
+  let answerValueTextMode = document.querySelector(
+    answer_id + "__row > .col-sm-9"
   );
 
   if (
-    (Q1_select && Q1_select.selectedIndex == 2) ||
-    (Q1_value_for_recomm &&
-      Q1_value_for_recomm.innerText == "RR SNAPSHOT FOR SCHEDULED REVIEW")
+    (answerSelect && answerSelect.selectedIndex == 2) ||
+    (answerValueTextMode && answerValueTextMode.innerText == awaited_answer)
   ) {
-    if (Q10_div) {
-      Q10_div.style.opacity = 1;
-      Q10_input.disabled = false;
+    if (toggledInputDiv) {
+      toggledInputDiv.style.opacity = 1;
+      toggledInput.disabled = false;
     }
   } else {
-    if (Q10_div) {
-      Q10_div.style.opacity = 0.5;
-      Q10_input.disabled = true;
+    if (toggledInputDiv) {
+      toggledInputDiv.style.opacity = 0.5;
+      toggledInput.disabled = true;
     }
   }
 
-  if (Q1_select) {
-    Q1_select.addEventListener("change", (event) => {
-      Q10_div = document.querySelector("#t_report_survey_q10__row");
+  if (answerSelect) {
+    answerSelect.addEventListener("change", (event) => {
+      toggledInputDiv = document.querySelector(question_id + "__row");
       if (event.target.selectedIndex == 2) {
-        if (Q10_div) {
-          Q10_div.style.opacity = 1;
-          Q10_input.disabled = false;
+        if (toggledInputDiv) {
+          toggledInputDiv.style.opacity = 1;
+          toggledInput.disabled = false;
         }
       } else {
-        if (Q10_div) {
-          Q10_div.style.opacity = 0.5;
-          Q10_input.disabled = true;
+        if (toggledInputDiv) {
+          toggledInputDiv.style.opacity = 0.5;
+          toggledInput.disabled = true;
         }
       }
     });
   }
 }
-toggleQ10onChange();
+disableQuestionOnChange(
+  "#t_report_survey_q10",
+  "#t_report_survey_q1",
+  "RR SNAPSHOT FOR SCHEDULED REVIEW"
+);
+disableQuestionOnChange(
+  "#t_report_survey_q1_1",
+  "#t_report_survey_q1",
+  "RR SNAPSHOT FOR SCHEDULED REVIEW"
+);
+disableQuestionOnChange(
+  "#t_report_survey_q1_2",
+  "#t_report_survey_q1",
+  "RR SNAPSHOT FOR SCHEDULED REVIEW"
+);
 
 // Set title for all options
 optionsItems = document.querySelectorAll("form select option");
