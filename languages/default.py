@@ -332,7 +332,7 @@
     "I don't wish to suggest recommenders now": "I don't wish to suggest recommenders now",
     "ID Unavailable": "ID Unavailable",
     " if I decide to recommend this preprint for %s at the end of the evaluation process.": " if I decide to recommend this preprint for %s at the end of the evaluation process.",
-    "I find the preprint interesting": "I have read the preprint and I find it interesting",
+    "I find the preprint interesting": "I have read the preprint. I find it interesting",
     "Images": "Images",
     "Import/Export": "Import/Export",
     "import": "import",
