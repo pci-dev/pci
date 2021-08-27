@@ -131,7 +131,7 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
     result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    # result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
