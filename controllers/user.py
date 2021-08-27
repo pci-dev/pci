@@ -113,24 +113,6 @@ def recommendations():
                 art.status = "Scheduled submission pending"
                 art.update_record()
 
-                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
-
-                # Send e-mails to reviewers and recommenders
-                emailing.send_to_reviewers_preprint_submitted(session, auth, db, articleId)
-                emailing.send_to_recommender_preprint_submitted(session, auth, db, articleId)
-
-                # Create reminder for reviewers
-                awaitingReviews = db(
-                    (db.t_reviews.recommendation_id == db.t_recommendations.id)
-                    & (db.t_recommendations.article_id == db.t_articles.id)
-                    & (db.t_articles.id == articleId)
-                    & (db.t_reviews.review_state == "Awaiting review")
-                ).select()
-                for review in awaitingReviews:
-                    emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
-                    emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
-                    emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
-
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
 
@@ -1358,7 +1340,7 @@ def my_reviews():
             & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
-            & (db.t_articles.status == "Under consideration")
+            & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
@@ -1432,12 +1414,12 @@ def my_reviews():
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
                                     _class="btn btn-default disabled"
-                                    if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None))
+                                    if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
                                     else "btn btn-default",
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload you're review as soon as the author submit his preprint."),)
-                                if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None))
+                                if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1642,7 +1624,7 @@ def edit_review():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     # Check if article is Scheduled submission without doi
-    elif scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
+    elif scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:
@@ -1847,7 +1829,7 @@ def delete_temp_user():
 def articles_awaiting_reviewers():
     response.view = "default/myLayout.html"
 
-    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")
+    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
 
     db.t_articles.auto_nb_recommendations.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)

@@ -1033,7 +1033,7 @@ def all_recommendations():
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status == "Under consideration")
+        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [

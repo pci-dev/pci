@@ -1686,7 +1686,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
             mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             # Insert mail in mail_queue :
-            hashtag_template = "#ReviewerPreprintSubmittedScheduledSubmission"
+            hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerFullPreprintSubmitted", article, focre_scheduled=True)
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
             # Create report for session flash alerts :
@@ -1715,7 +1715,36 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
             mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
 
         # Insert mail in mail_queue :
-        hashtag_template = "#RecommenderPreprintSubmittedScheduledSubmission"
+        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderFullPreprintSubmitted", article, focre_scheduled=True)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
+
+        # Create report for session flash alerts :
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+        # Build reports :
+        emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+def send_to_managers_preprint_submitted(session, auth, db, articleId):
+    article = db.t_articles[articleId]
+    finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
+
+    if article and finalRecomm:
+        # Get common variables :
+        mail_vars = emailing_tools.getMailCommonVars()
+        reports = []
+
+        # Set custom variables :
+        mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+        mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+        if pciRRactivated:
+            mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
+
+        # Insert mail in mail_queue :
+        hashtag_template = emailing_tools.getCorrectHashtag("#ManagersFullPreprintSubmitted", article, focre_scheduled=True)
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
         # Create report for session flash alerts :
@@ -2041,7 +2070,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             (
                 (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
                 & (db.t_articles.is_searching_reviewers == True)
-                & (db.t_articles.status == "Under consideration")
+                & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
@@ -2492,7 +2521,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2528,7 +2557,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2562,7 +2591,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
