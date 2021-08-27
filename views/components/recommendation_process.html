@@ -146,6 +146,21 @@
     </div>
   {{pass}}
 
+  {{if scheduledSubmissionEndingButton:}}
+  <div style="margin-top: 20px;">
+    <div class="pci2-recomm-text">
+      <div class="pci2-flex-column pci2-flex-center pci2-full-width">
+        <i>{{=T('The full manuscript has been recently submitted by the authors. By clicking this button, the invited reviewers will be warned and that they can upload their reviews.')}}</i>
+        <a class="buttontext btn btn-info" 
+            href="{{=URL(c='recommender_actions', f='do_end_scheduled_submission', vars=dict(articleId=articleId), user_signature=True)}}"
+          >
+            {{=T('Open submission to reviewers')}}
+          </a>
+      </div>
+    </div>
+  </div>
+  {{pass}}
+
   {{=recommendationAuthor}}
   <br/>
   {{=manuscriptDoi}}
