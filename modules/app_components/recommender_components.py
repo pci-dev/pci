@@ -54,7 +54,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
                         dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                     )   
 
-            if art.status == "Under consideration" and not (recomm.is_closed):
+            if art.status in ("Under consideration", "Scheduled submission under consideration") and not (recomm.is_closed):
                 if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review"):
                     reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
 
@@ -87,7 +87,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
     if (
         not (recomm.is_closed)
         and ((recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
-        and (art.status == "Under consideration")
+        and (art.status in ("Under consideration", "Scheduled submission under consideration"))
     ):
         inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
 
