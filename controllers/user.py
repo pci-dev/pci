@@ -115,6 +115,7 @@ def recommendations():
                 art.scheduled_submission_date = None
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
+                art.status = "Scheduled submission pending"
                 art.update_record()
 
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)

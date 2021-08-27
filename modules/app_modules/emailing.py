@@ -1680,13 +1680,14 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
     if article and finalRecomm:
 
         reviews = db((db.t_reviews.recommendation_id == finalRecomm.id) & (db.t_reviews.review_state == "Awaiting review")).select()
+        
+        mail_vars = emailing_tools.getMailCommonVars()
 
         if pciRRactivated:
             mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
 
         for review in reviews:
             # Get common variables :
-            mail_vars = emailing_tools.getMailCommonVars()
             reports = []
 
             # Set custom variables :

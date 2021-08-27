@@ -376,7 +376,7 @@ def _ManagerMenu():
 
     txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"))
 
-    nbPend = db(db.t_articles.status.belongs(("Pending", "Pre-recommended", "Pre-recommended-private", "Pre-revision", "Pre-rejected"))).count()
+    nbPend = db(db.t_articles.status.belongs(("Pending", "Pre-recommended", "Pre-recommended-private", "Pre-revision", "Pre-rejected", "Scheduled submission pending"))).count()
     txtPending = str(nbPend) + " " + (T("Pending validation(s)"))
     if nbPend > 0:
         txtPending = SPAN(menu_entry_item(txtPending, "glyphicon-time", _class="pci-enhancedMenuItem"), _class="pci-manager")
