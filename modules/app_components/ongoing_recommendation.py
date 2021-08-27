@@ -373,7 +373,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         amIEngagedInStage2Process = True
 
     isScheduledSubmission = False
-    if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
         isScheduledSubmission = True
 
     isPendingRecommenderAcceptation = db(
@@ -523,7 +523,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and (review.review_state == "Willing to review") and (art.status == "Under consideration"):
                 reviewVars.update([("showReviewRequest", True)])
 
-            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (printable):
+            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status in ("Under consideration", "Scheduled submission pending", "Scheduled submission under consideration")) and not (printable):
                 if review.review_state == "Awaiting response":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
@@ -622,7 +622,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             # recommender's button for recommendation edition
             editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
             editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
-            if pciRRactivated:
+            if pciRRactivated and not isScheduledSubmission:
                 pass
             elif (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
                 pass

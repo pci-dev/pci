@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from app_modules.helper import *
+from app_modules import emailing
 
 
 
@@ -532,7 +533,20 @@ def do_end_scheduled_submission():
         redirect(request.env.http_referer)
     if art.status == "Scheduled submission under consideration":
         art.status = "Under consideration"
-        
         art.update_record()
+
+        # Create reminder for reviewers
+        awaitingReviews = db(
+            (db.t_reviews.recommendation_id == db.t_recommendations.id)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_articles.id == articleId)
+            & (db.t_reviews.review_state == "Awaiting review")
+        ).select()
+        for review in awaitingReviews:
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
+
         session.flash = T("Submission now available to reviewers")
+
     redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))

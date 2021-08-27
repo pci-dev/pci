@@ -87,7 +87,7 @@ def getMailCommonVars():
 
 
 ######################################################################################################################################################################
-def getCorrectHashtag(hashtag, article=None):
+def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
     if pciRRactivated and article is not None:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
@@ -95,7 +95,7 @@ def getCorrectHashtag(hashtag, article=None):
             hashtag += "Stage1"
 
     if scheduledSubmissionActivated and article is not None:
-        if  article.scheduled_submission_date is not None:
+        if (article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission")) or (force_scheduled):
             hashtag += "ScheduledSubmission"
 
     return hashtag
