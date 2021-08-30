@@ -292,7 +292,6 @@ def change_mail_form_processing(form):
 @auth.requires_login()
 def change_email():
     response.view = "default/myLayoutBot.html"
-    print("init form")
     form = FORM(
         DIV(
             LABEL(T("Password"), _class="control-label col-sm-3"),
