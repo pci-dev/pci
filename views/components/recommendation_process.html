@@ -127,8 +127,12 @@
         {{if editRecommendationLink:}}
         <div class="pci2-flex-column pci2-flex-center pci2-full-width">
           
-            {{if editRecommendationDisabled:}}
+            {{if editRecommendationDisabled and not isScheduledSubmission:}}
               <i style="font-size: 12px;">{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}</i>
+            {{pass}}
+
+            {{if editRecommendationDisabled and isScheduledSubmission:}}
+              <i style="font-size: 12px;">{{=T('Write your decision or recommendation once the full manuscript is submitted by the author.')}}</i>
             {{pass}}
 
             <a class="buttontext btn btn-default {{if editRecommendationDisabled:}}disabled{{pass}}" 

@@ -27,6 +27,10 @@ def getReviewsSubTable(auth, db, response, request, recomm):
     if (nbUnfinishedReviews > 0) and (isRecommenderAlsoReviewer == 1):
         allowed_to_see_reviews = False
 
+    isScheduledSubmission = False
+    if pciRRactivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
+        isScheduledSubmission = True
+
     nbCompleted = 0
     nbOnGoing = 0
 
@@ -109,6 +113,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
         showSearchingForReviewersButton=showSearchingForReviewersButton,
         showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
         isArticleSubmitter=(art.user_id == auth.user_id),
+        isScheduledSubmission=isScheduledSubmission
     )
 
     return XML(response.render("components/review_sub_table.html", componentVars))

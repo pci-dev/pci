@@ -1033,7 +1033,7 @@ def all_recommendations():
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
@@ -1091,7 +1091,7 @@ def all_recommendations():
     db.t_articles.report_stage.readable = False
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
     )
 
     db.t_recommendations.doi.readable = False
