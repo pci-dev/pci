@@ -1340,7 +1340,7 @@ def my_reviews():
             & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
-            & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+            & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
@@ -1829,7 +1829,7 @@ def delete_temp_user():
 def articles_awaiting_reviewers():
     response.view = "default/myLayout.html"
 
-    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+    query = (db.t_articles.is_searching_reviewers == True) & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
 
     db.t_articles.auto_nb_recommendations.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)

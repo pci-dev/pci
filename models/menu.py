@@ -201,7 +201,7 @@ def _UserMenu():
         & (db.t_reviews.review_state == "Awaiting response")
         & (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == db.t_articles.id)
-        & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+        & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
     ).count()
 
     txtRevPend = menu_entry_item(T("%s Invitation(s) to review a preprint") % nRevPend, "glyphicon-envelope", _class="pci-recommender")
@@ -215,7 +215,7 @@ def _UserMenu():
         (txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)),
     ]
 
-    nWaitingForReviewer = db((db.t_articles.is_searching_reviewers == True) & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))).count()
+    nWaitingForReviewer = db((db.t_articles.is_searching_reviewers == True) & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))).count()
     txtWaitingForReviewer = menu_entry_item(T("%s Preprint(s) in need of reviewers") % nWaitingForReviewer, "glyphicon-inbox")
     if nWaitingForReviewer > 0:
         txtWaitingForReviewer = SPAN(txtWaitingForReviewer, _class="pci-enhancedMenuItem")
@@ -291,7 +291,7 @@ def _RecommendationMenu():
         (db.t_recommendations.recommender_id == auth.user_id)
         & (db.t_recommendations.article_id == db.t_articles.id)
         & ~(db.t_articles.already_published == True)
-        & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+        & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
     ).count()
     if nPreprintsOngoing > 0:
         classPreprintsOngoing = "pci-enhancedMenuItem"
@@ -303,7 +303,7 @@ def _RecommendationMenu():
         (db.t_recommendations.recommender_id == auth.user_id)
         & (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == True)
-        & (db.t_articles.status in ("Under consideration", "Scheduled submissionn under consideration"))
+        & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
     ).count()
     if nPostprintsOngoing > 0:
         classPostprintsOngoing = "pci-enhancedMenuItem"
