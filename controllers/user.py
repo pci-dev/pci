@@ -1013,8 +1013,12 @@ def fill_report_survey():
             art.update_record()
 
         if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
             emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
             emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
@@ -1225,8 +1229,12 @@ def edit_report_survey():
             art.update_record()
 
         if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
             emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
             emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         myVars = dict(articleId=articleId)
