@@ -32,6 +32,10 @@ myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+if not myconf.get("smtp.server"):
+    auth.settings.registration_requires_verification = False
+    auth.settings.login_after_registration = True
+
 ######################################################################################################################################################################
 def loading():
     return DIV(IMG(_alt="Loading...", _src=URL(c="static", f="images/loading.gif")), _id="loading", _style="text-align:center;")
