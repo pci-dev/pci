@@ -226,6 +226,7 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
             if suite:
                 auth.settings.register_next = suite
+                check_already_registered(form)
 
         elif request.args[0] == "profile":
             titleIcon = "user"
@@ -275,6 +276,16 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
 
     return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
+
+
+def check_already_registered(form):
+    existing_user = db(db.auth_user.email.lower() == str(form.vars.email).lower()).select().last()
+    if existing_user:
+        form.errors.email = SPAN(
+                T("This email is already registered"),
+                T("; you may wish to "),
+                A(T("reset your password"), _href=URL("user/request_reset_password", vars={"email":form.vars.email})),
+        )
 
 
 ######################################################################################################################################################################
