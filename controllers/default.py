@@ -244,6 +244,7 @@ def user():
             customText = getText(request, auth, db, "#ResetPasswordText")
             user = db(db.auth_user.email == request.vars["email"]).select().last()
             form.element(_type="submit")["_class"] = "btn btn-success"
+            form.element(_name="email")["_value"] = request.vars.email
             if (fkey is not None) and (user is not None):
                 reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
                 user.update_record(reset_password_key=reset_password_key)
