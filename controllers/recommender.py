@@ -1556,6 +1556,8 @@ def email_for_new_reviewer():
 
     if form.process().accepted:
         new_user_id = None
+        request.vars.reviewer_email = request.vars.reviewer_email.lower()
+
         # search for already-existing user
         existingUser = db(db.auth_user.email.upper() == request.vars["reviewer_email"].upper()).select().last()
         if existingUser:
