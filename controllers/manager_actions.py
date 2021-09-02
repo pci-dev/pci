@@ -169,6 +169,7 @@ def set_not_considered():
     redirect(request.env.http_referer)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def delete_recommendation_file():
 
@@ -205,4 +206,33 @@ def delete_recommendation_file():
 
     session.flash = T("File successfully deleted")
     
+    redirect(request.env.http_referer)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def do_send_back_decision():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    lastRecomm = db((db.t_recommendations.article_id == articleId)).select().last()
+    
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if lastRecomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    if art.status.startswith("Pre-"):
+        lastRecomm.is_closed = False
+        lastRecomm.recommendation_state = "Ongoing"
+        lastRecomm.update_record()
+        art.status = "Under consideration"
+        art.update_record()
+        session.flash = T('Recommendation sent back to recommender')
+
     redirect(request.env.http_referer)

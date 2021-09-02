@@ -649,6 +649,12 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 _class="pci2-flex-center"
             )
         else:
+            send_back_button =  A(
+                SPAN(current.T("Send back this decision to the recommennder"), _class="buttontext btn btn-danger pci-manager"),
+                _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
+                _title=current.T("Click here to send back this decision to the recommennder"),
+            )
+
             if art.status == "Pending":
                 managerButton = DIV(
                     A(
@@ -665,6 +671,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate recommendation of this article"),
                     ),
+                    send_back_button,
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-revision":
@@ -674,6 +681,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate revision of this article"),
                     ),
+                    send_back_button,
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-rejected":
@@ -683,6 +691,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate the rejection of this article"),
                     ),
+                    send_back_button,
                     _class="pci-EditButtons-centered",
                 )
 
