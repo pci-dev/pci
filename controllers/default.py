@@ -337,6 +337,8 @@ def change_email():
 
         user = db.auth_user[auth.user_id]
 
+        form.vars.new_email = form.vars.new_email.lower()
+
         emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
         emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
 
