@@ -318,6 +318,32 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
+def send_to_recommender_decision_sent_back(session, auth, db, articleId, newStatus):
+    print("send_to_recommender_decision_sent_back")
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    article = db.t_articles[articleId]
+    if article:
+        mail_vars["linkTarget"] = URL(
+            c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=True)
+        )
+        for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, db.t_recommendations.id, distinct=True):
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, myRecomm.recommender_id)
+            mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
+            mail_vars["articleAuthors"] = article.authors
+            mail_vars["articleTitle"] = article.title
+            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+
+            # mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, myRecomm.id)
+
+            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
+
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+
+######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
 def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
     print("send_to_suggested_recommenders_not_needed_anymore")

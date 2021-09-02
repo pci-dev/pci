@@ -680,6 +680,9 @@ def deltaStatus(s, f):
                 # delete all article reminder
                 emailing.delete_all_reminders_from_article_id(db, o["id"])
 
+            elif o["status"].startswith("Pre-") and f["status"] == "Under consideration":
+                emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
+
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])

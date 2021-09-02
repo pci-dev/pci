@@ -140,4 +140,6 @@ VALUES
 (E'#SubmitterRecommendedPreprintPrivateStage1',E'default',E'{{appName}}: subject',E'Mail to submitter to indicate the private recommandation of his/her preprint',E''),
 (E'#RecommenderStatusChangedUnderToRecommendedPrivateStage1',E'default',E'{{appName}}: subject',E'Mail to recommender to indicate him/her that the preprint is now recommended privately',E''),
 (E'#CoRecommendersArticleRecommendedPrivateStage1',E'default',E'{{appName}}: subject',E'Mail to co-recommenders to indicate them that the preprint is now recommended privately',E''),
-(E'#ReviewersArticleRecommendedPrivateStage1',E'default',E'{{appName}}: subject',E'Mail to reviewers to indicate them that the preprint they review is now recommended privately',E'');
+(E'#ReviewersArticleRecommendedPrivateStage1',E'default',E'{{appName}}: subject',E'Mail to reviewers to indicate them that the preprint they review is now recommended privately',E''),
+(E'#RecommenderDecisionSentBackStage1',E'default',E'{{appName}}: Decision sent back by managers',E'Mail to recommender to indicate that the decision is now reopened (decision modifications, reviewers invitations...)',E'<p>Need to be filled</p>'),
+(E'#RecommenderDecisionSentBackStage2',E'default',E'{{appName}}: Decision sent back by managers',E'Mail to recommender to indicate that the decision is now reopened (decision modifications, reviewers invitations...)',E'<p>Need to be filled</p>');
