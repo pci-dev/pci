@@ -465,7 +465,9 @@ db.auth_user._before_update.append(lambda s, f: newRegistration(s, f))
 
 def newRegistration(s, f):
     o = s.select().first()
-    # BUG: missing key "registration_key" error occurs when password reset and account not confirmed
+    # handle missing "registration_key" on password reset and account not confirmed
+    if "registration_key" not in f.keys():
+        f["registration_key"] = ""
     if o.registration_key != "" and f["registration_key"] == "" and (o["recover_email_key"] is None or o["recover_email_key"] == ""):
         emailing.send_new_user(session, auth, db, o.id)
         emailing.send_admin_new_user(session, auth, db, o.id)
