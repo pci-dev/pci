@@ -339,6 +339,12 @@ def change_email():
 
         form.vars.new_email = form.vars.new_email.lower()
 
+        if form.vars.new_email == user.email:
+            form.errors.new_email = "E-mail is the same (case insensitive)"
+            form.element(_name="new_email")["_value"] = request.vars.new_email
+            response.flash = None
+            return dict(form=form)
+
         emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
         emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
 
