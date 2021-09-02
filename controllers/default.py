@@ -32,6 +32,10 @@ myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+if not myconf.get("smtp.server"):
+    auth.settings.registration_requires_verification = False
+    auth.settings.login_after_registration = True
+
 ######################################################################################################################################################################
 def loading():
     return DIV(IMG(_alt="Loading...", _src=URL(c="static", f="images/loading.gif")), _id="loading", _style="text-align:center;")
@@ -222,6 +226,7 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
             if suite:
                 auth.settings.register_next = suite
+                check_already_registered(form)
 
         elif request.args[0] == "profile":
             titleIcon = "user"
@@ -240,6 +245,7 @@ def user():
             customText = getText(request, auth, db, "#ResetPasswordText")
             user = db(db.auth_user.email == request.vars["email"]).select().last()
             form.element(_type="submit")["_class"] = "btn btn-success"
+            form.element(_name="email")["_value"] = request.vars.email
             if (fkey is not None) and (user is not None):
                 reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
                 user.update_record(reset_password_key=reset_password_key)
@@ -272,6 +278,16 @@ def user():
     return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
 
 
+def check_already_registered(form):
+    existing_user = db(db.auth_user.email.lower() == str(form.vars.email).lower()).select().last()
+    if existing_user:
+        form.errors.email = SPAN(
+                T("This email is already registered"),
+                T("; you may wish to "),
+                A(T("reset your password"), _href=URL("user/request_reset_password", vars={"email":form.vars.email})),
+        )
+
+
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
     if CRYPT()(form.vars.password_confirmation)[0] != db.auth_user[auth.user_id].password:
@@ -292,7 +308,6 @@ def change_mail_form_processing(form):
 @auth.requires_login()
 def change_email():
     response.view = "default/myLayoutBot.html"
-    print("init form")
     form = FORM(
         DIV(
             LABEL(T("Password"), _class="control-label col-sm-3"),
@@ -321,6 +336,14 @@ def change_email():
         recover_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
 
         user = db.auth_user[auth.user_id]
+
+        form.vars.new_email = form.vars.new_email.lower()
+
+        if form.vars.new_email == user.email:
+            form.errors.new_email = "E-mail is the same (case insensitive)"
+            form.element(_name="new_email")["_value"] = request.vars.new_email
+            response.flash = None
+            return dict(form=form)
 
         emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
         emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
