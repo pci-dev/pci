@@ -290,6 +290,9 @@ def check_already_registered(form):
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
+
+    form.vars.new_email = form.vars.new_email.lower()
+
     if CRYPT()(form.vars.password_confirmation)[0] != db.auth_user[auth.user_id].password:
         form.errors.password_confirmation = "Incorrect Password"
 
@@ -297,12 +300,11 @@ def change_mail_form_processing(form):
     if mail_already_used:
         form.errors.new_email = "E-mail already used"
 
-    recover_mail_already_used = db(db.auth_user.recover_email == form.vars.new_email).count() >= 1
-    if recover_mail_already_used:
-        form.errors.new_email = "E-mail already used"
-
-    if form.vars.new_email != form.vars.email_confirmation:
+    if form.vars.new_email != form.vars.email_confirmation.lower():
         form.errors.email_confirmation = "New e-mail and its confirmation does not match"
+
+    if form.vars.new_email == db.auth_user[auth.user_id].email:
+        form.errors.new_email = "E-mail is the same (case insensitive)"
 
 
 @auth.requires_login()
@@ -337,21 +339,14 @@ def change_email():
 
         user = db.auth_user[auth.user_id]
 
-        form.vars.new_email = form.vars.new_email.lower()
-
-        if form.vars.new_email == user.email:
-            form.errors.new_email = "E-mail is the same (case insensitive)"
-            form.element(_name="new_email")["_value"] = request.vars.new_email
-            response.flash = None
-            return dict(form=form)
-
         emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
         emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
 
         user.update_record(email=form.vars.new_email, registration_key=registeration_key, recover_email=user.email, recover_email_key=recover_key)
 
-        session.flash = "Toto"
         redirect(URL("default", "user", args="logout"))
+
+    response.flash = None
 
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
 
