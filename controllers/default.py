@@ -290,6 +290,9 @@ def check_already_registered(form):
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
+
+    form.vars.new_email = form.vars.new_email.lower()
+
     if CRYPT()(form.vars.password_confirmation)[0] != db.auth_user[auth.user_id].password:
         form.errors.password_confirmation = "Incorrect Password"
 
@@ -336,8 +339,6 @@ def change_email():
         recover_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
 
         user = db.auth_user[auth.user_id]
-
-        form.vars.new_email = form.vars.new_email.lower()
 
         if form.vars.new_email == user.email:
             form.errors.new_email = "E-mail is the same (case insensitive)"
