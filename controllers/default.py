@@ -304,7 +304,7 @@ def change_mail_form_processing(form):
     if recover_mail_already_used:
         form.errors.new_email = "E-mail already used"
 
-    if form.vars.new_email != form.vars.email_confirmation:
+    if form.vars.new_email != form.vars.email_confirmation.lower():
         form.errors.email_confirmation = "New e-mail and its confirmation does not match"
 
 
