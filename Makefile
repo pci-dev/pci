@@ -1,4 +1,4 @@
-install: web2py pydeps postgresql additional
+install: web2py pydeps postgresql additional init
 
 
 web2py:
@@ -43,9 +43,19 @@ stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
 	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
 
-start: private/appconfig.ini private/reminders_config
+start:	private/appconfig.ini \
+	private/reminders_config \
+	init
+
+init:	static/images/background.png \
+	static/images/small-background.png \
+	static/images/RSS_datamatrix.png
+
 private/%:
 	cp private/sample.$* $@
+
+static/images/%:
+	cp static/images/sample.$* $@
 
 test.install:
 	sudo apt-get install npm
