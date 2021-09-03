@@ -307,6 +307,9 @@ def change_mail_form_processing(form):
     if form.vars.new_email != form.vars.email_confirmation.lower():
         form.errors.email_confirmation = "New e-mail and its confirmation does not match"
 
+    if form.vars.new_email == db.auth_user[auth.user_id].email:
+        form.errors.new_email = "E-mail is the same (case insensitive)"
+
 
 @auth.requires_login()
 def change_email():
@@ -339,12 +342,6 @@ def change_email():
         recover_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
 
         user = db.auth_user[auth.user_id]
-
-        if form.vars.new_email == user.email:
-            form.errors.new_email = "E-mail is the same (case insensitive)"
-            form.element(_name="new_email")["_value"] = request.vars.new_email
-            response.flash = None
-            return dict(form=form)
 
         emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
         emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
