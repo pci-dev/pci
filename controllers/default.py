@@ -348,8 +348,9 @@ def change_email():
 
         user.update_record(email=form.vars.new_email, registration_key=registeration_key, recover_email=user.email, recover_email_key=recover_key)
 
-        session.flash = "Toto"
         redirect(URL("default", "user", args="logout"))
+
+    response.flash = None
 
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
 
