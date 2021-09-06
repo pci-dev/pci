@@ -46,6 +46,16 @@ port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
+pciRRactivated = myconf.get("config.registered_reports", default=False)
+
+allowed_upload_filetypes = ["pdf", "docx", "odt"]
+
+allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
+
+upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
+        IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+        IS_EMPTY_OR(IS_FILE(extension=extensions)),
+]
 
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
@@ -759,7 +769,7 @@ db.define_table(
         type="upload",
         uploadfield="reply_pdf_data",
         label=T("Author's Reply as PDF"),
-        requires=[IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf")), IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB.")],
+        requires=upload_file_contraints("pdf"),
     ),
     Field("reply_pdf_data", type="blob"),  # , readable=False),
     Field(
@@ -767,7 +777,7 @@ db.define_table(
         type="upload",
         uploadfield="track_change_data",
         label=T("Tracked changes document (eg. PDF or Word file)"),
-        requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+        requires=upload_file_contraints(),
     ),
     Field("track_change_data", type="blob", readable=False),
     Field(
@@ -775,7 +785,7 @@ db.define_table(
         type="upload",
         uploadfield="recommender_file_data",
         label=T("Recommender's annotations (PDF)"),
-        requires=[IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))],
+        requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
@@ -806,7 +816,7 @@ db.define_table(
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field(
-        "pdf", type="upload", uploadfield="pdf_data", label=T("PDF"), requires=IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB.")
+        "pdf", type="upload", uploadfield="pdf_data", label=T("PDF"), requires=upload_file_contraints()
     ),
     Field("pdf_data", type="blob"),
     singular=T("PDF file"),
@@ -836,7 +846,7 @@ db.define_table(
         type="upload",
         uploadfield="review_pdf_data",
         label=T("Review as PDF"),
-        requires=[IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."), IS_EMPTY_OR(IS_UPLOAD_FILENAME(extension="pdf"))],
+        requires=upload_file_contraints(allowed_review_filetypes),
     ),
     Field("review_pdf_data", type="blob", readable=False),
     Field("acceptation_timestamp", type="datetime", label=T("Acceptation timestamp"), writable=False),
