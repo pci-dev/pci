@@ -207,6 +207,19 @@ ALTER TABLE public.t_articles
 -- 28/07/2021
 ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q32 boolean;
 
+-- 06/09/2021
+-- For PCi RR
+INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
+VALUES
+(E'#RecommenderSuggestedReviewersStage1',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',NULL,E'<p>Need to be filled...</p>\n<p>{{suggestedReviewersText}}</p>'),
+(E'#RecommenderSuggestedReviewersStage2',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',NULL,E'<p>Need to be filled...</p>\n<p>{{suggestedReviewersText}}</p>'),
+(E'#RecommenderSuggestedReviewersStage1ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',NULL,E'<p>Need to be filled...</p>\n<p>{{suggestedReviewersText}}</p>'),
+(E'#RecommenderSuggestedReviewersStage2ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',NULL,E'<p>Need to be filled...</p>\n<p>{{suggestedReviewersText}}</p>');
+
+-- For other PCis
+INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
+VALUES
+(E'#RecommenderSuggestedReviewers',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',NULL,E'<p>Need to be filled...</p>\n<p>{{suggestedReviewersText}}</p>');
 
 -- 07/09/2021
 --
