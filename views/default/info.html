@@ -19,6 +19,12 @@
 	{{=message}}
 	{{pass}}
 
+{{if 'sendMessageForm' in locals():}}
+	<div class="pci2-flex-center">
+		{{=sendMessageForm}}
+	</div>
+{{pass}}
+
 {{if 'myFinalScript' in locals():}}
 	{{=myFinalScript}}
 	{{pass}}

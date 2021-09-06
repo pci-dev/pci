@@ -419,12 +419,18 @@ td .ellipsis-over-350 {
 }
 
 h4 p,
-h3 p{
+h3 p {
   margin: 0;
 }
 
 #t_articles_title_ifr body p {
   font-weight: bold !important;
+}
+
+.decline-review-title {
+  text-align: center;
+  font-weight: bold;
+  color: #598398;
 }
 
 @media (max-width: 1200px) {

@@ -10,6 +10,8 @@ from app_modules.helper import *
 
 from controller_modules import user_module
 from app_modules import common_small_html
+from app_components import app_forms
+from app_modules import emailing
 
 # frequently used constants
 csv = False  # no export allowed
@@ -192,25 +194,39 @@ def decline_review(): # no auth required
     quickDeclineKey = request.vars["key"]
 
     review = db.t_reviews[reviewId]
+    sendMessageForm = None
 
     if review is None:
         message = "Review '{}' not found".format(reviewId)
     elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
-        message = T("You have already declined this invitation to review")
+        message = H4(T("You have already declined this invitation to review"), _class="decline-review-title")
+        user = db.auth_user[review.reviewer_id]
+        if user:
+            sendMessageForm = app_forms.getSendMessageForm(auth, db, user)
+
     elif review.quick_decline_key != quickDeclineKey:
-        message = "Incorrect decline key: '{}'".format(quickDeclineKey)
+        message = H4("Incorrect decline key: '{}'".format(quickDeclineKey), _class="decline-review-title")
     else:
         review.review_state = "Declined"
         review.update_record()
 
         user = db.auth_user[review.reviewer_id]
-        if user and user.reset_password_key: # user (auto-created) did not register yet
-            db(db.auth_user.id == review.reviewer_id).delete()
+        if user:
+            sendMessageForm = app_forms.getSendMessageForm(auth, db, user)
 
-        message = T("Thank you for taking the time to decline this invitation!")
+            if user.reset_password_key: # user (auto-created) did not register yet
+                db(db.auth_user.id == review.reviewer_id).delete()
+
+        message = H4(T("Thank you for taking the time to decline this invitation!"), _class="decline-review-title")
+
+    if sendMessageForm is not None:
+        if sendMessageForm.process(keepvalues=True).accepted:
+            suggRevText = sendMessageForm.vars.suggested_reviewers_text
+            emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review.recommendation_id, suggRevText)
+            redirect(URL(c="default", f="index"))
 
     response.view = "default/info.html"
-    return dict(message=message)
+    return dict(message=message, sendMessageForm=sendMessageForm)
 
 
 ######################################################################################################################################################################

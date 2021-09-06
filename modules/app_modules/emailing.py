@@ -1775,6 +1775,29 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
 
 
 ######################################################################################################################################################################
+def send_to_recommender_reviewers_suggestions(session, auth, db, recommendationId, suggested_reviewers_text):
+    print("send_reviewer_invitation")
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    recomm = db.t_recommendations[recommendationId]
+    if recomm:
+        article = db.t_articles[recomm.article_id]
+        if article:
+            mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+    
+            mail_vars["suggestedReviewersText"] = WIKI(suggested_reviewers_text, safe_mode=False)
+    
+            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+    
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    
+    emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
+######################################################################################################################################################################
 def send_change_mail(session, auth, db, userId, dest_mail, key):
     print("send_change_mail")
     mail = emailing_tools.getMailer(auth)
