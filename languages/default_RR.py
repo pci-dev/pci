@@ -229,7 +229,7 @@
     "Download author's reply (PDF file)": "Download author's reply (PDF file)",
     "Download": "Download",
     "Download recommender's annotations (PDF)": "Download recommender's annotations (PDF)",
-    "Download the review (PDF file)": "Download the review (PDF file)",
+    "Download the review (PDF file)": "Download the review",
     "Download tracked changes file": "Download tracked changes file",
     "Do you agree to review a preprint?": "Do you agree to review a report?",
     "Do you wish to receive the PCI newsletter": "Do you wish to receive the PCI newsletter",
