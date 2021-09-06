@@ -2191,7 +2191,7 @@ def review_emails():
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
         create=False,
-        searchable=True,
+        searchable=False,
         csv=False,
         paginate=50,
         maxtextlength=256,
