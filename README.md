@@ -160,3 +160,11 @@ base_url = http://this-service.invalid/pci/
 
 If `coar_notify.inbox_url` is missing or empty, COAR Notify support — both the inbox and outward notifications — is
 disabled.
+
+To check that the coar notify sub-system works:
+- use POST url `coar_notify/inbox` to send inbound COAR notifications to PCI
+- validate a PCI recommendation and check the remote-service at `inbox_url` for received notifications
+
+Both outbound notifications (to the remote service at `inbox_url`)
+and inbound notifications (posted to `coar_notify/inbox`)
+are stored in table `t_coar_notifications` in the pci database.
