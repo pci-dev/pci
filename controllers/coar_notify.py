@@ -2,6 +2,7 @@ import cgi
 import http
 import rdflib
 import typing
+import json
 
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifyException, COARNotifier
@@ -20,6 +21,8 @@ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
 
 def index():
     text = show_coar_status()
+    text += "\n"
+    text += show_coar_requests()
 
     return text .strip().replace('\n', '\n<br/>')
 
@@ -92,3 +95,43 @@ def show_coar_status():
     )
 
     return text
+
+
+def show_coar_requests():
+    text = "\n".join([
+        "%s = %s / %s / %s" % (
+            x.id,
+            x.direction,
+            get_request_type(x.body),
+            get_person_name(x.body),
+        )
+        for x in db(db.t_coar_notification).select()
+    ])
+
+    return text
+
+
+def get_type(body):
+    coar_types = [ "endorses", "review" ]
+    for t in coar_types:
+        if body.find("http://purl.org/coar/notify_vocabulary/" + t) > 0:
+            return t
+
+
+def get_request_type(body):
+    req_type = get_type(body)
+
+    return req_type.capitalize() if req_type else "UNKNOWN"
+
+
+def get_person_name(body):
+    req_type = get_type(body)
+
+    if req_type == "endorses":
+        slot = 2
+    elif req_type == "review":
+        slot = 5
+    else:
+        return ""
+
+    return json.loads(body)[slot].get('https://www.w3.org/ns/activitystreams#name')#[0]['@value']
