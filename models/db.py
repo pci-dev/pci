@@ -823,6 +823,7 @@ def recommendationUpdated(s, updated_recommendation):
         coar_notifier = COARNotifier(db)
         for review in db(
                 db.t_reviews.recommendation_id == original_recommendation.id
+            and db.t_reviews.review_state == 'Review completed'
         ).select():
             coar_notifier.review_completed(review)
         coar_notifier.article_endorsed(updated_recommendation)
