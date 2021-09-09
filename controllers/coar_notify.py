@@ -19,19 +19,7 @@ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
 
 
 def index():
-    coar_notifier = COARNotifier(db)
-
-    text = """
-    coar notifications for pci (%s)
-
-    inbound: %d
-    outbound: %d
-    """ % (
-
-        "enabled" if coar_notifier.enabled else "disabled",
-        db(db.t_coar_notification.direction == 'Inbound').count(),
-        db(db.t_coar_notification.direction == 'Outbound').count(),
-    )
+    text = show_coar_status()
 
     return text .strip().replace('\n', '\n<br/>')
 
@@ -86,3 +74,21 @@ def inbox():
                 "Allow": ", ".join(["POST", "OPTIONS"]),
             },
         )
+
+
+def show_coar_status():
+    coar_notifier = COARNotifier(db)
+
+    text = """
+    coar notifications for pci (%s)
+
+    inbound: %d
+    outbound: %d
+    """ % (
+
+        "enabled" if coar_notifier.enabled else "disabled",
+        db(db.t_coar_notification.direction == 'Inbound').count(),
+        db(db.t_coar_notification.direction == 'Outbound').count(),
+    )
+
+    return text
