@@ -176,3 +176,7 @@ directly into your web2py apps directory under `modules/`.
 
 The PCI `coar_notify/inbox` endpoint somehow requires the captcha to be turned off.  To disable
 the captcha, comment-out the line `private` in section `[captcha]` in `appconfig.ini`.
+
+We recommend against enabling the COAR sub-system in a real production system, because
+a.) it'll accept notifications from anywhere without authentication, and
+b.) rdflib still doesn't have a constrained URL resolver, which could lead to DoS attacks.
