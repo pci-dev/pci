@@ -198,6 +198,7 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
         [
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
             ("articleSource", I(article.article_source or "")),
+            ("articleId", article.id),
             ("articleImg", article_img),
             ("articleTitle", article.title or ""),
             ("articleAuthor", authors or ""),

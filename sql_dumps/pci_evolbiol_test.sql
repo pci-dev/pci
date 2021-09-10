@@ -1926,6 +1926,51 @@ CREATE TABLE public.t_user_words (
 ALTER TABLE public.t_user_words OWNER TO pci_admin;
 
 --
+-- Name: t_coar_notification; Type: TABLE; Schema: public; Owner: pci_admin
+--
+
+CREATE TABLE public.t_coar_notification (
+    id integer NOT NULL,
+    created timestamp without time zone NOT NULL,
+    rdf_type character varying NOT NULL,
+    body character varying NOT NULL,
+    direction character varying NOT NULL,
+    http_status integer,
+    inbox_url character varying NOT NULL
+);
+
+
+ALTER TABLE public.t_coar_notification OWNER TO pci_admin;
+
+--
+-- Name: t_coar_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
+--
+
+CREATE SEQUENCE public.t_coar_notification_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.t_coar_notification_id_seq OWNER TO pci_admin;
+
+--
+-- Name: t_coar_notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: pci_admin
+--
+
+ALTER SEQUENCE public.t_coar_notification_id_seq OWNED BY public.t_coar_notification.id;
+
+
+--
+-- Name: t_coar_notification id; Type: DEFAULT; Schema: public; Owner: pci_admin
+--
+
+ALTER TABLE ONLY public.t_coar_notification ALTER COLUMN id SET DEFAULT nextval('public.t_coar_notification_id_seq'::regclass);
+
+--
 -- Name: v_article_recommender; Type: VIEW; Schema: public; Owner: pci_admin
 --
 

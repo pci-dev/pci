@@ -49,16 +49,18 @@
   {{pass}} 
 
   {{for review in reviewsList:}}
-    <h4 class="pci2-round-review-sub-title">{{=review['authorAndDate']}}</h4>
+    <div id="review-{{=review['id']}}">
+      <h4 class="pci2-round-review-sub-title">{{=review['authorAndDate']}}</h4>
     
-    <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
-      {{if review['text'] is not None:}}
-        {{=review['text']}}
-      {{pass}}
+      <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
+        {{if review['text'] is not None:}}
+          {{=review['text']}}
+        {{pass}}
       
-      {{if review['pdfLink'] is not None:}}
-        {{=review['pdfLink']}}
-      {{pass}}
+        {{if review['pdfLink'] is not None:}}
+          {{=review['pdfLink']}}
+        {{pass}}
+      </div>
     </div>
   {{pass}}
 

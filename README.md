@@ -142,3 +142,21 @@ cypress/
   supports/ # Define common commands for tests (such as login, check article status...)
   fixtures/ # Datas needed to run tests
 ```
+
+
+# COAR Notify
+
+PCI contains a demonstration [COAR Notify](https://notify.coar-repositories.org/) implementation, comprising a [Linked
+Data Notifications inbox](https://www.w3.org/TR/ldn/#receiver) and the ability to send notifications to an external
+pre-configured LDN inbox in response to endorsement events.
+
+To configure COAR Notify, your `private/appconfig.ini` should contain the following section, with appropriate URLs:
+
+```ini
+[coar_notify]
+inbox_url = http://remote-service.invalid/inbox
+base_url = http://this-service.invalid/pci/
+```
+
+If `coar_notify.inbox_url` is missing or empty, COAR Notify support — both the inbox and outward notifications — is
+disabled.

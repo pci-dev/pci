@@ -2,7 +2,7 @@
 
 # import pprint
 # pp = pprint.PrettyPrinter(indent=4)
-
+from app_modules.coar_notify import COARNotifier
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
@@ -799,6 +799,7 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
     "%(first_name)s %(last_name)s %(email)s",
 )
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
+db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i))
 
 
 def newRecommendation(s, i):
@@ -809,6 +810,22 @@ def newRecommendation(s, i):
             if art.already_published:
                 emailing.send_to_thank_recommender_postprint(session, auth, db, i)
     return None
+
+
+def recommendationUpdated(s, updated_recommendation):
+    original_recommendation = s.select().first()
+    if (
+        not original_recommendation.is_closed
+        and updated_recommendation.get('is_closed')
+        and updated_recommendation.get('recommendation_state') == "Recommended"
+    ):
+        # COAR notification
+        coar_notifier = COARNotifier(db)
+        for review in db(
+                db.t_reviews.recommendation_id == original_recommendation.id
+        ).select():
+            coar_notifier.review_completed(review)
+        coar_notifier.article_endorsed(updated_recommendation)
 
 
 db.define_table(
@@ -1549,6 +1566,20 @@ db.define_table(
     ),
     migrate=False,
 )
+
+##---------------------- COAR Notify notifications -----------------------
+
+db.define_table(
+    "t_coar_notification",
+    Field("id", type="id"),
+    Field("created", type="datetime"),
+    Field("rdf_type", type="string", label="Space-separated type URIs"),
+    Field("body", type="string", label="JSON-LD serialization of notification body"),
+    Field("direction", type="string", label="Inbound or Outbound"),
+    Field("http_status", type="integer", label="HTTP Status for outboard messages"),
+    Field("inbox_url", type="string", label="Remote inbox for notification"),
+)
+
 
 ##-------------------------------- Views ---------------------------------
 db.define_table(
