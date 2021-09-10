@@ -105,7 +105,9 @@ def show_coar_requests():
             get_request_type(x.body),
             get_person_name(x.body),
         )
-        for x in db(db.t_coar_notification).select()
+        for x in db(
+            db.t_coar_notification.direction == "Outbound"
+        ).select(orderby=~db.t_coar_notification.id)
     ])
 
     return text
