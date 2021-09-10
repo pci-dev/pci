@@ -124,14 +124,11 @@ def get_request_type(body):
     return req_type.capitalize() if req_type else "UNKNOWN"
 
 
+import re
+
 def get_person_name(body):
     req_type = get_type(body)
 
-    if req_type == "endorses":
-        slot = 2
-    elif req_type == "review":
-        slot = 5
-    else:
-        return ""
+    if not req_type: return ""
 
-    return json.loads(body)[slot].get('https://www.w3.org/ns/activitystreams#name')#[0]['@value']
+    return re.sub(r'.*"@value": *"([^"]*)".*', r'\1', body.replace('\n', ''))
