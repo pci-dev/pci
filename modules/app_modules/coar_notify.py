@@ -7,7 +7,6 @@ import json
 import typing
 import uuid
 
-import rdflib
 import requests
 
 from gluon.contrib.appconfig import AppConfig
@@ -18,8 +17,12 @@ logger = logging.getLogger(__name__)
 
 myconf = AppConfig(reload=True)
 
-ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
-LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
+try:
+ import rdflib
+ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+ LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
+except:
+ rdflib = None
 
 
 @functools.lru_cache()
@@ -94,7 +97,7 @@ class COARNotifier:
     @property
     def enabled(self):
         try:
-            return bool(self.inbox_url)
+            return bool(self.inbox_url) and rdflib
         except KeyError:
             return False
 

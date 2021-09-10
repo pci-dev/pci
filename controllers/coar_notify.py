@@ -1,6 +1,5 @@
 import cgi
 import http
-import rdflib
 import typing
 import json
 
@@ -16,10 +15,18 @@ _rdflib_parser_media_types = {
     "application/ld+json": "json-ld",
 }
 
-ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+try:
+ import rdflib
+ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+except:
+ rdflib = None
 
 
 def index():
+    if not COARNotifier(db).enabled or not rdflib:
+        return "COAR notifications for PCI (disabled: %s)" % (
+                "inbox_url not configured" if rdflib else "rdflib not installed")
+
     text = show_coar_status()
     text += "\n"
     text += show_coar_requests()
