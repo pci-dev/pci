@@ -1,7 +1,7 @@
 import cgi
 import http
-import rdflib
 import typing
+import json
 
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifyException, COARNotifier
@@ -15,7 +15,23 @@ _rdflib_parser_media_types = {
     "application/ld+json": "json-ld",
 }
 
-ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+try:
+ import rdflib
+ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+except:
+ rdflib = None
+
+
+def index():
+    if not COARNotifier(db).enabled or not rdflib:
+        return "COAR notifications for PCI (disabled: %s)" % (
+                "inbox_url not configured" if rdflib else "rdflib not installed")
+
+    text = show_coar_status()
+    text += "\n"
+    text += show_coar_requests()
+
+    return text .strip().replace('\n', '\n<br/>')
 
 
 def inbox():
@@ -68,3 +84,60 @@ def inbox():
                 "Allow": ", ".join(["POST", "OPTIONS"]),
             },
         )
+
+
+def show_coar_status():
+    coar_notifier = COARNotifier(db)
+
+    text = """
+    coar notifications for pci (%s)
+
+    inbound: %d
+    outbound: %d
+    """ % (
+
+        "enabled" if coar_notifier.enabled else "disabled",
+        db(db.t_coar_notification.direction == 'Inbound').count(),
+        db(db.t_coar_notification.direction == 'Outbound').count(),
+    )
+
+    return text
+
+
+def show_coar_requests():
+    text = "\n".join([
+        "%s = %s / %s / %s" % (
+            x.id,
+            x.direction,
+            get_request_type(x.body),
+            get_person_name(x.body),
+        )
+        for x in db(
+            db.t_coar_notification.direction == "Outbound"
+        ).select(orderby=~db.t_coar_notification.id)
+    ])
+
+    return text
+
+
+def get_type(body):
+    coar_types = [ "endorses", "review" ]
+    for t in coar_types:
+        if body.find("http://purl.org/coar/notify_vocabulary/" + t) > 0:
+            return t
+
+
+def get_request_type(body):
+    req_type = get_type(body)
+
+    return req_type.capitalize() if req_type else "UNKNOWN"
+
+
+import re
+
+def get_person_name(body):
+    req_type = get_type(body)
+
+    if not req_type: return ""
+
+    return re.sub(r'.*"@value": *"([^"]*)".*', r'\1', body.replace('\n', ''))

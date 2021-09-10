@@ -799,7 +799,8 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
     "%(first_name)s %(last_name)s %(email)s",
 )
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
-db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i))
+db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
+        if COARNotifier(db).enabled else None
 
 
 def newRecommendation(s, i):
@@ -823,6 +824,7 @@ def recommendationUpdated(s, updated_recommendation):
         coar_notifier = COARNotifier(db)
         for review in db(
                 db.t_reviews.recommendation_id == original_recommendation.id
+            and db.t_reviews.review_state == 'Review completed'
         ).select():
             coar_notifier.review_completed(review)
         coar_notifier.article_endorsed(updated_recommendation)

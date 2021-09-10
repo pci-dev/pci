@@ -7,7 +7,6 @@ import json
 import typing
 import uuid
 
-import rdflib
 import requests
 
 from gluon.contrib.appconfig import AppConfig
@@ -18,8 +17,12 @@ logger = logging.getLogger(__name__)
 
 myconf = AppConfig(reload=True)
 
-ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
-LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
+try:
+ import rdflib
+ ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
+ LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
+except:
+ rdflib = None
 
 
 @functools.lru_cache()
@@ -83,18 +86,18 @@ class COARNotifier:
     def __init__(self, db):
         self.db = db
 
-    @functools.cached_property
+    @property # py3.8: functools.cached_property
     def base_url(self):
         return myconf["coar_notify"]["base_url"].strip()
 
-    @functools.cached_property
+    @property # py3.8: functools.cached_property
     def inbox_url(self):
         return myconf["coar_notify"]["inbox_url"].strip()
 
     @property
     def enabled(self):
         try:
-            return bool(self.inbox_url)
+            return bool(self.inbox_url) and rdflib
         except KeyError:
             return False
 
@@ -226,7 +229,7 @@ class COARNotifier:
         body: io.BytesIO,
         body_format: str = "json-ld",
         http_status: int = None,
-        direction: typing.Literal["Inbound", "Outbound"],
+        direction: str, # py3.8: typing.Literal["Inbound", "Outbound"],
         base: str = None,
     ) -> None:
         """Records a notification in the database for logging purposes.
