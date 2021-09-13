@@ -650,9 +650,9 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             )
         else:
             send_back_button =  A(
-                SPAN(current.T("Send back this decision to the recommennder"), _class="buttontext btn btn-danger pci-manager"),
+                SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
                 _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
-                _title=current.T("Click here to send back this decision to the recommennder"),
+                _title=current.T("Click here to send back this decision to the recommender"),
             )
 
             if art.status == "Pending":
