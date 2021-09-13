@@ -64,10 +64,10 @@ function change_back() {
 
 // fix footer to bottom of page if there is not enough content on the page
 var body = document.querySelector('body');
-if (body.clientHeight - 330 < window.innerHeight) {
+/*if (body.clientHeight - 330 < window.innerHeight) {
     var footer = document.querySelector('footer');
     footer.style.position = 'absolute';
     footer.style.bottom = '0';
     footer.style.left = '0';
     footer.style.right = '0';
-}
+}*/

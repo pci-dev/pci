@@ -153,11 +153,6 @@
         width: auto;
     }
 
-    .navbar .bam > li:nth-of-type(1),
-    .navbar .bam > li:nth-of-type(2) {
-        display: none;
-    }
-
     #cyp-login-button,
     #cyp-logout-button,
     #submit_record__row .btn,
@@ -367,8 +362,9 @@
         margin-bottom: 1rem;
     }
 
-    .btn-default:hover {
+    .button {
         background-color: #0096be!important;
+        padding: 1rem;
     }
 
     /*.button > .buttontext:hover {
@@ -468,10 +464,11 @@
     }
 
     .pci2-article-image-div > img {
-        min-width: 20rem;
+        min-width: 16rem;
         max-width: 20rem;
         max-height: unset;
         margin: auto;
+        margin-left: 0;
     }
 
     .pci2-article-row h4 {
@@ -958,6 +955,10 @@
         justify-content: left;
     }
 
+    .pci2-flex-center {
+
+    }
+
     .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
         flex-grow: 1;
     }
@@ -965,10 +966,6 @@
     .pci2-articles-list .pci2-article-row .pci2-flex-column {
         flex-grow: 1;
         padding-left: 1rem;
-    }
-
-    .pci2-articles-list .pci2-article-row .pci2-article-left-div {
-        max-width: 20rem;
     }
 
     .pci2-articles-list .pci2-flex-center {
@@ -1021,7 +1018,7 @@
     .navbar .nav > li > .dropdown-toggle .pci-recommender {
         margin: 0 0 0rem 0;
         padding: 0rem 0;
-        width: 16rem;
+        width: 12rem;
         text-align: left;
     }
 
@@ -1067,8 +1064,6 @@
     .grey-footer {
         padding: 2rem 5rem;
     }
-
-    #
 
     #pci-small-header {
         width: 80%;
@@ -1123,6 +1118,7 @@
     /* For landscape tablets: */
     .navbar {
         top: 0;
+        z-index: 2;
     }
 
     .pci-infotext img {
@@ -1151,7 +1147,7 @@
     }
 
     .top-pad {
-        padding-top: 10rem!important;
+        padding-top: 5rem!important;
     }
 
     .main-logo {
@@ -1189,7 +1185,7 @@
     .navbar-nav {
         display: flex;
         flex-direction: row;
-        width: 87%;
+        width: 82%;
     }
 
     .container-fluid .navbar-nav {
@@ -1454,11 +1450,16 @@
         display: block!important;
     }
 
-    #pci-small-header,
     #pci-home-header,
     #pci-home-header-large {
         width: 100%;
         height: 23rem;
+        padding-bottom: 4rem;
+    }
+
+    #pci-small-header {
+        height: 18rem;
+        width: 100%;
         padding-bottom: 4rem;
     }
 
@@ -1490,5 +1491,13 @@
 
     .hide-desktop {
         display: none!important;
+    }
+}
+
+@media only screen and (min-width: 1550px) {
+    /* For this very specific html table that requires more than 1200px */
+    .web2py_table {
+        max-width: 125%;
+        width: 125%;
     }
 }

@@ -129,16 +129,21 @@
     <!-- Main ========================================= -->
 
     <!-- Page Title -->
-
+    <!-- Page Title -->
+    {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
+      {{include 'snippets/page_title.html'}}   
+    {{pass}}
     <!-- Begin page content -->
+
     {{if request.function == 'index':}}
       <div class="container-fluid main-container flex-container row" id="main-content">
     {{else:}}
       <div class="container-fluid main-container flex-container row top-pad" id="main-content">
     {{pass}}
-      {{if left_sidebar_enabled and False:}}
-        <div class="col-md-3 left-sidebar">
-            {{block left_sidebar}}
+
+    {{if left_sidebar_enabled and False:}}
+      <div class="col-md-3 left-sidebar">
+          {{block left_sidebar}}
             {{if auth.user:}}
             <div class="side-button-bar">
               <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
@@ -155,70 +160,63 @@
                 {{=T('Register')}}
               </a>
             </div>
-          {{pass}}
-          {{include 'snippets/footer.html'}}
-          {{end}}
-        </div>
-        {{pass}}
-
-        <div class="{{=middle_column}}">
-          {{if not right_sidebar_enabled:}}
-            {{if auth.user:}}
-            <div class="logout-btn-alt">
-              <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
-                {{=T('Log out')}}
-              </a>
-            </div>
             {{pass}}
-          {{pass}}
-
-          {{block center}}
-          {{include}}
+            {{include 'snippets/footer.html'}}
           {{end}}
-        </div>
-
-        {{if right_sidebar_enabled:}}
-
-        <div class="col-md-3 left-sidebar">
-          {{block left_sidebar}}
-          {{if auth.user:}}
-          <div class="side-button-bar">
-            <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
-              {{=T('Log out')}}
-            </a>
-            <br>
-            <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
-              {{=T("Submit a preprint")}}
-            </a>
-          </div>
-          {{else:}}
-          <div class="side-button-bar">
-            <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
-              {{=T('Log in')}}
-            </a>
-            <label>{{=T(' or ')}}</label>
-            <a href="{{=URL(c='default', f='user', args=['register'])}}" class="btn btn-info">
-              {{=T('Register')}}
-            </a>
-            <br>
-            <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
-              {{=T("Submit a preprint")}}
-            </a>
-          </div>
-        {{pass}}
-        {{include 'snippets/footer.html'}}
-        {{end}}
       </div>
+    {{pass}}
+
+    <div class="{{=middle_column}}">
+      {{if not right_sidebar_enabled:}}
+        {{if auth.user:}}
+        <div class="logout-btn-alt">
+          <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
+            {{=T('Log out')}}
+          </a>
+        </div>
+        {{pass}}
       {{pass}}
 
+      {{block center}}
+      {{include}}
+      {{end}}
     </div>
+
+    {{if right_sidebar_enabled:}}
+    <div class="col-md-3 left-sidebar">
+      {{block left_sidebar}}
+        {{if auth.user:}}
+        <div class="side-button-bar">
+          <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
+            {{=T("Submit a preprint")}}
+          </a>
+        </div>
+        {{else:}}
+        <div class="side-button-bar">
+          <a href="{{=URL(c='default', f='user', args=['login'])}}" class="btn btn-default" id="cyp-login-button">
+            {{=T('Log in')}}
+          </a>
+          <label>{{=T(' or ')}}</label>
+          <a href="{{=URL(c='default', f='user', args=['register'])}}" class="btn btn-info">
+            {{=T('Register')}}
+          </a>
+          <br>
+          <a href="{{=URL('user', 'new_submission')}}" class="btn btn-success pci-public">
+            {{=T("Submit a preprint")}}
+          </a>
+        </div>
+      {{pass}}
+      {{include 'snippets/footer.html'}}
+    {{end}}
+  </div>
+</div>
 
     <!-- Bootstrap and web2py javascript =============================== -->
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
     {{block page_js}} {{end page_js}}
  	  <script>$('.web2py_paginator').clone().insertBefore($('.web2py_table'));</script>
-    
+
 	
     <!-- other scripts ======================================== -->
     {{if 'script' in globals():}}
@@ -227,7 +225,9 @@
 	
     <!-- The footer =============================== -->
 	  <footer class="footer span12 flex-container" id="footer">
+      {{block footer}}
       {{include 'snippets/footer.html'}}   
+      {{end}}
 	  	<!--div class="footer-content">
 	  		{{block footer}}
 	  		{{if response.footer_menu:}}

@@ -110,24 +110,6 @@ def _BaseMenu(footerMenu=False):
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-search"), T("Search articles")), False, URL("articles", "recommended_articles")),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("All recommended articles")), False, URL("articles", "all_recommended_articles")),
     ]
-    aboutMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-text-color"), T("About")), False, URL("about", "about")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-thumbs-up"), T("Recommenders")), False, URL("about", "recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-heart"), T("Thanks to Reviewers")), False, URL("about", "thanks_to_reviewers")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Code of Conduct")), False, URL("about", "ethics")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Contact & Credits")), False, URL("about", "contact")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("General Terms of Use")), False, URL("about", "gtu")),
-    ]
-    helpMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How does it work?")), False, URL("help", "help_generic")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Authors")), False, URL("help", "guide_for_authors")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Reviewers")), False, URL("help", "guide_for_reviewers")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Recommenders")), False, URL("help", "guide_for_recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Become a Recommender")), False, URL("help", "become_a_recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How to...?")), False, URL("help", "help_practical")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("FAQs")), False, URL("help", "faq")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-pencil"), T("How should you cite an article?")), False, URL("help", "cite")),
-    ]
 
     if tracking:
         articleMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tasks"), T("Progress log")), False, URL("articles", "tracking")))
@@ -141,8 +123,6 @@ def _BaseMenu(footerMenu=False):
         homeLink,
         # (T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
         (SPAN(I(_class="glyphicon glyphicon-book"), T("Articles")), isArticleActive, "#", articleMenu),
-        (SPAN(I(_class="glyphicon glyphicon-tasks"), T("About")), isArticleActive, "#", aboutMenu),
-        (SPAN(I(_class="glyphicon glyphicon-question-sign"), T("Help")), isArticleActive, "#", helpMenu),
     ]
     return menuBar
 
@@ -201,7 +181,7 @@ def _AdminMenu():
         LI(_class="divider"),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_help_text", "help_texts", user_signature=True)),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_text", "help_texts", user_signature=True)),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True)),
         LI(_class="divider"),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True))
@@ -469,100 +449,31 @@ def _ManagerMenu():
 
 
 def _AboutMenu():
-    ctr = request.controller
-    isActive = False
-    if ctr == "about":
-        isActive = True
-
-    aboutMenu = []
-
-    aboutMenu += [
-        (T("About", lazy=False) + appName, False, URL("about", "about")),
+    aboutMenu = [
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-text-color"), T("About")), False, URL("about", "about")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-thumbs-up"), T("Recommenders")), False, URL("about", "recommenders")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-heart"), T("Thanks to Reviewers")), False, URL("about", "thanks_to_reviewers")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Code of Conduct")), False, URL("about", "ethics")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Contact & Credits")), False, URL("about", "contact")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("General Terms of Use")), False, URL("about", "gtu")),
     ]
 
-    if not pciRRactivated:
-        aboutMenu += [
-            (T("PCI and journals", lazy=False), False, "https://peercommunityin.org/pci-and-journals/"),
-        ]
-
-    if pciRRactivated:
-        aboutMenu += [
-            (T("Full Policies and Procedures"), False, URL("about", "full_policies")),
-            LI(_class="divider"),
-            (T("List of PCI RR-friendly Journals"), False, URL("about", "pci_rr_friendly_journals")),
-            (T("List of PCI RR-interested Journals"), False, URL("about", "pci_rr_interested_journals")),
-            (T("Apply to become a Journal Adopter"), False, URL("about", "become_journal_adopter")),
-            (T("Journal Adopter FAQ"), False, URL("about", "journal_adopter_faq")),
-        ]
-
-    aboutMenu += [
-        LI(_class="divider"),
-        (T("Recommenders", lazy=False), False, URL("about", "recommenders")),
-        (T("Thanks to Reviewers", lazy=False), False, URL("about", "thanks_to_reviewers")),
-        LI(_class="divider"),
-        (T("Code of conduct", lazy=False), False, URL("about", "ethics")),
-        (T("Contact & credits", lazy=False), False, URL("about", "contact")),
-        (T("General Terms of Use", lazy=False), False, URL("about", "gtu")),
-    ]
-
-    return [(SPAN(I(_class="glyphicon glyphicon-info-sign"), T("About")), isActive, "#", aboutMenu)]
+    return [(SPAN(I(_class="glyphicon glyphicon-info-sign"), T("About")), True, "#", aboutMenu)]    
 
 
 def _HelpMenu():
-    ctr = request.controller
-    isActive = False
-    if ctr == "help":
-        isActive = True
-
-    helpMenu = []
-
-    if pciRRactivated:
-        helpMenu += [
-            (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
-            LI(_class="divider"),
-            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
-            LI(_class="divider"),
-            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
-            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
-            (T("TOP Guidelines"), False, URL("help", "top_guidelines")),
-            LI(_class="divider"),
-        ]
-    elif showGuideLines:
-        helpMenu += [
-            (T("How does it work?"), False, URL("help", "help_generic")),
-            LI(_class="divider"),
-            (T("Submission guidelines"), False, URL("help", "help_guidelines")),
-            LI(_class="divider"),
-            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
-            LI(_class="divider"),
-            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
-            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
-            LI(_class="divider"),
-        ]
-    else:
-        helpMenu += [
-            (T("How does it work?"), False, URL("help", "help_generic")),
-            LI(_class="divider"),
-            (T("Guide for Authors"), False, URL("help", "guide_for_authors")),
-            LI(_class="divider"),
-            (T("Guide for Reviewers"), False, URL("help", "guide_for_reviewers")),
-            LI(_class="divider"),
-            (T("Guide for Recommenders"), False, URL("help", "guide_for_recommenders")),
-            (T("Become a Recommender"), False, URL("help", "become_a_recommenders")),
-            LI(_class="divider"),
-        ]
-
-    helpMenu += [
-        (T("How to ...?"), False, URL("help", "help_practical")),
-        (T("FAQs", lazy=False), False, URL("help", "faq")),
+    helpMenu = [
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How does it work?")), False, URL("help", "help_generic")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Authors")), False, URL("help", "guide_for_authors")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Reviewers")), False, URL("help", "guide_for_reviewers")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Recommenders")), False, URL("help", "guide_for_recommenders")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Become a Recommender")), False, URL("help", "become_a_recommenders")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How to...?")), False, URL("help", "help_practical")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("FAQs")), False, URL("help", "faq")),
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-pencil"), T("How should you cite an article?")), False, URL("help", "cite")),
     ]
 
-    if not pciRRactivated:
-        helpMenu += [
-            (T("How should you cite an article?", lazy=False), False, URL("help", "cite")),
-        ]
-
-    return [(SPAN(I(_class="glyphicon glyphicon-question-sign"), T("Help")), isActive, "#", helpMenu)]
+    return [(SPAN(I(_class="glyphicon glyphicon-question-sign"), T("Help")), True, "#", helpMenu)]
 
 
 def _AccountMenu():
