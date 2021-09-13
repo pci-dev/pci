@@ -104,7 +104,7 @@ def getSendMessageForm(auth, db, user):
     
     return FORM(
         DIV(
-            P("We welcome your suggestions on who might be a suitable reviewer for this article. Please enter the names of suggested reviewers here:")
+            P("We welcome your suggestions on who might be a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):")
         ),
         DIV(
             TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _style="resize: none")
