@@ -1786,8 +1786,18 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, recommendationI
         if article:
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["articleTitle"] = article.title
+            #mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
+            mail_vars["linkTarget"] = URL(
+                c="recommender",
+                f="my_recommendations",
+                scheme=mail_vars["scheme"],
+                host=mail_vars["host"],
+                port=mail_vars["port"],
+                vars=dict(pressReviews=article.already_published),
+            )
     
-            mail_vars["suggestedReviewersText"] = WIKI(suggested_reviewers_text, safe_mode=False)
+            mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
     
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
