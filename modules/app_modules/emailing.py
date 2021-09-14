@@ -1775,19 +1775,18 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
 
 
 ######################################################################################################################################################################
-def send_to_recommender_reviewers_suggestions(session, auth, db, recommendationId, suggested_reviewers_text):
-    print("send_reviewer_invitation")
+def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recomm = db.t_recommendations[recommendationId]
+    recomm = db.t_recommendations[review.recommendation_id]
     if recomm:
         article = db.t_articles[recomm.article_id]
         if article:
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
             mail_vars["articleTitle"] = article.title
-            #mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
             mail_vars["linkTarget"] = URL(
                 c="recommender",
                 f="my_recommendations",

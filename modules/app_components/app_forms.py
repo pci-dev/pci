@@ -98,10 +98,7 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
 
 
 ######################################################################################################################################################################
-def getSendMessageForm(auth, db, user):
-    userName = common_small_html.mkUser_U(auth, db, user)
-    userMail = user.email
-    
+def getSendMessageForm(declineKey):
     return FORM(
         DIV(
             P("We welcome your suggestions on who might be a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):")
@@ -113,6 +110,7 @@ def getSendMessageForm(auth, db, user):
             BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _class="btn btn-success", _style="margin: 15px 0"),
             _class="pci2-flex-center",
         ),
-        _class="",
-        _style="max-width: 800px; width 100%"
+        hidden={"declineKey":declineKey},
+        _action=URL("send_suggested_reviewers"),
+        _style="max-width: 800px; display: inline-block",
     )
