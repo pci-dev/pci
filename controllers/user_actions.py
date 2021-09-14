@@ -10,6 +10,8 @@ from app_modules.helper import *
 
 from controller_modules import user_module
 from app_modules import common_small_html
+from app_components import app_forms
+from app_modules import emailing
 
 # frequently used constants
 csv = False  # no export allowed
@@ -193,6 +195,8 @@ def decline_review(): # no auth required
 
     review = db.t_reviews[reviewId]
 
+    form = None
+
     if review is None:
         message = "Review '{}' not found".format(reviewId)
     elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
@@ -208,9 +212,26 @@ def decline_review(): # no auth required
             db(db.auth_user.id == review.reviewer_id).delete()
 
         message = T("Thank you for taking the time to decline this invitation!")
+        form = app_forms.getSendMessageForm(review.quick_decline_key)
 
     response.view = "default/info.html"
-    return dict(message=message)
+    return dict(
+        message=CENTER(
+            H4(message, _class="decline-review-title"),
+            form if form else DIV(_style="height: 20em;"),
+        )
+    )
+
+def send_suggested_reviewers():
+    text = request.post_vars.suggested_reviewers_text
+    review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
+
+    if not text or not review: redirect(URL(c="default", f="index"))
+
+    emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
+
+    response.view = "default/info.html"
+    return dict(message=H4(T("Thank you for your suggestion!")), _class="decline-review-title")
 
 
 ######################################################################################################################################################################

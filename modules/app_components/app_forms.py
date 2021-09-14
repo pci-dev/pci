@@ -1,10 +1,11 @@
 from re import match
+from copy import deepcopy
 
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon import current
 
-from copy import deepcopy
+from app_modules import common_small_html
 
 ######################################################################################################################################################################
 # New common modules
@@ -93,4 +94,23 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
         ),
         _class="pci2-search-form",
         _action=actionForm
+    )
+
+
+######################################################################################################################################################################
+def getSendMessageForm(declineKey):
+    return FORM(
+        DIV(
+            P("We welcome your suggestions on who might be a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):")
+        ),
+        DIV(
+            TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _style="resize: none")
+        ),
+        DIV(
+            BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _class="btn btn-success", _style="margin: 15px 0"),
+            _class="pci2-flex-center",
+        ),
+        hidden={"declineKey":declineKey},
+        _action=URL("send_suggested_reviewers"),
+        _style="max-width: 800px; display: inline-block",
     )

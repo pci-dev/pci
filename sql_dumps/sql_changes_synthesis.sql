@@ -207,6 +207,23 @@ ALTER TABLE public.t_articles
 -- 28/07/2021
 ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q32 boolean;
 
+-- 06/09/2021
+\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p><p>the reviewer that just declined your invitation to review the report entitled {{articleTitle}} suggests the following reviewers:</p><p>{{suggestedReviewersText}}</p><p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —> Report(s) you are handling\’ in the top menu.</p><p>We thank you again for managing this evaluation.</p><p>All the best,<br>The Managing Board of {{appName}}</p>'
+\set DESCRIPTION 'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers'
+
+-- For PCi RR
+-- note: replace preprint(s) with reports for RR
+INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
+VALUES
+(E'#RecommenderSuggestedReviewersStage1',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage2',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage1ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage2ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT');
+
+-- For other PCis
+INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
+VALUES
+(E'#RecommenderSuggestedReviewers',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT');
 
 -- 07/09/2021
 --

@@ -1775,6 +1775,38 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
 
 
 ######################################################################################################################################################################
+def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    recomm = db.t_recommendations[review.recommendation_id]
+    if recomm:
+        article = db.t_articles[recomm.article_id]
+        if article:
+            mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+            mail_vars["articleTitle"] = article.title
+            mail_vars["linkTarget"] = URL(
+                c="recommender",
+                f="my_recommendations",
+                scheme=mail_vars["scheme"],
+                host=mail_vars["host"],
+                port=mail_vars["port"],
+                vars=dict(pressReviews=article.already_published),
+            )
+    
+            mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
+    
+            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+    
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    
+    emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
+######################################################################################################################################################################
 def send_change_mail(session, auth, db, userId, dest_mail, key):
     print("send_change_mail")
     mail = emailing_tools.getMailer(auth)
