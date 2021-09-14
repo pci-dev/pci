@@ -1,40 +1,3 @@
-<div class="footer-sub flex-item hide-desktop">
-    <header>
-      <h1 class="pci-h1 first-pci-h1">FOLLOW US</h1>
-    </header>
-    <hr class="hr-footer">
-    <div class="footer-sub-text">
-      {{ if 'tweeterAcc' in locals(): }}
-        <a href="https://twitter.com/{{=tweeterAcc}}" target="_blank">
-          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
-          @{{=tweeterAcc}}
-        </a>
-      {{ else: }}
-        <a href="https://twitter.com/PeerCommunityIn" target="_blank">
-          <img src="{{=URL('static','images/pci-twitter.png')}}" id="pci-twitter">
-          @PeerCommunityIn
-        </a>
-      {{ pass }}
-    </div>
-
-    <div class="hide-below-tablet">
-      <header>
-        <h1 class="pci-h1">SUPPORTERS</h1>
-      </header>
-      <hr class="hr-footer">
-      <div class="footer-sub-text">
-        {{=getText(request, auth, db, '#SideBarSponsor')}}
-        
-        <div id="ms">MAIN SPONSOR</div>
-        {{=getText(request, auth, db, '#SideBarSupporters')}}
-        <a href="https://peercommunityin.org/pci-network/" target="_blank">
-          <strong>ALL SUPPORTERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
-        </a>
-      </div>
-
-    </div>
-  </div>
-
   <div class="footer-sub flex-item recommenders hide-desktop">
     <header>
       <h1 class="pci-h1">MANAGING BOARD</h1>
@@ -69,47 +32,6 @@
       <div class="footer-sub-text">
         {{=getText(request, auth, db, '#SideBarIndex')}}
       </div>
-    </div>
-  </div>
-
-  <div class="footer-sub flex-item supporters show-below-tablet">
-    <header>
-      <h1 class="pci-h1">SUPPORTERS</h1>
-    </header>
-    <hr class="hr-footer">
-    <div class="footer-sub-text">
-      {{=getText(request, auth, db, '#SideBarSponsor')}}
-      <div id="ms">MAIN SPONSOR</div>
-      {{=getText(request, auth, db, '#SideBarSupporters')}}
-      <a href="https://peercommunityin.org/pci-network/" target="_blank">
-        <strong>ALL SUPPORTERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
-      </a>
-    </div>
-  </div>
-
-  <div class="footer-sub flex-item memberships show-below-tablet">
-    <header>
-      <h1 class="pci-h1">MEMBER OF</h1>
-    </header>
-    <hr class="hr-footer">
-    <div class="footer-sub-text">
-      <img class="img-supporter img-supporter-3" src="{{=URL('static','images/Logo-COPE.png')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/crossref-logo-landscape-200.svg')}}"><br>
-      <img class="img-supporter img-supporter-3" src="{{=URL('static','images/clockss-boxed-logo-150w.png')}}"><br>
-      <img class="img-supporter" src="{{=URL('static','images/crossref-similarity-check-logo-200.svg')}}"><br>
-    <!--a href="https://peercommunityin.org/pci-network/" target="_blank">
-        <strong>SEE ALL</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}">
-      </a-->
-    </div>
-  </div>
-
-  <div class="footer-sub flex-item memberships show-below-tablet">
-    <header>
-      <h1 class="pci-h1">INDEX BY</h1>
-    </header>
-    <hr class="hr-footer">
-    <div class="footer-sub-text">
-      {{=getText(request, auth, db, '#SideBarIndex')}}
     </div>
   </div>
 

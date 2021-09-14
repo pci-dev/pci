@@ -97,6 +97,22 @@
 
     <!-- Navbar ======================================= -->
     <nav class="navbar">
+      <div class="navbar-header"> 
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        {{=response.logo or ''}}
+      </div>
+
+      <div class="main-logo">
+        <a href="{{=URL(c='default', f='index')}}">
+          <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
+        </a>
+      </div>
+
       <div class="collapse navbar-collapse navbar-ex1-collapse">
         {{if response.menu:}}
           {{=MENU(response.menu, _class='nav navbar-nav', li_class='dropdown', ul_class='dropdown-menu')}}
@@ -106,11 +122,6 @@
         {{pass}}
       </div>
   
-      <div class="main-logo">
-        <a href="{{=URL(c='default', f='index')}}">
-          <img src="{{=URL('static','images/pci-logo.svg')}}" id="pci-logo">
-        </a>
-      </div>
     </nav>  
 
     <!-- Masthead ===================================== -->
@@ -128,7 +139,6 @@
     {{end}}
     <!-- Main ========================================= -->
 
-    <!-- Page Title -->
     <!-- Page Title -->
     {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
       {{include 'snippets/page_title.html'}}   
@@ -225,17 +235,16 @@
 	
     <!-- The footer =============================== -->
 	  <footer class="footer span12 flex-container" id="footer">
-      {{block footer}}
+	  	<div class="footer-content">
       {{include 'snippets/footer.html'}}   
-      {{end}}
-	  	<!--div class="footer-content">
-	  		{{block footer}}
+
+        <!--{{block footer}}
 	  		{{if response.footer_menu:}}
 	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
 	  		{{pass}}
 	  		  {{=getText(request, auth, db, '#Footer')}}
 	  		{{end}}
-	  	</div-->
+	  	</div>-->
     </footer>
   
     <!-- Share page on social media link =============================== -->

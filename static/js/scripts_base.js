@@ -62,12 +62,16 @@ function change_back() {
 }
 
 
-// fix footer to bottom of page if there is not enough content on the page
-var body = document.querySelector('body');
-/*if (body.clientHeight - 330 < window.innerHeight) {
-    var footer = document.querySelector('footer');
-    footer.style.position = 'absolute';
-    footer.style.bottom = '0';
-    footer.style.left = '0';
-    footer.style.right = '0';
-}*/
+// observe the height of the dynamic navbar to also allow the content to shift down
+var nav_height = document.querySelector('nav').offsetHeight;
+try {
+    var header_large = document.querySelector('#pci-home-header-large');
+    header_large.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+}
+catch {
+    var header = document.querySelector('#pci-small-header');
+    header.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+}
+
+
+console.log(nav_height);
