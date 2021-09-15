@@ -106,12 +106,12 @@ def show_coar_status():
 
 def show_coar_requests():
     text = "\n".join([
-        "%s = %s / %s / %s / <a href=\"%s\">link</a>" % (
+        "<tt>%s</tt> = %s / %s / <a href=\"%s\">%s</a>" % (
             x.id,
             x.direction,
             get_request_type(x.body),
-            get_person_name(x.body),
             get_object_ref(x.body),
+            get_person_name(x.body),
         )
         for x in db(
             db.t_coar_notification.direction == "Outbound"
