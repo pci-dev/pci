@@ -7,5 +7,4 @@ psycopg2-binary
 dateutils
 pillow
 rdflib
-rdflib-jsonld
 requests
