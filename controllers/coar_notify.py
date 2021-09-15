@@ -137,10 +137,6 @@ def get_request_type(body):
 import re
 
 def get_person_name(body):
-    req_type = get_type(body)
-
-    if not req_type: return ""
-
     name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
 
     return name[1] if name else "(anonymous)"
