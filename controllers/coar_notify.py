@@ -106,10 +106,11 @@ def show_coar_status():
 
 def show_coar_requests():
     text = "\n".join([
-        "%s = %s / %s / %s" % (
+        "<tt>%s</tt> = %s / %s / <a href=\"%s\">%s</a>" % (
             x.id,
             x.direction,
             get_request_type(x.body),
+            get_object_ref(x.body),
             get_person_name(x.body),
         )
         for x in db(
@@ -136,8 +137,11 @@ def get_request_type(body):
 import re
 
 def get_person_name(body):
-    req_type = get_type(body)
+    name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
 
-    if not req_type: return ""
+    return name[1] if name else "(anonymous)"
 
-    return re.sub(r'.*"@value": *"([^"]*)".*', r'\1', body.replace('\n', ''))
+def get_object_ref(body):
+    obj_ref = re.match(r'.*/activitystreams#object": *\[ *{ *"@id": *"([^"]+)".*', body.replace('\n', ''))
+
+    return obj_ref[1] if obj_ref else "(no object ref)"
