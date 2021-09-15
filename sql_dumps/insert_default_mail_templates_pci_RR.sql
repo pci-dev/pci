@@ -144,12 +144,13 @@ VALUES
 (E'#RecommenderDecisionSentBackStage1',E'default',E'{{appName}}: Decision sent back by managers',E'Mail to recommender to indicate that the decision is now reopened (decision modifications, reviewers invitations...)',E'<p>Need to be filled</p>'),
 (E'#RecommenderDecisionSentBackStage2',E'default',E'{{appName}}: Decision sent back by managers',E'Mail to recommender to indicate that the decision is now reopened (decision modifications, reviewers invitations...)',E'<p>Need to be filled</p>');
 
-\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p><p>the reviewer that just declined your invitation to review the report entitled {{articleTitle}} suggests the following reviewers:</p><p>{{suggestedReviewersText}}</p><p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget</a> or by logging onto the {{appName}} website and going to \'For recommenders —> Report(s) you are handling\’ in the top menu.</p><p>We thank you again for managing this evaluation.</p><p>All the best,<br>The Managing Board of {{appName}}</p>'
+\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>The reviewer that just declined your invitation to review the report entitled <strong>{{articleTitle}}</strong> suggests the following reviewers:</p>\n<p>{{suggestedReviewersText}}</p>\n<p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —&gt; Preprint(s) you are handling’ in the top menu.</p>\n<p>We thank you again for managing this evaluation.</p>\n<p>All the best,<br>The Managing Board of {{appName}}</p>'
 \set DESCRIPTION 'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers'
+\set SUBJECT '{{appName}}: suggested reviewers'
 
 INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
-(E'#RecommenderSuggestedReviewersStage1',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage2',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage1ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage2ScheduledSubmission',E'default',E'{{appName}}: Reviewers suggestions from an invited reviewer',:'DESCRIPTION',:'TEMPLATE_TEXT');
+(E'#RecommenderSuggestedReviewersStage1',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage2',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage1ScheduledSubmission',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
+(E'#RecommenderSuggestedReviewersStage2ScheduledSubmission',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
