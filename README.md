@@ -19,7 +19,9 @@ Additional requirements: libimage-exiftool-perl
 Suggestion: use a python virtual env
 
 ```bash
-make py.venv
+	sudo apt-get install virtualenvwrapper
+	mkvirtualenv pci --python=`which python3.8`
+
 ```
 
 Install all required components:
@@ -169,7 +171,7 @@ Both outbound notifications (to the remote service at `inbox_url`)
 and inbound notifications (posted to `coar_notify/inbox`)
 are stored in table `t_coar_notifications` in the pci database.
 
-The COAR sub-system requires the following extra python libs: rdflib, rdflib-jsonld, requests.
+The COAR sub-system requires the following extra python libs: rdflib (and dependencies), requests.
 In a `mod_wsgi` deployment, a straight install with pip3 will not make the libs available to web2py.
 To fix the issue, copy the directories installed by pip3 in `~/.local/lib/python3.8/site-packages`
 directly into your web2py apps directory under `modules/`.

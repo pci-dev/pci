@@ -1437,9 +1437,9 @@ db.define_table(
     Field(
         "q26",
         type="string",
-        label=T(
+        label=SPAN(
             T("3. Have all raw and processed "),
-            SPAN("study data", _style="text-decoration: underline"),
+            SPAN(T("study data"), _style="text-decoration: underline"),
             T(" that are necessary and sufficient to reproduce all analyses and data presentations been made freely and publicly available?"),
         ),
         requires=IS_EMPTY_OR(
