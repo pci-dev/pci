@@ -188,7 +188,7 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
     
-    if article.anonymous_submission and article.status is not "Recommended":
+    if article.anonymous_submission and article.status != "Recommended":
         authors = "[anonymous submission]"
     else:
         authors = article.authors
