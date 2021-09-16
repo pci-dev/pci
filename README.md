@@ -19,7 +19,9 @@ Additional requirements: libimage-exiftool-perl
 Suggestion: use a python virtual env
 
 ```bash
-make py.venv
+	sudo apt-get install virtualenvwrapper
+	mkvirtualenv pci --python=`which python3.8`
+
 ```
 
 Install all required components:

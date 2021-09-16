@@ -32,10 +32,6 @@ db.clean:
 
 psql = sudo -iu postgres psql
 
-py.venv:
-	type -t mkvirtualenv || sudo apt-get install virtualenvwrapper
-	mkvirtualenv pci --python=`which python3.8`
-
 start:
 	web2py/web2py.py --password pci &
 
