@@ -57,6 +57,11 @@ upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
         IS_EMPTY_OR(IS_FILE(extension=extensions)),
 ]
 
+if pciRRactivated:
+    from app_modules.languages import use_language_file
+    use_language_file("default_RR.py")
+
+
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
     # if NOT running on Google App Engine use SQLite or other DB
