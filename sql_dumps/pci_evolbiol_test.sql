@@ -1694,6 +1694,10 @@ CREATE TABLE public.t_report_survey (
     q29 boolean,
     q30 character varying(256),
     q31 character varying(128),
+    q32 boolean,
+    q1_1 character varying(1024),
+    q1_2 character varying(256),
+
     temp_art_stage_1_id integer
 );
 
