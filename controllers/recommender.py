@@ -1921,6 +1921,8 @@ def edit_recommendation():
         else:
             fields = ["no_conflict_of_interest", "recommendation_title", "recommendation_comments", "recommender_file", "recommender_file_data"]
 
+        db.t_recommendations.recommendation_comments.requires = IS_NOT_EMPTY()
+
         form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
         if isPress is False:
             form.insert(0, triptyque)
