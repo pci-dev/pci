@@ -547,6 +547,7 @@ db.define_table(
     "t_articles",
     Field("id", type="id"),
     Field("anonymous_submission", type="boolean", label=T("I wish an anonymous submission (submitter concealed from reviewers)"), default=False),
+    Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are Managing Board member"), default=False),
     Field("title", type="string", length=1024, label=T("Title"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
