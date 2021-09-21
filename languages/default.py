@@ -939,6 +939,7 @@
     "Your reviews": "Your reviews",
     "Your review": "Your review",
     "Your submitted preprints": "Your submitted preprints",
+    "You cannot be anonymous because there is a manager in the authors": "Anonymous submission unavailable: some author[s] are members of the Managing Board, whom have access to reviewers details.",
     "You visited the url %s": "You visited the url %s",
     "You will be able to upload you're review as soon as the author submit his report": "You will be able to upload you're review as soon as the author submit his report",
     "You will be able to upload you're review as soon as the author submit his report.": "You will be able to upload you're review as soon as the author submit his report.",

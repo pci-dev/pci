@@ -939,6 +939,7 @@
     "Your reviews": "Your reviews",
     "Your review": "Your review",
     "Your submitted preprints": "Your submitted reports",
+    "You cannot be anonymous because there is a manager in the authors": "Because a member of the PCI RR Managing Board is a co-author, all reviews might be signed. Please continue with your review only if you are happy for your identity to be known to the authors and published alongside the article in the event of acceptance",
     "You visited the url %s": "You visited the url %s",
     "You will be able to upload you're review as soon as the author submit his preprint.": "You will be able to upload you're review as soon as the author submit his report.",
     " (YOU) ": " (YOU) ",
