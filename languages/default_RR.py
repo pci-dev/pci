@@ -438,7 +438,7 @@
     "Modified On": "Modified On",
     "More": "More",
     "More...": "More...",
-    "Most recent DOI (or URL)": "Most recent DOI (or URL)",
+    "Most recent DOI (or URL)": "Full web address to most recent version of the manuscript (the repository URL if stage 1, the preprint DOI URL if Stage 2)",
     "Most recent recommendations in:": "Most recent recommendations in:",
     "Most recent version of the manuscript": "Most recent version of the manuscript at the above DOI/URL",
     "My closed articles recommendations": "My closed reports recommendations",
