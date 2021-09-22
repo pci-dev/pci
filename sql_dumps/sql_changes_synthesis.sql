@@ -273,3 +273,12 @@ ALTER SEQUENCE public.t_coar_notification_id_seq OWNED BY public.t_coar_notifica
 ALTER TABLE ONLY public.t_coar_notification ALTER COLUMN id SET DEFAULT nextval('public.t_coar_notification_id_seq'::regclass);
 
 --
+
+-- 21/09/2021
+ALTER TABLE t_articles DISABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE t_articles DISABLE TRIGGER distinct_words_trigger;
+
+ALTER TABLE t_articles ADD COLUMN IF NOT EXISTS has_manager_in_authors BOOLEAN;
+
+ALTER TABLE t_articles ENABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE t_articles ENABLE TRIGGER distinct_words_trigger;

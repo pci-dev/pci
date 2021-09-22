@@ -1564,9 +1564,15 @@ def edit_review():
             INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save & Submit Your Review"),
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
-        db.t_reviews.anonymously.label = T("I wish to remain anonymous")
         db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
+        if art.has_manager_in_authors:
+            review.anonymously = False
+            db.t_reviews.anonymously.writable = False
+            db.t_reviews.anonymously.label = T("You cannot be anonymous because there is a manager in the authors")
+        else:
+            db.t_reviews.anonymously.label = T("I wish to remain anonymous")
+
         form = SQLFORM(
             db.t_reviews, record=review, fields=["anonymously", "review", "review_pdf", "no_conflict_of_interest"], showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
