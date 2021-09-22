@@ -595,6 +595,8 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                         )
                 elif review.review_state == "Awaiting response":
                     hideOngoingReview = True
+                elif review.review_state == "Willing to review":
+                    hideOngoingReview = True
 
                 if (
                     (review.reviewer_id == auth.user_id)
