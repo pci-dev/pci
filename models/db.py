@@ -39,10 +39,10 @@ if request.global_settings.web2py_version < "2.14.1":
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
 myconf = AppConfig(reload=True)
+appName = myconf.take("app.name")
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-
 pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -547,7 +547,7 @@ db.define_table(
     "t_articles",
     Field("id", type="id"),
     Field("anonymous_submission", type="boolean", label=T("I wish an anonymous submission (submitter concealed from reviewers)"), default=False),
-    Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are Managing Board member"), default=False),
+    Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are members of the %s Managing Board" % appName), default=False),
     Field("title", type="string", length=1024, label=T("Title"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
