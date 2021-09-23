@@ -107,7 +107,8 @@ def getSendMessageForm(declineKey):
             TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _style="resize: none")
         ),
         DIV(
-            BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _class="btn btn-success", _style="margin: 15px 0"),
+            BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _class="btn btn-success"),
+            BUTTON(current.T("Sorry I have no suggestions"), _type="submit", _name="noluck", _value="1", _class="btn btn-default"),
             _class="pci2-flex-center",
         ),
         hidden={"declineKey":declineKey},
