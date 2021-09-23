@@ -225,8 +225,10 @@ def decline_review(): # no auth required
 def send_suggested_reviewers():
     text = request.post_vars.suggested_reviewers_text
     review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
+    no_suggestions_clicked = request.post_vars.noluck
 
-    if not text or not review: redirect(URL(c="default", f="index"))
+    if not text.strip() or not review or no_suggestions_clicked:
+        redirect(URL(c="default", f="index"))
 
     emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
 
