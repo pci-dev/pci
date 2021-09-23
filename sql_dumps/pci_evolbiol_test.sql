@@ -1382,7 +1382,7 @@ CREATE TABLE public.t_articles (
     picture_rights_ok boolean DEFAULT false,
     ms_version character varying(1024) DEFAULT ''::character varying,
     anonymous_submission boolean DEFAULT false,
-    has_manager_in_authors BOOLEAN,
+    has_manager_in_authors BOOLEAN DEFAULT false,
     cover_letter text,
     parallel_submission boolean DEFAULT false,
     is_searching_reviewers boolean DEFAULT false,
