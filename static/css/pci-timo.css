@@ -310,9 +310,8 @@
     .pci-public {
         color: white;
         background-color: rgba(0,150,190);
-        width: 14rem;
+        width: auto;
         border-radius: 0;
-        margin: 1.5rem .5rem 2rem 3rem;
         text-align: left;
     }
 
@@ -322,7 +321,7 @@
     }
 
     .submit-btn .pci-public {
-        width: 16rem;
+        width: auto;
     }
 
     .col-md-9 .pci-public {
@@ -338,7 +337,6 @@
         color: white;
         background-color: rgba(0,150,190);
         border-radius: 0;
-        margin: .5rem .5rem 1.5rem 3rem;
         text-align: left;
     }
 
@@ -514,7 +512,7 @@
     }
 
     .pci2-articles-list .pci-public {
-        width: 6rem;
+        width: auto;
         font-style: normal;
     }
 
@@ -904,10 +902,6 @@
         padding: 1rem;
     }
 
-    .pci-public {
-        margin-top: 3rem;
-    }
-
     .search-wrapper {
         margin-top: 3rem;
     }
@@ -1003,7 +997,7 @@
     }
 
     .pci-recommender {
-        width: 25rem;
+        width: auto;
     }
 
     .main-logo {
@@ -1263,10 +1257,6 @@
     .bam {
         padding-bottom: 1.3rem;
         padding-right: .5rem;
-    }
-
-    .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
-        position: relative;
     }
 
     .web2py_htmltable {
@@ -1568,10 +1558,10 @@
     }
 }
 
-@media only screen and (min-width: 1550px) {
-    /* For this very specific html table that requires more than 1200px */
+/*@media only screen and (min-width: 1550px) {
+
     .web2py_table {
         max-width: 125%;
         width: 125%;
     }
-}
+}*/

@@ -65,8 +65,11 @@ function change_back() {
 // observe the height of the dynamic navbar to also allow the content to shift down
 var nav_height = document.querySelector('nav').offsetHeight;
 try {
-    var header_large = document.querySelector('#pci-home-header-large');
-    header_large.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+    var header = document.querySelector('#pci-home-header-large');
+    if (!header) {
+        header = document.querySelector('#pci-home-header');
+    }
+    header.style.paddingTop = parseInt(nav_height) + 40 + 'px';
 }
 catch {
     var header = document.querySelector('#pci-small-header');
