@@ -9,36 +9,19 @@ DB=$1
 
 update() {
 psql -h mydb1 -p 33648 -U peercom $DB << EOF
+-- 21/09/2021
+ALTER TABLE t_articles DISABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE t_articles DISABLE TRIGGER distinct_words_trigger;
 
--- 06/09/2021
-\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>The reviewer that just declined your invitation to review the preprint entitled <strong>{{articleTitle}}</strong> suggests the following reviewers:</p>\n<p>{{suggestedReviewersText}}</p>\n<p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —&gt; Preprint(s) you are handling’ in the top menu.</p>\n<p>We thank you again for managing this evaluation.</p>\n<p>All the best,<br>The Managing Board of {{appName}}</p>'
-\set DESCRIPTION 'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers'
-\set SUBJECT '{{appName}}: suggested reviewers'
+ALTER TABLE t_articles ADD COLUMN IF NOT EXISTS has_manager_in_authors BOOLEAN DEFAULT false;
 
--- For other PCis
-INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
-VALUES
-(E'#RecommenderSuggestedReviewers',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
+ALTER TABLE t_articles ENABLE TRIGGER auto_last_status_change_trigger;
+ALTER TABLE t_articles ENABLE TRIGGER distinct_words_trigger;
 EOF
 }
 
 update_rr() {
 psql -h mydb1 -p 33648 -U peercom $DB << EOF
-
--- 06/09/2021
-\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>The reviewer that just declined your invitation to review the report entitled <strong>{{articleTitle}}</strong> suggests the following reviewers:</p>\n<p>{{suggestedReviewersText}}</p>\n<p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —&gt; Report(s) you are handling’ in the top menu.</p>\n<p>We thank you again for managing this evaluation.</p>\n<p>All the best,<br>The Managing Board of {{appName}}</p>'
-\set DESCRIPTION 'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers'
-\set SUBJECT '{{appName}}: suggested reviewers'
-
--- For PCi RR
--- note: replace preprint(s) with reports for RR
-
-INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
-VALUES
-(E'#RecommenderSuggestedReviewersStage1',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage2',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage1ScheduledSubmission',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT'),
-(E'#RecommenderSuggestedReviewersStage2ScheduledSubmission',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
 EOF
 }
 
