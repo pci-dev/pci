@@ -10,6 +10,8 @@ PCI=$1
 update() {
 	git fetch
 	git merge
+
+	touch /var/www/peercommunityin/web2py/wsgihandler.py
 }
 
 update
