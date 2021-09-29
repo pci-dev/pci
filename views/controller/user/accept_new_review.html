@@ -58,7 +58,7 @@
     if (
       jQuery("#no_conflict_of_interest").prop("checked") &
       jQuery("#due_time").prop("checked") &
-      jQuery("#anonymous_agreement").prop("checked")
+     (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}})
     ) {
       jQuery(":submit").prop("disabled", false);
     } else {
