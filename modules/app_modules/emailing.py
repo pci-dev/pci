@@ -328,7 +328,12 @@ def send_to_recommender_decision_sent_back(session, auth, db, articleId, newStat
         mail_vars["linkTarget"] = URL(
             c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=True)
         )
-        for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, db.t_recommendations.id, distinct=True):
+        myRecomm = db(db.t_recommendations.article_id == articleId).select(
+                      db.t_recommendations.recommender_id, db.t_recommendations.id,
+                      distinct=True,
+                      orderby=db.t_recommendations.id,
+                      ).last()
+        if myRecomm:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, myRecomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
             mail_vars["articleAuthors"] = article.authors
