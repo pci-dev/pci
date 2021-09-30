@@ -40,6 +40,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
                 actions=[],
             )
             reviewVars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
+            reviewVars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
 
             if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
