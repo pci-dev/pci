@@ -30,7 +30,12 @@ db.clean:
 	$(psql) -c "drop database if exists main"
 	$(psql) -c "drop role if exists pci_admin"
 
-psql = sudo -iu postgres psql
+db.admin:
+	echo "map_admin $$USER postgres" | sudo tee -a /etc/postgresql/*/main/pg_ident.conf
+	sudo sed -i '/local *all *postgres *peer/ s/$$/ map=map_admin/' /etc/postgresql/*/main/pg_hba.conf
+	sudo service postgres restart
+
+psql = psql -U postgres
 
 start:
 	web2py/web2py.py --password pci &
