@@ -30,6 +30,11 @@ Install all required components:
 make install
 ```
 
+Give yourself postgres admin access
+```
+make db.admin
+```
+
 Create PostgreSql database and user
 ```bash
 make db
