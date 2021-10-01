@@ -516,6 +516,10 @@
         font-style: normal;
     }
 
+    .pci2-articles-list .pci-smallBtn { 
+        width: 5.5rem;
+    } 
+
     .pci2-article-row {
         margin-bottom: 2.5rem;
         padding-bottom: .5rem;
@@ -1012,10 +1016,6 @@
         justify-content: left;
     }
 
-    .pci2-flex-center {
-
-    }
-
     .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
         flex-grow: 1;
     }
@@ -1023,6 +1023,10 @@
     .pci2-articles-list .pci2-article-row .pci2-flex-column {
         flex-grow: 1;
         padding-left: 1rem;
+    }
+
+    .pci2-articles-list .pci2-article-row .pci2-article-left-div {
+        flex-grow: 0;
     }
 
     .pci2-articles-list .pci2-flex-center {
@@ -1098,7 +1102,7 @@
     }
 
     .pci-public {
-        width: 17rem;
+        width: auto;
     }
 
     #pci-logo {
@@ -1210,10 +1214,6 @@
     .navbar {
         border-bottom: 0;
         max-width: 120rem;
-    }
-
-    .top-pad {
-        padding-top: 5rem!important;
     }
 
     .navbar > .container-fluid {
