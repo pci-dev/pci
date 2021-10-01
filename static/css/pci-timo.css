@@ -65,10 +65,6 @@
         padding-top: 1rem;
         padding-bottom: 1rem;
     }
-
-    .btn-default:hover {
-        background-color: inherit;
-    }
     
     .pci2-thematics-button,
     .pci2-thematics-button:hover {
@@ -391,12 +387,16 @@
     .button {
         background-color: #0096be!important;
         padding: .5rem 1rem;
-        border-radius: 10%;
+        border-radius: 10%!important;
     }
 
     /*.button > .buttontext:hover {
         background-color: unset!important;
     }*/
+
+    .web2py_table .button > .btn-default.pci-button {
+        padding: 0;
+    }
 
     #pci-home-header img,
     #pci-home-header-large img {
@@ -491,8 +491,8 @@
     }
 
     .pci2-article-image-div > img {
-        min-width: 16rem;
-        max-width: 20rem;
+        min-width: 18rem;
+        max-width: 18rem;
         max-height: unset;
         margin: auto;
         margin-left: 0;
@@ -1025,7 +1025,11 @@
         padding-left: 1rem;
     }
 
-    .pci2-articles-list .pci2-article-row .pci2-article-left-div {
+    .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
+        flex-grow: 1;
+    }
+
+    .pci2-articles-list .pci2-column-under-tablet .pci2-article-left-div {
         flex-grow: 0;
     }
 
@@ -1365,7 +1369,7 @@
     }
 
     .web2py_grid .row_buttons .btn[data-w2p_remove] {
-        margin-left: 4rem;
+        /*margin-left: 4rem; */
     }
 
     .pci-AdminReviewsSynthesis {

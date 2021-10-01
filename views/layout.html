@@ -177,15 +177,6 @@
     {{pass}}
 
     <div class="{{=middle_column}}">
-      {{if not right_sidebar_enabled:}}
-        {{if auth.user:}}
-        <div class="logout-btn-alt">
-          <a href="{{=URL(c='default', f='user', args=['logout'])}}" class="btn btn-default" id="cyp-logout-button">
-            {{=T('Log out')}}
-          </a>
-        </div>
-        {{pass}}
-      {{pass}}
 
       {{block center}}
       {{include}}
@@ -237,7 +228,6 @@
 	  <footer class="footer span12 flex-container" id="footer">
 	  	<div class="footer-content">
       {{include 'snippets/footer.html'}}   
-
         <!--{{block footer}}
 	  		{{if response.footer_menu:}}
 	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
@@ -245,6 +235,8 @@
 	  		  {{=getText(request, auth, db, '#Footer')}}
 	  		{{end}}
 	  	</div>-->
+      {{pass}}
+
     </footer>
   
     <!-- Share page on social media link =============================== -->
