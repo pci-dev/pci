@@ -1016,17 +1016,14 @@
         justify-content: left;
     }
 
-    .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
-        flex-grow: 1;
-    }
-
     .pci2-articles-list .pci2-article-row .pci2-flex-column {
         flex-grow: 1;
         padding-left: 1rem;
     }
 
-    .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div {
-        flex-grow: 1;
+    .pci2-articles-list > .pci2-flex-center > .pci2-article-left-div,
+    .pci2-articles-list > .pci2-flex-row > .pci2-article-left-div {
+        flex-grow: 0;
     }
 
     .pci2-articles-list .pci2-column-under-tablet .pci2-article-left-div {
