@@ -470,6 +470,7 @@
     "No, I would rather not": "No, I would rather not",
     "No recommender considered this article in due time.": "No recommender considered this article in due time.",
     "No records found": "No records found",
+    "no reviewer for review": "This reviewer is no longer in the database",
     "not authorized": "not authorized",
     "Not considered": "Not considered",
     "No thanks, I'd rather not": "No thanks, I'd rather not",

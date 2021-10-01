@@ -1337,7 +1337,7 @@ def send_reviewer_generic_mail():
     response.view = "default/myLayout.html"
 
     def fail(message):
-        session.flash = message
+        session.flash = T(message)
         referrer = request.env.http_referer
         redirect(referrer if referrer else URL("default", "index"))
 
