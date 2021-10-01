@@ -1577,7 +1577,6 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 # Mail for Scheduled submission
 ##########################c############################################################################################################################################
 def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
-    print("send_test_mail")
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
