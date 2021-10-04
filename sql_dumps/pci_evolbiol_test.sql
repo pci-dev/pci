@@ -1020,6 +1020,7 @@ CREATE TABLE public.auth_user (
     alerts character varying(512) DEFAULT '||'::character varying,
     thematics character varying(1024) DEFAULT '||'::character varying,
     cv text,
+    keywords VARCHAR(1024),
     last_alert timestamp without time zone,
     registration_datetime timestamp without time zone DEFAULT statement_timestamp(),
     ethical_code_approved boolean DEFAULT false NOT NULL,

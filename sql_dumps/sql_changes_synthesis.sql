@@ -293,3 +293,7 @@ ALTER TABLE t_articles ENABLE TRIGGER distinct_words_trigger;
 INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
 (E'#ReviewerGenericMail',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
+
+-- 04/10/2021
+
+ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS keywords VARCHAR(1024);
