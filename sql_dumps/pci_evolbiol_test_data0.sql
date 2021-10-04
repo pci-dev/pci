@@ -7,6 +7,3 @@ INSERT INTO public.auth_group (role, description) VALUES ('developper', '');
 SELECT setval('public.auth_user_id_seq', 1);
 INSERT INTO auth_membership (user_id, group_id) SELECT 1, id FROM auth_group;
 INSERT INTO t_thematics (keyword) VALUES ('TEST');
-
--- apply migration step 2021-05-21 (sql_changes_synthesis.sql)
-ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS website VARCHAR(1024);
