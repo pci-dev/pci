@@ -16,6 +16,7 @@ CREATE OR REPLACE FUNCTION public.user_words_trigger_function() RETURNS trigger
 		||coalesce(city, '')||E'\n'||coalesce(country, '')||E'\n'
 		||coalesce(laboratory, '')||E'\n'||coalesce(institution, '')||E'\n'
 		||coalesce(thematics, '')||E'\n'||coalesce(cv, '')||E'\n'
+		||coalesce(keywords, '')||E'\n'
 		))::text, ' '), '''', ''))
 	    FROM auth_user AS a WHERE a.id = NEW.id
 	)
