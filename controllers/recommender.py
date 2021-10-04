@@ -1362,6 +1362,7 @@ def send_reviewer_generic_mail():
     appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
 
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
 
     mail_template = emailing_tools.getMailTemplateHashtag(db, "#ReviewerGenericMail")
 
@@ -1379,7 +1380,7 @@ def send_reviewer_generic_mail():
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMPTY_OR(req_is_email), default="", writable=True),
+        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMPTY_OR(req_is_email), default=sender_email, writable=True),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
