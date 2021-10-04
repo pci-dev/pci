@@ -1333,6 +1333,83 @@ def send_review_cancellation():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def send_reviewer_generic_mail():
+    response.view = "default/myLayout.html"
+
+    def fail(message):
+        session.flash = T(message)
+        referrer = request.env.http_referer
+        redirect(referrer if referrer else URL("default", "index"))
+
+    reviewId = request.vars["reviewId"]
+    if reviewId is None:
+        fail("no review specified")
+    review = db.t_reviews[reviewId]
+    if review is None:
+        fail(f"no such review: {reviewId}")
+    recomm = db.t_recommendations[review.recommendation_id]
+    if recomm is None:
+        fail("no recommendation for review")
+    art = db.t_articles[recomm.article_id]
+    if art is None:
+        fail("no article for review")
+    reviewer = db.auth_user[review.reviewer_id]
+    if reviewer is None:
+        fail("no reviewer for review")
+
+    description = myconf.take("app.description")
+    longname = myconf.take("app.longname")
+    appName = myconf.take("app.name")
+    contact = myconf.take("contacts.managers")
+
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#ReviewerGenericMail")
+
+    # template variables, along with all other locals()
+    destPerson = common_small_html.mkUser(auth, db, review.reviewer_id)
+    recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
+    articleDoi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    articleTitle = art.title
+    articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    req_is_email = IS_EMAIL(error_message=T("invalid email!"))
+
+    form = SQLFORM.factory(
+        Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
+        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMPTY_OR(req_is_email), default=sender_email, writable=True),
+        Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
+        Field("message", label=T("Message"), type="text", default=default_message, required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Send email")
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
+    if form.process().accepted:
+        try:
+            emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
+        except Exception as e:
+            session.flash = (session.flash or "") + T("Email failed.")
+            raise e
+        if auth.user_id == recomm.recommender_id:
+            redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
+        else:
+            redirect(URL(c="manager", f="all_recommendations"))
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        myBackButton=common_small_html.mkBackButton(),
+    )
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 

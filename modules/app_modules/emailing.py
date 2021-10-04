@@ -1577,7 +1577,6 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 # Mail for Scheduled submission
 ##########################c############################################################################################################################################
 def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
-    print("send_test_mail")
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1851,6 +1850,47 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
     reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
 
     emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
+def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
+
+    form.cc
+    form.subject
+    form.message
+
+    mail_content = mk_mail(form.subject, form.message)
+
+    db.mail_queue.insert(
+        user_id             = auth.user_id,
+        dest_mail_address   = reviewer_email,
+        cc_mail_addresses   = form.cc,
+        mail_subject        = form.subject,
+        mail_content        = mail_content,
+
+        article_id          = recomm.article_id,
+        recommendation_id   = recomm.id,
+        mail_template_hashtag = "#ReviewerGenericMail",
+    )
+
+    reports = emailing_tools.createMailReport(True, reviewer_email, reports=[])
+    emailing_tools.getFlashMessage(session, reports)
+
+
+def mk_mail(subject, message):
+    mail_vars = emailing_tools.getMailCommonVars()
+    applogo = URL("static", "images/small-background.png",
+                    scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+    return render(
+        filename=MAIL_HTML_LAYOUT,
+        context=dict(
+            applogo=applogo,
+            appname=mail_vars["appName"],
+            subject=subject_without_appname,
+            content=XML(message),
+        )
+    )
 
 
 ######################################################################################################################################################################
