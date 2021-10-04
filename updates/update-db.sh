@@ -8,7 +8,11 @@ usage() {
 
 # all_pci=$(grep psyco /var/www/peercommunityin/web2py/applications/PCI*/private/appconfig.ini | sed s:.*/::)
 
+if id | grep -q peercom; then
 PSQL="psql -h mydb1 -p 33648 -U peercom"
+else
+PSQL="psql -U postgres"
+fi
 
 update() {
 $PSQL $DB << EOF
