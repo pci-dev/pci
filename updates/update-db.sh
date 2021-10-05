@@ -7,13 +7,6 @@ usage() {
 	show_options
 }
 
-
-if id | grep -q peercom; then
-PSQL="psql -h mydb1 -p 33648 -U peercom"
-else
-PSQL="psql -U postgres"
-fi
-
 update() {
 	$PSQL $DB << EOF
 EOF
@@ -21,6 +14,14 @@ EOF
 
 update_rr() {
 	update
+}
+
+set_psql() {
+	if id | grep -q peercom; then
+		PSQL="psql -h mydb1 -p 33648 -U peercom"
+	else
+		PSQL="psql -U postgres"
+	fi
 }
 
 get_local_db() {
@@ -41,6 +42,8 @@ show_options() {
 	echo "options:"
 	awk '/^\t-/' $0 | tr -d ')'
 }
+
+set_psql
 
 case $1 in
 	""|-h|--help)
