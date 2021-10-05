@@ -15,27 +15,12 @@ PSQL="psql -U postgres"
 fi
 
 update() {
-$PSQL $DB << EOF
--- 30/09/2021
-
-\set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>Regarding your review of the preprint entitled <strong>{{articleTitle}}</strong>,<br><br><br><b><em>**You can edit/write your message to the referee**</em></b><br><br><br></p>\n<p>We thank you again for evaluating this preprint.</p>\n<p>All the best,<br>{{recommenderPerson}} at {{appName}}</p>'
-\set DESCRIPTION 'Generic mail to reviewers for recommender/managers to notify any additional information'
-\set SUBJECT '{{appName}}: about your peer review'
-
-INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
-VALUES
-(E'#ReviewerGenericMail',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
-
--- 04/10/2021
-
-ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS keywords VARCHAR(1024);
-\i sql_dumps/search_functions.sql
+	$PSQL $DB << EOF
 EOF
 }
 
 update_rr() {
-$PSQL $DB << EOF
-EOF
+	update
 }
 
 case $DB in
