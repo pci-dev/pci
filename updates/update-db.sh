@@ -7,15 +7,6 @@ usage() {
 	show_options
 }
 
-update() {
-	$PSQL $DB << EOF
-EOF
-}
-
-update_rr() {
-	update
-}
-
 set_psql() {
 	if id | grep -q peercom; then
 		PSQL="psql -h mydb1 -p 33648 -U peercom"
@@ -35,6 +26,10 @@ db_from_config() {
 get_all_db() {
 	ROOT=/var/www/peercommunityin/web2py/applications
 	cat $ROOT/PCI*/private/appconfig.ini | db_from_config
+}
+
+apply_db() {
+	$PSQL $DB < $(dirname "$0")/$1
 }
 
 show_options() {
@@ -62,9 +57,9 @@ case $1 in
 		echo "unknown option: $1" && exit 1
 		;;
 	pci_registered_reports)
-		update_rr
+		apply_db update_rr.sql
 		;;
 	*)
-		update
+		apply_db update.sql
 		;;
 esac
