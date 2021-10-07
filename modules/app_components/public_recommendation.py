@@ -307,11 +307,19 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
+        recommAuthors = common_small_html.getRecommAndReviewAuthors(
+                        auth, db, recomm=recomm,
+                        with_reviewers=False, linked=True,
+                        host=host, port=port, scheme=scheme,
+                        this_recomm_only=True,
+                        )
+        recommAuthors = SPAN(recommAuthors)
         recommRound -= 1
 
         componentVars = dict(
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
+            recommAuthors=recommAuthors,
             lastChanges=lastChanges,
             recommendationText=recommendationText,
             preprintDoi=preprintDoi,
