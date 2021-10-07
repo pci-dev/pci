@@ -135,7 +135,11 @@ def recommended_articles():
     totalArticles = len(filtered)
     myRows = []
     for row in filtered:
-        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(
+                auth, db, response, Storage(row),
+                withImg=True, withScore=False, withDate=True,
+                withLastRecommOnly=True,
+                )
         if r:
             myRows.append(r)
 
@@ -296,7 +300,11 @@ def all_recommended_articles():
     allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
     myRows = []
     for row in allR:
-        r = article_components.getRecommArticleRowCard(auth, db, response, Storage(row), withImg=True, withScore=False, withDate=True)
+        r = article_components.getRecommArticleRowCard(
+                auth, db, response, Storage(row),
+                withImg=True, withScore=False, withDate=True,
+                withLastRecommOnly=True,
+                )
         if r:
             myRows.append(r)
     n = len(allR)
