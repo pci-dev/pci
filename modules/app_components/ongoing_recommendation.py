@@ -365,7 +365,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         roundNb -= 1
         nbCompleted = 0
         nbOnGoing = 0
-        whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
+        whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable),
+                        host=host, port=port, scheme=scheme,
+                        this_recomm_only=True,
+                        )
 
         # Am I a recommender?
         if recomm.recommender_id == auth.user_id:

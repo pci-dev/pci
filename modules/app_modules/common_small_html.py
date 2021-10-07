@@ -763,19 +763,26 @@ def mkReviewersString(auth, db, articleId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False, host=False, port=False, scheme=False):
+def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False,
+                              host=False, port=False, scheme=False,
+                              this_recomm_only=False,
+                             ):
     whoDidIt = []
 
     if hasattr(recomm, "article_id"):
         article = db(db.t_articles.id == recomm.article_id).select(db.t_articles.id, db.t_articles.already_published).last()
 
     if hasattr(article, "id"):
-        mainRecommenders = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommender_id == db.auth_user.id)).select(
+        select_recomm = ((db.t_recommendations.id == recomm.id)
+                            if this_recomm_only else
+                        (db.t_recommendations.article_id == article.id))
+
+        mainRecommenders = db(select_recomm & (db.t_recommendations.recommender_id == db.auth_user.id)).select(
             db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name
         )
 
         coRecommenders = db(
-            (db.t_recommendations.article_id == article.id)
+            select_recomm
             & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
             & (db.auth_user.id == db.t_press_reviews.contributor_id)
         ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
