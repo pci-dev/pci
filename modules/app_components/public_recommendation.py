@@ -90,7 +90,12 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
         citeRef = A(citeUrl, _href=citeUrl)
 
-    recommAuthors = common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+    recommAuthors = common_small_html.getRecommAndReviewAuthors(
+                        auth, db, article=art,
+                        with_reviewers=False, linked=False,
+                        host=host, port=port, scheme=scheme,
+                        recomm=finalRecomm, this_recomm_only=True,
+                        )
     cite = DIV(
         SPAN(
             B("Cite this recommendation as:", _class="pci2-main-color-text"),
@@ -107,7 +112,12 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-citation",
     )
 
-    whoDidRecomm = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=finalRecomm, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
+    whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
+            auth, db, recomm=finalRecomm,
+            with_reviewers=True, linked=True,
+            host=host, port=port, scheme=scheme,
+            this_recomm_only=True,
+            )
 
     # PDF (if any)
     pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
