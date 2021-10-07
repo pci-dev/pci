@@ -230,7 +230,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             isLastRecomm = True
         else:
             lastChanges = SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else ""
-            recommendationText = WIKI(recomm.recommendation_comments, safe_mode=False) or ""
+            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
             preprintDoi = DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
         reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
