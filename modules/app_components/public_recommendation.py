@@ -141,7 +141,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ),
             ("recomm_altmetric", recomm_altmetric),
             ("cite", cite),
-            ("recommText", WIKI(finalRecomm.recommendation_comments, safe_mode=False or "")),
+            ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode=False)),
             ("pdfLink", pdfLink),
             ("printable", printable),
             ("recommendationPdfLink", recommendationPdfLink),
