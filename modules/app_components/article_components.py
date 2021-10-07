@@ -34,7 +34,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
-def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False):
+def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False):
     if fullURL:
         scheme = myconf.take("alerts.scheme")
         host = myconf.take("alerts.host")
@@ -54,7 +54,12 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     if recomm is None:
         return None
 
-    recommAuthors = common_small_html.getRecommAndReviewAuthors(auth, db, article=article, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
+    recommAuthors = common_small_html.getRecommAndReviewAuthors(
+                        auth, db, article=article,
+                        with_reviewers=True, linked=True,
+                        host=host, port=port, scheme=scheme,
+                        recomm=recomm, this_recomm_only=True,
+                        )
 
     if withDate:
         date = common_small_html.mkLastChange(article.last_status_change)
