@@ -827,7 +827,6 @@
     "This article has not been sent for review elsewhere": "This article has not been sent for review elsewhere",
     "This article have been rejected by the recommendation board.": "This article have been rejected by the recommendation board.",
     "This article is recommended by PCi. The review process is publicly available.": "This article is recommended by PCi. The review process is publicly available.",
-    "This preprint has not been published and has not been sent for review elsewhere": "This preprint has not been published and has not been sent for review elsewhere",
     "This preprint is (or will be) also submitted to a journal": "This preprint is (or will be) also submitted to a journal",
     "This preprint merits a revision": "This preprint merits a revision",
     "Time in Cache (h:m:s)": "Time in Cache (h:m:s)",
