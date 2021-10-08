@@ -225,6 +225,9 @@ h4.pci2-recomm-article-h2 .glyphicon {
   color: #aaa;
   font-weight: bold;
   font-style: italic;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  display: inline-block;
 }
 
 /* Review Rounds */
