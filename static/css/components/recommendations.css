@@ -216,6 +216,10 @@ h4.pci2-recomm-article-h2 .glyphicon {
   font-style: italic;
 }
 
+.pci2-revision-round-preprint-version {
+  margin-bottom: 3em; /* compensate for recomm-text-label: -11px */
+}
+
 .pci2-revision-round-date {
   color: #aaa;
   font-weight: bold;

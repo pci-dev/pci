@@ -234,6 +234,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         lastChanges = ""
         recommendationText = ""
+        preprintVersion = recomm.ms_version
         preprintDoi = ""
         isLastRecomm = False
         if recomms[0].id == recomm.id:
@@ -319,6 +320,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         componentVars = dict(
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
+            preprintVersion=preprintVersion,
             recommAuthors=recommAuthors,
             lastChanges=lastChanges,
             recommendationText=recommendationText,
