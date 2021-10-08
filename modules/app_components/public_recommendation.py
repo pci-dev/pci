@@ -250,7 +250,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         for review in reviewsList:
             if review.anonymously:
                 reviewAuthorAndDate = SPAN(
-                    current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
+                    current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else "")
                 )
 
             else:
@@ -258,7 +258,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                     current.T("Reviewed by"),
                     " ",
                     common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
                 )
 
             reviewText = None
