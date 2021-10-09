@@ -1,2 +1,0 @@
-#crontab
-# 00  16  *  *  *		root	*alerts/sendNewsletterMails
