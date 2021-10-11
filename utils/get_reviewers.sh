@@ -11,7 +11,7 @@ main() {
             echo "usage: $(basename $0) [reviewers|recommenders] [pci_xxx]"
             exit 0
             ;;
-        reviewers|recommenders)
+        reviewers|recommenders|users)
             cmd=$1
             DB=$2
             ;;
@@ -22,6 +22,21 @@ main() {
     esac
 
     get_$cmd
+}
+
+get_users() {
+
+(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
+
+copy (
+
+  select $FIELDS
+  from auth_user
+  order by id
+
+) to stdout with CSV DELIMITER ';' HEADER;
+EOT
+
 }
 
 get_reviewers() {
