@@ -946,4 +946,6 @@
     "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.": "This report has not been published or sent for review elsewhere. I agree not to submit this report to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.",
     "You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter.": "You can indicate anything you want in the box, but be aware that all recommenders and the managing board will be able to read the cover letter.",
     "Reviewers hidden cause you are the submitter of this preprint.": "Reviewers hidden cause you are the submitter of this report.",
+    "Version of the preprint:": "Version of the report:",
+    "DOI or URL of the preprint:": "DOI or URL of the report:",
 }
