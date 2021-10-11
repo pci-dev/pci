@@ -298,3 +298,9 @@ VALUES
 
 ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS keywords VARCHAR(1024);
 -- updated: user_words_trigger_function()  -- see pci_evolbiol_test.sql
+
+
+-- 10/10/2021
+
+update t_reviews set reviewer_details = null
+where reviewer_details is not null and reviewer_id is not null;
