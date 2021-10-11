@@ -90,7 +90,12 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
         citeRef = A(citeUrl, _href=citeUrl)
 
-    recommAuthors = common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+    recommAuthors = common_small_html.getRecommAndReviewAuthors(
+                        auth, db, article=art,
+                        with_reviewers=False, linked=False,
+                        host=host, port=port, scheme=scheme,
+                        recomm=finalRecomm, this_recomm_only=True,
+                        )
     cite = DIV(
         SPAN(
             B("Cite this recommendation as:", _class="pci2-main-color-text"),
@@ -107,7 +112,12 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-citation",
     )
 
-    whoDidRecomm = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=finalRecomm, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
+    whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
+            auth, db, recomm=finalRecomm,
+            with_reviewers=True, linked=True,
+            host=host, port=port, scheme=scheme,
+            this_recomm_only=True,
+            )
 
     # PDF (if any)
     pdf_query = db(db.t_pdf.recommendation_id == finalRecomm.id).select(db.t_pdf.id, db.t_pdf.pdf)
@@ -141,7 +151,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ),
             ("recomm_altmetric", recomm_altmetric),
             ("cite", cite),
-            ("recommText", WIKI(finalRecomm.recommendation_comments, safe_mode=False or "")),
+            ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode=False)),
             ("pdfLink", pdfLink),
             ("printable", printable),
             ("recommendationPdfLink", recommendationPdfLink),
@@ -224,14 +234,15 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         lastChanges = ""
         recommendationText = ""
+        preprintVersion = recomm.ms_version
         preprintDoi = ""
         isLastRecomm = False
         if recomms[0].id == recomm.id:
             isLastRecomm = True
         else:
             lastChanges = SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else ""
-            recommendationText = WIKI(recomm.recommendation_comments, safe_mode=False) or ""
-            preprintDoi = DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
+            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
+            preprintDoi = SPAN(common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
         reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
         reviwesPreparedData = []
@@ -239,7 +250,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         for review in reviewsList:
             if review.anonymously:
                 reviewAuthorAndDate = SPAN(
-                    current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
+                    current.T("Reviewed by") + " " + current.T("anonymous reviewer") + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else "")
                 )
 
             else:
@@ -247,7 +258,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                     current.T("Reviewed by"),
                     " ",
                     common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
                 )
 
             reviewText = None
@@ -297,11 +308,20 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
+        recommAuthors = common_small_html.getRecommAndReviewAuthors(
+                        auth, db, recomm=recomm,
+                        with_reviewers=False, linked=True,
+                        host=host, port=port, scheme=scheme,
+                        this_recomm_only=True,
+                        )
+        recommAuthors = SPAN(recommAuthors)
         recommRound -= 1
 
         componentVars = dict(
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
+            preprintVersion=preprintVersion,
+            recommAuthors=recommAuthors,
             lastChanges=lastChanges,
             recommendationText=recommendationText,
             preprintDoi=preprintDoi,

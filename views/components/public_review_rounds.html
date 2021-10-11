@@ -11,8 +11,10 @@
       <div style="page-break-before: always"></div>
     {{pass}}
 
-    <h2 class="pci2-revision-round-title"><i>Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
+    <h2 class="pci2-revision-round-title"><i>Evaluation round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
     <span class="pci2-revision-round-date"><i>{{=lastChanges}}</i></span>
+    <p class="pci2-revision-round-preprint-doi">{{=T('DOI or URL of the preprint:')}} {{=preprintDoi}}</p>
+    <p class="pci2-revision-round-preprint-version">{{=T('Version of the preprint:')}} {{=preprintVersion}}</p>
   {{pass}}
 
   
@@ -36,7 +38,7 @@
   <!-- do not show round decision if this is the last decision (already shown in last_recommendation.html) -->
   {{if isLastRecomm == False :}}
     <div>
-      <h4 class="pci2-recomm-text-label">{{=T('Decision round')}} #{{=roundNumber}}</h4>
+      <h4 class="pci2-recomm-text-label">{{=T('Decision by')}} {{=recommAuthors}}</h4>
       <div class="pci2-recomm-text">
         {{=recommendationText}}
 
@@ -45,7 +47,6 @@
         {{pass}}
       </div>
     </div>
-    <p>{{=preprintDoi}}</p>
   {{pass}} 
 
   {{for review in reviewsList:}}

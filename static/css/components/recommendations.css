@@ -210,10 +210,24 @@ h4.pci2-recomm-article-h2 .glyphicon {
   margin-bottom: 0px;
 }
 
+.pci2-revision-round-preprint-doi,
+.pci2-revision-round-preprint-version
+{
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.pci2-revision-round-preprint-version {
+  margin-bottom: 3em; /* compensate for recomm-text-label: -11px */
+}
+
 .pci2-revision-round-date {
   color: #aaa;
   font-weight: bold;
   font-style: italic;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  display: inline-block;
 }
 
 /* Review Rounds */
