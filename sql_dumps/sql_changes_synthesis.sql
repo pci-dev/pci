@@ -297,4 +297,4 @@ VALUES
 -- 04/10/2021
 
 ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS keywords VARCHAR(1024);
-\i sql_dumps/search_functions.sql
+-- updated: user_words_trigger_function()  -- see pci_evolbiol_test.sql
