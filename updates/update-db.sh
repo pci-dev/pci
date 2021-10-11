@@ -57,6 +57,7 @@ case $1 in
 		echo "unknown option: $1" && exit 1
 		;;
 	pci_registered_reports)
+		apply_db update.sql
 		apply_db update_rr.sql
 		;;
 	*)
