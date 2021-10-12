@@ -17,4 +17,4 @@ tmp/*
 static/images/RSS_datamatrix.png
 static/images/background.png
 static/images/small-background.png
-
+languages/default.py
