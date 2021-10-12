@@ -57,9 +57,15 @@ upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
         IS_EMPTY_OR(IS_FILE(extension=extensions)),
 ]
 
+from os import system
 if pciRRactivated:
-    from app_modules.languages import use_language_file
-    use_language_file("default_RR.py")
+    #from app_modules.languages import use_language_file
+    #use_language_file("default_RR.py")
+    system("ln -sf %s/languages/default_RR.py %s/languages/default.py" % (current.request.folder, current.request.folder))
+    system("touch %s/languages/default_RR.py" % current.request.folder)
+else:
+    system("ln -sf %s/languages/default_base.py %s/languages/default.py" % (current.request.folder, current.request.folder))
+    system("touch %s/languages/default_base.py" % current.request.folder)
 
 
 if not request.env.web2py_runtime_gae:
