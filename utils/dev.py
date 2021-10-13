@@ -6,14 +6,12 @@ from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
 
 
-def index():
-    if not request.env.path_info.endswith("/"): # menu needs a trailing /
-        redirect(URL(' '))
-
-    return "\n".join([
-        _menu(),
-        log(),
-    ])
+_items = [
+    "log",
+    "status",
+    "update",
+    "force",
+]
 
 
 def log():
@@ -48,19 +46,23 @@ def _curr_branch():
     return _run("git rev-parse --abbrev-ref HEAD").strip()
 
 
-_items = [
-    "log",
-    "status",
-    "update",
-    "force",
-]
+def index():
+    if not request.env.path_info.endswith("/"): # menu needs a trailing /
+        redirect(URL(' '))
 
-def _menu(items=_items):
+    return "\n".join([
+        _menu(_items),
+        log(),
+    ])
+
+
+def _menu(items):
     return " ".join(['<a href="%s">[%s]</a>' % (x,x) for x in items])
 
 
 def _shell(command):
     return "<pre>\n%s</pre>" % _run(command)
+
 
 def _run(command):
     return "".join(
