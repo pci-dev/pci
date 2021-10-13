@@ -33,14 +33,15 @@ def index():
 def version():
     pageTitle = getTitle(request, auth, db, "#VersionTitle")
     customText = getText(request, auth, db, "#VersionInfo")
+    opt = "--decorate --decorate-refs-exclude remotes/origin/*"
     version = Popen(
-        "git log --decorate --oneline HEAD -1" \
+        f"git log {opt} --oneline HEAD -1" \
             .split(" "),
         cwd=request.folder,
         stdout=PIPE,
         stderr=STDOUT,
     ).stdout.read().strip()
-    #return dict(version=version)
+
     response.view = "default/info.html"
     return dict(pageTitle=pageTitle, customText=customText, message=version, shareable=False, currentUrl=URL(c="about", f="version", host=host, scheme=scheme, port=port))
 
