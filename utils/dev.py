@@ -40,7 +40,8 @@ def force():
 
 
 def version():
-    return _shell("git log --decorate --oneline HEAD -1")
+    opt = "--decorate --decorate-refs-exclude remotes/origin/*"
+    return _shell(f"git log {opt} --oneline HEAD -1")
 
 
 def _curr_branch():
