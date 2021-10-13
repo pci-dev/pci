@@ -57,9 +57,17 @@ upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
         IS_EMPTY_OR(IS_FILE(extension=extensions)),
 ]
 
+from os import symlink, path
+def create_symlink(filename):
+    base = current.request.folder
+    target = f"{base}/languages/default.py"
+    if not path.exists(target):
+        symlink(filename, target)
+
 if pciRRactivated:
-    from app_modules.languages import use_language_file
-    use_language_file("default_RR.py")
+    create_symlink("default_RR.py")
+else:
+    create_symlink("default_base.py")
 
 
 if not request.env.web2py_runtime_gae:
