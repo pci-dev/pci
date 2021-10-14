@@ -90,22 +90,36 @@ def ethics():
 
 ######################################################################################################################################################################
 def rss_info():
+    url = _rss_url()
+    img = IMG(_src=URL(c="about", f="rss_flashcode"), _alt="flashcode", _style="margin-left:32px;")
 
+    aurl = DIV(A(url, _href=url), img, _style="text-align:center")
+
+    response.view = "default/info.html"
+    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl)
+
+
+def rss_flashcode():
+    import treepoem
+    import io
+
+    fmt = "png"
+    buf = io.BytesIO()
+    treepoem.generate_barcode(
+        barcode_type="datamatrix",
+        data=_rss_url(),
+    ).save(buf, fmt)
+
+    response.headers['Content-Type'] = f"image/{fmt}"
+    return buf.getvalue()
+
+
+def _rss_url():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     url = URL(c="rss", f="rss", scheme=scheme, host=host, port=port)
-    fname = os.path.dirname(os.path.abspath(__file__)) + "/../static/images/RSS_datamatrix.png"
-
-    if os.path.isfile(fname):
-        datamImg = IMG(_src=URL(c="static", f="images/RSS_datamatrix.png"), _alt="datamatrix", _style="margin-left:32px;")
-    else:
-        datamImg = ""
-
-    aurl = DIV(A(url, _href=url), datamImg, _style="text-align:center")
-
-    response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl)
+    return url
 
 
 ######################################################################################################################################################################
