@@ -116,8 +116,14 @@ class COARNotifier:
                 "http://purl.org/coar/notify",
             ],
             "id": f"urn:uuid:{str(uuid.uuid4())}",
-            "origin": {
+            "actor": {
                 "id": self.base_url,
+                "name": myconf["app"]["name"],
+                "type": ["Service"],
+
+            },
+            "origin": {
+                "id": self.base_url + "coar_notify/",
                 "inbox": self.base_url + "coar_notify/inbox/",
                 "type": ["Service"],
             },
@@ -165,14 +171,12 @@ class COARNotifier:
         return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}#review-{review.id}",
             "type": ["Document", "sorg:Review"],
-            "coar-notify:reviews": self._article_as_jsonld(article),
         }
 
     def _recommendation_as_jsonld(self, recommendation):
         article = self.db.t_articles[recommendation.article_id]
         return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}",
-            "coar-notify:endorses": self._article_as_jsonld(article),
             "type": ["Page", "sorg:WebPage"],
         }
 
@@ -180,13 +184,7 @@ class COARNotifier:
         return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
             "ietf:cite-as": article.doi,
-        }
-
-    def _user_as_jsonld(self, user):
-        return {
-            "id": f"{self.base_url}public/user_public_page?userId={user.id}",
-            "type": ["Person"],
-            "name": f"{user.first_name} {user.last_name}",
+            "type": "sorg:AboutPage",
         }
 
     def review_completed(self, review):
@@ -198,10 +196,11 @@ class COARNotifier:
         if not self.enabled:
             return
 
-        reviewer = self.db.auth_user[review.reviewer_id]
+        recommendation = self.db.t_recommendations[review.recommendation_id]
+        article = self.db.t_articles[recommendation.article_id]
         notification = {
-            "type": ["Announce", "coar-notify:ReviewSuccess"],
-            "actor": {} if review.anonymously else self._user_as_jsonld(reviewer),
+            "type": ["Announce", "coar-notify:ReviewAction"],
+            "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
         }
         self.send_notification(notification)
@@ -215,10 +214,10 @@ class COARNotifier:
         if not self.enabled:
             return
 
-        recommender = self.db.auth_user[recommendation.recommender_id]
+        article = self.db.t_articles[recommendation.article_id]
         notification = {
-            "type": ["Announce", "coar-notify:EndorsementSuccess"],
-            "actor": self._user_as_jsonld(recommender),
+            "type": ["Announce", "coar-notify:EndorsementAction"],
+            "context": self._article_as_jsonld(article),
             "object": self._recommendation_as_jsonld(recommendation),
         }
         self.send_notification(notification)
