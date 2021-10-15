@@ -187,6 +187,13 @@ class COARNotifier:
             "type": "sorg:AboutPage",
         }
 
+    def _user_as_jsonld(self, user):
+        return {
+            "id": f"{self.base_url}public/user_public_page?userId={user.id}",
+            "type": ["Person"],
+            "name": f"{user.first_name} {user.last_name}",
+        }
+
     def review_completed(self, review):
         """Notify that a review has been completed for an article.
 
@@ -197,11 +204,13 @@ class COARNotifier:
             return
 
         recommendation = self.db.t_recommendations[review.recommendation_id]
+        reviewer = self.db.auth_user[review.reviewer_id]
         article = self.db.t_articles[recommendation.article_id]
         notification = {
             "type": ["Announce", "coar-notify:ReviewAction"],
             "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
+            "actor": {} if review.anonymously else self._user_as_jsonld(reviewer),
         }
         self.send_notification(notification)
 
@@ -215,10 +224,12 @@ class COARNotifier:
             return
 
         article = self.db.t_articles[recommendation.article_id]
+        recommender = self.db.auth_user[recommendation.recommender_id]
         notification = {
             "type": ["Announce", "coar-notify:EndorsementAction"],
             "context": self._article_as_jsonld(article),
             "object": self._recommendation_as_jsonld(recommendation),
+            "actor": self._user_as_jsonld(recommender),
         }
         self.send_notification(notification)
 
