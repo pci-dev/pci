@@ -5,6 +5,7 @@ lxml
 orderedmultidict
 psycopg2-binary
 dateutils
+treepoem
 pillow
 rdflib
 requests

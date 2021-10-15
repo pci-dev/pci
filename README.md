@@ -14,7 +14,7 @@ The “Peer Community in” project is a non-profit scientific organization aime
 
 Requirements: Python (3.8 or greater), PostgreSql (9.6 or greater), web2py.
 
-Additional requirements: libimage-exiftool-perl
+Additional requirements: libimage-exiftool-perl, ghostscript (9.26+)
 
 Suggestion: use a python virtual env
 

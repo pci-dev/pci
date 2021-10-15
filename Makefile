@@ -49,8 +49,7 @@ start:	private/appconfig.ini \
 	init
 
 init:	static/images/background.png \
-	static/images/small-background.png \
-	static/images/RSS_datamatrix.png
+	static/images/small-background.png
 
 private/%:
 	cp private/sample.$* $@
