@@ -116,12 +116,6 @@ class COARNotifier:
                 "http://purl.org/coar/notify",
             ],
             "id": f"urn:uuid:{str(uuid.uuid4())}",
-            "actor": {
-                "id": self.base_url,
-                "name": myconf["app"]["name"],
-                "type": ["Service"],
-
-            },
             "origin": {
                 "id": self.base_url + "coar_notify/",
                 "inbox": self.base_url + "coar_notify/inbox/",
