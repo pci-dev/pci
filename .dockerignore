@@ -1,0 +1,14 @@
+Dockerfile
+__pycache__
+node_modules
+cypress
+web2py
+sessions
+errors
+tmp
+.git
+private/appconfig.ini
+private/reminders_config
+static/images/RSS_datamatrix.png
+static/images/background.png
+static/images/small-background.png
