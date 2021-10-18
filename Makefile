@@ -52,11 +52,8 @@ conf:	private/appconfig.ini \
 init:	static/images/background.png \
 	static/images/small-background.png
 
-private/%:
-	cp private/sample.$* $@
-
-static/images/%:
-	cp static/images/sample.$* $@
+private/% static/%:
+	cd $(dir $@) && cp sample.$(notdir $@) $(notdir $@)
 
 test.install:
 	sudo apt-get install npm
@@ -70,8 +67,8 @@ test.setup: test.db cypress/fixtures/users.json
 test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
-cypress/fixtures/%:
-	cp $(dir $@)_$(notdir $@) $@
+cypress/%:
+	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
 test.reset: stop db.clean db test.setup start
 
