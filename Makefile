@@ -1,4 +1,4 @@
-install: web2py pydeps postgresql additional init
+install: web2py pydeps postgresql additional
 
 
 web2py:
@@ -44,9 +44,10 @@ stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
 	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
 
-start:	private/appconfig.ini \
-	private/reminders_config \
-	init
+start: conf init
+
+conf:	private/appconfig.ini \
+	private/reminders_config
 
 init:	static/images/background.png \
 	static/images/small-background.png
