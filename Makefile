@@ -1,4 +1,4 @@
-install: web2py pydeps postgresql additional init
+install: web2py pydeps postgresql additional
 
 
 web2py:
@@ -44,18 +44,16 @@ stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
 	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
 
-start:	private/appconfig.ini \
-	private/reminders_config \
-	init
+start: conf init
+
+conf:	private/appconfig.ini \
+	private/reminders_config
 
 init:	static/images/background.png \
 	static/images/small-background.png
 
-private/%:
-	cp private/sample.$* $@
-
-static/images/%:
-	cp static/images/sample.$* $@
+private/% static/%:
+	cd $(dir $@) && cp sample.$(notdir $@) $(notdir $@)
 
 test.install:
 	sudo apt-get install npm
@@ -69,8 +67,8 @@ test.setup: test.db cypress/fixtures/users.json
 test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
-cypress/fixtures/%:
-	cp $(dir $@)_$(notdir $@) $@
+cypress/%:
+	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
 test.reset: stop db.clean db test.setup start
 
