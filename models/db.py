@@ -666,6 +666,7 @@ def deltaStatus(s, f):
                 # create reminders
                 emailing.create_reminder_for_recommender_reviewers_needed(session, auth, db, o["id"])
                 # delete reminders
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
                 # emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterCancelSubmission", o["id"])
                 emailing.delete_reminder_for_suggested_recommenders(db, "#ReminderSuggestedRecommenderInvitation", o["id"])
