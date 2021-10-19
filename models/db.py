@@ -650,7 +650,6 @@ def deltaStatus(s, f):
                 emailing.send_to_suggested_recommenders(session, auth, db, o["id"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
                 # create reminders
-                emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
                 # emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
@@ -739,6 +738,7 @@ def newArticle(s, articleId):
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
 
     if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
         emailing.create_reminder_for_submitter_shceduled_submission_due(session, auth, db, articleId)
