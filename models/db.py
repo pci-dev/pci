@@ -1023,6 +1023,10 @@ db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommende
 
 def appendSuggRecommender(f, i):
     a = db.t_articles[f.article_id]
+
+    emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", a.id)
+    # note: do NOT delete #ReminderSubmitterNewSuggestedRecommenderNeeded
+
     if a and a["status"] == "Awaiting consideration":
         # BUG : resend to all send to all
         emailing.send_to_suggested_recommender(session, auth, db, a["id"], f["suggested_recommender_id"])
