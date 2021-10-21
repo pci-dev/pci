@@ -239,11 +239,12 @@
 
     .pci2-justify-center #pci-ArticleHeader {
         border: 0;
+        margin-top: 5rem;
     }
 
-    .no-title-page {
+    /*.no-title-page {
         margin-top: 5rem!important;
-    }
+    }*/
 
     .pci2-justify-center .pci2-content-900px {
         margin-left: 2rem;
@@ -1226,6 +1227,10 @@
     html {
         max-width: 120rem;
         margin: auto;
+    }
+
+    .pci2-recomm-backButtonDiv {
+        position: relative!important;
     }
 
     .navbar {

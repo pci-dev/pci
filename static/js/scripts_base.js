@@ -66,11 +66,17 @@ function change_back() {
 var nav_height = document.querySelector('nav').offsetHeight;
 try {
     var header = document.querySelector('#pci-home-header-large');
-    header.style.paddingTop = parseInt(nav_height) + 40 + 'px';
 }
 catch {
     var header = document.querySelector('#pci-small-header');
+}
+
+if (header != null) {
     header.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+}
+else {
+    var main_content = document.querySelector('#main-content');
+    main_content.style.paddingTop = parseInt(nav_height) + 40 + 'px';
 }
 
 try {
