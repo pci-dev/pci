@@ -117,7 +117,7 @@ def _BaseMenu(footerMenu=False):
     if footerMenu:
         homeLink = (SPAN(I(_class="glyphicon glyphicon-home"), T("Home")), isHomeActive, URL("default", "index"))
     else:
-        homeLink = (IMG(_style="height:60px", _src=URL(c="static", f="images/small-background.png")), isHomeActive, URL("default", "index"))
+        homeLink = (IMG(_style="height:40px", _src=URL(c="static", f="images/small-background.png")), isHomeActive, URL("default", "index"))
 
     menuBar = [
         homeLink,

@@ -72,6 +72,14 @@
         border-radius: 0;
     }
 
+    .button > .pci-submitter {
+        background-color: #0096be;
+    }
+
+    .btn {
+        padding: 2px 15px;
+    }
+
     .btn:hover,
     .btn:active,
     .btn:focus {
@@ -233,6 +241,15 @@
         border: 0;
     }
 
+    .no-title-page {
+        margin-top: 5rem!important;
+    }
+
+    .pci2-justify-center .pci2-content-900px {
+        margin-left: 2rem;
+        border: 0;
+    }
+
     .pci2-justify-center .pci2-content-900px {
         margin-left: 2rem;
         border: 0;
@@ -385,9 +402,8 @@
     }
 
     .button {
-        background-color: #0096be!important;
+        /*background-color: #0096be!important;*/
         padding: .5rem 1rem;
-        border-radius: 10%!important;
     }
 
     /*.button > .buttontext:hover {

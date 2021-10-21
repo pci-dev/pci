@@ -254,7 +254,7 @@ def rec():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
-    viewToRender = "controller/articles/public_article_recommendation.html"
+    viewToRender = "controller/articles/public_article_recommendation.html" #xxx
     return dict(
         viewToRender=viewToRender,
         withComments=with_comments,
