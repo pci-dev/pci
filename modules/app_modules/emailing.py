@@ -479,7 +479,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
 def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
-    print("send_to_suggested_recommenders")
+    print("send_to_suggested_recommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
