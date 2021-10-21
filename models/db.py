@@ -646,6 +646,9 @@ def deltaStatus(s, f):
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
 
         else:  # PREPRINTS
+            if f.status in ["Cancelled", "Rejected", "Not considered"]:
+                emailing.delete_all_reminders_from_article_id(db, o.id)
+
             if o.status == "Pending" and f["status"] == "Awaiting consideration":
                 emailing.send_to_suggested_recommenders(session, auth, db, o["id"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
@@ -702,8 +705,6 @@ def deltaStatus(s, f):
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
-                # delete all article reminder
-                emailing.delete_all_reminders_from_article_id(db, o["id"])
 
             elif o["status"].startswith("Pre-") and f["status"] == "Under consideration":
                 emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
