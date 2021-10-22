@@ -33,7 +33,7 @@ db.clean:
 db.admin:
 	echo "map_admin $$USER postgres" | sudo tee -a /etc/postgresql/*/main/pg_ident.conf
 	sudo sed -i '/local *all *postgres *peer/ s/$$/ map=map_admin/' /etc/postgresql/*/main/pg_hba.conf
-	sudo service postgres restart
+	sudo systemctl restart postgresql
 
 psql = psql -U postgres
 
