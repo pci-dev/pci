@@ -206,11 +206,14 @@
             {{=T("Submit a preprint")}}
           </a>
         </div>
-      {{pass}}
+        {{pass}}
       {{include 'snippets/footer.html'}}
-    {{end}}
-  </div>
-</div>
+      {{end}}
+    </div>
+    {{pass}}
+
+    <!-- end div #main-content -->
+    </div>
 
     <!-- Bootstrap and web2py javascript =============================== -->
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
@@ -225,18 +228,18 @@
 		{{pass}}
 	
     <!-- The footer =============================== -->
-	  <footer class="footer span12 flex-container" id="footer">
+    <footer class="footer span12 flex-container" id="footer">
 	  	<div class="footer-content">
-      {{include 'snippets/footer.html'}}   
-        <!--{{block footer}}
+      {{include 'snippets/footer.html'}}
+        <!--
+			{{block footer}}
 	  		{{if response.footer_menu:}}
 	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
 	  		{{pass}}
 	  		  {{=getText(request, auth, db, '#Footer')}}
 	  		{{end}}
-	  	</div>-->
-      {{pass}}
-
+        -->
+	  	</div>
     </footer>
   
     <!-- Share page on social media link =============================== -->
