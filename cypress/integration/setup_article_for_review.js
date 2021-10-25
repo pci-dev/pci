@@ -37,7 +37,8 @@ describe("Preprint recommendation setup for review", () => {
     });
 
     it("Should initate the submission of a preprint", () => {
-      cy.contains(".btn-success", "Submit a preprint").click();
+      cy.contains(".btn-success", "Submit a preprint").click({force: true});
+      // button exists in DOM, but display: none in pci-timo.css => click {force: true}
       cy.contains(".btn-success", "Submit your preprint").click();
     });
 
@@ -64,7 +65,8 @@ describe("Preprint recommendation setup for review", () => {
       cy.contains("a", "Suggest recommenders").click();
       cy.get('input[name="qyKeywords"]').clear();
       cy.get('input[name="qyKeywords"]').typeFast(recommender.firstname);
-      cy.get(".pci2-search-button").click();
+      //cy.get(".pci2-search-button").click(); // search button not shown (pci-timo.css), use enter
+      cy.get('input[name="qyKeywords"]').type("{enter}");
       cy.contains("a", "Suggest as recommender").should("exist");
       cy.contains("a", "Suggest as recommender").click();
     });
@@ -164,7 +166,8 @@ describe("Preprint recommendation setup for review", () => {
       cy.contains(".btn", "Choose a reviewer from the PCI Evol Biol DEV database").click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer.firstname);
-      cy.get(".pci2-search-button").click();
+      //cy.get(".pci2-search-button").click(); // search button not shown (pci-timo.css), use enter
+      cy.get('input[name="qyKeywords"]').type("{enter}");
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });
