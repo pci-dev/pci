@@ -24,6 +24,9 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
+Cypress.Commands.overwrite('log', (subject, message) => cy.task('log', message));
+
+
 Cypress.Commands.add("pciLogin", (user) => {
   cy.clearCookies();
 
