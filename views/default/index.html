@@ -29,7 +29,7 @@
   {{if auth.user:}}
     <a
       href="{{=URL('user', 'new_submission')}}"
-      class="btn btn-success pci-public"
+      class="btn btn-success pci-public submit-front"
     >
       {{=T("Submit a preprint")}}
     </a>
@@ -37,12 +37,9 @@
     {{else:}}
     <a
     	href="{{=URL('user', 'new_submission')}}"
-    	class="btn btn-success pci-public"
+    	class="btn btn-success pci-public submit-front"
       >
     	{{=T("Submit a preprint")}}
-    </a>
-    <a href="{{=URL(c='default', f='user', args=['register'])}}" class="btn btn-success pci-public pci-register hide-desktop">
-      {{=T('Register')}}
     </a>
   {{pass}} 
 
@@ -57,7 +54,7 @@
     {{pass}}
     <a
     	href="{{=URL('recommender', 'fields_awaiting_articles')}}"
-    	class="btn btn-default pci-recommender"
+    	class="btn btn-default pci-recommender require-front"
     >
     	{{=T("Preprints requiring a recommender")}}
     </a>

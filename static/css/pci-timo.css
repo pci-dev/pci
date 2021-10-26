@@ -362,8 +362,8 @@
         padding-left: 0;
     }
 
-    tbody span.pci-recommender {
-        background-color: rgba(0,150,190);
+    tbody .button > span.pci-recommender {
+        background-color: #0096be!important;
         color: white;
         margin-left: 0;
         padding-left: 1rem;
@@ -531,6 +531,14 @@
     .pci2-articles-list .pci-public {
         width: auto;
         font-style: normal;
+    }
+
+    .submit-front {
+        max-width: 12rem;
+    }
+
+    .require-front {
+        margin-left: 3rem;
     }
 
     .pci2-articles-list .pci-smallBtn { 
@@ -1285,6 +1293,10 @@
         overflow-x: unset;
     }
 
+    div > .web2py_grid > .web2py_table > .web2py_htmltable {
+        overflow-x: unset!important;
+    }    
+
     .navbar-collapse.collapse {
         width: 100%;
         padding-right: 0;
@@ -1427,8 +1439,13 @@
 
     .side-button-bar #cyp-login-button {
         margin-bottom: 0;
-        padding-bottom: .5rem;
-        width: 7rem;
+        padding: 1rem;
+        width: auto;
+    }
+
+    .side-button-bar .btn-standard {
+        padding: 1rem;
+        width: auto;
     }
 
     .search-wrapper {
