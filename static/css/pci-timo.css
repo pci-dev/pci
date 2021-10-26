@@ -534,7 +534,7 @@
     }
 
     .submit-front {
-        max-width: 12rem;
+        max-width: 13rem;
     }
 
     .require-front {
@@ -806,6 +806,10 @@
         width: 100%;
     }
 
+    .recommender-list-front,
+    .search-form-front {
+        margin-left: 3rem!important;
+    }
 
     #submit_record__row .pci2-lost-password-link {
         width: 12.5rem;

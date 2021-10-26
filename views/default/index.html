@@ -43,7 +43,7 @@
     </a>
   {{pass}} 
 
-  {{if auth.has_membership('recommender'):}}
+  <!--{{if auth.has_membership('recommender'):}}
     {{if 'pciRRactivated' in locals() and pciRRactivated is False:}}
       <a
       	href="{{=URL('recommender', 'new_submission')}}"
@@ -58,7 +58,7 @@
     >
     	{{=T("Preprints requiring a recommender")}}
     </a>
-  {{pass}}
+  {{pass}}-->
   <div class="search-wrapper">
     {{=searchForm}}
   </div>

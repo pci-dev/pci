@@ -92,7 +92,7 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
             ),
             _class="pci2-thematics-div " + panelCLass,
         ),
-        _class="pci2-search-form",
+        _class="pci2-search-form search-form-front",
         _action=actionForm
     )
 

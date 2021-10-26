@@ -303,7 +303,7 @@ def recommenders():
         SPAN(myIdx, _class="pci-capitals"),
         HR(),
         TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
-        _class="pci2-flex-column pci2-flex-center",
+        _class="pci2-flex-column pci2-flex-center recommender-list-front",
     )
 
     response.view = "default/gab_list_layout.html"
