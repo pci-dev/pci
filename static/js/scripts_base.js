@@ -72,11 +72,11 @@ catch {
 }
 
 if (header != null) {
-    header.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+    header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
 else {
     var main_content = document.querySelector('#main-content');
-    main_content.style.paddingTop = parseInt(nav_height) + 40 + 'px';
+    main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
 
 try {

@@ -239,7 +239,6 @@
 
     .pci2-justify-center #pci-ArticleHeader {
         border: 0;
-        margin-top: 5rem;
     }
 
     /*.no-title-page {
@@ -1381,7 +1380,7 @@
     }
 
     #pci-ArticleHeader {
-        margin-top: 3rem;
+        margin-top: 1rem;
     }
 
     .search-wrapper .pci2-search-input, .pci2-search-form .pci2-search-input,
