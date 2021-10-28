@@ -251,6 +251,7 @@
     <!-- Put footer to the bottom of the page -->
     <script type="text/javascript">
       var header_height = 0;
+      var nav_height = document.querySelector('nav').offsetHeight;
       var footer_height = document.getElementById("footer").offsetHeight;
       var small_header_height = 0;
 
@@ -260,8 +261,7 @@
       if(document.getElementById("pci-home-header")) {
         header_height = document.getElementById("pci-home-header").offsetHeight;
       }
-      var margin_content = footer_height + 16 + small_header_height + header_height + 103;
-
+      var margin_content = footer_height + 16 + small_header_height + header_height + 103 - parseInt(nav_height) - 10;
       var footer_height = document.getElementById("main-content").setAttribute('style', 'min-height: calc(100vh - ' + margin_content + 'px)');
     </script>
 
