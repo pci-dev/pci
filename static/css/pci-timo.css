@@ -1297,9 +1297,9 @@
         overflow-x: unset;
     }
 
-    div > .web2py_grid > .web2py_table > .web2py_htmltable {
-        overflow-x: unset!important;
-    }    
+    div > .action-button-absolute > .web2py_table > .web2py_htmltable {
+        overflow-x: auto!important;
+    }
 
     .navbar-collapse.collapse {
         width: 100%;
