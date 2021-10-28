@@ -318,6 +318,7 @@
 
     .pci2-thematics-div {
         position: absolute;
+        width: 94%;
     }
 
     .pci-public {
@@ -1442,6 +1443,8 @@
 
     .side-button-bar #cyp-login-button {
         margin-bottom: 0;
+        padding-bottom: .5rem;
+        width: 7rem;
         padding: 1rem;
         width: auto;
     }

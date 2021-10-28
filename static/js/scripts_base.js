@@ -64,23 +64,21 @@ function change_back() {
 
 // observe the height of the dynamic navbar to also allow the content to shift down
 var nav_height = document.querySelector('nav').offsetHeight;
-try {
-    var header = document.querySelector('#pci-home-header-large');
+var main_content = document.querySelector('#main-content');
+var header = null;
+if (document.querySelector('#pci-home-header-large')) {
+header = document.querySelector('#pci-home-header-large');
 }
-catch {
-    var header = document.querySelector('#pci-small-header');
+if (document.querySelector('#pci-small-header')) {
+header = document.querySelector('#pci-small-header');
+}
+if (document.querySelector('#pci-home-header')) {
+header = document.querySelector('#pci-home-header');
 }
 
 if (header != null) {
-    header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
 else {
-    var main_content = document.querySelector('#main-content');
-    main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
-
-try {
-    header = document.querySelector('#pci-home-header');
-    header.style.paddingTop = parseInt(nav_height) + 'px';
-}
-catch { }
