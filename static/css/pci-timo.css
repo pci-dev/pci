@@ -85,9 +85,56 @@
     .btn:hover,
     .btn:active,
     .btn:focus {
-        box-shadow: unset;
-        -webkit-box-shadow: unset;
+        background-color: #1b8dbb!important;
     }
+
+    #dropdownMenuLink.btn-default:hover,
+    #t_articles_doi__row .btn-default:hover {
+        background-color: #393a35!important;
+    }
+
+    .btn-danger:hover,
+    .web2py_grid .row_buttons .btn[data-w2p_remove]:hover {
+        background-color: rgb(212, 33, 28)!important;
+    }
+
+    .pci2-column-under-tablet .pci2-align-items-center-under-tablet > .pci2-flex-row > .btn-success:hover,
+    .pci-embeddedEthic .btn-success:hover,
+    .action-button-absolute > .web2py_console .btn-secondary:hover,
+    .pci-EditButtons-centered > a > .pci-manager:hover,
+    .web2py_htmltable .btn-success:hover,
+    .web2py_console form input[value="Search"]:hover,
+    .pci2-complete-ur-submission .btn-success:hover  {
+        background-color: #79a736!important;
+    }
+
+    .pci-embeddedEthic .pci-panelButton:hover {
+        background-color: #1b8dbb!important;
+    }
+
+
+    #cancel-submission-button .btn:hover,
+    .btn-warning:hover {
+        background-color: rgb(232, 99, 28)!important;
+    }
+
+    span.buttontext.btn.btn-success.pci-recommender {
+        background-color: transparent!important;
+        color: black;
+    }
+
+     {
+
+    }
+
+    /*#submit_record__row .btn-success:hover,
+    .pci-embeddedEthic .btn-success:hover {
+        background-color: #1b8dbb!important;
+    }
+
+    .pci-smallBtn:hover {
+        background-color: #1b8dbb!important;
+    }  */
 
     .btn-default:active, .btn-default.active,
     .open > .dropdown-toggle.btn-default,
@@ -1260,7 +1307,7 @@
     }
 
     .web2py_htmltable {
-        overflow-x: unset;
+        overflow-x: unset!important;
     }
 
     div > .action-button-absolute > .web2py_table > .web2py_htmltable {
