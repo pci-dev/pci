@@ -451,6 +451,13 @@ def _ManagerMenu():
 def _AboutMenu():
     aboutMenu = [
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-text-color"), T("About")), False, URL("about", "about")),
+    ]
+
+    if not pciRRactivated: aboutMenu += [
+        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-file"), T("PCI and journals")), False, "https://peercommunityin.org/pci-and-journals/"),
+    ]
+
+    aboutMenu += [
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-thumbs-up"), T("Recommenders")), False, URL("about", "recommenders")),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-heart"), T("Thanks to Reviewers")), False, URL("about", "thanks_to_reviewers")),
         (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Code of Conduct")), False, URL("about", "ethics")),
