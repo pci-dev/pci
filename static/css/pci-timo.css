@@ -123,19 +123,6 @@
         color: black;
     }
 
-     {
-
-    }
-
-    /*#submit_record__row .btn-success:hover,
-    .pci-embeddedEthic .btn-success:hover {
-        background-color: #1b8dbb!important;
-    }
-
-    .pci-smallBtn:hover {
-        background-color: #1b8dbb!important;
-    }  */
-
     .btn-default:active, .btn-default.active,
     .open > .dropdown-toggle.btn-default,
     .btn-default:focus, .btn-default.focus {
@@ -258,23 +245,6 @@
         max-width: 100%;
     }
 
-    /*.pci2-flex-center {
-        margin-left: .5rem;
-        width: 94%;
-        align-items: baseline;
-    }*/
-
-    /*.progress-step-div .pci2-flex-center {
-        width: 7.5rem;
-        margin-left: -4rem;
-        align-items: center;
-    }
-
-    .pci2-articles-list .pci2-flex-center {
-        width: 100%;
-        align-items: inherit;
-    }*/
-
     .pci2-justify-center #pci-ArticleHeader .pci2-flex-center {
         margin-left: 1rem;
     }
@@ -282,10 +252,6 @@
     .pci2-justify-center #pci-ArticleHeader {
         border: 0;
     }
-
-    /*.no-title-page {
-        margin-top: 5rem!important;
-    }*/
 
     .pci2-justify-center .pci2-content-900px {
         margin-left: 2rem;
@@ -518,10 +484,6 @@
         background-color: rgba(0,0,0,.05);
         padding: 1rem;
     }
-
-    /*.pci2-flex-row {
-        border-bottom: .1rem solid #938e8e;
-    }*/
 
     .pci2-articles-list .pci2-flex-row {
         border-bottom: 0;
@@ -965,10 +927,6 @@
         margin-top: 1rem;
     }
 
-    /*.pci2-flex-grow {
-        flex-grow: unset;
-    }*/
-
     .pci2-article-recommendation-div {
         padding-bottom: 2rem;
     }
@@ -977,11 +935,6 @@
         display: inline;
         margin-right: 1rem;
     }
-
-    /*#footer {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }*/
 
     #footer .flex-item {
         width: 45%;
@@ -1415,10 +1368,6 @@
         overflow: unset;
     }
 
-    .web2py_grid .row_buttons .btn[data-w2p_remove] {
-        /*margin-left: 4rem; */
-    }
-
     .pci-AdminReviewsSynthesis {
         margin-top: 3rem;
         overscroll-behavior-y: auto;
@@ -1600,7 +1549,6 @@
 
     .pci-infotext > h3 {
         padding-bottom: 3rem;
-        /*border-bottom: .1rem solid #598398;*/
     }
 
     .hide-mobile {
@@ -1611,11 +1559,3 @@
         display: none!important;
     }
 }
-
-/*@media only screen and (min-width: 1550px) {
-
-    .web2py_table {
-        max-width: 125%;
-        width: 125%;
-    }
-}*/
