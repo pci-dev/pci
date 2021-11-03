@@ -60,7 +60,7 @@ upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
 from os import symlink, path
 def create_symlink(filename):
     base = current.request.folder
-    target = f"{base}/languages/default.py"
+    target = base + "/languages/default.py"
     if not path.exists(target):
         symlink(filename, target)
 
