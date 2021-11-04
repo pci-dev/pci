@@ -39,7 +39,7 @@
         background-color: #555555;
     }
 
-    .dropdown .caret {
+    .navbar .caret {
         display: none;
     }
 
@@ -66,30 +66,27 @@
         padding-bottom: 1rem;
     }
     
-    .pci2-thematics-button {
+    /*.pci2-thematics-button {
         background-color: #3eaede;
     }
 
     .button > .pci-submitter {
         background-color: #3eaede;
-    }
+    }*/
 
-    .btn {
+    /*.btn {
         padding: 5px 15px;
-    }
+    }*/
 
     .pci-mail-status.warning {
         min-width: 8rem;
     }
 
-    .btn:hover,
-    .btn:active,
-    .btn:focus {
-        background-color: #1b8dbb!important;
-    }
 
-    #dropdownMenuLink.btn-default:hover,
-    #t_articles_doi__row .btn-default:hover {
+
+    /*#dropdownMenuLink.btn-default:hover,
+    #t_articles_doi__row .btn-default:hover,
+    .btn-default:hover {
         background-color: #393a35!important;
     }
 
@@ -104,7 +101,8 @@
     .pci-EditButtons-centered > a > .pci-manager:hover,
     .web2py_htmltable .btn-success:hover,
     .web2py_console form input[value="Search"]:hover,
-    .pci2-complete-ur-submission .btn-success:hover  {
+    .pci2-complete-ur-submission .btn-success:hover,
+    span.buttontext.btn.btn-success.pci-recommender:hover  {
         background-color: #79a736!important;
     }
 
@@ -112,29 +110,39 @@
         background-color: #1b8dbb!important;
     }
 
-
     #cancel-submission-button .btn:hover,
-    .btn-warning:hover {
+    .btn-warning:hover,
+    span.buttontext.btn.btn-warning.pci-recommender:hover {
         background-color: rgb(232, 99, 28)!important;
-    }
-
-    span.buttontext.btn.btn-success.pci-recommender {
-        background-color: transparent!important;
-        color: black;
     }
 
     .btn-default:active, .btn-default.active,
     .open > .dropdown-toggle.btn-default,
     .btn-default:focus, .btn-default.focus {
         background-color: #3eaede;
-    }
-
+    }*/
 
     .navbar-header > .btn-default:active,
     .navbar-header > .btn-default:focus {
         background-color: transparent!important;
     }
+
+    /*#submit_record__row .btn-success {
+        background-color: rgb(121, 167, 54)!important;
+    }
     
+    #submit_record__row .btn-success:hover {
+        background-color: #79a736!important;
+    }
+
+    span.buttontext.btn.btn-success.pci-recommender {
+        background-color: rgb(121, 167, 54)!important;
+    }
+
+    span.buttontext.btn.btn-warning.pci-recommender {
+        background-color: rgb(244, 124, 60)!important;
+    }*/
+
     #pci-logo {
         width: 80%;
         max-width: 25rem;
@@ -215,7 +223,7 @@
         width: auto;
     }
 
-    #cyp-login-button,
+    /*#cyp-login-button,
     #cyp-logout-button,
     #submit_record__row .btn,
     .pci2-full-width .btn {
@@ -229,7 +237,7 @@
     #cyp-login-button,
     #cyp-logout-button {
         width: 8rem;
-    }
+    }*/
 
     .pci-infotext {
         text-align: left;
@@ -324,21 +332,21 @@
         width: 94%;
     }
 
-    .pci-public {
+    /*.pci-public {
         color: white;
         background-color: #3eaede;
         width: auto;
         text-align: left;
-    }
+    }*/
 
     .pci-register {
         width: 8rem;
         margin-top: 0;
     }
 
-    .submit-btn .pci-public {
+    /*.submit-btn .pci-public {
         width: auto;
-    }
+    }*/
 
     .col-md-9 .pci-public {
         margin-left: 3rem;
@@ -349,26 +357,26 @@
         margin-left: 1rem;
     }
 
-    .pci-recommender {
+    /*.pci-recommender {
         color: white;
         background-color: #3eaede;
         text-align: left;
-    }
+    }*/
 
-    span > .pci-recommender,
+    /*span > .pci-recommender,
     span.pci-recommender {
         background-color: unset!important;
         color: #3e3f3a;
         margin-left: 0;
         padding-left: 0;
-    }
+    }*/
 
-    tbody .button > span.pci-recommender {
+    /*tbody .button > span.pci-recommender {
         background-color: #3eaede!important;
         color: white;
         margin-left: 0;
         padding-left: 1rem;
-    }
+    }*/
 
     .nav .flex-item .pci2-thematic-link-div {
         display: none;
@@ -402,13 +410,13 @@
         margin-bottom: 1rem;
     }
 
-    .button {
+    /*.button {
         padding: .5rem 1rem;
-    }
+    }*/
 
-    .web2py_table .button > .btn-default.pci-button {
+    /*.web2py_table .button > .btn-default.pci-button {
         padding: 1px 10px;
-    }
+    }*/
 
     #pci-home-header img,
     #pci-home-header-large img {
@@ -471,11 +479,6 @@
         padding-left: 3rem;
     }
 
-    .doi_url {
-        color: #938e8e;
-        font-style: unset;
-    }
-
     .social-links-div {
         display: none;
     }
@@ -533,15 +536,16 @@
     }
 
     .pci2-articles-list .pci-smallBtn { 
-        width: 6.5rem;  
-    } 
+        width: 6.5rem;
+        background-color: rgb(41, 171, 224);
+    }
 
     .pci2-article-row {
         margin-bottom: 2.5rem;
         padding-bottom: .5rem;
     }
-
-    #moreLatestBtn {
+    
+    /*#moreLatestBtn {
         color: white;
         background-color: #3eaede;
         width: 10rem;
@@ -553,7 +557,7 @@
         background-color: #3eaede;
         width: 20rem;
         margin: auto;
-    }
+    }*/
 
     .pci-h1 {
         text-shadow: none;
@@ -741,18 +745,10 @@
         height: auto;
     }
 
-    .pci-infotext hr {
-        border-top-color: #3e3f3a!important;
-    }
-
     .pci-infotext > div,
     .pci-infotext > div > div {
         padding-bottom: 2rem;
         line-height: 1.6!important;
-    }
-
-    .pci-infotext > h3 {
-        margin-top: 0;
     }
 
     .pci-infotext > h2,
@@ -804,9 +800,9 @@
         width: 12.5rem;
     }
 
-    #submit_record__row .btn-success {
+    /*#submit_record__row .btn-success {
         width: auto;
-    }
+    }*/
 
     .footer {
         margin-left: 1.6rem!important;
@@ -995,9 +991,9 @@
         text-align: left;
     }
 
-    .pci-recommender {
+    /*.pci-recommender {
         width: auto;
-    }
+    }*/
 
     .main-logo {
         display: none;
@@ -1394,15 +1390,15 @@
         padding-top: 3rem;
     }
 
-    .side-button-bar .btn-info {
+    /*.side-button-bar .btn-info {
         color: white;
         background-color: #3eaede;
         width: 8rem;
         margin: 1.5rem .5rem 1.5rem .5rem;
         text-align: left;
-    }
+    }*/
 
-    .side-button-bar #cyp-login-button {
+    /*.side-button-bar #cyp-login-button {
         margin-bottom: 0;
         width: 7rem;
         width: auto;
@@ -1410,7 +1406,7 @@
 
     .side-button-bar .btn-standard {
         width: auto;
-    }
+    }*/
 
     .search-wrapper {
         margin-top: 0;
@@ -1456,9 +1452,9 @@
         display: none;
     }
 
-    .left-sidebar .pci-public {
+    /*.left-sidebar .pci-public {
         margin-left: 1rem;
-    }
+    }*/
 
     .first-pci-h1 {
         padding-top: 1rem;
@@ -1545,10 +1541,6 @@
         font-size: 3rem;
         margin-top: 0!important;
         line-height: 1!important;
-    }
-
-    .pci-infotext > h3 {
-        padding-bottom: 3rem;
     }
 
     .hide-mobile {
