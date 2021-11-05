@@ -13,26 +13,21 @@ function lock_body() {
     /* secondly, we adapt navbar visibility on tablet in order to have 
         a different behaviour than bootstrap intends; */
     /* last, we also change the burger icon from active/inactive */
-    //var body = document.querySelector('body');
     var mynavbar = document.querySelector('#myNavbar');
     var burger = document.querySelector('#pci-burger');
     if (scroll_lock == false) {
-        //body.style.overflow = 'hidden';
         scroll_lock = true;
         if (window.innerWidth > 767) {
             mynavbar.style.display = 'block';
         }
         burger.classList.add('burger-active');
-        //burger.src = '/pci/static/images/pci-burger-active-03.svg';
     }
     else {
-        //body.style.overflow = 'scroll';
         scroll_lock = false;
         if (window.innerWidth > 767) {
             mynavbar.style.display = 'none';
         }
         burger.classList.remove('burger-active');
-        //burger.src = '/pci/static/images/pci-burger-default.svg';
     }
 }
 
@@ -51,34 +46,22 @@ function subnavs(subnav_li) {
 }
 
 
-// these 2 functions serve as hover effects of the navigation burger on mobile
-function change_img() {
-    var nav_burger = document.querySelector('#pci-burger');
-    //nav_burger.setAttribute('src', '/pci/static/images/pci-burger-active-03.svg');
-}
-function change_back() {
-    var nav_burger = document.querySelector('#pci-burger');
-    //nav_burger.setAttribute('src', '/pci/static/images/pci-burger-default.svg');
-}
-
-
 // observe the height of the dynamic navbar to also allow the content to shift down
 var nav_height = document.querySelector('nav').offsetHeight;
 var main_content = document.querySelector('#main-content');
 var header = null;
 if (document.querySelector('#pci-home-header-large')) {
-header = document.querySelector('#pci-home-header-large');
+    header = document.querySelector('#pci-home-header-large');
 }
 if (document.querySelector('#pci-small-header')) {
-header = document.querySelector('#pci-small-header');
+    header = document.querySelector('#pci-small-header');
 }
 if (document.querySelector('#pci-home-header')) {
-header = document.querySelector('#pci-home-header');
+    header = document.querySelector('#pci-home-header');
 }
-
 if (header != null) {
-header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+    header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
 else {
-main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+    main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }

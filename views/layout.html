@@ -59,7 +59,6 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" src="{{=URL('static','js/tinymce-mathjax/plugin.min.js')}}"></script>
 
-    
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use.
@@ -74,25 +73,23 @@
     right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
     middle_column = {0: mc0, 1: mc1, 2: mc2}[
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
-
-    
     }}
 
   </head>
   <body>
     {{if request.controller == 'about' or request.function == 'index' or request.controller == 'help' or request.controller == 'articles':}}
-    {{right_sidebar_enabled = True}}
-    {{middle_column = mc1}}
+      {{right_sidebar_enabled = True}}
+      {{middle_column = mc1}}
     {{else:}}
-    {{right_sidebar_enabled = False}}
-    {{middle_column = mc0}}
+      {{right_sidebar_enabled = False}}
+      {{middle_column = mc0}}
     {{pass}}
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     {{if session.flash_status != 'warning': }}
-    <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
+      <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
     {{pass}}
     {{if session.flash_status == 'warning': }}
-    <div class="w2p_flash alert alert-dismissable pci-warning-alert">{{=response.flash or ''}}</div>
+      <div class="w2p_flash alert alert-dismissable pci-warning-alert">{{=response.flash or ''}}</div>
     {{pass}}
 
     <!-- Navbar ======================================= -->
@@ -121,7 +118,6 @@
           {{=MENU(response.help_about_menu, _class='nav navbar-nav bam', li_class='dropdown', ul_class='dropdown-menu')}}
         {{pass}}
       </div>
-  
     </nav>  
 
     <!-- Masthead ===================================== -->
@@ -137,8 +133,8 @@
         </header>
       {{pass}}
     {{end}}
-    <!-- Main ========================================= -->
 
+    <!-- Main ========================================= -->
     <!-- Page Title -->
     {{if 'pageTitle' in locals() and response.view != 'default/index.html':}} 
       {{include 'snippets/page_title.html'}}   
@@ -177,9 +173,8 @@
     {{pass}}
 
     <div class="{{=middle_column}}">
-
       {{block center}}
-      {{include}}
+        {{include}}
       {{end}}
     </div>
 
@@ -221,7 +216,6 @@
     {{block page_js}} {{end page_js}}
  	  <script>$('.web2py_paginator').clone().insertBefore($('.web2py_table'));</script>
 
-	
     <!-- other scripts ======================================== -->
     {{if 'script' in globals():}}
 		{{=script}}
@@ -231,14 +225,6 @@
     <footer class="footer span12 flex-container" id="footer">
 	  	<div class="footer-content">
       {{include 'snippets/footer.html'}}
-        <!--
-			{{block footer}}
-	  		{{if response.footer_menu:}}
-	  			{{=MENU(response.footer_menu, _class='pci-footer', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
-	  		{{pass}}
-	  		  {{=getText(request, auth, db, '#Footer')}}
-	  		{{end}}
-        -->
 	  	</div>
     </footer>
   
@@ -246,7 +232,6 @@
     {{if 'shareable' in globals() and 'pciRRactivated' in globals() and not pciRRactivated:}}
       {{include 'snippets/social_links.html'}}   
     {{pass}}
-
 
     <!-- Put footer to the bottom of the page -->
     <script type="text/javascript">

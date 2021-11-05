@@ -7,19 +7,18 @@
   {{else:}}
     <header id='pci-home-header'>
   {{pass}}
-  <span>
-    <img src="{{=URL(c='static', f='images/background.png')}}">
-    {{if 'smallSearch' in locals():}}
-		<div class="pci-smallSearchDiv">{{=smallSearch}}</div>
-    {{pass}}
-    </span>
+      <span>
+        <img src="{{=URL(c='static', f='images/background.png')}}">
+        {{if 'smallSearch' in locals():}}
+          <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+        {{pass}}
+      </span>
     </header>
 {{end}}
 
 {{if 'pageHelp#TODO' in locals():}}
   {{=pageHelp}}
-  {{pass}}
-
+{{pass}}
 
 <!-- {{if auth.user:}} -->
 <!-- 	<H1 style="background:red; padding:8px; margin-bottom:12px; border-radius:16px;">Maintenance scheduled today... Please, don't use it for the moment!<br>Sorry for any inconvenience...</H1> -->
@@ -42,23 +41,6 @@
     	{{=T("Submit a preprint")}}
     </a>
   {{pass}} 
-
-  <!--{{if auth.has_membership('recommender'):}}
-    {{if 'pciRRactivated' in locals() and pciRRactivated is False:}}
-      <a
-      	href="{{=URL('recommender', 'new_submission')}}"
-      	class="btn btn-info pci-recommender"
-      >
-      	{{=T("Recommend a postprint")}}
-      </a>
-    {{pass}}
-    <a
-    	href="{{=URL('recommender', 'fields_awaiting_articles')}}"
-    	class="btn btn-default pci-recommender require-front"
-    >
-    	{{=T("Preprints requiring a recommender")}}
-    </a>
-  {{pass}}-->
   <div class="search-wrapper">
     {{=searchForm}}
   </div>
@@ -76,7 +58,6 @@
 </div>
 {{pass}}
 
-
 <div class="pci-leftOfPanel">
   {{if 'message' in locals():}}
   	<h2>{{=message}}</h2>
@@ -85,7 +66,6 @@
   {{if 'content' in locals():}}
 	  {{=content}}
 	{{pass}}
-
   
   <div id="lastRecommendationsDiv">
     {{=lastRecommTitle}}
