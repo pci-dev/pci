@@ -232,6 +232,9 @@ def suggest_review_to():
         redirect(request.env.http_referer)
     else:
         revId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
+        if revId is None:
+            session.flash = T("Recommender for the article doesn't exist", lazy=False)
+            redirect(request.env.http_referer)
         redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(reviewId=revId)))
 
 
