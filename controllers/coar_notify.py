@@ -124,7 +124,7 @@ def show_coar_requests():
 def get_type(body):
     coar_types = [ "Endorsement", "Review" ]
     for t in coar_types:
-        if body.find("http://purl.org/coar/notify_vocabulary/" + t) > 0:
+        if body.find("https://purl.org/coar/notify_vocabulary/" + t) > 0:
             return t
 
 

@@ -113,7 +113,7 @@ class COARNotifier:
         notification = {
             "@context": [
                 "https://www.w3.org/ns/activitystreams",
-                "http://purl.org/coar/notify",
+                "https://purl.org/coar/notify",
             ],
             "id": f"urn:uuid:{str(uuid.uuid4())}",
             "origin": {
