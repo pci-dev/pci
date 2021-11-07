@@ -5,7 +5,7 @@ pci_notif = b"""
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "http://purl.org/coar/notify"
+    "https://purl.org/coar/notify"
   ],
   "id": "urn: uuid:ab19e043-81b1-4ba8-9f63-607c56c3407c",
   "origin": {
