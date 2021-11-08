@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from subprocess import Popen, PIPE, STDOUT
+import shlex
 
 from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
@@ -65,9 +66,10 @@ def _shell(command):
 
 
 def _run(command):
+  try:
     return "".join(
         Popen(
-            command.split(" "),
+            shlex.split(command),
             cwd=request.folder,
             stdout=PIPE,
             stderr=STDOUT,
@@ -76,3 +78,7 @@ def _run(command):
         .stdout
         .readlines()
     )
+  except FileNotFoundError as error:
+      return str(error)
+  except Exception as error:
+      return error.output
