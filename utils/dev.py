@@ -66,6 +66,7 @@ def _shell(command):
 
 
 def _run(command):
+  try:
     return "".join(
         Popen(
             shlex.split(command),
@@ -77,3 +78,7 @@ def _run(command):
         .stdout
         .readlines()
     )
+  except FileNotFoundError as error:
+      return str(error)
+  except Exception as error:
+      return error.output
