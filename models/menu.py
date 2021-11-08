@@ -450,34 +450,34 @@ def _ManagerMenu():
 
 def _AboutMenu():
     aboutMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-text-color"), T("About")), False, URL("about", "about")),
+        menu_entry("About", "glyphicon-text-color", URL("about", "about")),
     ]
 
     if not pciRRactivated: aboutMenu += [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-file"), T("PCI and journals")), False, "https://peercommunityin.org/pci-and-journals/"),
+        menu_entry("PCI and journals", "glyphicon-file", "https://peercommunityin.org/pci-and-journals/"),
     ]
 
     aboutMenu += [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-thumbs-up"), T("Recommenders")), False, URL("about", "recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-heart"), T("Thanks to Reviewers")), False, URL("about", "thanks_to_reviewers")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Code of Conduct")), False, URL("about", "ethics")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Contact & Credits")), False, URL("about", "contact")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("General Terms of Use")), False, URL("about", "gtu")),
+        menu_entry("Recommenders", "glyphicon-thumbs-up", URL("about", "recommenders")),
+        menu_entry("Thanks to Reviewers", "glyphicon-heart", URL("about", "thanks_to_reviewers")),
+        menu_entry("Code of Conduct", "glyphicon-list-alt", URL("about", "ethics")),
+        menu_entry("Contact & Credits", "glyphicon-envelope", URL("about", "contact")),
+        menu_entry("General Terms of Use", "glyphicon-wrench", URL("about", "gtu")),
     ]
 
-    return [(SPAN(I(_class="glyphicon glyphicon-info-sign"), T("About")), True, "#", aboutMenu)]    
+    return [(SPAN(I(_class="glyphicon glyphicon-info-sign"), T("About")), True, "#", aboutMenu)]
 
 
 def _HelpMenu():
     helpMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How does it work?")), False, URL("help", "help_generic")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Authors")), False, URL("help", "guide_for_authors")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Reviewers")), False, URL("help", "guide_for_reviewers")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("Guide for Recommenders")), False, URL("help", "guide_for_recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Become a Recommender")), False, URL("help", "become_a_recommenders")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-wrench"), T("How to...?")), False, URL("help", "help_practical")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("FAQs")), False, URL("help", "faq")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-pencil"), T("How should you cite an article?")), False, URL("help", "cite")),
+        menu_entry("How does it work?", "glyphicon-wrench", URL("help", "help_generic")),
+        menu_entry("Guide for Authors", "glyphicon-book", URL("help", "guide_for_authors")),
+        menu_entry("Guide for Reviewers", "glyphicon-book", URL("help", "guide_for_reviewers")),
+        menu_entry("Guide for Recommenders", "glyphicon-book", URL("help", "guide_for_recommenders")),
+        menu_entry("Become a Recommender", "glyphicon-user", URL("help", "become_a_recommenders")),
+        menu_entry("How to...?", "glyphicon-wrench", URL("help", "help_practical")),
+        menu_entry("FAQs", "glyphicon-question-sign", URL("help", "faq")),
+        menu_entry("How should you cite an article?", "glyphicon-pencil", URL("help", "cite")),
     ]
 
     return [(SPAN(I(_class="glyphicon glyphicon-question-sign"), T("Help")), True, "#", helpMenu)]
@@ -516,6 +516,14 @@ def _AccountMenu():
         ]
 
     return [(SPAN(txtMenu, _class="pci-manager"), isActive, "#", auth_menu)]
+
+
+def menu_entry(text, icon, url):
+    return (SPAN(I(_class="pci2-icon-margin-right glyphicon " + icon), T(text)), False, url)
+
+
+def divider():
+    return LI(_class="divider")
 
 
 response.menu = _BaseMenu()
