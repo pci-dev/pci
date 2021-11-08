@@ -1433,10 +1433,6 @@ def email_for_registered_reviewer():
     if reviewer is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-    if replyto is None:
-        session.flash = T("Recommender for the article doesn't exist", lazy=False)
-        redirect(request.env.http_referer)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -1491,7 +1487,10 @@ def email_for_registered_reviewer():
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-
+    replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    if replyto is None:
+        session.flash = T("Recommender for the article doesn't exist", lazy=False)
+        redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
