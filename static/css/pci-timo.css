@@ -162,7 +162,7 @@
     .pci-infotext h4,
     .pci-infotext ul {
         line-height: 1.6;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
 
     #pci-home-header img {
@@ -1005,7 +1005,6 @@
 
     h2 span {
         color: #3e3f3a!important;
-        text-transform: uppercase;
     }
 
     .pci-infotext h2 {
