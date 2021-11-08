@@ -457,9 +457,20 @@ def _AboutMenu():
         menu_entry("PCI and journals", "glyphicon-file", "https://peercommunityin.org/pci-and-journals/"),
     ]
 
+    if pciRRactivated: aboutMenu += [
+        menu_entry("Full Policies and Procedures", "glyphicon-list-alt", URL("about", "full_policies")),
+        divider(),
+        menu_entry("List of PCI RR-friendly Journals", "glyphicon-file", URL("about", "pci_rr_friendly_journals")),
+        menu_entry("List of PCI RR-interested Journals", "glyphicon-file", URL("about", "pci_rr_interested_journals")),
+        menu_entry("Apply to become a Journal Adopter", "glyphicon-pencil", URL("about", "become_journal_adopter")),
+        menu_entry("Journal Adopter FAQ", "glyphicon-question-sign", URL("about", "journal_adopter_faq")),
+    ]
+
     aboutMenu += [
+        divider(),
         menu_entry("Recommenders", "glyphicon-thumbs-up", URL("about", "recommenders")),
         menu_entry("Thanks to Reviewers", "glyphicon-heart", URL("about", "thanks_to_reviewers")),
+        divider(),
         menu_entry("Code of Conduct", "glyphicon-list-alt", URL("about", "ethics")),
         menu_entry("Contact & Credits", "glyphicon-envelope", URL("about", "contact")),
         menu_entry("General Terms of Use", "glyphicon-wrench", URL("about", "gtu")),
@@ -469,14 +480,33 @@ def _AboutMenu():
 
 
 def _HelpMenu():
-    helpMenu = [
+    helpMenu = []
+
+    if not pciRRactivated: helpMenu += [
         menu_entry("How does it work?", "glyphicon-wrench", URL("help", "help_generic")),
+        divider(),
+    ]
+    if showGuideLines: helpMenu += [
+        menu_entry("Submission guidelines", "glyphicon-lamp", URL("help", "help_guidelines")),
+        divider(),
+    ]
+    helpMenu += [
         menu_entry("Guide for Authors", "glyphicon-book", URL("help", "guide_for_authors")),
         menu_entry("Guide for Reviewers", "glyphicon-book", URL("help", "guide_for_reviewers")),
+        divider(),
         menu_entry("Guide for Recommenders", "glyphicon-book", URL("help", "guide_for_recommenders")),
         menu_entry("Become a Recommender", "glyphicon-user", URL("help", "become_a_recommenders")),
+    ]
+    if pciRRactivated: helpMenu += [
+        menu_entry("TOP Guidelines", "glyphicon-map-marker", URL("help", "top_guidelines")),
+    ]
+    helpMenu += [
+        divider(),
         menu_entry("How to...?", "glyphicon-wrench", URL("help", "help_practical")),
         menu_entry("FAQs", "glyphicon-question-sign", URL("help", "faq")),
+    ]
+
+    if not pciRRactivated: helpMenu += [
         menu_entry("How should you cite an article?", "glyphicon-pencil", URL("help", "cite")),
     ]
 
