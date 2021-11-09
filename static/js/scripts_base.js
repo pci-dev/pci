@@ -60,8 +60,8 @@ if (document.querySelector('#pci-home-header')) {
     header = document.querySelector('#pci-home-header');
 }
 if (header != null) {
-    header.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+    header.style.paddingTop = parseInt(nav_height) + 'px';
 }
 else {
-    main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
+    main_content.style.paddingTop = parseInt(nav_height) + 'px';
 }
