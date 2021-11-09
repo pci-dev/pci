@@ -29,6 +29,21 @@ driver = get_driver()
 config = get_config()
 
 
+# Selenium extension
+
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webelement import WebElement
+from time import sleep
+
+def wait_clickable(self):
+    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable(self))
+    sleep(.01)
+    return self
+
+WebElement.wait_clickable = wait_clickable
+
+
 # HELPERS
 
 def visit(url):
@@ -49,9 +64,9 @@ def login(user):
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
-    select(".w2p_flash.alert", "Logged in")
+    select(".w2p_flash.alert", "Logged in").wait_clickable().click()
 
 def logout(user):
     select(".dropdown-toggle", user.name).click()
     select(".dropdown-menu li", "Log out").click()
-    select(".w2p_flash.alert", "Logged out")
+    select(".w2p_flash.alert", "Logged out").wait_clickable().click()
