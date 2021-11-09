@@ -50,3 +50,8 @@ def login(user):
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
     select(".w2p_flash.alert", "Logged in")
+
+def logout(user):
+    select(".dropdown-toggle", user.name).click()
+    select(".dropdown-menu li", "Log out").click()
+    select(".w2p_flash.alert", "Logged out")
