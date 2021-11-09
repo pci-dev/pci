@@ -162,7 +162,14 @@
     .pci-infotext h4,
     .pci-infotext ul {
         line-height: 1.6;
+    }
+
+    .pci-infotext h4 {
         font-size: 1.8rem;
+    }
+
+    .pci-infotext ul {
+        font-size: 1.4rem;
     }
 
     #pci-home-header img {
