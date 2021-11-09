@@ -627,8 +627,24 @@
     }
 
     .pci-infotext img {
-        width: 100%;
+        width: auto;
         padding: 2rem 0;
+    }
+
+    .pci-twitter-btn {
+        width: 3rem;
+        padding-right: 0;
+    }
+
+    .pci-twitter-btn img {
+        width: 3rem;
+        position: relative;
+        right: 1.5rem;
+    }
+
+    .pci-rss-btn {
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .left-sidebar .pci-infotext img {
