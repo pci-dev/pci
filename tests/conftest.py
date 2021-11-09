@@ -16,12 +16,13 @@ def get_config():
     )
 
 def users_dict(users):
-    return {
+    return Namespace(**{
         user: Namespace(
+                name=user,
                 email=user+"@pci.org",
                 password="pci")
         for user in users
-    }
+    })
 
 
 driver = get_driver()
@@ -42,8 +43,8 @@ def lookup(css, text):
         if text in e.text: return e
     raise KeyError("no such element: " + text)
 
-def login(user_name):
-    user = users[user_name]
+def login(user):
+    visit(config.base_url)
     select(".btn", "LOG IN").click()
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
