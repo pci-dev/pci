@@ -162,7 +162,7 @@
     .pci-infotext h4,
     .pci-infotext ul {
         line-height: 1.6;
-        font-size: 1.8rem;
+        font-size: 1.4rem;
     }
 
     #pci-home-header img {
@@ -175,6 +175,10 @@
 
     .pci2-justify-center #pci-ArticleHeader {
         border: 0;
+    }
+
+    .pci2-recomm-text .btn-info {
+        width: 19rem;
     }
 
     .pci2-justify-center .pci2-content-900px {
@@ -601,7 +605,6 @@
     }
 
     .pci-infotext iframe {
-        width: 100%;
         height: auto;
     }
 
@@ -627,7 +630,6 @@
     }
 
     .pci-infotext img {
-        width: auto;
         padding: 2rem 0;
     }
 
@@ -1013,10 +1015,6 @@
 
     .pci-infotext > h2 {
         font-size: 2.6rem;
-    }
-
-    .pci-infotext iframe {
-        height: 34rem;
     }
 
     h2 span {
