@@ -1,5 +1,6 @@
 from conftest import config, select
 from conftest import login, logout
+from conftest import test
 
 import time
 
@@ -26,16 +27,18 @@ data = Namespace(
     cover_letter = "Cover letter",
     )
 
-class Test_user_submits:
 
- def test_login_as_user(_):
+@test
+class User_submits:
+
+ def login_as_user(_):
     login(users.user)
 
- def test_initiate_submit_preprint(_):
+ def initiate_submit_preprint(_):
     select(".btn-success", "Submit a preprint".upper()).click()
     select(".btn-success", "Submit your preprint".upper()).click()
 
- def test_submit_submission_form(_):
+ def submit_submission_form(_):
     select("#t_articles_title").send_keys(articleTitle)
     select("#t_articles_authors").send_keys(submitter.firstname + " " + submitter.lastname)
     select("#t_articles_doi").send_keys(data.doi)
@@ -54,18 +57,18 @@ class Test_user_submits:
 
     select(".w2p_flash", "Article submitted").wait_clickable()
 
- def test_search_and_suggest_recommender(_):
+ def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
     select('input[name="qyKeywords"]').clear()
     select('input[name="qyKeywords"]').send_keys(recommender.firstname)
     select(".pci2-search-button").click()
     select("a", "Suggest as recommender".upper()).click()
 
- def test_mail_sent_to_recommender(_):
+ def mail_sent_to_recommender(_):
     select(".w2p_flash").contains("Suggested recommender")
     select("a", "Done".upper()).click()
 
- def test_complete_submission(_):
+ def complete_submission(_):
     select("a", "Complete your submission".upper()).click()
 
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
@@ -75,16 +78,17 @@ class Test_user_submits:
         .should("contain", "SUBMISSION PENDING VALIDATION");
     """
 
- def test_logout_user(_):
+ def logout_user(_):
     logout(users.user)
 
 
-class Test_manager_validates:
+@test
+class Manager_validates:
 
- def test_login_as_manager(_):
+ def login_as_manager(_):
     login(users.manager)
 
- def test_article_shown_in_pending_validation(_):
+ def check_article_shown_in_pending_validation(_):
     select(".dropdown-toggle span", "For managers").click()
     select(".dropdown-menu span", contains="Pending validation").click()
     select("tr", contains=articleTitle)
@@ -94,7 +98,7 @@ class Test_manager_validates:
         .should("exist");
     """
 
- def test_validate_submission(_):
+ def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
     select("a", "View / Edit".upper()).click()
     select(".btn-success", "Validate this submission".upper()).click()
@@ -117,13 +121,14 @@ class Test_manager_validates:
       select("tr", articleTitle).should("not.exist");
  """
 
- def test_logout_manager(_):
+ def logout_manager(_):
     logout(users.manager)
 
 
-class Test_recommender_handles:
+@test
+class Recommender_handles:
 
- def test_login_as_recommender(_):
+ def login_as_recommender(_):
     login(users.recommender)
 
  """
@@ -196,5 +201,5 @@ class Test_recommender_handles:
       select(".w2p_flash", "e-mail sent to Titi Toto").should("exist");
  """
 
- def test_logout_recommender(_):
+ def logout_recommender(_):
     logout(users.recommender)
