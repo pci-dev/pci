@@ -13,3 +13,8 @@ def test_after_login():
 
 def test_logout():
     logout(user)
+
+def test_users():
+    for user in config.users.__dict__.values():
+        login(user)
+        logout(user)
