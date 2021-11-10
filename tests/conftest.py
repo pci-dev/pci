@@ -63,13 +63,21 @@ WebElement.frame = element_frame
 def visit(url):
     return driver.get(url)
 
-def select(css, text=""):
-    if text: return lookup(css, text)
-    return driver.find_element(By.CSS_SELECTOR, css)
+def select(css, text="", contains=""):
+    if text or contains:
+        return lookup(css, text, contains)
+    sel = driver.find_elements(By.CSS_SELECTOR, css)
+    return sel if len(sel) > 1 else sel[0]
 
-def lookup(css, text):
+def lookup(css, text="", contains=""):
     for e in driver.find_elements(By.CSS_SELECTOR, css):
-        if text in e.text: return e
+        print(f"e.text='{e.text}'")
+        if text and (text == e.text):
+            print(f"text={text}")
+            return e
+        if contains and (contains in e.text):
+            print(f"contains={contains}")
+            return e
     raise KeyError("no such element: " + text)
 
 def login(user):
