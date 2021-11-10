@@ -29,6 +29,19 @@ driver = get_driver()
 config = get_config()
 
 
+# Test class decorator
+
+from types import FunctionType
+
+def test(c):
+    for fun in c.__dict__.values():
+        if type(fun) == FunctionType:
+            fun.__test__ = True
+    c.__test__ = True
+    return c
+test.__test__ = False
+
+
 # Selenium extensions
 
 from selenium.webdriver.support.ui import WebDriverWait
