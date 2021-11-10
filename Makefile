@@ -76,10 +76,10 @@ cypress/%:
 test.reset: stop db.clean db test.setup start
 
 test:
-	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
+	cd tests ; pytest -k "not coar and not test_users"
 
 test.basic:
-	npx cypress run --spec cypress/integration/setup_article_for_review.js
+	cd tests ; pytest test_setup_article.py
 
 build:
 	docker build -t pci .
