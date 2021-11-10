@@ -38,7 +38,7 @@ from time import sleep
 
 def wait_clickable(self):
     WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable(self))
-    sleep(.01)
+    sleep(.1)
     return self
 
 WebElement.wait_clickable = wait_clickable
