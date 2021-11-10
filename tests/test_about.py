@@ -6,7 +6,7 @@ base_url = config.base_url
 
 def test_about_version():
     visit(base_url + "/about/version")
-    lookup("#main-content", "HEAD -> ")
+    select("#main-content").contains("HEAD -> ")
 
 def test_about_click():
     visit(base_url)
