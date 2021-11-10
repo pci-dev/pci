@@ -29,7 +29,7 @@ driver = get_driver()
 config = get_config()
 
 
-# Selenium extension
+# Selenium extensions
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -41,7 +41,21 @@ def wait_clickable(self):
     sleep(.1)
     return self
 
+def element_contains(self, text):
+    assert(text in self.text)
+
+from contextlib import contextmanager
+
+@contextmanager
+def element_frame(self):
+    driver.switch_to.frame(self)
+    yield self
+    driver.switch_to.default_content()
+
+
 WebElement.wait_clickable = wait_clickable
+WebElement.contains = element_contains
+WebElement.frame = element_frame
 
 
 # HELPERS
