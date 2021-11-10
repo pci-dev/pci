@@ -26,7 +26,7 @@ data = Namespace(
     cover_letter = "Cover letter",
     )
 
-class Test_user_submits_preprint:
+class Test_user_submits:
 
  def test_login_as_user(_):
     login(users.user)
@@ -79,7 +79,7 @@ class Test_user_submits_preprint:
     logout(users.user)
 
 
-class Test_manager_validates_submission:
+class Test_manager_validates:
 
  def test_login_as_manager(_):
     login(users.manager)
@@ -121,7 +121,7 @@ class Test_manager_validates_submission:
     logout(users.manager)
 
 
-class _Test_recommender_handles_preprint:
+class Test_recommender_handles:
 
  def test_login_as_recommender(_):
     login(users.recommender)
