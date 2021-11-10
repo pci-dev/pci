@@ -176,6 +176,12 @@
         max-width: 100%;
     }
 
+    .pci-infotext h2,
+    .pci-infotext h3,
+    .pci-infotext h4 {
+        scroll-margin-top: 10rem;
+    }
+
     .pci2-justify-center #pci-ArticleHeader .pci2-flex-center {
         margin-left: 1rem;
     }
