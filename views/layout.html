@@ -225,6 +225,14 @@
     <footer class="footer span12 flex-container" id="footer">
 	  	<div class="footer-content">
       {{include 'snippets/footer.html'}}
+      
+      {{if response.footer_menu:}}
+        {{=MENU(response.footer_menu, _class='grey-footer footer-sub', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
+      {{pass}}
+      <div class="footer-sub-text suffix">
+        {{=getText(request, auth, db, '#NewFooterSubtext')}}
+      </div>
+
 	  	</div>
     </footer>
   

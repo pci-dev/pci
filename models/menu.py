@@ -115,7 +115,8 @@ def _BaseMenu(footerMenu=False):
         articleMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tasks"), T("Progress log")), False, URL("articles", "tracking")))
 
     if footerMenu:
-        homeLink = (SPAN(I(_class="glyphicon glyphicon-home"), T("Home")), isHomeActive, URL("default", "index"))
+        #homeLink = (SPAN(I(_class="glyphicon glyphicon-home"), T("Home")), isHomeActive, URL("default", "index"))
+        homeLink = (IMG(_style="", _src=URL(c="static", f="images/pci-logo.svg")), isHomeActive, URL("default", "index"))
     else:
         homeLink = (IMG(_style="height:40px", _src=URL(c="static", f="images/small-background.png")), isHomeActive, URL("default", "index"))
 
@@ -559,11 +560,11 @@ def divider():
 response.menu = _BaseMenu()
 response.footer_menu = _BaseMenu(footerMenu=True)
 
+'''
 
 if auth.is_logged_in():
     response.menu += _UserMenu()
     response.footer_menu += _UserMenu()
-
 if auth.has_membership(None, None, "recommender"):
     response.menu += _RecommendationMenu()
     response.footer_menu += _RecommendationMenu()
@@ -582,7 +583,7 @@ if auth.has_membership(None, None, "administrator") or auth.has_membership(None,
 
 if auth.has_membership(None, None, "developer"):
     response.menu += _DevMenu()
-
+'''
 response.footer_menu += _AboutMenu()
 response.footer_menu += _HelpMenu()
 
