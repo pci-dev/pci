@@ -560,30 +560,29 @@ def divider():
 response.menu = _BaseMenu()
 response.footer_menu = _BaseMenu(footerMenu=True)
 
-'''
 
 if auth.is_logged_in():
     response.menu += _UserMenu()
-    response.footer_menu += _UserMenu()
+    #response.footer_menu += _UserMenu()
 if auth.has_membership(None, None, "recommender"):
     response.menu += _RecommendationMenu()
-    response.footer_menu += _RecommendationMenu()
+    #response.footer_menu += _RecommendationMenu()
 
 if auth.has_membership(None, None, "manager"):
     response.menu += _ManagerMenu()
-    response.footer_menu += _ManagerMenu()
+    #response.footer_menu += _ManagerMenu()
 
 if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developer"):
     response.menu += _AdminMenu()
-    response.footer_menu += _AdminMenu()
+    #response.footer_menu += _AdminMenu()
 
 if auth.has_membership(None, None, "administrator") or auth.has_membership(None, None, "developer"):
     response.menu += _ToolsMenu()
-    response.footer_menu += _ToolsMenu()
+    #response.footer_menu += _ToolsMenu()
 
 if auth.has_membership(None, None, "developer"):
     response.menu += _DevMenu()
-'''
+
 response.footer_menu += _AboutMenu()
 response.footer_menu += _HelpMenu()
 
