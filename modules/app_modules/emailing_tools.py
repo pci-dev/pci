@@ -83,6 +83,15 @@ REMINDERS = get_reminders_from_config()
 # Mailing tools
 ######################################################################################################################################################################
 
+appName = myconf.take("app.name")
+
+def email_subject_header(articleId):
+    return "%s #%s" % (appName, articleId)
+
+def patch_email_subject(subject, articleId):
+    return subject.replace(appName, email_subject_header(articleId))
+
+
 ######################################################################################################################################################################
 def getMailer(auth):
     mail = auth.settings.mailer
