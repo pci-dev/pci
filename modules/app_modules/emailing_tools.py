@@ -99,6 +99,7 @@ def getMailCommonVars():
     return dict(
         scheme=myconf.take("alerts.scheme"),
         host=myconf.take("alerts.host"),
+        articleId="",
         port=myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v)),
         appDescription=myconf.take("app.description"),
         appName=myconf.take("app.name"),
