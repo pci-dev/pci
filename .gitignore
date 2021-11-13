@@ -18,3 +18,4 @@ static/images/background.png
 static/images/small-background.png
 languages/default.py
 controllers/dev.py
+web2py/ 
