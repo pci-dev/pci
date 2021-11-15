@@ -392,9 +392,9 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
     content = replaceMailVars(mail_template["content"], mail_vars)
-    
+
     if article_id is None:
-        subject_without_appname = subject.replace("%s: " % appName , "")
+        subject_without_appname = subject.replace("%s: " % appName, "")
     else:
         subject_without_appname = subject.replace(appName, "%s %s: " %(appName, article_id))
     
