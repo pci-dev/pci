@@ -1273,7 +1273,7 @@ def send_review_cancellation():
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     articleId = " #" + str(recomm.article_id)
-    appName = myconf.take("app.name") + articleId
+    appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
@@ -1284,6 +1284,7 @@ def send_review_cancellation():
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+        default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
         default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     else:
@@ -1361,7 +1362,7 @@ def send_reviewer_generic_mail():
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     articleId = " #" + str(recomm.article_id)
-    appName = myconf.take("app.name") + articleId
+    appName = myconf.take("app.name")
     
     contact = myconf.take("contacts.managers")
 
@@ -1377,6 +1378,7 @@ def send_reviewer_generic_mail():
     articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     req_is_email = IS_EMAIL(error_message=T("invalid email!"))
@@ -1451,7 +1453,7 @@ def email_for_registered_reviewer():
     longname = myconf.take("app.longname") # DEPRECATED: for compatibility purpose; to be removed after checkings
     appLongName = myconf.take("app.longname")
     articleId = " #" + str(recomm.article_id)
-    appName = myconf.take("app.name") + articleId
+    appName = myconf.take("app.name") 
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
@@ -1488,6 +1490,7 @@ def email_for_registered_reviewer():
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
@@ -1580,7 +1583,7 @@ def email_for_new_reviewer():
     longname = myconf.take("app.longname") # DEPRECATED
     appLongName = myconf.take("app.longname")
     articleId = " #" + str(recomm.article_id)
-    appName = myconf.take("app.name") + articleId
+    appName = myconf.take("app.name")
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
@@ -1615,6 +1618,7 @@ def email_for_new_reviewer():
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
