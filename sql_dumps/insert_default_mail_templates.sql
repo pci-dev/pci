@@ -82,7 +82,7 @@ VALUES
 
 \set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>Regarding your review of the preprint entitled <strong>{{articleTitle}}</strong>,<br><br><br><b><em>**You can edit/write your message to the referee**</em></b><br><br><br></p>\n<p>We thank you again for evaluating this preprint.</p>\n<p>All the best,<br>{{recommenderPerson}} at {{appName}}</p>'
 \set DESCRIPTION 'Generic mail to reviewers for recommender/managers to notify any additional information'
-\set SUBJECT '{{appName}} {{articleId}}: about your peer review'
+\set SUBJECT '{{appName}}: about your peer review'
 
 INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
