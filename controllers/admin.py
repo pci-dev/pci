@@ -597,7 +597,7 @@ def mailing_queue():
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = False
+    db.mail_queue.cc_mail_addresses.writable = True
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
