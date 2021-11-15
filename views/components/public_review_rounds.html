@@ -12,14 +12,13 @@
     {{pass}}
 
     <h2 class="pci2-revision-round-title"><i>Evaluation round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
-    <span class="pci2-revision-round-date"><i>{{=lastChanges}}</i></span>
     <p class="pci2-revision-round-preprint-doi">{{=T('DOI or URL of the preprint:')}} {{=preprintDoi}}</p>
     <p class="pci2-revision-round-preprint-version">{{=T('Version of the preprint:')}} {{=preprintVersion}}</p>
   {{pass}}
 
   
   {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None):}}
-    <h4 class="pci2-round-review-sub-title">{{=T('Author\'s Reply')}}</h4>
+    <h4 class="pci2-round-review-sub-title">{{=T("Author's Reply")}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
       {{if authorsReplyPdfLink is not None:}}
         {{=authorsReplyPdfLink}}
@@ -38,7 +37,7 @@
   <!-- do not show round decision if this is the last decision (already shown in last_recommendation.html) -->
   {{if isLastRecomm == False :}}
     <div>
-      <h4 class="pci2-recomm-text-label">{{=T('Decision by')}} {{=recommAuthors}}</h4>
+      <h4 class="pci2-recomm-text-label">{{=T('Decision by')}} {{=recommAuthors}}, {{=lastChanges}}</h4>
       <div class="pci2-recomm-text">
         {{=recommendationText}}
 
