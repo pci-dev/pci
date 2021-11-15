@@ -1743,8 +1743,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
                     create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
-                mail_vars["articleId"] = str("#" + str(recomm.article_id))
-                subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+                appName = mail_vars["appName"]
+                subject_without_appname = subject.replace(appName, "%s %s: " %(appName, recomm.article_id))
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
