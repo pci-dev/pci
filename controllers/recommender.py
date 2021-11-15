@@ -1272,8 +1272,8 @@ def send_review_cancellation():
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
-    appName = myconf.take("app.name")
-    articleId = str("#" + str(recomm.article_id))
+    articleId = " #" + str(recomm.article_id)
+    appName = myconf.take("app.name") + articleId
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
@@ -1360,8 +1360,9 @@ def send_reviewer_generic_mail():
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
-    appName = myconf.take("app.name")
-    articleId = str("#" + str(recomm.article_id))
+    articleId = " #" + str(recomm.article_id)
+    appName = myconf.take("app.name") + articleId
+    
     contact = myconf.take("contacts.managers")
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
@@ -1449,8 +1450,8 @@ def email_for_registered_reviewer():
     description = myconf.take("app.description")
     longname = myconf.take("app.longname") # DEPRECATED: for compatibility purpose; to be removed after checkings
     appLongName = myconf.take("app.longname")
-    appName = myconf.take("app.name")
-    articleId = str("#" + str(recomm.article_id))
+    articleId = " #" + str(recomm.article_id)
+    appName = myconf.take("app.name") + articleId
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
@@ -1578,8 +1579,8 @@ def email_for_new_reviewer():
     description = myconf.take("app.description")
     longname = myconf.take("app.longname") # DEPRECATED
     appLongName = myconf.take("app.longname")
-    appName = myconf.take("app.name")
-    articleId = str("#" + str(recomm.article_id))
+    articleId = " #" + str(recomm.article_id)
+    appName = myconf.take("app.name") + articleId
     thematics = myconf.take("app.thematics")
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
