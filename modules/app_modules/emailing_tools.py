@@ -258,6 +258,7 @@ def insertMailInQueue(
         recommendation=recommendation,
         review=review,
         authors_reply=authors_reply,
+        article_id=article_id,
         sugg_recommender_buttons=sugg_recommender_buttons,
         reviewer_invitation_buttons=reviewer_invitation_buttons,
     )
@@ -310,7 +311,7 @@ def insertReminderMailInQueue(
                 sending_date = sending_date + timedelta(days=1)
 
         mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, article_id=article_id, reviewer_invitation_buttons=reviewer_invitation_buttons
         )
 
         ccAddresses = None
@@ -332,7 +333,7 @@ def insertReminderMailInQueue(
 
     if sending_date_forced:
         mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, article_id=article_id, reviewer_invitation_buttons=reviewer_invitation_buttons
         )
 
         ccAddresses = None
@@ -385,13 +386,18 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None):
+def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, article_id=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
     content = replaceMailVars(mail_template["content"], mail_vars)
 
-    subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+    if article_id is None:
+        subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")
+    else:
+        appname_with_article_id = str(mail_vars["appName"] + " #" + str(article_id))
+        subject_without_appname = subject.replace("%s: " % appname_with_article_id , "")
+    
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     content_rendered = render(
