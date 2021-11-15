@@ -13,7 +13,9 @@
 
     <h2 class="pci2-revision-round-title"><i>Evaluation round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i></h2>
     <p class="pci2-revision-round-preprint-doi">{{=T('DOI or URL of the preprint:')}} {{=preprintDoi}}</p>
+    {{if preprintVersion:}}
     <p class="pci2-revision-round-preprint-version">{{=T('Version of the preprint:')}} {{=preprintVersion}}</p>
+    {{pass}}
   {{pass}}
 
   
