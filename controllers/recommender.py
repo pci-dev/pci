@@ -1294,7 +1294,7 @@ def send_review_cancellation():
 
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
-        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
+        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=True),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1508,7 +1508,7 @@ def email_for_registered_reviewer():
             length=250,
             requires=IS_EMAIL(error_message=T("invalid e-mail!")),
             default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
-            writable=False,
+            writable=True,
         ),
         Field(
             "reviewer_email",
@@ -1632,7 +1632,7 @@ def email_for_new_reviewer():
             length=250,
             requires=IS_EMAIL(error_message=T("invalid e-mail!")),
             default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
-            writable=False,
+            writable=True,
         ),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
