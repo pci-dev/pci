@@ -388,15 +388,15 @@ def insertNewsLetterMailInQueue(
 ######################################################################################################################################################################
 def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, article_id=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None):
     mail_template = getMailTemplateHashtag(db, hashtag_template)
+    appName = mail_vars["appName"]
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
     content = replaceMailVars(mail_template["content"], mail_vars)
-
+    
     if article_id is None:
-        subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")
+        subject_without_appname = subject.replace("%s: " % appName , "")
     else:
-        appname_with_article_id = str(mail_vars["appName"] + " #" + str(article_id))
-        subject_without_appname = subject.replace("%s: " % appname_with_article_id , "")
+        subject_without_appname = subject.replace(appName, "%s %s: " %(appName, article_id))
     
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
