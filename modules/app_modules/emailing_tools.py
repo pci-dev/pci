@@ -409,6 +409,7 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
     if article_id is None:
         subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")
     else:
+        subject = patch_email_subject(subject, article_id)
         appname_with_article_id = email_subject_header(article_id)
         subject_without_appname = subject.replace("%s: " % appname_with_article_id , "")
 
