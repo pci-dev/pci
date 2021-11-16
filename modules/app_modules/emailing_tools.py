@@ -83,6 +83,15 @@ REMINDERS = get_reminders_from_config()
 # Mailing tools
 ######################################################################################################################################################################
 
+appName = myconf.take("app.name")
+
+def email_subject_header(articleId):
+    return "%s #%s" % (appName, articleId)
+
+def patch_email_subject(subject, articleId):
+    return subject.replace(appName, email_subject_header(articleId))
+
+
 ######################################################################################################################################################################
 def getMailer(auth):
     mail = auth.settings.mailer
@@ -311,7 +320,8 @@ def insertReminderMailInQueue(
                 sending_date = sending_date + timedelta(days=1)
 
         mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, article_id=article_id, reviewer_invitation_buttons=reviewer_invitation_buttons
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
+            article_id=article_id,
         )
 
         ccAddresses = None
@@ -333,7 +343,8 @@ def insertReminderMailInQueue(
 
     if sending_date_forced:
         mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, article_id=article_id, reviewer_invitation_buttons=reviewer_invitation_buttons
+            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
+            article_id=article_id,
         )
 
         ccAddresses = None
@@ -386,7 +397,10 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, article_id=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None):
+def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None,
+        article_id=None,
+    ):
+
     mail_template = getMailTemplateHashtag(db, hashtag_template)
     appName = mail_vars["appName"]
 
@@ -394,10 +408,12 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
     content = replaceMailVars(mail_template["content"], mail_vars)
 
     if article_id is None:
-        subject_without_appname = subject.replace("%s: " % appName, "")
+        subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")
     else:
-        subject_without_appname = subject.replace(appName, "%s %s: " %(appName, article_id))
-    
+        subject = patch_email_subject(subject, article_id)
+        appname_with_article_id = email_subject_header(article_id)
+        subject_without_appname = subject.replace("%s: " % appname_with_article_id , "")
+
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     content_rendered = render(

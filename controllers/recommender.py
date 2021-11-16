@@ -1289,8 +1289,11 @@ def send_review_cancellation():
 
     else:
         pass
+
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
+    default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
+
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
         Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
@@ -1380,6 +1383,8 @@ def send_reviewer_generic_mail():
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
     req_is_email = IS_EMAIL(error_message=T("invalid email!"))
 
@@ -1492,6 +1497,8 @@ def email_for_registered_reviewer():
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
     # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
@@ -1620,6 +1627,8 @@ def email_for_new_reviewer():
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_subject = default_subject.replace(appName, "%s %s" %(appName,  articleId))
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
