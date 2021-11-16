@@ -56,6 +56,10 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 # Mailing functions
 ######################################################################################################################################################################
 
+email_subject_header = emailing_tools.email_subject_header
+patch_email_subject = emailing_tools.patch_email_subject
+
+
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")
 def send_test_mail(session, auth, db, userId):
@@ -1741,8 +1745,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
                     create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
-
-                subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+                subject_header = email_subject_header(recomm.article_id)
+                subject_without_appname = subject.replace("%s: " % subject_header, "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
