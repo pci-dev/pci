@@ -16,14 +16,14 @@
 
 {{if 'searchForm' in locals():}}
 	<div>{{=searchForm}}</div>
-	{{pass}}
+{{pass}}
 
 {{if 'content' in locals():}}
-	<div class="pci2-flex-center">{{=content}}</div>
+	<div class="pci2-flex-center content-btn-left">{{=content}}</div>
 {{pass}}
 
 {{if 'myUpperBtn' in locals():}}
-<div class="pci2-flex-center">
+<div class="pci2-flex-center upper-btn-left">
 	{{=myUpperBtn}}
 </div>
 {{pass}}
@@ -48,9 +48,12 @@
 {{pass}}
 </div>
 
+
 {{if 'myAcceptBtn' in locals():}}
+<div class="pci2-flex-center accept-btn-left">
 	{{=myAcceptBtn}}
-	{{pass}}
+</div>
+{{pass}}
 
 {{if 'myFinalScript' in locals():}}
 {{=myFinalScript}}

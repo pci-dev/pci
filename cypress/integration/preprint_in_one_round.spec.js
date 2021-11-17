@@ -37,7 +37,8 @@ describe("Preprint recommended in one round", () => {
     });
 
     it("Should show a disclaimer before submission", () => {
-      cy.contains(".btn-success", "Submit a preprint").click();
+      cy.contains(".btn-success", "Submit a preprint").click({force: true});
+      // button exists in DOM, but display: none in pci-timo.css => click {force: true}
 
       cy.contains(".btn-success", "Submit your preprint").should("exist");
       cy.contains(".btn-success", "Submit your preprint").click();
@@ -75,7 +76,7 @@ describe("Preprint recommended in one round", () => {
 
       // search nonsense string to expect no result
       cy.get('input[name="qyKeywords"]').typeFast("zuklshlkjehrlkjaherlkjahr");
-      cy.get(".pci2-search-button").click();
+      cy.get('input[name="qyKeywords"]').type("{enter}");
 
       cy.contains("a", "Suggest as recommender").should("not.exist");
     });
@@ -84,7 +85,7 @@ describe("Preprint recommended in one round", () => {
       cy.get('input[name="qyKeywords"]').clear();
 
       cy.get('input[name="qyKeywords"]').typeFast(recommender.firstname);
-      cy.get(".pci2-search-button").click();
+      cy.get('input[name="qyKeywords"]').type("{enter}");
       cy.contains("a", "Suggest as recommender").should("exist");
 
       cy.contains("a", "Suggest as recommender").click();
@@ -308,7 +309,7 @@ describe("Preprint recommended in one round", () => {
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
-      cy.get(".pci2-search-button").click();
+      cy.get('input[name="qyKeywords"]').type("{enter}");
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });
@@ -334,7 +335,7 @@ describe("Preprint recommended in one round", () => {
       ).click();
 
       cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);
-      cy.get(".pci2-search-button").click();
+      cy.get('input[name="qyKeywords"]').type('{enter}');
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });

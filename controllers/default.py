@@ -83,14 +83,23 @@ def index():
 
     lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
 
+    tweeterAcc = myconf.get("social.tweeter")
+
     lastRecommTitle = H3(
         T("Latest recommendations"),
         A(
             SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
             _href=URL("about", "rss_info"),
-            _class="btn btn-default pci-rss-btn",
+            _class="btn pci-rss-btn",
             _style="float:right;",
         ),
+        A(
+            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
+            _href="https://twitter.com/%(tweeterAcc)s"%locals(),
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+        ),
+
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
     )
@@ -127,6 +136,8 @@ def index():
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
             pciRRactivated=pciRRactivated,
+            tweeterAcc=tweeterAcc,
+            panel=None,
         )
     else:
         return dict(
@@ -141,6 +152,7 @@ def index():
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
             script=myScript,
             pciRRactivated=pciRRactivated,
+            tweeterAcc=tweeterAcc,
         )
 
 

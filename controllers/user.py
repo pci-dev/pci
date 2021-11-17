@@ -1157,7 +1157,7 @@ def my_articles():
             body=lambda row: A(
                 SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button pci-submitter"),
                 _href=URL(c="user", f="recommendations", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
-                _class="button",
+                _class="",
                 _title=current.T("View and/or edit article"),
             ),
         ),
@@ -1240,7 +1240,8 @@ def my_articles():
         customText=getText(request, auth, db, "#UserMyArticlesText"),
         titleIcon="duplicate",
         pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
-        grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        grid=DIV(grid, _style=""),
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
@@ -1358,7 +1359,7 @@ def my_reviews():
             body=lambda row: A(
                 SPAN(btnTxt, _class="buttontext btn btn-default pci-reviewer pci-button"),
                 _href=URL(c="user", f="recommendations", vars=dict(articleId=row.t_articles.id), user_signature=True),
-                _class="button",
+                _class="",
                 _title=current.T("View and/or edit review"),
             )
             if row.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed", "Willing to review")
@@ -1651,7 +1652,8 @@ def add_suggested_recommender():
         )
         myAcceptBtn = DIV(
             A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", user_signature=True)),
-            _style="margin-top:16px; text-align:center;",
+            _style="margin-top:16px; text-align:left;",
+            _class="pci2-complete-ur-submission",
         )
         return dict(
             titleIcon="education",
@@ -1768,7 +1770,7 @@ def articles_awaiting_reviewers():
             body=lambda row: A(
                 SPAN(current.T("Willing to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
                 _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
-                _class="button",
+                _class="",
                 _title=current.T("View and/or edit article"),
             ),
         ),
@@ -1847,6 +1849,7 @@ def articles_awaiting_reviewers():
         customText=getText(request, auth, db, "#ArticlesAwaitingReviewersText"),
         titleIcon="inbox",
         pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
-        grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        grid=DIV(grid, _style=""),
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )

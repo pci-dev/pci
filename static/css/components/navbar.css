@@ -56,11 +56,13 @@
     opacity: 1
 }
 
-.navbar-default .pci-enhancedMenuItem {
+.navbar-default .pci-enhancedMenuItem,
+.navbar-nav .pci-enhancedMenuItem {
     font-weight: bold;
 }
 
-.navbar-default .pci-enhancedMenuItem .glyphicon {
+.navbar-default .pci-enhancedMenuItem .glyphicon,
+.navbar-nav .pci-enhancedMenuItem .glyphicon {
     opacity: 1;
     color: #fcc24d;
 }

@@ -59,6 +59,7 @@ def ethics():
     pageTitle = getTitle(request, auth, db, "#EthicsTitle")
     customText = getText(request, auth, db, "#EthicsInfo")
     message = ""
+    tweeterAcc = myconf.get("social.tweeter")
     if auth.user_id:
         if db.auth_user[auth.user_id].ethical_code_approved:
             message = DIV(B(T("You have agreed to comply with this code of conduct"), _style="color:green;"), _style="text-align:center; margin:32px;")
@@ -84,6 +85,7 @@ def ethics():
         message=message,
         shareable=True,
         currentUrl=URL(c="about", f="ethics", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
@@ -158,36 +160,42 @@ def social():
 
 ######################################################################################################################################################################
 def gtu():
+    tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle(request, auth, db, "#GtuTitle"),
         customText=getText(request, auth, db, "#GtuInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="gtu", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
 
 ######################################################################################################################################################################
 def about():
+    tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle(request, auth, db, "#AboutTitle"),
         customText=getText(request, auth, db, "#AboutInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="about", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
 
 ######################################################################################################################################################################
 def contact():
+    tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle(request, auth, db, "#ContactTitle"),
         customText=getText(request, auth, db, "#ContactInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="contact", host=host, scheme=scheme, port=port),
+        tweeterAcc=tweeterAcc,
         pciRRactivated=pciRRactivated,
     )
 
@@ -206,8 +214,13 @@ def buzz():
 
 ######################################################################################################################################################################
 def thanks_to_reviewers():
+    tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"), customText=getText(request, auth, db, "#ThanksToReviewersInfo"),)
+    return dict(
+        pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"),
+        customText=getText(request, auth, db, "#ThanksToReviewersInfo"),
+        tweeterAcc=tweeterAcc,
+    )
 
 
 ######################################################################################################################################################################
@@ -247,6 +260,7 @@ def journal_adopter_faq():
 
 ######################################################################################################################################################################
 def recommenders():
+    tweeterAcc = myconf.get("social.tweeter")
     myVars = request.vars
     qyKw = ""
     qyTF = []
@@ -289,7 +303,7 @@ def recommenders():
         SPAN(myIdx, _class="pci-capitals"),
         HR(),
         TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
-        _class="pci2-flex-column pci2-flex-center",
+        _class="pci2-flex-column pci2-flex-center recommender-list-front",
     )
 
     response.view = "default/gab_list_layout.html"
@@ -299,5 +313,6 @@ def recommenders():
         pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
         searchForm=searchForm,
         grid=grid,
+        tweeterAcc=tweeterAcc,
     )
     return resu

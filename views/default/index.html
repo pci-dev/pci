@@ -2,30 +2,33 @@
 {{extend 'layout.html'}}
 
 {{block header}}
-    <header id='pci-home-header' class="col-md-9">
-    <span>
-    <img src="{{=URL(c='static', f='images/background.png')}}">
-    {{if 'smallSearch' in locals():}}
-		<div class="pci-smallSearchDiv">{{=smallSearch}}</div>
-    {{pass}}
-    </span>
+  {{if auth.user:}}
+    <header id='pci-home-header-large'>
+  {{else:}}
+    <header id='pci-home-header'>
+  {{pass}}
+      <span>
+        <img src="{{=URL(c='static', f='images/background.png')}}">
+        {{if 'smallSearch' in locals():}}
+          <div class="pci-smallSearchDiv">{{=smallSearch}}</div>
+        {{pass}}
+      </span>
     </header>
 {{end}}
 
 {{if 'pageHelp#TODO' in locals():}}
   {{=pageHelp}}
-  {{pass}}
-
+{{pass}}
 
 <!-- {{if auth.user:}} -->
 <!-- 	<H1 style="background:red; padding:8px; margin-bottom:12px; border-radius:16px;">Maintenance scheduled today... Please, don't use it for the moment!<br>Sorry for any inconvenience...</H1> -->
 <!-- 	{{pass}} -->
 
-<div style="margin-top:20px; margin-bottom:20px; text-align:center;">
+<div style="margin-top:0px; margin-bottom:20px; text-align:left;">
   {{if auth.user:}}
     <a
       href="{{=URL('user', 'new_submission')}}"
-      class="btn btn-success pci-public"
+      class="btn btn-success pci-public submit-front"
     >
       {{=T("Submit a preprint")}}
     </a>
@@ -33,42 +36,14 @@
     {{else:}}
     <a
     	href="{{=URL('user', 'new_submission')}}"
-    	class="btn btn-success pci-public"
+    	class="btn btn-success pci-public submit-front"
       >
     	{{=T("Submit a preprint")}}
     </a>
-    <a
-    	href="{{=URL(c='default', f='user', args=['login'])}}"
-      class="btn btn-default"
-      id="cyp-login-button"
-    >
-    	{{=T('Log in')}}
-    </a>
-    <label>{{=T(' or ')}}</label>
-    <a
-    	href="{{=URL(c='default', f='user', args=['register'])}}"
-    	class="btn btn-info"
-    >
-    	{{=T('Register')}}
-    </a>
   {{pass}} 
-
-  {{if auth.has_membership('recommender'):}}
-    {{if 'pciRRactivated' in locals() and pciRRactivated is False:}}
-      <a
-      	href="{{=URL('recommender', 'new_submission')}}"
-      	class="btn btn-info pci-recommender"
-      >
-      	{{=T("Recommend a postprint")}}
-      </a>
-    {{pass}}
-    <a
-    	href="{{=URL('recommender', 'fields_awaiting_articles')}}"
-    	class="btn btn-default pci-recommender"
-    >
-    	{{=T("Preprints requiring a recommender")}}
-    </a>
-  {{pass}}
+  <div class="search-wrapper">
+    {{=searchForm}}
+  </div>
 </div>  
 
 {{if 'pageTitle' in locals():}}
@@ -83,7 +58,6 @@
 </div>
 {{pass}}
 
-
 <div class="pci-leftOfPanel">
   {{if 'message' in locals():}}
   	<h2>{{=message}}</h2>
@@ -92,12 +66,9 @@
   {{if 'content' in locals():}}
 	  {{=content}}
 	{{pass}}
-
   
   <div id="lastRecommendationsDiv">
     {{=lastRecommTitle}}
-
-    {{=searchForm}}
 
     {{if 'lastRecomms' in locals():}}
     	{{=lastRecomms}}

@@ -1,0 +1,33 @@
+  <div class="footer-sub flex-item recommenders hide-desktop">
+    <header>
+      <h1 class="pci-h1">MANAGING BOARD</h1>
+    </header>
+    <hr class="hr-footer">
+    <div class="footer-sub-text">
+      {{=getText(request, auth, db, '#SideBarManagingBoard')}}
+      <a href="{{=URL('about','recommenders')}}"><strong>RECOMMENDERS</strong><img class="arrow-links" src="{{=URL('static','images/pci-arrow-links-02.svg')}}"></a>
+    </div>
+
+    <div class="hide-below-tablet">
+      <header>
+        <h1 class="pci-h1">MEMBER OF</h1>
+      </header>
+      <hr class="hr-footer">
+      <div class="footer-sub-text">
+        {{=getText(request, auth, db, '#SideBarMember')}}
+      </div>
+    </div>
+
+    <div class="hide-below-tablet">
+      <header>
+        <h1 class="pci-h1">INDEXED BY</h1>
+      </header>
+      <hr class="hr-footer">
+      <div class="footer-sub-text">
+        {{=getText(request, auth, db, '#SideBarIndex')}}
+      </div>
+    </div>
+  </div>
+
+
+
