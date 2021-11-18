@@ -1294,18 +1294,7 @@ def send_review_cancellation():
 
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field(
-            "cc",
-            label=T("CC"),
-            widget=SQLFORM.widgets.string.widget,
-            type="list:string",
-            length=250,
-            requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
-            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r:  XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, contact),
-            writable=True,
-        ),
+        Field.CC(default=(replyto.email, contact)),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1396,18 +1385,7 @@ def send_reviewer_generic_mail():
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field(
-            "cc",
-            label=T("CC"),
-            widget=SQLFORM.widgets.string.widget,
-            type="list:string",
-            length=250,
-            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
-            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(sender_email,),
-            writable=True,
-        ),
+        Field.CC(default=(sender_email,)),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1433,6 +1411,25 @@ def send_reviewer_generic_mail():
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
+
+#########################################################################
+## Helper
+
+def _Field_CC(default):
+    return Field(
+            "cc",
+            label=T("CC"),
+            widget=SQLFORM.widgets.string.widget,
+            type="list:string",
+            length=250,
+            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
+            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
+            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            default=default,
+            writable=True,
+        )
+
+Field.CC = _Field_CC
 
 
 ######################################################################################################################################################################
@@ -1523,18 +1520,7 @@ def email_for_registered_reviewer():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field(
-            "cc",
-            label=T("CC"),
-            widget=SQLFORM.widgets.string.widget,
-            type="list:string",
-            length=250,
-            requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
-            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, myconf.take("contacts.managers")),
-            writable=True,
-        ),
+        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1650,18 +1636,7 @@ def email_for_new_reviewer():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-       Field(
-            "cc",
-            label=T("CC"),
-            widget=SQLFORM.widgets.string.widget,
-            type="list:string",
-            length=250,
-            requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
-            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, myconf.take("contacts.managers")),
-            writable=True,
-        ),
+        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!"))),
