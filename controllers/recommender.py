@@ -290,7 +290,7 @@ def search_reviewers():
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
-    
+
     if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -897,8 +897,8 @@ def show_report_survey():
 
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
-            "q1", 
-            "q2", 
+            "q1",
+            "q2",
             "q3",
             "q4",
             # "q5",
@@ -1106,7 +1106,7 @@ def reviews():
 
         # This script renames the "Add record" button
         myScript = SCRIPT(
-            """$(function() { 
+            """$(function() {
 						$('span').filter(function(i) {
 								return $(this).attr("title") ? $(this).attr("title").indexOf('"""
             + T("Add record to database")
@@ -1303,9 +1303,9 @@ def send_review_cancellation():
             requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
             filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
             represent=lambda v, r:  XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, contact), 
+            default=(replyto.email, contact),
             writable=True,
-        ), 
+        ),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1396,7 +1396,7 @@ def send_reviewer_generic_mail():
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-       Field(
+        Field(
             "cc",
             label=T("CC"),
             widget=SQLFORM.widgets.string.widget,
@@ -1407,7 +1407,7 @@ def send_reviewer_generic_mail():
             represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
             default=(sender_email,),
             writable=True,
-        ), 
+        ),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1501,7 +1501,7 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
-    
+
     if pciRRactivated:
         report_surey = db(db.t_report_survey.article_id == art.id).select().last()
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
@@ -1532,9 +1532,9 @@ def email_for_registered_reviewer():
             requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
             filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
             represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, myconf.take("contacts.managers")), 
+            default=(replyto.email, myconf.take("contacts.managers")),
             writable=True,
-        ), 
+        ),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1631,14 +1631,14 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
-    
+
     # PCi RR specific mail vars based on report survey answers
     if pciRRactivated:
         report_surey = db(db.t_report_survey.article_id == art.id).select().last()
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
-    
+
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
@@ -1659,9 +1659,9 @@ def email_for_new_reviewer():
             requires=IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!")),
             filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
             represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=(replyto.email, myconf.take("contacts.managers")), 
+            default=(replyto.email, myconf.take("contacts.managers")),
             writable=True,
-        ), 
+        ),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!"))),
@@ -1923,7 +1923,7 @@ def contributions():
             exportclasses=expClass,
             fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
         )
-        
+
         myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),
