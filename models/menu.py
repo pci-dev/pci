@@ -116,14 +116,12 @@ def _BaseMenu(footerMenu=False):
     ]
 
     if footerMenu:
-        #homeLink = (SPAN(I(_class="glyphicon glyphicon-home"), T("Home")), isHomeActive, URL("default", "index"))
         homeLink = (IMG(_style="", _src=URL(c="static", f="images/pci-logo.svg")), isHomeActive, URL("default", "index"))
     else:
         homeLink = (IMG(_style="height:40px", _src=URL(c="static", f="images/small-background.png")), isHomeActive, URL("default", "index"))
 
     menuBar = [
         homeLink,
-        # (T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
         (SPAN(I(_class="glyphicon glyphicon-book"), T("Articles")), isArticleActive, "#", articleMenu),
     ]
     return menuBar
@@ -198,10 +196,7 @@ def _UserMenu():
     revClass = ""
     contribMenuClass = ""
     notificationPin = ""
-    # reviews
-    # (gab) proposition :
 
-    # pending reviews, if any
     nRevPend = db(
         (db.t_reviews.reviewer_id == auth.user_id)
         & (db.t_reviews.review_state == "Awaiting response")
@@ -279,12 +274,10 @@ def _RecommendationMenu():
         & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
         & (db.t_suggested_recommenders.declined == False)
     ).count()
-    # (gab) proposition à la place de :
     txtPreprintsRecomPend = menu_entry_item(
         T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, "glyphicon-envelope",
         _class="pci-recommender"
     )
-    # txtPreprintsRecomPend = SPAN('Do you agree to initiate a recommendation?', _class='pci-recommender')
 
     if nPreprintsRecomPend > 0:
         txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class="pci-enhancedMenuItem")
