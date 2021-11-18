@@ -549,13 +549,17 @@ def _AccountMenu():
     return [(SPAN(txtMenu, _class="pci-manager"), isActive, "#", auth_menu)]
 
 
-def menu_entry(text, icon, url, new_window=False):
-    display = SPAN(I(_class="pci2-icon-margin-right glyphicon " + icon), T(text))
+def menu_entry(text, icon, url, new_window=False, _class=None):
+    display = menu_entry_item(text, icon, _class)
 
     if new_window:
         return LI(A(display, _href=url, _target="_blank"))
     else:
         return (display, False, url)
+
+
+def menu_entry_item(text, icon, _class=None):
+    return SPAN(I(_class="pci2-icon-margin-right glyphicon " + icon), T(text), _class=_class)
 
 
 def divider():
