@@ -637,9 +637,13 @@
         height: auto;
     }
 
+    .pci-infotextbox div {
+        color: black;
+    }
+
     .pci-infotext > div,
     .pci-infotext > div > div {
-        padding-bottom: 2rem;
+        padding-bottom: 0;
         line-height: 1.6!important;
     }
 
@@ -1055,7 +1059,7 @@
     }
 
     .pci-infotext h2 {
-        margin: 3rem 0!important;
+        margin: 1rem 0!important;
     }
 
     .hide-below-tablet .footer-sub-text .pci-infotext img {
