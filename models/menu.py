@@ -455,7 +455,7 @@ def _AboutMenu():
     ]
 
     if not pciRRactivated: aboutMenu += [
-        menu_entry("PCI and journals", "glyphicon-file", "https://peercommunityin.org/pci-and-journals/"),
+        menu_entry("PCI and journals", "glyphicon-file", "https://peercommunityin.org/pci-and-journals/", new_window=True),
     ]
 
     if pciRRactivated: aboutMenu += [
