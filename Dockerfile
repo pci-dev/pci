@@ -15,7 +15,7 @@ RUN	ln -s ../../pci web2py/applications
 RUN	mkdir pci
 WORKDIR pci
 
-COPY	requirements.txt .
+COPY	requirements.in requirements.txt
 RUN	sed -i s/psycopg2-binary/psycopg2/ requirements.txt
 RUN	apk add py3-lxml py3-psycopg2 py3-pillow py3-pip
 RUN	pip3 install -r requirements.txt

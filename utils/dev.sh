@@ -16,7 +16,7 @@ esac
 set -x
 
 docker image inspect pci:latest &> /dev/null || {
-	docker build -t pci .
+	docker build -t pci $(dirname $0)/..
 }
 
 docker run $OPTIONS -p 8000:8001 -v "$PWD:/pci" pci "$@"
