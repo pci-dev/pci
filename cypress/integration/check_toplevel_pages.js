@@ -39,7 +39,7 @@ describe("Check toplevel pages", () => {
 
     it("Should show page help_practical", () => {
       cy.contains(".dropdown-toggle", "Help").click();
-      cy.contains("a", "How to ...?").click();
+      cy.contains("a", "How to...?").click();
       cy.contains(".pci-text-title", "How to...?").should("exist");
     });
 
