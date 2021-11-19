@@ -115,3 +115,7 @@ def getSendMessageForm(declineKey):
         _action=URL("send_suggested_reviewers"),
         _style="max-width: 800px; display: inline-block",
     )
+
+
+def cc_widget(field, value):
+    return SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))

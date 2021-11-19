@@ -19,6 +19,8 @@ from controller_modules import admin_module
 from app_modules import common_small_html
 from app_modules import common_tools
 
+from app_components import app_forms
+
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
@@ -593,7 +595,7 @@ def mailing_queue():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: common_small_html.mkRepresentArticleLightLinked(auth, db, art_id)
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
-    db.mail_queue.cc_mail_addresses.widget = lambda field, value: SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))  
+    db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
