@@ -1638,7 +1638,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None):
+def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None):
     print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1760,7 +1760,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto, cc, hashtag_t
                     ),
                 )
 
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+                mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
                 db.mail_queue.insert(
                     dest_mail_address=mail_vars["destAddress"],
@@ -1859,7 +1859,8 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
 
-    form.cc
+
+    cc_addresses = emailing_tools.mkCC(form.cc)
     form.subject
     form.message
 
@@ -1868,7 +1869,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     db.mail_queue.insert(
         user_id             = auth.user_id,
         dest_mail_address   = reviewer_email,
-        cc_mail_addresses   = form.cc,
+        cc_mail_addresses   = cc_addresses,
         mail_subject        = form.subject,
         mail_content        = mail_content,
 

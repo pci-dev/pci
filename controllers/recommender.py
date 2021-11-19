@@ -1311,10 +1311,11 @@ def send_review_cancellation():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         try:
             review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_address, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1537,6 +1538,7 @@ def email_for_registered_reviewer():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         try:
             emailing.send_reviewer_invitation(
                 session,
@@ -1544,7 +1546,7 @@ def email_for_registered_reviewer():
                 db,
                 reviewId,
                 replyto_address,
-                myconf.take("contacts.managers"),
+                cc_addresses,
                 hashtag_template,
                 request.vars["subject"],
                 request.vars["message"],
@@ -1647,6 +1649,7 @@ def email_for_new_reviewer():
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
@@ -1718,7 +1721,7 @@ def email_for_new_reviewer():
                         db,
                         reviewId,
                         replyto_address,
-                        myconf.take("contacts.managers"),
+                        cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
@@ -1745,7 +1748,7 @@ def email_for_new_reviewer():
                         db,
                         reviewId,
                         replyto_address,
-                        myconf.take("contacts.managers"),
+                        cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
