@@ -29,6 +29,7 @@ from app_components import ongoing_recommendation
 from app_components import recommender_components
 
 from app_modules import common_tools
+from app_modules import emailing_tools
 from app_modules import common_small_html
 
 from controller_modules import admin_module
@@ -1302,7 +1303,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
-        mail.cc_mail_addresses = form.vars.cc_mail_addresses
+        mail.cc_mail_addresses = emailing_tools.mkCC(form.vars.cc_mail_addresses)
         mail.update_record()
 
         content_saved = True
