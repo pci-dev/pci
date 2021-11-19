@@ -2267,11 +2267,11 @@ def review_emails():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.cc_mail_addresses.widget = lambda field, value: SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = True
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -2322,6 +2322,7 @@ def review_emails():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
+            db.mail_queue.cc_mail_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2379,11 +2380,12 @@ def article_reviews_emails():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.cc_mail_addresses.widget = lambda field, value: SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))
+
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = True
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -2432,6 +2434,7 @@ def article_reviews_emails():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
+            db.mail_queue.cc_mail_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2470,6 +2473,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
+        mail.cc_mail_addresses = form.vars.cc_mail_addresses
         mail.update_record()
 
         content_saved = True
