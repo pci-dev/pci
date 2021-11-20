@@ -290,7 +290,7 @@ def search_reviewers():
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
-    
+
     if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -897,8 +897,8 @@ def show_report_survey():
 
     if art.report_stage == "STAGE 1":  # STAGE 1 survey
         fields = [
-            "q1", 
-            "q2", 
+            "q1",
+            "q2",
             "q3",
             "q4",
             # "q5",
@@ -1106,7 +1106,7 @@ def reviews():
 
         # This script renames the "Add record" button
         myScript = SCRIPT(
-            """$(function() { 
+            """$(function() {
 						$('span').filter(function(i) {
 								return $(this).attr("title") ? $(this).attr("title").indexOf('"""
             + T("Add record to database")
@@ -1293,8 +1293,8 @@ def send_review_cancellation():
     default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
     form = SQLFORM.factory(
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default=replyto_address, writable=False),
-        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid email!")), default="%s, %s" % (replyto.email, contact), writable=False),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
+        Field.CC(default=(replyto.email, contact)),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1302,7 +1302,7 @@ def send_review_cancellation():
             length=250,
             default=reviewer.email,
             writable=False,
-            requires=IS_EMAIL(error_message=T("invalid email!")),
+            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
         ),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1311,10 +1311,11 @@ def send_review_cancellation():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         try:
             review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, myconf.take("contacts.managers"), hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_address, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1381,11 +1382,11 @@ def send_reviewer_generic_mail():
 
     default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
-    req_is_email = IS_EMAIL(error_message=T("invalid email!"))
+    req_is_email = IS_EMAIL(error_message=T("invalid e-mail!"))
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field("cc", label=T("CC"), type="string", length=250, requires=IS_EMPTY_OR(req_is_email), default=sender_email, writable=True),
+        Field.CC(default=(sender_email,)),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1411,6 +1412,25 @@ def send_reviewer_generic_mail():
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
+
+#########################################################################
+## Helper
+
+def _Field_CC(default):
+    return Field(
+            "cc",
+            label=T("CC"),
+            widget=SQLFORM.widgets.string.widget,
+            type="list:string",
+            length=250,
+            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
+            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
+            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            default=default,
+            writable=True,
+        )
+
+Field.CC = _Field_CC
 
 
 ######################################################################################################################################################################
@@ -1479,7 +1499,7 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
-    
+
     if pciRRactivated:
         report_surey = db(db.t_report_survey.article_id == art.id).select().last()
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
@@ -1501,15 +1521,7 @@ def email_for_registered_reviewer():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field(
-            "cc",
-            label=T("CC"),
-            type="string",
-            length=250,
-            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
-            default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
-            writable=False,
-        ),
+        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1526,6 +1538,7 @@ def email_for_registered_reviewer():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         try:
             emailing.send_reviewer_invitation(
                 session,
@@ -1533,7 +1546,7 @@ def email_for_registered_reviewer():
                 db,
                 reviewId,
                 replyto_address,
-                myconf.take("contacts.managers"),
+                cc_addresses,
                 hashtag_template,
                 request.vars["subject"],
                 request.vars["message"],
@@ -1606,14 +1619,14 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
-    
+
     # PCi RR specific mail vars based on report survey answers
     if pciRRactivated:
         report_surey = db(db.t_report_survey.article_id == art.id).select().last()
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
-    
+
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
@@ -1625,15 +1638,7 @@ def email_for_new_reviewer():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field(
-            "cc",
-            label=T("CC"),
-            type="string",
-            length=250,
-            requires=IS_EMAIL(error_message=T("invalid e-mail!")),
-            default="%s, %s" % (replyto.email, myconf.take("contacts.managers")),
-            writable=False,
-        ),
+        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!"))),
@@ -1644,6 +1649,7 @@ def email_for_new_reviewer():
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
+        cc_addresses = emailing_tools.mkCC(form.vars.cc)
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
@@ -1715,7 +1721,7 @@ def email_for_new_reviewer():
                         db,
                         reviewId,
                         replyto_address,
-                        myconf.take("contacts.managers"),
+                        cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
@@ -1742,7 +1748,7 @@ def email_for_new_reviewer():
                         db,
                         reviewId,
                         replyto_address,
-                        myconf.take("contacts.managers"),
+                        cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
                         request.vars["message"],
@@ -1895,7 +1901,7 @@ def contributions():
             exportclasses=expClass,
             fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
         )
-        
+
         myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),
@@ -2239,11 +2245,11 @@ def review_emails():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -2294,6 +2300,7 @@ def review_emails():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
+            db.mail_queue.cc_mail_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2351,11 +2358,12 @@ def article_reviews_emails():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
+
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -2404,6 +2412,7 @@ def article_reviews_emails():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
+            db.mail_queue.cc_mail_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2442,6 +2451,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
+        mail.cc_mail_addresses = emailing_tools.mkCC(form.vars.cc_mail_addresses)
         mail.update_record()
 
         content_saved = True

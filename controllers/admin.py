@@ -18,6 +18,9 @@ from app_modules.helper import *
 from controller_modules import admin_module
 from app_modules import common_small_html
 from app_modules import common_tools
+from app_modules import emailing_tools
+
+from app_components import app_forms
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
@@ -593,11 +596,11 @@ def mailing_queue():
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: common_small_html.mkRepresentArticleLightLinked(auth, db, art_id)
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
     db.mail_queue.dest_mail_address.writable = False
-    db.mail_queue.cc_mail_addresses.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -645,6 +648,7 @@ def mailing_queue():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
+            db.mail_queue.cc_mail_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -683,6 +687,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
+        mail.cc_mail_addresses = emailing_tools.mkCC(form.vars.cc_mail_addresses)
         mail.update_record()
 
         content_saved = True
