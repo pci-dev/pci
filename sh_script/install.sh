@@ -136,9 +136,6 @@ private = 6LcWlIQUAAAAAFLt0iv0AJWUkpRBoT9VC1xAnQxi
 [social]
 tweeter = $twitter
 tweethash = $twitter
-
-[menu]
-guidelines = False
 EOF
 
 # 5/ Background files (or manually install true ones) & other images
