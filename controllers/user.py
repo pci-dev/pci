@@ -699,13 +699,7 @@ def fill_report_survey():
         db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
         db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
         db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
-        db.t_report_survey.q13.requires = IS_IN_SET(
-            (
-                "YES",
-                "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
-                "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
-            )
-        )
+        db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)
         # db.t_report_survey.q14.requires = IS_NOT_EMPTY()
         db.t_report_survey.q15.requires = [IS_NOT_EMPTY(), IS_LENGTH(2000, 0)]
         db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
@@ -913,13 +907,7 @@ def edit_report_survey():
         db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
         db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
         db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
-        db.t_report_survey.q13.requires = IS_IN_SET(
-            (
-                "YES",
-                "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
-                "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
-            )
-        )
+        db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)
         # db.t_report_survey.q14.requires = IS_NOT_EMPTY()
         db.t_report_survey.q15.requires = [IS_NOT_EMPTY(), IS_LENGTH(2000, 0)]
         db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
