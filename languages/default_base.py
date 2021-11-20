@@ -769,7 +769,6 @@
     "Subject": "Subject",
     "Submission date": "Submission date",
     "Submission date/time": "Submission date/time",
-    "Submission guidelines": "Submission guidelines",
     "Submit an article for a recommendation": "Submit an article for a recommendation",
     "Submit and close revision": "Submit and close revision",
     "Submit a preprint": "Submit a preprint",
