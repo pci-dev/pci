@@ -54,7 +54,7 @@ def _DevMenu():
     app = request.application
     ctr = request.controller
     # txtMenu = IMG(_title=T('Development'), _alt=T('Devel.'), _src=URL(c='static', f='images/devel.png'), _class='pci-menuImage')
-    txtMenu = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-qrcode"), T("Development"))
+    txtMenu = menu_entry_item("Development", "glyphicon-qrcode")
     return [
         (
             txtMenu,
@@ -64,11 +64,11 @@ def _DevMenu():
                 (T("Current GIT version"), False, URL("about", "version", user_signature=True)),
                 (T("TEST: Recommenders country map"), False, URL("maps", "recommenders_map", user_signature=True)),
                 (T("TEST: Redirection"), False, URL("admin", "testRedir", user_signature=True)),
-                # LI(_class="divider"),
+                # divider(),
                 # (T('Restart daemon'), False, URL('admin', 'restart_daemon')),
-                LI(_class="divider"),
+                divider(),
                 (T("Design"), False, URL("admin", "default", "design/%s" % app)),
-                LI(_class="divider"),
+                divider(),
                 (T("Controller"), False, URL("admin", "default", "edit/%s/controllers/%s.py" % (app, ctr))),
                 (T("View"), False, URL("admin", "default", "edit/%s/views/%s" % (app, response.view))),
                 (T("DB Model"), False, URL("admin", "default", "edit/%s/models/db.py" % app)),
@@ -107,22 +107,21 @@ def _BaseMenu(footerMenu=False):
     tracking = myconf.get("config.tracking", default=False)
 
     articleMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-search"), T("Search articles")), False, URL("articles", "recommended_articles")),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("All recommended articles")), False, URL("articles", "all_recommended_articles")),
+        menu_entry("Search articles", "glyphicon-search", URL("articles", "recommended_articles")),
+        menu_entry("All recommended articles", "glyphicon-book", URL("articles", "all_recommended_articles")),
     ]
 
-    if tracking:
-        articleMenu.append((SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tasks"), T("Progress log")), False, URL("articles", "tracking")))
+    if tracking: articleMenu += [
+        menu_entry("Progress log", "glyphicon-tasks", URL("articles", "tracking")),
+    ]
 
     if footerMenu:
-        #homeLink = (SPAN(I(_class="glyphicon glyphicon-home"), T("Home")), isHomeActive, URL("default", "index"))
         homeLink = (IMG(_style="", _src=URL(c="static", f="images/pci-logo.svg")), isHomeActive, URL("default", "index"))
     else:
         homeLink = (IMG(_style="height:40px", _src=URL(c="static", f="images/small-background.png")), isHomeActive, URL("default", "index"))
 
     menuBar = [
         homeLink,
-        # (T(u'🔍 Search'), False, URL('articles', 'recommended_articles')),
         (SPAN(I(_class="glyphicon glyphicon-book"), T("Articles")), isArticleActive, "#", articleMenu),
     ]
     return menuBar
@@ -164,28 +163,19 @@ def _AdminMenu():
         isActive = True
 
     adminMenu = [
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Users & roles")), False, URL("admin", "list_users", user_signature=True)),
-        # (T('Images'),            False, URL('admin', 'manage_images', user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-list-alt"), T("Synthesis of reviews")), False, URL("admin", "recap_reviews", user_signature=True)),
-        (
-            SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("All recommendation citations")),
-            False,
-            URL("admin", "allRecommCitations", user_signature=True),
-        ),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Recommendation PDF files")), False, URL("admin", "manage_pdf", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue")), False, URL("admin", "mailing_queue", user_signature=True)),
-        (
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-send"), T("Mailing queue Search")),
-                False,
-                URL("admin", "mailing_queue", vars=dict(searchable=True), user_signature=True),
-        ),    
-        LI(_class="divider"),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-tags"), T("Thematic fields")), False, URL("admin", "thematics_list", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-bookmark"), T("Status of articles")), False, URL("admin", "article_status", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-question-sign"), T("Help texts")), False, URL("custom_text", "help_texts", user_signature=True)),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("E-mail templates")), False, URL("custom_help_text", "mail_templates", user_signature=True)),
-        LI(_class="divider"),
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-earphone"), T("Contact lists")), False, URL("admin", "mailing_lists", user_signature=True))
+        menu_entry("Users & roles", "glyphicon-user", URL("admin", "list_users", user_signature=True)),
+        menu_entry("Synthesis of reviews", "glyphicon-list-alt", URL("admin", "recap_reviews", user_signature=True)),
+        menu_entry("All recommendation citations", "glyphicon-education", URL("admin", "allRecommCitations", user_signature=True)),
+        menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf", user_signature=True)),
+        menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue", user_signature=True)),
+        menu_entry("Mailing queue Search", "glyphicon-send", URL("admin", "mailing_queue", vars=dict(searchable=True), user_signature=True)),
+        divider(),
+        menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list", user_signature=True)),
+        menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status", user_signature=True)),
+        menu_entry("Help texts", "glyphicon-question-sign", URL("custom_help_text", "help_texts", user_signature=True)),
+        menu_entry("E-mail templates", "glyphicon-envelope", URL("custom_help_text", "mail_templates", user_signature=True)),
+        divider(),
+        menu_entry("Contact lists", "glyphicon-earphone", URL("admin", "mailing_lists", user_signature=True)),
     ]
 
     return [
@@ -206,10 +196,7 @@ def _UserMenu():
     revClass = ""
     contribMenuClass = ""
     notificationPin = ""
-    # reviews
-    # (gab) proposition :
 
-    # pending reviews, if any
     nRevPend = db(
         (db.t_reviews.reviewer_id == auth.user_id)
         & (db.t_reviews.review_state == "Awaiting response")
@@ -218,56 +205,47 @@ def _UserMenu():
         & (db.t_articles.status == "Under consideration")
     ).count()
 
-    txtRevPend = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("%s Invitation(s) to review a preprint") % nRevPend, _class="pci-recommender")
+    txtRevPend = menu_entry_item(T("%s Invitation(s) to review a preprint") % nRevPend, "glyphicon-envelope", _class="pci-recommender")
 
     if nRevPend > 0:
         txtRevPend = SPAN(txtRevPend, _class="pci-enhancedMenuItem")
         contribMenuClass = "pci-enhancedMenuItem"
         notificationPin = DIV(nRevPend, _class="pci2-notif-pin")
 
-    myContributionsMenu.append((txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)))
+    myContributionsMenu += [
+        (txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)),
+    ]
 
     nWaitingForReviewer = db((db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")).count()
-    txtWaitingForReviewer = SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("%s Preprint(s) in need of reviewers") % nWaitingForReviewer)
+    txtWaitingForReviewer = menu_entry_item(T("%s Preprint(s) in need of reviewers") % nWaitingForReviewer, "glyphicon-inbox")
     if nWaitingForReviewer > 0:
         txtWaitingForReviewer = SPAN(txtWaitingForReviewer, _class="pci-enhancedMenuItem")
         contribMenuClass = "pci-enhancedMenuItem"
 
-    myContributionsMenu.append((txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True)))
-
-    myContributionsMenu.append(
-        (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Submit a preprint")), False, URL("user", "new_submission", user_signature=True))
-    )
-    myContributionsMenu.append(LI(_class="divider"))
+    myContributionsMenu += [
+        (txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True)),
+        menu_entry("Submit a preprint", "glyphicon-edit", URL("user", "new_submission", user_signature=True)),
+        divider(),
+    ]
 
     nRevTot = db((db.t_reviews.reviewer_id == auth.user_id)).count()
     nRevOngoing = db((db.t_reviews.reviewer_id == auth.user_id) & (db.t_reviews.review_state == "Awaiting review")).count()
+    nRevisions = db((db.t_articles.user_id == auth.user_id) & (db.t_articles.status == "Awaiting revision")).count()
     if nRevOngoing > 0:
         revClass = "pci-enhancedMenuItem"
         contribMenuClass = "pci-enhancedMenuItem"
-    if nRevTot > 0:
-        myContributionsMenu.append(
-            (
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-eye-open"), T("Your reviews"), _class=revClass),
-                False,
-                URL("user", "my_reviews", vars=dict(pendingOnly=False), user_signature=True),
-            )
-        )
-
-    nRevisions = db((db.t_articles.user_id == auth.user_id) & (db.t_articles.status == "Awaiting revision")).count()
     if nRevisions > 0:
-        myContributionsMenu.append(
-            (
-                (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Your submitted preprints"), _class="pci-enhancedMenuItem")),
-                False,
-                URL("user", "my_articles", user_signature=True),
-            )
-        )
         contribMenuClass = "pci-enhancedMenuItem"
-    else:
-        myContributionsMenu.append(
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-duplicate"), T("Your submitted preprints")), False, URL("user", "my_articles", user_signature=True))
-        )
+
+    if nRevTot > 0: myContributionsMenu += [
+        menu_entry("Your reviews", "glyphicon-eye-open", URL("user", "my_reviews", vars=dict(pendingOnly=False), user_signature=True), _class=revClass),
+    ]
+
+    _class = "pci-enhancedMenuItem" if nRevisions > 0 else None
+
+    myContributionsMenu += [
+        menu_entry("Your submitted preprints", "glyphicon-duplicate", URL("user", "my_articles", user_signature=True), _class=_class),
+    ]
 
     return [
         (SPAN(I(_class="glyphicon glyphicon-edit"), T("For contributors"), notificationPin, _class=contribMenuClass), isActive, "#", myContributionsMenu),
@@ -296,18 +274,19 @@ def _RecommendationMenu():
         & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
         & (db.t_suggested_recommenders.declined == False)
     ).count()
-    # (gab) proposition à la place de :
-    txtPreprintsRecomPend = SPAN(
-        I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, _class="pci-recommender"
+    txtPreprintsRecomPend = menu_entry_item(
+        T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, "glyphicon-envelope",
+        _class="pci-recommender"
     )
-    # txtPreprintsRecomPend = SPAN('Do you agree to initiate a recommendation?', _class='pci-recommender')
 
     if nPreprintsRecomPend > 0:
         txtPreprintsRecomPend = SPAN(txtPreprintsRecomPend, _class="pci-enhancedMenuItem")
-        colorRequests = True
         notificationPin = DIV(nPreprintsRecomPend, _class="pci2-notif-pin")
+        colorRequests = True
 
-    recommendationsMenu.append((txtPreprintsRecomPend, False, URL("recommender", "my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True)))
+    recommendationsMenu += [
+        (txtPreprintsRecomPend, False, URL("recommender", "my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
+    ]
 
     nPreprintsOngoing = db(
         (db.t_recommendations.recommender_id == auth.user_id)
@@ -339,51 +318,47 @@ def _RecommendationMenu():
     else:
         classPreprintsRequireRecomm = ""
 
-    recommendationsMenu.append(
+    recommendationsMenu += [
         (
             SPAN(
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-inbox"), T("Preprint(s) in need of a recommender"), _class="pci-recommender"),
+                menu_entry_item("Preprint(s) in need of a recommender", "glyphicon-inbox", _class="pci-recommender"),
                 _class=classPreprintsRequireRecomm,
             ),
             False,
             URL("recommender", "fields_awaiting_articles", user_signature=True),
         )
-    )
+    ]
 
-    if not pciRRactivated:
-        recommendationsMenu.append(
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Recommend a postprint")), False, URL("recommender", "new_submission", user_signature=True))
-        )
+    if not pciRRactivated: recommendationsMenu += [
+            menu_entry("Recommend a postprint", "glyphicon-edit", URL("recommender", "new_submission", user_signature=True)),
+    ]
 
-    recommendationsMenu.append(LI(_class="divider"))
-    recommendationsMenu.append(
+    recommendationsMenu += [
+        divider(),
         (
             SPAN(
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Preprint(s) you are handling"), _class="pci-recommender"), _class=classPreprintsOngoing,
+                menu_entry_item("Preprint(s) you are handling", "glyphicon-education", _class="pci-recommender"),
+                _class=classPreprintsOngoing,
             ),
             False,
             URL("recommender", "my_recommendations", vars=dict(pressReviews=False), user_signature=True),
-        )
-    )
-    recommendationsMenu.append(
-        (
-            SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-link"), T("Preprint(s) you are co-handling"), _class="pci-recommender"),
-            False,
+        ),
+        menu_entry("Preprint(s) you are co-handling", "glyphicon-link",
             URL("recommender", "my_co_recommendations", vars=dict(pendingOnly=False), user_signature=True),
-        )
-    )
+            _class="pci-recommender",
+        ),
+    ]
 
-    if not pciRRactivated:
-        recommendationsMenu.append(
+    if not pciRRactivated: recommendationsMenu += [
             (
                 SPAN(
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-certificate"), T("Your recommendations of postprints"), _class="pci-recommender"),
+                    menu_entry_item("Your recommendations of postprints", "glyphicon-certificate", _class="pci-recommender"),
                     _class=classPostprintsOngoing,
                 ),
                 False,
                 URL("recommender", "my_recommendations", vars=dict(pressReviews=True), user_signature=True),
             )
-        )
+    ]
 
     if colorRequests:
         requestsMenuTitle = SPAN(SPAN(I(_class="glyphicon glyphicon-education"), T("For recommenders"), notificationPin, _class="pci-recommender"), _class="pci-enhancedMenuItem")
@@ -406,14 +381,14 @@ def _ManagerMenu():
     nbPend = db(db.t_articles.status.belongs(("Pending", "Pre-recommended", "Pre-recommended-private", "Pre-revision", "Pre-rejected"))).count()
     txtPending = str(nbPend) + " " + (T("Pending validation(s)"))
     if nbPend > 0:
-        txtPending = SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-time"), txtPending, _class="pci-enhancedMenuItem"), _class="pci-manager")
+        txtPending = SPAN(menu_entry_item(txtPending, "glyphicon-time", _class="pci-enhancedMenuItem"), _class="pci-manager")
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
         notificationPin = DIV(nbPend, _class="pci2-notif-pin")
 
     nbGoing = db(db.t_articles.status.belongs(("Under consideration", "Awaiting revision", "Awaiting consideration"))).count()
     txtGoing = str(nbGoing) + " " + (T("Handling process(es) underway"))
     if nbGoing > 0:
-        txtGoing = SPAN(SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-refresh"), txtGoing, _class="pci-enhancedMenuItem"), _class="pci-manager")
+        txtGoing = SPAN(menu_entry_item(txtGoing, "glyphicon-refresh", _class="pci-enhancedMenuItem"), _class="pci-manager")
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
 
     return [
@@ -424,26 +399,10 @@ def _ManagerMenu():
             [
                 (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
                 (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-education"), T("Perform tasks in place of recommenders")),
-                    False,
-                    URL("manager", "all_recommendations", user_signature=True),
-                ),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-ok-sign"), T("Handling process(es) completed"), _class="pci-manager"),
-                    False,
-                    URL("manager", "completed_articles", user_signature=True),
-                ),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-book"), T("All articles"), _class="pci-manager"),
-                    False,
-                    URL("manager", "all_articles", user_signature=True),
-                ),
-                (
-                    SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-comment"), T("Comments"), _class="pci-manager"),
-                    False,
-                    URL("manager", "manage_comments", user_signature=True),
-                ),
+                menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
+                menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
+                menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
+                menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
             ],
         ),
     ]
@@ -521,41 +480,41 @@ def _AccountMenu():
     if ctr == "default" and fct == "user":
         isActive = True
 
-    txtMenu = SPAN(I(_class="glyphicon glyphicon-log-in"), T("Log in"), _class="pci-enhancedMenuItem")
-    auth_menu = []
-
     if auth.is_logged_in():
         txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), B(auth.user.first_name))
-
-        auth_menu += [
-            (
-                SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-briefcase"), T("Public page")),
-                False,
-                URL(c="public", f="user_public_page", vars=dict(userId=auth.user.id)),
-            ),
-            LI(_class="divider"),
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-user"), T("Profile")), False, URL("default", "user/profile", user_signature=True)),
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-lock"), T("Change password")), False, URL("default", "user/change_password", user_signature=True)),
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-envelope"), T("Change e-mail address")), False, URL("default", "change_email", user_signature=True)),
-            LI(_class="divider"),
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-off"), T("Log out")), False, URL("default", "user/logout", user_signature=True)),
-        ]
     else:
-        auth_menu += [
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-log-in"), T("Log in")), False, URL("default", "user/login", user_signature=True)),
-            (SPAN(I(_class="pci2-icon-margin-right glyphicon glyphicon-edit"), T("Sign up")), False, URL("default", "user/register", user_signature=True)),
-        ]
+        txtMenu = SPAN(I(_class="glyphicon glyphicon-log-in"), T("Log in"), _class="pci-enhancedMenuItem")
+
+    auth_menu = []
+
+    if auth.is_logged_in(): auth_menu += [
+        menu_entry("Public page", "glyphicon-briefcase", URL(c="public", f="user_public_page", vars=dict(userId=auth.user.id))),
+        divider(),
+        menu_entry("Profile", "glyphicon-user", URL("default", "user/profile", user_signature=True)),
+        menu_entry("Change password", "glyphicon-lock", URL("default", "user/change_password", user_signature=True)),
+        menu_entry("Change e-mail address", "glyphicon-envelope", URL("default", "change_email", user_signature=True)),
+        divider(),
+        menu_entry("Log out", "glyphicon-off", URL("default", "user/logout", user_signature=True)),
+    ]
+    else: auth_menu += [
+        menu_entry("Log in", "glyphicon-log-in", URL("default", "user/login", user_signature=True)),
+        menu_entry("Sign up", "glyphicon-edit", URL("default", "user/register", user_signature=True)),
+    ]
 
     return [(SPAN(txtMenu, _class="pci-manager"), isActive, "#", auth_menu)]
 
 
-def menu_entry(text, icon, url, new_window=False):
-    display = SPAN(I(_class="pci2-icon-margin-right glyphicon " + icon), T(text))
+def menu_entry(text, icon, url, new_window=False, _class=None):
+    display = menu_entry_item(text, icon, _class)
 
     if new_window:
         return LI(A(display, _href=url, _target="_blank"))
     else:
         return (display, False, url)
+
+
+def menu_entry_item(text, icon, _class=None):
+    return SPAN(I(_class="pci2-icon-margin-right glyphicon " + icon), T(text), _class=_class)
 
 
 def divider():
@@ -599,7 +558,3 @@ response.help_about_menu += _AccountMenu()
 # set the language
 if "adminLanguage" in request.cookies and not (request.cookies["adminLanguage"] is None):
     T.force(request.cookies["adminLanguage"].value)
-
-
-#
-
