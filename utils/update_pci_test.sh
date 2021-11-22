@@ -45,7 +45,7 @@ update_all() {
 
 	for site in $list; do
 	(
-		result=$(update $site | tail -1)
+		result=$(update $site | tail -2 | head -1)
 		printf "%-20s: %s\n" "$site" "$result"
 	) >> $tmp &
 	done
