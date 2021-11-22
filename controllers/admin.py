@@ -7,10 +7,14 @@ import os
 import tempfile
 import shutil
 import datetime
+import pandas as pd
+# import xmltojson
+import json
 
 # sudo pip install tweepy
 # import tweepy
 from gluon.contrib.markdown import WIKI
+from gluon.contrib.pyfpdf import FPDF, HTMLMixin
 
 from app_modules.helper import *
 
@@ -27,6 +31,119 @@ from gluon.contrib.markmin.markmin2latex import render, latex_escape
 from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
+
+
+def convert_to_excel(table):
+    # html = pd.read_html(table)
+    # print(html)
+    # print("jfdhd dug fud gfg ufhfuhfuhf  fhuhhufdhdfu udf fufdfdf")
+    # print(html)[0]
+    # xcel = html.to_excel("data.xlsx")
+    # return xcel
+
+    with open("sample.html", "w") as html_file:
+        html_file.write(table)
+      
+    with open("sample.html", "r") as html_file:
+        html = html_file.read()
+        json_ = xmltojson.parse(html)
+        
+    with open("data.json", "w") as file:
+        json.dump(json_, file)
+
+    return file
+
+def listing():
+    response.title = "web2py sample listing"
+
+    # define header and footers:
+    head = THEAD(TR(TH("Header 1", _width="50%"), 
+                    TH("Header 2", _width="30%"),
+                    TH("Header 3", _width="20%"), 
+                    _bgcolor="#A0A0A0"))
+    foot = TFOOT(TR(TH("Footer 1", _width="50%"), 
+                    TH("Footer 2", _width="30%"),
+                    TH("Footer 3", _width="20%"),
+                    _bgcolor="#E0E0E0"))
+
+    # create several rows:
+    rows = []
+    for i in range(1000):
+        col = i % 2 and "#F0F0F0" or "#FFFFFF"
+        rows.append(TR(TD("Row %s" %i),
+                       TD("something", _align="center"),
+                       TD("%s" % i, _align="right"),
+                       _bgcolor=col)) 
+
+    # make the table object
+    body = TBODY(*rows)
+    table = TABLE(*[head, foot, body], 
+                  _border="1", _align="center", _width="50%")
+
+
+
+        # define our FPDF class (move to modules if it is reused frequently)
+    class MyFPDF(FPDF, HTMLMixin):
+        def header(self):
+            self.set_font('Arial', 'B', 15)
+            self.cell(0, 10, response.title, 1, 0, 'C')
+            self.ln(20)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            txt = 'Page %s of %s' % (self.page_no(), self.alias_nb_pages())
+            self.cell(0, 10, txt, 0, 0, 'C')
+
+    pdf = MyFPDF()
+    # first page:
+    pdf.add_page()
+    pdf.write_html(str(XML(table, sanitize=False)))
+    response.headers['Content-Type'] = 'application/pdf'
+    return pdf.output(dest='S')
+    
+
+def report(head):
+    response.title = "web2py sample report"
+
+
+    tb = TABLE(head,   _border="0", _align="left", _width="50%")
+    
+
+        # create a custom class with the required functionality 
+    class MyFPDF(FPDF, HTMLMixin):
+        def header(self): 
+            "hook to draw custom page header (logo and title)"
+           
+            self.set_font('Arial', 'B', 8)
+            self.cell(65) # padding
+            self.cell(60, 10, response.title, 1, 0, 'C')
+            self.ln(20)
+
+        def footer(self):
+            "hook to draw custom page footer (printing page numbers)"
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            txt = 'Page %s of %s' % (self.page_no(), self.alias_nb_pages())
+            self.cell(0, 10, txt, 0, 0, 'C')
+
+    pdf = MyFPDF()
+    # create a page and serialize/render HTML objects
+    pdf.add_page()
+    pdf.write_html(str(XML(tb, sanitize=True)))
+        # prepare PDF to download:
+    response.headers['Content-Type'] = 'application/pdf'
+    
+    return pdf.output(name="test.pdf", dest='S')
+    # else:
+    #     # normal html view:
+    #     return dict(chart=chart, table=table)
+
+
+
+
+
+
 
 
 # frequently used constants
@@ -518,6 +635,8 @@ def recap_reviews():
             % locals()
         )
 
+    response.title = "synthesis pf reveiews"
+    
     # Get columns as header
     head = TR()
     cols = db.executesql("""SELECT column_name FROM information_schema.columns WHERE table_name  LIKE '_t_%(runId)s'  ORDER BY ordinal_position;""" % locals())
@@ -538,34 +657,56 @@ def recap_reviews():
                 field = "Rev._%s" % (rwNum)
                 revwCols.append(iCol)
             c = SPAN(SPAN("ROUND_#" + revRound + " "), SPAN(field))
-        head.append(TH(c))
+        head.append(TH(c, _width="5%"))
         if iCol in revwCols:
-            head.append(TH(c, SPAN(" quality")))
-            head.append(TH(c, SPAN(" info")))
+            head.append(TH(c, SPAN(" quality"), _width="5%"))
+            head.append(TH(c, SPAN(" info"), _width="5%"))
         iCol += 1
     grid = TABLE(_class="pci-AdminReviewsSynthesis")
+    head1 =THEAD(head)
+    
+    # test=report(head)
     grid.append(head)
-
+    rows = []
     resu = db.executesql("""SELECT * FROM _t_%(runId)s ORDER BY article_id;""" % locals())
     for r in resu:
-        row = TR()
+        # row = TR()
         iCol = 0
         for v in r:
-            row.append(TD(v or ""))
+            rows.append(TR(TD(v or "")))
             if iCol in revwCols:
-                row.append(TD(""))
-                row.append(TD(""))
+                rows.append(TR(TD("")))
+                rows.append(TR(TD("")))
             iCol += 1
-        grid.append(row)
+        # grid.append(row)
 
+    body = TBODY(*rows)
+    table = TABLE(*[head1, body], _class="pci-AdminReviewsSynthesis", _border="1", _align="center", _width="10%")
+    class MyFPDF(FPDF, HTMLMixin):
+        def header(self):
+            self.set_font('Arial', '', 15)
+            self.cell(0, 10, response.title, 1, 0, 'C')
+            self.ln(20)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            txt = 'Page %s of %s' % (self.page_no(), self.alias_nb_pages())
+            self.cell(0, 10, txt, 0, 0, 'C')
+
+    pdf = MyFPDF()
+    pdf.set_font_size(8.0)
+        # first page:
+    pdf.add_page()
+    pdf.write_html(str(XML(table, sanitize=False)))
+    
+    
+    response.headers['Content-Type'] = 'application/pdf'
+    test = pdf.output(dest='S')
+    
     db.executesql("DROP VIEW IF EXISTS _v_%(runId)s;" % locals())
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
-    return dict(
-        titleIcon="list-alt",
-        customText=getText(request, auth, db, "#AdminRecapReviews"),
-        pageTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
-        grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),
-    )
+    return test
 
 
 ######################################################################################################################################################################
