@@ -5,7 +5,7 @@ list=$($DIR/all-pci-test-sites.sh)
 conf=$DIR/.test-sites.conf
 
 usage() {
-	echo "$0 <eb|rr|PCi<SITE>|all> [-f]"
+	echo "$0 <eb|rr|PCi<SITE>|all|check> [-f]"
 }
 
 main() {
@@ -31,6 +31,10 @@ main() {
 		all)
 			update_all
 			;;
+		check)
+			check="version"
+			update_all
+			;;
 	esac
 }
 
@@ -45,7 +49,7 @@ update_all() {
 
 	for site in $list; do
 	(
-		result=$(update $site | tail -1)
+		result=$(update $site "$check" | tail -2 | head -1)
 		printf "%-20s: %s\n" "$site" "$result"
 	) >> $tmp &
 	done
