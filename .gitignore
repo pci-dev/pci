@@ -8,6 +8,7 @@ static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/*.ini
 private/reminders_config
+utils/.test-sites.conf
 node_modules
 cypress/videos
 cypress/screenshots
