@@ -22,12 +22,6 @@ def help_generic():
 
 
 ######################################################################################################################################################################
-def help_guidelines():
-    response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#GuidelinesHelpTitle"), customText=getText(request, auth, db, "#GuidelinesHelpInfo"),)
-
-
-######################################################################################################################################################################
 def help_practical():
     response.view = "default/info.html"
     tweeterAcc = myconf.get("social.tweeter")

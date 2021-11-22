@@ -46,8 +46,6 @@ if discontinued:
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
-showGuideLines = myconf.get("menu.guidelines", default=False)
-
 
 # Appends developers menu (web2py)
 def _DevMenu():
@@ -444,10 +442,6 @@ def _HelpMenu():
 
     if not pciRRactivated: helpMenu += [
         menu_entry("How does it work?", "glyphicon-wrench", URL("help", "help_generic")),
-        divider(),
-    ]
-    if showGuideLines: helpMenu += [
-        menu_entry("Submission guidelines", "glyphicon-lamp", URL("help", "help_guidelines")),
         divider(),
     ]
     helpMenu += [
