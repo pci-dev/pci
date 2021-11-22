@@ -29,6 +29,16 @@ servername="www1.montpellier.inra.fr"
 serverscheme="https"
 serverport=443
 
+DB_AUTH= # user:password
+
+SMTP_SERVER=ssl0.ovh.net:465
+SMTP_USER=dev@peercommunityin.org
+SMTP_PASS=
+
+CAPTCHA_PUB=
+CAPTCHA_PRIV=
+
+
 # 1/ Clean (if any) then (re-)create database:
 echo "DROP DATABASE IF EXISTS $database;" | psql -h $ip postgres
 echo "CREATE DATABASE $database;" | psql -h $ip postgres
@@ -84,15 +94,15 @@ names = localhost:*, 127.0.0.1:*, *:*, *
 
 ; db configuration
 [db]
-uri       = postgres:psycopg2://piry:lixus/8@$ip:5432/$database
+uri       = postgres:psycopg2://$DB_AUTH@$ip:5432/$database
 migrate   = false
 pool_size = 100
 
 ; smtp address and credentials
 [smtp]
-server = ssl0.ovh.net:465
-sender = PCI Development <dev@peercommunityin.org>
-login = dev@peercommunityin.org:Menton55Coursegoules
+server = $SMTP_SERVER
+sender = PCI Development <$SMTP_USER>
+login = $SMTP_USER:$SMTP_PASS
 tls = true
 ssl = true
 
@@ -130,8 +140,8 @@ port = $serverport
 delay = 10
 
 [captcha]
-public = 6LcWlIQUAAAAAEg5OLUhQZWVs6uC-EBAcC-7EBtq
-private = 6LcWlIQUAAAAAFLt0iv0AJWUkpRBoT9VC1xAnQxi
+public = $CAPTCHA_PUB
+private = $CAPTCHA_PRIV
 
 [social]
 tweeter = $twitter
