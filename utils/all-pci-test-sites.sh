@@ -1,0 +1,19 @@
+test_sites="
+PCiAnimSci
+PCiArchaeology
+PCiCompStat
+PCiEcology
+PCiEcotoxEnvChem
+PCiEvolBiol3
+PCiForestWoodSci
+PCiGenomics
+PCiInfections
+PCiMCB
+PCiNetworkScience
+PCiNeuro
+PCiNewDesign
+PCiPaleontology
+PCiRR3
+PCiZoology
+"
+for pci in $test_sites; do echo $pci; done
