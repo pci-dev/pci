@@ -737,6 +737,9 @@ def deltaStatus(s, f):
 
 
 def newArticle(s, articleId):
+    if s.status == "Pending-survey": # pciRRactivated only
+        return
+
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
