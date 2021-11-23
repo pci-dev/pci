@@ -825,6 +825,10 @@ def fill_report_survey():
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
 
+        if True:
+            art.status = "Pending"
+            doUpdateArticle = True
+
         if doUpdateArticle == True:
             art.update_record()
 
