@@ -2097,7 +2097,7 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_shceduled_submission_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]

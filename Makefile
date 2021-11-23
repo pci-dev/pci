@@ -67,6 +67,9 @@ test.setup: test.db cypress/fixtures/users.json
 test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
+test.db.rr:
+	$(psql) main < sql_dumps/insert_default_mail_templates_pci_RR.sql
+
 cypress/%:
 	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
