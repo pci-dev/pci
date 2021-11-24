@@ -61,7 +61,6 @@ class User_submits:
     select("a", "Suggest recommenders".upper()).click()
     select('input[name="qyKeywords"]').clear()
     select('input[name="qyKeywords"]').send_keys(recommender.firstname)
-    select(".pci2-search-button").click()
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
