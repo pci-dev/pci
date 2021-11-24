@@ -26,12 +26,12 @@ all tests:
 
 specific tests:
 
-	pytest -k login
-
 	pytest test_about.py
+
+	pytest -k "login and not setup_article"
 
 
 Running non-headless
 --------------------
 
-comment out `option.headless = True` in `conftest.py`
+	SHOW=y pytest -k about
