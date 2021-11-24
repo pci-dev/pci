@@ -42,11 +42,9 @@ class User_submits:
     select("#t_articles_title").send_keys(articleTitle)
     select("#t_articles_authors").send_keys(submitter.firstname + " " + submitter.lastname)
     select("#t_articles_doi").send_keys(data.doi)
-    #select("#t_articles_abstract").send_keys(data.abstract)
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(data.abstract)
     select("#t_articles_keywords").send_keys(data.keywords)
-    #select("#t_articles_cover_letter").send_keys(data.cover_letter)
     with select("#t_articles_cover_letter_ifr").frame():
         select("body").send_keys(data.cover_letter)
 
