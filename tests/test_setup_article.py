@@ -3,6 +3,7 @@ from conftest import login, logout
 from conftest import test
 
 import time
+import configparser
 
 
 users = config.users
@@ -28,6 +29,15 @@ data = Namespace(
     )
 
 
+def is_RR():
+    config = configparser.ConfigParser()
+    config.read("../private/appconfig.ini")
+    return bool(config["config"]["registered_reports"])
+
+is_rr = is_RR()
+preprint = "preprint" if not is_rr else "report"
+
+
 @test
 class User_submits:
 
@@ -35,13 +45,18 @@ class User_submits:
     login(users.user)
 
  def initiate_submit_preprint(_):
-    select(".btn-success", "Submit a preprint".upper()).click()
-    select(".btn-success", "Submit your preprint".upper()).click()
+    select(".btn-success", f"Submit a {preprint}".upper()).click()
+    select(".btn-success", f"Submit your {preprint}".upper()).click()
 
  def submit_submission_form(_):
     select("#t_articles_title").send_keys(articleTitle)
     select("#t_articles_authors").send_keys(submitter.firstname + " " + submitter.lastname)
     select("#t_articles_doi").send_keys(data.doi)
+    if is_rr:
+        select("#t_articles_report_stage").send_keys("Stage 1")
+        select("#t_articles_ms_version").send_keys("v1")
+        select("#t_articles_sub_thematics").send_keys("sub-thematic")
+
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(data.abstract)
     select("#t_articles_keywords").send_keys(data.keywords)
@@ -54,6 +69,10 @@ class User_submits:
     select("input[type=submit]").click()
 
     select(".w2p_flash", "Article submitted").wait_clickable()
+
+    if is_rr:
+        fill_survey()
+        select("input[type=submit]").click()
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
@@ -77,6 +96,27 @@ class User_submits:
 
  def logout_user(_):
     logout(users.user)
+
+
+def fill_survey():
+    select("#t_report_survey_q1").send_keys("Complete Stage 1")
+    select("#t_report_survey_q2").send_keys("Regular RR")
+    select("#t_report_survey_q3").send_keys("Fully public")
+    select("input[id^='q6YES']")[0].click()
+    select("input[id^='q7No']").click()
+    select("#t_report_survey_q8").send_keys("a reviewer")
+    select("#t_report_survey_q9").send_keys("an opposed reviewer")
+    select("#t_report_survey_q11").send_keys("yes")
+    select("#t_report_survey_q12").send_keys("yes")
+    select("#q13YES").click()
+    select("#t_report_survey_q16").send_keys("make public")
+    select("#t_report_survey_q17").send_keys("no embargo")
+    select("#t_report_survey_q20").send_keys("yes")
+    select("#t_report_survey_q21").send_keys("publish")
+    select("#t_report_survey_q22").send_keys("yes")
+    select("#t_report_survey_q23").send_keys("6 months")
+    select("#t_report_survey_q24").send_keys("2022-01-01")
+    select("#t_report_survey_q24_1").send_keys("flexibility 2 months")
 
 
 @test
