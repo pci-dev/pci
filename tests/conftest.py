@@ -95,7 +95,8 @@ def lookup(css, text="", contains=""):
 
 def login(user):
     visit(config.base_url)
-    select(".btn", "LOG IN").click()
+    select(".dropdown-toggle", "Log in").click()
+    select(".dropdown-menu li", "Log in").click()
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
