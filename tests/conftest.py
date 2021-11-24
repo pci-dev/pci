@@ -16,16 +16,59 @@ def get_config():
     )
 
 def users_dict(users):
-    return {
+    return Namespace(**{
         user: Namespace(
+                name=user,
                 email=user+"@pci.org",
                 password="pci")
         for user in users
-    }
+    })
 
 
 driver = get_driver()
 config = get_config()
+
+
+# Test class decorator
+
+from types import FunctionType
+
+def test(c):
+    for fun in c.__dict__.values():
+        if type(fun) == FunctionType:
+            fun.__test__ = True
+    c.__test__ = True
+    return c
+test.__test__ = False
+
+
+# Selenium extensions
+
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webelement import WebElement
+from time import sleep
+
+def wait_clickable(self):
+    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable(self))
+    sleep(.1)
+    return self
+
+def element_contains(self, text):
+    assert(text in self.text)
+
+from contextlib import contextmanager
+
+@contextmanager
+def element_frame(self):
+    driver.switch_to.frame(self)
+    yield self
+    driver.switch_to.default_content()
+
+
+WebElement.wait_clickable = wait_clickable
+WebElement.contains = element_contains
+WebElement.frame = element_frame
 
 
 # HELPERS
@@ -33,19 +76,32 @@ config = get_config()
 def visit(url):
     return driver.get(url)
 
-def select(css, text=""):
-    if text: return lookup(css, text)
-    return driver.find_element(By.CSS_SELECTOR, css)
+def select(css, text="", contains=""):
+    if text or contains:
+        return lookup(css, text, contains)
+    sel = driver.find_elements(By.CSS_SELECTOR, css)
+    return sel if len(sel) > 1 else sel[0]
 
-def lookup(css, text):
+def lookup(css, text="", contains=""):
     for e in driver.find_elements(By.CSS_SELECTOR, css):
-        if text in e.text: return e
+        print(f"e.text='{e.text}'")
+        if text and (text == e.text):
+            print(f"text={text}")
+            return e
+        if contains and (contains in e.text):
+            print(f"contains={contains}")
+            return e
     raise KeyError("no such element: " + text)
 
-def login(user_name):
-    user = users[user_name]
+def login(user):
+    visit(config.base_url)
     select(".btn", "LOG IN").click()
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
-    select(".w2p_flash.alert", "Logged in")
+    select(".w2p_flash.alert", "Logged in").wait_clickable().click()
+
+def logout(user):
+    select(".dropdown-toggle", user.name).click()
+    select(".dropdown-menu li", "Log out").click()
+    select(".w2p_flash.alert", "Logged out").wait_clickable().click()
