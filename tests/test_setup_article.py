@@ -13,15 +13,8 @@ users = config.users
 from argparse import Namespace
 
 articleTitle = "Article Title [%s]" % time.asctime()
-
-submitter = Namespace(
-    firstname="Submitter",
-    lastname="Dude",
-    )
-recommender = Namespace(
-    firstname="Recommender",
-    lastname="Dude",
-    )
+submitter = users.user
+recommender = users.recommender
 reviewer = users.reviewer
 data = Namespace(
     doi = "DOI",
@@ -46,7 +39,7 @@ article = "article" if not is_rr else "report"
 class User_submits:
 
  def login_as_user(_):
-    login(users.user)
+    login(submitter)
 
  def initiate_submit_preprint(_):
     select(".btn-success", f"Submit a {preprint}".upper()).click()
@@ -54,7 +47,7 @@ class User_submits:
 
  def submit_submission_form(_):
     select("#t_articles_title").send_keys(articleTitle)
-    select("#t_articles_authors").send_keys(submitter.firstname + " " + submitter.lastname)
+    select("#t_articles_authors").send_keys(submitter.name)
     select("#t_articles_doi").send_keys(data.doi)
     if is_rr:
         select("#t_articles_report_stage").send_keys("Stage 1")
@@ -81,7 +74,7 @@ class User_submits:
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
     select('input[name="qyKeywords"]').clear()
-    select('input[name="qyKeywords"]').send_keys(recommender.firstname + "\n")
+    select('input[name="qyKeywords"]').send_keys(recommender.name + "\n")
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
@@ -94,7 +87,7 @@ class User_submits:
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
 
  def logout_user(_):
-    logout(users.user)
+    logout(submitter)
 
 
 def fill_survey():
@@ -175,7 +168,7 @@ class Recommender_handles:
     notif = select(".w2p_flash")
     notif.contains("e-mail sent to manager")
     notif.contains("e-mail sent to submitter")
-    notif.contains("e-mail sent to " + recommender.firstname.lower())
+    notif.contains("e-mail sent to " + recommender.name)
 
  def search_and_invite_registered_reviewer(_):
     select(".btn", contains="Choose a reviewer from the".upper()).click()
