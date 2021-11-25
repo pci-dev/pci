@@ -88,11 +88,6 @@ class User_submits:
     select("a", "Complete your submission".upper()).click()
 
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
-    """
-      select(".pci-status")
-        .first()
-        .should("contain", "SUBMISSION PENDING VALIDATION");
-    """
 
  def logout_user(_):
     logout(users.user)
@@ -130,10 +125,6 @@ class Manager_validates:
     select(".dropdown-menu span", contains="Pending validation").click()
     select("tr", contains=articleTitle)
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
-    """
-        .first()
-        .should("exist");
-    """
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
