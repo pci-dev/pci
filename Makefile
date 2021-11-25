@@ -38,7 +38,7 @@ db.admin:
 psql = psql -U postgres
 
 start:
-	web2py/web2py.py --password pci &
+	web2py/web2py.py --password pci > log.txt &
 
 stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
