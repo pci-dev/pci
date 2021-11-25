@@ -22,6 +22,7 @@ recommender = Namespace(
     firstname="Recommender",
     lastname="Dude",
     )
+reviewer = users.reviewer
 data = Namespace(
     doi = "DOI",
     abstract = "Abstract",
@@ -176,49 +177,33 @@ class Recommender_handles:
     notif.contains("e-mail sent to submitter")
     notif.contains("e-mail sent to " + recommender.firstname.lower())
 
- """
-    it("Should search for reviewer (developer user)", () => {
-      select(".btn", "Choose a reviewer from the PCI Evol Biol DEV database").click();
+ def search_and_invite_registered_reviewer(_):
+    select(".btn", contains="Choose a reviewer from the".upper()).click()
+    select('input[name="qyKeywords"]').send_keys(reviewer.name + "\n")
 
-      select('input[name="qyKeywords"]').send_keys(reviewer.firstname);
-      select(".pci2-search-button").click();
+    select("a", "Prepare an invitation".upper()).click()
+    select("input[type=submit]").click()
 
-      select("a", "Prepare an invitation").should("exist");
+    select(".w2p_flash", contains="e-mail sent to " + reviewer.name)
+    select("a", "Done".upper()).click()
 
-    it("Should invite reviewer", () => {
-      select("a", "Prepare an invitation").click();
-      select("input[type=submit]").click();
+ def invite_external_unregistered_reviewer(_):
+    select(".dropdown-toggle", contains="For recommenders").click()
+    select("a", f"{preprint.capitalize()}(s) you are handling").click()
 
-    it("=> mail sent to reviewer", () => {
-      cy.wait(500);
-      select(".w2p_flash", "e-mail sent to " + reviewer.firstname).should("exist");
-      select("a", "Done").click();
+    row = select("tr", contains=articleTitle)
+    row.select(".btn", "Invite a reviewer".upper()).click()
 
-    it("Should show article in list of articles", () => {
-      select("tr", articleTitle).should("exist");
+    select(".btn", contains="Choose a reviewer outside".upper()).click()
 
+    select("#no_table_reviewer_first_name").send_keys("Titi")
+    select("#no_table_reviewer_last_name").send_keys("Toto")
+    select("#no_table_reviewer_email").send_keys("ratalatapouet@toto.com")
 
-  describe("Recommender :  invite external un-registered reviewer", () => {
-
-    it("Should show article in recommender dashboard", () => {
-      select(".dropdown-toggle", "For recommenders").click();
-      select("a", "Preprint(s) you are handling").click();
-      select(".doi_url", data.doi).should("exist");
-
-    it("Should invite reviewer outside PCI database", () => {
-      select(".btn", "Invite a reviewer").first().click();
-      select(".btn", "Choose a reviewer outside PCI Evol Biol DEV database").click();
-
-      select("#no_table_reviewer_first_name").send_keys("Titi");
-      select("#no_table_reviewer_last_name").send_keys("Toto");
-      select("#no_table_reviewer_email").send_keys("ratalatapouet@toto.com");
-
-      select("input[type=submit]").click();
-
-    it("=> mail sent to reviewer outside PCI db", () => {
-      cy.wait(500);
-      select(".w2p_flash", "e-mail sent to Titi Toto").should("exist");
- """
+    select("input[type=submit]").click()
+    notif = select(".w2p_flash")
+    notif.contains("e-mail sent to Titi Toto")
+    # message 'User "ratalatapouet@toto.com" created' shown only first time
 
  def logout_recommender(_):
     logout(users.recommender)
