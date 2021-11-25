@@ -72,33 +72,39 @@ pip install systemd
 
 ## Run tests
 
-#### requirements :
+#### Requirements:
 
-- NodeJs >= 10
-- npm >= 6 (come with nodejs)
+Selenium tests:
 
-Install all test components:
+	pip install -r tests/requirements.txt
 
-```bash
-make test.install
-```
+Cypress tests:
 
-#### create / configure test users :
+	make test.install
 
-```bash
-make test.setup
-```
+#### Setup test environment:
 
-#### Run tests :
+	make test.setup
+	make test.setup test.db.rr  # for RR
 
-```bash
-make test
-```
+#### Run tests:
+
+	make test
 
 or live:
-```bash
-npx cypress open
-```
+
+	npx cypress open
+
+shorter scenario:
+
+	make test.basic
+
+	SHOW=y make test.basic  # live-show
+
+#### Reset test environment:
+
+	make test.reset
+	make test.reset test.db.rr  # for RR
 
 ---
 
