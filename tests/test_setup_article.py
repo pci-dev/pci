@@ -4,6 +4,7 @@ from conftest import test
 
 import time
 import configparser
+import pytest
 
 
 users = config.users
@@ -35,7 +36,9 @@ def is_RR():
     return bool(config["config"]["registered_reports"])
 
 is_rr = is_RR()
+
 preprint = "preprint" if not is_rr else "report"
+article = "article" if not is_rr else "report"
 
 
 @test
@@ -132,22 +135,17 @@ class Manager_validates:
     select(".btn-success", "Validate this submission".upper()).click()
     select(".w2p_flash", "Request now available to recommenders").wait_clickable()
 
- """
-    it("Should show article status 'PREPRINT REQUIRING A RECOMMENDER'", () => {
-      select(".dropdown-toggle", "For managers").click();
-      select("a", "All article").click();
+ def check_article_status_is_requiring_recommender(_):
+    select(".dropdown-toggle", contains="For managers").click()
+    select("a", f"All {article}s").click()
+    select("tr", contains=articleTitle)
+    select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
 
-      select("tr", articleTitle).should("exist");
-      select(".pci-status", "PREPRINT REQUIRING A RECOMMENDER")
-        .first()
-        .should("exist");
-
-    it("Should no longer show article in 'Pending validation(s)' page", () => {
-      select(".dropdown-toggle", "For managers").click();
-      select("a", "Pending validation").click();
-
-      select("tr", articleTitle).should("not.exist");
- """
+ def check_article_status_is_no_longer_pending_validation(_):
+    select(".dropdown-toggle", contains="For managers").click()
+    select("a", contains="Pending validation").click()
+    with pytest.raises(KeyError):
+        select("tr", contains=articleTitle)
 
  def logout_manager(_):
     logout(users.manager)
