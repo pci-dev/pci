@@ -1,10 +1,11 @@
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from argparse import Namespace
+from os import getenv
 
 def get_driver():
     options = webdriver.chrome.options.Options()
-    options.headless = True
+    options.headless = not getenv("SHOW")
     return webdriver.Chrome(options=options)
 
 def get_config():
