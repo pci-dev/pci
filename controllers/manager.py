@@ -451,6 +451,8 @@ def search_recommenders():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+        art = db.t_articles[articleId]
+        articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False)
         # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
         temp_db = DAL("sqlite:memory")
         qy_recomm = temp_db.define_table(
@@ -543,6 +545,7 @@ def search_recommenders():
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
+            articleHeaderHtml=articleHeaderHtml,
         )
 
 
@@ -560,6 +563,8 @@ def suggested_recommenders():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
+
+    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False)
 
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False
@@ -624,6 +629,7 @@ def suggested_recommenders():
         # myBackButton=common_small_html.mkBackButton(),
         addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
+        articleHeaderHtml=articleHeaderHtml,
         absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
     )
 
