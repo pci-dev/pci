@@ -8,12 +8,14 @@ import pytest
 
 users = config.users
 
-articleTitle = "Article Title [%s]" % time.asctime()
 submitter = users.user
 recommender = users.recommender
 reviewer = users.reviewer
-class data:
+
+class article:
     doi = "DOI"
+    title = "Article Title [%s]" % time.asctime()
+    authors = "Author-1, Author-2"
     abstract = "Abstract"
     keywords = "Keywords"
     cover_letter = "Cover letter"
@@ -21,7 +23,7 @@ class data:
 is_rr = config.is_rr
 
 preprint = "preprint" if not is_rr else "report"
-article = "article" if not is_rr else "report"
+articles = "articles" if not is_rr else "reports"
 
 
 @test
@@ -35,19 +37,19 @@ class User_submits:
     select(".btn-success", f"Submit your {preprint}".upper()).click()
 
  def submit_submission_form(_):
-    select("#t_articles_title").send_keys(articleTitle)
-    select("#t_articles_authors").send_keys(submitter.name)
-    select("#t_articles_doi").send_keys(data.doi)
+    select("#t_articles_title").send_keys(article.title)
+    select("#t_articles_authors").send_keys(article.authors)
+    select("#t_articles_doi").send_keys(article.doi)
     if is_rr:
         select("#t_articles_report_stage").send_keys("Stage 1")
         select("#t_articles_ms_version").send_keys("v1")
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
 
     with select("#t_articles_abstract_ifr").frame():
-        select("body").send_keys(data.abstract)
-    select("#t_articles_keywords").send_keys(data.keywords)
+        select("body").send_keys(article.abstract)
+    select("#t_articles_keywords").send_keys(article.keywords)
     with select("#t_articles_cover_letter_ifr").frame():
-        select("body").send_keys(data.cover_letter)
+        select("body").send_keys(article.cover_letter)
 
     select('input[name="thematics"]')[0].click()
     select("#t_articles_i_am_an_author").click()
@@ -109,7 +111,7 @@ class Manager_validates:
  def check_article_shown_in_pending_validation(_):
     select(".dropdown-toggle span", "For managers").click()
     select(".dropdown-menu span", contains="Pending validation").click()
-    select("tr", contains=articleTitle)
+    select("tr", contains=article.title)
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
 
  def validate_submission(_):
@@ -120,15 +122,15 @@ class Manager_validates:
 
  def check_article_status_is_requiring_recommender(_):
     select(".dropdown-toggle", contains="For managers").click()
-    select("a", f"All {article}s").click()
-    select("tr", contains=articleTitle)
+    select("a", f"All {articles}").click()
+    select("tr", contains=article.title)
     select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
 
  def check_article_status_is_no_longer_pending_validation(_):
     select(".dropdown-toggle", contains="For managers").click()
     select("a", contains="Pending validation").click()
     with pytest.raises(KeyError):
-        select("tr", contains=articleTitle)
+        select("tr", contains=article.title)
 
  def logout_manager(_):
     logout(users.manager)
@@ -144,7 +146,7 @@ class Recommender_handles:
     select(".dropdown-toggle", contains="For recommenders").click()
     select("a", contains=f"Request(s) to handle a {preprint}").click()
 
-    row = select("tr", contains=articleTitle)
+    row = select("tr", contains=article.title)
     row.select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
     row.select("a", "VIEW").click()
 
@@ -173,7 +175,7 @@ class Recommender_handles:
     select(".dropdown-toggle", contains="For recommenders").click()
     select("a", f"{preprint.capitalize()}(s) you are handling").click()
 
-    row = select("tr", contains=articleTitle)
+    row = select("tr", contains=article.title)
     row.select(".btn", "Invite a reviewer".upper()).click()
 
     select(".btn", contains="Choose a reviewer outside".upper()).click()
