@@ -832,6 +832,9 @@ def fill_report_survey():
         if doUpdateArticle == True:
             art.update_record()
 
+        emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
+
         session.flash = T("Article submitted", lazy=False)
         myVars = dict(articleId=articleId)
         # for thema in form.vars.thematics:
