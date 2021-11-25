@@ -58,6 +58,9 @@ def wait_clickable(self):
 def element_contains(self, text):
     assert(text in self.text)
 
+def element_select(self, css, text="", contains=""):
+    return select(css, text=text, contains=contains, _=self)
+
 from contextlib import contextmanager
 
 @contextmanager
@@ -69,6 +72,7 @@ def element_frame(self):
 
 WebElement.wait_clickable = wait_clickable
 WebElement.contains = element_contains
+WebElement.select = element_select
 WebElement.frame = element_frame
 
 
@@ -77,14 +81,14 @@ WebElement.frame = element_frame
 def visit(url):
     return driver.get(url)
 
-def select(css, text="", contains=""):
+def select(css, text="", contains="", _=driver):
     if text or contains:
-        return lookup(css, text, contains)
-    sel = driver.find_elements(By.CSS_SELECTOR, css)
+        return lookup(css, text, contains, _=_)
+    sel = _.find_elements(By.CSS_SELECTOR, css)
     return sel if len(sel) > 1 else sel[0]
 
-def lookup(css, text="", contains=""):
-    for e in driver.find_elements(By.CSS_SELECTOR, css):
+def lookup(css, text="", contains="", _=driver):
+    for e in _.find_elements(By.CSS_SELECTOR, css):
         print(f"e.text='{e.text}'")
         if text and (text == e.text):
             print(f"text={text}")
