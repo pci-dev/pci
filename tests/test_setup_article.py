@@ -3,7 +3,6 @@ from conftest import login, logout
 from conftest import test
 
 import time
-import configparser
 import pytest
 
 
@@ -19,12 +18,7 @@ class data:
     keywords = "Keywords"
     cover_letter = "Cover letter"
 
-def is_RR():
-    config = configparser.ConfigParser()
-    config.read("../private/appconfig.ini")
-    return bool(config["config"]["registered_reports"])
-
-is_rr = is_RR()
+is_rr = config.is_rr
 
 preprint = "preprint" if not is_rr else "report"
 article = "article" if not is_rr else "report"
