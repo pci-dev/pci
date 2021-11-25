@@ -9,20 +9,15 @@ import pytest
 
 users = config.users
 
-
-from argparse import Namespace
-
 articleTitle = "Article Title [%s]" % time.asctime()
 submitter = users.user
 recommender = users.recommender
 reviewer = users.reviewer
-data = Namespace(
-    doi = "DOI",
-    abstract = "Abstract",
-    keywords = "Keywords",
-    cover_letter = "Cover letter",
-    )
-
+class data:
+    doi = "DOI"
+    abstract = "Abstract"
+    keywords = "Keywords"
+    cover_letter = "Cover letter"
 
 def is_RR():
     config = configparser.ConfigParser()
