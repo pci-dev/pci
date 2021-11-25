@@ -18,42 +18,36 @@ Additional requirements: libimage-exiftool-perl, ghostscript (9.26+)
 
 Suggestion: use a python virtual env
 
-```bash
 	sudo apt-get install virtualenvwrapper
 	mkvirtualenv pci --python=`which python3.8`
 
-```
 
 Install all required components:
 
-```bash
-make install
-```
+	make install
 
 Give yourself postgres admin access
-```
-make db.admin
-```
+
+	make db.admin
 
 Create PostgreSql database and user
-```bash
-make db
-```
+
+	make db
+
 
 Run the PCI server:
 
-```bash
-make start
-```
+	make start
+
 creates default config files:
 - `private/appconfig.ini`
 - `private/reminders_config`
 
 Run mailing queue:
 On local host:
-```bash
-python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
-```
+
+	python web2py.py -S <app-name> -M -R applications/<app-name>/private/mail_queue.py
+
 
 Via linux service : 
 - Put the private/mailing-queue.service file in /etc/systemd/system/mailing-queue.service
@@ -61,12 +55,12 @@ Via linux service :
 - ```sudo servicectl start mailing-queue```
 
 To get log in journalctl for mailing queue:
-```bash
-sudo apt-get install libsystemd-dev
-pip install systemd 
-```
 
-**Don't forget to replace "<app-name>" in the command above.**
+	sudo apt-get install libsystemd-dev
+	pip install systemd
+
+
+**Don't forget to replace "`<app-name>`" in the command above.**
 
 ---
 
@@ -112,26 +106,20 @@ shorter scenario:
 
 ### Build the dev container
 
-```bash
-docker build -t pci .
-```
+	docker build -t pci .
 
 ### Run the dev container
 
 A./ one-shot, throw-away
 
-```bash
-docker run --rm -it -p 8001:8001 pci
-```
+	docker run --rm -it -p 8001:8001 pci
 
 use ^C to quit.
 
 
 B./ long-running, keep state
 
-```bash
-docker run -d -p 8001:8001 pci
-```
+	docker run -d -p 8001:8001 pci
 
 use `docker stop` and `docker start` to stop/restart.
 use `docker rm` to dispose.
@@ -139,19 +127,13 @@ use `docker rm` to dispose.
 
 C./ one-shot, throw away, with local dev env mapping
 
-```bash
-docker run --rm -it -p 8001:8001 -v `pwd`:/pci pci
-```
+	docker run --rm -it -p 8001:8001 -v `pwd`:/pci pci
 
 ### Use the containerized PCI
 
-```bash
-browse http://localhost:8001/pci
-```
+	browse http://localhost:8001/pci
 
-```bash
-docker exec -it <container id> sh
-```
+	docker exec -it <container id> sh
 
 ---
 
