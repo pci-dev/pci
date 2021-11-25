@@ -157,33 +157,26 @@ class Recommender_handles:
  def login_as_recommender(_):
     login(users.recommender)
 
+ def accept_to_recommend(_):
+    select(".dropdown-toggle", contains="For recommenders").click()
+    select("a", contains=f"Request(s) to handle a {preprint}").click()
+
+    row = select("tr", contains=articleTitle)
+    row.select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
+    row.select("a", "VIEW").click()
+
+    select(".btn-success.pci-recommender").click()
+    assert select("input[type=submit]").get_attribute("disabled")
+    for cb in select("input[type=checkbox]"):
+        cb.click()
+    select("input[type=submit]").click()
+
+    notif = select(".w2p_flash")
+    notif.contains("e-mail sent to manager")
+    notif.contains("e-mail sent to submitter")
+    notif.contains("e-mail sent to " + recommender.firstname.lower())
+
  """
-
-    it("Should show 'Request(s) to handle a preprint' enhanced menu", () => {
-      select(".dropdown-toggle", "For recommenders").click();
-      select("a", "Request(s) to handle a preprint").click();
-
-    it("Should show article in 'Request(s) to handle a preprint' page", () => {
-      select("tr", articleTitle).should("exist");
-      select(".pci-status", "PREPRINT REQUIRING A RECOMMENDER").should("exist");
-
-    it("Should accept to recommend the preprint", () => {
-      select("a", "View").first().click();
-      select(".btn-success.pci-recommender").click();
-
-      select("input[type=submit]").should("have.attr", "disabled");
-      select("input[type=checkbox]").each(($el) => {
-        $el.click();
-      });
-      select("input[type=submit]").should("not.have.attr", "disabled");
-      select("input[type=submit]").click();
-
-    it("=> mail sent to manager, submitter and recommender", () => {
-      cy.wait(500);
-      select(".w2p_flash", "e-mail sent to manager").should("exist");
-      select(".w2p_flash", "e-mail sent to submitter").should("exist");
-      select(".w2p_flash", "e-mail sent to " + recommender.firstname).should("exist");
-
     it("Should search for reviewer (developer user)", () => {
       select(".btn", "Choose a reviewer from the PCI Evol Biol DEV database").click();
 
