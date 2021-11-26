@@ -77,7 +77,13 @@ test.db.rr:
 cypress/%:
 	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
-test.reset: stop db.clean db test.setup start
+test.reset: stop db.clean db test.setup start set.conf.rr.false
+
+test.reset.rr: test.reset test.db.rr set.conf.rr.true
+
+set.conf.rr.%:
+	rm -f languages/default.py
+	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 
 test:
 	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js

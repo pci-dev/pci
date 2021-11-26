@@ -98,7 +98,7 @@ shorter scenario:
 #### Reset test environment:
 
 	make test.reset
-	make test.reset test.db.rr  # for RR
+	make test.reset.rr  # for RR
 
 ---
 
