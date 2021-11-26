@@ -55,6 +55,10 @@ init:	static/images/background.png \
 private/% static/%:
 	cd $(dir $@) && cp sample.$(notdir $@) $(notdir $@)
 
+test.install.selenium:
+	pip install -r tests/requirements.txt
+	sudo apt install chromium-chromedriver
+
 test.install:
 	sudo apt-get install npm
 	sudo npm install -g n
