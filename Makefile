@@ -91,6 +91,9 @@ test:
 test.basic:
 	cd tests ; pytest test_setup_article.py
 
+test.create-article:
+	cd tests ; pytest -k User_submits
+
 build:
 	docker build -t pci .
 
