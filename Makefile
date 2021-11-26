@@ -55,6 +55,10 @@ init:	static/images/background.png \
 private/% static/%:
 	cd $(dir $@) && cp sample.$(notdir $@) $(notdir $@)
 
+test.install.selenium:
+	pip install -r tests/requirements.txt
+	sudo apt install chromium-chromedriver
+
 test.install:
 	sudo apt-get install npm
 	sudo npm install -g n
@@ -73,13 +77,22 @@ test.db.rr:
 cypress/%:
 	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
-test.reset: stop db.clean db test.setup start
+test.reset: stop db.clean db test.setup start set.conf.rr.false
+
+test.reset.rr: test.reset test.db.rr set.conf.rr.true
+
+set.conf.rr.%:
+	rm -f languages/default.py
+	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 
 test:
 	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
 
 test.basic:
 	cd tests ; pytest test_setup_article.py
+
+test.create-article:
+	cd tests ; pytest -k User_submits
 
 build:
 	docker build -t pci .

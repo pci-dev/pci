@@ -70,7 +70,7 @@ To get log in journalctl for mailing queue:
 
 Selenium tests:
 
-	pip install -r tests/requirements.txt
+	make test.install.selenium
 
 Cypress tests:
 
@@ -98,7 +98,7 @@ shorter scenario:
 #### Reset test environment:
 
 	make test.reset
-	make test.reset test.db.rr  # for RR
+	make test.reset.rr  # for RR
 
 ---
 
