@@ -117,6 +117,6 @@ from configparser import ConfigParser
 def is_rr():
     config = ConfigParser()
     config.read("../private/appconfig.ini")
-    return bool(config["config"]["registered_reports"])
+    return config["config"].getboolean("registered_reports")
 
 config.is_rr = is_rr()
