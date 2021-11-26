@@ -111,3 +111,12 @@ def logout(user):
     select(".dropdown-toggle", user.name).click()
     select(".dropdown-menu li", "Log out").click()
     select(".w2p_flash.alert", "Logged out").wait_clickable().click()
+
+from configparser import ConfigParser
+
+def is_rr():
+    config = ConfigParser()
+    config.read("../private/appconfig.ini")
+    return config["config"].getboolean("registered_reports")
+
+config.is_rr = is_rr()
