@@ -11,9 +11,7 @@ Requirements
 ------------
 
 	pip install -r requirements.txt
-
 	sudo apt install chromium-chromedriver
-	ln -s /usr/lib/chromium-browser/chromedriver ~/bin/
 
 
 Running tests
