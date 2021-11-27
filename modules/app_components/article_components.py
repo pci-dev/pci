@@ -166,7 +166,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, article, printable, with_cover_letter=True, submittedBy=True):
+def getArticleInfosCard(auth, db, response, article, printable, with_cover_letter=True, submittedBy=True, keywords=False):
     ## NOTE: article facts
     if article.uploaded_picture is not None and article.uploaded_picture != "":
         article_img = IMG(_alt="picture", _src=URL("default", "download", args=article.uploaded_picture))
@@ -222,5 +222,8 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
 
     if submittedBy:
         articleContent.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, article))])
-
+    
+    if keywords:
+        articleContent.update([("articleKeywords", article.keywords)])
+    
     return XML(response.render("components/article_infos_card.html", articleContent))

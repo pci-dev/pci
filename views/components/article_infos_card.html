@@ -4,7 +4,7 @@
       class="pci2-flex-column  pci2-article-left-div pci2-article-left-div-short">
       {{if pciRRactivated:}}
       <span class="pci2-article-infos" style="margin-top: 10px;">{{=articleStage}}</span>
-    {{pass}}
+      {{pass}}
       <div class="pci2-flex-column pci2-flex-center pci2-flex-grow pci2-article-image-div">
 
         {{=articleImg}} 
@@ -27,6 +27,9 @@
         <span class="pci2-article-infos">{{=articleSource}}</span>
         <span class="pci2-article-infos">{{=articleDoi}}</span>
         <span class="pci2-article-infos">{{=articleVersion}}</span>
+        {{if 'articleKeywords' in locals():}}
+        <span class="pci2-article-infos">{{=articleKeywords}}</span>
+        {{pass}}
       </div>
     </div>
   </div>

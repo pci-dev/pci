@@ -452,7 +452,7 @@ def search_recommenders():
         redirect(request.env.http_referer)
     else:
         art = db.t_articles[articleId]
-        articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False)
+        articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False, keywords=True)
         # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
         temp_db = DAL("sqlite:memory")
         qy_recomm = temp_db.define_table(
@@ -564,7 +564,7 @@ def suggested_recommenders():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False)
+    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False, keywords=True)
 
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False

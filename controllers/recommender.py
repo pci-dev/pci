@@ -258,7 +258,7 @@ def search_reviewers():
 
     qyKwArr = qyKw.split(" ")
     searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
-    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False)
+    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable=False, keywords=True)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
