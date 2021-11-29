@@ -2377,6 +2377,8 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
             else:
                 mail_vars["articleAuthors"] = article.authors
 
+            reviewLink = URL(c="user", f="my_reviews", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["myReviewsLink"] = reviewLink
             mail_vars["articleTitle"] = article.title
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
@@ -2406,7 +2408,9 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
                 mail_vars["articleAuthors"] = current.T("[undisclosed]")
             else:
                 mail_vars["articleAuthors"] = article.authors
-
+            
+            reviewLink = URL(c="user", f="my_reviews", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["myReviewsLink"] = reviewLink
             mail_vars["articleTitle"] = article.title
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
