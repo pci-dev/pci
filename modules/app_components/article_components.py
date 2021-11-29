@@ -166,7 +166,12 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, article, printable, with_cover_letter=True, submittedBy=True, keywords=False):
+def getArticleInfosCard(auth, db, response, article, printable,
+        with_cover_letter=True,
+        submittedBy=True,
+        abstract=True,
+        keywords=False,
+    ):
     ## NOTE: article facts
     if article.uploaded_picture is not None and article.uploaded_picture != "":
         article_img = IMG(_alt="picture", _src=URL("default", "download", args=article.uploaded_picture))
@@ -207,7 +212,6 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
             ("articleImg", article_img),
             ("articleTitle", article.title or ""),
             ("articleAuthor", authors or ""),
-            ("articleAbstract", WIKI(article.abstract or "", safe_mode=False)),
             ("articleDoi", doi_text),
             ("article_altmetric", article_altmetric),
             ("printable", printable),
@@ -216,6 +220,9 @@ def getArticleInfosCard(auth, db, response, article, printable, with_cover_lette
             ("articleStage", articleStage),
         ]
     )
+
+    if abstract:
+        articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 
     if with_cover_letter and not article.already_published:
         articleContent.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=False))])

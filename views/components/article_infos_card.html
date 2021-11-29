@@ -88,6 +88,7 @@
   {{pass}}
 
 
+{{if 'articleAbstract' in locals():}}
   <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
@@ -128,6 +129,8 @@
       {{=articleAbstract}}
     </div>
   {{pass}}
+
+{{pass}}
 </div>
 
 {{if 'submittedBy' in locals():}}
