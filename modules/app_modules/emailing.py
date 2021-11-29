@@ -1860,7 +1860,7 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
 
 
-    cc_addresses = emailing_tools.mkCC(form.cc)
+    cc_addresses = emailing_tools.list_addresses(form.cc)
     form.subject
     form.message
 

@@ -1311,7 +1311,7 @@ def send_review_cancellation():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         try:
             review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
@@ -1538,7 +1538,7 @@ def email_for_registered_reviewer():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         try:
             emailing.send_reviewer_invitation(
                 session,
@@ -1649,7 +1649,7 @@ def email_for_new_reviewer():
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
@@ -2451,7 +2451,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
-        mail.cc_mail_addresses = emailing_tools.mkCC(form.vars.cc_mail_addresses)
+        mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
         mail.update_record()
 
         content_saved = True
