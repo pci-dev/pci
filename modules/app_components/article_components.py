@@ -165,6 +165,15 @@ def getArticleTrackcRowCard(auth, db, response, article):
         return None
 
 
+class article_infocard_for_search_screens:
+  def __init__(_):
+    _.printable = False
+    _.keywords = True
+    _.abstract = False
+    _.with_cover_letter = False
+
+for_search = article_infocard_for_search_screens().__dict__
+
 ######################################################################################################################################################################
 def getArticleInfosCard(auth, db, response, article, printable,
         with_cover_letter=True,
