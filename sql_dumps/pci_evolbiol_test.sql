@@ -1121,6 +1121,8 @@ CREATE TABLE public.mail_queue (
 
 ALTER TABLE public.mail_queue OWNER TO pci_admin;
 
+ALTER TABLE public.mail_queue ADD COLUMN  IF NOT EXISTS replyto_addresses character varying(1024);
+
 --
 -- Name: mail_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
