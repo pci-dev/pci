@@ -135,7 +135,7 @@ def getCorrectHashtag(hashtag, article=None):
     return hashtag
 
 #######################################################################################################################################################################
-def mkCC(addresses):
+def list_addresses(addresses):
     return [x.strip(' ') for x in list(addresses.split(","))]
 
 ######################################################################################################################################################################
@@ -276,12 +276,16 @@ def insertMailInQueue(
     )
 
     ccAddresses = None
+    replytoAddresses = None
     if "ccAddresses" in mail_vars:
         ccAddresses = mail_vars["ccAddresses"]
+    if "replytoAddresses" in mail_vars:
+        replytoAddresses = mail_vars["replytoAddresses"]
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=ccAddresses,
+        replyto_addresses=replytoAddresses,
         mail_subject=mail["subject"],
         mail_content=mail["content"],
         user_id=auth.user_id,
@@ -311,6 +315,13 @@ def insertReminderMailInQueue(
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
     reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
 
+    ccAddresses = None
+    replytoAddresses = None
+    if "ccAddresses" in mail_vars:
+        ccAddresses = mail_vars["ccAddresses"]
+    if "replytoAddresses" in mail_vars:
+        replytoAddresses = mail_vars["replytoAddresses"]
+
     if reminder and reminder[0]:
         elapsed_days = reminder[0]["elapsed_days"][0]
 
@@ -327,15 +338,13 @@ def insertReminderMailInQueue(
             article_id=article_id,
         )
 
-        ccAddresses = None
-        if "ccAddresses" in mail_vars:
-            ccAddresses = mail_vars["ccAddresses"]
 
         db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
             dest_mail_address=mail_vars["destAddress"],
             cc_mail_addresses=ccAddresses,
+            replyto_addresses=replytoAddresses,
             mail_subject=mail["subject"],
             mail_content=mail["content"],
             user_id=auth.user_id,
@@ -350,15 +359,12 @@ def insertReminderMailInQueue(
             article_id=article_id,
         )
 
-        ccAddresses = None
-        if "ccAddresses" in mail_vars:
-            ccAddresses = mail_vars["ccAddresses"]
-
         db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date_forced,
             dest_mail_address=mail_vars["destAddress"],
             cc_mail_addresses=ccAddresses,
+            replyto_addresses=replytoAddresses,
             mail_subject=mail["subject"],
             mail_content=mail["content"],
             user_id=auth.user_id,

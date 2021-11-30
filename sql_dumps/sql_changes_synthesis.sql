@@ -304,3 +304,7 @@ ALTER TABLE public.auth_user ADD COLUMN IF NOT EXISTS keywords VARCHAR(1024);
 
 update t_reviews set reviewer_details = null
 where reviewer_details is not null and reviewer_id is not null;
+
+-- 29/11/2021
+
+ALTER TABLE public.mail_queue ADD COLUMN  IF NOT EXISTS replyto_addresses character varying(1024);

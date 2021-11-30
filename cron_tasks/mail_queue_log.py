@@ -71,7 +71,7 @@ def getMailsInQueue():
 
 def tryToSendMail(mail_item):
     try:
-        isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
+        isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, reply_to=mail_item.replyto_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
         #isSent = True
         if isSent is False:
             raise Exception('Email not sent!')

@@ -1311,11 +1311,12 @@ def send_review_cancellation():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
+        replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
             review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_address, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+                session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
@@ -1538,14 +1539,15 @@ def email_for_registered_reviewer():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
+        replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
             emailing.send_reviewer_invitation(
                 session,
                 auth,
                 db,
                 reviewId,
-                replyto_address,
+                replyto_addresses,
                 cc_addresses,
                 hashtag_template,
                 request.vars["subject"],
@@ -1649,7 +1651,8 @@ def email_for_new_reviewer():
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.mkCC(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
+        replyto_addresses = emailing_tools.list_addresses(replyto_address)
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
@@ -1720,7 +1723,7 @@ def email_for_new_reviewer():
                         auth,
                         db,
                         reviewId,
-                        replyto_address,
+                        replyto_addresses,
                         cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
@@ -1747,7 +1750,7 @@ def email_for_new_reviewer():
                         auth,
                         db,
                         reviewId,
-                        replyto_address,
+                        replyto_addresses,
                         cc_addresses,
                         hashtag_template,
                         request.vars["subject"],
@@ -2451,7 +2454,7 @@ def mail_form_processing(form):
         mail.mail_content = new_content
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
-        mail.cc_mail_addresses = emailing_tools.mkCC(form.vars.cc_mail_addresses)
+        mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
         mail.update_record()
 
         content_saved = True
