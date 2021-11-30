@@ -258,7 +258,6 @@ def search_reviewers():
 
     qyKwArr = qyKw.split(" ")
     searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
-    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
@@ -337,7 +336,6 @@ def search_reviewers():
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
-            articleHeaderHtml=articleHeaderHtml,
         )
 
 
