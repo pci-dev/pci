@@ -23,6 +23,16 @@
 	</div>
 {{pass}}
 
+<!-- Recommendation title and authors -->
+{{if 'articleHeaderHtml' in locals():}}
+<div class="pci2-flex-column pci2-align-items-center">
+	<div style="max-width: 800px; width: 100%;">
+		{{=articleHeaderHtml}}
+	</div>
+</div>
+{{pass}}
+
+
 <div>
 	{{=grid}}
 </div>
