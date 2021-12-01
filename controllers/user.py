@@ -430,9 +430,17 @@ def fill_new_article():
         form.element(_type="submit")["_value"] = T("Complete your submission")
 
     form.element(_type="submit")["_class"] = "btn btn-success"
-    if form.process().accepted:
+
+    def onvalidation(form):
+        if pciRRactivated:
+            form.vars.status = "Pending-survey"
+
+    if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
-        session.flash = T("Article submitted", lazy=False)
+        if pciRRactivated:
+            pass
+        else:
+            session.flash = T("Article submitted", lazy=False)
         myVars = dict(articleId=articleId)
         # for thema in form.vars.thematics:
         # myVars['qy_'+thema] = 'on'
@@ -655,7 +663,7 @@ def fill_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
-    if art.status not in ("Pending", "Awaiting revision"):
+    if art.status not in ("Pending-survey", "Pending", "Awaiting revision"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     if art.user_id != auth.user_id:
@@ -817,8 +825,15 @@ def fill_report_survey():
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
 
+        if True:
+            art.status = "Pending"
+            doUpdateArticle = True
+
         if doUpdateArticle == True:
             art.update_record()
+
+        emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         myVars = dict(articleId=articleId)

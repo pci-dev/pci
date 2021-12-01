@@ -56,11 +56,11 @@ class User_submits:
     select("#t_articles_is_not_reviewed_elsewhere").click()
     select("input[type=submit]").click()
 
-    select(".w2p_flash", "Article submitted").wait_clickable()
-
     if is_rr:
         fill_survey()
         select("input[type=submit]").click()
+
+    select(".w2p_flash", "Article submitted").wait_clickable()
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()

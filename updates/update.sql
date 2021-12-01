@@ -6,3 +6,7 @@ ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q1_1 character vary
 ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q1_2 character varying(256);
 
 ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q32 boolean;
+
+insert into t_status_article values (
+	15, 'Pending-survey', 'good', 'Submitted by user; awaiting survey submission', 'A'
+);
