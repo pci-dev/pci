@@ -193,9 +193,9 @@ def search_recommenders():
     articleId = None
     for myVar in myVars:
         if myVar == "exclude":
-            # excludeList = map(int, myValue.split(','))
-            for v in myVars[myVar]:
-                excludeList.append(int(v))
+            myValue = myVars[myVar]
+            myValue = myValue.split(",") if type(myValue) is str else myValue
+            excludeList = list(map(int, myValue))
         elif isinstance(myVars[myVar], list):
             myValue = (myVars[myVar])[1]
         else:
