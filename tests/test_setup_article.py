@@ -14,7 +14,7 @@ reviewer = users.reviewer
 
 class article:
     doi = "DOI"
-    title = "Article Title [%s]" % time.asctime()
+    title = "Article Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
     abstract = "Abstract"
     keywords = "Keywords"
