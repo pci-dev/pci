@@ -207,6 +207,10 @@ ALTER TABLE public.t_articles
 -- 28/07/2021
 ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q32 boolean;
 
+-- 22/08/2021  (rebased 14/09)
+ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q1_1 character varying(1024);
+ALTER TABLE public.t_report_survey ADD COLUMN  IF NOT EXISTS q1_2 character varying(256);
+
 -- 06/09/2021
 \set TEMPLATE_TEXT '<p>Dear {{destPerson}},</p>\n<p>The reviewer that just declined your invitation to review the preprint entitled <strong>{{articleTitle}}</strong> suggests the following reviewers:</p>\n<p>{{suggestedReviewersText}}</p>\n<p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —&gt; Preprint(s) you are handling’ in the top menu.</p>\n<p>We thank you again for managing this evaluation.</p>\n<p>All the best,<br>The Managing Board of {{appName}}</p>'
 \set DESCRIPTION 'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers'

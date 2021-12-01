@@ -819,6 +819,8 @@ def edit_report_survey():
         
         fields = [
             "q1",
+            "q1_1",
+            "q1_2",
             "q2",
             "q3",
             "q4",
@@ -911,8 +913,8 @@ def edit_report_survey():
 
     if form.process().accepted:
         doUpdateArticle = False
-        if form.vars.Q10 is not None:
-            art.scheduled_submission_date = form.vars.Q10
+        if form.vars.q10 is not None:
+            art.scheduled_submission_date = form.vars.q10
             art.doi = None
             doUpdateArticle = True
 
