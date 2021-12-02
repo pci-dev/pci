@@ -1316,6 +1316,7 @@ def mail_form_processing(form):
         mail.mail_subject = form.vars.mail_subject
         mail.sending_date = form.vars.sending_date
         mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
+        mail.replyto_addresses = emailing_tools.list_addresses(form.vars.replyto_addresses)
         mail.update_record()
 
         content_saved = True
