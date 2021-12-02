@@ -117,5 +117,9 @@ def getSendMessageForm(declineKey):
     )
 
 
+from gluon import IS_EMPTY_OR, IS_LIST_OF_EMAILS
+
 def cc_widget(field, value):
+    field.requires = IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message="invalid (list of) e-mail(s): %s"))
+
     return SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))
