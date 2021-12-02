@@ -1863,6 +1863,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
 
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
+    replyto_addresses = emailing_tools.list_addresses(form.replyto)
     form.subject
     form.message
 
@@ -1871,6 +1872,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     db.mail_queue.insert(
         user_id             = auth.user_id,
         dest_mail_address   = reviewer_email,
+        replyto_addresses   = replyto_addresses,
         cc_mail_addresses   = cc_addresses,
         mail_subject        = form.subject,
         mail_content        = mail_content,
