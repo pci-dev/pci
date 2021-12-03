@@ -37,12 +37,14 @@ COPY public.t_status_article (id, status, color_class, explaination, priority_le
 15	Pending-survey	good	Submitted by user; awaiting survey submission	A
 \.
 
+insert into public.t_status_article values(41, 'Pre-recommended-private', 'good', '', 'C');
+insert into public.t_status_article values(42, 'Recommended-private', 'success', '', 'C');
 
 --
 -- Name: t_status_article_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pci_admin
 --
 
-SELECT pg_catalog.setval('public.t_status_article_id_seq', 12, true);
+SELECT pg_catalog.setval('public.t_status_article_id_seq', 50, true);
 
 
 --

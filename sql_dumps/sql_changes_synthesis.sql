@@ -317,3 +317,8 @@ insert into t_status_article values (
 -- 29/11/2021
 
 ALTER TABLE public.mail_queue ADD COLUMN  IF NOT EXISTS replyto_addresses character varying(1024);
+
+-- 03/12/2021  -- late addition of RR-specific "private" status - in code since x-mas 2020
+
+insert into public.t_status_article values(41, 'Pre-recommended-private', 'good', '', 'C');
+insert into public.t_status_article values(42, 'Recommended-private', 'success', '', 'C');
