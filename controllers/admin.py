@@ -672,7 +672,7 @@ def mailing_queue():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, session)
+    app_forms.update_mail_content_keep_editing_form(form, db, request, response)
 
     if form.content_saved:
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))

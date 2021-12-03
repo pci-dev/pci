@@ -1300,4 +1300,4 @@ def article_emails():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, session)
+    app_forms.update_mail_content_keep_editing_form(form, db, request, response)

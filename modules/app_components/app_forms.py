@@ -131,14 +131,14 @@ def cc_widget(field, value):
 
 from app_modules import emailing_tools
 
-def update_mail_content_keep_editing_form(form, db, request, session):
+def update_mail_content_keep_editing_form(form, db, request, response):
 
     mail = db.mail_queue[request.vars.id]
     content_saved = process_mail_content(mail, form)
 
     if content_saved:
         request.args[0] = "view"
-        session.flash = current.T("Reminder saved")
+        response.flash = current.T("Reminder saved")
 
     form.errors = True  # force validation failure to keep editing form
     form.content_saved = content_saved
