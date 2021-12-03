@@ -136,7 +136,8 @@ def getCorrectHashtag(hashtag, article=None):
 
 #######################################################################################################################################################################
 def list_addresses(addresses):
-    return [x.strip(' ') for x in list(addresses.split(","))]
+    return [x.strip(' ') for x in list(addresses.split(","))] \
+                if addresses else []
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
