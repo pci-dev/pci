@@ -139,6 +139,8 @@ def update_mail_content_keep_editing_form(form, db, request, response):
     if content_saved:
         request.args[0] = "view"
         response.flash = current.T("Reminder saved")
+    else:
+        response.flash = current.T("Error saving reminder: ") + form.error_msg
 
     form.errors = True  # force validation failure to keep editing form
     form.content_saved = content_saved
@@ -161,8 +163,8 @@ def process_mail_content(mail, form):
         mail.update_record()
 
         content_saved = True
-    except:
+    except Exception as e:
         content_saved = False
-        print("Error")
+        form.error_msg = str(e)
 
     return content_saved
