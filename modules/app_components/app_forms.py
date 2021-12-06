@@ -117,5 +117,54 @@ def getSendMessageForm(declineKey):
     )
 
 
+from gluon import IS_EMPTY_OR, IS_LIST_OF_EMAILS
+
 def cc_widget(field, value):
-    return SQLFORM.widgets.string.widget(field, ('' if value is None else ','.join(value)))
+    field.requires = IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message="invalid (list of) e-mail(s): %s"))
+
+    return SQLFORM.widgets.string.widget(field, ('' if value is None else ', '.join(value)))
+
+
+#########################################################################
+# reminders emails form validation
+#########################################################################
+
+from app_modules import emailing_tools
+
+def update_mail_content_keep_editing_form(form, db, request, response):
+
+    mail = db.mail_queue[request.vars.id]
+    content_saved = process_mail_content(mail, form)
+
+    if content_saved:
+        request.args[0] = "view"
+        response.flash = current.T("Reminder saved")
+    else:
+        response.flash = current.T("Error saving reminder: ") + form.error_msg
+
+    form.errors = True  # force validation failure to keep editing form
+    form.content_saved = content_saved
+
+
+def process_mail_content(mail, form):
+    try:
+        content_begin = mail.mail_content.rindex("<!-- CONTENT START -->") + 22
+        content_end = mail.mail_content.rindex("<!-- CONTENT END -->")
+
+        new_content = mail.mail_content[0:content_begin]
+        new_content += form.vars.mail_content
+        new_content += mail.mail_content[content_end:-1]
+
+        mail.mail_content = new_content
+        mail.mail_subject = form.vars.mail_subject
+        mail.sending_date = form.vars.sending_date
+        mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
+        mail.replyto_addresses = emailing_tools.list_addresses(form.vars.replyto_addresses)
+        mail.update_record()
+
+        content_saved = True
+    except Exception as e:
+        content_saved = False
+        form.error_msg = str(e)
+
+    return content_saved

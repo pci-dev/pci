@@ -1386,10 +1386,12 @@ def send_reviewer_generic_mail():
     default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
 
     req_is_email = IS_EMAIL(error_message=T("invalid e-mail!"))
+    replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
         Field.CC(default=(sender_email,)),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=req_is_email, default=replyto.email, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -2251,6 +2253,7 @@ def review_emails():
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
+    db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
@@ -2306,6 +2309,7 @@ def review_emails():
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
             db.mail_queue.cc_mail_addresses,
+            db.mail_queue.replyto_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2364,6 +2368,7 @@ def article_reviews_emails():
     db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
+    db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
 
 
     db.mail_queue.sending_status.writable = False
@@ -2418,6 +2423,7 @@ def article_reviews_emails():
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
             db.mail_queue.cc_mail_addresses,
+            db.mail_queue.replyto_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2441,29 +2447,4 @@ def article_reviews_emails():
 
 
 def mail_form_processing(form):
-    form.errors = True
-    mail = db.mail_queue[request.vars.id]
-
-    content_saved = False
-    try:
-        content_begin = mail.mail_content.rindex("<!-- CONTENT START -->") + 22
-        content_end = mail.mail_content.rindex("<!-- CONTENT END -->")
-
-        new_content = mail.mail_content[0:content_begin]
-        new_content += form.vars.mail_content
-        new_content += mail.mail_content[content_end:-1]
-
-        mail.mail_content = new_content
-        mail.mail_subject = form.vars.mail_subject
-        mail.sending_date = form.vars.sending_date
-        mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
-        mail.update_record()
-
-        content_saved = True
-    except:
-        print("Error")
-
-    if content_saved:
-        args = request.args
-        args[0] = "view"
-        session.flash = T("Reminder saved")
+    app_forms.update_mail_content_keep_editing_form(form, db, request, response)

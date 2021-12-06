@@ -118,6 +118,7 @@ def prepareNextReminder(mail_item):
             sending_date=sending_date,
             dest_mail_address=mail_item["dest_mail_address"],
             cc_mail_addresses=mail_item["cc_mail_addresses"],
+            replyto_addresses=mail_item["replyto_addresses"],
             mail_subject=mail_item["mail_subject"],
             mail_content=mail_item["mail_content"],
             user_id=mail_item["user_id"],
