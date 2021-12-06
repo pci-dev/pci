@@ -1455,7 +1455,7 @@ def send_to_one_corecommender(session, auth, db, contribId):
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["ethicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                    mail_vars["ethicsLink"] = mk_ethicsLink()
                     if article.anonymous_submission:
                         mail_vars["articleAuthors"] = current.T("[undisclosed]")
                     else:
@@ -2030,10 +2030,16 @@ def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+        mail_vars["ethicsLink"] = mk_ethicsLink()
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterSuggestedRecommenderNeeded", article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+
+
+def mk_ethicsLink():
+    mail_vars = emailing_tools.getMailCommonVars()
+    return URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
 
 ######################################################################################################################################################################
