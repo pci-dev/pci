@@ -525,19 +525,24 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         ]
                     )
                 else:
-                    reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-                    if reviewer is not None:
-                        reviewVars.update(
-                            [
-                                (
-                                    "authors",
-                                    SPAN(
-                                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                        (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
-                                    ),
-                                )
-                            ]
-                        )
+                    if review.review_state == "Willing to review" or review.review_state == "Awaiting review" and art.status != "Under consideration":
+                        reviewVars['authors'] = None
+                    if review.review_state == "Awaiting review"  and art.status == "Under consideration":
+                        reviewVars['authors'] = None
+                    else:    
+                        reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()                      
+                        if reviewer is not None:
+                            reviewVars.update(
+                                [
+                                    (
+                                        "authors",
+                                        SPAN(
+                                            common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                                            (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                                        ),
+                                    )
+                                ]
+                            )
 
                 if len(review.review or "") > 2:
                     reviewVars.update([("text", WIKI(review.review, safe_mode=False))])
