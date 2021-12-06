@@ -2088,6 +2088,7 @@ def edit_recommendation():
                     else:
                         recomm.recommendation_state = "Recommended"
                         art.status = "Pre-recommended"
+                    cancel_decided_article_pending_reviews(recomm)
                     recomm.update_record()
                     art.update_record()
                     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
@@ -2111,6 +2112,14 @@ def edit_recommendation():
             myBackButton=common_small_html.mkBackButton(),
             deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_recommender.js"), _type="text/javascript"),
         )
+
+
+def cancel_decided_article_pending_reviews(recomm):
+    reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
+    for review in reviews:
+        if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":
+            review.review_state = "Cancelled"
+            review.update_record()
 
 
 ######################################################################################################################################################################
