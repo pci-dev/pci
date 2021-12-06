@@ -1091,7 +1091,7 @@
 
     .pci-infotext img {
         max-width: 70rem;
-        width: auto;
+        height: auto;
     }
 
     #pci-home-header {
