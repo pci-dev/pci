@@ -429,7 +429,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
                 c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["ethicsurl"] = mk_ethicsLink()
 
             if article.parallel_submission:
                 mail_vars["addNote"] = (
@@ -509,7 +509,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
         )
         mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["ethicsurl"] = mk_ethicsLink()
 
         if article.parallel_submission:
             mail_vars["addNote"] = (
@@ -1212,7 +1212,7 @@ def send_new_membreship(session, auth, db, membershipId):
             mail_vars["days"] = ", ".join(user.alerts)
             mail_vars["baseurl"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["ethicsurl"] = mk_ethicsLink()
 
             mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
 
