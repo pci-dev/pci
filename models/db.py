@@ -1146,6 +1146,13 @@ db.define_table(
 )
 
 ##-------------------------------- PCI RR ---------------------------------
+db.TOP_guidelines_choices = (
+    "YES",
+    "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
+    "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
+)
+
+
 db.define_table(
     "t_report_survey",
     # Field("stage_number", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), default=False, requires=IS_IN_SET(("STAGE 1", "STAGE 2"))),
@@ -1333,13 +1340,7 @@ db.define_table(
             ),
         ),
         requires=IS_EMPTY_OR(
-            IS_IN_SET(
-                (
-                    "YES",
-                    "NO: LEGAL AND/OR ETHICAL RESTRICTIONS WILL PREVENT PUBLIC ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS]",
-                    "NO: BARRIERS OTHER THAN LEGAL OR ETHICAL RESTRICTIONS PREVENT ARCHIVING OF AT LEAST SOME OF THE ABOVE [INSERT DETAILS] -- Note: there is a risk of desk rejection in this case because the submission will likely fail to meet TOP guidelines",
-                )
-            )
+            IS_IN_SET(db.TOP_guidelines_choices)
         ),
         widget=SQLFORM.widgets.radio.widget,
     ),
