@@ -429,7 +429,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
                 c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["ethicsurl"] = mk_ethicsLink()
 
             if article.parallel_submission:
                 mail_vars["addNote"] = (
@@ -509,7 +509,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
         )
         mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["ethicsurl"] = mk_ethicsLink()
 
         if article.parallel_submission:
             mail_vars["addNote"] = (
@@ -1212,7 +1212,7 @@ def send_new_membreship(session, auth, db, membershipId):
             mail_vars["days"] = ", ".join(user.alerts)
             mail_vars["baseurl"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["ethicsurl"] = URL(c="about", f="ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["ethicsurl"] = mk_ethicsLink()
 
             mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
 
@@ -1455,7 +1455,7 @@ def send_to_one_corecommender(session, auth, db, contribId):
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["ethicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                    mail_vars["ethicsLink"] = mk_ethicsLink()
                     if article.anonymous_submission:
                         mail_vars["articleAuthors"] = current.T("[undisclosed]")
                     else:
@@ -2030,10 +2030,16 @@ def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+        mail_vars["ethicsLink"] = mk_ethicsLink()
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterSuggestedRecommenderNeeded", article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+
+
+def mk_ethicsLink():
+    mail_vars = emailing_tools.getMailCommonVars()
+    return URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
 
 ######################################################################################################################################################################
