@@ -19,7 +19,7 @@
           <td></td>
           <td><b>Reviewer</b></td>
           <td><b>Status</b></td>
-          <td><b>Last change</b></td>
+          <!--td><b>Last change</b></td-->
         </thead>
 
         <tbody>
@@ -41,9 +41,9 @@
                   </ul>
                 </div>
               </td>
-              <td>{{=review['reviewer']}}</td>
+              <td class="break-reviewer-stat">{{=review['reviewer']}}</td>
               <td>{{=review['status']}}</td>
-              <td>{{=review['lastChange']}}</td>
+              <!--td>{{=review['lastChange']}}</td-->
             </tr>
           {{pass}}
         </tbody>
@@ -52,7 +52,7 @@
 
   {{pass}}
 
-  <div class="pci2-flex-row">
+  <div class="pci2-flex-column">
     <div class="pci2-align-start pci2-flex-column pci2-flex-grow">
       {{if inviteReviewerLink:}}
         <div>
@@ -108,7 +108,7 @@
 
 
     {{if showDecisionLink:}}
-      <div class="pci2-justify-end pci2-flex-grow">
+      <div class="pci2-align-start pci2-flex-grow">
 
         {{if writeDecisionLink:}}
           <a 
