@@ -2,13 +2,13 @@
 
 DB=pci_ecology
 
-FIELDS="first_name, last_name, email, country"
+FIELDS="first_name, last_name, email, country, registration_datetime"
 
 
 main() {
     case $1 in
         ""|-h|--help)
-            echo "usage: $(basename $0) [reviewers|recommenders] [pci_xxx]"
+            echo "usage: $(basename $0) [reviewers|recommenders|users] [pci_xxx]"
             exit 0
             ;;
         reviewers|recommenders|users)
