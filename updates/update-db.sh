@@ -13,6 +13,7 @@ set_psql() {
 	else
 		PSQL="psql -U postgres"
 	fi
+	PSQL="$PSQL -v ON_ERROR_STOP=1"
 }
 
 get_local_db() {
