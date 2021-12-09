@@ -436,7 +436,7 @@
     "Modified On": "Modified On",
     "More": "More",
     "More...": "More...",
-    "Most recent DOI (or URL)": "DOI of the postprint",
+    "Most recent DOI (or URL)": "Full web address (DOI or URL) to most recent version of the preprint",
     "Most recent recommendations in:": "Most recent recommendations in:",
     "Most recent version of the manuscript": "Most recent version of the manuscript",
     "My closed articles recommendations": "My closed articles recommendations",
