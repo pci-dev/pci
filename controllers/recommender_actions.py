@@ -404,6 +404,9 @@ def accept_review_request():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     if rev["review_state"] != "Willing to review":
+        if auth.has_membership(role="manager"):
+            session.flash = T("Review state has been changed")
+            redirect(URL(c="manager", f="recommendations", vars=dict(articleId=recomm["article_id"])))
         session.flash = T("Review state has been changed")
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
