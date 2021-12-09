@@ -30,7 +30,13 @@ get_all_db() {
 }
 
 apply_db() {
-	$PSQL $DB < $(dirname "$0")/$1
+	(cd $(dirname "$0")
+
+	for sql in *.sql; do
+		echo "applying $sql"
+		$PSQL $DB < $sql || exit 3
+	done
+	)
 }
 
 show_options() {
@@ -57,11 +63,7 @@ case $1 in
 	 -*)
 		echo "unknown option: $1" && exit 1
 		;;
-	pci_registered_reports)
-		apply_db update.sql
-		apply_db update_rr.sql
-		;;
 	*)
-		apply_db update.sql
+		apply_db
 		;;
 esac
