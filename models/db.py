@@ -447,7 +447,10 @@ auth.settings.create_user_groups = False
 auth.settings.showid = False
 if myconf.get("captcha.private"):
     # auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'), use_ssl=True) # DEPRECATED
-    auth.settings.captcha = Recaptcha2(request, myconf.get("captcha.public"), myconf.get("captcha.private"))
+    try:
+        auth.settings.captcha = Recaptcha2(request, myconf.get("captcha.public"), myconf.get("captcha.private"))
+    except:
+        pass
     auth.settings.login_captcha = False
     auth.settings.register_captcha = None
     auth.settings.retrieve_username_captcha = False
