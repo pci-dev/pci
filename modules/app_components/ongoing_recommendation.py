@@ -507,6 +507,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if (recomm.recommender_id != auth.user_id and amICoRecommender == False) and review.review_state == "Willing to review":
                 reviewVars.update([("showReviewRequest", False)])
                 hideOngoingReview = True
+                
+            if auth.has_membership(role="manager")  and review.review_state == "Willing to review":
+                reviewVars.update([("showReviewRequest", True)])
+                hideOngoingReview = False
                     
             # reviewer's buttons in order to edit/complete pending review
             if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status == "Under consideration") and not (printable):
