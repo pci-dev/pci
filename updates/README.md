@@ -9,8 +9,10 @@ from the previous release (n-1) to the current release (n).
 - update-src.sh
 
 
-`update-db.sh` contains the required sql to update the db from release (n-1) to (n).
-The script can contain no sql if there are no changes to apply.
+`update-db.sh` allows for the required update sql to be applied to the db;
+changes from release (n-1) to (n) are shipped as individual `*.sql` files,
+which are applied in sequence by the script.  This can yield no update when
+there are no `*.sql` files in `updates/`.
 
 The git history provides for previous versions upgrade scripts.
 
