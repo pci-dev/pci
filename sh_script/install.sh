@@ -67,9 +67,6 @@ pg_dump -h $ip -F p -O -d pci_evolbiol_test -t public.help_texts -a --inserts --
 echo "TRUNCATE public.t_status_article CASCADE;" | psql -h $ip $database
 pg_dump -h $ip -F p -O -d pci_evolbiol_test -t public.t_status_article -a --inserts --column-inserts \
 	| psql -h $ip $database
-echo "TRUNCATE public.help_texts_3;" | psql -h $ip $database
-pg_dump -h $ip -F p -O -d pci_evolbiol_test -t public.help_texts_3 -a --inserts --column-inserts \
-	| psql -h $ip $database
 # NOTE dump le mail_templates de EvolBiolTest3
 echo "TRUNCATE mail_templates;"   | psql -h $ip $database
 pg_dump --host=$ip --table=mail_templates --data-only pci_evolbiol_test | psql -h $ip $database

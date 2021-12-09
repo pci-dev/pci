@@ -24,7 +24,6 @@ db:
 	$(psql) main < sql_dumps/insert_default_help_texts.sql
 	$(psql) main < sql_dumps/insert_default_mail_templates.sql
 	$(psql) main < sql_dumps/t_status_article.sql
-	$(psql) main -c "insert into help_texts_3 select * from help_texts"
 
 db.clean:
 	$(psql) -c "drop database if exists main"
@@ -35,7 +34,7 @@ db.admin:
 	sudo sed -i '/local *all *postgres *peer/ s/$$/ map=map_admin/' /etc/postgresql/*/main/pg_hba.conf
 	sudo systemctl restart postgresql
 
-psql = psql -U postgres
+psql = psql -U postgres -v "ON_ERROR_STOP=1"
 
 start:
 	web2py/web2py.py --password pci > log.txt &

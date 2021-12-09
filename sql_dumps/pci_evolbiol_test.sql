@@ -1061,20 +1061,6 @@ CREATE TABLE public.help_texts (
 ALTER TABLE public.help_texts OWNER TO pci_admin;
 
 --
--- Name: help_texts_3; Type: TABLE; Schema: public; Owner: pci_admin
---
-
-CREATE TABLE public.help_texts_3 (
-    id integer,
-    hashtag character varying(128),
-    lang character varying(10),
-    contents text
-);
-
-
-ALTER TABLE public.help_texts_3 OWNER TO pci_admin;
-
---
 -- Name: help_texts_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
 
@@ -1093,8 +1079,6 @@ ALTER TABLE public.help_texts_id_seq OWNER TO pci_admin;
 --
 
 ALTER SEQUENCE public.help_texts_id_seq OWNED BY public.help_texts.id;
-
-ALTER TABLE public.help_texts_3 ALTER COLUMN id SET DEFAULT nextval('public.help_texts_id_seq');
 
 
 --
