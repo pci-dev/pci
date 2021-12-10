@@ -752,6 +752,7 @@ def direct_submission():
     db.t_articles.already_published.readable = False
     db.t_articles.already_published.writable = False
     db.t_articles.already_published.default = True
+    db.t_articles.doi.label = T("Postprint DOI")
     myScript = """jQuery(document).ready(function(){
 					
 					if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
