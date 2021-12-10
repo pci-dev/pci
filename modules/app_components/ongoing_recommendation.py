@@ -604,6 +604,20 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
+        
+        def mk_link(role, action, rev):
+            return URL(c=role+"_actions", f=action+"_review_request", vars=dict(reviewId=rev["id"]))
+
+        role = ("manager" if auth.has_membership(role="manager") else
+                "recommender" if auth.has_membership(role="recommender") else
+                None)
+
+        for rev in reviewsList:
+            if rev["showReviewRequest"] and role:
+                rev.update([
+                    ("acceptReviewRequestLink", mk_link(role, "accept", rev)),
+                    ("rejectReviewRequestLink", mk_link(role, "decline", rev)),
+                ])
 
         inviteReviewerLink = None
         showSearchingForReviewersButton = None

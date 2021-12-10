@@ -229,12 +229,12 @@
       {{if review['showReviewRequest']:}}
         <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
           <a class="buttontext btn btn-success" 
-            href="{{=URL(c='recommender_actions', f='accept_review_request',  vars=dict(reviewId=review['id']))}}"
+            href="{{=review["acceptReviewRequestLink"]}}"
           >
             {{=T('Yes, I accept this review request')}}
           </a>
           <a class="buttontext btn btn-warning" 
-            href="{{=URL(c='recommender_actions', f='decline_review_request',  vars=dict(reviewId=review['id']))}}"
+            href="{{=review["rejectReviewRequestLink"]}}"
           >
             {{=T('No thanks, I\'d rather not')}}
           </a>
