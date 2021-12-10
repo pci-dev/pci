@@ -511,7 +511,11 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="manager")  and review.review_state == "Willing to review":
                 reviewVars.update([("showReviewRequest", True)])
                 hideOngoingReview = False
-                    
+
+            if (review.reviewer_id == auth.user_id) and review.review_state == "Willing to review":
+                reviewVars.update([("showReviewRequest", False)])
+                hideOngoingReview = False
+
             # reviewer's buttons in order to edit/complete pending review
             if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status == "Under consideration") and not (printable):
                 reviewVars.update([("showEditButtons", True)])
