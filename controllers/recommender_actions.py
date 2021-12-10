@@ -427,13 +427,13 @@ def decline_review_request():
     if rev is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    if rev["review_state"] != "Willing to review":
-        session.flash = T("Review state has been changed")
-        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
-
     recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
     if recomm.recommender_id != auth.user_id:
         raise HTTP(404, "404: " + T("Unavailable"))
+    
+    if rev["review_state"] != "Willing to review":
+        session.flash = T("Review state has been changed")
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
     # db(db.t_reviews.id==reviewId).delete()
     rev.review_state = "Declined by recommender"
