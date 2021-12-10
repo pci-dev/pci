@@ -525,6 +525,7 @@
     "Plugins": "Plugins",
     "Postprint": "Postprint",
     "POSTPRINT": "POSTPRINT",
+    "Postprint DOI": "DOI of the postprint",
     "Powered by": "Powered by",
     "Preface": "Preface",
     "Prepare a cancellation": "Prepare a cancellation",
