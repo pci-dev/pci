@@ -236,3 +236,42 @@ def do_send_back_decision():
         session.flash = T('Recommendation sent back to recommender')
 
     redirect(request.env.http_referer)
+
+#####################################################################################################################################################################
+def get_check_rev_recomm_from_request():
+    if "reviewId" not in request.vars:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    reviewId = request.vars["reviewId"]
+    rev = db.t_reviews[reviewId]
+    if rev is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
+    if recomm.recommender_id != auth.user_id and not (auth.has_membership(role="manager")):
+        raise HTTP(404, "404: " + T("Unavailable"))
+
+    if rev["review_state"] != "Willing to review":
+        session.flash = T("Review state has been changed")
+        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+    return rev, recomm
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def accept_review_request():
+    rev, recomm = get_check_rev_recomm_from_request()
+
+    rev.review_state = "Awaiting review"
+    rev.update_record()
+    # email to recommender sent at database level
+    redirect(URL(c="manager", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def decline_review_request():
+    rev, recomm = get_check_rev_recomm_from_request()
+
+    rev.review_state = "Declined by recommender"
+    rev.update_record()
+    # email to recommender sent at database level
+    redirect(URL(c="manager", f="recommendations", vars=dict(articleId=recomm["article_id"])))
