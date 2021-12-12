@@ -15,7 +15,7 @@
 
   <!-- Authors Reply -->
   {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None) or (editAuthorsReplyLink is not None):}}
-    <h4 class="pci2-round-review-sub-title" id="author-reply">{{=T("Author's Reply")}}</h4>
+    <h4 class="pci2-round-review-sub-title" id="author-reply">{{=T("Author's Reply,")}}{{ =authorsReplyDate}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
 
       {{if authorsReplyPdfLink is not None:}}
