@@ -391,8 +391,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             hideOngoingRecomm = False
 
         authorsReply = None
+        authorsReplyDate = None
         if (recomm.reply is not None) and (len(recomm.reply) > 0):
             authorsReply = DIV(WIKI(recomm.reply or "", safe_mode=False))
+            authorsReplyDate = recomm.last_change.strftime(DEFAULT_DATE_FORMAT)
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
@@ -619,6 +621,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             nbRecomms=nbRecomms,
             lastChanges=None,
             authorsReply=authorsReply,
+            authorsReplyDate=authorsReplyDate,
             authorsReplyPdfLink=authorsReplyPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
             editAuthorsReplyLink=editAuthorsReplyLink,
