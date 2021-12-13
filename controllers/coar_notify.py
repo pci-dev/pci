@@ -94,11 +94,15 @@ def show_coar_status():
 
     inbound: %d
     outbound: %d
+
+    target inbox: %s
+
     """ % (
 
         "enabled" if coar_notifier.enabled else "disabled",
         db(db.t_coar_notification.direction == 'Inbound').count(),
         db(db.t_coar_notification.direction == 'Outbound').count(),
+        coar_notifier.inbox_url,
     )
 
     return text
