@@ -278,8 +278,10 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink, id=review.id))
 
         authorsReply = None
+        authorsReplyDate = None
         if recomm.reply:
             authorsReply = DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext")
+            authorsReplyDate = recomm.last_change.strftime(DEFAULT_DATE_FORMAT)
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
@@ -327,6 +329,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             preprintDoi=preprintDoi,
             reviewsList=reviwesPreparedData,
             authorsReply=authorsReply,
+            authorsReplyDate=authorsReplyDate,
             authorsReplyPdfLink=authorsReplyPdfLink,
             recommendationPdfLink=recommendationPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
