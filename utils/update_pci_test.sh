@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=$(dirname "$0")
+DIR=$(dirname $(realpath "$0"))
 list=$($DIR/all-pci-test-sites.sh)
 conf=$DIR/.test-sites.conf
 
