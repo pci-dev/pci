@@ -488,7 +488,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if review.review_state == "Review completed" and amIEngagedInStage2Process:
                 hideOngoingReview = False
 
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and review.review_state == "Willing to review":
+            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and (review.review_state == "Willing to review") and (art.status == "Under consideration"):
                 reviewVars.update([("showReviewRequest", True)])
 
             if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
