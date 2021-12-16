@@ -399,7 +399,9 @@ def check_accept_decline_request():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
-    if recomm.recommender_id != auth.user_id:
+    if auth.has_membership(role="manager"):
+        pass
+    elif recomm.recommender_id != auth.user_id:
         raise HTTP(404, "404: " + T("Unavailable"))
 
     if rev["review_state"] != "Willing to review":
