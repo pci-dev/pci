@@ -403,13 +403,16 @@ def check_accept_decline_request():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     if rev["review_state"] != "Willing to review":
-        if auth.has_membership(role="manager"):
-            session.flash = T("Review state has been changed")
-            redirect(URL(c="manager", f="recommendations", vars=dict(articleId=recomm["article_id"])))
         session.flash = T("Review state has been changed")
-        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+        redirect_to_recommendations(recomm)
 
     return rev, recomm
+
+
+def redirect_to_recommendations(recomm):
+    controller = "manager" if auth.has_membership(role="manager") else "recommender"
+
+    redirect(URL(c=controller, f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
 
 ######################################################################################################################################################################
@@ -421,7 +424,7 @@ def accept_review_request():
     rev.review_state = "Awaiting review"
     rev.update_record()
     # email to recommender sent at database level
-    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+    redirect_to_recommendations(recomm)
 
 
 ######################################################################################################################################################################
@@ -433,7 +436,7 @@ def decline_review_request():
     rev.review_state = "Declined by recommender"
     rev.update_record()
     # email to recommender sent at database level
-    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=recomm["article_id"])))
+    redirect_to_recommendations(recomm)
 
 
 ######################################################################################################################################################################
