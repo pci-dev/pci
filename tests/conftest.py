@@ -6,6 +6,7 @@ from os import getenv
 def get_driver():
     options = webdriver.chrome.options.Options()
     options.headless = not getenv("SHOW")
+    options.add_argument("--window-size=1920x1080")
     return webdriver.Chrome(options=options)
 
 def get_config():
