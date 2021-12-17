@@ -2438,16 +2438,17 @@ def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     recomm = db.t_recommendations[review.recommendation_id]
     reviewer = db.auth_user[review.reviewer_id]
 
-    if reviewer and recomm:
-        db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)).delete()
+    for hashtag in hashtag_template:
+        if reviewer and recomm:
+            db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
-        if pciRRactivated:
-            hashtag_template_rr = hashtag_template + "Stage"
-            db(
-                (db.mail_queue.dest_mail_address == reviewer.email)
-                & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
-                & (db.mail_queue.recommendation_id == recomm.id)
-            ).delete()
+            if pciRRactivated:
+                hashtag_template_rr = hashtag_template + "Stage"
+                db(
+                    (db.mail_queue.dest_mail_address == reviewer.email)
+                    & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
+                    & (db.mail_queue.recommendation_id == recomm.id)
+                ).delete()
 
 
 ######################################################################################################################################################################
