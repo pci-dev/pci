@@ -22,8 +22,7 @@ from app_components import recommender_components
 
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules import emailing_tools
-from app_modules import emailing_vars
+from app_modules import emailing_tools, emailing_vars, emailing 
 
 # to change to common
 from controller_modules import admin_module
@@ -1329,6 +1328,9 @@ def send_review_cancellation():
         else:
             redirect(URL(c="manager", f="all_recommendations"))
 
+    reminder_hashtag = ["#ReminderReviewerReviewSoonDue", "#ReminderReviewerReviewDue", "#ReminderReviewerReviewOverDue"]
+    emailing.delete_reminder_for_reviewer(db, reminder_hashtag, reviewId)
+    
     return dict(
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
