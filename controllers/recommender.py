@@ -1282,11 +1282,13 @@ def send_review_cancellation():
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
     if (review.review_state or "Awaiting response") == "Awaiting response" or (review.review_state or "Awaiting review") == "Awaiting review":
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+        if (review.review_state or "Awaiting response") == "Awaiting response":
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+        if (review.review_state or "Awaiting review") == "Awaiting review":
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewAlreadyAcceptedCancellation", art)
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
         default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
-
     else:
         pass
 
