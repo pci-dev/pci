@@ -1449,6 +1449,7 @@ def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
+    reInvite = request.vars["reInvite"]
     if reviewId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1516,7 +1517,10 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+    if reInvite is True:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewReInvitationRegisterUser", art)
+    else:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
