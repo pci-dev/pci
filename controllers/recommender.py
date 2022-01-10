@@ -1449,7 +1449,7 @@ def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
-    reInvite = request.vars["reInvite"]
+    new_round = request.vars["new_round"]
     if reviewId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1517,10 +1517,10 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    if reInvite is True:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewReInvitationRegisterUser", art)
-    else:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+    
+    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+    if new_round:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1555,20 +1555,37 @@ def email_for_registered_reviewer():
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
-            emailing.send_reviewer_invitation(
-                session,
-                auth,
-                db,
-                reviewId,
-                replyto_addresses,
-                cc_addresses,
-                hashtag_template,
-                request.vars["subject"],
-                request.vars["message"],
-                None,
-                linkTarget,
-                declineLinkTarget,
-            )
+            if new_round:
+                emailing.send_reviewer_invitation(
+                    session,
+                    auth,
+                    db,
+                    reviewId,
+                    replyto_addresses,
+                    cc_addresses,
+                    hashtag_template,
+                    request.vars["subject"],
+                    request.vars["message"],
+                    None,
+                    linkTarget,
+                    declineLinkTarget,
+                    new_round,
+                )
+            else:
+                emailing.send_reviewer_invitation(
+                    session,
+                    auth,
+                    db,
+                    reviewId,
+                    replyto_addresses,
+                    cc_addresses,
+                    hashtag_template,
+                    request.vars["subject"],
+                    request.vars["message"],
+                    None,
+                    linkTarget,
+                    declineLinkTarget,
+                )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
