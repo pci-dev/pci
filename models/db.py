@@ -981,6 +981,7 @@ def reviewDone(s, f):
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
 
         elif o["review_state"] == "Willing to review" and f["review_state"] == "Awaiting review":
@@ -1002,15 +1003,18 @@ def reviewDone(s, f):
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined manually":
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         elif o["review_state"] == "Awaiting response" and f["review_state"] == "Cancelled":
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         if o["reviewer_id"] is not None and o["review_state"] == "Awaiting review" and f["review_state"] == "Review completed":
             emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
