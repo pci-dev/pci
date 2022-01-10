@@ -52,7 +52,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
             if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
 
-            if review.review_state == "Review completed" and nbRecomms >= 1:
+            if review.review_state == "Review completed" and nbRecomms >= 1 and recomm_round != nbRecomms:
                 reviewVars["actions"].append(dict(text=current.T("Prepare invitation mail"), link=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=latestRoundRecommId, reviewerId=review.reviewer_id, new_round=True), user_signature=True)))
 
             if review.review_state == "Willing to review":
