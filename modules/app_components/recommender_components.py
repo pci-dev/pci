@@ -15,11 +15,8 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def getReviewsSubTable(auth, db, response, request, recomm):
-    total_count = []
     art = db.t_articles[recomm.article_id]
     recomm_round = db((db.t_recommendations.article_id == recomm.article_id) & (db.t_recommendations.id <= recomm.id)).count()
-    nbRecomms = db((db.t_recommendations.article_id == art.id)).count()
-    recommList = db((db.t_recommendations.article_id == recomm.article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
         db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews._id, db.t_reviews.reviewer_details, orderby=~db.t_reviews.last_change
     )
@@ -32,10 +29,6 @@ def getReviewsSubTable(auth, db, response, request, recomm):
 
     nbCompleted = 0
     nbOnGoing = 0
-
-    for i in recommList:
-        total_count.append(i.id)
-    latestRoundRecommId = max(total_count)
 
     reviewList = []
     for review in reviews:
@@ -51,9 +44,6 @@ def getReviewsSubTable(auth, db, response, request, recomm):
 
             if allowed_to_see_reviews and review.review_state == "Review completed":
                 reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
-
-            if review.review_state == "Review completed" and nbRecomms >= 1 and recomm_round != nbRecomms:
-                reviewVars["actions"].append(dict(text=current.T("Prepare invitation mail"), link=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=latestRoundRecommId, reviewerId=review.reviewer_id, new_round=True), user_signature=True)))
 
             if review.review_state == "Willing to review":
                 reviewVars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_review_request", vars=dict(reviewId=review.id))))
