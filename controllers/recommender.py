@@ -1168,7 +1168,6 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
                                     common_small_html.mkUserWithMail(auth, db, reviewer_id),
                             " ",
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            I("(" + (con.review_state or "") + ")"), 
                             A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
                                 _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=True), user_signature=True)) \
                                     if reviewer_id not in current_reviewers_id else "",
@@ -1205,8 +1204,8 @@ def reviewers():
             total_count.sort()
             previousRoundRecommId = total_count[-2]
             latestRoundRecommId = max(total_count)
-            prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId)).select(
-                db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
+            prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
+                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
             )
             prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
             if len(prevReviewersList) > 0:
