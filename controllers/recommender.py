@@ -1205,7 +1205,7 @@ def reviewers():
             previousRoundRecommId = total_count[-2]
             latestRoundRecommId = max(total_count)
             prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
-                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
+                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
             )
             prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
             if len(prevReviewersList) > 0:
