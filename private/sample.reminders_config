@@ -10,9 +10,9 @@
 #ReminderReviewerReviewInvitationNewUser = [5, 8]
 #ReminderReviewerReviewInvitationRegisteredUser = [5, 8]
 #ReminderReviewerInvitationNewRoundRegisteredUser = [5, 8]
-#ReminderReviewerReviewSoonDue = [7, 12]
-#ReminderReviewerReviewDue = [14]
-#ReminderReviewerReviewOverDue = [18, 22, 26, 30, 33]
+#ReminderReviewerReviewSoonDue = [14, 19]
+#ReminderReviewerReviewDue = [21]
+#ReminderReviewerReviewOverDue = [25, 29, 33, 37, 40]
 
 #ReminderSubmitterCancelSubmission = [20]
 #ReminderSubmitterSuggestedRecommenderNeeded = [1, 2, 3, 4, 5, 6, 7, 8, 9]
