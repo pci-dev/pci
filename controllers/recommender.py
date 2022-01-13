@@ -22,8 +22,7 @@ from app_components import recommender_components
 
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules import emailing_tools
-from app_modules import emailing_vars
+from app_modules import emailing_tools, emailing_vars, emailing 
 
 # to change to common
 from controller_modules import admin_module
@@ -1282,12 +1281,14 @@ def send_review_cancellation():
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-    if (review.review_state or "Awaiting response") == "Awaiting response":
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+    if (review.review_state or "Awaiting response") == "Awaiting response" or (review.review_state or "Awaiting review") == "Awaiting review":
+        if (review.review_state or "Awaiting response") == "Awaiting response":
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+        if (review.review_state or "Awaiting review") == "Awaiting review":
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewAlreadyAcceptedCancellation", art)
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
         default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
-
     else:
         pass
 
@@ -1329,6 +1330,9 @@ def send_review_cancellation():
         else:
             redirect(URL(c="manager", f="all_recommendations"))
 
+    reminder_hashtag = ["#ReminderReviewerReviewSoonDue", "#ReminderReviewerReviewDue", "#ReminderReviewerReviewOverDue"]
+    emailing.delete_reminder_for_reviewer(db, reminder_hashtag, reviewId)
+    
     return dict(
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
