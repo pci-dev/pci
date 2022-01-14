@@ -1196,6 +1196,7 @@ def reviewers():
     else:  
         recomm_round = db((db.t_recommendations.article_id == article.id)).count()
         prevRoundHeader = ""
+        customText=getText(request, auth, db, "#RecommenderAddReviewersText")
         if recomm_round > 1:
             total_count = []
             recommList = db((db.t_recommendations.article_id == recomm.article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
@@ -1210,6 +1211,7 @@ def reviewers():
             prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
             if len(prevReviewersList) > 0:
                 prevRoundHeader = DIV(H3(T("CHOOSE A REVIEWER FROM  PREVIOUS ROUND OF REVIEW:")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+                customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
@@ -1243,7 +1245,7 @@ def reviewers():
             myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="manager", f="all_recommendations")), _style="margin-top:16px; text-align:center;")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderAddReviewers"),
-            customText=getText(request, auth, db, "#RecommenderAddReviewersText"),
+            customText=customText,
             titleIcon="search",
             pageTitle=getTitle(request, auth, db, "#RecommenderAddReviewersTitle"),
             myAcceptBtn=myAcceptBtn,
