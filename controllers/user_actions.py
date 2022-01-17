@@ -186,12 +186,23 @@ def decline_new_review():
 
 ######################################################################################################################################################################
 def decline_review(): # no auth required
+    review, message = _check_decline_review_request()
+
+    if review:
+        message = A(
+                T("Please click to confirm review decline"),
+                _class="decline-review-confirm-button",
+                _href=URL(f="decline_review_confirmed", vars=request.vars),
+        )
+
+    return _decline_review_page(message, form=None)
+
+
+def _check_decline_review_request():
     reviewId = request.vars["id"]
     quickDeclineKey = request.vars["key"]
 
     review = db.t_reviews[reviewId]
-
-    form = None
 
     if review is None:
         message = "Review '{}' not found".format(reviewId)
@@ -200,6 +211,18 @@ def decline_review(): # no auth required
     elif review.quick_decline_key != quickDeclineKey:
         message = "Incorrect decline key: '{}'".format(quickDeclineKey)
     else:
+        message = None
+
+    if message:
+        review = None
+
+    return review, message
+
+
+def decline_review_confirmed(): # no auth required
+    review, message = _check_decline_review_request()
+    form = None
+    if review:
         review.review_state = "Declined"
         review.update_record()
 
@@ -210,6 +233,10 @@ def decline_review(): # no auth required
         message = T("Thank you for taking the time to decline this invitation!")
         form = app_forms.getSendMessageForm(review.quick_decline_key)
 
+    return _decline_review_page(message, form)
+
+
+def _decline_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
