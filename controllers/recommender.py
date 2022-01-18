@@ -1479,6 +1479,12 @@ def _Field_CC(default):
 
 Field.CC = _Field_CC
 
+######################################################################################################################################################################
+def convert_string(value):
+    if value == "True":
+        return True
+    else:
+        return False
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
@@ -1486,7 +1492,7 @@ def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
-    new_round = request.vars["new_round"]
+    new_round = convert_string(request.vars["new_round"])
     if reviewId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
