@@ -191,7 +191,7 @@ def decline_review(): # no auth required
     if review:
         message = A(
                 T("Please click to confirm review decline"),
-                _class="decline-review-confirm-button",
+                _class="pci-decline-review-confirm btn btn-warning",
                 _href=URL(f="decline_review_confirmed", vars=request.vars),
         )
 
