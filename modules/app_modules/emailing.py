@@ -2316,6 +2316,10 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         else:
             mail_vars["articleAuthors"] = article.authors
 
+        mail_vars["art_doi"] = article.doi
+        mail_vars["art_title"] = article.title
+        mail_vars["description"] = myconf.take("app.description")
+
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = article.title
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
