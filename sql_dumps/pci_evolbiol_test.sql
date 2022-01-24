@@ -1378,6 +1378,17 @@ CREATE TABLE public.t_articles (
 
 ALTER TABLE public.t_articles OWNER TO pci_admin;
 
+ALTER TABLE public.t_articles 
+ADD COLUMN  IF NOT EXISTS no_results_based_on_data  boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS results_based_on_data  boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS data_doi character varying(512),
+ADD COLUMN  IF NOT EXISTS no_scripts_used_for_result  boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS scripts_used_for_result  boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS scripts_doi character varying(512),
+ADD COLUMN  IF NOT EXISTS no_codes_used_in_study  boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS codes_used_in_study boolean DEFAULT false,
+ADD COLUMN  IF NOT EXISTS codes_doi character varying(512);
+
 --
 -- Name: t_articles_id_seq; Type: SEQUENCE; Schema: public; Owner: pci_admin
 --
