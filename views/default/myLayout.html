@@ -18,6 +18,10 @@
 	<div>{{=searchForm}}</div>
 {{pass}}
 
+{{if 'prevContent' in locals():}}
+	<div class="pci2-flex-center content-btn-left">{{=prevContent}}</div>
+{{pass}}
+
 {{if 'content' in locals():}}
 	<div class="pci2-flex-center content-btn-left">{{=content}}</div>
 {{pass}}
