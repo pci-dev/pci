@@ -137,7 +137,9 @@
         text-align: left;
       ">
         <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
-          <b style="color: #ffbf00">{{=newPreprintSearchingForReviewersCount}}</b> new preprint{{if newPreprintSearchingForReviewersCount > 1:}}s{{pass}} searching for reviewers
+          <b style="color: #ffbf00">{{=newPreprintSearchingForReviewersCount}}</b>
+	  new {{if pciRRactivated:}}report{{else:}}preprint{{pass}}{{if newPreprintSearchingForReviewersCount > 1:}}s{{pass}}
+	  in need of reviewers
         </h2>
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
         {{=newPreprintSearchingForReviewers}}
@@ -156,7 +158,9 @@
         text-align: left;
       ">
         <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
-          <b style="color: #ffbf00">{{=newPreprintRequiringRecommenderCount}}</b> new preprint{{if newPreprintRequiringRecommenderCount > 1:}}s{{pass}} requiring recommender
+          <b style="color: #ffbf00">{{=newPreprintRequiringRecommenderCount}}</b>
+	  new {{if pciRRactivated:}}report{{else:}}preprint{{pass}}{{if newPreprintRequiringRecommenderCount > 1:}}s{{pass}}
+	  requiring recommender
         </h2>
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
         {{=newPreprintRequiringRecommender}}
