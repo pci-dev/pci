@@ -215,6 +215,7 @@ def decline_new_article_to_recommend():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def suggest_review_to():
     reviewerId = request.vars["reviewerId"]
+    new_round = request.vars["new_round"]
     if reviewerId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -233,9 +234,9 @@ def suggest_review_to():
     else:
         revId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
         if revId is None:
-            session.flash = T("Recommender for the article doesn't exist", lazy=False)
+            session.flash = T("Recommender for the article doesn't exist or Invite has been previously sent", lazy=False)
             redirect(request.env.http_referer)
-        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(reviewId=revId)))
+        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(reviewId=revId, new_round=new_round)))
 
 
 ######################################################################################################################################################################

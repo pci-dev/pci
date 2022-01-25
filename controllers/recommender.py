@@ -1137,6 +1137,43 @@ def reviews():
             absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
         )
 
+######################################################################################################################################################################
+def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
+            reviewersIds = [auth.user_id]
+            reviewersList = []
+            current_reviewers_id = []
+            for con in reviewersListSel:
+                if con.review_state is None:  # delete this unfinished review declaration
+                    db(db.t_reviews.id == con.id).delete()
+                else:
+                    reviewer_id = con.reviewer_id
+                    if recomm.recommender_id == reviewer_id:
+                        selfFlag = True
+                        if con.review_state == "Cancelled":
+                            selfFlagCancelled = True
+                    reviewersIds.append(reviewer_id)
+                    display = LI(
+                            TAG(con.reviewer_details) if con.reviewer_details else \
+                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                            " ",
+                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
+                            I("(" + (con.review_state or "") + ")"), 
+                            )
+                    if prev_round:
+                        current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
+                        for i in current_reviewers:
+                            current_reviewers_id.append(i.reviewer_id)
+                        display = LI(
+                            TAG(con.reviewer_details) if con.reviewer_details else \
+                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                            " ",
+                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
+                            A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
+                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=True), user_signature=True)) \
+                                    if reviewer_id not in current_reviewers_id else "",
+                        )
+                    reviewersList.append(display)
+            return reviewersList, reviewersIds
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
@@ -1156,33 +1193,32 @@ def reviewers():
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    else:
+    else:  
+        recomm_round = db((db.t_recommendations.article_id == article.id)).count()
+        prevRoundHeader = ""
+        customText=getText(request, auth, db, "#RecommenderAddReviewersText")
+        if recomm_round > 1:
+            total_count = []
+            recommList = db((db.t_recommendations.article_id == recomm.article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
+            for i in recommList:
+                total_count.append(i.id)
+            total_count.sort()
+            previousRoundRecommId = total_count[-2]
+            latestRoundRecommId = max(total_count)
+            prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
+                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+            )
+            prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
+            if len(prevReviewersList) > 0:
+                prevRoundHeader = DIV(H3(T("CHOOSE A REVIEWER FROM  PREVIOUS ROUND OF REVIEW:")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+                customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
+
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
-        reviewersList = []
-        reviewersIds = [auth.user_id]
         selfFlag = False
         selfFlagCancelled = False
-        for con in reviewersListSel:
-            if con.review_state is None:  # delete this unfinished review declaration
-                db(db.t_reviews.id == con.id).delete()
-            else:
-                reviewer_id = con.reviewer_id
-                if recomm.recommender_id == reviewer_id:
-                    selfFlag = True
-                    if con.review_state == "Cancelled":
-                        selfFlagCancelled = True
-                reviewersIds.append(reviewer_id)
-                reviewersList.append(
-                    LI(
-                        TAG(con.reviewer_details) if con.reviewer_details else \
-                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
-                        " ",
-                        B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                        I("(" + (con.review_state or "") + ")"),
-                    )
-                )
+        reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
         excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
             myContents = DIV(H3(T("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
@@ -1209,11 +1245,12 @@ def reviewers():
             myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="manager", f="all_recommendations")), _style="margin-top:16px; text-align:center;")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderAddReviewers"),
-            customText=getText(request, auth, db, "#RecommenderAddReviewersText"),
+            customText=customText,
             titleIcon="search",
             pageTitle=getTitle(request, auth, db, "#RecommenderAddReviewersTitle"),
             myAcceptBtn=myAcceptBtn,
             content=myContents,
+            prevContent=prevRoundHeader,
             form="",
             myUpperBtn=myUpperBtn,
         )
@@ -1442,6 +1479,12 @@ def _Field_CC(default):
 
 Field.CC = _Field_CC
 
+######################################################################################################################################################################
+def convert_string(value):
+    if value == "True":
+        return True
+    else:
+        return False
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
@@ -1449,6 +1492,7 @@ def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
+    new_round = convert_string(request.vars["new_round"])
     if reviewId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1516,7 +1560,10 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
+    
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+    if new_round:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1551,20 +1598,37 @@ def email_for_registered_reviewer():
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
-            emailing.send_reviewer_invitation(
-                session,
-                auth,
-                db,
-                reviewId,
-                replyto_addresses,
-                cc_addresses,
-                hashtag_template,
-                request.vars["subject"],
-                request.vars["message"],
-                None,
-                linkTarget,
-                declineLinkTarget,
-            )
+            if new_round:
+                emailing.send_reviewer_invitation(
+                    session,
+                    auth,
+                    db,
+                    reviewId,
+                    replyto_addresses,
+                    cc_addresses,
+                    hashtag_template,
+                    request.vars["subject"],
+                    request.vars["message"],
+                    None,
+                    linkTarget,
+                    declineLinkTarget,
+                    new_round,
+                )
+            else:
+                emailing.send_reviewer_invitation(
+                    session,
+                    auth,
+                    db,
+                    reviewId,
+                    replyto_addresses,
+                    cc_addresses,
+                    hashtag_template,
+                    request.vars["subject"],
+                    request.vars["message"],
+                    None,
+                    linkTarget,
+                    declineLinkTarget,
+                )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e

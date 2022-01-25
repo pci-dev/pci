@@ -1638,7 +1638,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None):
+def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False):
     print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1744,7 +1744,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                     elif review.review_state == "Awaiting review":
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
-                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons)
+                    if new_round:
+                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=True)
+                    else:
+                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons)
                 subject_header = email_subject_header(recomm.article_id)
                 subject_without_appname = subject.replace("%s: " % subject_header, "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -2297,7 +2300,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None):
+def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, new_round=False):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2312,6 +2315,10 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
         else:
             mail_vars["articleAuthors"] = article.authors
+
+        mail_vars["art_doi"] = article.doi
+        mail_vars["art_title"] = article.title
+        mail_vars["description"] = myconf.take("app.description")
 
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = article.title
@@ -2331,8 +2338,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
                 ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
-
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
+        if new_round:
+            hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
