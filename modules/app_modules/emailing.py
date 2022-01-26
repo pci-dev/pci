@@ -2451,7 +2451,7 @@ def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
             db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
             if pciRRactivated:
-                hashtag_template_rr = hashtag_template + "Stage"
+                hashtag_template_rr = hashtag + "Stage"
                 db(
                     (db.mail_queue.dest_mail_address == reviewer.email)
                     & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
