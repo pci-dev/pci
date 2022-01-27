@@ -502,13 +502,18 @@ def fill_new_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+
+    customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
+    if pciRRactivated:
+        customText = ""
+
     myScript = common_tools.get_template("script", "fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
-        customText=getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800"),
+        customText=customText,
         form=form,
         myFinalScript=SCRIPT(myScript) or "",
     )
