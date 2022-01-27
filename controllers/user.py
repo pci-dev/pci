@@ -406,8 +406,22 @@ def fill_new_article():
         "picture_rights_ok",
         "uploaded_picture",
         "abstract",
-        "thematics",
     ]
+
+    if not pciRRactivated: 
+        fields += [
+        "no_results_based_on_data",
+        "results_based_on_data",
+        "data_doi",
+        "no_scripts_used_for_result", 
+        "scripts_used_for_result", 
+        "scripts_doi", 
+        "no_codes_used_in_study", 
+        "codes_used_in_study", 
+        "codes_doi", 
+    ]
+
+    fields += ["thematics"]
 
     if pciRRactivated:
         fields += ["sub_thematics"]
@@ -434,6 +448,42 @@ def fill_new_article():
     def onvalidation(form):
         if pciRRactivated:
             form.vars.status = "Pending-survey"
+        else:
+            if form.vars.no_results_based_on_data == None and form.vars.results_based_on_data == None:
+                form.errors.no_results_based_on_data = T("Please select an option")
+
+            if form.vars.no_results_based_on_data == "on" and form.vars.results_based_on_data == "on":
+                form.errors.no_results_based_on_data = T("Please select just one option")
+            
+            if form.vars.no_scripts_used_for_result == None and form.vars.scripts_used_for_result == None:
+                form.errors.no_scripts_used_for_result = T("Please select an option")
+
+            if form.vars.no_scripts_used_for_result == "on" and form.vars.scripts_used_for_result == "on":
+                form.errors.no_scripts_used_for_result = T("Please select just one option")
+
+            if form.vars.no_codes_used_in_study == None and form.vars.codes_used_in_study == None:
+                form.errors.no_codes_used_in_study = T("Please select an option")
+
+            if form.vars.no_codes_used_in_study == "on" and form.vars.codes_used_in_study == "on":
+                form.errors.no_codes_used_in_study = T("Please select just an option")
+
+            if form.vars.results_based_on_data == "on" and form.vars.data_doi == None:
+                form.errors. data_doi = T("Please provide the result DOI or URL")
+
+            if form.vars.no_results_based_on_data == "on" and form.vars.data_doi != None:
+                form.errors. data_doi = T("Please choose the valid option in order to fill the DOI or URL")
+
+            if form.vars.scripts_used_for_result == "on" and form.vars.scripts_doi == None:
+                form.errors.scripts_doi = T("Please provide the scripts DOI or URL")
+            
+            if form.vars.no_scripts_used_for_result == "on" and form.vars.scripts_doi != None:
+                form.errors.scripts_doi = T("Please choose the valid option in order to fill the DOI or URL")
+
+            if form.vars.codes_used_in_study == "on" and form.vars.codes_doi == None:
+                form.errors.codes_doi = T("Please provide the codes DOI or URL")
+
+            if form.vars.no_codes_used_in_study == "on" and form.vars.codes_doi != None:
+                form.errors.codes_doi = T("Please choose the valid option in order to fill the DOI or URL")
 
     if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
@@ -452,13 +502,18 @@ def fill_new_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+
+    customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
+    if pciRRactivated:
+        customText = ""
+
     myScript = common_tools.get_template("script", "fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
-        customText=getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800"),
+        customText=customText,
         form=form,
         myFinalScript=SCRIPT(myScript) or "",
     )

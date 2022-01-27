@@ -230,6 +230,15 @@ def getArticleInfosCard(auth, db, response, article, printable,
         ]
     )
 
+    if article.data_doi is not None:
+        articleContent.update([("dataDoi", (common_small_html.mkDOI(article.data_doi)) if (article.data_doi) else SPAN(""))])
+
+    if article.scripts_doi is not None:
+        articleContent.update([("scriptDoi", (common_small_html.mkDOI(article.scripts_doi)) if (article.scripts_doi) else SPAN(""))])
+
+    if article.codes_doi is not None:
+        articleContent.update([("codeDoi", (common_small_html.mkDOI(article.codes_doi)) if (article.codes_doi) else SPAN(""))])
+
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 

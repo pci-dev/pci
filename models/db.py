@@ -524,6 +524,7 @@ def updUserThumb(s, f):
 
 
 applongname = myconf.take("app.longname")
+appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 
@@ -562,12 +563,21 @@ db.define_table(
     Field("title", type="string", length=1024, label=T("Title"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
-    Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_LENGTH(512, 0))),
+    Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=T("URL must start with http:// or https://")),
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. v1)')), default="", requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
+    Field("no_results_based_on_data", type="boolean", label=T("None of the results are based on data")),
+    Field("results_based_on_data", type="boolean", label=T("All or part of the results presented in this preprint are based on data")),
+    Field("data_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")),
+    Field("no_scripts_used_for_result", type="boolean", label=T("No script (e.g. for statistical analysis, like R scripts) was used to obtain or analyze the results")),
+    Field("scripts_used_for_result", type="boolean", label=T("Scripts were used to obtain or analyze the results")),
+    Field("scripts_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")),
+    Field("no_codes_used_in_study", type="boolean", label=T("No codes (e.g. codes for original programs or software) were used in this study")),
+    Field("codes_used_in_study", type="boolean", label=T("Codes have been used in this study")),
+    Field("codes_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
@@ -981,7 +991,6 @@ def reviewDone(s, f):
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
 
         elif o["review_state"] == "Willing to review" and f["review_state"] == "Awaiting review":
@@ -1003,18 +1012,15 @@ def reviewDone(s, f):
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined manually":
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         elif o["review_state"] == "Awaiting response" and f["review_state"] == "Cancelled":
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
         if o["reviewer_id"] is not None and o["review_state"] == "Awaiting review" and f["review_state"] == "Review completed":
             emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])

@@ -40,19 +40,162 @@
     </div>
   {{pass}}
 
+  {{if 'dataDoi' in locals():}}
+  <div    
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+      onclick="
+        if( jQuery('#menu-1' ).hasClass('pci2-panel-closed')) { 
+          jQuery('#menu-1').removeClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-1').removeClass('glyphicon-rotate') 
+          jQuery('#icon-menu-1').addClass('glyphicon-rotate-reversed') 
+        } else {
+          jQuery('#menu-1').addClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-1').removeClass('glyphicon-rotate-reversed') 
+          jQuery('#icon-menu-1').addClass('glyphicon-rotate')
+        }
+      "
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"   
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Data used for results</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+
+    {{if 'dataDoi' in locals() and not printable:}}
+      <i id="icon-menu-1" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+    {{pass}}
+  </div>
+
+  {{if 'dataDoi' in locals() and not printable:}}
+    <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=dataDoi}}
+    </div>
+  {{pass}}
+
+  {{if 'dataDoi' in locals() and printable:}}
+    <div id="menu-1" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=dataDoi}}
+    </div>
+  {{pass}}
+{{pass}}
+
+
+{{if 'codeDoi' in locals():}}
+  <div    
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+      onclick="
+        if( jQuery('#menu-2' ).hasClass('pci2-panel-closed')) { 
+          jQuery('#menu-2').removeClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-2').removeClass('glyphicon-rotate') 
+          jQuery('#icon-menu-2').addClass('glyphicon-rotate-reversed') 
+        } else {
+          jQuery('#menu-2').addClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-2').removeClass('glyphicon-rotate-reversed') 
+          jQuery('#icon-menu-2').addClass('glyphicon-rotate')
+        }
+      "
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"   
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Codes used in this study</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+
+    {{if 'codeDoi' in locals() and not printable:}}
+      <i id="icon-menu-2" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+    {{pass}}
+  </div>
+
+
+  {{if 'codeDoi' in locals() and not printable:}}
+    <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=codeDoi}}
+    </div>
+  {{pass}}
+
+  {{if 'codeDoi' in locals() and printable:}}
+    <div id="menu-2" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=codeDoi}}
+    </div>
+  {{pass}}
+{{pass}}
+
+
+{{if 'scriptDoi' in locals():}}
+  <div    
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+      onclick="
+        if( jQuery('#menu-3' ).hasClass('pci2-panel-closed')) { 
+          jQuery('#menu-3').removeClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-3').removeClass('glyphicon-rotate') 
+          jQuery('#icon-menu-3').addClass('glyphicon-rotate-reversed') 
+        } else {
+          jQuery('#menu-3').addClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-3').removeClass('glyphicon-rotate-reversed') 
+          jQuery('#icon-menu-3').addClass('glyphicon-rotate')
+        }
+      "
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"   
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Scripts used to obtain or analyze results</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+
+    {{if 'scriptDoi' in locals() and not printable:}}
+      <i id="icon-menu-3" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+    {{pass}}
+  </div>
+
+
+  {{if 'scriptDoi' in locals() and not printable:}}
+    <div id="menu-3" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=scriptDoi}}
+    </div>
+  {{pass}}
+
+  {{if 'scriptDoi' in locals() and printable:}}
+    <div id="menu-3" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=scriptDoi}}
+    </div>
+  {{pass}}
+{{pass}}
+
+
   {{if 'coverLetter' in locals():}}
     <div    
       style="margin:  15px 0 0px;"
       {{if not printable:}}
         onclick="
-          if( jQuery('#menu-1' ).hasClass('pci2-panel-closed')) { 
-            jQuery('#menu-1').removeClass('pci2-panel-closed') 						
-            jQuery('#icon-menu-1').removeClass('glyphicon-rotate') 
-            jQuery('#icon-menu-1').addClass('glyphicon-rotate-reversed') 
+          if( jQuery('#menu-4' ).hasClass('pci2-panel-closed')) { 
+            jQuery('#menu-4').removeClass('pci2-panel-closed') 						
+            jQuery('#icon-menu-4').removeClass('glyphicon-rotate') 
+            jQuery('#icon-menu-4').addClass('glyphicon-rotate-reversed') 
           } else {
-            jQuery('#menu-1').addClass('pci2-panel-closed') 						
-            jQuery('#icon-menu-1').removeClass('glyphicon-rotate-reversed') 
-            jQuery('#icon-menu-1').addClass('glyphicon-rotate')
+            jQuery('#menu-4').addClass('pci2-panel-closed') 						
+            jQuery('#icon-menu-4').removeClass('glyphicon-rotate-reversed') 
+            jQuery('#icon-menu-4').addClass('glyphicon-rotate')
           }
         "
         class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
@@ -69,38 +212,39 @@
       />
 
       {{if 'coverLetter' in locals() and not printable:}}
-        <i id="icon-menu-1" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+        <i id="icon-menu-4" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
       {{pass}}
     </div>
 
 
     {{if 'coverLetter' in locals() and not printable:}}
-      <div id="menu-1" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      <div id="menu-4" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
         {{=coverLetter}}
       </div>
     {{pass}}
 
     {{if 'coverLetter' in locals() and printable:}}
-      <div id="menu-1" class="pci2-abstract-div" style="margin-top: 15px;">
+      <div id="menu-4" class="pci2-abstract-div" style="margin-top: 15px;">
         {{=coverLetter}}
       </div>
     {{pass}}
   {{pass}}
 
+  
 
 {{if 'articleAbstract' in locals():}}
   <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
       onclick="
-        if( jQuery('#menu-2' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-2').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-2').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-2').addClass('glyphicon-rotate-reversed') 
+        if( jQuery('#menu-5' ).hasClass('pci2-panel-closed')) { 
+          jQuery('#menu-5').removeClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-5').removeClass('glyphicon-rotate') 
+          jQuery('#icon-menu-5').addClass('glyphicon-rotate-reversed') 
         } else {
-          jQuery('#menu-2').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-2').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-2').addClass('glyphicon-rotate')
+          jQuery('#menu-5').addClass('pci2-panel-closed') 						
+          jQuery('#icon-menu-5').removeClass('glyphicon-rotate-reversed') 
+          jQuery('#icon-menu-5').addClass('glyphicon-rotate')
         }
       "
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
@@ -116,16 +260,16 @@
       class="pci2-main-color-hr pci2-flex-grow"
     />
     {{if not printable:}}
-      <i id="icon-menu-2" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+      <i id="icon-menu-5" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
     {{pass}}
   </div>
 
   {{if not printable:}}
-    <div id="menu-2" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+    <div id="menu-5" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
       {{=articleAbstract}}
     </div>
   {{else:}}
-    <div id="menu-2" class="pci2-abstract-div" style="margin-top: 15px;">
+    <div id="menu-5" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=articleAbstract}}
     </div>
   {{pass}}
