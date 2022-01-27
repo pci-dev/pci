@@ -408,7 +408,7 @@ def fill_new_article():
         "abstract",
     ]
 
-    if not pciRRactivated: 
+    if not pciRRactivated:
         fields += [
         "no_results_based_on_data",
         "results_based_on_data",
@@ -454,7 +454,7 @@ def fill_new_article():
 
             if form.vars.no_results_based_on_data == "on" and form.vars.results_based_on_data == "on":
                 form.errors.no_results_based_on_data = T("Please select just one option")
-            
+
             if form.vars.no_scripts_used_for_result == None and form.vars.scripts_used_for_result == None:
                 form.errors.no_scripts_used_for_result = T("Please select an option")
 
@@ -475,7 +475,7 @@ def fill_new_article():
 
             if form.vars.scripts_used_for_result == "on" and form.vars.scripts_doi == None:
                 form.errors.scripts_doi = T("Please provide the scripts DOI or URL")
-            
+
             if form.vars.no_scripts_used_for_result == "on" and form.vars.scripts_doi != None:
                 form.errors.scripts_doi = T("Please choose the valid option in order to fill the DOI or URL")
 
