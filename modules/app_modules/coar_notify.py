@@ -101,13 +101,15 @@ class COARNotifier:
         except KeyError:
             return False
 
-    def send_notification(self, notification):
+    def send_notification(self, notification, article):
         """Send a notification to the pre-configured external inbox.
 
         This method handles adding the generic bits of the notification (i.e. the
         @context, id, origin and target.
         """
         session = _get_requests_session()
+
+        target_inbox = _get_target_inbox(article)
 
         # Add the base properties for the notification, including the JSON-LD context.
         notification = {
@@ -122,7 +124,7 @@ class COARNotifier:
                 "type": ["Service"],
             },
             "target": {
-                "inbox": self.inbox_url,
+                "inbox": target_inbox,
                 "type": ["Service"],
             },
             **notification,
@@ -132,7 +134,7 @@ class COARNotifier:
 
         try:
             response = session.post(
-                self.inbox_url,
+                target_inbox,
                 data=serialized_notification,
                 headers={"Content-Type": "application/ld+json"},
             )
@@ -188,6 +190,19 @@ class COARNotifier:
             "name": f"{user.first_name} {user.last_name}",
         }
 
+    def _get_target_inbox(article):
+        try:
+            resp = requests.head(article.doi)
+            inbox = (resp.headers["Link"]
+                    .split(';')[0]
+                    .replace("<", "")
+                    .replace(">", "")
+                    )
+            assert inbox
+            return inbox
+        except:
+            return self.inbox_url
+
     def review_completed(self, review):
         """Notify that a review has been completed for an article.
 
@@ -206,7 +221,7 @@ class COARNotifier:
             "object": self._review_as_jsonld(review),
             "actor": {} if review.anonymously else self._user_as_jsonld(reviewer),
         }
-        self.send_notification(notification)
+        self.send_notification(notification, article)
 
     def article_endorsed(self, recommendation):
         """Notify that an article has received an endorsement via a recommendation.
@@ -225,7 +240,7 @@ class COARNotifier:
             "object": self._recommendation_as_jsonld(recommendation),
             "actor": self._user_as_jsonld(recommender),
         }
-        self.send_notification(notification)
+        self.send_notification(notification, article)
 
     def record_notification(
         self,

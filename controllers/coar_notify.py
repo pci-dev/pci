@@ -95,8 +95,7 @@ def show_coar_status():
     inbound: %d
     outbound: %d
 
-    target inbox: %s
-    rdflib version: %s
+    default inbox: <a href="%s">%s</a>
 
     """ % (
 
@@ -104,7 +103,7 @@ def show_coar_status():
         db(db.t_coar_notification.direction == 'Inbound').count(),
         db(db.t_coar_notification.direction == 'Outbound').count(),
         coar_notifier.inbox_url,
-        rdflib.__version__,
+        coar_notifier.inbox_url,
     )
 
     return text
