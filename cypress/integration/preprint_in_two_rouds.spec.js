@@ -61,6 +61,11 @@ describe("Preprint recommended in two round", () => {
         );
       });
 
+      cy.get("#t_articles_no_results_based_on_data").click();
+      cy.get("#t_articles_no_scripts_used_for_result").click();
+      cy.get("#t_articles_codes_used_in_study").click();
+      cy.get("#t_articles_codes_doi").typeFast("https://github.com/");
+
       cy.get('input[name="thematics"]').first().click();
 
       cy.get("#t_articles_i_am_an_author").click();
