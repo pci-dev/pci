@@ -13,7 +13,7 @@ recommender = users.recommender
 reviewer = users.reviewer
 
 class article:
-    doi = "DOI"
+    doi = "http://DOI"
     title = "Article Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
     abstract = "Abstract"
@@ -44,6 +44,12 @@ class User_submits:
         select("#t_articles_report_stage").send_keys("Stage 1")
         select("#t_articles_ms_version").send_keys("v1")
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
+
+    if not is_rr:
+        select("#t_articles_no_results_based_on_data").click()
+        select("#t_articles_no_scripts_used_for_result").click()
+        select("#t_articles_codes_used_in_study").click()
+        select("#t_articles_codes_doi").send_keys("https://github.com/")
 
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(article.abstract)
