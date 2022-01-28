@@ -13,7 +13,7 @@ recommender = users.recommender
 reviewer = users.reviewer
 
 class article:
-    doi = "DOI"
+    doi = "http://DOI"
     title = "Article Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
     abstract = "Abstract"
