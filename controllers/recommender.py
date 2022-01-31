@@ -274,7 +274,6 @@ def search_reviewers():
     links = []
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
-        links.append(dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation))
         if myGoal == "4review":
             links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
             # pageTitle = T('Search for reviewers')
