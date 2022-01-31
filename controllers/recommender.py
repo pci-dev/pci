@@ -243,6 +243,7 @@ def search_reviewers():
         elif re.match("^qy_", myVar) and myValue == "on":
             qyTF.append(re.sub(r"^qy_", "", myVar))
 
+    recomm = None
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
         if recommId:
@@ -271,16 +272,17 @@ def search_reviewers():
     temp_db.qy_reviewers._id.readable = False
     temp_db.qy_reviewers.uploaded_picture.readable = False
     temp_db.qy_reviewers.excluded.readable = False
+
+    pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
+    customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
+    pageHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
+
     links = []
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
-        links.append(dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation))
         if myGoal == "4review":
             links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
-            # pageTitle = T('Search for reviewers')
-            pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
-            customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
-            pageHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
+            # use above defaults for: pageTitle, customText, pageHelp
         elif myGoal == "4press":
             links.append(
                 dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal))
