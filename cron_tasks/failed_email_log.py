@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta
 import time
+from .mail_queue_log import tryToSendMail, logMailsInQueue
 from gluon.contrib.appconfig import AppConfig
 
 
@@ -31,75 +32,6 @@ def getMailsInQueue():
     return db((db.mail_queue.sending_status.belongs("failed")) & (db.mail_queue.removed_from_queue == False) & (db.mail_queue.sending_date <= datetime.now())).select(
         orderby=db.mail_queue.sending_date
     )
-
-
-def tryToSendMail(mail_item):
-    try:
-        isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, reply_to=mail_item.replyto_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
-        #isSent = True
-        if isSent is False:
-            raise Exception('Email not sent!')
-    except Exception as err:
-        if log:
-            try:
-                #journal.write(err)
-                log.error(err)
-            except:
-                print(err)
-        else:
-            print(err)
-        isSent = False
-
-    updateSendingStatus(mail_item, isSent)
-    logSendingStatus(mail_item, isSent)
-
-
-def updateSendingStatus(mail_item, isSent):
-    attempts = mail_item.sending_attempts + 1
-
-    if isSent:
-        new_status = "sent"
-    if not isSent and attempts >= MAIL_MAX_SENDING_ATTEMPTS:
-        new_status = "failed"
-    elif not isSent and attempts < MAIL_MAX_SENDING_ATTEMPTS:
-        new_status = "in queue"
-
-    mail_item.update_record(sending_status=new_status, sending_attempts=attempts)
-    db.commit()
-
-
-def logMailsInQueue(queue_length):
-    if queue_length > 0:
-        colored_queue_length = "\033[1m\033[93m%i\033[0m" % queue_length
-    else:
-        colored_queue_length = "\033[1m\033[90m%i\033[0m" % queue_length
-    colored_date = "[\033[90m%s\033[0m]" % datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-    print("%s Mail(s) in queue : %s" % (colored_date, colored_queue_length))
-    if log:
-         msg = "Queue length = %(queue_length)s" % locals()
-         log.info(msg)
-
-def logSendingStatus(mail_item, isSent):
-    if isSent:
-        sending_status = "\033[92msent\033[0m"
-        sending_log = "SENT"
-    else:
-        sending_status = "\033[91mnot sent\033[0m"
-        sending_log = "NOT SENT"
-
-    mail_dest = "\033[4m%s\033[0m" % mail_item.dest_mail_address
-    hashtag_text = "\033[3m%s\033[0m" % mail_item.mail_template_hashtag
-    print("\t- mail %s to : %s => %s" % (sending_status, mail_dest, hashtag_text))
-    
-    if log:
-         to_log = mail_item.dest_mail_address
-         hashtag_log = mail_item.mail_template_hashtag
-         msg = "Email %(sending_log)s to %(to_log)s [%(hashtag_log)s]" % locals()
-         if isSent:
-             log.info(msg)
-         else:
-             log.warning(msg)
-
 
 ######################################################################################################################################################################
 # Run Mailing Queue Once
