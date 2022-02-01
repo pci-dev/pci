@@ -12,87 +12,102 @@ SITE=PCICompStat
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIZool
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIEcology
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIAnimSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCICNeuro
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIEvolBiol
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIArchaeology
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIForestWoodSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIPaleo
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIGenomics
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIMCB
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCINetworkSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIEcotoxEnvChem
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIRegisteredReports
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
 
 SITE=PCIInfections
 
 * *   * * * $BASE/$SITE/$RUN mail_queue_log.py
 0 */6 * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 *   * * * $BASE/$SITE/$RUN failed_email_log.py
