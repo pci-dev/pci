@@ -109,7 +109,7 @@ class COARNotifier:
         """
         session = _get_requests_session()
 
-        target_inbox = _get_target_inbox(article)
+        target_inbox = self._get_target_inbox(article)
 
         # Add the base properties for the notification, including the JSON-LD context.
         notification = {
@@ -190,7 +190,7 @@ class COARNotifier:
             "name": f"{user.first_name} {user.last_name}",
         }
 
-    def _get_target_inbox(article):
+    def _get_target_inbox(self, article):
         try:
             resp = requests.head(article.doi)
             inbox = (resp.headers["Link"]
