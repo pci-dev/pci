@@ -192,7 +192,7 @@ class COARNotifier:
 
     def _get_target_inbox(self, article):
         try:
-            resp = requests.head(article.doi)
+            resp = requests.head(article.doi, timeout=5)
             inbox = (resp.headers["Link"]
                     .split(';')[0]
                     .replace("<", "")
