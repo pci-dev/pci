@@ -64,7 +64,14 @@ REMINDERS = get_reminders_from_config()
 
 
 def getMailsInQueue():
-    return db((db.mail_queue.sending_status.belongs("in queue", "pending")) & (db.mail_queue.removed_from_queue == False) & (db.mail_queue.sending_date <= datetime.now())).select(
+    return db(
+            (db.mail_queue.sending_status.belongs(
+                "in queue",
+                "pending"
+            )) &
+            (db.mail_queue.removed_from_queue == False) &
+            (db.mail_queue.sending_date <= datetime.now())
+    ).select(
         orderby=db.mail_queue.sending_date
     )
 
