@@ -1613,6 +1613,8 @@ def edit_review():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     art = db.t_articles[recomm.article_id]
+    survey = db(db.t_report_survey.article_id == recomm.article_id).select().last()
+    # survey.article_id = articleId
     # Check if article have correct status
     if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
         session.flash = T("Unauthorized", lazy=False)
@@ -1633,6 +1635,9 @@ def edit_review():
             review.anonymously = False
             db.t_reviews.anonymously.writable = False
             db.t_reviews.anonymously.label = T("You cannot be anonymous because there is a manager in the authors")
+        elif survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
+            db.t_reviews.anonymously.writable = False
+            db.t_reviews.anonymously.label = T("Please note that reviews of this submission must be signed")
         else:
             db.t_reviews.anonymously.label = T("I wish to remain anonymous")
 
