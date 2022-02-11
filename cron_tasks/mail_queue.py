@@ -76,14 +76,7 @@ def tryToSendMail(mail_item):
         if isSent is False:
             raise Exception('Email not sent!')
     except Exception as err:
-        if log:
-            try:
-                #journal.write(err)
-                log.error(err)
-            except:
-                print(err)
-        else:
-            print(err)
+        log_error(err)
         isSent = False
 
     if mail_item.sending_status == "pending":
@@ -92,6 +85,15 @@ def tryToSendMail(mail_item):
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
 
+
+def log_error(err):
+    if log:
+        try:
+            log.error(err)
+        except:
+            print(err)
+    else:
+        print(err)
 
 
 def prepareNextReminder(mail_item):
