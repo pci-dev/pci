@@ -124,7 +124,6 @@ review_limit_days = 20
 recomm_limit_days = 50
 pdf_max_size = 5
 mail_delay = 3
-mail_max_sending_attemps = 3
 [rss]
 cache  = 60
 number = 20

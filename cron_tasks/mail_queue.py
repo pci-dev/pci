@@ -7,7 +7,6 @@ from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
-MAIL_MAX_SENDING_ATTEMPTS = int(myconf.get("config.mail_max_sending_attemps", default=3))
 
 log = None
 if (myconf.get("config.use_logger", default=True) is True):
