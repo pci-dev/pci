@@ -139,15 +139,14 @@ def prepareNextReminder(mail_item):
 
 def updateSendingStatus(mail_item, isSent):
     attempts = mail_item.sending_attempts + 1
+    senddate = datetime.now()
 
     if isSent:
         new_status = "sent"
-    if not isSent and attempts >= MAIL_MAX_SENDING_ATTEMPTS:
-        new_status = "failed"
-    elif not isSent and attempts < MAIL_MAX_SENDING_ATTEMPTS:
+    else:
         new_status = "in queue"
 
-    mail_item.update_record(sending_status=new_status, sending_attempts=attempts)
+    mail_item.update_record(sending_status=new_status, sending_attempts=attempts, sending_date=senddate)
     db.commit()
 
 
