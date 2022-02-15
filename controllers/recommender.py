@@ -1550,6 +1550,9 @@ def email_for_registered_reviewer():
 
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
 
+    r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+    trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+
     reviewDuration = reviewLimitText
 
     parallelText = ""

@@ -2329,6 +2329,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
 
+        r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+        trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
         mail_vars["reviewDuration"] = reviewLimitText
