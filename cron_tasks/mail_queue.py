@@ -76,6 +76,9 @@ def getMailsInQueue():
 
 
 def tryToSendMail(mail_item):
+    if not isTimeToTrySending(mail_item):
+        return
+
     try:
         isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, reply_to=mail_item.replyto_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
         #isSent = True
@@ -90,6 +93,25 @@ def tryToSendMail(mail_item):
 
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
+
+
+def isTimeToTrySending(mail_item):
+
+    # first 3 attempts every 1 min. (cron freq.)
+    if mail_item.sending_attempts < 3:
+        return True
+    # next 6 attempts every 5 min.
+    if mail_item.sending_attempts < 9:
+        return isNowSendingDatePlus(mail_item, minutes=5)
+    # next 6 attempts every hour
+    if mail_item.sending_attempts < 15:
+        return isNowSendingDatePlus(mail_item, hours=1)
+    # other attempts every 5 hours
+    return isNowSendingDatePlus(mail_item, hours=5)
+
+
+def isNowSendingDatePlus(mail_item, **arg):
+    return mail_item.sending_date + timedelta(**arg) < datetime.now()
 
 
 def log_error(err):
