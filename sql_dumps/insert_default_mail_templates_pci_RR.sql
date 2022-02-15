@@ -172,3 +172,53 @@ VALUES
 INSERT INTO "public"."mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
 (E'#ReviewerGenericMail',E'default',:'SUBJECT',:'DESCRIPTION',:'TEMPLATE_TEXT');
+
+
+-- 15/02/2022
+
+\set DESCRIPTION 'Mail to an already registered user, invite to re-review'
+
+\set INVITE_SUBJECT '{{appName}}: Invitation to review a revised '
+
+\set INVITE_SUBJECT_1 :INVITE_SUBJECT 'Stage 1 manuscript'
+\set INVITE_SUBJECT_2 :INVITE_SUBJECT 'Stage 2 manuscript'
+\set REMINDER_SUBJECT_1 :INVITE_SUBJECT_1 ' - reminder'
+\set REMINDER_SUBJECT_2 :INVITE_SUBJECT_2 ' - reminder'
+
+\set INVITE_TEXT_1 '<p>Dear {{destPerson}},</p><p> Thank you for your previous review of the Stage 1 Registered Report entitled "{{art_title}}", which was submitted for potential recommendation by Peer Community in Registered Reports (PCI RR). The authors have now submitted a revision and I am writing to ask if you would kindly consider reviewing it for us. A clean version of the revised manuscript can be viewed and downloaded at the following address: {{art_doi}}</p><p> The authors have also supplied a tracked changes version of the manuscript and a response to reviewers. You will find these files linked on the PCI RR website once you accept the review request and they can also be downloaded directly from the links below:</p><p> Response to reviewers: {{r2r_url}}</p><p> Tracked changes manuscript: {{trackchanges_url}}</p><p> To ensure swift handling of submissions, the requested review time is {{reviewDuration}}, but if you are unable to review the manuscript within this time then please let me know by reply email and we can extend the timeframe.</p><p> Submissions that pass Stage 1 review are issued an in-principle acceptance (IPA), which guarantees a positive recommendation of the completed study if the authors adhere to the approved procedures and propose a defensible interpretation of the results. Completed manuscripts are then peer reviewed again at Stage 2, ideally by the same reviewers as Stage 1.</p><p> In the event of a favourable outcome, all editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by PCI RR under a CC-BY 4.0 license. If, after one or several rounds of review, the preprint is rejected, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.</p><p> I would be grateful if you could let me know as soon as possible whether you are willing to accept my invitation to review this revised manuscript, or whether you would prefer to decline, by clicking on the link below or by logging onto the PCI RR website and going to \'For contributors —> Invitation(s) to review a preprint\' in the top menu. You will find the authors\' response to reviewers and manuscript with the tracked changes manuscript linked on the website.</p><p> Many thanks for considering this re-review request and for helping to support PCI RR.</p><p> Best wishes,</p><p> {{sender}}</p>'
+
+\set INVITE_TEXT_2 '<p>Dear {{destPerson}},</p><p> Thank you for your previous review of the Stage 2 Registered Report entitled "{{art_title}}", which was submitted for potential recommendation by Peer Community in Registered Reports (PCI RR). The authors have now submitted a revision and I am writing to ask if you would kindly consider reviewing it for us. A clean version of the revised manuscript can be viewed and downloaded at the following address: {{art_doi}}</p><p> The authors have also supplied a tracked changes version of the manuscript and a response to reviewers. You will find these files linked on the PCI RR website once you accept the review request and they can also be downloaded directly from the links below:</p><p> Response to reviewers: {{r2r_url}}</p><p> Tracked changes manuscript: {{trackchanges_url}}</p><p> To ensure swift handling of submissions, the requested review time is {{reviewDuration}}, but if you are unable to review the manuscript within this time then please let me know by reply email and we can extend the timeframe.</p><p> Submissions that pass Stage 1 review are issued an in-principle acceptance (IPA), which guarantees a positive recommendation of the completed study if the authors adhere to the approved procedures and propose a defensible interpretation of the results. Completed manuscripts are then peer reviewed again at Stage 2, ideally by the same reviewers as Stage 1.</p><p> In the event of a favourable outcome, all editorial correspondence (reviews, recommender’s decisions, authors’ replies) and a recommendation text will be published by PCI RR under a CC-BY 4.0 license. If, after one or several rounds of review, the preprint is rejected, the editorial correspondence (and specifically your review) will NOT be published. You will be notified by e-mail at each stage in the procedure.</p><p> I would be grateful if you could let me know as soon as possible whether you are willing to accept my invitation to review this revised manuscript, or whether you would prefer to decline, by clicking on the link below or by logging onto the PCI RR website and going to \'For contributors —> Invitation(s) to review a preprint\' in the top menu. You will find the authors\' response to reviewers and manuscript with the tracked changes manuscript linked on the website.</p><p> Many thanks for considering this re-review request and for helping to support PCI RR.</p><p> Best wishes,</p><p> {{sender}}</p>'
+
+\set REMINDER_TEXT_1 '<p>This is kind reminder</p><p></p>' :INVITE_TEXT_1
+\set REMINDER_TEXT_2 '<p>This is kind reminder</p><p></p>' :INVITE_TEXT_2
+
+INSERT INTO "public"."mail_templates"("hashtag","lang","description", "subject","contents")
+VALUES
+(
+E'#DefaultReviewInvitationNewRoundRegisteredUserStage1',
+E'default',
+:'DESCRIPTION',
+:'INVITE_SUBJECT_1',
+:'INVITE_TEXT_1'
+),
+(
+E'#DefaultReviewInvitationNewRoundRegisteredUserStage2',
+E'default',
+:'DESCRIPTION',
+:'INVITE_SUBJECT_2',
+:'INVITE_TEXT_2'
+),
+(
+E'#ReminderReviewerInvitationNewRoundRegisteredUserStage1',
+E'default',
+:'DESCRIPTION',
+:'REMINDER_SUBJECT_1',
+:'REMINDER_TEXT_1'
+),
+(
+E'#ReminderReviewerInvitationNewRoundRegisteredUserStage2',
+E'default',
+:'DESCRIPTION',
+:'REMINDER_SUBJECT_2',
+:'REMINDER_TEXT_2'
+);
