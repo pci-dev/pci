@@ -20,6 +20,7 @@ from app_components import article_components
 from app_components import ongoing_recommendation
 from app_components import recommender_components
 
+from app_modules import emailing_parts
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import emailing_tools, emailing_vars, emailing 
@@ -1544,6 +1545,9 @@ def email_for_registered_reviewer():
         id=review.id,
         key=review.quick_decline_key,
     ))
+
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
+
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (

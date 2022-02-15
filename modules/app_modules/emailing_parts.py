@@ -73,7 +73,8 @@ def getReviewHTML(auth, db, rewiewId):
         )
     )
 
-def getAuthorsReplyHTML(auth, db, recommId):
+
+def getAuthorsReplyLinks(auth, db, recommId):
     recomm = db.t_recommendations[recommId]
     
     authorsReplyPdfLink = ""
@@ -91,6 +92,13 @@ def getAuthorsReplyHTML(auth, db, recommId):
             _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
+
+    return authorsReplyPdfLink, authorsReplyTrackChangeFileLink
+
+
+def getAuthorsReplyHTML(auth, db, recommId):
+    authorsReplyPdfLink, authorsReplyTrackChangeFileLink = getAuthorsReplyLinks(auth, db, recommId)
+    recomm = db.t_recommendations[recommId]
 
     return DIV(
         H4(current.T("Author's Reply"), _style="margin-top: 10px; font-weight: bold; color: #555; margin-bottom: 10px"),
