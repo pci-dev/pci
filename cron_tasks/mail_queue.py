@@ -4,15 +4,26 @@ from datetime import datetime, timedelta
 import time
 from gluon.contrib.appconfig import AppConfig
 
-try:
-    from systemd import journal
-except:
-    print("no systemd journal")
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
-# QUEUE_CHECK_INTERVAL = int(myconf.get("config.mail_queue_interval", default=15))  # in seconds # DEPRECATED: now every minute by cron
-MAIL_MAX_SENDING_ATTEMPTS = int(myconf.get("config.mail_max_sending_attemps", default=3))
+
+log = None
+if (myconf.get("config.use_logger", default=True) is True):
+	try:
+		import logging
+		from systemd.journal import JournalHandler
+		logName = myconf.take("app.name")
+		log = logging.getLogger(logName)
+		hand = JournalHandler(SYSLOG_IDENTIFIER=logName)
+		hand.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
+		log.root.addHandler(hand)
+		log.setLevel(logging.INFO)
+		print("systemd logging used")
+	except:
+		print("systemd logging not available")
+else:
+	print("systemd logging not enabled in config")
 
 # Reminders config
 def get_reminders_from_config():
@@ -52,22 +63,29 @@ REMINDERS = get_reminders_from_config()
 
 
 def getMailsInQueue():
-    return db((db.mail_queue.sending_status.belongs("in queue", "pending")) & (db.mail_queue.removed_from_queue == False) & (db.mail_queue.sending_date <= datetime.now())).select(
+    return db(
+            (db.mail_queue.sending_status.belongs(
+                "in queue",
+                "pending"
+            )) &
+            (db.mail_queue.removed_from_queue == False) &
+            (db.mail_queue.sending_date <= datetime.now())
+    ).select(
         orderby=db.mail_queue.sending_date
     )
 
 
 def tryToSendMail(mail_item):
+    if not isTimeToTrySending(mail_item):
+        return
+
     try:
         isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, reply_to=mail_item.replyto_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
         #isSent = True
         if isSent is False:
             raise Exception('Email not sent!')
     except Exception as err:
-        try:
-            journal.write(err)
-        except:
-            print(err)
+        log_error(err)
         isSent = False
 
     if mail_item.sending_status == "pending":
@@ -75,6 +93,35 @@ def tryToSendMail(mail_item):
 
     updateSendingStatus(mail_item, isSent)
     logSendingStatus(mail_item, isSent)
+
+
+def isTimeToTrySending(mail_item):
+
+    # first 3 attempts every 1 min. (cron freq.)
+    if mail_item.sending_attempts < 3:
+        return True
+    # next 6 attempts every 5 min.
+    if mail_item.sending_attempts < 9:
+        return isNowSendingDatePlus(mail_item, minutes=5)
+    # next 6 attempts every hour
+    if mail_item.sending_attempts < 15:
+        return isNowSendingDatePlus(mail_item, hours=1)
+    # other attempts every 5 hours
+    return isNowSendingDatePlus(mail_item, hours=5)
+
+
+def isNowSendingDatePlus(mail_item, **arg):
+    return mail_item.sending_date + timedelta(**arg) < datetime.now()
+
+
+def log_error(err):
+    if log:
+        try:
+            log.error(err)
+        except:
+            print(err)
+    else:
+        print(err)
 
 
 def prepareNextReminder(mail_item):
@@ -113,15 +160,14 @@ def prepareNextReminder(mail_item):
 
 def updateSendingStatus(mail_item, isSent):
     attempts = mail_item.sending_attempts + 1
+    senddate = datetime.now()
 
     if isSent:
         new_status = "sent"
-    if not isSent and attempts >= MAIL_MAX_SENDING_ATTEMPTS:
-        new_status = "failed"
-    elif not isSent and attempts < MAIL_MAX_SENDING_ATTEMPTS:
+    else:
         new_status = "in queue"
 
-    mail_item.update_record(sending_status=new_status, sending_attempts=attempts)
+    mail_item.update_record(sending_status=new_status, sending_attempts=attempts, sending_date=senddate)
     db.commit()
 
 
@@ -130,28 +176,38 @@ def logMailsInQueue(queue_length):
         colored_queue_length = "\033[1m\033[93m%i\033[0m" % queue_length
     else:
         colored_queue_length = "\033[1m\033[90m%i\033[0m" % queue_length
-
     colored_date = "[\033[90m%s\033[0m]" % datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-
     print("%s Mail(s) in queue : %s" % (colored_date, colored_queue_length))
-
+    if log:
+         msg = "Queue length = %(queue_length)s" % locals()
+         log.info(msg)
 
 def logSendingStatus(mail_item, isSent):
     if isSent:
         sending_status = "\033[92msent\033[0m"
+        sending_log = "SENT"
     else:
         sending_status = "\033[91mnot sent\033[0m"
+        sending_log = "NOT SENT"
 
     mail_dest = "\033[4m%s\033[0m" % mail_item.dest_mail_address
     hashtag_text = "\033[3m%s\033[0m" % mail_item.mail_template_hashtag
-
     print("\t- mail %s to : %s => %s" % (sending_status, mail_dest, hashtag_text))
+    
+    if log:
+         to_log = mail_item.dest_mail_address
+         hashtag_log = mail_item.mail_template_hashtag
+         msg = "Email %(sending_log)s to %(to_log)s [%(hashtag_log)s]" % locals()
+         if isSent:
+             log.info(msg)
+         else:
+             log.warning(msg)
 
 
 ######################################################################################################################################################################
 # Run Mailing Queue Once
 ######################################################################################################################################################################
-# print("Entering sendQueuedMails")
+#print("Entering sendQueuedMails")
 mails_in_queue = getMailsInQueue()
 logMailsInQueue(len(mails_in_queue))
 # As the cron runs every minute, we break when the threshold of 50s is reached.
@@ -163,4 +219,5 @@ for mail_item in mails_in_queue:
         tryToSendMail(mail_item)
         # wait beetween email sendings
         time.sleep(MAIL_DELAY)
+
 
