@@ -1550,6 +1550,8 @@ def email_for_registered_reviewer():
 
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
 
+    reviewDuration = reviewLimitText
+
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (

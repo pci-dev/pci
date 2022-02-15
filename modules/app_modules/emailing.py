@@ -2331,6 +2331,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
+        mail_vars["reviewDuration"] = reviewLimitText
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
