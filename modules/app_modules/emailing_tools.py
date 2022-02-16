@@ -223,6 +223,14 @@ def getMailFooter():
         data = myfile.read()
     return data
 
+######################################################################################################################################################################
+def getReviewDays(duration):
+    duration = duration.lower()
+    days_dict = {"two weeks": 14, "three weeks": 21, "four weeks": 28, "five weeks": 35,  "six weeks": 42, "seven weeks": 49, "eight weeks": 56}
+    for key, value in days_dict.items():
+        if key in duration:
+            return value
+    return 21
 
 ######################################################################################################################################################################
 # Footer for all mails
