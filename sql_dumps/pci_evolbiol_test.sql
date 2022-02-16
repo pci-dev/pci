@@ -2911,3 +2911,11 @@ ALTER COLUMN  codes_used_in_study TYPE character varying(512),
 ALTER COLUMN  results_based_on_data DROP DEFAULT,
 ALTER COLUMN  scripts_used_for_result DROP DEFAULT,
 ALTER COLUMN  codes_used_in_study DROP DEFAULT;
+
+
+-- 2022-02-18 updates/add_new_field_to_reviews.sql
+
+CREATE TYPE duration AS ENUM('Two weeks', 'Three weeks', 'Four weeks', 'Five weeks', 'Six weeks', 'Seven weeks', 'Eight weeks');
+
+ALTER TABLE "t_reviews"
+ADD COLUMN  IF NOT EXISTS review_duration duration DEFAULT 'Three weeks';
