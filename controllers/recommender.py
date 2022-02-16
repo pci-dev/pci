@@ -1594,6 +1594,7 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
+        Field("review_duration", type="string", label=T("Select review duration"), default="Two weeks", writable=True, requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
@@ -1614,6 +1615,8 @@ def email_for_registered_reviewer():
     if form.process().accepted:
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
+        review.review_duration = form.vars.review_duration
+        review.update_record()
         try:
                 emailing.send_reviewer_invitation(
                     session,
