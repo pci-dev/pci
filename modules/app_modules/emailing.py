@@ -1744,10 +1744,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                     elif review.review_state == "Awaiting review":
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
-                    if new_round:
-                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=True)
-                    else:
-                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons)
+                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round)
+
                 subject_header = email_subject_header(recomm.article_id)
                 subject_without_appname = subject.replace("%s: " % subject_header, "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])

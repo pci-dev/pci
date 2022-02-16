@@ -1614,7 +1614,6 @@ def email_for_registered_reviewer():
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
-            if new_round:
                 emailing.send_reviewer_invitation(
                     session,
                     auth,
@@ -1629,21 +1628,6 @@ def email_for_registered_reviewer():
                     linkTarget,
                     declineLinkTarget,
                     new_round,
-                )
-            else:
-                emailing.send_reviewer_invitation(
-                    session,
-                    auth,
-                    db,
-                    reviewId,
-                    replyto_addresses,
-                    cc_addresses,
-                    hashtag_template,
-                    request.vars["subject"],
-                    request.vars["message"],
-                    None,
-                    linkTarget,
-                    declineLinkTarget,
                 )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
