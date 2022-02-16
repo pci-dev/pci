@@ -1548,7 +1548,8 @@ def email_for_registered_reviewer():
         key=review.quick_decline_key,
     ))
 
-    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
+    _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
 
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"

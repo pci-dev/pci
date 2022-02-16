@@ -1751,7 +1751,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 authors_reply = None
                 if new_round:
-                    authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, recomm.id)
+                    prev_recomm = common_tools.get_prev_recomm(db, recomm)
+                    authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
@@ -2330,7 +2331,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["reviewLimitText"] = reviewLimitText
         mail_vars["replytoAddresses"] = replyto_addresses
 
-        r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, recomm.id)
+        _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
+        r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
 
         r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
         trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
@@ -2354,7 +2356,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
-            authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, recomm.id)
+            prev_recomm = common_tools.get_prev_recomm(db, recomm)
+            authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply)
 

@@ -47,3 +47,12 @@ def pci_redirect(url):
     print(scr)
     raise HTTP(200, scr)
 
+
+###################################################################
+def get_prev_recomm(db, recomm):
+    last_recomm = db(
+            (db.t_recommendations.article_id == recomm.article_id) &
+            (db.t_recommendations.id < recomm.id)
+    ).select(orderby=db.t_recommendations.id).last()
+
+    return last_recomm
