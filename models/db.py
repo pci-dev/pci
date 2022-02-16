@@ -904,7 +904,8 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Declined manually", "Review completed", "Cancelled"))),
         writable=False,
     ),
-    Field("review", type="text", length=2097152, label=T("Review as text")),
+    Field("review_duration", type="text", label=T("Review duration"), default="Three weeks", requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
+    Field("review", type="string", length=2097152, label=T("Review as text")),
     Field(
         "review_pdf",
         type="upload",
