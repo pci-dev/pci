@@ -1504,14 +1504,14 @@ def accept_new_review():
     else:
         if parallelSubmissionAllowed:
             if isParallel:
-                due_time = "three weeks"
+                due_time = rev.review_duration
             else:
-                due_time = "two weeks"
+                due_time = rev.review_duration
         else:
-            due_time = reviewDuration
+            due_time = rev.review_duration
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
-        dueTime = due_time
+        dueTime = due_time.lower()
 
     pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
     customText = getText(request, auth, db, "#AcceptReviewInfoText")
