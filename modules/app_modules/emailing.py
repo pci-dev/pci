@@ -1749,6 +1749,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                 subject_header = email_subject_header(recomm.article_id)
                 subject_without_appname = subject.replace("%s: " % subject_header, "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                authors_reply = None
+                if new_round:
+                    authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, recomm.id)
+
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
                     context=dict(
@@ -1758,6 +1762,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                         content=XML(content),
                         footer=emailing_tools.mkFooter(db),
                         reviewer_invitation_buttons=reviewer_invitation_buttons,
+                        authors_reply=authors_reply,
                     ),
                 )
 
@@ -2346,10 +2351,12 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
+        authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
+            authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, recomm.id)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply)
 
 
 ######################################################################################################################################################################
