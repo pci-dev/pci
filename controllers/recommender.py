@@ -1716,6 +1716,7 @@ def email_for_new_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
+        Field("review_duration", type="string", label=T("Select review duration"), default="Two weeks", writable=True, requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
@@ -1780,6 +1781,7 @@ def email_for_new_reviewer():
                     reviewer_id=new_user_id,
                     review_state=None,                  # State will be validated after emailing
                     quick_decline_key=quickDeclineKey,
+                    review_duration=form.vars.review_duration,
             )
 
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
