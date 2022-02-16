@@ -1552,6 +1552,9 @@ def email_for_registered_reviewer():
 
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+    # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
+    # to pass only the url value to the template instead of the full link html;
+    # doing this yields invalid url for the link in the template when no doc exists.
 
     reviewDuration = reviewLimitText
 
