@@ -1377,13 +1377,12 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
             )
 
             recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
-            rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
             if recomm:
                 recommender = db.auth_user[recomm.recommender_id]
                 if recommender:
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender.id)
                     mail_vars["destAddress"] = recommender["email"]
-                    mail_vars["reviewDuration"] = (rev.review_duration).lower()
+                    mail_vars["reviewDuration"] = reviewDuration
 
                     if article.parallel_submission:
 
@@ -2484,7 +2483,6 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
     recommCount = db((db.t_recommendations.article_id == article.id)).count()
-    rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
 
     if recomm and article and recommCount == 1:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
@@ -2494,7 +2492,7 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["articleTitle"] = article.title
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["reviewDuration"] = (rev.review_duration).lower()
+        mail_vars["reviewDuration"] = reviewDuration
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
 
