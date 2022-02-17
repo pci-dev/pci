@@ -6,9 +6,8 @@ psql -U postgres pci_evolbiol_test --csv << EOT
 	select hashtag, contents
 	from mail_templates
 	where hashtag in (
-		'#ReminderReviewerReviewSoonDue',
-		'#ReminderReviewerReviewDue',
-		'#ReminderReviewerReviewOverDue'
+		'#DefaultReviewInvitationNewRoundRegisteredUser',
+		'#ReminderReviewerInvitationNewRoundRegisteredUser'
 	);
 EOT
 }

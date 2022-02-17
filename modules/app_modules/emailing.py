@@ -1744,13 +1744,16 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                     elif review.review_state == "Awaiting review":
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
 
-                    if new_round:
-                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=True)
-                    else:
-                        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons)
+                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round)
+
                 subject_header = email_subject_header(recomm.article_id)
                 subject_without_appname = subject.replace("%s: " % subject_header, "")
                 applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                authors_reply = None
+                if new_round:
+                    prev_recomm = common_tools.get_prev_recomm(db, recomm)
+                    authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
+
                 message = render(
                     filename=MAIL_HTML_LAYOUT,
                     context=dict(
@@ -1760,6 +1763,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                         content=XML(content),
                         footer=emailing_tools.mkFooter(db),
                         reviewer_invitation_buttons=reviewer_invitation_buttons,
+                        authors_reply=authors_reply,
                     ),
                 )
 
@@ -2327,6 +2331,16 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["reviewLimitText"] = reviewLimitText
         mail_vars["replytoAddresses"] = replyto_addresses
 
+        _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
+        r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+
+        r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+        trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+
+        mail_vars["r2r_url"] = r2r_url
+        mail_vars["trackchanges_url"] = trackchanges_url
+        mail_vars["reviewDuration"] = reviewLimitText
+
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
             mail_vars[
@@ -2339,10 +2353,13 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
+        authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
+            prev_recomm = common_tools.get_prev_recomm(db, recomm)
+            authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply)
 
 
 ######################################################################################################################################################################

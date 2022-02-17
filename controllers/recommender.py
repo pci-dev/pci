@@ -20,6 +20,7 @@ from app_components import article_components
 from app_components import ongoing_recommendation
 from app_components import recommender_components
 
+from app_modules import emailing_parts
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import emailing_tools, emailing_vars, emailing 
@@ -34,6 +35,8 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
+
+reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
@@ -1533,7 +1536,7 @@ def email_for_registered_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+    # reviewLimitText = global
 
     if not review.quick_decline_key:
         review.quick_decline_key = web2py_uuid()
@@ -1544,6 +1547,18 @@ def email_for_registered_reviewer():
         id=review.id,
         key=review.quick_decline_key,
     ))
+
+    _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+
+    r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+    trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+    # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
+    # to pass only the url value to the template instead of the full link html;
+    # doing this yields invalid url for the link in the template when no doc exists.
+
+    reviewDuration = reviewLimitText
+
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
@@ -1600,7 +1615,6 @@ def email_for_registered_reviewer():
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
-            if new_round:
                 emailing.send_reviewer_invitation(
                     session,
                     auth,
@@ -1615,21 +1629,6 @@ def email_for_registered_reviewer():
                     linkTarget,
                     declineLinkTarget,
                     new_round,
-                )
-            else:
-                emailing.send_reviewer_invitation(
-                    session,
-                    auth,
-                    db,
-                    reviewId,
-                    replyto_addresses,
-                    cc_addresses,
-                    hashtag_template,
-                    request.vars["subject"],
-                    request.vars["message"],
-                    None,
-                    linkTarget,
-                    declineLinkTarget,
                 )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
@@ -1682,7 +1681,7 @@ def email_for_new_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+    # reviewLimitText = global
 
     # NOTE: 4 parallel submission
     parallelText = ""
