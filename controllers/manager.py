@@ -660,6 +660,28 @@ def edit_article():
     myFinalScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
+
+        db.t_articles.no_results_based_on_data.readable = False
+        db.t_articles.no_results_based_on_data.writable = False
+        db.t_articles.results_based_on_data.readable = False
+        db.t_articles.results_based_on_data.writable = False
+        db.t_articles.data_doi.readable = False
+        db.t_articles.data_doi.writable = False
+
+        db.t_articles.no_scripts_used_for_result.readable = False
+        db.t_articles.no_scripts_used_for_result.writable = False
+        db.t_articles.scripts_used_for_result.readable = False
+        db.t_articles.scripts_used_for_result.writable = False
+        db.t_articles.scripts_doi.readable = False
+        db.t_articles.scripts_doi.writable = False
+
+        db.t_articles.no_codes_used_in_study.readable = False
+        db.t_articles.no_codes_used_in_study.writable = False
+        db.t_articles.codes_used_in_study.readable = False
+        db.t_articles.codes_used_in_study.writable = False
+        db.t_articles.codes_doi.readable = False
+        db.t_articles.codes_doi.writable = False
+
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
