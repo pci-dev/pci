@@ -554,6 +554,21 @@ statusArticles = dict()
 for sa in db(db.t_status_article).select():
     statusArticles[sa["status"]] = T(sa["status"])
 
+db.data_choices = (
+    "None of the results are based on data",
+    "All or part of the results presented in this preprint are based on data",
+)
+
+db.script_choices = (
+    "No script (e.g. for statistical analysis, like R scripts) was used to obtain or analyze the results",
+    "Scripts were used to obtain or analyze the results",
+)
+
+db.code_choices = (
+    "No codes (e.g. codes for original programs or software) were used in this study",
+    "Codes have been used in this study",
+)
+
 
 db.define_table(
     "t_articles",
@@ -569,14 +584,11 @@ db.define_table(
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
-    Field("no_results_based_on_data", type="boolean", label=T("None of the results are based on data")),
-    Field("results_based_on_data", type="boolean", label=T("All or part of the results presented in this preprint are based on data")),
+    Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("data_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")),
-    Field("no_scripts_used_for_result", type="boolean", label=T("No script (e.g. for statistical analysis, like R scripts) was used to obtain or analyze the results")),
-    Field("scripts_used_for_result", type="boolean", label=T("Scripts were used to obtain or analyze the results")),
+    Field("scripts_used_for_result", type="string", label="", requires=IS_IN_SET(db.script_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("scripts_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")),
-    Field("no_codes_used_in_study", type="boolean", label=T("No codes (e.g. codes for original programs or software) were used in this study")),
-    Field("codes_used_in_study", type="boolean", label=T("Codes have been used in this study")),
+    Field("codes_used_in_study", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("codes_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
