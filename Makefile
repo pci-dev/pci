@@ -85,6 +85,7 @@ set.conf.rr.%:
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 	sed -i '/^review_limit_days/ s/=.*/= $(if $(filter true, $*), 14, 21)/' private/appconfig.ini
 	sed -i '/^review_limit_text/ s/=.*/= $(if $(filter true, $*), two, three) weeks/' private/appconfig.ini
+	cp -f private/sample.reminders_config$(if $(filter true, $*),.rr,) private/reminders_config
 
 test:
 	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
