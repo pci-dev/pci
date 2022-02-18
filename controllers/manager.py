@@ -716,6 +716,7 @@ def edit_article():
                 """
             )
     else:
+        myFinalScript = SCRIPT(common_tools.get_template("script", "new_field_responsiveness.js"))
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
 
