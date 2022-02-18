@@ -1502,16 +1502,9 @@ def accept_new_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""))))
     else:
-        if parallelSubmissionAllowed:
-            if isParallel:
-                due_time = rev.review_duration
-            else:
-                due_time = rev.review_duration
-        else:
-            due_time = rev.review_duration
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
-        dueTime = due_time.lower()
+        dueTime = rev.review_duration.lower()
 
     pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
     customText = getText(request, auth, db, "#AcceptReviewInfoText")
