@@ -1540,17 +1540,9 @@ def ask_to_review():
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
-    else:
-        if parallelSubmissionAllowed:
-            if isParallel:
-                due_time = "three weeks"
-            else:
-                due_time = "two weeks"
-        else:
-            due_time = reviewDuration
-        disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
-        actionFormUrl = URL("user_actions", "do_ask_to_review")
-        dueTime = due_time
+
+    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    actionFormUrl = URL("user_actions", "do_ask_to_review")
 
     amISubmitter = article.user_id == auth.user_id
 
@@ -1560,6 +1552,10 @@ def ask_to_review():
 
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
     amIRecommender = recomm.recommender_id == auth.user_id
+
+    rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+    dueTime = rev.review_duration.lower() if rev else 'three weeks'
+    # FIXME: set parallel reviews default = three weeks (hardcoded) in user select form
 
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, article, False, True)
 
