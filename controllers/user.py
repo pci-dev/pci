@@ -590,8 +590,19 @@ def edit_my_article():
             "picture_rights_ok",
             "uploaded_picture",
             "abstract",
-            "thematics",
         ]
+        if not pciRRactivated:
+            fields += [
+            "results_based_on_data",
+            "data_doi",
+            "scripts_used_for_result", 
+            "scripts_doi", 
+            "codes_used_in_study", 
+            "codes_doi", 
+        ]
+
+        fields += ["thematics"]
+
         if pciRRactivated:
             fields += ["sub_thematics"]
 
@@ -618,15 +629,23 @@ def edit_my_article():
         if pciRRactivated:
             fields += ["record_url_version", "record_id_version"]
 
-        fields += [
-            "title",
-            "anonymous_submission",
-            "authors",
-            "picture_rights_ok",
-            "uploaded_picture",
-            "abstract",
-            "thematics",
-        ]
+        if not pciRRactivated:
+            fields += [
+                "title",
+                "anonymous_submission",
+                "authors",
+                "picture_rights_ok",
+                "uploaded_picture",
+                "abstract",
+                "results_based_on_data",
+                "data_doi",
+                "scripts_used_for_result", 
+                "scripts_doi", 
+                "codes_used_in_study", 
+                "codes_doi", 
+            ]
+
+        fields += ["thematics"]
 
         if pciRRactivated:
             fields += ["sub_thematics"]
@@ -635,7 +654,7 @@ def edit_my_article():
             "keywords",
             "cover_letter",
         ]
-        myScript = ""
+        myScript = common_tools.get_template("script", "new_field_responsiveness.js")
 
     buttons = [
         A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
