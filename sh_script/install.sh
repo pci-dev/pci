@@ -116,8 +116,6 @@ managers = $manager
 [config]
 trgm_limit = 0.4 
 parallel_submission = False
-review_due_time_for_parallel_submission = "30 days"
-review_due_time_for_exclusive_submission = "two weeks"
 tracking = False
 unconsider_limit_days = 20
 review_limit_days = 20
