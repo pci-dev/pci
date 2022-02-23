@@ -439,6 +439,17 @@ def fill_new_article():
 
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
 
+    def fixup_radio_group(name):
+        elements = form.elements(_name=name)
+        elements[0].update(_id=name+"_group")
+        elements[1].update(_id="t_articles_no_"+name)
+        elements[2].update(_id="t_articles_"+name)
+
+    if not pciRRactivated:
+        fixup_radio_group("results_based_on_data")
+        fixup_radio_group("scripts_used_for_result")
+        fixup_radio_group("codes_used_in_study")
+
     if pciRRactivated:
         form.element(_type="submit")["_value"] = T("Continue your submission")
     else:
