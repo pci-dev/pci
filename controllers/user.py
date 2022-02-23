@@ -1504,9 +1504,9 @@ def accept_new_review():
     else:
         if parallelSubmissionAllowed:
             if isParallel:
-                due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+                due_time = "three weeks"
             else:
-                due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
+                due_time = "two weeks"
         else:
             due_time = reviewLimitText
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
@@ -1550,9 +1550,9 @@ def ask_to_review():
     else:
         if parallelSubmissionAllowed:
             if isParallel:
-                due_time = myconf.get("config.review_due_time_for_parallel_submission", default="three weeks")
+                due_time = "three weeks"
             else:
-                due_time = myconf.get("config.review_due_time_for_exclusive_submission", default="three weeks")
+                due_time = "two weeks"
         else:
             due_time = reviewLimitText
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
