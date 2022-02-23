@@ -14,6 +14,6 @@ PCiNeuro
 PCiNewDesign
 PCiPaleontology
 PCiRR3
-PCiZoology
+PCiZool
 "
 for pci in $test_sites; do echo $pci; done
