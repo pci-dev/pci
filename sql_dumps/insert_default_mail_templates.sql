@@ -144,3 +144,45 @@ contents = E'
 <p>(Note that this message was automatically generated but I will also receive a copy of it)</p>
 '
 WHERE hashtag = '#ReminderReviewerInvitationNewRoundRegisteredUser';
+
+-- 2022-02-24 -- add missing ParallelSubmission templates
+
+INSERT INTO mail_templates ("hashtag","lang","subject","description","contents")
+values
+(
+'#RecommenderThankForPreprintParallelSubmission',
+'default',
+'{{appName}}: Thank you for handling the evaluation of a preprint',
+'Mail to recommender to thanks him/her for taking a preprint in charge in case of parallel submission',
+'
+<p>Dear {{destPerson}},</p>
+<p>You have agreed to be the recommender handling the preprint entitled <strong>{{articleTitle}}</strong> by {{articleAuthors}} (DOI <a href="{{articleDoi}}">{{articleDoi}}</a>). Thank you very much for your contribution.</p>
+<p><strong>We remind you that you have agreed to send out 5-10 invitations to review this preprint within the next 24 h</strong>, and to send out reminders and/or new invitations, over a period of one week if necessary, until you find at least two reviewers willing to review this preprint within {{reviewDuration}}. We thank you in advance for respecting this commitment. When inviting referees for a preprint, keep in mind that a large gender, career stage and geographic diversity is desirable.</p>
+<p>Invitations to review can be sent using this link <a href="{{linkTarget}}">{{linkTarget}}</a>. You can also log on to the {{appName}} website and go to ''For recommenders&nbsp;—&gt; Preprints you are handling'' in the top menu, and click on the ''choose a reviewer'' button.</p>
+<p>The reviews you receive should guide your decision – <strong>within 10 days of receiving the last review</strong> – as to whether to ‘Revise’, ‘Recommend’ or ‘Reject’ the preprint.</p>
+<p>If your decision is to ‘Recommend’ this preprint, you will need to write a “recommendation”, which will have its own DOI and be published by {{appName}} under the license CC-BY. The recommendation is a short article, similar to a News &amp; Views piece. It has its own title, contains between about 300 and 1500 words, describes the context and explains why the preprint is particularly interesting. The limitations of the preprint can also be discussed. This text also contains references (citing, at least, the preprint being recommended). All editorial correspondence (reviews, your decisions, authors'' replies) relating to the preprint will also be published by {{appName}}.</p>
+<p>The authors have chosen to submit elsewhere in parallel. As there is a chance that the manuscript is accepted for publication elsewhere and consequently the authors might abandon the process at {{appName}}, we have the following mechanism to ensure reviewers’ work is respected and documented. If the authors abandon the process at {{appName}} after reviewers have written their reports, you should post the reviewers'' reports on the {{appName}} website as recognition of the reviewers'' work and in order to enable critical discussion. Note that there remains the outcome of rejection by you, wherein reports are not made public.</p>
+<p>If you need assistance in any way do not hesitate to ask us.</p>
+<p>We thank you again for initiating and managing this evaluation.</p>
+<p>Yours sincerely,</p>
+<p>The Managing Board of {{appName}}</p>
+'),
+(
+'#NewUserParallelSubmissionAllowed',
+'default',
+'{{appName}}: Welcome as a new user',
+'Mail to user to acknowledge his/her registration in PCI allowing parallel submission',
+'
+<p>Dear {{destPerson}},</p>
+<p>You have recently joined {{appLongName}}. Thank you for your interest and for registering with us.</p>
+<p>More information about {{appName}} can be found here <a href="{{baseurl}}">{{baseurl}}</a> and in this <a href="https://www.youtube.com/watch?v=4PZhpnc8wwo">video</a>.</p>
+<p>As a user, you can submit your preprints to {{appName}} for evaluation and recommendation - and find five good reasons to do so in this short <a href="https://www.youtube.com/watch?v=jMhVl__gupg">video</a>. Briefly, your preprints must first be deposited on a preprint server, such as bioRxiv, and you must choose between A) exclusive submission to {{appName}}, or B) parallel submission with journals. Please go to <a href="{{infourl}}">{{infourl}}</a> for more information on these options.</p>
+<p>When submitting your preprints, you are allowed to suggest recommenders. A recommender is very similar to a journal editor (responsible for finding reviewers, collecting reviews, and making editorial decisions based on reviews), and may eventually recommend your preprint after one or several rounds of reviews. A preprint recommended by {{appLongName}} is an article that may be used and cited like any ‘classic’ article published in a peer-reviewed journal.</p>
+<p>Once you have submitted your preprint, one of the recommenders you suggest, or any other recommenders from the community may express an interest in initiating the evaluation process for your preprint, which will involve sending your preprint out for peer review.</p>
+<p>If you wish to submit a preprint, please click on the "Submit a preprint" button on the home page of the {{appName}} website.</p>
+<p>As a user, you will also receive alerts every {{days}} concerning recommendations in the following fields published on the {{appLongName}} web site: {{thematics}}.</p>
+<p>Finally, if you are interested in becoming a recommender for {{appName}} - <a href="https://www.youtube.com/watch?v=2BDrPoHGkn0">see video</a> - please contact a current recommender in your field via this link <a href="{{recommurl}}">{{recommurl}}</a>.</p>
+<p>Thanks again for your interest and for joining {{appLongName}}.</p>
+<p>Yours sincerely,</p>
+<p>The Managing Board of {{appLongName}}</p>
+');
