@@ -36,7 +36,7 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
-reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+reviewDuration = str(myconf.get("config.review_limit_text", default="three weeks"))
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
@@ -1536,7 +1536,7 @@ def email_for_registered_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    # reviewLimitText = global
+    # reviewDuration = global
 
     if not review.quick_decline_key:
         review.quick_decline_key = web2py_uuid()
@@ -1557,7 +1557,7 @@ def email_for_registered_reviewer():
     # to pass only the url value to the template instead of the full link html;
     # doing this yields invalid url for the link in the template when no doc exists.
 
-    reviewDuration = reviewLimitText
+    # reviewDuration = global
 
     parallelText = ""
     if parallelSubmissionAllowed:
@@ -1681,7 +1681,7 @@ def email_for_new_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    # reviewLimitText = global
+    # reviewDuration = global
 
     # NOTE: 4 parallel submission
     parallelText = ""
