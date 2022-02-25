@@ -43,7 +43,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 reviewLimitDays = myconf.get("config.review_limit_days", default=21)
-reviewLimitText = str(myconf.get("config.review_limit_text", default="three weeks"))
+reviewDuration = str(myconf.get("config.review_limit_text", default="three weeks"))
 
 MAIL_DELAY = 1.5  # in seconds
 
@@ -921,7 +921,7 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
                     mail_vars["expectedDuration"] = datetime.timedelta(days=reviewLimitDays)
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
                     
-                    mail_vars["reviewLimitText"] = reviewLimitText
+                    mail_vars["reviewDuration"] = reviewDuration
                     
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewRequestAccepted", article)
 
@@ -999,7 +999,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
                     mail_vars["expectedDuration"] = datetime.timedelta(days=reviewLimitDays)
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
-                    mail_vars["reviewLimitText"] = reviewLimitText
+                    mail_vars["reviewDuration"] = reviewDuration
 
                     mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
@@ -1383,7 +1383,7 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
                 if recommender:
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender.id)
                     mail_vars["destAddress"] = recommender["email"]
-                    mail_vars["reviewLimitText"] = reviewLimitText
+                    mail_vars["reviewDuration"] = reviewDuration
 
                     if article.parallel_submission:
 
@@ -1651,6 +1651,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
             if rev:
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
                 mail_vars["destAddress"] = rev["email"]
+                mail_vars["reviewDuration"] = (review.review_duration).lower()
 
                 message = emailing_tools.replaceMailVars(message, mail_vars)
                 content = DIV(WIKI(message, safe_mode=False))
@@ -2283,7 +2284,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         
-        mail_vars["reviewLimitText"] = reviewLimitText
+        mail_vars["reviewDuration"] = reviewDuration
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
@@ -2328,7 +2329,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["articleTitle"] = article.title
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-        mail_vars["reviewLimitText"] = reviewLimitText
+        mail_vars["reviewDuration"] = reviewDuration
         mail_vars["replytoAddresses"] = replyto_addresses
 
         _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
@@ -2339,7 +2340,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
-        mail_vars["reviewDuration"] = reviewLimitText
+        mail_vars["reviewDuration"] = reviewDuration
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
@@ -2492,7 +2493,7 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["articleTitle"] = article.title
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["reviewLimitText"] = reviewLimitText
+        mail_vars["reviewDuration"] = reviewDuration
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
 

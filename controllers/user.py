@@ -26,7 +26,7 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-reviewLimitText = myconf.get("config.review_limit_text", default="three weeks")
+reviewDuration = myconf.get("config.review_limit_text", default="three weeks")
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -1508,7 +1508,7 @@ def accept_new_review():
             else:
                 due_time = "two weeks"
         else:
-            due_time = reviewLimitText
+            due_time = reviewDuration
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
         dueTime = due_time
@@ -1554,7 +1554,7 @@ def ask_to_review():
             else:
                 due_time = "two weeks"
         else:
-            due_time = reviewLimitText
+            due_time = reviewDuration
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_ask_to_review")
         dueTime = due_time
