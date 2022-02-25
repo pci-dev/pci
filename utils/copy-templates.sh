@@ -1,39 +1,42 @@
 #/bin/bash
 
-copy_eb3_templates() {
-ssh pci-test \
-psql -U postgres pci_evolbiol_test --csv << EOT
+DB=$1
+TARGET=${2:-_}
+
+parse_args() {
+	declare -A target=(
+		[test]="pci-test psql --csv -U postgres"
+		[prod]="pci-prod psql --csv -U peercom -h mydb1 -p 33648"
+	)
+	TARGET=${target[$TARGET]}
+
+	[ "$DB" ] && [ "$TARGET" ] || {
+		echo "usage: $0 <pci_db> <test|prod>"
+		exit 1
+	}
+}
+
+copy_templates() {
+	ssh $TARGET $DB << EOT
 	select hashtag, contents
 	from mail_templates
+	order by hashtag;
 	where hashtag in (
-		'#DefaultReviewInvitationNewRoundRegisteredUser',
-		'#ReminderReviewerInvitationNewRoundRegisteredUser'
+		'#NewUserParallelSubmissionAllowed',
+		'#RecommenderThankForPreprintParallelSubmission'
 	);
 EOT
 }
 
-copy_rr3_templates() {
-ssh pci-test \
-psql -U postgres pci_registered_reports_new --csv << EOT
-	select hashtag, contents
-	from mail_templates
-	where hashtag in (
-'#ReminderReviewerReviewSoonDueStage1',
-'#ReminderReviewerReviewSoonDueStage2',
-'#ReminderReviewerReviewDueStage1',
-'#ReminderReviewerReviewDueStage2',
-'#ReminderReviewerReviewOverDueStage1',
-'#ReminderReviewerReviewOverDueStage2'
-	);
-EOT
-}
+parse_args
+copy_templates
 
-#copy_rr3_templates
-copy_eb3_templates
+# pci_evolbiol_test
+# pci_registered_reports_new
 
-# then, manually patched csv to make it an 'update' .sql:
+# then, manually patch csv to make it an 'update' .sql:
 # 1.) sed "s/'/''/g"
-# 2.) sed 's/""/"/d'
+# 2.) sed 's/""/"/g'
 # 3.) remove <hashtag>, column
 # 4.) add the following head sql as first line above block:
 #           update mail_templates set contents = '

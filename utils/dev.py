@@ -12,6 +12,7 @@ _items = [
     "status",
     "update",
     "force",
+    "db",
 ]
 
 
@@ -36,6 +37,27 @@ def force():
     reset = _shell("git reset --hard origin/" + _curr_branch())
 
     return fetch + reset
+
+
+def db():
+    scripts = _run("sh -c 'ls updates/*.sql 2>/dev/null'").strip().split()
+    if scripts:
+        return "<br>\n" .join([
+            '<a href="db_exec?script='+f+'">'+f+'</a>'
+                for f in scripts ])
+    else:
+        return "updates: no sql files"
+
+
+def db_exec():
+    db = DAL(AppConfig().get("db.uri"))
+    script = request.vars.script
+    sql = _run("cat " + script)
+    res = db.executesql(sql)
+    out = ["executing: " + script]
+    out += [str(_) for _ in res] if res else ["no output"]
+
+    return "<pre>\n" + "\n".join(out) + "\n</pre>"
 
 
 def version():
