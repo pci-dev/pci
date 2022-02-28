@@ -125,13 +125,24 @@ def log_error(err):
 
 
 def prepareNextReminder(mail_item):
+    REVIEW_REMINDERS = []
+    field_hashtag = {
+        "reminder_soon_due" : "#ReminderReviewerReviewSoonDue",
+        "reminder_due": "#ReminderReviewerReviewDue",
+        "reminder_over_due": "#ReminderReviewerReviewOverDue"
+    }
     reminder_count = mail_item["reminder_count"]
 
     hashtag_template = mail_item["mail_template_hashtag"]
     hashtag_template = hashtag_template.replace("Stage1", "")
     hashtag_template = hashtag_template.replace("Stage2", "")
 
-    reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
+    if hashtag_template in field_hashtag.values():
+        for key, value in field_hashtag.items():
+            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=mail_item[key]))
+        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
+    else:
+        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
 
     if reminder[0] and len(reminder[0]["elapsed_days"]) >= reminder_count + 1:
         current_reminder_elapsed_days = reminder[0]["elapsed_days"][reminder_count]
