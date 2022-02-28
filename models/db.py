@@ -1171,6 +1171,9 @@ db.define_table(
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
+    Field("reminder_due", type="list:integer"),
+    Field("reminder_soon_due", type="list:integer"),
+    Field("reminder_over_due", type="list:integer"),
     migrate=False,
 )
 
