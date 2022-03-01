@@ -1536,7 +1536,7 @@ def email_for_registered_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    # reviewDuration = global
+    reviewDuration = (review.review_duration).lower()
 
     if not review.quick_decline_key:
         review.quick_decline_key = web2py_uuid()
