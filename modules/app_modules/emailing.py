@@ -43,7 +43,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 reviewLimitDays = myconf.get("config.review_limit_days", default=21)
-reviewDuration = str(myconf.get("config.review_limit_text", default="three weeks"))
+default_review_duration = "Two weeks" if pciRRactivated else "Three weeks"
 
 MAIL_DELAY = 1.5  # in seconds
 
@@ -1382,7 +1382,7 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
                 if recommender:
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender.id)
                     mail_vars["destAddress"] = recommender["email"]
-                    mail_vars["reviewDuration"] = reviewDuration
+                    mail_vars["reviewDuration"] = default_review_duration.lower()
 
                     if article.parallel_submission:
 
@@ -2491,7 +2491,7 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["articleTitle"] = article.title
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["reviewDuration"] = reviewDuration
+        mail_vars["reviewDuration"] = default_review_duration.lower()
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
 
