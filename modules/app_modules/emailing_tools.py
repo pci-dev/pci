@@ -327,6 +327,7 @@ def insertReminderMailInQueue(
     recommendation_id=None,
     recommendation=None,
     article_id=None,
+    review_id=None,
     review=None,
     authors_reply=None,
     sending_date_forced=None,
@@ -343,9 +344,8 @@ def insertReminderMailInQueue(
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
     
-    if recommendation_id and hash_temp in field_hashtag.values():
-        recomm = db(db.t_recommendations.article_id == article_id).select().last()
-        review = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+    if review_id and hash_temp in field_hashtag.values():
+        review = db.t_reviews[review_id]
         days=getReviewDays(review.review_duration)
         reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
         reminder_values = {
@@ -356,9 +356,9 @@ def insertReminderMailInQueue(
         for key, value in field_hashtag.items():
             REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
         reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
-
     else:
         reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
+
     ccAddresses = None
     replytoAddresses = None
     if "ccAddresses" in mail_vars:
