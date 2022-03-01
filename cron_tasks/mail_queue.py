@@ -123,6 +123,26 @@ def log_error(err):
     else:
         print(err)
 
+def getReviewDays(duration):
+    duration = duration.lower()
+    days_dict = {"two weeks": 14, "three weeks": 21, "four weeks": 28, "five weeks": 35,  "six weeks": 42, "seven weeks": 49, "eight weeks": 56}
+    for key, value in days_dict.items():
+        if key in duration:
+            return value
+    return 21
+
+def getReviewReminders(days):
+    count = 0
+    reminder_soon_due = []
+    reminder_due = []
+    reminder_over_due = []
+    reminder_soon_due.extend([days-7, days-2])
+    reminder_due.append(days)
+    while count < 5:
+        days+=4
+        reminder_over_due.append(days)
+        count+= 1
+    return reminder_soon_due, reminder_due, reminder_over_due
 
 def prepareNextReminder(mail_item):
     REVIEW_REMINDERS = []
@@ -138,8 +158,17 @@ def prepareNextReminder(mail_item):
     hashtag_template = hashtag_template.replace("Stage2", "")
 
     if hashtag_template in field_hashtag.values():
+        recomm = db(db.t_recommendations.article_id == mail_item["article_id"]).select().last()
+        review = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+        days=getReviewDays(review.review_duration)
+        reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
+        reminder_values = {
+            "reminder_soon_due" : reminder_soon_due,
+            "reminder_due": reminder_due,
+            "reminder_over_due": reminder_over_due
+        }
         for key, value in field_hashtag.items():
-            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=mail_item[key]))
+            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
         reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
     else:
         reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
