@@ -36,8 +36,6 @@ expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_w
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
-reviewDuration = str(myconf.get("config.review_limit_text", default="three weeks"))
-
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
@@ -1557,8 +1555,6 @@ def email_for_registered_reviewer():
     # to pass only the url value to the template instead of the full link html;
     # doing this yields invalid url for the link in the template when no doc exists.
 
-    # reviewDuration = global
-
     parallelText = ""
     if parallelSubmissionAllowed:
         parallelText += (
@@ -1683,8 +1679,6 @@ def email_for_new_reviewer():
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-
-    # reviewDuration = global
 
     # NOTE: 4 parallel submission
     parallelText = ""

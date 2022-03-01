@@ -26,7 +26,6 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-reviewDuration = myconf.get("config.review_limit_text", default="three weeks")
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
