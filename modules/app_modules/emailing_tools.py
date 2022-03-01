@@ -332,12 +332,33 @@ def insertReminderMailInQueue(
     sending_date_forced=None,
     reviewer_invitation_buttons=None,
 ):
+    REVIEW_REMINDERS = []
+    field_hashtag = {
+        "reminder_soon_due" : "#ReminderReviewerReviewSoonDue",
+        "reminder_due": "#ReminderReviewerReviewDue",
+        "reminder_over_due": "#ReminderReviewerReviewOverDue"
+    }
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
-    reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
+    
+    if recommendation_id and hash_temp in field_hashtag.values():
+        recomm = db(db.t_recommendations.article_id == article_id).select().last()
+        review = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+        days=getReviewDays(review.review_duration)
+        reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
+        reminder_values = {
+            "reminder_soon_due" : reminder_soon_due,
+            "reminder_due": reminder_due,
+            "reminder_over_due": reminder_over_due
+        }
+        for key, value in field_hashtag.items():
+            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
+        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
 
+    else:
+        reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
     ccAddresses = None
     replytoAddresses = None
     if "ccAddresses" in mail_vars:
