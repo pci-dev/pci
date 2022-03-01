@@ -1651,7 +1651,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
             if rev:
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
                 mail_vars["destAddress"] = rev["email"]
-                mail_vars["reviewDuration"] = (review.review_duration).lower()
+                mail_vars["reviewDuration"] = reviewDuration
 
                 message = emailing_tools.replaceMailVars(message, mail_vars)
                 content = DIV(WIKI(message, safe_mode=False))
