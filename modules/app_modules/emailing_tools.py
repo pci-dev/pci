@@ -395,6 +395,7 @@ def insertReminderMailInQueue(
             recommendation_id=recommendation_id,
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
+            review_id=review_id
         )
 
     if sending_date_forced:
@@ -415,6 +416,7 @@ def insertReminderMailInQueue(
             recommendation_id=recommendation_id,
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
+            review_id=review_id
         )
 
 

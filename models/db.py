@@ -1169,11 +1169,9 @@ db.define_table(
     Field("user_id", type="reference auth_user", ondelete="CASCADE", label=T("Sender")),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
+    Field("review_id", type="reference t_reviews", ondelete="CASCADE", label=T("Review")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
-    Field("reminder_due", type="list:integer"),
-    Field("reminder_soon_due", type="list:integer"),
-    Field("reminder_over_due", type="list:integer"),
     migrate=False,
 )
 
