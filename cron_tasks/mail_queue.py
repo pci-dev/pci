@@ -158,8 +158,7 @@ def prepareNextReminder(mail_item):
     hashtag_template = hashtag_template.replace("Stage2", "")
 
     if hashtag_template in field_hashtag.values():
-        recomm = db(db.t_recommendations.article_id == mail_item["article_id"]).select().last()
-        review = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+        review = db.t_reviews[mail_item["review_id"]]
         days=getReviewDays(review.review_duration)
         reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
         reminder_values = {
@@ -195,6 +194,7 @@ def prepareNextReminder(mail_item):
             recommendation_id=mail_item["recommendation_id"],
             article_id=mail_item["article_id"],
             mail_template_hashtag=mail_item["mail_template_hashtag"],
+            review_id=mail_item["review_id"]
         )
 
 
