@@ -42,7 +42,6 @@ parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=Fal
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
-reviewLimitDays = myconf.get("config.review_limit_days", default=21)
 default_review_duration = "Two weeks" if pciRRactivated else "Three weeks"
 
 MAIL_DELAY = 1.5  # in seconds
