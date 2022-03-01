@@ -2390,7 +2390,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
 
 
 ######################################################################################################################################################################
@@ -2421,7 +2421,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
 
 
 ######################################################################################################################################################################
@@ -2452,7 +2452,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
 
 
 ######################################################################################################################################################################
