@@ -355,7 +355,7 @@ def insertReminderMailInQueue(
         }
         for key, value in field_hashtag.items():
             REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
-        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
+        reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REVIEW_REMINDERS))
     else:
         reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
 
