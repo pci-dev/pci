@@ -345,8 +345,8 @@ def insertReminderMailInQueue(
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
     
     if review_id and hash_temp in field_hashtag.values():
-        review = db.t_reviews[review_id]
-        days=getReviewDays(review.review_duration)
+        rev = db.t_reviews[review_id]
+        days=getReviewDays(rev.review_duration)
         reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
         reminder_values = {
             "reminder_soon_due" : reminder_soon_due,
