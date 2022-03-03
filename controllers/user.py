@@ -26,7 +26,6 @@ csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 trgmLimit = myconf.get("config.trgm_limit", default=0.4)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-reviewDuration = myconf.get("config.review_limit_text", default="three weeks")
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -1502,16 +1501,9 @@ def accept_new_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""))))
     else:
-        if parallelSubmissionAllowed:
-            if isParallel:
-                due_time = "three weeks"
-            else:
-                due_time = "two weeks"
-        else:
-            due_time = reviewDuration
         disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
         actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
-        dueTime = due_time
+        dueTime = rev.review_duration.lower()
 
     pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
     customText = getText(request, auth, db, "#AcceptReviewInfoText")
@@ -1547,17 +1539,9 @@ def ask_to_review():
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
-    else:
-        if parallelSubmissionAllowed:
-            if isParallel:
-                due_time = "three weeks"
-            else:
-                due_time = "two weeks"
-        else:
-            due_time = reviewDuration
-        disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
-        actionFormUrl = URL("user_actions", "do_ask_to_review")
-        dueTime = due_time
+
+    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    actionFormUrl = URL("user_actions", "do_ask_to_review")
 
     amISubmitter = article.user_id == auth.user_id
 
@@ -1567,6 +1551,10 @@ def ask_to_review():
 
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
     amIRecommender = recomm.recommender_id == auth.user_id
+
+    rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
+    dueTime = rev.review_duration.lower() if rev else 'three weeks'
+    # FIXME: set parallel reviews default = three weeks (hardcoded) in user select form
 
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, article, False, True)
 

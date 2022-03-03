@@ -904,7 +904,8 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Declined manually", "Review completed", "Cancelled"))),
         writable=False,
     ),
-    Field("review", type="text", length=2097152, label=T("Review as text")),
+    Field("review_duration", type="text", label=T("Review duration"), default="Three weeks", requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
+    Field("review", type="string", length=2097152, label=T("Review as text")),
     Field(
         "review_pdf",
         type="upload",
@@ -1168,6 +1169,7 @@ db.define_table(
     Field("user_id", type="reference auth_user", ondelete="CASCADE", label=T("Sender")),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
+    Field("review_id", type="reference t_reviews", ondelete="CASCADE", label=T("Review")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
     migrate=False,

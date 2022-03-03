@@ -118,7 +118,6 @@ trgm_limit = 0.4
 parallel_submission = False
 tracking = False
 unconsider_limit_days = 20
-review_limit_days = 20
 recomm_limit_days = 50
 pdf_max_size = 5
 mail_delay = 3
