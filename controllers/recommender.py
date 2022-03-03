@@ -1534,7 +1534,6 @@ def email_for_registered_reviewer():
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
 
-    reviewDuration = (review.review_duration).lower()
 
     if not review.quick_decline_key:
         review.quick_decline_key = web2py_uuid()
@@ -1701,7 +1700,6 @@ def email_for_new_reviewer():
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
     default_review_duration = "Two weeks" if pciRRactivated else "Three weeks"
-    reviewDuration = default_review_duration.lower()
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
