@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 import time
 from gluon.contrib.appconfig import AppConfig
 
+from app_modules.reminders import getReminderValues
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
-pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 log = None
 if (myconf.get("config.use_logger", default=True) is True):
@@ -124,32 +124,6 @@ def log_error(err):
     else:
         print(err)
 
-def getReviewDays(review):
-    if review:
-        duration = review.review_duration
-    else:
-        duration = "two weeks" if pciRRactivated else "three weeks"
-
-    duration = duration.lower()
-    days_dict = {"two weeks": 14, "three weeks": 21, "four weeks": 28, "five weeks": 35,  "six weeks": 42, "seven weeks": 49, "eight weeks": 56}
-    for key, value in days_dict.items():
-        if key in duration:
-            return value
-    return 21
-
-def getReviewReminders(days):
-    count = 0
-    reminder_soon_due = []
-    reminder_due = []
-    reminder_over_due = []
-    reminder_soon_due.extend([days-7, days-2])
-    reminder_due.append(days)
-    while count < 5:
-        days+=4
-        reminder_over_due.append(days)
-        count+= 1
-    return reminder_soon_due, reminder_due, reminder_over_due
-
 def prepareNextReminder(mail_item):
     REVIEW_REMINDERS = []
     field_hashtag = {
@@ -165,13 +139,7 @@ def prepareNextReminder(mail_item):
 
     if hashtag_template in field_hashtag.values():
         review = db.t_reviews[mail_item["review_id"]]
-        days=getReviewDays(review)
-        reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
-        reminder_values = {
-            "reminder_soon_due" : reminder_soon_due,
-            "reminder_due": reminder_due,
-            "reminder_over_due": reminder_over_due
-        }
+        reminder_values = getReminderValues(review)
         for key, value in field_hashtag.items():
             REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
         reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))

@@ -34,6 +34,7 @@ from app_modules import emailing_tools
 from app_modules import emailing_parts
 from app_modules import emailing_vars
 from app_modules import newsletter_module
+from app_modules import reminders
 
 
 myconf = AppConfig(reload=True)
@@ -57,7 +58,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 email_subject_header = emailing_tools.email_subject_header
 patch_email_subject = emailing_tools.patch_email_subject
-get_review_days = emailing_tools.getReviewDays
+get_review_days = reminders.getReviewDaysFromDuration
 
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")

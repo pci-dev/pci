@@ -31,6 +31,7 @@ import shutil
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
+from app_modules.reminders import getReminderValues
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -224,29 +225,6 @@ def getMailFooter():
     return data
 
 ######################################################################################################################################################################
-def getReviewDays(duration):
-    duration = duration.lower()
-    days_dict = {"two weeks": 14, "three weeks": 21, "four weeks": 28, "five weeks": 35,  "six weeks": 42, "seven weeks": 49, "eight weeks": 56}
-    for key, value in days_dict.items():
-        if key in duration:
-            return value
-    return 21
-
-######################################################################################################################################################################
-def getReviewReminders(days):
-    count = 0
-    reminder_soon_due = []
-    reminder_due = []
-    reminder_over_due = []
-    reminder_soon_due.extend([days-7, days-2])
-    reminder_due.append(days)
-    while count < 5:
-        days+=4
-        reminder_over_due.append(days)
-        count+= 1
-    return reminder_soon_due, reminder_due, reminder_over_due
-
-######################################################################################################################################################################
 # Footer for all mails
 def mkFooter(db):
     # init mail_vars with common infos
@@ -346,13 +324,7 @@ def insertReminderMailInQueue(
     
     if review_id and hash_temp in field_hashtag.values():
         rev = db.t_reviews[review_id]
-        days=getReviewDays(rev.review_duration)
-        reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
-        reminder_values = {
-            "reminder_soon_due" : reminder_soon_due,
-            "reminder_due": reminder_due,
-            "reminder_over_due": reminder_over_due
-        }
+        reminder_values = getReminderValues(rev)
         for key, value in field_hashtag.items():
             REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
         reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REVIEW_REMINDERS))
