@@ -2919,3 +2919,8 @@ CREATE TYPE duration AS ENUM('Two weeks', 'Three weeks', 'Four weeks', 'Five wee
 
 ALTER TABLE "t_reviews"
 ADD COLUMN  IF NOT EXISTS review_duration duration DEFAULT 'Three weeks';
+
+-- 2022-03-03 updates/add_new_field_mail_queue.sql
+
+ALTER TABLE "mail_queue"
+ADD COLUMN  IF NOT EXISTS review_id integer;
