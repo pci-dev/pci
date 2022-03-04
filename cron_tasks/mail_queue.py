@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 import time
 from gluon.contrib.appconfig import AppConfig
 
+from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
-pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 log = None
 if (myconf.get("config.use_logger", default=True) is True):
@@ -25,42 +25,6 @@ if (myconf.get("config.use_logger", default=True) is True):
 		print("systemd logging not available")
 else:
 	print("systemd logging not enabled in config")
-
-# Reminders config
-def get_reminders_from_config():
-    reminders = []
-    with open(os.path.join(os.path.dirname(__file__), "../private", "reminders_config")) as f:
-        # Remove empty lines
-        non_empty_lines = [lin for lin in f if lin.strip() != ""]
-
-        # Parse lines
-        for line in non_empty_lines:
-            # Remove whitechar
-            line = line.strip()
-            line = line.replace(" ", "")
-            element = line.split("=")
-
-            # Get hashtag_template
-            hashtag = element[0]
-
-            # Get elapsed_days
-            # Remove array notation
-            elapsed_days_str = element[1].replace("[", "")
-            elapsed_days_str = elapsed_days_str.replace("]", "")
-            elapsed_days_str = elapsed_days_str.split(",")
-
-            # Convert elapsed_days from str to int
-            elapsed_days_int = []
-            for i in elapsed_days_str:
-                elapsed_days_int.append(int(i))
-
-            # Append item
-            reminders.append(dict(hashtag=hashtag, elapsed_days=elapsed_days_int))
-
-    return reminders
-
-
-REMINDERS = get_reminders_from_config()
 
 
 def getMailsInQueue():
@@ -124,59 +88,12 @@ def log_error(err):
     else:
         print(err)
 
-def getReviewDays(review):
-    if review:
-        duration = review.review_duration
-    else:
-        duration = "two weeks" if pciRRactivated else "three weeks"
-
-    duration = duration.lower()
-    days_dict = {"two weeks": 14, "three weeks": 21, "four weeks": 28, "five weeks": 35,  "six weeks": 42, "seven weeks": 49, "eight weeks": 56}
-    for key, value in days_dict.items():
-        if key in duration:
-            return value
-    return 21
-
-def getReviewReminders(days):
-    count = 0
-    reminder_soon_due = []
-    reminder_due = []
-    reminder_over_due = []
-    reminder_soon_due.extend([days-7, days-2])
-    reminder_due.append(days)
-    while count < 5:
-        days+=4
-        reminder_over_due.append(days)
-        count+= 1
-    return reminder_soon_due, reminder_due, reminder_over_due
 
 def prepareNextReminder(mail_item):
-    REVIEW_REMINDERS = []
-    field_hashtag = {
-        "reminder_soon_due" : "#ReminderReviewerReviewSoonDue",
-        "reminder_due": "#ReminderReviewerReviewDue",
-        "reminder_over_due": "#ReminderReviewerReviewOverDue"
-    }
     reminder_count = mail_item["reminder_count"]
-
     hashtag_template = mail_item["mail_template_hashtag"]
-    hashtag_template = hashtag_template.replace("Stage1", "")
-    hashtag_template = hashtag_template.replace("Stage2", "")
-
-    if hashtag_template in field_hashtag.values():
-        review = db.t_reviews[mail_item["review_id"]]
-        days=getReviewDays(review)
-        reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
-        reminder_values = {
-            "reminder_soon_due" : reminder_soon_due,
-            "reminder_due": reminder_due,
-            "reminder_over_due": reminder_over_due
-        }
-        for key, value in field_hashtag.items():
-            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
-        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REVIEW_REMINDERS))
-    else:
-        reminder = list(filter(lambda item: item["hashtag"] == hashtag_template, REMINDERS))
+    review_id = mail_item["review_id"]
+    reminder = getReminder(db, hashtag_template, review_id)
 
     if reminder[0] and len(reminder[0]["elapsed_days"]) >= reminder_count + 1:
         current_reminder_elapsed_days = reminder[0]["elapsed_days"][reminder_count]
