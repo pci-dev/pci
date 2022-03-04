@@ -83,7 +83,6 @@ test.reset.rr: test.reset test.db.rr set.conf.rr.true
 set.conf.rr.%:
 	rm -f languages/default.py
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
-	cp -f private/sample.reminders_config$(if $(filter true, $*),.rr,) private/reminders_config
 
 test:
 	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
