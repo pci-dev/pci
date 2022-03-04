@@ -1589,7 +1589,7 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Select review duration"), default="Two weeks", writable=True, requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
+        Field("review_duration", type="string", label=T("Select review duration"), default=db.review_duration_default, writable=True, requires=db.review_duration_requires),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
@@ -1699,8 +1699,6 @@ def email_for_new_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    default_review_duration = "Two weeks" if pciRRactivated else "Three weeks"
-
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
@@ -1712,7 +1710,7 @@ def email_for_new_reviewer():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Select review duration"), default=default_review_duration, writable=True, requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
+        Field("review_duration", type="string", label=T("Select review duration"), default=db.review_duration_default, writable=True, requires=db.review_duration_requires),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),

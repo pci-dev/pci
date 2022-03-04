@@ -16,6 +16,7 @@ from app_modules.helper import *
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules.reminders import getDefaultReviewDuration
 
 from controller_modules import recommender_module
 
@@ -888,6 +889,8 @@ db.define_table(
     migrate=False,
 )
 
+db.review_duration_requires = IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))
+db.review_duration_default = getDefaultReviewDuration()
 
 db.define_table(
     "t_reviews",
@@ -904,7 +907,7 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Declined manually", "Review completed", "Cancelled"))),
         writable=False,
     ),
-    Field("review_duration", type="text", label=T("Review duration"), default="Three weeks", requires=IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))),
+    Field("review_duration", type="text", label=T("Review duration"), default=db.review_duration_default, requires=db.review_duration_requires),
     Field("review", type="string", length=2097152, label=T("Review as text")),
     Field(
         "review_pdf",
