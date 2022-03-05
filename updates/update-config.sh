@@ -1,7 +1,7 @@
 update_reminders_config() {
-	diff -u private/reminders_config private/sample.reminders_config
+	diff -u private/appconfig.ini private/sample.appconfig
 
-	sed -i '/ReminderReviewerReview.*Due/ d' private/reminders_config
+	sed -i '/ReminderReviewerReview.*Due/ d' private/appconfig.ini
 	touch modules/app_modules/reminders.py
 }
 

@@ -39,9 +39,8 @@ Run the PCI server:
 
 	make start
 
-creates default config files:
+creates default config file:
 - `private/appconfig.ini`
-- `private/reminders_config`
 
 Run mailing queue:
 On local host:
