@@ -53,8 +53,11 @@ def db_exec():
     db = DAL(AppConfig().get("db.uri"))
     script = request.vars.script
     sql = _run("cat " + script)
-    res = db.executesql(sql)
     out = ["executing: " + script]
+    try:
+        res = db.executesql(sql)
+    except Exception as e:
+        res = [ e ]
     out += [str(_) for _ in res] if res else ["no output"]
 
     return "<pre>\n" + "\n".join(out) + "\n</pre>"
