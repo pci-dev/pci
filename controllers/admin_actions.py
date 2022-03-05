@@ -38,6 +38,16 @@ def testMail():
     redirect(request.env.http_referer)
 
 
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
+def delete_trapped_emails():
+    db(
+        (db.mail_queue.sending_status == "in queue") &
+        (db.mail_queue.sending_attempts > 20)
+    ).delete()
+
+    redirect(request.env.http_referer)
+
+
 ######################################################################################################################################################################
 ## (gab) note : Unused functions ?
 ######################################################################################################################################################################

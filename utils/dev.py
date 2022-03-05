@@ -53,11 +53,29 @@ def db_exec():
     db = DAL(AppConfig().get("db.uri"))
     script = request.vars.script
     sql = _run("cat " + script)
-    res = db.executesql(sql)
     out = ["executing: " + script]
+    try:
+        res = db.executesql(sql)
+    except Exception as e:
+        res = [ e ]
     out += [str(_) for _ in res] if res else ["no output"]
 
     return "<pre>\n" + "\n".join(out) + "\n</pre>"
+
+
+def sh():
+    scripts = _run("sh -c 'ls updates/*.sh 2>/dev/null'").strip().split()
+    if scripts:
+        return "<br>\n" .join([
+            '<a href="sh_exec?script='+f+'">'+f+'</a>'
+                for f in scripts ])
+    else:
+        return "updates: no sh files"
+
+
+def sh_exec():
+    script = request.vars.script
+    return _shell("sh " + script)
 
 
 def version():
