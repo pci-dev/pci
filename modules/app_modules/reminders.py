@@ -107,7 +107,7 @@ def getReminder(db, hashtag_template, review_id):
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
 
-    if review_id and hash_temp in field_hashtag.values():
+    if hash_temp in field_hashtag.values():
         rev = db.t_reviews[review_id]
         reminder_values = getReminderValues(rev)
         for key, value in field_hashtag.items():
