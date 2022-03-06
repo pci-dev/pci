@@ -107,25 +107,20 @@ def get_reminders_from_config():
 
 
 def getReminder(db, hashtag_template, review_id):
-    REVIEW_REMINDERS = []
-    field_hashtag = {
-        "reminder_soon_due" : "#ReminderReviewerReviewSoonDue",
-        "reminder_due": "#ReminderReviewerReviewDue",
-        "reminder_over_due": "#ReminderReviewerReviewOverDue"
-    }
     hash_temp = hashtag_template
+    hash_temp = hash_temp.replace("#", "")
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
 
-    if hash_temp in field_hashtag.values():
+    if hash_temp in _review_reminders:
         rev = db.t_reviews[review_id]
         reminder_values = getReminderValues(rev)
-        for key, value in field_hashtag.items():
-            REVIEW_REMINDERS.append(dict(hashtag=value, elapsed_days=reminder_values[key]))
-        reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REVIEW_REMINDERS))
+        days = reminder_values[_review_reminders[hash_temp]]
     else:
-        reminder = list(filter(lambda item: item["hashtag"] == hash_temp, REMINDERS))
+        days = _reminders[hash_temp]
+
+    reminder = [ dict(hashtag="#"+hash_temp, elapsed_days=days) ]
 
     return reminder
 
