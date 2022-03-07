@@ -94,12 +94,13 @@ def prepareNextReminder(mail_item):
     hashtag_template = mail_item["mail_template_hashtag"]
     review_id = mail_item["review_id"]
     reminder = getReminder(db, hashtag_template, review_id)
+    reminder_days = reminder["elapsed_days"] if reminder else []
 
-    if reminder[0] and len(reminder[0]["elapsed_days"]) >= reminder_count + 1:
-        current_reminder_elapsed_days = reminder[0]["elapsed_days"][reminder_count]
+    if len(reminder_days) > reminder_count:
+        current_reminder_elapsed_days = reminder_days[reminder_count]
 
-    if reminder[0] and len(reminder[0]["elapsed_days"]) >= reminder_count + 2:
-        next_reminder_elapsed_days = reminder[0]["elapsed_days"][reminder_count + 1]
+    if len(reminder_days) > reminder_count + 1:
+        next_reminder_elapsed_days = reminder_days[reminder_count + 1]
 
         days_between_reminders = next_reminder_elapsed_days - current_reminder_elapsed_days
         sending_date = datetime.now() + timedelta(days=days_between_reminders)
