@@ -117,8 +117,11 @@ def getReminder(db, hashtag_template, review_id):
         rev = db.t_reviews[review_id]
         reminder_values = getReminderValues(rev)
         days = reminder_values[_review_reminders[hash_temp]]
-    else:
+
+    elif hash_temp in _reminders:
         days = _reminders[hash_temp]
+    else:
+        return [ None ]
 
     reminder = [ dict(hashtag="#"+hash_temp, elapsed_days=days) ]
 
