@@ -1573,7 +1573,7 @@ def email_for_registered_reviewer():
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
     
-    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
@@ -1782,7 +1782,7 @@ def email_for_new_reviewer():
 
             if existingUser:
                 try:
-                    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisterUser", art)
+                    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
 
                     linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
                     declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
