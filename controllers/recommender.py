@@ -583,7 +583,7 @@ def my_awaiting_articles():
 @auth.requires(auth.has_membership(role="recommender"))
 def accept_new_article_to_recommend():
     actionFormUrl = None
-    appLongname = None
+    appLongName = None
     hidenVarsForm = None
 
     if not ("articleId" in request.vars):
@@ -596,7 +596,7 @@ def accept_new_article_to_recommend():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics"))
     else:
-        appLongname = myconf.take("app.longname")
+        appLongName = myconf.take("app.longname")
         hiddenVarsForm = dict(articleId=articleId, ethics_approved=True)
         actionFormUrl = URL("recommender_actions", "do_accept_new_article_to_recommend")
         longname = myconf.take("app.longname")
@@ -606,7 +606,7 @@ def accept_new_article_to_recommend():
 
     response.view = "controller/recommender/accept_new_article_to_recommend.html"
     return dict(
-        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongname=appLongname, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
+        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongName=appLongName, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
     )
 
 
