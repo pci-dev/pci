@@ -6,8 +6,7 @@ errors/*
 sessions/*
 static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
-private/*.ini
-private/reminders_config
+private/appconfig.ini
 utils/.test-sites.conf
 node_modules
 cypress/videos
