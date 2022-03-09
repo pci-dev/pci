@@ -285,8 +285,8 @@ def insertReminderMailInQueue(
     if "replytoAddresses" in mail_vars:
         replytoAddresses = mail_vars["replytoAddresses"]
 
-    if reminder and reminder[0]:
-        elapsed_days = reminder[0]["elapsed_days"][0]
+    if reminder:
+        elapsed_days = reminder["elapsed_days"][0]
 
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 

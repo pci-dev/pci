@@ -121,11 +121,9 @@ def getReminder(db, hashtag_template, review_id):
     elif hash_temp in _reminders:
         days = _reminders[hash_temp]
     else:
-        return [ None ]
+        return None
 
-    reminder = [ dict(hashtag="#"+hash_temp, elapsed_days=days) ]
-
-    return reminder
+    return dict(hashtag="#"+hash_temp, elapsed_days=days)
 
 
 # the reminders conf file is implicitly cached
