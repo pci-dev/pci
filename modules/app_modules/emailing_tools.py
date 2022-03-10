@@ -448,6 +448,7 @@ def buildNewsLetterMail(
             newPreprintSearchingForReviewersCount=newPreprintSearchingForReviewersCount,
             newPreprintRequiringRecommender=XML(newPreprintRequiringRecommender),
             newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
+            pciRRactivated=pciRRactivated,
             footer=mkFooter(db),
             mail_vars=mail_vars,
         ),
