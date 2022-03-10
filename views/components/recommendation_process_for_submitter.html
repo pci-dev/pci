@@ -7,8 +7,10 @@
             <h3>Validation by the managing board</h3>
             {{if submissionValidatedClassClass == "step-done":}}
                 <p><b>Submission <b style="color: #089108">validated</b></b></p>
+                <p>Uploaded: <b>{{=uploadDate}}</b></p>
             {{else:}}
                 <p>Pending...</p>
+                <p>Uploaded: {{=uploadDate}}</p>
             {{pass}}
         </div>
     </div>
@@ -44,6 +46,7 @@
             <p>
                 Invited : <b>{{=reviewCount}}</b> <br/>
                 Agreed : <b>{{=acceptedReviewCount}}</b> <br/>
+                Date : <b>{{=recommDate}}</b>
             </p>
         </div>
     </div>
@@ -55,7 +58,8 @@
         <div class="step-description">
             <h3><b style="color: #333">Round {{=roundNumber}} : </b>Reviews underway</h3>
             <p>
-                Reviews completed : <b>{{=completedReviewCount}}</b>
+                Reviews completed : <b>{{=completedReviewCount}}</b> <br/>
+                Date : <b>{{=lastReviewDate}}</b>
             </p>
         </div>
     </div>
@@ -71,14 +75,15 @@
             <p>
                 
                 {{if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":}}
-                    Decision : <b style="color: #089108">Recommended</b>
+                    Decision : <b style="color: #089108">Recommended</b> <br/>
                 {{elif recommStatus == "Revision" and managerDecisionDoneClass == "step-done":}}
-                    Decision : <b style="color: #ffbf00">Awaiting revision</b>
+                    Decision : <b style="color: #ffbf00">Awaiting revision</b> <br/>
                 {{elif recommStatus == "Rejected" and managerDecisionDoneClass == "step-done":}}
-                    Decision : <b style="color: #e61919">Rejected</b>
+                    Decision : <b style="color: #e61919">Rejected</b> <br/>
                 {{else:}}
-                    <b>Decision pending validation by the managing board</b>
-                {{pass}}      
+                    <b>Decision pending validation by the managing board</b> <br/>
+                {{pass}}
+                Date : <b>{{=recommDate}}</b>
             </p>
         {{else:}}
             <p>
@@ -98,6 +103,7 @@
             <p>
                 <b style="color: #089108">Decision made</b>
             </p>
+            Date : <b>{{=recommDate}}</b>
             {{if recommendationLink:}}
                 <div class="pci2-flex-center">
                     <a class="buttontext btn btn-success" 
@@ -128,7 +134,8 @@
                 </p>
             {{else:}}
                 <p>The recommender is asking for revisions from the author</p>
-            {{pass}}        
+            {{pass}}
+            Date : <b>{{=recommDate}}</b>
         </div>
     </div>
 {{pass}}

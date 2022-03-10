@@ -186,6 +186,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
     if not (art.status == "Pending"):
         submissionValidatedClassClass = "step-done"
+    uploadDate = art.upload_timestamp.strftime("%m/%d/%Y")
 
     suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
 
@@ -206,12 +207,12 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
     if totalRecomm > 0:
         for recomm in recomms:
-
             reviewInvitationsAcceptedClass = "step-default"
             reviewsStepDoneClass = "step-default"
             recommendationStepClass = "step-default"
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
+            recommDate = recomm.last_change.strftime("%m/%d/%Y")
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
                 auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
@@ -226,6 +227,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 orderby=db.t_reviews.id
             )
 
+            lastReviewDate = None
             for review in reviews:
                 reviewCount += 1
                 if review.review_state == "Awaiting review":
@@ -233,6 +235,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 if review.review_state == "Review completed":
                     acceptedReviewCount += 1
                     completedReviewCount += 1
+                lastReviewDate = review.last_change.strftime("%m/%d/%Y")
 
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
@@ -274,17 +277,20 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommenderName=recommenderName,
                 reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
                 reviewCount=reviewCount,
+                lastReviewDate=lastReviewDate,
                 acceptedReviewCount=acceptedReviewCount,
                 reviewsStepDoneClass=reviewsStepDoneClass,
                 completedReviewCount=completedReviewCount,
                 recommendationStepClass=recommendationStepClass,
                 recommStatus=recommStatus,
+                recommDate=recommDate,
                 managerDecisionDoneClass=managerDecisionDoneClass,
                 managerDecisionDoneStepClass=managerDecisionDoneStepClass,
                 authorsReplyClass=authorsReplyClass,
                 authorsReplyClassStepClass=authorsReplyClassStepClass,
                 totalRecomm=totalRecomm,
                 recommendationLink=recommendationLink,
+                uploadDate=uploadDate,
             )
             recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
 
