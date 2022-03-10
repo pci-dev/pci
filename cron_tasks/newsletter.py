@@ -21,7 +21,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
-MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
+
 
 conditions = ["client" not in request, auth.has_membership(role="manager")]
 if any(conditions):

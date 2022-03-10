@@ -34,8 +34,6 @@ from app_modules import common_small_html
 
 from controller_modules import admin_module
 
-# frequently used constants
-from app_modules.emailing import MAIL_HTML_LAYOUT, MAIL_DELAY
 
 myconf = AppConfig(reload=True)
 

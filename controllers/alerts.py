@@ -21,7 +21,6 @@ from app_modules import common_tools
 from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
-MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "..", "views", "mail", "mail.html")
 DELETE_DELAY = float(myconf.get("config.delete_mail_delay", default=60))
 
 
