@@ -11,9 +11,9 @@ PCiInfections
 PCiMCB
 PCiNetworkScience
 PCiNeuro
-PCiNewDesign
 PCiPaleontology
 PCiRR3
+PCiTimo
 PCiZool
 "
 for pci in $test_sites; do echo $pci; done
