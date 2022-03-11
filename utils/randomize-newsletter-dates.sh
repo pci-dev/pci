@@ -12,7 +12,7 @@ set_psql() {
 randomize_newsletter_base_dates() {
 	$PSQL $DB -c "
 	update auth_user
-	set last_alert = timestamp '2022-02-28'
+	set last_alert = timestamp '$(date +%F -d "next monday")'
         		+ random() * INTERVAL '5 days'
 	where alerts != 'Never';
 	"
