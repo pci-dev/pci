@@ -10,89 +10,89 @@ RUN=cron_tasks/run
 SITE=PCICompStat
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIZool
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIEcology
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIAnimSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCICNeuro
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIEvolBiol
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIArchaeology
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIForestWoodSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIPaleo
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIGenomics
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIMCB
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCINetworkSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIEcotoxEnvChem
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIRegisteredReports
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 
 SITE=PCIInfections
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
-0 */6 * * * $BASE/$SITE/$RUN newsletter.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
