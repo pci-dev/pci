@@ -1,32 +1,13 @@
 # -*- coding: utf-8 -*-
-# this file is released under public domain and you can use without limitations
-
-import re
-import os
-
-# from gluon.contrib.markdown import WIKI
 
 from datetime import date, datetime, timedelta
-import calendar
-from time import sleep
-
-# import socket
-# host=socket.getfqdn()
-from gluon.contrib.appconfig import AppConfig
-
-from app_components import article_components
 
 from app_modules import emailing
-from app_modules import common_tools
-from app_modules import common_small_html
-
-myconf = AppConfig(reload=True)
 
 
 conditions = ["client" not in request, auth.has_membership(role="manager")]
 if any(conditions):
     my_date = date.today()
-    print("Cron newsletter start : " + str(my_date)) 
 
     # Weekly newsletter
     weekly_newsletter_date = my_date - timedelta(days=7)
@@ -78,4 +59,3 @@ if any(conditions):
         emailing.send_newsletter_mail(session, auth, db, user.id, "Monthly")
         user.last_alert = datetime.now()
         user.update_record()
-
