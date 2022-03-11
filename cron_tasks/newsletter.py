@@ -7,7 +7,7 @@ from app_modules import emailing
 
 conditions = ["client" not in request, auth.has_membership(role="manager")]
 if any(conditions):
-    my_date = date.today()
+    my_date = datetime.now()
 
     # Weekly newsletter
     weekly_newsletter_date = my_date - timedelta(days=7)
