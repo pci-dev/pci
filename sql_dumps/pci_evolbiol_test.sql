@@ -2924,3 +2924,8 @@ ADD COLUMN  IF NOT EXISTS review_duration duration DEFAULT 'Three weeks';
 
 ALTER TABLE "mail_queue"
 ADD COLUMN  IF NOT EXISTS review_id integer;
+
+-- 2022-03-15 updates/add_new_article_field.sql
+
+ALTER TABLE "t_articles"
+ADD COLUMN  IF NOT EXISTS suggest_reviewers text;
