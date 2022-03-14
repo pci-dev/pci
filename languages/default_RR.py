@@ -366,7 +366,7 @@
     "I still hesitate": "I still hesitate",
     "I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.": "I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this report to someone else.",
     "I/we declare that I/we have no conflict of interest with the authors or the content of the article": "I/we declare that I/we have no conflict of interest with the authors or the content of the report",
-    "I wish an anonymous submission (submitter concealed from reviewers)": "I would like my Stage 1 submission to be anonymous (author identities masked from reviewers). Note: author anonymity is possible only during Stage 1 and must be revealed at Stage 2",
+    "I wish an anonymous submission (see <a target='_blank' href='https://www1.montpellier.inra.fr/PCI/PCiEvolBiol3/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)": "I would like my Stage 1 submission to be anonymous (author identities masked from reviewers). Note: author anonymity is possible only during Stage 1 and must be revealed at Stage 2",
     "I wish to add a small picture for which no rights are required": "I wish to add a small picture for which no rights are required",
     "I wish to add a small picture (png or jpeg format) for which no rights are required": "I wish to add a small picture, which will appear with the Recommendation if my submission is recommended (png or jpeg format; indicate photo credit and license in the Cover Letter)",
     "I wish to cancel my submission": "I wish to cancel my submission",
