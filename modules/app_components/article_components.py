@@ -239,6 +239,9 @@ def getArticleInfosCard(auth, db, response, article, printable,
     if article.codes_doi is not None:
         articleContent.update([("codeDoi", (common_small_html.mkDOI(article.codes_doi)) if (article.codes_doi) else SPAN(""))])
 
+    if article.suggest_reviewers is not None:
+        articleContent.update([("suggestReviewers", WIKI(article.suggest_reviewers or "", safe_mode=False))])
+        
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 
