@@ -186,7 +186,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
     if not (art.status == "Pending"):
         submissionValidatedClassClass = "step-done"
-    uploadDate = art.upload_timestamp.strftime("%m/%d/%Y")
+    uploadDate = art.upload_timestamp.strftime("%d %B %Y")
 
     suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
 
@@ -212,7 +212,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             recommendationStepClass = "step-default"
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
-            recommDate = recomm.last_change.strftime("%m/%d/%Y")
+            recommDate = recomm.last_change.strftime("%d %B %Y")
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
                 auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
@@ -235,7 +235,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 if review.review_state == "Review completed":
                     acceptedReviewCount += 1
                     completedReviewCount += 1
-                lastReviewDate = review.last_change.strftime("%m/%d/%Y")
+                lastReviewDate = review.last_change.strftime("%d %B %Y")
 
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
