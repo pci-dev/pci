@@ -1,0 +1,26 @@
+#!/bin/bash -e
+set -x
+
+DIR=$(dirname $0)
+SCRIPT=$1
+
+SITE=pci
+
+main() {
+
+[ -f $DIR/$SCRIPT ] || {
+	echo -e "usage: $0 <cron_task script>\n
+	$DIR/$SCRIPT: script not found"
+	exit 1
+}
+
+cd web2py
+
+python3 web2py.py --no_banner \
+	-M \
+	-S $SITE \
+	-R applications/$SITE/cron_tasks/$SCRIPT
+
+}
+
+main
