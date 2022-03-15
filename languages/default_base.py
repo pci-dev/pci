@@ -364,7 +364,7 @@
     "I still hesitate": "I still hesitate",
     "I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.": "I understand that if I do not respect these commitments, the managing board of %s reserves the right to pass responsibility for the evaluation of this article to someone else.",
     "I/we declare that I/we have no conflict of interest with the authors or the content of the article": "I/we declare that I/we have no conflict of interest with the authors or the content of the article",
-    "I wish an anonymous submission (see <a target='_blank' href='https://www1.montpellier.inra.fr/PCI/PCiEvolBiol3/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)": "I wish an anonymous submission (see <a target='_blank' href='https://www1.montpellier.inra.fr/PCI/PCiEvolBiol3/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)",
+    "I wish an anonymous submission (see <a target='_blank' href='/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)": "I wish an anonymous submission (see <a target='_blank' href='/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)",
     "I wish to add a small picture for which no rights are required": "I wish to add a small picture for which no rights are required",
     "I wish to add a small picture (png or jpeg format) for which no rights are required": "I wish to add a small picture (png or jpeg format) for which no rights are required",
     "I wish to cancel my submission": "I wish to cancel my submission",

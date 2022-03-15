@@ -574,7 +574,7 @@ db.code_choices = (
 db.define_table(
     "t_articles",
     Field("id", type="id"),
-    Field("anonymous_submission", type="boolean", label=XML("I wish an anonymous submission (see <a target='_blank' href='https://www1.montpellier.inra.fr/PCI/PCiEvolBiol3/help/guide_for_authors#h_7928466772121619502443551'>requirements</a>)"), default=False),
+    Field("anonymous_submission", type="boolean", label=XML("I wish an anonymous submission (see <a target='_blank' href='%s/guide_for_authors#h_7928466772121619502443551'>requirements</a>)"%(URL(c="/..", f="help", scheme=scheme, host=host, port=port))), default=False),
     Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are members of the %s Managing Board" % appName), default=False),
     Field("title", type="string", length=1024, label=T("Title"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]),
     Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
