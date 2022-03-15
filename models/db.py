@@ -389,7 +389,7 @@ auth.settings.extra_fields["auth_user"] = [
             ),
         ),
         requires=IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly"), zero=None),
-        default="Never",
+        default="Weekly",
     ),
     Field("last_alert", type="datetime", label=T("Last alert"), writable=False, readable=False),
     Field("registration_datetime", type="datetime", default=request.now, label=T("Registration date & time"), writable=False, readable=False),
