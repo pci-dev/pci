@@ -2929,3 +2929,8 @@ ADD COLUMN  IF NOT EXISTS review_id integer;
 
 ALTER TABLE "t_articles"
 ADD COLUMN  IF NOT EXISTS suggest_reviewers text;
+
+-- 2022-03-15 updates/set-default-newsletter-weekly.sql
+
+ALTER TABLE auth_user
+ALTER alerts SET DEFAULT 'Weekly';
