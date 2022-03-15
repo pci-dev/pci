@@ -104,17 +104,20 @@
 							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate') 
 							jQuery('#icon-recomm-process').addClass('glyphicon-rotate-reversed') 
 							jQuery('#title-recomm-process').removeClass('pci2-half-opacity')
+							jQuery('#label-recomm-process').text('{{=T('Close')}}')
 						} else {
 							jQuery('#recomm-process-container').addClass('pci2-panel-closed') 						
 							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate-reversed') 
 							jQuery('#icon-recomm-process').addClass('glyphicon-rotate')
 							jQuery('#title-recomm-process').addClass('pci2-half-opacity')
+							jQuery('#label-recomm-process').text('{{=T('Open')}}')
 						}" 
 					>
-						{{=T('Invert')}}
 						{{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}
+							<span id="label-recomm-process">{{=T('Open')}}</span>
 							<i id="icon-recomm-process" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
 						{{else:}}
+							<span id="label-recomm-process">{{=T('Close')}}</span>
 							<i id="icon-recomm-process" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate-reversed pci2-main-color-text"></i>
 						{{pass}}					
 					</a>
