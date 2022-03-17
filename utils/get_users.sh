@@ -8,10 +8,10 @@ FIELDS="first_name, last_name, email, country, registration_datetime"
 main() {
     case $1 in
         ""|-h|--help)
-            echo "usage: $(basename $0) [reviewers|recommenders|users] [pci_xxx]"
+            echo "usage: $(basename $0) [reviewers|recommenders|authors|users] [pci_xxx]"
             exit 0
             ;;
-        reviewers|recommenders|users)
+        reviewers|recommenders|users|authors)
             cmd=$1
             DB=$2
             ;;
@@ -66,6 +66,22 @@ copy (
   from auth_user
   where id in (
         select user_id from auth_membership where group_id = 2
+  ) order by id
+
+) to stdout with CSV DELIMITER ';' HEADER;
+EOT
+}
+
+get_authors() {
+
+(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
+
+copy (
+
+  select $FIELDS
+  from auth_user
+  where id in (
+        select distinct user_id from t_articles
   ) order by id
 
 ) to stdout with CSV DELIMITER ';' HEADER;
