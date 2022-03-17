@@ -152,7 +152,7 @@ def list_users():
         ),
         selectable=selectable,
         maxtextlength=250,
-        paginate=25,
+        paginate=False,
     )
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):

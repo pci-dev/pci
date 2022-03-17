@@ -1,18 +1,33 @@
 $(document).ready(function(){
-	// attach onclick sort function for Roles table column (user list)
-	var columns = document.querySelectorAll('.web2py_htmltable > table th');
-	if (columns) {
-		for (var i = 0; i < columns.length; i++) {
-			if (columns[i].innerHTML == 'Roles') {
-				columns[i].classList.add('cp');
-				columns[i].setAttribute('onclick', 'sort_by_role(7)');
+	// Only for the "Users & Roles", we establish a new column sorting
+	// Removing the old one is hackish.
+	var page_name = document.querySelector('.pci-text-title p');
+	if (page_name) {
+		if (page_name.innerHTML == 'Users &amp; roles') {
+			var columns = document.querySelectorAll('.web2py_htmltable > table th');
+			// remove old sort (a link) with new sort (onclick event)
+			if (columns) {
+				for (var i = 0; i < columns.length; i++) {
+					var link = columns[i].querySelector('a');
+					if (link) {
+						columns[i].innerHTML = link.innerHTML;
+						columns[i].setAttribute('onclick', 'sort_by(' + i + ')');
+						columns[i].classList.add('cp');
+						link.remove()
+					}
+					else if (!columns[i].innerHTML == '') {
+						columns[i].setAttribute('onclick', 'sort_by(' + i + ')');
+						columns[i].classList.add('cp');
+					}
+				}
 			}
 		}
 	}
 })
 
+
 // function that sorts a HTML table according to the Roles column
-function sort_by_role(n) {
+function sort_by(n) {
 	// gather variables (parameter n is the column index)
 	var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
 	table = document.querySelector('.web2py_htmltable > table');
@@ -55,18 +70,16 @@ function sort_by_role(n) {
 	  }
 	}
 
-	// finally remove sort icon on other column heads and attach to Roles column
+	// finally remove sort icon on other column heads
 	var column_heads = document.querySelectorAll('.web2py_htmltable > table th');
 	for (var i = 0; i < column_heads.length; i++) {
-		var link = column_heads[i].querySelector('a');
-		if (link) {
-			if (link.innerHTML.includes('▲') || link.innerHTML.includes('▼')) {
-				link.innerHTML = link.innerHTML.slice(0, -1);
-			}
-		}
-		if (column_heads[i].innerHTML.includes('Roles')) {
-			if (dir == 'asc') { column_heads[i].innerHTML = 'Roles▲'}
-			else { column_heads[i].innerHTML = 'Roles▼' }
+		if (column_heads[i].innerHTML.includes('▲') || column_heads[i].innerHTML.includes('▼')) {
+			column_heads[i].innerHTML = column_heads[i].innerHTML.slice(0, -1);
 		}
 	}
+
+	// then attach triangle to active column
+	var active_column = column_heads[n];
+	if (dir == 'asc') { active_column.innerHTML += '▲'}
+	else { active_column.innerHTML += '▼' }
 }
