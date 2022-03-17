@@ -33,10 +33,21 @@ show_freq_load() {
 	done
 }
 
+show_never() {
+	./all-pci-db.sh | while read db; do
+		echo === $db ===
+		psql -h mydb1 -p 33648 -U peercom $db -c "
+		select alerts, email, registration_datetime, last_alert
+		from auth_user
+		where alerts='Never'
+		"
+	done
+}
+
 main() {
 	case $1 in
 		""|-h|--help)
-			echo "usage: $0 [date|site [freq]|all]"
+			echo "usage: $0 [date|site [freq]|all|never]"
 			exit 0
 			;;
 		date)
@@ -51,6 +62,9 @@ main() {
 			;;
 		all)
 			show_freq_load
+			;;
+		never)
+			show_never
 			;;
 		*)
 			echo "unknown command: $1"
