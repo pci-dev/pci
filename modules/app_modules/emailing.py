@@ -2285,6 +2285,11 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
+        if pciRRactivated:
+            report_surey = db(db.t_report_survey.article_id == article.id).select().last()
+            invite_texts = emailing_vars.getPCiRRinvitationTexts(report_surey)
+            mail_vars.update(invite_texts)
+
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
             mail_vars[
@@ -2339,6 +2344,11 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
+
+        if pciRRactivated:
+            report_surey = db(db.t_report_survey.article_id == article.id).select().last()
+            invite_texts = emailing_vars.getPCiRRinvitationTexts(report_surey)
+            mail_vars.update(invite_texts)
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
