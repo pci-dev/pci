@@ -1533,6 +1533,9 @@ def email_for_registered_reviewer():
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    articleAuthors = art_authors
+    articleTitle = art_title
+    articleDoi = art_doi
 
 
     if not review.quick_decline_key:
@@ -1678,6 +1681,9 @@ def email_for_new_reviewer():
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
     art_title = art.title
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    articleAuthors = art_authors
+    articleTitle = art_title
+    articleDoi = art_doi
 
     # NOTE: 4 parallel submission
     parallelText = ""
