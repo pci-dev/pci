@@ -141,7 +141,6 @@ def list_users():
         editable=dict(auth_user=True, auth_membership=False),
         details=dict(auth_user=True, auth_membership=False),
         searchable=dict(auth_user=True, auth_membership=False),
-        sortable=False,
         create=dict(
             auth_user=create,
             auth_membership=create,
@@ -153,7 +152,7 @@ def list_users():
         ),
         selectable=selectable,
         maxtextlength=250,
-        paginate=False,
+        paginate=25,
     )
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
