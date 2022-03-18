@@ -8,7 +8,7 @@ from app_modules import emailing
 news = {
     "Weekly": 7,
     "Every two weeks": 14,
-    "Monthly": 30,
+    "Monthly": 28,
 }
 
 
