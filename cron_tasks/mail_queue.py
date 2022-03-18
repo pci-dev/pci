@@ -129,6 +129,9 @@ def updateSendingStatus(mail_item, isSent):
     else:
         new_status = "in queue"
 
+        if attempts > 28: # approx 70h = 3 days
+            new_status = "failed"
+
     mail_item.update_record(sending_status=new_status, sending_attempts=attempts, sending_date=senddate)
     db.commit()
 
