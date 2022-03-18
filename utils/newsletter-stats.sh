@@ -24,10 +24,30 @@ show_site_load() {
 	done
 }
 
+show_freq_load() {
+	./all-pci-db.sh | while read db;
+		do echo === $db ===
+		psql -h mydb1 -p 33648 -U peercom $db -c "
+		select alerts, last_alert from auth_user
+		" | egrep '[0-9]$' | cut -c -30 | sort | uniq -c
+	done
+}
+
+show_never() {
+	./all-pci-db.sh | while read db; do
+		echo === $db ===
+		psql -h mydb1 -p 33648 -U peercom $db -c "
+		select alerts, email, registration_datetime, last_alert
+		from auth_user
+		where alerts='Never'
+		"
+	done
+}
+
 main() {
 	case $1 in
 		""|-h|--help)
-			echo "usage: $0 [date|site [freq]]"
+			echo "usage: $0 [date|site [freq]|all|never]"
 			exit 0
 			;;
 		date)
@@ -39,6 +59,12 @@ main() {
 				*) echo "invalid freq: $2"; exit 2 ;;
 			esac
 			show_site_load ${2:-Weekly}
+			;;
+		all)
+			show_freq_load
+			;;
+		never)
+			show_never
 			;;
 		*)
 			echo "unknown command: $1"
