@@ -141,6 +141,7 @@ def list_users():
         editable=dict(auth_user=True, auth_membership=False),
         details=dict(auth_user=True, auth_membership=False),
         searchable=dict(auth_user=True, auth_membership=False),
+        sortable=False,
         create=dict(
             auth_user=create,
             auth_membership=create,

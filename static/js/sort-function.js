@@ -1,21 +1,12 @@
 $(document).ready(function(){
-	// Only for the "Users & Roles", we establish a new column sorting
-	// Removing the old one is hackish.
+	// add js-based column sorting
 	var page_name = document.querySelector('.pci-text-title p');
 	if (page_name) {
 		if (page_name.innerHTML == 'Users &amp; roles') {
 			var columns = document.querySelectorAll('.web2py_htmltable > table th');
-			// remove old sort (a link) with new sort (onclick event)
 			if (columns) {
 				for (var i = 0; i < columns.length; i++) {
-					var link = columns[i].querySelector('a');
-					if (link) {
-						columns[i].innerHTML = link.innerHTML;
-						columns[i].setAttribute('onclick', 'sort_by(' + i + ')');
-						columns[i].classList.add('cp');
-						link.remove()
-					}
-					else if (!columns[i].innerHTML == '') {
+					if (!columns[i].innerHTML == '') {
 						columns[i].setAttribute('onclick', 'sort_by(' + i + ')');
 						columns[i].classList.add('cp');
 					}
@@ -26,7 +17,7 @@ $(document).ready(function(){
 })
 
 
-// function that sorts a HTML table according to the Roles column
+// sort a web2py grid/smartgrid HTML table according to column at index n
 function sort_by(n) {
 	// gather variables (parameter n is the column index)
 	var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
