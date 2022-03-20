@@ -257,13 +257,12 @@ div.w2p_flash.alert.custom-disappear {
   > div {
   position: absolute;
   right: 15px;
+  padding-left: 3em;
   padding-right: 10px;
-  max-width: 180px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   flex-direction: column;
-  width: 100%;
 }
 
 .action-button-absolute
