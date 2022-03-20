@@ -282,16 +282,19 @@ def search_reviewers():
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
         if myGoal == "4review":
-            links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
+            header = T("Select")
             # use above defaults for: pageTitle, customText, pageHelp
         elif myGoal == "4press":
-            links.append(
-                dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal))
-            )
-            # pageTitle = T('Search for collaborators')
+            header = T("Propose contribution")
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
+
+        links.append(dict(
+            header=header,
+            body=lambda row: "" if row.excluded else \
+                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)
+        ))
 
     if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
