@@ -245,7 +245,7 @@ def _manage_articles(statuses, whatNext):
         customText=getText(request, auth, db, "#ManagerArticlesText"),
         pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -418,7 +418,7 @@ def manage_recommendations():
         content=myContents,
         grid=grid,
         deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_file_buttons_manager.js"), _type="text/javascript"),
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -632,7 +632,7 @@ def suggested_recommenders():
         addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
         articleHeaderHtml=articleHeaderHtml,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1107,7 +1107,7 @@ def all_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1208,7 +1208,7 @@ def suggested_recommender_emails():
         myBackButton=common_small_html.mkBackButton(target=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=articleId), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1308,7 +1308,7 @@ def article_emails():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 

@@ -56,3 +56,9 @@ def get_prev_recomm(db, recomm):
     ).select(orderby=db.t_recommendations.id).last()
 
     return last_recomm
+
+###################################################################
+absoluteButtonScript = SCRIPT(
+    get_template("script", "web2py_button_absolute.js"),
+    _type="text/javascript",
+)

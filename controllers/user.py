@@ -1304,7 +1304,7 @@ def my_articles():
         pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
         #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
         grid=DIV(grid, _style=""),
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1470,7 +1470,7 @@ def my_reviews():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1907,5 +1907,5 @@ def articles_awaiting_reviewers():
         pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
         #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
         grid=DIV(grid, _style=""),
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )

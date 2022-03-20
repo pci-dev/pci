@@ -197,7 +197,7 @@ def fields_awaiting_articles():
         pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
         searchableList=True,
         searchForm=searchForm,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -339,7 +339,7 @@ def search_reviewers():
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
-            absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 
@@ -577,7 +577,7 @@ def my_awaiting_articles():
         customText=getText(request, auth, db, "#RecommenderSuggestedArticlesText"),
         pageTitle=getTitle(request, auth, db, "#RecommenderSuggestedArticlesTitle"),
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -729,7 +729,7 @@ def my_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1139,7 +1139,7 @@ def reviews():
             content=myContents,
             grid=grid,
             myFinalScript=myScript,
-            absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 ######################################################################################################################################################################
@@ -2275,7 +2275,7 @@ def my_co_recommendations():
         # myBackButton=common_small_html.mkBackButton(),
         contents=myContents,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -2414,7 +2414,7 @@ def review_emails():
         myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -2528,7 +2528,7 @@ def article_reviews_emails():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
