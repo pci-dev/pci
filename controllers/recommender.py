@@ -327,6 +327,7 @@ def search_reviewers():
             links=links,
             orderby=temp_db.qy_reviewers.num,
             args=request.args,
+            _class="web2py_grid action-button-absolute",
         )
 
         response.view = "default/gab_list_layout.html"
@@ -338,6 +339,7 @@ def search_reviewers():
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
+            absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
         )
 
 
