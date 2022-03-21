@@ -317,6 +317,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             managerDecisionDoneClass=managerDecisionDoneClass,
             managerDecisionDoneStepClass=managerDecisionDoneStepClass,
             totalRecomm=totalRecomm,
+            uploadDate=uploadDate,
         )
 
         recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
