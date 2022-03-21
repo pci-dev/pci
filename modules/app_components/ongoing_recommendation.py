@@ -314,6 +314,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             completedReviewCount=completedReviewCount,
             recommendationStepClass=recommendationStepClass,
             recommStatus=recommStatus,
+            recommDate="not considered yet",
             managerDecisionDoneClass=managerDecisionDoneClass,
             managerDecisionDoneStepClass=managerDecisionDoneStepClass,
             totalRecomm=totalRecomm,
