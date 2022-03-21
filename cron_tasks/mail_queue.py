@@ -61,17 +61,18 @@ def tryToSendMail(mail_item):
 
 
 def isTimeToTrySending(mail_item):
-
-    # first 3 attempts every 1 min. (cron freq.)
+    """
+    - first 3 attempts every 1 min. (cron freq.)
+    - next  6 attempts every 5 min.
+    - next  6 attempts every hour
+    - other attempts every 5 hours
+    """
     if mail_item.sending_attempts < 3:
         return True
-    # next 6 attempts every 5 min.
     if mail_item.sending_attempts < 9:
         return isNowSendingDatePlus(mail_item, minutes=5)
-    # next 6 attempts every hour
     if mail_item.sending_attempts < 15:
         return isNowSendingDatePlus(mail_item, hours=1)
-    # other attempts every 5 hours
     return isNowSendingDatePlus(mail_item, hours=5)
 
 
@@ -128,6 +129,9 @@ def updateSendingStatus(mail_item, isSent):
         new_status = "sent"
     else:
         new_status = "in queue"
+
+        if attempts > 28: # approx 70h = 3 days
+            new_status = "failed"
 
     mail_item.update_record(sending_status=new_status, sending_attempts=attempts, sending_date=senddate)
     db.commit()
