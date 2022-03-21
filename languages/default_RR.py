@@ -322,7 +322,7 @@
     "How to ...?": "How to ...?",
     "I agree to comply with the ": "I agree to comply with the ",
     "I agree to post my decision": "I agree to post my decision",
-    "I agree to post my review within %s": "I agree to post my review within %s",
+    "I agree to post my review within %s": "I agree to post my review within %s OR by the agreed deadline if this was a scheduled review",
     "I agree to send invitations...": "I agree to send invitations to 5-10 potential reviewers if possible within the next 24 hours",
     "I agree to send invitations to 5-10 potential reviewers within the next 24 hours": "I agree to send invitations to 5-10 potential reviewers within the next 24 hours",
     "I agree to write a recommendation text": "I agree to write a recommendation text",
