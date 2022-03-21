@@ -61,17 +61,18 @@ def tryToSendMail(mail_item):
 
 
 def isTimeToTrySending(mail_item):
-
-    # first 3 attempts every 1 min. (cron freq.)
+    """
+    - first 3 attempts every 1 min. (cron freq.)
+    - next  6 attempts every 5 min.
+    - next  6 attempts every hour
+    - other attempts every 5 hours
+    """
     if mail_item.sending_attempts < 3:
         return True
-    # next 6 attempts every 5 min.
     if mail_item.sending_attempts < 9:
         return isNowSendingDatePlus(mail_item, minutes=5)
-    # next 6 attempts every hour
     if mail_item.sending_attempts < 15:
         return isNowSendingDatePlus(mail_item, hours=1)
-    # other attempts every 5 hours
     return isNowSendingDatePlus(mail_item, hours=5)
 
 
