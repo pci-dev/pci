@@ -667,7 +667,7 @@ def mailing_queue():
         customText=getText(request, auth, db, "#AdminMailQueueText"),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 

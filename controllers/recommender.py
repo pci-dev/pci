@@ -197,7 +197,7 @@ def fields_awaiting_articles():
         pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
         searchableList=True,
         searchForm=searchForm,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -282,16 +282,19 @@ def search_reviewers():
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
         if myGoal == "4review":
-            links.append(dict(header=T("Select"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)))
+            header = T("Select")
             # use above defaults for: pageTitle, customText, pageHelp
         elif myGoal == "4press":
-            links.append(
-                dict(header=T("Propose contribution"), body=lambda row: "" if row.excluded else recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal))
-            )
-            # pageTitle = T('Search for collaborators')
+            header = T("Propose contribution")
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
+
+        links.append(dict(
+            header=header,
+            body=lambda row: "" if row.excluded else \
+                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)
+        ))
 
     if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
@@ -327,6 +330,7 @@ def search_reviewers():
             links=links,
             orderby=temp_db.qy_reviewers.num,
             args=request.args,
+            _class="web2py_grid action-button-absolute",
         )
 
         response.view = "default/gab_list_layout.html"
@@ -338,6 +342,7 @@ def search_reviewers():
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
             grid=grid,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 
@@ -575,7 +580,7 @@ def my_awaiting_articles():
         customText=getText(request, auth, db, "#RecommenderSuggestedArticlesText"),
         pageTitle=getTitle(request, auth, db, "#RecommenderSuggestedArticlesTitle"),
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "action_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -727,7 +732,7 @@ def my_recommendations():
         pageTitle=pageTitle,
         customText=customText,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -1137,7 +1142,7 @@ def reviews():
             content=myContents,
             grid=grid,
             myFinalScript=myScript,
-            absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 ######################################################################################################################################################################
@@ -2273,7 +2278,7 @@ def my_co_recommendations():
         # myBackButton=common_small_html.mkBackButton(),
         contents=myContents,
         grid=grid,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -2412,7 +2417,7 @@ def review_emails():
         myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
@@ -2526,7 +2531,7 @@ def article_reviews_emails():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         myFinalScript=myScript,
-        absoluteButtonScript=SCRIPT(common_tools.get_template("script", "web2py_button_absolute.js"), _type="text/javascript"),
+        absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
 
