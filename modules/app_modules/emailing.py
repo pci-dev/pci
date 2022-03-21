@@ -281,8 +281,6 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             if not recommender_id:
                 continue
 
-            myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == recommender_id)).select(orderby=db.t_recommendations.id).last()
-
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender_id)
             mail_vars["destAddress"] = db.auth_user[recommender_id]["email"]
             mail_vars["articleAuthors"] = article.authors
@@ -290,6 +288,11 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             mail_vars["articleDoi"] = XML(common_small_html.mkSimpleDOI(article.doi))
             mail_vars["tOldStatus"] = current.T(article.status)
             mail_vars["tNewStatus"] = current.T(newStatus)
+
+            myRecomm = db(
+                (db.t_recommendations.article_id == articleId) &
+                (db.t_recommendations.recommender_id == recommender_id)
+            ).select(orderby=db.t_recommendations.id).last()
 
             authors_reply = None
             if article.status == "Awaiting revision" and newStatus == "Under consideration":
