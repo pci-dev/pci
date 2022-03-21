@@ -277,6 +277,10 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
 
         for recommender in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
             recommender_id = recommender.recommender_id
+
+            if not recommender_id:
+                continue
+
             myRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == recommender_id)).select(orderby=db.t_recommendations.id).last()
 
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender_id)
