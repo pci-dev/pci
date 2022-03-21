@@ -309,6 +309,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             recommenderName=recommenderName,
             reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
             reviewCount=reviewCount,
+            lastReviewDate="no rewiews yet",
             acceptedReviewCount=acceptedReviewCount,
             reviewsStepDoneClass=reviewsStepDoneClass,
             completedReviewCount=completedReviewCount,
