@@ -298,6 +298,8 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 
     else:
         managerDecisionDoneStepClass = "progress-last-step-div"
+        recommDate = False
+        lastReviewDate = False
 
         componentVars = dict(
             printable=printable,
@@ -309,13 +311,13 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             recommenderName=recommenderName,
             reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
             reviewCount=reviewCount,
-            lastReviewDate="no rewiews yet",
+            lastReviewDate=lastReviewDate,
             acceptedReviewCount=acceptedReviewCount,
             reviewsStepDoneClass=reviewsStepDoneClass,
             completedReviewCount=completedReviewCount,
             recommendationStepClass=recommendationStepClass,
             recommStatus=recommStatus,
-            recommDate="not considered yet",
+            recommDate=recommDate,
             managerDecisionDoneClass=managerDecisionDoneClass,
             managerDecisionDoneStepClass=managerDecisionDoneStepClass,
             totalRecomm=totalRecomm,
