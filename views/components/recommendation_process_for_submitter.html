@@ -46,7 +46,9 @@
             <p>
                 Invited : <b>{{=reviewCount}}</b> <br/>
                 Agreed : <b>{{=acceptedReviewCount}}</b> <br/>
-                Date : <b>{{=recommDate}}</b>
+                {{if recommDate:}}
+                    Date : <b>{{=recommDate}}</b>
+                {{pass}}
             </p>
         </div>
     </div>
@@ -59,7 +61,9 @@
             <h3><b style="color: #333">Round {{=roundNumber}} : </b>Reviews underway</h3>
             <p>
                 Reviews completed : <b>{{=completedReviewCount}}</b> <br/>
-                Date : <b>{{=lastReviewDate}}</b>
+                {{if lastReviewDate:}}
+                    Date : <b>{{=lastReviewDate}}</b>
+                {{pass}}
             </p>
         </div>
     </div>
@@ -83,7 +87,9 @@
                 {{else:}}
                     <b>Decision pending validation by the managing board</b> <br/>
                 {{pass}}
-                Date : <b>{{=recommDate}}</b>
+                {{if recommDate:}}
+                    Date : <b>{{=recommDate}}</b>
+                {{pass}}
             </p>
         {{else:}}
             <p>
@@ -103,7 +109,9 @@
             <p>
                 <b style="color: #089108">Decision made</b>
             </p>
-            Date : <b>{{=recommDate}}</b>
+            {{if recommDate:}}
+                Date : <b>{{=recommDate}}</b>
+            {{pass}}
             {{if recommendationLink:}}
                 <div class="pci2-flex-center">
                     <a class="buttontext btn btn-success" 
@@ -135,7 +143,9 @@
             {{else:}}
                 <p>The recommender is asking for revisions from the author</p>
             {{pass}}
-            Date : <b>{{=recommDate}}</b>
+            {{if recommDate:}}
+                Date : <b>{{=recommDate}}</b>
+            {{pass}}
         </div>
     </div>
 {{pass}}
