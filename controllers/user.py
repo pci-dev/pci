@@ -1182,6 +1182,11 @@ def suggested_recommenders():
 @auth.requires_login()
 def my_articles():
 
+    articleId = int(request.vars["articleId"])
+    sugg_recomenders = db.t_suggested_recommenders(article_id=articleId)
+    if sugg_recomenders is None:
+        session.flash = T("Authors should suggest at least one recommender to evaluate their article")    
+        redirect(URL(c="user", f="add_suggested_recommender", vars=dict(articleId=articleId), user_signature=True))
     response.view = "default/myLayout.html"
 
     query = db.t_articles.user_id == auth.user_id
@@ -1707,7 +1712,7 @@ def add_suggested_recommender():
             _style="margin-top:16px; text-align:center;",
         )
         myAcceptBtn = DIV(
-            A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", user_signature=True)),
+            A(SPAN(T("Complete your submission"), _class="buttontext btn btn-success"), _href=URL(c="user", f="my_articles", vars=dict(articleId=articleId), user_signature=True)),
             _style="margin-top:16px; text-align:left;",
             _class="pci2-complete-ur-submission",
         )
