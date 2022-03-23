@@ -3,13 +3,10 @@
 from datetime import date, datetime, timedelta
 
 from app_modules import emailing
+from app_modules import newsletter
 
 
-news = {
-    "Weekly": 7,
-    "Every two weeks": 14,
-    "Monthly": 28,
-}
+news = newsletter.interval
 
 
 def send_newsletter(freq):

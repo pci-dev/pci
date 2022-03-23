@@ -33,7 +33,7 @@ from app_modules import old_common
 from app_modules import emailing_tools
 from app_modules import emailing_parts
 from app_modules import emailing_vars
-from app_modules import newsletter_module
+from app_modules import newsletter
 from app_modules import reminders
 
 
@@ -1927,18 +1927,8 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = user["email"]
 
-    newsletter_interval = None
-    if newsletterType == "Weekly":
-        hashtag_template = "#NewsLetterWeekly"
-        newsletter_interval = 7
-
-    if newsletterType == "Every two weeks":
-        hashtag_template = "#NewsLetterEveryTwoWeeks"
-        newsletter_interval = 14
-
-    if newsletterType == "Monthly":
-        hashtag_template = "#NewsLetterMonthly"
-        newsletter_interval = 30
+    newsletter_interval = newsletter.interval[newsletterType]
+    hashtag_template = newsletter.template[newsletterType]
 
     newRecommendationsCount = 0
     newPreprintRequiringRecommenderCount = 0
@@ -1960,7 +1950,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         for article in new_recommended_articles:
             i += 1
             if i <= 5:
-                newRecommendations.append(newsletter_module.makeArticleWithRecommRow(auth, db, article))
+                newRecommendations.append(newsletter.makeArticleWithRecommRow(auth, db, article))
 
         # New preprint searching for reviewers
         new_searching_for_reviewers_preprint = db(
@@ -1977,7 +1967,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         for article in new_searching_for_reviewers_preprint:
             j += 1
             if j <= 5:
-                newPreprintSearchingForReviewers.append(newsletter_module.makeArticleRow(article, "review"))
+                newPreprintSearchingForReviewers.append(newsletter.makeArticleRow(article, "review"))
 
         # New preprint requiring recommender
         group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
@@ -1997,7 +1987,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             for article in new_searching_for_recommender_preprint:
                 k += 1
                 if k <= 5:
-                    newPreprintRequiringRecommender.append(newsletter_module.makeArticleRow(article, "recommendation"))
+                    newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
         emailing_tools.insertNewsLetterMailInQueue(

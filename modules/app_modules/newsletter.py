@@ -12,6 +12,25 @@ host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 
+weekly = "Weekly"
+two_weeks = "Every two weeks"
+monthly = "Monthly"
+
+interval = {
+    weekly: 7,
+    two_weeks: 14,
+    monthly: 28,
+}
+
+template = {
+    weekly: "#NewsLetterWeekly",
+    two_weeks: "#NewsLetterEveryTwoWeeks",
+    monthly: "#NewsLetterMonthly",
+}
+
+freq = dict(weekly=weekly, two_weeks=two_weeks, monthly=monthly)
+
+
 def getArticleImage(article):
     if article.uploaded_picture is not None and article.uploaded_picture != "":
         article_img = IMG(_src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _style="width: 150px",)
