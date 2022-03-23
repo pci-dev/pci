@@ -96,3 +96,9 @@ SITE=PCIInfections
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
 */5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+
+SITE=PCIMicrobiol
+
+* *   * * * $BASE/$SITE/$RUN mail_queue.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
+1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
