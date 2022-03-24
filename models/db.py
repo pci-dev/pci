@@ -641,6 +641,63 @@ db.define_table(
         % (applongname, applongname),
     ),
     Field(
+        "guide_read",
+        type="boolean",
+        label=T(
+            "I read the guide for authors."
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "approvals_obtained",
+        type="boolean",
+        label=T(
+            "If applicable, all the necessary approvals have been obtained before submission. (Or not applicable.)"
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "human_subject_consent_obtained",
+        type="boolean",
+        label=T(
+            "If applicable, a statement that informed consent was obtained, for experimentation with human subjects, is in the manuscript.  (Or not applicable.)"
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "lines_numbered",
+        type="boolean",
+        label=T(
+            "Lines are numbered."
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "funding_sources_listed",
+        type="boolean",
+        label=T(
+            "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter."
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "conflicts_of_interest_indicated",
+        type="boolean",
+        label=T(
+            "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter."
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+    Field(
+        "no_financial_conflict_of_interest",
+        type="boolean",
+        label=T(
+            "The authors declare that they have no financial conflict of interest with the content of the manuscript."
+        ),
+        requires=IS_NOT_EMPTY(),
+    ),
+
+    Field(
         "parallel_submission",
         type="boolean",
         label=T("Parallel submission"),

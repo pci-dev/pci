@@ -60,6 +60,13 @@ class User_submits:
     select('input[name="thematics"]')[0].click()
     select("#t_articles_i_am_an_author").click()
     select("#t_articles_is_not_reviewed_elsewhere").click()
+    select("#t_articles_guide_read").click()
+    select("#t_articles_approvals_obtained").click()
+    select("#t_articles_human_subject_consent_obtained").click()
+    select("#t_articles_lines_numbered").click()
+    select("#t_articles_funding_sources_listed").click()
+    select("#t_articles_conflicts_of_interest_indicated").click()
+    select("#t_articles_no_financial_conflict_of_interest").click()
     select("input[type=submit]").click()
 
     if is_rr:

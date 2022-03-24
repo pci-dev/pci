@@ -1,4 +1,6 @@
 jQuery(document).ready(function () {
+  // "not reviewed elsewhere" and "parallel submission" are mutually exclusive
+  // and the form cannot be submitted if both are checked
   if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
     jQuery("#t_articles_parallel_submission").prop("disabled", true);
   }
@@ -12,6 +14,7 @@ jQuery(document).ready(function () {
     jQuery(":submit").prop("disabled", true);
   }
 
+  // if checkbox for picture adding is clicked, enable picture browse button
   jQuery("#t_articles_picture_rights_ok").change(function () {
     if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
       jQuery("#t_articles_uploaded_picture").prop("disabled", false);
@@ -21,6 +24,8 @@ jQuery(document).ready(function () {
     }
   });
 
+  // if the article is already published, display the field for the source
+  // to the publication
   jQuery("#t_articles_already_published").change(function () {
     if (jQuery("#t_articles_already_published").prop("checked")) {
       jQuery("#t_articles_article_source__row").show();
@@ -29,6 +34,8 @@ jQuery(document).ready(function () {
     }
   });
 
+  // if article has not been reviewed elsewhere, it must not be submitted 
+  // in parallel (uncheck and disable this field)
   jQuery("#t_articles_is_not_reviewed_elsewhere").change(function () {
     if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
       jQuery("#t_articles_parallel_submission").prop("checked", false);
@@ -36,6 +43,9 @@ jQuery(document).ready(function () {
     } else {
       jQuery("#t_articles_parallel_submission").prop("disabled", false);
     }
+
+    // the user cannot submit, if the submission has not either been
+    // "not reviewed elsewhere" OR been "submitted to another journal"
     if (
       jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked") |
       jQuery("#t_articles_parallel_submission").prop("checked")
@@ -55,6 +65,9 @@ jQuery(document).ready(function () {
       jQuery(":submit").prop("disabled", true);
     }
   });
+
+  // if article is submitted in parallel to another journal, disable that
+  // the article is not reviewed elsewhere
   jQuery("#t_articles_parallel_submission").change(function () {
     if (jQuery("#t_articles_parallel_submission").prop("checked")) {
       jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked", false);

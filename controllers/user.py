@@ -185,7 +185,7 @@ def recommendations():
 @auth.requires_login()
 def search_recommenders():
     myVars = request.vars
-
+    print(myVars)
     qyKw = ""
     qyTF = []
     excludeList = []
@@ -438,6 +438,13 @@ def fill_new_article():
     fields += [
         "i_am_an_author",
         "is_not_reviewed_elsewhere",
+        "guide_read",
+        "approvals_obtained",
+        "human_subject_consent_obtained",
+        "lines_numbered",
+        "funding_sources_listed",
+        "conflicts_of_interest_indicated",
+        "no_financial_conflict_of_interest",
     ]
 
     if parallelSubmissionAllowed:
