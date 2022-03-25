@@ -13,7 +13,9 @@ jQuery(document).ready(function() {
   }
 
   if (jQuery("#t_articles_already_published").length)
-    jQuery(":submit").prop("disabled", false);
+    if (all_prerequisites()) {
+      jQuery(":submit").prop("disabled", false);
+    }
 
   if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
     jQuery("#t_articles_parallel_submission").prop("disabled", true);
@@ -24,7 +26,9 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_parallel_submission").prop("checked")) &
     jQuery("#t_articles_i_am_an_author").prop("checked")
   ) {
-    jQuery(":submit").prop("disabled", false);
+    if (all_prerequisites()) {
+      jQuery(":submit").prop("disabled", false);
+    }
   } else {
     jQuery(":submit").prop("disabled", true);
   }
@@ -58,7 +62,9 @@ jQuery(document).ready(function() {
         jQuery("#t_articles_parallel_submission").prop("checked")) &
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
-      jQuery(":submit").prop("disabled", false);
+      if (all_prerequisites()) {
+        jQuery(":submit").prop("disabled", false);
+      }
     } else {
       jQuery(":submit").prop("disabled", true);
     }
@@ -69,7 +75,9 @@ jQuery(document).ready(function() {
         jQuery("#t_articles_parallel_submission").prop("checked")) &
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
-      jQuery(":submit").prop("disabled", false);
+      if (all_prerequisites()) {
+        jQuery(":submit").prop("disabled", false);
+      }
     } else {
       jQuery(":submit").prop("disabled", true);
     }
@@ -86,13 +94,52 @@ jQuery(document).ready(function() {
         jQuery("#t_articles_parallel_submission").prop("checked")) &
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
-      jQuery(":submit").prop("disabled", false);
+      if (all_prerequisites()) {
+        jQuery(":submit").prop("disabled", false);
+      }
     } else {
       jQuery(":submit").prop("disabled", true);
     }
   });
-});
 
+  // checkboxes required for submission
+  var prerequisites = [ 't_articles_guide_read',
+                        't_articles_approvals_obtained',
+                        't_articles_human_subject_consent_obtained',
+                        't_articles_lines_numbered',
+                        't_articles_funding_sources_listed',
+                        't_articles_conflicts_of_interest_indicated',
+                        't_articles_no_financial_conflict_of_interest']
+
+  // function checks all prerequisite checkbox status
+  function all_prerequisites() {
+    for (var i = 0; i < prerequisites.length; i++) {
+      var checkbox = document.querySelector('#' + prerequisites[i]);
+      if (checkbox.checked == false) { return false }
+    }
+    return true
+  }
+
+  // prerequisite checkbox onchange events
+  for (var i = 0; i < prerequisites.length; i++) {
+    var checkbox = document.querySelector('#' + prerequisites[i]);
+    checkbox.onchange = function() {
+      if ((document.querySelector("#t_articles_is_not_reviewed_elsewhere").checked == true |
+           document.querySelector("#t_articles_parallel_submission").checked == true) &
+           document.querySelector("#t_articles_i_am_an_author").checked == true &
+           all_prerequisites()) {
+          document.querySelector("#submit_record__row .btn-success").disabled = false; }
+      else {
+        document.querySelector("#submit_record__row .btn-success").disabled = true; 
+      }
+    }
+  };
+
+
+
+
+})
+  
 // Crossref API
 function insertAfter(referenceNode, newNode) {
   referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
