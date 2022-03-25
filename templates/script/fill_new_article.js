@@ -124,13 +124,23 @@ jQuery(document).ready(function() {
   for (var i = 0; i < prerequisites.length; i++) {
     var checkbox = document.querySelector('#' + prerequisites[i]);
     checkbox.onchange = function() {
-      if ((document.querySelector("#t_articles_is_not_reviewed_elsewhere").checked == true |
-           document.querySelector("#t_articles_parallel_submission").checked == true) &
-           document.querySelector("#t_articles_i_am_an_author").checked == true &
-           all_prerequisites()) {
-          document.querySelector("#submit_record__row .btn-success").disabled = false; }
+      var not_reviewed_elsewhere = document.querySelector("#t_articles_is_not_reviewed_elsewhere");
+      var parallel_submission = document.querySelector("#t_articles_parallel_submission");
+      var i_am_author = document.querySelector("#t_articles_i_am_an_author");
+      if (parallel_submission != null) {
+        if ((not_reviewed_elsewhere.checked == true | parallel_submission.checked == true) &
+            i_am_author.checked == true & all_prerequisites()) {
+            document.querySelector("#submit_record__row .btn-success").disabled = false; }
+        else {
+          document.querySelector("#submit_record__row .btn-success").disabled = true; 
+        }
+      }
       else {
-        document.querySelector("#submit_record__row .btn-success").disabled = true; 
+        if (not_reviewed_elsewhere.checked == true & i_am_author.checked == true & all_prerequisites()) {
+              document.querySelector("#submit_record__row .btn-success").disabled = false; }
+        else {
+              document.querySelector("#submit_record__row .btn-success").disabled = true; 
+        }
       }
     }
   };
