@@ -1093,8 +1093,13 @@ def reviewDone(s, f):
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
 
-        elif o["review_state"] == "Willing to review" and f["review_state"] == "Declined by recommender" or o["review_state"] == "Willing to review" and f["review_state"] == "Cancelled" or \
-            o["review_state"] == "Willing to review" and f["review_state"] == "Declined" or o["review_state"] == "Willing to review" and f["review_state"] == "Declined Manually":
+        elif o["review_state"] == "Willing to review" and \
+             f["review_state"] in [
+                 "Declined by recommender",
+                 "Declined manually",
+                 "Cancelled",
+                 "Declined",
+             ]:
             emailing.send_to_reviewer_review_request_declined(session, auth, db, o["id"], f)
 
         elif o["review_state"] == "Review completed" and f["review_state"] == "Awaiting review":
@@ -1107,14 +1112,23 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
-        elif o["review_state"] == "Awaiting response" and f["review_state"] == "Declined manually" or o["review_state"] == "Awaiting response" and f["review_state"] == "Cancelled" or \
-            o["review_state"] == "Awaiting response" and f["review_state"] == "Declined by recommender":
+        elif o["review_state"] == "Awaiting response" and \
+             f["review_state"] in [
+                 "Declined by recommender",
+                 "Declined manually",
+                 "Cancelled",
+             ]:
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
-        elif o["review_state"] == "Awaiting review" and f["review_state"] == "Cancelled" or o["review_state"] == "Awaiting review" and f["review_state"] == "Declined by recommender" or \
-            o["review_state"] == "Awaiting review" and f["review_state"] == "Declined" or o["review_state"] == "Awaiting review" and f["review_state"] == "Declined Manually":
+        elif o["review_state"] == "Awaiting review" and \
+             f["review_state"] in [
+                 "Declined by recommender",
+                 "Declined manually",
+                 "Cancelled",
+                 "Declined",
+             ]:
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
