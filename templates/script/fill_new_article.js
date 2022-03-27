@@ -111,6 +111,11 @@ jQuery(document).ready(function() {
                         't_articles_conflicts_of_interest_indicated',
                         't_articles_no_financial_conflict_of_interest']
 
+  var pciRRactivated = document.querySelector("#t_articles_report_stage")
+  if (pciRRactivated) {
+      prerequisites = []
+  }
+
   // function checks all prerequisite checkbox status
   function all_prerequisites() {
     for (var i = 0; i < prerequisites.length; i++) {
