@@ -185,7 +185,7 @@ def recommendations():
 @auth.requires_login()
 def search_recommenders():
     myVars = request.vars
-    print(myVars)
+
     qyKw = ""
     qyTF = []
     excludeList = []
