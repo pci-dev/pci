@@ -69,8 +69,6 @@ def last_recomms():
             db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.already_published,
-            db.t_articles.i_am_an_author,
-            db.t_articles.is_not_reviewed_elsewhere,
             db.t_articles.auto_nb_recommendations,
             limitby=(0, maxArticles),
             orderby=~db.t_articles.last_status_change,
