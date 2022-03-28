@@ -1,11 +1,14 @@
 from re import match
-from copy import deepcopy
 
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
+from gluon.contrib.appconfig import AppConfig
 from gluon import current
 
 from app_modules import common_small_html
+
+myconf = AppConfig(reload=True)
+applongname = myconf.take("app.longname")
 
 ######################################################################################################################################################################
 # New common modules
@@ -174,8 +177,17 @@ def process_mail_content(mail, form):
 from pydal import Field
 from gluon.validators import IS_NOT_EMPTY
 
-def article_add_mandatory_checkboxes(form):
-    checkboxes = {
+def article_add_mandatory_checkboxes(form, pciRRactivated):
+    checkboxes_min = {
+        "i_am_an_author":
+        "I am an author of the article and I am acting on behalf of all authors",
+
+        "is_not_reviewed_elsewhere":
+        current.T(
+        "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
+        ) % (applongname, applongname),
+    }
+    checkboxes_std = {
         "guide_read":
         "I read the guide for authors",
 
@@ -197,6 +209,12 @@ def article_add_mandatory_checkboxes(form):
         "no_financial_conflict_of_interest":
         "The authors declare that they have no financial conflict of interest with the content of the manuscript",
     }
+    checkboxes = dict(checkboxes_min)
+    checkboxes.update(checkboxes_std)
+
+    if pciRRactivated:
+        checkboxes = checkboxes_min
+
     fields = [
         Field(
             name,

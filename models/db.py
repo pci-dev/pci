@@ -524,7 +524,6 @@ def updUserThumb(s, f):
     return None
 
 
-applongname = myconf.take("app.longname")
 appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
@@ -630,15 +629,6 @@ db.define_table(
             T(" No need for them to be recommenders of %s. Please do not suggest reviewers for whom there might be a conflict of interest. Reviewers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the review - " % appName),
             A("see the code of conduct", _href="../about/ethics", _target="_blank"),
         ),
-    ),
-    Field("i_am_an_author", type="boolean", label=T("I am an author of the article and I am acting on behalf of all authors")),
-    Field(
-        "is_not_reviewed_elsewhere",
-        type="boolean",
-        label=T(
-            "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
-        )
-        % (applongname, applongname),
     ),
     Field(
         "parallel_submission",

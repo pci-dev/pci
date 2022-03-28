@@ -435,18 +435,12 @@ def fill_new_article():
     
     fields += ["cover_letter"]
 
-    fields += [
-        "i_am_an_author",
-        "is_not_reviewed_elsewhere",
-    ]
-
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
 
-    if not pciRRactivated:
-        app_forms.article_add_mandatory_checkboxes(form)
+    app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
 
     def fixup_radio_group(name):
         elements = form.elements(_name=name)
