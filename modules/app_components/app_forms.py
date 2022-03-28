@@ -177,25 +177,25 @@ from gluon.validators import IS_NOT_EMPTY
 def article_add_mandatory_checkboxes(form):
     checkboxes = {
         "guide_read":
-        "I read the guide for authors.",
+        "I read the guide for authors",
 
         "approvals_obtained":
-        "If applicable, all the necessary approvals have been obtained before submission. (or not applicable)",
+        "If applicable, all the necessary approvals have been obtained before submission (or not applicable)",
 
         "human_subject_consent_obtained":
-        "If applicable, a statement that informed consent was obtained, for experimentation with human subjects, is in the manuscript. (or not applicable)",
+        "If applicable, a statement that informed consent was obtained, for experimentation with human subjects, is in the manuscript (or not applicable)",
 
         "lines_numbered":
-        "Lines are numbered.",
+        "Lines are numbered",
 
         "funding_sources_listed":
-        "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter.",
+        "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter",
 
         "conflicts_of_interest_indicated":
-        "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter.",
+        "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter",
 
         "no_financial_conflict_of_interest":
-        "The authors declare that they have no financial conflict of interest with the content of the manuscript.",
+        "The authors declare that they have no financial conflict of interest with the content of the manuscript",
     }
     fields = [
         Field(
