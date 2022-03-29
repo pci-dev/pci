@@ -1355,9 +1355,7 @@ CREATE TABLE public.t_articles (
     status character varying(50) NOT NULL,
     last_status_change timestamp without time zone DEFAULT statement_timestamp(),
     article_source character varying(1024),
-    is_not_reviewed_elsewhere boolean,
     already_published boolean DEFAULT false,
-    i_am_an_author boolean,
     picture_data bytea,
     uploaded_picture character varying(512),
     picture_rights_ok boolean DEFAULT false,
@@ -2934,15 +2932,3 @@ ADD COLUMN  IF NOT EXISTS suggest_reviewers text;
 
 ALTER TABLE auth_user
 ALTER alerts SET DEFAULT 'Weekly';
-
--- 2022-03-24 updates/update-submission.sql
-
-ALTER TABLE "t_articles"
-ADD COLUMN IF NOT EXISTS guide_read boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS approvals_obtained boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS human_subject_consent_obtained boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS lines_numbered boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS funding_sources_listed boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS conflicts_of_interest_indicated boolean NOT NULL DEFAULT true,
-ADD COLUMN IF NOT EXISTS no_financial_conflict_of_interest boolean NOT NULL DEFAULT true;
-

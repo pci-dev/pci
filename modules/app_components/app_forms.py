@@ -1,11 +1,14 @@
 from re import match
-from copy import deepcopy
 
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
+from gluon.contrib.appconfig import AppConfig
 from gluon import current
 
 from app_modules import common_small_html
+
+myconf = AppConfig(reload=True)
+applongname = myconf.take("app.longname")
 
 ######################################################################################################################################################################
 # New common modules
@@ -168,3 +171,63 @@ def process_mail_content(mail, form):
         form.error_msg = str(e)
 
     return content_saved
+
+
+#########################################################################
+from pydal import Field
+from gluon.validators import IS_NOT_EMPTY
+
+def article_add_mandatory_checkboxes(form, pciRRactivated):
+    checkboxes_min = {
+        "i_am_an_author":
+        "I am an author of the article and I am acting on behalf of all authors",
+
+        "is_not_reviewed_elsewhere":
+        current.T(
+        "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
+        ) % (applongname, applongname),
+    }
+    checkboxes_std = {
+        "guide_read":
+        "I read the guide for authors",
+
+        "approvals_obtained":
+        "If applicable, all the necessary approvals have been obtained before submission (or not applicable)",
+
+        "human_subject_consent_obtained":
+        "If applicable, a statement that informed consent was obtained, for experimentation with human subjects, is in the manuscript (or not applicable)",
+
+        "lines_numbered":
+        "Lines are numbered",
+
+        "funding_sources_listed":
+        "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter",
+
+        "conflicts_of_interest_indicated":
+        "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter",
+
+        "no_financial_conflict_of_interest":
+        "The authors declare that they have no financial conflict of interest with the content of the manuscript",
+    }
+    checkboxes = dict(checkboxes_min)
+    checkboxes.update(checkboxes_std)
+
+    if pciRRactivated:
+        checkboxes = checkboxes_min
+
+    fields = [
+        Field(
+            name,
+            type="boolean",
+            label=current.T(label),
+            requires=IS_NOT_EMPTY(),
+        )
+        for name, label in checkboxes.items()
+    ]
+    extra = SQLFORM.factory(
+        *fields,
+        table_name="t_articles",
+    )
+
+    for field in extra.elements('.form-group')[:-1]: # discard submit button
+        form[0].insert(-1, field)

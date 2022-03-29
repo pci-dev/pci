@@ -524,7 +524,6 @@ def updUserThumb(s, f):
     return None
 
 
-applongname = myconf.take("app.longname")
 appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers"))
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
@@ -631,72 +630,6 @@ db.define_table(
             A("see the code of conduct", _href="../about/ethics", _target="_blank"),
         ),
     ),
-    Field("i_am_an_author", type="boolean", label=T("I am an author of the article and I am acting on behalf of all authors")),
-    Field(
-        "is_not_reviewed_elsewhere",
-        type="boolean",
-        label=T(
-            "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
-        )
-        % (applongname, applongname),
-    ),
-    Field(
-        "guide_read",
-        type="boolean",
-        label=T(
-            "I read the guide for authors."
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "approvals_obtained",
-        type="boolean",
-        label=T(
-            "If applicable, all the necessary approvals have been obtained before submission. (Or not applicable.)"
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "human_subject_consent_obtained",
-        type="boolean",
-        label=T(
-            "If applicable, a statement that informed consent was obtained, for experimentation with human subjects, is in the manuscript.  (Or not applicable.)"
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "lines_numbered",
-        type="boolean",
-        label=T(
-            "Lines are numbered."
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "funding_sources_listed",
-        type="boolean",
-        label=T(
-            "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter."
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "conflicts_of_interest_indicated",
-        type="boolean",
-        label=T(
-            "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter."
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-    Field(
-        "no_financial_conflict_of_interest",
-        type="boolean",
-        label=T(
-            "The authors declare that they have no financial conflict of interest with the content of the manuscript."
-        ),
-        requires=IS_NOT_EMPTY(),
-    ),
-
     Field(
         "parallel_submission",
         type="boolean",

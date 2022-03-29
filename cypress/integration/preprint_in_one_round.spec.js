@@ -60,15 +60,25 @@ describe("Preprint recommended in one round", () => {
         );
       });
 
+      var is_rr = false;
+      if (is_rr) {
+        cy.get("#t_articles_report_stage").send_keys("Stage 1");
+        cy.get("#t_articles_ms_version").typeFast("v1");
+        cy.get("#t_articles_sub_thematics").typeFast("sub-thematic");
+      }
+
+      if (!is_rr) {
       cy.get("#t_articles_no_results_based_on_data").click();
       cy.get("#t_articles_no_scripts_used_for_result").click();
       cy.get("#t_articles_codes_used_in_study").click();
       cy.get("#t_articles_codes_doi").typeFast("https://github.com/");
+      }
 
       cy.get('input[name="thematics"]').first().click();
 
       cy.get("#t_articles_i_am_an_author").click();
       cy.get("#t_articles_is_not_reviewed_elsewhere").click();
+      if (!is_rr) {
       cy.get("#t_articles_guide_read").click();
       cy.get("#t_articles_approvals_obtained").click();
       cy.get("#t_articles_human_subject_consent_obtained").click();
@@ -76,8 +86,14 @@ describe("Preprint recommended in one round", () => {
       cy.get("#t_articles_funding_sources_listed").click();
       cy.get("#t_articles_conflicts_of_interest_indicated").click();
       cy.get("#t_articles_no_financial_conflict_of_interest").click();
+      }
 
       cy.get("input[type=submit]").click();
+
+      if (is_rr) {
+        fill_survey();
+        gy.get("input[type=submit]").click();
+      }
 
       cy.wait(500);
       cy.contains(".w2p_flash", "Article submitted").should("exist");
