@@ -881,6 +881,12 @@ def fill_report_survey():
         if doUpdateArticle == True:
             art.update_record()
 
+        # Temporarily disable this RR track
+        # should never get there, as this item is not-selectable
+        if form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+            response.flash = T("The scheduled review track is temporarily disabled", lazy=False)
+            return _fill_report_survey(form)
+
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
 
@@ -893,6 +899,10 @@ def fill_report_survey():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+    return _fill_report_survey(form)
+
+
+def _fill_report_survey(form):
     myScript = common_tools.get_template("script", "fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
@@ -1066,6 +1076,12 @@ def edit_report_survey():
     form = SQLFORM(db.t_report_survey, survey.id, fields=fields, keepvalues=True,)
 
     if form.process().accepted:
+        # Temporarily disable this RR track
+        # should never get there, as this item is not-selectable
+        if form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+            response.flash = T("The scheduled review track is tempoarily disabled", lazy=False)
+            return _edit_report_survey(form)
+
         doUpdateArticle = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
@@ -1088,6 +1104,10 @@ def edit_report_survey():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+    return _edit_report_survey(form)
+
+
+def _edit_report_survey(form):
     myScript = common_tools.get_template("script", "fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
