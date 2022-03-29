@@ -287,15 +287,12 @@ def do_ask_to_review():
     noConflict = request.vars["no_conflict_of_interest"]
     if noConflict != "yes":
         raise HTTP(403, "403: " + T("ERROR: No conflict of interest not checked"))
+    recomm = db(db.t_recommendations.article_id == articleId).select().last()
+    amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
 
-    amIReviewer = (
-        db((db.t_recommendations.article_id == articleId) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
-    )
     if amIReviewer:
         raise HTTP(403, "403: " + T("ERROR: Already reviewer on this article"))
     
-
-    recomm = db(db.t_recommendations.article_id == articleId).select().last()
     if recomm.recommender_id == auth.user_id:
         raise HTTP(403, "403: " + T("ERROR: You are the recommender this article"))
 

@@ -1569,14 +1569,9 @@ def ask_to_review():
 
     disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
     actionFormUrl = URL("user_actions", "do_ask_to_review")
-
     amISubmitter = article.user_id == auth.user_id
-
-    amIReviewer = (
-        db((db.t_recommendations.article_id == articleId) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
-    )
-
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
+    amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
     amIRecommender = recomm.recommender_id == auth.user_id
 
     rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
