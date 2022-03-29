@@ -595,7 +595,7 @@ def mailing_queue():
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
     db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.article_id.represent = lambda art_id, row: common_small_html.mkRepresentArticleLightLinked(auth, db, art_id)
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
+    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
 
@@ -649,8 +649,8 @@ def mailing_queue():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
-            db.mail_queue.cc_mail_addresses,
-            db.mail_queue.replyto_addresses,
+            #db.mail_queue.cc_mail_addresses,
+            #db.mail_queue.replyto_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
