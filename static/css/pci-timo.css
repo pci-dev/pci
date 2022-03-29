@@ -15,6 +15,13 @@
         height: 100vh!important;
     }
 
+    td .ellipsis-over-500 {
+        min-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .navbar-nav .open .dropdown-menu {
         text-align: center;
     }
@@ -1116,6 +1123,10 @@
     html {
         max-width: 120rem;
         margin: auto;
+    }
+
+    td .ellipsis-over-500 {
+        min-width: 500px;
     }
 
     .pci2-recomm-backButtonDiv {
