@@ -2937,3 +2937,8 @@ ALTER alerts SET DEFAULT 'Weekly';
 
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS competitors text;
+
+-- 2022-03-30 updates/add_anonymous_agreement.sql
+
+ALTER TABLE "t_reviews"
+ADD COLUMN anonymous_agreement boolean;
