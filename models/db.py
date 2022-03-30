@@ -631,6 +631,14 @@ db.define_table(
         ),
     ),
     Field(
+        "competitors",
+        type="text",
+        label=T("Colleagues seen as potential competitors. (Optional)"),
+        length=20000,
+        widget=widget(_placeholder='e.g. Chris Chambers, chris@chambers.com', _readonly=False),
+        comment=SPAN(),
+    ),
+    Field(
         "parallel_submission",
         type="boolean",
         label=T("Parallel submission"),

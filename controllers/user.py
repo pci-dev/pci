@@ -357,6 +357,8 @@ def fill_new_article():
     db.t_articles.cover_letter.writable = True
     db.t_articles.suggest_reviewers.readable = True
     db.t_articles.suggest_reviewers.writable = True
+    db.t_articles.competitors.readable = True
+    db.t_articles.competitors.writable = True
 
     db.t_articles.results_based_on_data.requires(db.data_choices)
     db.t_articles.scripts_used_for_result.requires(db.script_choices)
@@ -432,6 +434,7 @@ def fill_new_article():
 
     if not pciRRactivated:
         fields += ["suggest_reviewers"]
+        fields += ["competitors"]
     
     fields += ["cover_letter"]
 

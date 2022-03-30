@@ -241,7 +241,10 @@ def getArticleInfosCard(auth, db, response, article, printable,
 
     if article.suggest_reviewers is not None:
         articleContent.update([("suggestReviewers", WIKI(article.suggest_reviewers or "", safe_mode=False))])
-        
+
+    if article.competitors is not None:
+        articleContent.update([("competitors", WIKI(article.competitors or "", safe_mode=False))])
+
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 

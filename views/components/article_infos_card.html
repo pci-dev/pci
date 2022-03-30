@@ -322,6 +322,52 @@
       {{=suggestReviewers}}
     </div>
   {{pass}}
+  {{pass}}
+
+  {{if 'competitors' in locals():}}
+  <div 
+    style="margin: 15px 0 0px;"
+    {{if not printable:}}
+      onclick="
+        if( jQuery('#menu-7' ).hasClass('pci2-panel-closed')) { 
+          jQuery('#menu-7').removeClass('pci2-panel-closed') 
+          jQuery('#icon-menu-7').removeClass('glyphicon-rotate') 
+          jQuery('#icon-menu-7').addClass('glyphicon-rotate-reversed') 
+        } else {
+          jQuery('#menu-7').addClass('pci2-panel-closed') 
+          jQuery('#icon-menu-7').removeClass('glyphicon-rotate-reversed') 
+          jQuery('#icon-menu-7').addClass('glyphicon-rotate')
+        }
+      "
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center" 
+    {{pass}}
+  >
+  <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+  >Competitors</b
+  >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+  
+    {{if 'competitors' in locals() and not printable:}}
+      <i id="icon-menu-7" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+    {{pass}}
+  </div>
+  
+  {{if 'competitors' in locals() and not printable:}}
+    <div id="menu-7" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=competitors}}
+    </div>
+  {{pass}}
+  
+  {{if 'competitors' in locals() and printable:}}
+    <div id="menu-7" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=competitors}}
+    </div>
+  {{pass}}
 {{pass}}
 </div>
 
