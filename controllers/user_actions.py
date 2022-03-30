@@ -301,7 +301,11 @@ def do_ask_to_review():
     reviewerId = request.vars.reviewerId
 
     revId = db.t_reviews.update_or_insert(
-        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Willing to review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
+        recommendation_id=recomm.id,
+        reviewer_id=theUser.id,
+        review_state="Willing to review",
+        no_conflict_of_interest=True,
+        acceptation_timestamp=datetime.datetime.now(),
     )
 
     # email to recommender sent at database level

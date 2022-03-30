@@ -1631,7 +1631,14 @@ def edit_review():
             db.t_reviews.anonymously.label = T("I wish to remain anonymous")
 
         form = SQLFORM(
-            db.t_reviews, record=review, fields=["anonymously", "review", "review_pdf", "no_conflict_of_interest"], showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
+            db.t_reviews, record=review,
+            fields=[
+                "anonymously",
+                "review",
+                "review_pdf",
+                "no_conflict_of_interest",
+            ],
+            showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
 
         if form.process().accepted:
