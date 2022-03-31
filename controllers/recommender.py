@@ -1063,12 +1063,14 @@ def reviews():
         db.t_reviews.recommendation_id.default = recommId
         db.t_reviews.recommendation_id.writable = False
         db.t_reviews.recommendation_id.readable = False
-        db.t_reviews.reviewer_id.writable = auth.has_membership(role="manager")
+        db.t_reviews.reviewer_id.writable = False
         db.t_reviews.reviewer_id.default = auth.user_id
         db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) \
                 if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id)
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
+        db.t_reviews.anonymous_agreement.writable = False
+        db.t_reviews.no_conflict_of_interest.writable = False
         db.t_reviews.review.writable = auth.has_membership(role="manager")
         db.t_reviews.review_state.writable = auth.has_membership(role="manager")
         db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
