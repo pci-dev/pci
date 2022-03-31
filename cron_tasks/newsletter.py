@@ -18,7 +18,7 @@ def send_newsletter(freq):
             ((db.auth_user.last_alert != None) & (newsletter_date >= db.auth_user.last_alert))
           | ((db.auth_user.last_alert == None) & (newsletter_date >= db.auth_user.registration_datetime))
         )
-        & (db.auth_user.reset_password_key == '') # registered users only
+        & (db.auth_user.country != '') # users with filled profile (country is a mandatory field)
         & db.auth_user.alerts.contains(freq)
     ).select()
 
