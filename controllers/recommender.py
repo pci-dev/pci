@@ -1070,7 +1070,9 @@ def reviews():
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
         db.t_reviews.anonymous_agreement.writable = False
+        db.t_reviews.anonymous_agreement.label = T("Name may be passed on to journal")
         db.t_reviews.no_conflict_of_interest.writable = False
+        db.t_reviews.no_conflict_of_interest.label = T("No conflicts of interest")
         db.t_reviews.review.writable = auth.has_membership(role="manager")
         db.t_reviews.review_state.writable = auth.has_membership(role="manager")
         db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
