@@ -152,6 +152,7 @@ def do_accept_new_review():
     rev.review_state = "Awaiting review"
     rev.no_conflict_of_interest = True
     rev.acceptation_timestamp = datetime.datetime.now()
+    rev.anonymous_agreement=request.vars["anonymous_agreement"] or False
     rev.update_record()
     # email to recommender sent at database level
     recomm = db.t_recommendations[rev.recommendation_id]
@@ -301,7 +302,12 @@ def do_ask_to_review():
     reviewerId = request.vars.reviewerId
 
     revId = db.t_reviews.update_or_insert(
-        recommendation_id=recomm.id, reviewer_id=theUser.id, review_state="Willing to review", no_conflict_of_interest=True, acceptation_timestamp=datetime.datetime.now()
+        recommendation_id=recomm.id,
+        reviewer_id=theUser.id,
+        review_state="Willing to review",
+        no_conflict_of_interest=True,
+        acceptation_timestamp=datetime.datetime.now(),
+        anonymous_agreement=request.vars["anonymous_agreement"] or False,
     )
 
     # email to recommender sent at database level

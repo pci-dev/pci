@@ -914,6 +914,7 @@ db.define_table(
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("reviewer_id", type="reference auth_user", ondelete="RESTRICT", label=T("Reviewer")),
     Field("anonymously", type="boolean", label=T("Anonymously"), default=False),
+    Field("anonymous_agreement", type="boolean", label=T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name may be passed on in confidence to that journal.')),
     Field("no_conflict_of_interest", type="boolean", label=T("I declare that I have no conflict of interest with the authors or the content of the article")),
     Field(
         "review_state",
