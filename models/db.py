@@ -631,6 +631,14 @@ db.define_table(
         ),
     ),
     Field(
+        "competitors",
+        type="text",
+        label=T("Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"),
+        length=20000,
+        widget=widget(_placeholder='e.g. Chris Chambers, chris@chambers.com', _readonly=False),
+        comment=SPAN(),
+    ),
+    Field(
         "parallel_submission",
         type="boolean",
         label=T("Parallel submission"),
