@@ -2932,3 +2932,8 @@ ADD COLUMN  IF NOT EXISTS suggest_reviewers text;
 
 ALTER TABLE auth_user
 ALTER alerts SET DEFAULT 'Weekly';
+
+-- 2022-03-31 updates/add_competitors.sql
+
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS competitors text;
