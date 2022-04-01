@@ -55,10 +55,18 @@ main() {
 			;;
 		site)
 			case $2 in
-				Weekly|Monthly|"Every two weeks"|"") ;;
-				*) echo "invalid freq: $2"; exit 2 ;;
+				n) freq=Never;;
+				w) freq=Weekly;;
+				m) freq=Monthly;;
+				b) freq="Every two weeks";;
+				*)
+				echo "invalid freq: $2";
+				echo "use one of:"
+				grep 'freq=' $0 | grep -v grep \
+				| sed 's/;;//; s/ .*=/ /; s/^[[:space:]]*/\t/'
+					exit 2 ;;
 			esac
-			show_site_load ${2:-Weekly}
+			show_site_load $freq
 			;;
 		all)
 			show_freq_load
