@@ -491,8 +491,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
             if auth.has_membership(role="recommender") and amICoRecommender and recommReviewFilledOrNull:
                 hideOngoingReview = False
-            # ... or a manager, unless submitter or reviewer
-            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not amIReviewer:
+            # ... or a manager, unless submitter
+            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and amIReviewer:
                 hideOngoingReview = False
 
             # ... or if engaged in stage 2 process (pci RR)
