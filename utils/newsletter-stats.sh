@@ -44,6 +44,17 @@ show_never() {
 	done
 }
 
+update_never_logged_or_no_profile() {
+	./all-pci-db.sh | while read db; do
+		printf "%25s:" "$db"
+		psql -h mydb1 -p 33648 -U peercom $db -t -c "
+		update auth_user
+		set alerts = 'Never'
+		where reset_password_key != '' or country is null
+		"
+	done | sed '/^$/d'
+}
+
 main() {
 	case $1 in
 		""|-h|--help)
@@ -73,6 +84,9 @@ main() {
 			;;
 		never)
 			show_never
+			;;
+		update)
+			update_never_logged_or_no_profile
 			;;
 		*)
 			echo "unknown command: $1"
