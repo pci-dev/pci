@@ -1,9 +1,10 @@
 #!/bin/bash
 
+PSQL="psql -h mydb1 -p 33648 -U peercom"
 
 date_load() {
 	./all-pci-db.sh | while read db ; do
-		psql -h mydb1 -p 33648 -U peercom $db -c "
+		$PSQL $db -c "
 		select last_alert from auth_user
 		where alerts != 'Never'
 		" | egrep "^ [0-9]"
@@ -17,7 +18,7 @@ show_date_load() {
 show_site_load() {
 	./all-pci-db.sh | while read db; do
 		printf "%25s" $db
-		psql -h mydb1 -p 33648 -U peercom $db -c "
+		$PSQL $db -c "
 		select count(id) from auth_user
 		where alerts = '$1'
 		" | sed -n 3p
@@ -27,7 +28,7 @@ show_site_load() {
 show_freq_load() {
 	./all-pci-db.sh | while read db;
 		do echo === $db ===
-		psql -h mydb1 -p 33648 -U peercom $db -c "
+		$PSQL $db -c "
 		select alerts, last_alert from auth_user
 		" | egrep '[0-9]$' | cut -c -30 | sort | uniq -c
 	done
@@ -36,7 +37,7 @@ show_freq_load() {
 show_never() {
 	./all-pci-db.sh | while read db; do
 		echo === $db ===
-		psql -h mydb1 -p 33648 -U peercom $db -c "
+		$PSQL $db -c "
 		select alerts, email, registration_datetime, last_alert
 		from auth_user
 		where alerts='Never'
@@ -47,7 +48,7 @@ show_never() {
 update_never_logged_or_no_profile() {
 	./all-pci-db.sh | while read db; do
 		printf "%25s:" "$db"
-		psql -h mydb1 -p 33648 -U peercom $db -t -c "
+		$PSQL $db -t -c "
 		update auth_user
 		set alerts = 'Never'
 		where reset_password_key != '' or country is null
