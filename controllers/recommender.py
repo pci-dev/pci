@@ -1063,7 +1063,7 @@ def reviews():
         db.t_reviews.recommendation_id.default = recommId
         db.t_reviews.recommendation_id.writable = False
         db.t_reviews.recommendation_id.readable = False
-        db.t_reviews.reviewer_id.writable = False
+        db.t_reviews.reviewer_id.writable = auth.has_membership(role="manager")
         db.t_reviews.reviewer_id.default = auth.user_id
         db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) \
                 if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id)
