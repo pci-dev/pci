@@ -397,8 +397,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         #  ... unless he/she is THE recommender
         if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender):
             hideOngoingRecomm = False
-        # or a manager, provided he/she is reviewer
-        if auth.has_membership(role="manager") and (art.user_id != auth.user_id) and (amIReviewer is False):
+        # or a manager
+        if auth.has_membership(role="manager") and (art.user_id != auth.user_id):
             hideOngoingRecomm = False
 
         authorsReply = None
@@ -492,7 +492,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="recommender") and amICoRecommender and recommReviewFilledOrNull:
                 hideOngoingReview = False
             # ... or a manager, unless submitter
-            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and amIReviewer:
+            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id):
                 hideOngoingReview = False
 
             # ... or if engaged in stage 2 process (pci RR)
@@ -580,6 +580,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 recommendationLabel = current.T("Your recommendation")
             elif amICoRecommender:
                 recommendationLabel = current.T("Your co-recommendation")
+            elif auth.has_membership(role="manager"):
+                recommendationLabel = current.T("Decision")
             else:
                 recommendationLabel = current.T("Recommendation")
         else:
