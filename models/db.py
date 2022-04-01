@@ -406,6 +406,7 @@ auth.settings.extra_fields["auth_user"] = [
                 A(T("code of conduct"), _target="_blank", _href=URL("about", "ethics")),
             ),
         ),
+        requires=IS_NOT_EMPTY(),
     ),
     Field("recover_email", label=T("Recover e-mail address"), unique=True, type="string", writable=False, readable=False),
     Field("recover_email_key", label=T("Recover e-mail key"), unique=True, type="string", writable=False, readable=False),
