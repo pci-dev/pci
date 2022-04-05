@@ -164,6 +164,50 @@ def list_users():
         maxtextlength=250,
         paginate=25,
     )
+
+    try:
+        # gather elements
+        panel = grid.elements('div#w2p_query_panel')[0]
+        panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
+        add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
+        btns = grid.elements('input.btn-default')
+
+        # change elements
+        panel.__getattribute__('attributes').update({'_style':'display:flex'})
+        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+        add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
+        for btn in btns:
+            if btn.__getattribute__('attributes')['_value'] == 'New Search':
+                btn.__getattribute__('attributes').update({'_value':'ADD'})
+                btn.__getattribute__('attributes').update({'_id':'add-btn'})
+            elif btn.__getattribute__('attributes')['_value'] == '+ And':
+                btn.__getattribute__('attributes').update({'_style':'display:none'})
+                btn.__getattribute__('attributes').update({'_id':'and-btn'})
+            elif btn.__getattribute__('attributes')['_value'] == '+ Or':
+                btn.__getattribute__('attributes').update({'_style':'display:none'})
+                btn.__getattribute__('attributes').update({'_id':'or-btn'})
+            elif btn.__getattribute__('attributes')['_value'] == 'Close':
+                btn.__getattribute__('attributes').update({'_style':'display:none'})
+        
+        # remove elements from initial positions
+        grid.elements('div#w2p_query_panel', replace=None)
+        grid.elements('div.web2py_breadcrumbs', replace=None)
+        grid.elements('div.web2py_console a.btn-secondary', replace=None)
+        
+        # add elements at different positions
+        grid.elements('div.web2py_console ')[0].insert(0, panel)
+        grid.elements('div.web2py_console ')[0].insert(0, add_btn)
+            
+    except:
+        pass
+    
+
+
+
+    #for k in grid.elements('div'):
+    #    print(k)
+    #    print(type(k))
+
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
