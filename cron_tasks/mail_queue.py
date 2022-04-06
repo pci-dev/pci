@@ -136,13 +136,13 @@ def updateSendingStatus(mail_item, isSent):
     db.commit()
 
 
-def logMailsInQueue(queue_length):
-    if queue_length > 0:
-        colored_queue_length = "\033[1m\033[93m%i\033[0m" % queue_length
-    else:
-        colored_queue_length = "\033[1m\033[90m%i\033[0m" % queue_length
-    colored_date = "[\033[90m%s\033[0m]" % datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-    print("%s Mail(s) in queue : %s" % (colored_date, colored_queue_length))
+def logMailsInQueue(mails_in_queue):
+    if not mails_in_queue:
+        return
+
+    queue_length = len(mails_in_queue)
+    date_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    print("%s Mail(s) in queue : %s" % (date_time, queue_length))
     if log:
          msg = "Queue length = %(queue_length)s" % locals()
          log.info(msg)
@@ -174,7 +174,7 @@ def logSendingStatus(mail_item, isSent):
 ######################################################################################################################################################################
 #print("Entering sendQueuedMails")
 mails_in_queue = getMailsInQueue()
-logMailsInQueue(len(mails_in_queue))
+logMailsInQueue(mails_in_queue)
 # As the cron runs every minute, we break when the threshold of 50s is reached.
 # Remaining emails will be sent on next cron.
 start_ts = datetime.now().timestamp()
