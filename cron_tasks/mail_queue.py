@@ -20,7 +20,6 @@ if (myconf.get("config.use_logger", default=True) is True):
 		hand.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
 		log.root.addHandler(hand)
 		log.setLevel(logging.INFO)
-		print("systemd logging used")
 	except:
 		print("systemd logging not available")
 else:
