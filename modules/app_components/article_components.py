@@ -218,7 +218,8 @@ def getArticleInfosCard(auth, db, response, article, printable,
     isReviewer = db(
             (db.t_reviews.reviewer_id == auth.user_id) &
             (db.t_recommendations.article_id == article.id) &
-            (db.t_reviews.recommendation_id == db.t_recommendations.id)
+            (db.t_reviews.recommendation_id == db.t_recommendations.id) &
+            (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count() > 0
 
     def policy_1():
