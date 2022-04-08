@@ -133,81 +133,42 @@ def list_users():
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
 
-    grid = SQLFORM.smartgrid(
-        db.auth_user,
-        fields=fields,
-        linked_tables=[
-            "auth_user",
-            "auth_membership",
-            "t_articles",
-            "t_recommendations",
-            "t_reviews",
-            "t_press_reviews",
-            "t_comments",
-        ],
-        links=links,
-        csv=False,
-        exportclasses=dict(auth_user=expClass, auth_membership=expClass),
-        editable=dict(auth_user=True, auth_membership=False),
-        details=dict(auth_user=True, auth_membership=False),
-        searchable=dict(auth_user=True, auth_membership=False),
-        create=dict(
-            auth_user=create,
-            auth_membership=create,
-            t_articles=create,
-            t_recommendations=create,
-            t_reviews=create,
-            t_press_reviews=create,
-            t_comments=create,
-        ),
-        selectable=selectable,
-        maxtextlength=250,
-        paginate=25,
+    original_grid = SQLFORM.smartgrid(
+                    db.auth_user,
+                    fields=fields,
+                    linked_tables=[
+                        "auth_user",
+                        "auth_membership",
+                        "t_articles",
+                        "t_recommendations",
+                        "t_reviews",
+                        "t_press_reviews",
+                        "t_comments",
+                    ],
+                    links=links,
+                    csv=False,
+                    exportclasses=dict(auth_user=expClass, auth_membership=expClass),
+                    editable=dict(auth_user=True, auth_membership=False),
+                    details=dict(auth_user=True, auth_membership=False),
+                    searchable=dict(auth_user=True, auth_membership=False),
+                    create=dict(
+                        auth_user=create,
+                        auth_membership=create,
+                        t_articles=create,
+                        t_recommendations=create,
+                        t_reviews=create,
+                        t_press_reviews=create,
+                        t_comments=create,
+                    ),
+                    selectable=selectable,
+                    maxtextlength=250,
+                    paginate=25,
     )
 
-    try:
-        # gather elements
-        panel = grid.elements('div#w2p_query_panel')[0]
-        panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
-        add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
-        btns = grid.elements('input.btn-default')
-
-        # change elements
-        panel.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
-        for btn in btns:
-            if btn.__getattribute__('attributes')['_value'] == 'New Search':
-                btn.__getattribute__('attributes').update({'_value':'ADD'})
-                btn.__getattribute__('attributes').update({'_id':'add-btn'})
-            elif btn.__getattribute__('attributes')['_value'] == '+ And':
-                btn.__getattribute__('attributes').update({'_style':'display:none'})
-                btn.__getattribute__('attributes').update({'_id':'and-btn'})
-            elif btn.__getattribute__('attributes')['_value'] == '+ Or':
-                btn.__getattribute__('attributes').update({'_style':'display:none'})
-                btn.__getattribute__('attributes').update({'_id':'or-btn'})
-            elif btn.__getattribute__('attributes')['_value'] == 'Close':
-                btn.__getattribute__('attributes').update({'_style':'display:none'})
-        
-        # remove elements from initial positions
-        grid.elements('div#w2p_query_panel', replace=None)
-        grid.elements('div.web2py_breadcrumbs', replace=None)
-        grid.elements('div.web2py_console a.btn-secondary', replace=None)
-        
-        # add elements at different positions
-        grid.elements('div.web2py_console ')[0].insert(0, panel)
-        grid.elements('div.web2py_console ')[0].insert(0, add_btn)
-            
-    except:
-        pass
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid(original_grid)
+    except: pass
     
-
-
-
-    #for k in grid.elements('div'):
-    #    print(k)
-    #    print(type(k))
-
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
@@ -228,7 +189,6 @@ def list_users():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_lists():
     response.view = "default/myLayout.html"
-
     myContents = DIV()
     myContents.append(H1(T("Roles:")))
     contentDiv = DIV(_style="padding-left:32px;")
@@ -740,3 +700,68 @@ def mail_form_processing(form):
 
     if form.content_saved:
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
+
+
+def adjust_grid(grid):
+    '''
+    function that adjusts the grid after its generation
+    '''
+    # gather elements
+    panel = grid.elements('div#w2p_query_panel')[0]
+    panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
+    add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
+    btns = grid.elements('input.btn-default')
+    select_panel = grid.elements('select#w2p_query_fields')[0]
+    regulator_panels = grid.elements('select.form-control')
+
+    # change elements
+    panel.__getattribute__('attributes').update({'_style':'display:flex'})
+    panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
+    for btn in btns:
+        if btn.__getattribute__('attributes')['_value'] == 'New Search':
+            btn.__getattribute__('attributes').update({'_value':'ADD'})
+            btn.__getattribute__('attributes').update({'_class':'btn btn-default add-btn'})
+        elif btn.__getattribute__('attributes')['_value'] == '+ And':
+            btn.__getattribute__('attributes').update({'_style':'display:none'})
+            btn.__getattribute__('attributes').update({'_class':'btn btn-default and-btn'})
+        elif btn.__getattribute__('attributes')['_value'] == '+ Or':
+            btn.__getattribute__('attributes').update({'_style':'display:none'})
+            btn.__getattribute__('attributes').update({'_class':'btn btn-default or-btn'})
+        elif btn.__getattribute__('attributes')['_value'] == 'Close':
+            btn.__getattribute__('attributes').update({'_style':'display:none'})
+    
+    # remove options, regulators, and other elements that are not required
+    remove_options = ['auth_user.id', 'auth_user.registration_key', 'auth_user.website',
+                      'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
+                      'auth_user.ethical_code_approved']
+
+    for option in select_panel:
+        # initialise First Name as initially chosen field
+        if option.__getattribute__('attributes')['_value'] == 'auth_user.first_name':
+            option.__getattribute__('attributes').update({'_selected':'selected'})
+            grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'))[0].__getattribute__('attributes').update({'_style':'display:flex'})
+        # remove the fields that are not required
+        elif option.__getattribute__('attributes')['_value'] in remove_options:
+            option.__getattribute__('attributes').update({'_style':'display:none'})
+            grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'), replace=None)
+    
+    remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
+    for selector in regulator_panels:
+        options = selector.elements('option')
+        for option in options:
+            if option.__getattribute__('attributes')['_value'] == 'contains':
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
+            elif option.__getattribute__('attributes')['_value'] in remove_regulators:
+                option.__getattribute__('attributes').update({'_style':'display:none'})
+
+    grid.elements('div#w2p_query_panel', replace=None)
+    grid.elements('div.web2py_breadcrumbs', replace=None)
+    grid.elements('div.web2py_console a.btn-secondary', replace=None)
+
+    # add elements at different positions
+    grid.elements('div.web2py_console ')[0].insert(0, panel)
+    grid.elements('div.web2py_console ')[0].insert(0, add_btn)
+
+    return grid
