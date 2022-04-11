@@ -212,6 +212,31 @@ def getArticleInfosCard(auth, db, response, article, printable,
     else:
         authors = article.authors
 
+    # info visibility policies
+    recomm = db(db.t_recommendations.article_id == article.id).select().last()
+    isRecommender = recomm and recomm.recommender_id == auth.user_id
+    isReviewer = db(
+            (db.t_reviews.reviewer_id == auth.user_id) &
+            (db.t_recommendations.article_id == article.id) &
+            (db.t_reviews.recommendation_id == db.t_recommendations.id) &
+            (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
+    ).count() > 0
+
+    def policy_1():
+        return (
+            auth.has_membership(role="manager") or
+            auth.has_membership(role="administrator")
+            or
+            isRecommender
+        )
+
+    def policy_2():
+        return (
+            policy_1()
+            or
+            isReviewer
+        )
+
     articleContent = dict()
     articleContent.update(
         [
@@ -230,25 +255,25 @@ def getArticleInfosCard(auth, db, response, article, printable,
         ]
     )
 
-    if article.data_doi is not None:
+    if article.data_doi is not None and policy_2():
         articleContent.update([("dataDoi", (common_small_html.mkDOI(article.data_doi)) if (article.data_doi) else SPAN(""))])
 
-    if article.scripts_doi is not None:
+    if article.scripts_doi is not None and policy_2():
         articleContent.update([("scriptDoi", (common_small_html.mkDOI(article.scripts_doi)) if (article.scripts_doi) else SPAN(""))])
 
-    if article.codes_doi is not None:
+    if article.codes_doi is not None and policy_2():
         articleContent.update([("codeDoi", (common_small_html.mkDOI(article.codes_doi)) if (article.codes_doi) else SPAN(""))])
 
-    if article.suggest_reviewers is not None:
+    if article.suggest_reviewers is not None and policy_1():
         articleContent.update([("suggestReviewers", WIKI(article.suggest_reviewers or "", safe_mode=False))])
 
-    if article.competitors is not None:
+    if article.competitors is not None and policy_1():
         articleContent.update([("competitors", WIKI(article.competitors or "", safe_mode=False))])
 
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 
-    if with_cover_letter and not article.already_published:
+    if with_cover_letter and not article.already_published and policy_1():
         articleContent.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=False))])
 
     if submittedBy:
