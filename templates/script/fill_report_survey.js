@@ -213,6 +213,6 @@ function disable_scheduled_track() {
 	var q1 = document.querySelector("#t_report_survey_q1");
 	var opt = q1.children[2];
 	opt.disabled = true;
-	opt.innerHTML += " >====> TEMPORARILY DISABLED until April 18 <====";
+	opt.innerHTML += " >====> TEMPORARILY DISABLED until May 6 <====";
 }
 disable_scheduled_track()
