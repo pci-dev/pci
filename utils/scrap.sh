@@ -97,7 +97,6 @@ for site in $SITES; do
 	(
 	get_data > $site.txt
 	split_to_files
-	rm -f $site.txt
 	) &
 done
 wait
@@ -105,4 +104,8 @@ wait
 for role in recommender Reviewers: Authors: Others: ; do
 	target=$(echo $role | sed 's/s:$//' | tr '[A-Z]' '[a-z]')
 	cat *.$role.txt | sort -u > $target.txt
+done
+
+for site in $SITES; do
+	rm -f $site.*
 done
