@@ -33,8 +33,10 @@ EOT
 }
 source $CREDENTIALS
 
+set +x
+
 [ "$LOGIN" ] && [ "$PASSW" ] || {
-	: login/password not defined
+	echo login/password not defined
 	exit 1
 }
 
