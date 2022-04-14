@@ -82,8 +82,20 @@ rm -f $TEMP*
 }
 
 
+split_to_files() {
+	for role in recommender manager administrator developer; do
+		sed "1,/^$role$/ d; /^[a-z]*$/,$ d" $site.txt > $site.$role.txt
+	done
+	sed "1,/^Authors:$/ d; /^$/,$ d" $site.txt > $site.author.txt
+}
+
+
 for site in $SITES; do
 	BASE="https://$site.peercommunityin.org"
-	get_data > $site.txt &
+	(
+	get_data > $site.txt
+	split_to_files
+	rm -f $site.txt
+	) &
 done
 wait
