@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 
 SITES="
 archaeo
@@ -23,9 +22,12 @@ rr
 
 CREDENTIALS=~/.pci-login
 [ -f $CREDENTIALS ] || {
-	:
-	: creating $CREDENTIALS, please provide credentials in there.
-	:
+	cat <<EOT
+:
+: creating $CREDENTIALS
+: please provide credentials in there.
+:
+EOT
 	cat > $CREDENTIALS <<EOT
 LOGIN=
 PASSW=
@@ -33,12 +35,12 @@ EOT
 }
 source $CREDENTIALS
 
-set +x
 
 [ "$LOGIN" ] && [ "$PASSW" ] || {
 	echo login/password not defined
 	exit 1
 }
+
 
 get_data() {
 
@@ -92,14 +94,18 @@ split_to_files() {
 }
 
 
+echo "$SITES"
+
 for site in $SITES; do
 	BASE="https://$site.peercommunityin.org"
 	(
 	get_data > $site.txt
 	split_to_files
+	printf "."
 	) &
 done
 wait
+echo
 
 for role in recommender Reviewers: Authors: Others: ; do
 	target=$(echo $role | sed 's/s:$//' | tr '[A-Z]' '[a-z]')
@@ -109,3 +115,5 @@ done
 for site in $SITES; do
 	rm -f $site.*
 done
+
+wc -l *.txt | grep -v total
