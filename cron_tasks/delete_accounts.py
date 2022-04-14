@@ -22,6 +22,16 @@ def has_newer_invites(user_email):
     ).select()
 
 
+def update_reviews(user_id):
+    reviews = db(
+            (db.t_reviews.reviewer_id == user_id) &
+            (db.t_reviews.review_state == "Awaiting response")
+    ).select()
+    for rev in reviews:
+        rev.review_state = "Cancelled"
+        rev.update_record()
+
+
 def delete_accounts():
     invites = get_old_invites()
 
@@ -34,7 +44,9 @@ def delete_accounts():
         )
         if has_newer_invites(user_email):
             continue
-        if temporary_account.select():
+        account = temporary_account.select().last()
+        if account:
+            update_reviews(account.id)
             temporary_account.delete()
             print("deleted temporary user: " + user_email)
 
