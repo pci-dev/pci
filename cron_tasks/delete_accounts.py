@@ -30,7 +30,6 @@ def update_reviews(user_id):
     for rev in reviews:
         rev.review_state = "Cancelled"
         rev.update_record()
-        print("Review State updated")
 
 
 def delete_accounts():
