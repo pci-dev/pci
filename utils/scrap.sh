@@ -2,7 +2,24 @@
 
 set -x
 
-BASE="https://evolbiol.peercommunityin.org"
+SITES="
+archaeo
+animsci
+ecology
+compstat
+evolbiol
+microbiol
+ecotoxenvchem
+forestwoodsci
+networksci
+infections
+genomics
+neuro
+paleo
+zool
+mcb
+rr
+"
 
 CREDENTIALS=~/.pci-login
 [ -f $CREDENTIALS ] || {
@@ -21,6 +38,8 @@ source $CREDENTIALS
 	exit 1
 }
 
+get_data() {
+
 appname=$(
 wget -q -O - $BASE \
 	| grep application-name | sed 's/.*content="//;s/".*//'
@@ -28,7 +47,8 @@ wget -q -O - $BASE \
 LOGIN_URL="$BASE/default/user/login"
 DATA_URL="$BASE/$appname/admin/mailing_lists"
 
-COOKIES=cookies.txt
+TEMP=$(mktemp)
+COOKIES=$TEMP.cookies
 
 WGET="wget -q -O -
 	--keep-session-cookies
@@ -46,12 +66,22 @@ $WGET \
 $WGET \
 	--post-data "email=$LOGIN&password=$PASSW&_next=/&_formname=login&_formkey=$formkey" \
 	$LOGIN_URL \
-	> main.html
+	> $TEMP.main.html
 
 $WGET \
 	$DATA_URL \
-	> data.html
+	> $TEMP.data.html
 
-cat data.html \
+cat $TEMP.data.html \
 	| grep Roles | sed 's/<[^>]*>/\n/g' | sed 's/, /\n/g' \
-	> data.txt
+	;
+
+rm -f $TEMP*
+}
+
+
+for site in $SITES; do
+	BASE="https://$site.peercommunityin.org"
+	get_data > $site.txt &
+done
+wait
