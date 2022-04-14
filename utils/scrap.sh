@@ -4,8 +4,17 @@ set -x
 
 BASE="https://evolbiol.peercommunityin.org"
 
+CREDENTIALS=~/.pci-login
+[ -f $CREDENTIALS ] || {
+	:
+	: creating $CREDENTIALS, please provide credentials in there.
+	:
+	cat > $CREDENTIALS <<EOT
 LOGIN=
 PASSW=
+EOT
+}
+source $CREDENTIALS
 
 [ "$LOGIN" ] && [ "$PASSW" ] || {
 	: login/password not defined
