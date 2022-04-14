@@ -83,10 +83,12 @@ rm -f $TEMP*
 
 
 split_to_files() {
-	for role in recommender manager administrator developer; do
-		sed "1,/^$role$/ d; /^[a-z]*$/,$ d" $site.txt > $site.$role.txt
+	for role in recommender manager administrator developer \
+			Authors: Reviewers: Others: ;
+	do
+		sed "1,/^$role$/ d; /^[a-zA-Z:]*$/,$ d" \
+			$site.txt > $site.$role.txt
 	done
-	sed "1,/^Authors:$/ d; /^$/,$ d" $site.txt > $site.author.txt
 }
 
 
@@ -99,3 +101,8 @@ for site in $SITES; do
 	) &
 done
 wait
+
+for role in recommender Reviewers: Authors: Others: ; do
+	target=$(echo $role | sed 's/s:$//' | tr '[A-Z]' '[a-z]')
+	cat *.$role.txt | sort -u > $target.txt
+done
