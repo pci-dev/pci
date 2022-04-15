@@ -107,9 +107,15 @@ done
 wait
 echo
 
-for role in recommender Reviewers: Authors: Others: ; do
+mkdir -p site
+
+for role in manager recommender Reviewers: Authors: Others: ; do
 	target=$(echo $role | sed 's/s:$//' | tr '[A-Z]' '[a-z]')
 	cat *.$role.txt | sort -u > $target.txt
+	for site_file in *.$role.txt; do
+		site=${site_file%%.*}
+		cat $site_file | sort -u > site/$site.$target.txt
+	done
 done
 
 for site in $SITES; do
