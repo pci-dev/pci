@@ -1225,6 +1225,14 @@ def reviewers():
                 prevRoundHeader = DIV(H3(T("CHOOSE A REVIEWER FROM  PREVIOUS ROUND OF REVIEW:")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
                 customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
+        suggested_reviewers = ""
+        oppossed_reviewers = ""
+        if article.suggest_reviewers is not None:
+            sug_reviewers = article.suggest_reviewers.strip(",").split(',')
+            suggested_reviewers = DIV(H4(T("Reviewers suggested by the authors:")), H5(T("- This information is given, in the submission form, in the box "), I('''"Suggested reviewers - Suggest up to 10 reviewers (provide names and Email addresses). (Optional)"'''), UL(sug_reviewers)))
+        if article.competitors is not None:
+            competitors = article.competitors.strip(",").split(',')
+            oppossed_reviewers = DIV(H4(T("Reviewers opposed by the authors:")), H5(T("- This information is given, in the submission form, in the box "), I('''"Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"'''), UL(competitors)))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
@@ -1263,6 +1271,8 @@ def reviewers():
             myAcceptBtn=myAcceptBtn,
             content=myContents,
             prevContent=prevRoundHeader,
+            suggested_reviewers=suggested_reviewers,
+            oppossed_reviewers=oppossed_reviewers,
             form="",
             myUpperBtn=myUpperBtn,
         )

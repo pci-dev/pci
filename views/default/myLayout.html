@@ -22,6 +22,16 @@
 	<div class="pci2-flex-center content-btn-left">{{=prevContent}}</div>
 {{pass}}
 
+
+{{if 'suggested_reviewers' in locals():}}
+	<div class="pci2-flex-center content-btn-left">{{=suggested_reviewers}}</div>
+{{pass}}
+
+{{if 'oppossed_reviewers' in locals():}}
+	<div class="pci2-flex-center content-btn-left">{{=oppossed_reviewers}}</div>
+{{pass}}
+
+
 {{if 'content' in locals():}}
 	<div class="pci2-flex-center content-btn-left">{{=content}}</div>
 {{pass}}
