@@ -625,7 +625,7 @@ db.define_table(
         type="text",
         label=T("Suggested reviewers - Suggest up to 10 reviewers (provide names and Email addresses). (Optional)"),
         length=20000,
-        widget=widget(_placeholder='e.g. Chris Chambers, chris@chambers.com', _readonly=False),
+        widget=widget(_placeholder='e.g. Chris Chambers [chris@chambers.com]', _readonly=False),
         comment=SPAN(
             T(" No need for them to be recommenders of %s. Please do not suggest reviewers for whom there might be a conflict of interest. Reviewers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the review - " % appName),
             A("see the code of conduct", _href="../about/ethics", _target="_blank"),
@@ -636,7 +636,7 @@ db.define_table(
         type="text",
         label=T("Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"),
         length=20000,
-        widget=widget(_placeholder='e.g. Chris Chambers, chris@chambers.com', _readonly=False),
+        widget=widget(_placeholder='e.g. Chris Chambers [chris@chambers.com]', _readonly=False),
         comment=SPAN(),
     ),
     Field(
