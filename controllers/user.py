@@ -1851,7 +1851,6 @@ def articles_awaiting_reviewers():
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
     # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
     links = [
-        dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(auth, db, row)),
         dict(
             header="",
             body=lambda row: A(
