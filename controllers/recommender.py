@@ -1222,17 +1222,17 @@ def reviewers():
             )
             prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
             if len(prevReviewersList) > 0:
-                prevRoundHeader = DIV(H3(T("CHOOSE A REVIEWER FROM  PREVIOUS ROUND OF REVIEW:")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+                prevRoundHeader = DIV(H3(B("Choose a reviewer from the previous round of review")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
                 customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
         suggested_reviewers = ""
         oppossed_reviewers = ""
         if article.suggest_reviewers is not None:
             sug_reviewers = article.suggest_reviewers.strip(",").split(',')
-            suggested_reviewers = DIV(H4(T("Reviewers suggested by the authors:")), H5(T("- This information is given, in the submission form, in the box "), I('''"Suggested reviewers - Suggest up to 10 reviewers (provide names and Email addresses). (Optional)"'''), UL(sug_reviewers)))
+            suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(sug_reviewers))
         if article.competitors is not None:
             competitors = article.competitors.strip(",").split(',')
-            oppossed_reviewers = DIV(H4(T("Reviewers opposed by the authors:")), H5(T("- This information is given, in the submission form, in the box "), I('''"Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"'''), UL(competitors)))
+            oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(competitors))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
@@ -1241,7 +1241,7 @@ def reviewers():
         reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
         excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
-            myContents = DIV(H3(T("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
+            myContents = DIV(H3(B("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
         else:
             myContents = ""
         longname = myconf.take("app.longname")
