@@ -59,12 +59,14 @@ test.install.selenium:
 	pip install -r tests/requirements.txt
 	sudo apt install chromium-chromedriver
 
-test.install:
+test.install.cypress:
 	sudo apt-get install npm
 	sudo npm install -g n
 	sudo n stable
 	sudo npm install -g npm@latest
 	npm install
+
+test.install: test.install.cypress
 
 test.setup: test.db cypress/fixtures/users.json
 
