@@ -963,6 +963,17 @@ def updateReviewerDetails(row):
             row.reviewer_details = None
 
 
+def deleteReviewerReminders(review_id):
+    emailing.delete_reminder_for_reviewer(db, [
+        "#ReminderReviewerReviewSoonDue",
+        "#ReminderReviewerReviewDue",
+        "#ReminderReviewerReviewOverDue",
+        "#ReminderReviewerReviewInvitationNewUser",
+        ],
+        review_id,
+    )
+
+
 def reviewSuggested(s, row):
     reviewId = row["id"]
     recommendationId = row["recommendation_id"]
