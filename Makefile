@@ -47,7 +47,9 @@ start: conf init
 
 conf:	private/appconfig.ini
 
-init:	static/images/background.png \
+init:	logo
+
+logo:	static/images/background.png \
 	static/images/small-background.png
 
 private/% static/%:
