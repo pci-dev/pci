@@ -950,6 +950,7 @@ db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
+db.auth_user._before_delete.append(lambda s: deleteRemindersForUser(s.select().first()))
 
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
@@ -961,6 +962,18 @@ def updateReviewerDetails(row):
     if hasattr(row, "reviewer_id") and hasattr(row, "reviewer_details"):
         if row.reviewer_id and row.reviewer_details:
             row.reviewer_details = None
+
+
+def deleteRemindersForUser(user):
+    reviews = db(
+            (db.t_reviews.reviewer_id == user.id)
+          & (db.t_reviews.review_state in [
+              "Awaiting response",
+              "Awaiting review",
+              ])
+    ).select()
+    for review in reviews:
+        deleteReviewerReminders(review.id)
 
 
 def deleteReviewerReminders(review_id):
