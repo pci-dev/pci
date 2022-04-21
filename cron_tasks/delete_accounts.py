@@ -46,8 +46,8 @@ def delete_accounts():
             continue
         account = temporary_account.select().last()
         if account:
-            update_reviews(account.id)
             temporary_account.delete()
+            update_reviews(account.id)
             print("deleted temporary user: " + user_email)
 
 
