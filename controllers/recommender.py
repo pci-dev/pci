@@ -1228,11 +1228,9 @@ def reviewers():
         suggested_reviewers = ""
         oppossed_reviewers = ""
         if article.suggest_reviewers is not None:
-            sug_reviewers = article.suggest_reviewers.strip(",").split(',')
-            suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(sug_reviewers))
+            suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(article.suggest_reviewers))
         if article.competitors is not None:
-            competitors = article.competitors.strip(",").split(',')
-            oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(competitors))
+            oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
