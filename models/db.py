@@ -970,6 +970,7 @@ def deleteRemindersForUser(user):
           & (db.t_reviews.review_state in [
               "Awaiting response",
               "Awaiting review",
+              "Cancelled",
               ])
     ).select()
     for review in reviews:
