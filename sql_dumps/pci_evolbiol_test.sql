@@ -2943,6 +2943,9 @@ ADD COLUMN IF NOT EXISTS competitors text;
 ALTER TABLE "t_reviews"
 ADD COLUMN anonymous_agreement boolean;
 
+-- 2022-04-22 updates/add_5_working_days_duration.sql
+ALTER TYPE duration ADD VALUE 'Five working days';
+
 -- 2022-04-28 updates/t_articles_new_field.sql
 
 ALTER TABLE "t_articles"
