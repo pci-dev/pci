@@ -366,6 +366,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
         isScheduledSubmission = True
 
+    isPendingRecommenderAcceptation = db(
+          (db.t_recommendations.article_id == art.id)
+        & (db.t_recommendations.id == db.t_reviews.recommendation_id)
+        & (db.t_reviews.reviewer_id == auth.user_id)
+        & (db.t_reviews.review_state == "Willing to review")
+    ).count() > 0
+
     ###NOTE: here start recommendations display
     amIinRecommenderList = False
     amIinCoRecommenderList = False
@@ -679,7 +686,12 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             isScheduledSubmission=isScheduledSubmission,
             isArticleSubmitter=(art.user_id == auth.user_id),
         )
+
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
+
+        # show only current round if user is pending RecommenderAcceptation
+        if roundNb == nbRecomms and isPendingRecommenderAcceptation:
+            break
 
     # Manager button
     managerButton = None

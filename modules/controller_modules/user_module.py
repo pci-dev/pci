@@ -82,3 +82,13 @@ def getRecommender(auth, db, row):
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""
+
+######################################################################################################################################################################
+def getReviewers(recomm, db):
+    revList = []
+    latestRound = db((db.t_recommendations.article_id == recomm.article_id)).select(
+            db.t_recommendations.id, orderby=db.t_recommendations.id).last()
+    reviewersList = db((db.t_reviews.recommendation_id == latestRound.id)).select(db.t_reviews.reviewer_id)
+    for i in reviewersList:
+        revList.append(i.reviewer_id)
+    return revList
