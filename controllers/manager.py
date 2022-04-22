@@ -940,12 +940,6 @@ def edit_report_survey():
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
 
-        # Temporarily disable this RR track
-        # should never get there, as this item is not-selectable
-        if form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
-            response.flash = T("The scheduled review track is temporarily disabled", lazy=False)
-            return _edit_report_survey(form)
-
         if doUpdateArticle == True:
             art.update_record()
 
@@ -954,10 +948,6 @@ def edit_report_survey():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
-    return _edit_report_survey(form)
-
-
-def _edit_report_survey(form):
     myScript = common_tools.get_template("script", "fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
