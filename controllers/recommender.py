@@ -1229,7 +1229,7 @@ def reviewers():
         oppossed_reviewers = ""
         if not pciRRactivated:
             if article.suggest_reviewers is not None:
-                suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(article.suggest_reviewers))
+                suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(article.suggest_reviewers), H5(B("You may invite them by clicking on one of the buttons below")))
             if article.competitors is not None:
                 oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
