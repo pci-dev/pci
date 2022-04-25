@@ -674,6 +674,11 @@ def edit_article():
         db.t_articles.codes_doi.readable = False
         db.t_articles.codes_doi.writable = False
 
+        db.t_articles.suggest_reviewers.readable = False
+        db.t_articles.suggest_reviewers.writable = False
+        db.t_articles.competitors.readable = False
+        db.t_articles.competitors.writable = False
+
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
