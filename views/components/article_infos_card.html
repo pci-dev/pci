@@ -30,6 +30,12 @@
         {{if 'articleKeywords' in locals():}}
         <span class="pci2-article-infos">{{=articleKeywords}}</span>
         {{pass}}
+        <div>
+          <span class="pci2-article-infos">{{=doiButton}}</span>
+          {{if 'publishedDoi' in locals():}}
+          <span class="pci2-article-infos">{{=publishedDoi}}</span>
+         {{pass}}
+        </div>
       </div>
     </div>
   </div>
