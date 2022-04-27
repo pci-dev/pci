@@ -286,8 +286,12 @@ def getArticleInfosCard(auth, db, response, article, printable,
         articleContent.update([("articleKeywords", article.keywords)])
 
     if article.doi_of_published_article:
+        button_text = "Now published in a journal"
+        if "10.24072/pcjournal" in article.doi_of_published_article:
+            button_text = "Now published in Peer Community Journal"
+            
         articleContent.update([("publishedDoi",  A(
-                SPAN(current.T("Now published in Peer Community Journal"), _class="btn btn-success"),
+                SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article))])
     
     return XML(response.render("components/article_infos_card.html", articleContent))
