@@ -2942,3 +2942,8 @@ ADD COLUMN IF NOT EXISTS competitors text;
 
 ALTER TABLE "t_reviews"
 ADD COLUMN anonymous_agreement boolean;
+
+-- 2022-04-28 updates/t_articles_new_field.sql
+
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS doi_of_published_article character varying(512);

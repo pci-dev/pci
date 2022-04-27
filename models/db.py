@@ -611,6 +611,7 @@ db.define_table(
     ),
     Field("keywords", type="string", length=4096, label=T("Keywords"), requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
     Field("already_published", type="boolean", label=T("Postprint"), default=False),
+    Field("doi_of_published_article", type="string", label=T("DOI of published article"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=T("URL must start with http:// or https://")),
     Field(
         "cover_letter",
         type="text",
