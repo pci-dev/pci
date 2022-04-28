@@ -204,6 +204,8 @@ def getArticleInfosCard(auth, db, response, article, printable,
     if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
+    doi_button = A(SPAN(current.T("Read preprint in preprint server"), _class="btn btn-success"), _href=article.doi)
+
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
     
@@ -247,6 +249,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
             ("articleTitle", article.title or ""),
             ("articleAuthor", authors or ""),
             ("articleDoi", doi_text),
+            ("doiButton", doi_button),
             ("article_altmetric", article_altmetric),
             ("printable", printable),
             ("printableClass", printableClass),
@@ -281,5 +284,14 @@ def getArticleInfosCard(auth, db, response, article, printable,
     
     if keywords:
         articleContent.update([("articleKeywords", article.keywords)])
+
+    if article.doi_of_published_article:
+        button_text = "Now published in a journal"
+        if "10.24072/pcjournal" in article.doi_of_published_article:
+            button_text = "Now published in Peer Community Journal"
+            
+        articleContent.update([("publishedDoi",  A(
+                SPAN(current.T(button_text), _class="btn btn-success"),
+                _href=article.doi_of_published_article))])
     
     return XML(response.render("components/article_infos_card.html", articleContent))

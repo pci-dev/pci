@@ -433,8 +433,10 @@ def fill_new_article():
     fields += ["keywords"]
 
     if not pciRRactivated:
-        fields += ["suggest_reviewers"]
-        fields += ["competitors"]
+        fields += [
+            "suggest_reviewers",
+            "competitors" 
+    ]
     
     fields += ["cover_letter"]
 
@@ -623,10 +625,15 @@ def edit_my_article():
         if pciRRactivated:
             fields += ["sub_thematics"]
 
-        fields += [
-            "keywords",
-            "cover_letter",
-        ]
+        fields += ["keywords"]
+
+        if not pciRRactivated:
+            fields += [
+                "suggest_reviewers",
+                "competitors" 
+            ]
+
+        fields += ["cover_letter"]
         myScript = common_tools.get_template("script", "edit_my_article.js")
 
     else:
@@ -667,10 +674,15 @@ def edit_my_article():
         if pciRRactivated:
             fields += ["sub_thematics"]
 
-        fields += [
-            "keywords",
-            "cover_letter",
-        ]
+        fields += ["keywords"]
+
+        if not pciRRactivated:
+            fields += [
+                "suggest_reviewers",
+                "competitors" 
+            ]
+
+        fields += ["cover_letter"]
         myScript = common_tools.get_template("script", "new_field_responsiveness.js")
 
     buttons = [
