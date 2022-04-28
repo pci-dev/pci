@@ -2793,8 +2793,19 @@ def send_to_reset_password(session, auth, db, userId):
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################
+def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
+    hashtag = hashtag + "%"
+    return db(
+            db.mail_queue.mail_template_hashtag.like(hashtag)
+         & (db.mail_queue.dest_mail_address==reviewer_mail)
+         & (db.mail_queue.recommendation_id==recomm_id)
+    ).count() > 0
+
+######################################################################################################################################################################
 def create_cancellation_for_reviewer(session, auth, db, reviewId):
+
     mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
     art = db.t_articles[recomm.article_id]
@@ -2816,5 +2827,8 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     mail_vars["art_authors"] = "[undisclosed]" if (art.anonymous_submission) else art.authors
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+    if check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id) is False:
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
+        emailing_tools.getFlashMessage(session, reports)
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
