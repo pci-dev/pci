@@ -264,10 +264,10 @@ def getArticleInfosCard(auth, db, response, article, printable,
     if article.codes_doi is not None and policy_2():
         articleContent.update([("codeDoi", (common_small_html.mkDOI(article.codes_doi)) if (article.codes_doi) else SPAN(""))])
 
-    if article.suggest_reviewers is not None and policy_1():
+    if article.suggest_reviewers and policy_1():
         articleContent.update([("suggestReviewers", UL(article.suggest_reviewers or "", safe_mode=False))])
 
-    if article.competitors is not None and policy_1():
+    if article.competitors and policy_1():
         articleContent.update([("competitors", UL(article.competitors or "", safe_mode=False))])
 
     if abstract:
