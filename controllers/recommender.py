@@ -1376,10 +1376,10 @@ def send_review_cancellation():
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         try:
+            review.update_record(review_state="Cancelled")
             emailing.send_reviewer_invitation(
                 session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
-            review.update_record(review_state="Cancelled")
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
