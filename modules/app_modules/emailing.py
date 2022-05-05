@@ -2791,3 +2791,44 @@ def send_to_reset_password(session, auth, db, userId):
     time.sleep(MAIL_DELAY)
 
     emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
+def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
+    hashtag = hashtag + "%"
+    return db(
+            db.mail_queue.mail_template_hashtag.like(hashtag)
+         & (db.mail_queue.dest_mail_address==reviewer_mail)
+         & (db.mail_queue.recommendation_id==recomm_id)
+    ).count() > 0
+
+######################################################################################################################################################################
+def create_cancellation_for_reviewer(session, auth, db, reviewId):
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+    review = db.t_reviews[reviewId]
+    recomm = db.t_recommendations[review.recommendation_id]
+    art = db.t_articles[recomm.article_id]
+    reviewer = db.auth_user[review.reviewer_id]
+    sender = None
+
+    if auth.user_id == recomm.recommender_id:
+        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif auth.has_membership(role="manager"):
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+    mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"]
+    mail_vars["destAddress"] = reviewer.email
+    mail_vars["sender"] = sender
+    mail_vars["art_doi"] = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    mail_vars["art_title"] = art.title
+    mail_vars["art_authors"] = "[undisclosed]" if (art.anonymous_submission) else art.authors
+
+    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+    if check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id) is False:
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
+        emailing_tools.getFlashMessage(session, reports)
+
