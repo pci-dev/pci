@@ -12,7 +12,7 @@ INSERT INTO auth_user ("id", "first_name", "last_name", "email", "password", "re
 --  1 | recommender   |
 --  2 | manager       |
 --  3 | administrator |
---  4 | developper    |
+--  4 | developer     |
 
 insert into auth_membership ("user_id", "group_id") values (102, 3);
 insert into auth_membership ("user_id", "group_id") values (103, 4);
