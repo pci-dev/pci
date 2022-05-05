@@ -3,7 +3,7 @@ INSERT INTO auth_user ("id", "first_name", "last_name", "email", "password", "re
 INSERT INTO public.auth_group (role, description) VALUES ('recommender', '');
 INSERT INTO public.auth_group (role, description) VALUES ('manager', '');
 INSERT INTO public.auth_group (role, description) VALUES ('administrator', '');
-INSERT INTO public.auth_group (role, description) VALUES ('developper', '');
+INSERT INTO public.auth_group (role, description) VALUES ('developer', '');
 SELECT setval('public.auth_user_id_seq', 1);
 INSERT INTO auth_membership (user_id, group_id) SELECT 1, id FROM auth_group;
 INSERT INTO t_thematics (keyword) VALUES ('TEST');
