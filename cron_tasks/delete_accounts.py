@@ -7,7 +7,7 @@ from datetime import date
 def get_old_invites():
     return db(
             db.mail_queue.mail_template_hashtag.like("#ReminderReviewerReviewInvitationNewUser%")
-            & (db.mail_queue.sending_date <= date.today() - timedelta(days=14))
+            & (db.mail_queue.sending_date <= date.today() - timedelta(days=21))
     ).select(
             db.mail_queue.dest_mail_address,
             distinct=True,
@@ -22,7 +22,7 @@ def get_cancelled_invites():
 def has_newer_invites(user_email):
     return db(
             db.mail_queue.mail_template_hashtag.like("#ReminderReviewerReviewInvitationNewUser%")
-            & (db.mail_queue.sending_date > date.today() - timedelta(days=14))
+            & (db.mail_queue.sending_date > date.today() - timedelta(days=21))
             & (db.mail_queue.dest_mail_address == user_email)
     ).select()
 
