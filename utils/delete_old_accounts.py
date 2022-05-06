@@ -12,6 +12,20 @@ def has_newer_invites(user_email):
     ).select()
 
 
+def update_reviews(user_id):
+    reviews = db(
+            (db.t_reviews.reviewer_id == user_id) &
+            (db.t_reviews.review_state == "Awaiting response")
+    ).select()
+    for rev in reviews:
+        print("updating review: " + str(rev.id))
+        if dry_run:
+            continue
+        rev.review_state = "Cancelled"
+        rev.reviewer_id = None
+        rev.update_record()
+
+
 def delete_accounts():
     temporary_accounts = db(
             (db.auth_user.reset_password_key != "") &
@@ -25,10 +39,17 @@ def delete_accounts():
             print("not deleting temporary user: " + user_email)
             continue
 
-        #db(db.auth_user.id == account.id).delete()
-        print("deleted temporary user: " + user_email)
+        print("deleting temporary user: " + user_email)
+
+        update_reviews(account.id)
+        if dry_run:
+            continue
+        db(db.auth_user.id == account.id).delete()
 
 
 from datetime import datetime
 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " delete accounts")
+
+dry_run = True
+
 delete_accounts()
