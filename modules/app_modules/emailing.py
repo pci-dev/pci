@@ -2814,7 +2814,7 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
 
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
-    elif auth.has_membership(role="manager"):
+    else:
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, reviewer.id).flatten()
