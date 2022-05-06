@@ -912,3 +912,31 @@ def mkRecommendersString(auth, db, recomm):
         recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
     recommendersStr = "".join(recommenders)
     return recommendersStr
+
+######################################################################################################################################################################
+def mkReviewerInfo(auth, db, user):
+    anchor = ""
+    if user:
+        if "auth_user" in user:
+            user = user.auth_user
+        else:
+            user = user
+        anchor = DIV(
+            B(user.last_name or "", " ", user.first_name or "", _class="article-title"),
+            DIV(user.institution or "", ", ", user.country or ""),
+            DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank")),
+            DIV(user.cv or "")
+        )
+    return anchor
+
+######################################################################################################################################################################
+def mkReviewerStat(auth, db, stat):
+    anchor = ""
+    if stat:
+        anchor = DIV(
+            DIV((stat[0], " Review(s)") if int(stat[0]) > 0 else ""),
+            DIV((stat[1], " Recommendation(s)") if int(stat[1]) > 0 else ""),
+            DIV((stat[2], " Co-Recommendation(s)") if int(stat[2]) > 0 else ""),
+            DIV(A("See recommender's profile", _href=URL(c="public", f="user_public_page", vars=dict(userId=stat[4])), _target="_blank") if stat[3] == "True" else ""),
+        )
+    return anchor
