@@ -924,7 +924,7 @@ def mkReviewerInfo(auth, db, user):
         anchor = DIV(
             B(user.last_name or "", " ", user.first_name or "", _class="article-title"),
             DIV(user.institution or "", ", ", user.country or ""),
-            DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank")),
+            DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
             DIV(user.cv or "")
         )
     return anchor
