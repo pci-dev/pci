@@ -184,6 +184,13 @@ class COARNotifier:
             "type": "sorg:AboutPage",
         }
 
+    def _article_as_jsonld_using_pci_ref_to_article(self, article):
+        return {
+            "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
+            "ietf:cite-as": article.doi,
+            "type": "sorg:AboutPage",
+        }
+
     def _user_as_jsonld(self, user):
         return {
             "id": f"{self.base_url}public/user_public_page?userId={user.id}",
