@@ -179,7 +179,7 @@ class COARNotifier:
 
     def _article_as_jsonld(self, article):
         return {
-            "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
+            "id": article.doi,
             "ietf:cite-as": article.doi,
             "type": "sorg:AboutPage",
         }
