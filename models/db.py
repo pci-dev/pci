@@ -1044,6 +1044,8 @@ def reviewDone(s, f):
                  "Cancelled",
                  "Declined",
              ]:
+            if f["review_state"] == "Cancelled":
+                emailing.create_cancellation_for_reviewer(session, auth, db, o["id"])
             emailing.send_to_reviewer_review_request_declined(session, auth, db, o["id"], f)
 
         elif o["review_state"] == "Review completed" and f["review_state"] == "Awaiting review":
@@ -1057,6 +1059,8 @@ def reviewDone(s, f):
                  "Cancelled",
                  "Declined",
              ]:
+            if f["review_state"] == "Cancelled":
+                emailing.create_cancellation_for_reviewer(session, auth, db, o["id"])
             if f["review_state"] == "Declined":
                 emailing.send_to_recommenders_review_declined(session, auth, db, o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
@@ -1070,6 +1074,8 @@ def reviewDone(s, f):
                  "Cancelled",
                  "Declined",
              ]:
+            if f["review_state"] == "Cancelled":
+                emailing.create_cancellation_for_reviewer(session, auth, db, o["id"])
             # delete reminder
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
