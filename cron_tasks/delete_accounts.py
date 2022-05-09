@@ -15,11 +15,6 @@ def get_old_invites():
     )
 
 
-def get_cancelled_invites():
-    return db(db.mail_queue.mail_template_hashtag.like("#DefaultReviewCancellation%")).select(
-            db.mail_queue.dest_mail_address,
-            distinct=True)
-
 def has_newer_invites(user_email):
     return db(
             db.mail_queue.mail_template_hashtag.like("#ReminderReviewerReviewInvitationNewUser%")
@@ -39,7 +34,7 @@ def update_reviews(user_id):
 
 
 def delete_accounts():
-    invites = get_old_invites() + get_cancelled_invites()
+    invites = get_old_invites()
 
     for invite in invites:
         user_email = invite.dest_mail_address
