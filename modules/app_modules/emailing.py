@@ -2812,6 +2812,9 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     reviewer = db.auth_user[review.reviewer_id]
     sender = None
 
+    if not reviewer: # dest reviewer might have been deleted
+        return
+
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
     else:
