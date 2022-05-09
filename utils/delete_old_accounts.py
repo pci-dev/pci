@@ -12,11 +12,14 @@ def has_newer_invites(user_email):
     ).select()
 
 
-def update_reviews(user_id):
-    reviews = db(
+def get_stale_reviews(user_id):
+    return db(
             (db.t_reviews.reviewer_id == user_id) &
             (db.t_reviews.review_state == "Awaiting response")
     ).select()
+
+
+def update_reviews(reviews):
     for rev in reviews:
         print("updating review: " + str(rev.id))
         if dry_run:
@@ -40,11 +43,10 @@ def delete_accounts():
             continue
 
         print("deleting temporary user: " + user_email)
-
-        update_reviews(account.id)
-        if dry_run:
-            continue
-        db(db.auth_user.id == account.id).delete()
+        reviews = get_stale_reviews(account.id)
+        if not dry_run:
+            db(db.auth_user.id == account.id).delete()
+        update_reviews(reviews)
 
 
 from datetime import datetime
