@@ -56,6 +56,6 @@ def delete_accounts():
 from datetime import datetime
 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " delete accounts")
 
-dry_run = True
+dry_run = False
 
 delete_accounts()
