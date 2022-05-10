@@ -16,7 +16,11 @@ def get_stale_reviews(user_id):
     return db(
             (db.t_reviews.reviewer_id == user_id) &
             (db.t_reviews.review_state == "Awaiting response")
-    ).select()
+    ).select(
+            db.t_reviews.id,
+            db.t_reviews.reviewer_id,
+            db.t_reviews.review_state,
+    )
 
 
 def update_reviews(reviews):
