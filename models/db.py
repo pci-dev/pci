@@ -780,6 +780,7 @@ def deltaStatus(s, f):
                 emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
                 
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
+                articleId = o.id
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
