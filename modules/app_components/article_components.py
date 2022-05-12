@@ -292,6 +292,6 @@ def getArticleInfosCard(auth, db, response, article, printable,
             
         articleContent.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
-                _href=article.doi_of_published_article))])
+                _href=article.doi_of_published_article, _target="blank"))])
     
     return XML(response.render("components/article_infos_card.html", articleContent))
