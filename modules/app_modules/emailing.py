@@ -2812,6 +2812,9 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     reviewer = db.auth_user[review.reviewer_id]
     sender = None
 
+    if not reviewer: # dest reviewer might have been deleted
+        return
+
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
     else:
@@ -2831,4 +2834,3 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
         emailing_tools.getFlashMessage(session, reports)
-
