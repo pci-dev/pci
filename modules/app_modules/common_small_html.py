@@ -926,12 +926,12 @@ def mkReviewerInfo(auth, db, user):
         reviewer_name = last_name  + " " + first_name
         institution = user.institution
         institution = "" if institution is None else institution + ", "
+        expertise = user.cv
         anchor = DIV(
             B(reviewer_name, _class="article-title"),
             DIV(institution, user.country or ""),
             DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
-            DIV(A("Area of expertise", _href="#myModal", type="button", **{'_data-target' :'#myModal', '_data-toggle':'modal'}) if user.cv else ""),
-            DIV(DIV(DIV(DIV(H4(B(f"{reviewer_name}'s Area of Expertise"), _class="modal-title", _id="myModalLabel"),_class="modal-header"), DIV(user.cv or "",_class="modal-body"),_class="modal-content"),_class="modal-dialog", _role="document"),_class="modal fade", _id="myModal", _tabindex="-1", _role="dialog",  **{'_aria-labelledby' :'myModalLabel'}),
+            DIV(A("Area of expertise", _tabindex="0",  _role="button",  _title=(f"{reviewer_name}'s area of expertise"), **{'_data-toggle':'popover',  '_data-trigger':'focus', '_data-content':f'{expertise}'}) if expertise else ""),    
         )
     return anchor
 
