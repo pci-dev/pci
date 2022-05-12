@@ -921,11 +921,17 @@ def mkReviewerInfo(auth, db, user):
             user = user.auth_user
         else:
             user = user
+        last_name = user.last_name or ""
+        first_name = user.first_name or ""
+        reviewer_name = last_name  + " " + first_name
+        institution = user.institution
+        institution = "" if institution is None else institution + ", "
         anchor = DIV(
-            B(user.last_name or "", " ", user.first_name or "", _class="article-title"),
-            DIV(user.institution or "", ", ", user.country or ""),
+            B(reviewer_name, _class="article-title"),
+            DIV(institution, user.country or ""),
             DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
-            DIV(user.cv or "")
+            DIV(A("Area of expertise", _href="#myModal", type="button", **{'_data-target' :'#myModal', '_data-toggle':'modal'}) if user.cv else ""),
+            DIV(DIV(DIV(DIV(H4(B(f"{reviewer_name}'s Area of Expertise"), _class="modal-title", _id="myModalLabel"),_class="modal-header"), DIV(user.cv or "",_class="modal-body"),_class="modal-content"),_class="modal-dialog", _role="document"),_class="modal fade", _id="myModal", _tabindex="-1", _role="dialog",  **{'_aria-labelledby' :'myModalLabel'}),
         )
     return anchor
 
@@ -940,3 +946,4 @@ def mkReviewerStat(auth, db, stat):
             DIV(A("See recommender's profile", _href=URL(c="public", f="user_public_page", vars=dict(userId=stat[4])), _target="_blank") if stat[3] == "True" else ""),
         )
     return anchor
+
