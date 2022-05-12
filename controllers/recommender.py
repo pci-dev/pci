@@ -340,6 +340,7 @@ def search_reviewers():
         )
 
         response.view = "default/gab_list_layout.html"
+        myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
         return dict(
             pageHelp=pageHelp,
             titleIcon="search",
@@ -347,6 +348,7 @@ def search_reviewers():
             customText=customText,
             myBackButton=common_small_html.mkBackButton(),
             searchForm=searchForm,
+            myFinalScript=myFinalScript,
             grid=grid,
             absoluteButtonScript=common_tools.absoluteButtonScript,
         )
