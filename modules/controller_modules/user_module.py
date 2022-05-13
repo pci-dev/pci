@@ -92,3 +92,11 @@ def getReviewers(recomm, db):
     for i in reviewersList:
         revList.append(i.reviewer_id)
     return revList
+
+######################################################################################################################################################################
+def getAllRecommenders(db):
+    recommList = []
+    recomm_query = db((db.auth_membership.group_id == 1)).select(db.auth_membership.user_id)
+    for i in recomm_query:
+        recommList.append(i.user_id)
+    return recommList

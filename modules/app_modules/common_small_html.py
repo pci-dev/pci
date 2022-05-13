@@ -912,3 +912,38 @@ def mkRecommendersString(auth, db, recomm):
         recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
     recommendersStr = "".join(recommenders)
     return recommendersStr
+
+######################################################################################################################################################################
+def mkReviewerInfo(auth, db, user):
+    anchor = ""
+    if user:
+        if "auth_user" in user:
+            user = user.auth_user
+        else:
+            user = user
+        last_name = user.last_name or ""
+        first_name = user.first_name or ""
+        reviewer_name = last_name  + " " + first_name
+        institution = user.institution
+        institution = "" if institution is None else institution + ", "
+        expertise = user.cv
+        anchor = DIV(
+            B(reviewer_name, _class="article-title"),
+            DIV(institution, user.country or ""),
+            DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
+            DIV(A("Area of expertise", _tabindex="0",  _role="button",  _title=(f"{reviewer_name}'s area of expertise"), **{'_data-toggle':'popover',  '_data-trigger':'focus', '_data-content':f'{expertise}'}) if expertise else ""),    
+        )
+    return anchor
+
+######################################################################################################################################################################
+def mkReviewerStat(auth, db, stat):
+    anchor = ""
+    if stat:
+        anchor = DIV(
+            DIV((stat[0], " Review(s)") if int(stat[0]) > 0 else ""),
+            DIV((stat[1], " Recommendation(s)") if int(stat[1]) > 0 else ""),
+            DIV((stat[2], " Co-Recommendation(s)") if int(stat[2]) > 0 else ""),
+            DIV(A("See recommender's profile", _href=URL(c="public", f="user_public_page", vars=dict(userId=stat[4])), _target="_blank") if stat[3] == "True" else ""),
+        )
+    return anchor
+
