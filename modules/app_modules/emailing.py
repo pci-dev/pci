@@ -999,6 +999,9 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
                 else:
                     mail_vars["articleAuthors"] = article.authors
 
+                if pciRRactivated:
+                    mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
+
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
                     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
