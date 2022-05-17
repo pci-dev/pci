@@ -12,10 +12,10 @@ import datetime
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-
 from app_modules.helper import *
 
 from controller_modules import admin_module
+from controller_modules import adjust_grid
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules import emailing_tools
@@ -166,7 +166,7 @@ def list_users():
     )
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid(original_grid)
+    try: grid = adjust_grid.adjust_grid_users_templates(original_grid, 'users')
     except: pass
     
     if "auth_membership.user_id" in request.args:
@@ -702,66 +702,3 @@ def mail_form_processing(form):
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
 
 
-def adjust_grid(grid):
-    '''
-    function that adjusts the grid after its generation
-    '''
-    # gather elements
-    panel = grid.elements('div#w2p_query_panel')[0]
-    panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
-    add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
-    btns = grid.elements('input.btn-default')
-    select_panel = grid.elements('select#w2p_query_fields')[0]
-    regulator_panels = grid.elements('select.form-control')
-
-    # change elements
-    panel.__getattribute__('attributes').update({'_style':'display:flex'})
-    panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-    add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
-    for btn in btns:
-        if btn.__getattribute__('attributes')['_value'] == 'New Search':
-            btn.__getattribute__('attributes').update({'_value':'ADD'})
-            btn.__getattribute__('attributes').update({'_class':'btn btn-default add-btn'})
-        elif btn.__getattribute__('attributes')['_value'] == '+ And':
-            btn.__getattribute__('attributes').update({'_style':'display:none'})
-            btn.__getattribute__('attributes').update({'_class':'btn btn-default and-btn'})
-        elif btn.__getattribute__('attributes')['_value'] == '+ Or':
-            btn.__getattribute__('attributes').update({'_style':'display:none'})
-            btn.__getattribute__('attributes').update({'_class':'btn btn-default or-btn'})
-        elif btn.__getattribute__('attributes')['_value'] == 'Close':
-            btn.__getattribute__('attributes').update({'_style':'display:none'})
-    
-    # remove options, regulators, and other elements that are not required
-    remove_options = ['auth_user.id', 'auth_user.registration_key', 'auth_user.website',
-                      'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
-                      'auth_user.ethical_code_approved']
-
-    for option in select_panel:
-        # initialise First Name as initially chosen field
-        if option.__getattribute__('attributes')['_value'] == 'auth_user.first_name':
-            option.__getattribute__('attributes').update({'_selected':'selected'})
-            grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'))[0].__getattribute__('attributes').update({'_style':'display:flex'})
-        # remove the fields that are not required
-        elif option.__getattribute__('attributes')['_value'] in remove_options:
-            option.__getattribute__('attributes').update({'_style':'display:none'})
-            grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'), replace=None)
-    
-    remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-    for selector in regulator_panels:
-        options = selector.elements('option')
-        for option in options:
-            if option.__getattribute__('attributes')['_value'] == 'contains':
-                option.__getattribute__('attributes').update({'_selected':'selected'})
-                selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
-            elif option.__getattribute__('attributes')['_value'] in remove_regulators:
-                option.__getattribute__('attributes').update({'_style':'display:none'})
-
-    grid.elements('div#w2p_query_panel', replace=None)
-    grid.elements('div.web2py_breadcrumbs', replace=None)
-    grid.elements('div.web2py_console a.btn-secondary', replace=None)
-
-    # add elements at different positions
-    grid.elements('div.web2py_console ')[0].insert(0, panel)
-    grid.elements('div.web2py_console ')[0].insert(0, add_btn)
-
-    return grid

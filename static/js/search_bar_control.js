@@ -49,3 +49,31 @@ function add_not(not_field) {
     current_keywords += not_statement;
     search_bar.value = current_keywords;
 }
+
+
+function add_all(field, regulator) {
+    /* when All fields is chosen, take the argument
+    from the input fields, concatenate all possible search fields,
+    and add them to the search field with OR */
+    // get search term
+    var search_field_all = document.querySelector('#w2p_value_all');
+    var search_term = search_field_all.value;
+
+    // get all search options and create statement:
+    var options = document.querySelectorAll('#w2p_query_fields option');
+    var search_statement = '';
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].value != 'all' && options[i].style.display != 'none') {
+            search_statement += options[i].value + ' contains "' + search_term + '" OR ';
+        }
+    }
+
+    // get the statement to the search field
+    var search_field = document.querySelector('#w2p_keywords');
+    if (regulator == 'new') {
+        search_field.value = search_statement.substring(0,search_statement.length-4);
+    }
+    else {
+        search_field.value += ' ' + regulator + ' ' + search_statement.substring(0,search_statement.length-4);
+    }
+}
