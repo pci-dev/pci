@@ -1,13 +1,11 @@
-window.onload = function() {
-    var add_btns = document.querySelectorAll('.add-btn');
-    for (var i = 0; i < add_btns.length; i++) {
-        add_btns[i].addEventListener('click', show_buttons);
-    }
+var add_btns = document.querySelectorAll('.add-btn');
+for (var i = 0; i < add_btns.length; i++) {
+    add_btns[i].addEventListener('click', show_buttons);
+}
 
-    var search_bar = document.querySelector('#w2p_keywords');
-    if (search_bar != null && search_bar.value != '') {
-        show_buttons();
-    }
+var search_bar = document.querySelector('#w2p_keywords');
+if (search_bar != null && search_bar.value != '') {
+    show_buttons();
 }
 
 
