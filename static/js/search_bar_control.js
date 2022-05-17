@@ -5,7 +5,7 @@ window.onload = function() {
     }
 
     var search_bar = document.querySelector('#w2p_keywords');
-    if (search_bar.value != '') {
+    if (search_bar != null && search_bar.value != '') {
         show_buttons();
     }
 }

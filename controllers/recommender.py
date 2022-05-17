@@ -14,6 +14,7 @@ from app_modules.helper import *
 
 from controller_modules import recommender_module
 from controller_modules import user_module
+from controller_modules import adjust_grid
 
 from app_components import app_forms
 
@@ -261,13 +262,14 @@ def search_reviewers():
                         excludeList.append(uid)
 
     qyKwArr = qyKw.split(" ")
-    searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
+    '''searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
         qyTF = []
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
+    '''
     filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
     for fr in filtered:
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
@@ -312,13 +314,13 @@ def search_reviewers():
     else:
         temp_db.qy_reviewers.num.readable = False
         temp_db.qy_reviewers.score.readable = False
-        grid = SQLFORM.grid(
+        original_grid = SQLFORM.grid(
             qy_reviewers,
             editable=False,
             deletable=False,
             create=False,
             details=False,
-            searchable=False,
+            searchable=dict(auth_user=True, auth_membership=False),
             maxtextlength=250,
             paginate=1000,
             csv=csv,
@@ -339,6 +341,10 @@ def search_reviewers():
             _class="web2py_grid action-button-absolute",
         )
 
+        # the grid is adjusted after creation to adhere to our requirements
+        try: grid = adjust_grid.adjust_grid_reviewers(original_grid)
+        except: pass
+
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
         return dict(
@@ -347,7 +353,6 @@ def search_reviewers():
             pageTitle=pageTitle,
             customText=customText,
             myBackButton=common_small_html.mkBackButton(),
-            searchForm=searchForm,
             myFinalScript=myFinalScript,
             grid=grid,
             absoluteButtonScript=common_tools.absoluteButtonScript,
