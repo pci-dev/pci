@@ -145,7 +145,7 @@ def adjust_grid_reviewers(grid):
     select_panel = grid.elements('select#w2p_query_fields')[0]
     regulator_panels = grid.elements('select.form-control')
     panel_search_field = grid.elements('div#w2p_field_qy_reviewers-first_name')[0]
-    panel_search_field_roles = grid.elements('div#w2p_field_qy_reviewers-roles')[0]
+    panel_search_field_roles = grid.elements('div#w2p_field_qy_reviewers-id')[0]
 
     # change elements
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -167,7 +167,7 @@ def adjust_grid_reviewers(grid):
             btn.__getattribute__('attributes').update({'_style':'display:none'})
 
     # hi-jack the ID elements and re-create them to an "All Fields" search
-    regulator_panel_id = grid.elements('div#w2p_field_qy_reviewers-roles .form-control')
+    regulator_panel_id = grid.elements('div#w2p_field_qy_reviewers-id .form-control')
     options = regulator_panel_id[0].elements('option')
     for option in options:
         if option.__getattribute__('attributes')['_value'] == '=':
@@ -217,7 +217,7 @@ def adjust_grid_reviewers(grid):
             option.__getattribute__('attributes').update({'_selected':'selected'})
             panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
         # hijack ID field
-        elif option.__getattribute__('attributes')['_value'] == 'qy_reviewers.roles':
+        elif option.__getattribute__('attributes')['_value'] == 'qy_reviewers.id':
             option.__getattribute__('attributes').update({'_class':'selector'})
             select_panel.elements('option.selector', replace=OPTION('All fields', _value="all"))
         # remove the fields that are not required
