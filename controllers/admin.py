@@ -167,8 +167,8 @@ def list_users():
 
     # the grid is adjusted after creation to adhere to our requirements
     try: grid = adjust_grid.adjust_grid_users_templates(original_grid, 'users')
-    except: pass
-    
+    except: grid = original_grid
+
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
