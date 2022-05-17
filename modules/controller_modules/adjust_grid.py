@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+import re
+import copy
+import random
+import os
+import tempfile
+import shutil
+import datetime
+
 from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
