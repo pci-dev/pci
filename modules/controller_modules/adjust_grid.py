@@ -146,6 +146,7 @@ def adjust_grid_reviewers(grid):
     regulator_panels = grid.elements('select.form-control')
     panel_search_field = grid.elements('div#w2p_field_qy_reviewers-first_name')[0]
     panel_search_field_roles = grid.elements('div#w2p_field_qy_reviewers-id')[0]
+    select_panel_id = grid.elements('#w2p_field_qy_reviewers-id select.form-control')[0]
 
     # change elements
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -172,6 +173,7 @@ def adjust_grid_reviewers(grid):
     for option in options:
         if option.__getattribute__('attributes')['_value'] == '=':
             option.__getattribute__('attributes').update({'_class': 'contains'})
+            select_panel_id.elements('option.contains', replace=OPTION('contains', _class="contains"))
         option.__getattribute__('attributes').update({'_style':'display:none'})
 
     input_fields_id = regulator_panel_id[0].siblings()
