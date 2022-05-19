@@ -103,12 +103,13 @@ def adjust_grid_users_templates(grid, search_name):
     for option in select_panel:
         # initialise First Name as initially chosen field
         if option.__getattribute__('attributes')['_value'] == 'auth_user.first_name':
-            option.__getattribute__('attributes').update({'_selected':'selected'})
+            #option.__getattribute__('attributes').update({'_selected':'selected'})
             grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'))[0].__getattribute__('attributes').update({'_style':'display:flex'})
         # hijack ID field
         elif option.__getattribute__('attributes')['_value'] == 'auth_user.id':
             option.__getattribute__('attributes').update({'_class':'selector'})
             select_panel.elements('option.selector', replace=OPTION('All fields', _value="all"))
+            option.__getattribute__('attributes').update({'_selected':'selected'})
         # remove the fields that are not required
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})
@@ -215,13 +216,14 @@ def adjust_grid_reviewers(grid):
     # remove options, regulators, and other elements that are not required
     for option in select_panel:
         # initialise First Name as initially chosen field
+        print(option.__getattribute__('attributes')['_value'])
         if option.__getattribute__('attributes')['_value'] == 'qy_reviewers.first_name':
-            option.__getattribute__('attributes').update({'_selected':'selected'})
             panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
         # hijack ID field
         elif option.__getattribute__('attributes')['_value'] == 'qy_reviewers.id':
             option.__getattribute__('attributes').update({'_class':'selector'})
             select_panel.elements('option.selector', replace=OPTION('All fields', _value="all"))
+            option.__getattribute__('attributes').update({'_selected':'selected'})
         # remove the fields that are not required
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})
