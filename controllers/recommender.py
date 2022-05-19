@@ -347,8 +347,8 @@ def search_reviewers():
         )
 
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_reviewers(original_grid)
-        except: pass
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers')
+        except: grid = original_grid
 
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))

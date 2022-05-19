@@ -166,7 +166,7 @@ def list_users():
     )
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_users_templates(original_grid, 'users')
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users')
     except: grid = original_grid
 
     if "auth_membership.user_id" in request.args:
