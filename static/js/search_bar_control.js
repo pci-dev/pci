@@ -3,11 +3,13 @@ for (var i = 0; i < add_btns.length; i++) {
     add_btns[i].addEventListener('click', show_buttons);
 }
 
-var search_bar = document.querySelector('#w2p_keywords');
-if (search_bar != null && search_bar.value != '') {
-    show_buttons();
-}
 
+var search_bar = document.querySelector('#w2p_keywords');
+
+if (search_bar != null && search_bar.value != '') { show_buttons(); }
+else { empty_counter(); }
+
+remove_asterisks();
 
 function show_buttons() {
     /* when the ADD button is clicked, this function
@@ -31,7 +33,6 @@ function show_buttons() {
         var add_btn = query_rows[i].querySelector('.add-btn');
         add_btn.style.display = 'none';
     }
-
 }
 
 
@@ -39,9 +40,9 @@ function add_not(not_field) {
     /* when the NOT button is clicked, take the argument
     from the input fields and add it to the search field
     with a regulator "not in" */
-    var database_field = not_field.parentElement.previousSibling;
-    var not_statement = ' and ' + database_field.value + ' != "';
-    not_statement += not_field.parentElement.querySelector('input.string').value + '"';
+    var select_field = document.querySelector('#w2p_query_fields');
+    var not_statement = ' and ' + select_field.value + ' != "';
+    not_statement += not_field.parentElement.querySelector('input.form-control').value + '"';
     var search_bar = document.querySelector('#w2p_keywords');
     var current_keywords = search_bar.value;
     current_keywords += not_statement;
@@ -73,5 +74,24 @@ function add_all(field, regulator) {
     }
     else {
         search_field.value += ' ' + regulator + ' ' + search_statement.substring(0,search_statement.length-4);
+    }
+}
+
+
+function empty_counter() {
+    var result_count = document.querySelector('.web2py_counter');
+    result_count.innerHTML = '';
+}
+
+
+function remove_asterisks() {
+    var options = document.querySelectorAll('#w2p_query_fields > option');
+    if (options != null) {
+        for (var i = 0; i < options.length; i++) {
+            var label = options[i].innerHTML;
+            if (label.includes('*')) {
+                options[i].innerHTML = label.replace('*', '');
+            }
+        }
     }
 }
