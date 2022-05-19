@@ -86,9 +86,8 @@ def mail_templates():
     )
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_users_templates(original_grid, 'templates')
     try: grid = adjust_grid.adjust_grid_users_templates(original_grid, 'templates')
-    except: pass
+    except: grid = original_grid
 
     if grid.update_form and grid.update_form.process().accepted:
         if redirect_url:
