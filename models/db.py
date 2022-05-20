@@ -657,6 +657,7 @@ db.define_table(
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
+    Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -849,6 +850,7 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
+    Field("recommender_details", type="text", length=512, label=T("Recommender details"), readable=False, writable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
@@ -1155,6 +1157,7 @@ db.define_table(
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("contributor_id", type="reference auth_user", ondelete="RESTRICT", label=T("Contributor")),
+    Field("contributor_details", type="text", length=512, label=T("Co-Recommender details"), readable=False, writable=False),
     singular=T("Co-recommendation"),
     plural=T("Co-recommendations"),
     migrate=False,
