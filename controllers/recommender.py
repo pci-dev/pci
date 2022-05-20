@@ -2262,7 +2262,7 @@ def my_co_recommendations():
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_press_reviews._id.readable = False
-    db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
+    db.t_recommendations.recommender_id.represent = lambda uid, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
     db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
 
@@ -2291,6 +2291,7 @@ def my_co_recommendations():
             db.t_articles.already_published,
             db.t_recommendations.article_id,
             db.t_recommendations.recommender_id,
+            db.t_recommendations.recommender_details,
         ],
         links=[
             dict(
