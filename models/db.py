@@ -966,7 +966,7 @@ def setRecommenderDetails(user):
 
 def setArticleSubmitter(user):
     db(db.t_articles.user_id == user.id).update(
-        article_author = ("%s %s" % (user.first_name, user.last_name))
+        article_submitter = ("%s %s" % (user.first_name, user.last_name))
     )
 
 def updateReviewerDetails(row):
