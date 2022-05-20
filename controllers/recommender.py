@@ -1515,6 +1515,20 @@ def convert_string(value):
     else:
         return False
 
+def get_review_duration_options(isScheduledTrack=False):
+    review_duration_choices = db.review_duration_choices
+    review_duration_default = db.review_duration_default
+
+    if isScheduledTrack:
+        review_duration_default = db.review_duration_scheduled_track
+        review_duration_choices = [review_duration_default]
+
+    return dict(
+            default=review_duration_default,
+            requires=IS_IN_SET(review_duration_choices, zero=None),
+            writable=True,
+    )
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def email_for_registered_reviewer():
@@ -1617,8 +1631,11 @@ def email_for_registered_reviewer():
         session.flash = T("Recommender for the article doesn't exist", lazy=False)
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
+
+    isScheduledSubmission = pciRRactivated and report_surey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
+
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Select review duration"), default=db.review_duration_default, writable=True, requires=db.review_duration_requires),
+        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
@@ -1741,8 +1758,10 @@ def email_for_new_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
+    isScheduledSubmission = pciRRactivated and report_surey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
+
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Select review duration"), default=db.review_duration_default, writable=True, requires=db.review_duration_requires),
+        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),

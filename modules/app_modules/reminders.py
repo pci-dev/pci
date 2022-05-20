@@ -55,7 +55,10 @@ def getReviewDays(review):
     return getReviewDaysFromDuration(duration)
 
 
+import datetime
+
 def getReviewDaysFromDuration(duration):
+    dow = datetime.datetime.today().weekday()
     duration = duration.lower()
     days_dict = {
             "two weeks": 14,
@@ -65,10 +68,12 @@ def getReviewDaysFromDuration(duration):
             "six weeks": 42,
             "seven weeks": 49,
             "eight weeks": 56,
+            "five working days": 7 if dow < 5 else (7 + (7-dow))
     }
     for key, value in days_dict.items():
         if key in duration:
             return value
+
     return 21
 
 

@@ -905,7 +905,11 @@ db.define_table(
     migrate=False,
 )
 
-db.review_duration_requires = IS_IN_SET(("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks"))
+db.review_duration_choices = ("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks")
+db.review_duration_scheduled_track = "Five working days"
+db.review_duration_requires = IS_IN_SET(db.review_duration_choices
+        + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
+)
 db.review_duration_default = getDefaultReviewDuration()
 
 db.define_table(
