@@ -657,6 +657,7 @@ db.define_table(
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
+    Field("article_author", type="text", length=512, label=T("Article author"), readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -849,6 +850,7 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
+    Field("recommender_details", type="text", length=512, label=T("Recommender details"), readable=False, writable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
