@@ -951,12 +951,23 @@ db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setArticleSubmitter(s.select().first()))
 
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
         reviewer_details = common_small_html.mkUserWithMail(auth, db, user.id)
     )
 
+def setRecommenderDetails(user):
+    db(db.t_recommendations.recommender_id == user.id).update(
+        recommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
+    )
+
+def setArticleSubmitter(user):
+    db(db.t_articles.user_id == user.id).update(
+        article_author = ("%s %s" % (user.first_name, user.last_name))
+    )
 
 def updateReviewerDetails(row):
     if hasattr(row, "reviewer_id") and hasattr(row, "reviewer_details"):
