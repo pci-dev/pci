@@ -1016,6 +1016,7 @@ def all_recommendations():
             db.t_recommendations.doi,
             # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.is_closed,
+            db.t_recommendations.recommender_details,
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
@@ -1042,6 +1043,7 @@ def all_recommendations():
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
+            db.t_recommendations.recommender_details,
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
@@ -1060,6 +1062,7 @@ def all_recommendations():
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
     db.t_recommendations.recommender_id.readable = True
+    db.t_recommendations.recommender_id.represent =  lambda id, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
     db.t_recommendations.is_closed.writable = False
