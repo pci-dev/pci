@@ -506,7 +506,7 @@ def my_awaiting_articles():
         & (db.t_suggested_recommenders.declined == False)
     )
     db.t_articles.user_id.writable = False
-    db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, common_small_html.mkUser(auth, db, userId))
+    db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, row.submitter_details.replace('<span>', '').split('</span>')[0] if row.submitter_details else common_small_html.mkUser(auth, db, userId))
     # db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.anonymous_submission.readable = False
@@ -560,6 +560,7 @@ def my_awaiting_articles():
             db.t_articles.keywords,
             db.t_articles.user_id,
             db.t_articles.auto_nb_recommendations,
+            db.t_articles.submitter_details,
         ]
 
     grid = SQLFORM.grid(

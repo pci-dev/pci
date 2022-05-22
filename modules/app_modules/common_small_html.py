@@ -888,7 +888,8 @@ def getArticleSubmitter(auth, db, art):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(mkUser_U(auth, db, submitter, linked=True)),)),
+            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(art.submitter_details.replace('<span>', '').split('</span>')[0] \
+                if art.submitter_details else mkUser_U(auth, db, submitter, linked=True)),)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:
