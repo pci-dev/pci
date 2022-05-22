@@ -953,6 +953,7 @@ db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
 db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
 db.auth_user._before_delete.append(lambda s: setArticleSubmitter(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setCoRecommenderDetails(s.select().first()))
 
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
@@ -967,6 +968,11 @@ def setRecommenderDetails(user):
 def setArticleSubmitter(user):
     db(db.t_articles.user_id == user.id).update(
         article_submitter = common_small_html.mkUserWithMail(auth, db, user.id)
+    )
+
+def setCoRecommenderDetails(user):
+    db(db.t_press_reviews.contributor_id == user.id).update(
+        corecommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
     )
 
 def updateReviewerDetails(row):
