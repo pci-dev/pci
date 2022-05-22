@@ -131,7 +131,7 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.user_id.writable = False
     db.t_articles.anonymous_submission.readable = False
     db.t_articles.user_id.represent = lambda text, row: SPAN(
-        DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), common_small_html.mkUserWithMail(auth, db, text)
+       DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), TAG(row.article_submitter) if row.article_submitter else common_small_html.mkUserWithMail(auth, db, text)
     )
 
     db.t_articles.art_stage_1_id.readable = False
@@ -205,6 +205,7 @@ def _manage_articles(statuses, whatNext):
             db.t_articles.user_id,
             # db.t_articles.thematics,
             db.t_articles.keywords,
+            db.t_articles.article_submitter,
             db.t_articles.anonymous_submission,
         ]
     else:
@@ -221,6 +222,7 @@ def _manage_articles(statuses, whatNext):
             db.t_articles.user_id,
             # db.t_articles.thematics,
             db.t_articles.keywords,
+            db.t_articles.article_submitter,
             db.t_articles.anonymous_submission,
         ]
 
