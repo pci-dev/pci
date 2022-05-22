@@ -45,7 +45,7 @@ def mkRecommenderButton(row, auth, db):
             resu.append(B(current.T("Co-recommenders:")))
             resu.append(BR())
             for corecommender in corecommenders:
-                resu.append(TAG(corecommender.corecommender_details) if corecommender.corecommender_details else SPAN(common_small_html.mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
+                resu.append(TAG(corecommender.contributor_details) if corecommender.contributor_details else SPAN(common_small_html.mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""

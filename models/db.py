@@ -972,7 +972,7 @@ def setArticleSubmitter(user):
 
 def setCoRecommenderDetails(user):
     db(db.t_press_reviews.contributor_id == user.id).update(
-        corecommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
+        contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
     )
 
 def updateReviewerDetails(row):
@@ -1170,7 +1170,7 @@ db.define_table(
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("contributor_id", type="reference auth_user", ondelete="RESTRICT", label=T("Contributor")),
-    Field("corecommender_details", type="text", length=512, label=T("Co-Recommender details"), readable=False, writable=False),
+    Field("contributor_details", type="text", length=512, label=T("Co-Recommender details"), readable=False, writable=False),
     singular=T("Co-recommendation"),
     plural=T("Co-recommendations"),
     migrate=False,
