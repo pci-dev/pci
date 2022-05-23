@@ -1025,7 +1025,7 @@ def one_review():
         redirect(request.env.http_referer)
     db.t_reviews._id.readable = False
     db.t_reviews.reviewer_id.writable = False
-    db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+    db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
     db.t_reviews.anonymously.default = True
     db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
     db.t_reviews.review.writable = auth.has_membership(role="manager")
@@ -1896,12 +1896,13 @@ def add_contributor():
         roleClass = " pci-manager" if (recomm.recommender_id != auth.user_id) and auth.has_membership(role="manager") else " pci-recommender"
         art = db.t_articles[recomm.article_id]
         contributorsListSel = db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == db.auth_user.id)).select(
-            db.t_press_reviews.id, db.auth_user.id
+            db.t_press_reviews.id, db.auth_user.id, db.t_press_reviews.contributor_details
         )
         contributorsList = []
         for con in contributorsListSel:
             contributorsList.append(
                 LI(
+                    TAG(con.t_press_reviews.contributor_details) if con.t_press_reviews.contributor_details else \
                     common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
                     A(
                         T("Delete"),
@@ -1986,7 +1987,7 @@ def contributions():
         db.t_press_reviews.recommendation_id.writable = False
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
-        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""
+        db.t_press_reviews.contributor_id.represent = lambda text, row: TAG(row.contributor_details) if row.contributor_details else common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""  
         alreadyCo = db(db.t_press_reviews.recommendation_id == recommId)._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -2007,7 +2008,7 @@ def contributions():
             paginate=100,
             csv=csv,
             exportclasses=expClass,
-            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
+            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details],
         )
 
         myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
