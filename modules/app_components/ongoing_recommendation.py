@@ -553,19 +553,18 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         ]
                     )
                 else:
-                    reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-                    if reviewer is not None:
-                        reviewVars.update(
-                            [
-                                (
-                                    "authors",
-                                    SPAN(
-                                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                        (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
-                                    ),
-                                )
-                            ]
-                        )
+                    reviewVars.update(
+                        [
+                            (
+                                "authors",
+                                SPAN(
+                                    review.reviewer_details.replace('<span>', '').split('</span>')[0] if review.reviewer_details else \
+                                    common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                                ),
+                            )
+                        ]
+                    )
 
                 if len(review.review or "") > 2:
                     reviewVars.update([("text", WIKI(review.review, safe_mode=False))])
