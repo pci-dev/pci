@@ -778,12 +778,12 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                         (db.t_recommendations.article_id == article.id))
 
         mainRecommenders = db(select_recomm).select(
-            db.t_recommendations.ALL, distinct=db.t_recommendations.ALL)
+            db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id)
 
         coRecommenders = db(
             select_recomm
             & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
-        ).select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.ALL)
+        ).select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id)
 
         allRecommenders = mkRecommenderandContributorList(mainRecommenders) + mkRecommenderandContributorList(coRecommenders)
 
@@ -812,7 +812,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.t_reviews.anonymously == False)
                     & (db.t_reviews.review_state == "Review completed")
-                ).select(db.t_reviews.ALL, distinct=db.t_reviews.ALL)
+                ).select(db.t_reviews.ALL, distinct=db.t_reviews.reviewer_id)
                 na = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
