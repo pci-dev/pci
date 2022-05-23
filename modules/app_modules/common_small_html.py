@@ -816,10 +816,9 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 na = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
-                    & (db.auth_user.id == db.t_reviews.reviewer_id)
                     & (db.t_reviews.anonymously == True)
                     & (db.t_reviews.review_state == "Review completed")
-                ).count(distinct=db.auth_user.id)
+                ).count()
                 na1 = 1 if na > 0 else 0
             else:
                 namedReviewers = []
