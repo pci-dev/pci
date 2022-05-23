@@ -890,13 +890,14 @@ def getArticleSubmitter(auth, db, art):
     if (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role="manager")):
         submitter = db(db.auth_user.id == art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
         if submitter is None:
-            submitter = art.article_submitter.replace('<span>', '').split('</span>')[0] if art.article_submitter else FakeSubmitter()
+            submitter = FakeSubmitter()
         hideSubmitter = False
 
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(mkUser_U(auth, db, submitter, linked=True)),)),
+            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(art.article_submitter.replace('<span>', '').split('</span>')[0] \
+                if art.article_submitter else mkUser_U(auth, db, submitter, linked=True)),)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:
