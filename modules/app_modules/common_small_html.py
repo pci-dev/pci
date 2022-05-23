@@ -947,3 +947,13 @@ def mkReviewerStat(auth, db, stat):
         )
     return anchor
 
+######################################################################################################################################################################
+def mkRecommenderandContributorList(query):
+    result = []
+    for i in query:
+        try:
+            result_dict = {'id': i.recommender_id, 'details': i.recommender_details}
+        except:
+             result_dict = {'id': i.contributor_id, 'details': i.contributor_details}
+        result.append(result_dict)
+    return result
