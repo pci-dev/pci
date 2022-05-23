@@ -204,7 +204,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
-    doi_button = A(SPAN(current.T("Read preprint in preprint server"), _class="btn btn-success"), _href=article.doi)
+    doi_button = A(SPAN(current.T("Read preprint in preprint server"), _class="btn btn-success"), _href=article.doi, _target="blank")
 
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)

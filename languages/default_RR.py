@@ -562,6 +562,7 @@
     "RAM Cache Keys": "RAM Cache Keys",
     "Ram Cleared": "Ram Cleared",
     "RAM": "RAM",
+    "Read preprint in preprint server": "Read report on server",
     "Recipes": "Recipes",
     "Recommend a postprint": "Recommend a postprint",
     "Recommendation board": "Recommendation board",

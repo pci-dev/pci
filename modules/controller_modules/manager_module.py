@@ -38,14 +38,14 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 def mkRecommenderButton(row, auth, db):
     last_recomm = db(db.t_recommendations.article_id == row.id).select(orderby=db.t_recommendations.id).last()
     if last_recomm:
-        resu = SPAN(common_small_html.mkUserWithMail(auth, db, last_recomm.recommender_id))
-        corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
+        resu = TAG(last_recomm.recommender_details) if last_recomm.recommender_details else SPAN(common_small_html.mkUserWithMail(auth, db, last_recomm.recommender_id))
+        corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.ALL)
         if len(corecommenders) > 0:
             resu.append(BR())
             resu.append(B(current.T("Co-recommenders:")))
             resu.append(BR())
             for corecommender in corecommenders:
-                resu.append(SPAN(common_small_html.mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
+                resu.append(TAG(corecommender.contributor_details) if corecommender.contributor_details else SPAN(common_small_html.mkUserWithMail(auth, db, corecommender.contributor_id)) + BR())
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""

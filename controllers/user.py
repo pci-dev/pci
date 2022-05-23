@@ -1609,6 +1609,7 @@ def edit_review():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     art = db.t_articles[recomm.article_id]
+    if pciRRactivated: \
     survey = db(db.t_report_survey.article_id == recomm.article_id).select().last()
     # survey.article_id = articleId
     # Check if article have correct status
