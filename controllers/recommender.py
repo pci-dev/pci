@@ -1025,7 +1025,7 @@ def one_review():
         redirect(request.env.http_referer)
     db.t_reviews._id.readable = False
     db.t_reviews.reviewer_id.writable = False
-    db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+    db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
     db.t_reviews.anonymously.default = True
     db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
     db.t_reviews.review.writable = auth.has_membership(role="manager")
