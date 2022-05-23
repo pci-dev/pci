@@ -706,7 +706,7 @@ def mkCoRecommenders(auth, db, row, goBack=URL()):
     revs = db(db.t_press_reviews.recommendation_id == row.id).select()
     for rev in revs:
         if rev.contributor_id:
-            hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
+            hrevs.append(LI(TAG(rev.contributor_details) if rev.contributor_details else mkUserWithMail(auth, db, rev.contributor_id)))
         else:
             hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
