@@ -793,13 +793,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0])
+                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else "")
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -831,13 +831,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0])
+                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else "")
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -851,13 +851,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name))
+                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name) if theUser.reviewer_id else "")
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0])
+                        whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "")
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
