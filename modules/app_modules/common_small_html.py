@@ -793,7 +793,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -831,7 +831,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -851,7 +851,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name))
+                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name) if theUser.reviewer_id else "")
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
