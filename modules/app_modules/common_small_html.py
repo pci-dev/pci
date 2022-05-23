@@ -777,17 +777,15 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                             if this_recomm_only else
                         (db.t_recommendations.article_id == article.id))
 
-        mainRecommenders = db(select_recomm & (db.t_recommendations.recommender_id == db.auth_user.id)).select(
-            db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name
-        )
+        mainRecommenders = db(select_recomm).select(
+            db.t_recommendations.ALL, distinct=db.t_recommendations.ALL)
 
         coRecommenders = db(
             select_recomm
             & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
-            & (db.auth_user.id == db.t_press_reviews.contributor_id)
-        ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+        ).select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.ALL)
 
-        allRecommenders = mainRecommenders | coRecommenders
+        allRecommenders = mkRecommenderandContributorList(mainRecommenders) + mkRecommenderandContributorList(coRecommenders)
 
         if article.already_published:  # NOTE: POST-PRINT
             nr = len(allRecommenders)
@@ -795,9 +793,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append("%s %s" % (theUser.first_name, theUser.last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').replace('</span>', '').split('<a')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
                 else:
-                    whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                    if theUser['id']:
+                        theUser = db.auth_user[theUser['id']]
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                    else:
+                        whoDidIt.append(theUser['details'].replace('<span>', '').replace('</span>', '').split('<a')[0])
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -808,10 +810,9 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 namedReviewers = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
-                    & (db.auth_user.id == db.t_reviews.reviewer_id)
                     & (db.t_reviews.anonymously == False)
                     & (db.t_reviews.review_state == "Review completed")
-                ).select(db.auth_user.ALL, distinct=db.auth_user.ALL, orderby=db.auth_user.last_name)
+                ).select(db.t_reviews.ALL, distinct=db.t_reviews.ALL)
                 na = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
@@ -830,9 +831,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append("%s %s" % (theUser.first_name, theUser.last_name))
+                    whoDidIt.append(theUser['details'].replace('<span>', '').replace('</span>', '').split('<a')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name))
                 else:
-                    whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                    if theUser['id']:
+                        theUser = db.auth_user[theUser['id']]
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                    else:
+                        whoDidIt.append(theUser['details'].replace('<span>', '').replace('</span>', '').split('<a')[0])
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -846,9 +851,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append("%s %s" % (theUser.first_name, theUser.last_name))
+                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').replace('</span>', '').split('<a')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name))
                 else:
-                    whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+                    if theUser.reviewer_id:
+                        theUser = db.auth_user[theUser.reviewer_id]
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+                    else:
+                        whoDidIt.append(theUser.reviewer_details.replace('<span>', '').replace('</span>', '').split('<a')[0])
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
@@ -948,3 +957,13 @@ def mkReviewerStat(auth, db, stat):
         )
     return anchor
 
+######################################################################################################################################################################
+def mkRecommenderandContributorList(query):
+    result = []
+    for i in query:
+        try:
+            result_dict = {'id': i.recommender_id, 'details': i.recommender_details}
+        except:
+             result_dict = {'id': i.contributor_id, 'details': i.contributor_details}
+        result.append(result_dict)
+    return result
