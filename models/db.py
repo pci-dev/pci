@@ -657,7 +657,7 @@ db.define_table(
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
-    Field("article_submitter", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
+    Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -967,7 +967,7 @@ def setRecommenderDetails(user):
 
 def setArticleSubmitter(user):
     db(db.t_articles.user_id == user.id).update(
-        article_submitter = common_small_html.mkUserWithMail(auth, db, user.id)
+        submitter_details = common_small_html.mkUserWithMail(auth, db, user.id)
     )
 
 def setCoRecommenderDetails(user):
