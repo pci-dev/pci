@@ -657,6 +657,7 @@ db.define_table(
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
+    Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -849,6 +850,7 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
+    Field("recommender_details", type="text", length=512, label=T("Recommender details"), readable=False, writable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
@@ -953,12 +955,29 @@ db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setArticleSubmitter(s.select().first()))
+db.auth_user._before_delete.append(lambda s: setCoRecommenderDetails(s.select().first()))
 
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
         reviewer_details = common_small_html.mkUserWithMail(auth, db, user.id)
     )
 
+def setRecommenderDetails(user):
+    db(db.t_recommendations.recommender_id == user.id).update(
+        recommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
+    )
+
+def setArticleSubmitter(user):
+    db(db.t_articles.user_id == user.id).update(
+        submitter_details = common_small_html.mkUserWithMail(auth, db, user.id)
+    )
+
+def setCoRecommenderDetails(user):
+    db(db.t_press_reviews.contributor_id == user.id).update(
+        contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
+    )
 
 def updateReviewerDetails(row):
     if hasattr(row, "reviewer_id") and hasattr(row, "reviewer_details"):
@@ -1155,6 +1174,7 @@ db.define_table(
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("contributor_id", type="reference auth_user", ondelete="RESTRICT", label=T("Contributor")),
+    Field("contributor_details", type="text", length=512, label=T("Co-Recommender details"), readable=False, writable=False),
     singular=T("Co-recommendation"),
     plural=T("Co-recommendations"),
     migrate=False,

@@ -506,7 +506,7 @@ def my_awaiting_articles():
         & (db.t_suggested_recommenders.declined == False)
     )
     db.t_articles.user_id.writable = False
-    db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, common_small_html.mkUser(auth, db, userId))
+    db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, row.submitter_details.replace('<span>', '').split('</span>')[0] if row.submitter_details else common_small_html.mkUser(auth, db, userId))
     # db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.anonymous_submission.readable = False
@@ -560,6 +560,7 @@ def my_awaiting_articles():
             db.t_articles.keywords,
             db.t_articles.user_id,
             db.t_articles.auto_nb_recommendations,
+            db.t_articles.submitter_details,
         ]
 
     grid = SQLFORM.grid(
@@ -1025,7 +1026,7 @@ def one_review():
         redirect(request.env.http_referer)
     db.t_reviews._id.readable = False
     db.t_reviews.reviewer_id.writable = False
-    db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+    db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
     db.t_reviews.anonymously.default = True
     db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
     db.t_reviews.review.writable = auth.has_membership(role="manager")
@@ -1915,12 +1916,13 @@ def add_contributor():
         roleClass = " pci-manager" if (recomm.recommender_id != auth.user_id) and auth.has_membership(role="manager") else " pci-recommender"
         art = db.t_articles[recomm.article_id]
         contributorsListSel = db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == db.auth_user.id)).select(
-            db.t_press_reviews.id, db.auth_user.id
+            db.t_press_reviews.id, db.auth_user.id, db.t_press_reviews.contributor_details
         )
         contributorsList = []
         for con in contributorsListSel:
             contributorsList.append(
                 LI(
+                    TAG(con.t_press_reviews.contributor_details) if con.t_press_reviews.contributor_details else \
                     common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
                     A(
                         T("Delete"),
@@ -2005,7 +2007,7 @@ def contributions():
         db.t_press_reviews.recommendation_id.writable = False
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
-        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""
+        db.t_press_reviews.contributor_id.represent = lambda text, row: TAG(row.contributor_details) if row.contributor_details else common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""  
         alreadyCo = db(db.t_press_reviews.recommendation_id == recommId)._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -2026,7 +2028,7 @@ def contributions():
             paginate=100,
             csv=csv,
             exportclasses=expClass,
-            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
+            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details],
         )
 
         myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
@@ -2262,7 +2264,7 @@ def my_co_recommendations():
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_press_reviews._id.readable = False
-    db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
+    db.t_recommendations.recommender_id.represent = lambda uid, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
     db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
 
@@ -2291,6 +2293,7 @@ def my_co_recommendations():
             db.t_articles.already_published,
             db.t_recommendations.article_id,
             db.t_recommendations.recommender_id,
+            db.t_recommendations.recommender_details,
         ],
         links=[
             dict(

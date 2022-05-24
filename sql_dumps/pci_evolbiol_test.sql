@@ -2950,3 +2950,14 @@ ALTER TYPE duration ADD VALUE 'Five working days';
 
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS doi_of_published_article character varying(512);
+
+-- 2022-05-24 updates/new_recomm_article_field.sql
+
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS  submitter_details character varying(512);
+
+ALTER TABLE "t_recommendations"
+ADD COLUMN IF NOT EXISTS  recommender_details character varying(512);
+
+ALTER TABLE "t_press_reviews"
+ADD COLUMN IF NOT EXISTS  contributor_details character varying(512);
