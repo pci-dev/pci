@@ -606,18 +606,15 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         editRecommendationButtonText = None
         if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration") and not (printable):
             # recommender's button for recommendation edition
+            editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
+            editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
             if pciRRactivated:
-                editRecommendationDisabled = False
-                editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
-                editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
+                pass
             elif (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
-                editRecommendationDisabled = False
-                editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
-                editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
+                pass
             else:
                 editRecommendationDisabled = True
                 editRecommendationButtonText = current.T("Write your decision / recommendation")
-                editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
 
         recommendationPdfLink = None
         if hideOngoingRecomm is False and recomm.recommender_file:
