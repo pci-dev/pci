@@ -622,7 +622,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             # recommender's button for recommendation edition
             editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
             editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
-            if pciRRactivated and not isScheduledSubmission:
+            if pciRRactivated:
                 pass
             elif (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
                 pass
