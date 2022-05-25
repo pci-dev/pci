@@ -238,7 +238,6 @@ def search_reviewers():
             myValue = (myVars[myVar])[1]
         else:
             myValue = myVars[myVar]
-
         if myVar == "qyKeywords":
             qyKw = myValue
         elif myVar == "myGoal":
@@ -247,7 +246,6 @@ def search_reviewers():
             excludeList += myValue.split(",")
         elif re.match("^qy_", myVar) and myValue == "on":
             qyTF.append(re.sub(r"^qy_", "", myVar))
-
     recomm = None
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
@@ -262,7 +260,9 @@ def search_reviewers():
                         excludeList.append(uid)
 
     qyKwArr = qyKw.split(" ")
-    '''searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
+    
+    '''
+    searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
     if searchForm.process(keepvalues=True).accepted:
         response.flash = None
     else:
@@ -270,6 +270,11 @@ def search_reviewers():
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
     '''
+    qyTF = []
+    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+        qyTF.append(thema.keyword)
+    #response.flash = None
+
     filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
     def collect_reviewer_stats(fr):
@@ -319,7 +324,7 @@ def search_reviewers():
     else:
         temp_db.qy_reviewers.num.readable = False
         temp_db.qy_reviewers.score.readable = False
-        original_grid = SQLFORM.grid(
+        original_grid = SQLFORM.smartgrid(
             qy_reviewers,
             editable=False,
             deletable=False,
@@ -346,8 +351,13 @@ def search_reviewers():
             _class="web2py_grid action-button-absolute",
         )
 
+        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+        specific_thematics = []
+        for t in thematics_query:
+            specific_thematics.append(t[1])
+
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers')
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', specific_thematics)
         except: grid = original_grid
 
         response.view = "default/gab_list_layout.html"

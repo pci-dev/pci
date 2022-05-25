@@ -7,7 +7,7 @@ for (var i = 0; i < add_btns.length; i++) {
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null && search_bar.value != '') { show_buttons(); }
-else { empty_counter(); }
+else { result_counter_initial(); }
 
 remove_asterisks();
 
@@ -41,16 +41,21 @@ function add_not(not_field) {
     from the input fields and add it to the search field
     with a regulator "not in" */
     var select_field = document.querySelector('#w2p_query_fields');
-    var not_statement = ' and ' + select_field.value + ' != "';
-    not_statement += not_field.parentElement.querySelector('input.form-control').value + '"';
-    var search_bar = document.querySelector('#w2p_keywords');
-    var current_keywords = search_bar.value;
-    current_keywords += not_statement;
-    search_bar.value = current_keywords;
+    if (select_field.value != 'all') {
+        var not_statement = ' and ' + select_field.value + ' != "';
+        not_statement += not_field.parentElement.querySelector('input.form-control').value + '"';
+        var search_bar = document.querySelector('#w2p_keywords');
+        var current_keywords = search_bar.value;
+        current_keywords += not_statement;
+        search_bar.value = current_keywords;
+    }
+    else {
+        add_all(not_field, 'and', true);
+    }
 }
 
 
-function add_all(field, regulator) {
+function add_all(field, regulator, not_statement = false) {
     /* when All fields is chosen, take the argument
     from the input fields, concatenate all possible search fields,
     and add them to the search field with OR */
@@ -60,10 +65,18 @@ function add_all(field, regulator) {
 
     // get all search options and create statement:
     var options = document.querySelectorAll('#w2p_query_fields option');
+    if (not_statement) {
+        var inner_regulator = '!=';
+        var inner_logic = 'and';
+    }
+    else { 
+        var inner_regulator = 'contains'; 
+        var inner_logic = 'or';
+    }
     var search_statement = '';
     for (var i = 0; i < options.length; i++) {
         if (options[i].value != 'all' && options[i].style.display != 'none') {
-            search_statement += options[i].value + ' contains "' + search_term + '" OR ';
+            search_statement += options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
         }
     }
 
@@ -78,9 +91,9 @@ function add_all(field, regulator) {
 }
 
 
-function empty_counter() {
-    var result_count = document.querySelector('.web2py_counter');
-    result_count.innerHTML = '';
+function result_counter_initial() {
+    var result_count = document.querySelector('.web2py_counter').innerHTML;
+    document.querySelector('.web2py_counter').innerHTML = result_count.replace(' found', '');
 }
 
 

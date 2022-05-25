@@ -90,7 +90,7 @@ def list_users():
         # db.auth_user.institution,
         # db.auth_user.city,
         # db.auth_user.country,
-        # db.auth_user.thematics,
+        db.auth_user.thematics,
         db.auth_membership.user_id,
         db.auth_membership.group_id,
         db.t_articles.id,
@@ -129,7 +129,6 @@ def list_users():
     db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
     db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
-
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
 
@@ -165,8 +164,13 @@ def list_users():
                     paginate=25,
     )
 
+    thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+    specific_thematics = []
+    for t in thematics_query:
+        specific_thematics.append(t[1])
+
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users')
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', specific_thematics)
     except: grid = original_grid
 
     if "auth_membership.user_id" in request.args:
