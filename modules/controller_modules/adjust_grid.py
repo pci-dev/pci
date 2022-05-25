@@ -23,14 +23,15 @@ from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
 
-remove_options = ['auth_user.registration_key', 'auth_user.website',
-                    'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
-                    'auth_user.ethical_code_approved']
+remove_options = ['auth_user.registration_key',# 'auth_user.website',
+                  'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
+                  'auth_user.ethical_code_approved']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-hijacks = {'users': 'w2p_field_auth_user-id', 'templates': 'w2p_field_mail_templates-lang', 'reviewers': 'w2p_field_qy_reviewers-id'}
+hijacks_all_field = {'users': 'w2p_field_auth_user-id', 'templates': 'w2p_field_mail_templates-lang', 'reviewers': 'w2p_field_qy_reviewers-id'}
+hijacks_thematics_field = {'users': 'w2p_field_auth_user-website'}
 hijack_values = ['auth_user.id', 'mail_templates.lang', 'qy_reviewers.id']
 
-def adjust_grid_basic(grid, search_name):
+def adjust_grid_basic(grid, search_name, thematics = []):
     '''
     function that adjusts the grid after its generation
     '''
@@ -50,6 +51,7 @@ def adjust_grid_basic(grid, search_name):
     elif search_name == 'users':
         panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+        panel_search_field2 = grid.elements('div#w2p_field_auth_user-website')[0]
         select_panel_id = grid.elements('#w2p_field_auth_user-id select.form-control')[0]
     elif search_name == 'reviewers':
         panel_search_field = grid.elements('div#w2p_field_qy_reviewers-id')[0]
@@ -76,8 +78,8 @@ def adjust_grid_basic(grid, search_name):
         elif btn.__getattribute__('attributes')['_value'] == 'Close':
             btn.__getattribute__('attributes').update({'_style':'display:none'})
 
-    # hi-jack one unused field and re-create it to an "All Fields" search
-    hijack_field = hijacks[search_name]
+    # hi-jack unused ID field and re-create it to an "All Fields" search
+    hijack_field = hijacks_all_field[search_name]
     regulator_panel_id = grid.elements('div#%s .form-control'%hijack_field)
     options = regulator_panel_id[0].elements('option')
     for option in options:
@@ -94,13 +96,45 @@ def adjust_grid_basic(grid, search_name):
         if 'add-btn' in input.__getattribute__('attributes')['_class']:
             input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "new")'})
         if 'and-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "AND")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "and")'})
         if 'or-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "OR")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "or")'})
         if 'not-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "NOT")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "not")'})
 
     panel_search_field.__getattribute__('attributes').update({'_id': 'w2p_field_all'})
+
+    # hi-jack unused field and re-create it to an "Thematics" search
+    try:
+        hijack_field2 = hijacks_thematics_field[search_name]
+        regulator_panel_id2 = grid.elements('div#%s .form-control'%hijack_field2)
+        options2 = regulator_panel_id2[0].elements('option')
+        for option in options2:
+            if option.__getattribute__('attributes')['_value'] == '=':
+                option.__getattribute__('attributes').update({'_class': 'contains'})
+                select_panel_id.elements('option.contains', replace=OPTION('contains', _class="contains"))
+            option.__getattribute__('attributes').update({'_style':'display:none'})
+
+        input_fields_id = regulator_panel_id[0].siblings()
+        for input in input_fields_id:
+            if 'form-control' in input.__getattribute__('attributes')['_class']:
+                input.__getattribute__('attributes').update({'_id': 'w2p_value_all'})
+                input.__getattribute__('attributes').update({'_class': 'all form-control'})
+            if 'add-btn' in input.__getattribute__('attributes')['_class']:
+                input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "new")'})
+            if 'and-btn' in input.__getattribute__('attributes')['_class']:
+                input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "and")'})
+            if 'or-btn' in input.__getattribute__('attributes')['_class']:
+                input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "or")'})
+            if 'not-btn' in input.__getattribute__('attributes')['_class']:
+                input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "not")'})
+
+        panel_search_field2.__getattribute__('attributes').update({'_id': 'w2p_field_auth_user-thematics'})
+    except:
+        print('Didn"t do the thematics field')
+
+
+
 
     # remove options, regulators, and other elements that are not required
     for option in select_panel:
