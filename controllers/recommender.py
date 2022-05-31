@@ -269,13 +269,16 @@ def search_reviewers():
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
     filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-    for fr in filtered:
+
+    def collect_reviewer_stats(fr):
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
         nb_recomm = db((db.t_recommendations.recommender_id == fr['id']) & (db.t_recommendations.recommendation_state == "Recommended")).count()
         nb_co_recomm = db((db.t_press_reviews.contributor_id == fr['id']) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)).count()
-        fr['keywords'] = db.auth_user[fr['id']].keywords or ""
         is_recomm = fr['id'] in user_module.getAllRecommenders(db)
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
+
+    for fr in filtered:
+        fr['keywords'] = db.auth_user[fr['id']].keywords or ""
         qy_reviewers.insert(**fr)
 
     temp_db.qy_reviewers.uploaded_picture.readable = False
