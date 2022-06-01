@@ -355,7 +355,7 @@ def search_reviewers():
             specific_thematics.append(t[1])
 
         # the grid is adjusted after creation to adhere to our requirements
-        #grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers')
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', specific_thematics)
         try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', specific_thematics)
         except: grid = original_grid
 
