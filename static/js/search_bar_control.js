@@ -3,13 +3,14 @@ for (var i = 0; i < add_btns.length; i++) {
     add_btns[i].addEventListener('click', show_buttons);
 }
 
-
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null && search_bar.value != '') { show_buttons(); }
 else { result_counter_initial(); }
 
 remove_asterisks();
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user'}
+
 
 function show_buttons() {
     /* when the ADD button is clicked, this function
@@ -41,16 +42,19 @@ function add_not(not_field) {
     from the input fields and add it to the search field
     with a regulator "not in" */
     var select_field = document.querySelector('#w2p_query_fields');
-    if (select_field.value != 'all') {
+    if (select_field.value == 'all') {
+        add_all(not_field, 'and', true);
+    }
+    else if (select_field.value == 'thematics') {
+        add_thematics('and', true)
+    }
+    else {
         var not_statement = ' and ' + select_field.value + ' != "';
         not_statement += not_field.parentElement.querySelector('input.form-control').value + '"';
         var search_bar = document.querySelector('#w2p_keywords');
         var current_keywords = search_bar.value;
         current_keywords += not_statement;
         search_bar.value = current_keywords;
-    }
-    else {
-        add_all(not_field, 'and', true);
     }
 }
 
@@ -107,4 +111,26 @@ function remove_asterisks() {
             }
         }
     }
+}
+
+
+function add_thematics(user_type, regulator, not_statement = false) {
+    /* when Thematic Fields is chosen, choose the argument
+    from the new dropdown, but not from the input field */
+    // get thematic search term
+    var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
+    var thematic = drop_field_thematics.value;
+
+    var user_field = user_type2field[user_type];
+
+    // special case of not statement
+    if (not_statement) { var inner_regulator = '!='; }
+    else { var inner_regulator = 'contains'}
+
+    var search_statement = user_field + '.thematics ' + inner_regulator +' "' + thematic + '"';
+
+    // get the statement to the search field
+    var search_field = document.querySelector('#w2p_keywords');
+    if (regulator == 'new') { search_field.value = search_statement; }
+    else { search_field.value += ' ' + regulator + ' ' + search_statement; }
 }
