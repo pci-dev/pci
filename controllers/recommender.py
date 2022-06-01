@@ -219,7 +219,7 @@ def search_reviewers():
         Field("city", type="string", label=T("City")),
         Field("country", type="string", label=T("Country")),
         Field("laboratory", type="string", label=T("Department")),
-        Field("reviewer_stat", type="list:string", label=T("Active in PCI Evaluation")),
+        #Field("reviewer_stat", type="list:string", label=T("Active in PCI Evaluation")),
         Field("keywords", type="string", label=T("Keywords")),
         Field("institution", type="string", label=T("Institution")),
         Field("thematics", type="list:string", label=T("Thematic fields")),
@@ -269,20 +269,23 @@ def search_reviewers():
         for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
             qyTF.append(thema.keyword)
     filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-    for fr in filtered:
+
+    def collect_reviewer_stats(fr):
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
         nb_recomm = db((db.t_recommendations.recommender_id == fr['id']) & (db.t_recommendations.recommendation_state == "Recommended")).count()
         nb_co_recomm = db((db.t_press_reviews.contributor_id == fr['id']) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)).count()
-        fr['keywords'] = db.auth_user[fr['id']].keywords or ""
         is_recomm = fr['id'] in user_module.getAllRecommenders(db)
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
+
+    for fr in filtered:
+        fr['keywords'] = db.auth_user[fr['id']].keywords or ""
         qy_reviewers.insert(**fr)
 
     temp_db.qy_reviewers.uploaded_picture.readable = False
     temp_db.qy_reviewers.excluded.readable = False
     temp_db.qy_reviewers._id.represent = lambda uid, row: DIV(common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]), _class="pci-w300Cell")
     temp_db.qy_reviewers._id.label = "Who?"
-    temp_db.qy_reviewers.reviewer_stat.represent = lambda stat, row: DIV(common_small_html.mkReviewerStat(auth, db, stat), _class="pci-w300Cell")
+    #temp_db.qy_reviewers.reviewer_stat.represent = lambda stat, row: DIV(common_small_html.mkReviewerStat(auth, db, stat), _class="pci-w300Cell")
 
     pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
     customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
@@ -320,7 +323,7 @@ def search_reviewers():
             details=False,
             searchable=False,
             maxtextlength=250,
-            paginate=1000,
+            paginate=100,
             csv=csv,
             exportclasses=expClass,
             fields=[
@@ -330,7 +333,7 @@ def search_reviewers():
                 temp_db.qy_reviewers.uploaded_picture,
                 temp_db.qy_reviewers.thematics,
                 temp_db.qy_reviewers.keywords,
-                temp_db.qy_reviewers.reviewer_stat,
+                #temp_db.qy_reviewers.reviewer_stat,
                 temp_db.qy_reviewers.excluded,
             ],
             links=links,
