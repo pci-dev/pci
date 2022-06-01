@@ -323,7 +323,7 @@ def search_reviewers():
             details=False,
             searchable=False,
             maxtextlength=250,
-            paginate=1000,
+            paginate=100,
             csv=csv,
             exportclasses=expClass,
             fields=[
