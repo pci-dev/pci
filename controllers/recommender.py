@@ -277,8 +277,10 @@ def search_reviewers():
         is_recomm = fr['id'] in user_module.getAllRecommenders(db)
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
 
+    users_ids = [ fr['id'] for fr in filtered ]
+    keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
     for fr in filtered:
-        fr['keywords'] = db.auth_user[fr['id']].keywords or ""
+        fr['keywords'] = keywords[fr['id']] or ""
         qy_reviewers.insert(**fr)
 
     temp_db.qy_reviewers.uploaded_picture.readable = False
