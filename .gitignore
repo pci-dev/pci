@@ -21,4 +21,3 @@ controllers/dev.py
 web2py/
 misc/
 log.txt
-private/reminders_config
