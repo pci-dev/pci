@@ -704,7 +704,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 
             if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id) and (art.status == "Under consideration") and not (printable) and not (quiet):
                 # recommender's button for recommendation edition
-                if (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1 or (pciRRactivated and art.art_stage_1_id is None):
+                if (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1 or (pciRRactivated):
                     myRound.append(
                         DIV(
                             A(

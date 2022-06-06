@@ -95,7 +95,7 @@ def getReviewsSubTable(auth, db, response, request, recomm):
         showRemoveSearchingForReviewersButton = art.is_searching_reviewers
 
         showDecisionLink = True
-        if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1 or (pciRRactivated and art.art_stage_1_id is None):
+        if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1 or (pciRRactivated):
             writeDecisionLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
 
     roundNumber = recomm_round
