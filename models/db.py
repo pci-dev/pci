@@ -1149,6 +1149,7 @@ db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(
 
 db.t_suggested_recommenders._after_insert.append(lambda f, i: appendSuggRecommender(f, i))
 db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommender(s))
+db.t_suggested_recommenders._before_update.append(lambda s, f: declineSuggRecommender(s, f))
 
 
 def appendSuggRecommender(f, i):
@@ -1168,6 +1169,15 @@ def deleteSuggRecommender(s):
     article = db.t_articles[sugg_recomm.article_id]
     emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article["id"], sugg_recomm["suggested_recommender_id"])
 
+
+def declineSuggRecommender(s, f):
+    o = s.select().first()
+    sugg_recomm = o['suggested_recommender_id']
+    article = o['article_id']
+    if o['declined'] is False and f['declined'] is True:
+        emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article, sugg_recomm)
+    if o['declined'] is True and f['declined'] is False:
+        emailing.create_reminder_for_suggested_recommender_invitation(session, auth, db, article, sugg_recomm)
 
 db.define_table(
     "t_press_reviews",
