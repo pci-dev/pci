@@ -1107,7 +1107,10 @@ def reviews():
         grid = SQLFORM.grid(
             query,
             details=True,
-            editable=lambda row: auth.has_membership(role="manager") or (row.review_state != "Review completed" and row.reviewer_id is None),
+            editable=(lambda row:
+                (auth.has_membership(role="manager") and row.reviewer_id != None)
+                #or (row.review_state != "Review completed" and row.reviewer_id is None)
+            ),
             deletable=auth.has_membership(role="manager"),
             create=auth.has_membership(role="manager"),
             searchable=False,
