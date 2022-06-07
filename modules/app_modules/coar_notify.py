@@ -179,6 +179,13 @@ class COARNotifier:
 
     def _article_as_jsonld(self, article):
         return {
+            "id": article.doi,
+            "ietf:cite-as": article.doi,
+            "type": "sorg:AboutPage",
+        }
+
+    def _article_as_jsonld_using_pci_ref_to_article(self, article):
+        return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
             "ietf:cite-as": article.doi,
             "type": "sorg:AboutPage",
