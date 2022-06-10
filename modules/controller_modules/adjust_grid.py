@@ -35,10 +35,12 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     function that adjusts the grid after its generation
     '''
     # gather elements
+    web2py_grid = grid.elements('div.web2py_grid')[0]
     panel = grid.elements('div#w2p_query_panel')[0]
     btns = grid.elements('input.btn-default')
     select_panel = grid.elements('select#w2p_query_fields')[0]
     regulator_panels = grid.elements('select.form-control')
+    search_field = grid.elements('.web2py_console form')[0]
 
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -53,6 +55,9 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field2 = grid.elements('div#w2p_field_auth_user-website')[0]
         select_panel_id = grid.elements('#w2p_field_auth_user-id select.form-control')[0]
         select_panel_id2 = grid.elements('#w2p_field_auth_user-website select.form-control')[0]
+        # restyle the add button
+        add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
+        add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
     elif search_name == 'reviewers':
         panel_search_field = grid.elements('div#w2p_field_qy_reviewers-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -60,15 +65,10 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         select_panel_id = grid.elements('#w2p_field_qy_reviewers-id select.form-control')[0]
         select_panel_id2 = grid.elements('#w2p_field_qy_reviewers-roles select.form-control')[0]
 
-    # restyle the add button
-    if search_name == 'users':
-        add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
-        add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
-
     # restyle Add, And, Or, Close buttons
     for btn in btns:
         if btn.__getattribute__('attributes')['_value'] == 'New Search':
-            btn.__getattribute__('attributes').update({'_value':'ADD'})
+            #btn.__getattribute__('attributes').update({'_value':'ADD'})
             btn.__getattribute__('attributes').update({'_class':'btn btn-default add-btn'})
         elif btn.__getattribute__('attributes')['_value'] == '+ And':
             btn.__getattribute__('attributes').update({'_style':'display:none'})
@@ -78,6 +78,16 @@ def adjust_grid_basic(grid, search_name, thematics = []):
             btn.__getattribute__('attributes').update({'_class':'btn btn-default or-btn'})
         elif btn.__getattribute__('attributes')['_value'] == 'Close':
             btn.__getattribute__('attributes').update({'_style':'display:none'})
+    
+    # initially, the ADD buttons are now green SEARCH buttons
+    add_btns = grid.elements('div#w2p_query_panel input.add-btn')
+    for ab in add_btns:
+        ab.__getattribute__('attributes').update({'_value':'SEARCH'})
+        ab.__getattribute__('attributes').update({'_style':'background-color:#93c54b'})
+        ab.__getattribute__('attributes').update({'_onclick':'new_search(this)'})
+
+    # initially, the large search field is hidden
+    search_field.__getattribute__('attributes').update({'_style': 'display:none'})
 
     # hi-jack unused ID field and re-create it to an "All Fields" search
     hijack_field = hijacks_all_field[search_name]
@@ -96,6 +106,8 @@ def adjust_grid_basic(grid, search_name, thematics = []):
             input.__getattribute__('attributes').update({'_class': 'all form-control'})
         if 'add-btn' in input.__getattribute__('attributes')['_class']:
             input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "new")'})
+            input.__getattribute__('attributes').update({'_value': 'SEARCH'})
+            input.__getattribute__('attributes').update({'_style': 'background-color:#93c54b'})
         if 'and-btn' in input.__getattribute__('attributes')['_class']:
             input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "and")'})
         if 'or-btn' in input.__getattribute__('attributes')['_class']:
@@ -172,9 +184,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         for option in options:
             if option.__getattribute__('attributes')['_value'] == 'contains':
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
+                #selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
+            elif option.__getattribute__('attributes')['_value'] == '!=':
+                option.__getattribute__('attributes').update({'_class': 'not_contains'})
+                selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))                
             elif option.__getattribute__('attributes')['_value'] in remove_regulators:
                 option.__getattribute__('attributes').update({'_style':'display:none'})
+        #selector.__getattribute__('attributes').update({'_style':'display:none'})
 
     grid.elements('div#w2p_query_panel', replace=None)
     grid.elements('div.web2py_breadcrumbs', replace=None)
@@ -183,7 +199,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     # add elements at different positions
     grid.elements('div.web2py_console ')[0].insert(0, panel)
     if search_name == 'users':
-        grid.elements('div.web2py_console ')[0].insert(0, add_btn)
+        web2py_grid.insert(0, add_btn)
 
     return grid
 
