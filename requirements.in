@@ -6,6 +6,7 @@ orderedmultidict
 psycopg2-binary
 dateutils
 treepoem
+dkimpy
 pillow
 rdflib
 requests
