@@ -371,7 +371,7 @@ auth.settings.extra_fields["auth_user"] = [
         "thematics",
         type="list:string",
         label=SPAN(T("Thematic fields")) + SPAN(" * ", _style="color:red;"),
-        requires=IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True),
+        requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
     Field("cv", type="text", length=2097152, label=T("Educational and work background")),
