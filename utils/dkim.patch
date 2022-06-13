@@ -56,7 +56,7 @@ index 1627d49b..2122f465 100644
 +            privkey=dkim_key.encode(),
 +            include_headers=[h.encode() for h in headers])
 +
-+    return str(sig[len("DKIM-Signature: "):])
++    return sig[len("DKIM-Signature: "):].decode()
 +
 +
 +
