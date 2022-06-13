@@ -9,6 +9,11 @@ from app_modules.reminders import getReminder
 myconf = AppConfig(reload=True)
 MAIL_DELAY = float(myconf.get("config.mail_delay", default=1.5))  # in seconds; must be smaller than cron intervals
 
+class dkim:
+    key = open(myconf.get("dkim.key", default="/var/www/peercommunityin/DKIM-peercommunityin.org.key")).read()
+    selector = myconf.get("dkim.selector", default="s1024")
+
+
 log = None
 if (myconf.get("config.use_logger", default=True) is True):
 	try:
@@ -44,7 +49,15 @@ def tryToSendMail(mail_item):
         return
 
     try:
-        isSent = mail.send(to=mail_item.dest_mail_address, cc=mail_item.cc_mail_addresses, reply_to=mail_item.replyto_addresses, subject=mail_item.mail_subject, message=mail_item.mail_content)
+        isSent = mail.send(
+                to=mail_item.dest_mail_address,
+                cc=mail_item.cc_mail_addresses,
+                reply_to=mail_item.replyto_addresses,
+                subject=mail_item.mail_subject,
+                message=mail_item.mail_content,
+                dkim=dkim,
+                list_unsubscribe=myconf.take("contacts.contact"),
+        )
         #isSent = True
         if isSent is False:
             raise Exception('Email not sent!')
