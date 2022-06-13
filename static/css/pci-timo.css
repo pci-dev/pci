@@ -5,6 +5,11 @@
         hyphens: auto;
     }
 
+    .web2py_console .w2p_query_row .btn {
+        height: 3rem;
+        max-height: 3rem;
+    }
+
     #myNavbar {
         position: absolute;
         background-color: white;
