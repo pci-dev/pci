@@ -1772,6 +1772,8 @@ def edit_reply():
         #     session.flash = T("Reply completed", lazy=False)
         #     redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
         # else:
+        recomm.author_last_change = request.now
+        recomm.update_record()
         session.flash = T("Reply saved", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
