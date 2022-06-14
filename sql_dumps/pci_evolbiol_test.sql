@@ -2916,3 +2916,9 @@ ADD COLUMN IF NOT EXISTS  contributor_details character varying(512);
 -- 2022-06-15 updates/t_recomm_new_field.sql
 ALTER TABLE "t_recommendations"
 ADD COLUMN IF NOT EXISTS author_last_change timestamp without time zone DEFAULT statement_timestamp();
+
+-- 2022-06-16 updates/alter_data_scripts.sql
+ALTER TABLE "t_articles"
+ALTER COLUMN  data_doi TYPE text,
+ALTER COLUMN  scripts_doi TYPE text,
+ALTER COLUMN  codes_doi TYPE text;
