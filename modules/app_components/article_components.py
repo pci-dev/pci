@@ -257,12 +257,19 @@ def getArticleInfosCard(auth, db, response, article, printable,
             ("articleStage", articleStage),
         ]
     )
-
+    article_data_doi = []
+    article_script_doi = []
     if article.data_doi is not None and policy_2():
-        articleContent.update([("dataDoi", (common_small_html.mkDOI(article.data_doi)) if (article.data_doi) else SPAN(""))])
+        for data in article.data_doi:
+            data_url = common_small_html.mkDOI(data)
+            article_data_doi.append(data_url) 
+        articleContent.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
 
     if article.scripts_doi is not None and policy_2():
-        articleContent.update([("scriptDoi", (common_small_html.mkDOI(article.scripts_doi)) if (article.scripts_doi) else SPAN(""))])
+        for data in article.scripts_doi:
+            script_url = common_small_html.mkDOI(data)
+            article_script_doi.append(script_url)
+        articleContent.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
 
     if article.codes_doi is not None and policy_2():
         articleContent.update([("codeDoi", (common_small_html.mkDOI(article.codes_doi)) if (article.codes_doi) else SPAN(""))])
