@@ -10,7 +10,14 @@ jQuery(document).ready(function() {
     't_articles_conflicts_of_interest_indicated',
     't_articles_no_financial_conflict_of_interest',
   ]
-
+  
+  var pciRRactivated = document.querySelector("#t_articles_report_stage")
+  if (pciRRactivated) {
+      prerequisites = [
+        't_articles_i_am_an_author',
+        't_articles_is_not_reviewed_elsewhere'
+      ]
+  }
   if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
     jQuery("#t_articles_uploaded_picture").prop("disabled", false);
   } else {
@@ -114,10 +121,6 @@ jQuery(document).ready(function() {
     }
   });
 
-  var pciRRactivated = document.querySelector("#t_articles_report_stage")
-  if (pciRRactivated) {
-      prerequisites = []
-  }
 
   // function checks all prerequisite checkbox status
   function all_prerequisites() {
