@@ -23,9 +23,6 @@ function ongoing_search() {
         and_btn.style.color = 'white';
         and_btn.value = 'ADD';
         if (query_rows[i].id == 'w2p_field_thematics') {
-            console.log(and_btn.getAttribute('onclick'))
-            console.log(and_btn.getAttribute('onclick').split('"'))
-            console.log(and_btn.getAttribute('onclick').split('"')[1])
             and_btn.setAttribute('onclick', 'add_thematics("' + and_btn.getAttribute('onclick').split('"')[1] + '", "and", false)');
             continue;
         }
@@ -56,14 +53,12 @@ function add_to_search(input_field) {
     // then get regulator
     var regulator_whole = input_field.parentElement.querySelector('select.form-control').value;
     var regulator = regulator_whole.split(' ')[0];
-    if (regulator == 'not') { var not_statement = true; }
-    else { var not_statement = false; }
 
     // lastly get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
 
     if (db_field == 'all') {
-        add_all(input_field, regulator, not_statement);
+        add_all(input_field, regulator);
         return
     }
     else if (db_field == 'thematics') {
@@ -85,7 +80,7 @@ function add_to_search(input_field) {
 }
 
 
-function add_all(field, regulator, not_statement = false) {
+function add_all(field, regulator) {
     /* when All fields is chosen, take the argument
     from the input fields, concatenate all possible search fields,
     and add them to the search field with OR */
@@ -94,23 +89,27 @@ function add_all(field, regulator, not_statement = false) {
     var search_term = search_field_all.value;
 
     // get all search options and create statement:
-    var options = document.querySelectorAll('#w2p_query_fields option');
-    if (not_statement) {
-        var inner_regulator = '!=';
+    var search_statement = '';
+    var regulator_field = field.parentElement.querySelector('select.form-control').value;
+    if (regulator_field == 'not contains') {
+        var prefix = 'not ';
+        var inner_regulator = 'like';
         var inner_logic = 'and';
     }
-    else { 
-        var inner_regulator = 'contains'; 
+    else {
+        var prefix = '';
+        var inner_regulator = 'contains';
         var inner_logic = 'or';
     }
-    var search_statement = '';
+
+    var options = document.querySelectorAll('#w2p_query_fields option');
+    
     for (var i = 0; i < options.length; i++) {
-        if (options[i].value != 'all' && options[i].style.display != 'none') {
-            search_statement += options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
+        if (options[i].value != 'all' && options[i].value != 'thematics' && options[i].style.display != 'none') {
+            search_statement += prefix + options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
         }
     }
-    console.log(search_statement)
-    console.log(regulator)
+
     // get the statement to the search field
     var search_field = document.querySelector('#w2p_keywords');
     if (regulator == 'new') {
@@ -169,12 +168,13 @@ function add_thematics(user_type, regulator, not_statement = false) {
         var search_bar = document.querySelector('.web2py_console > form');
         search_bar.style.display = 'flex';
     }
+    var main_search_form = document.querySelector('.web2py_console > form');
+    main_search_form.submit();
 }
 
 
 function new_search(input_field) {
     // make search bar visible
-    console.log('ok')
     var main_search_form = document.querySelector('.web2py_console > form');
     main_search_form.style.display = 'flex';
 
@@ -189,7 +189,7 @@ function new_search(input_field) {
     var statement = '';
     var select_field = document.querySelector('#w2p_query_fields');
     if (select_field.value == 'all') {
-        add_all(input_field, 'new', not_statement);
+        add_all(input_field, 'new');
     }
     else {
         if (not_statement) {
