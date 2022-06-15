@@ -170,6 +170,7 @@ def list_users():
         specific_thematics.append(t[1])
 
     # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'users', specific_thematics)
     try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', specific_thematics)
     except: grid = original_grid
 
