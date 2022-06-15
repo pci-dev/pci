@@ -213,6 +213,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
             recommDate = recomm.last_change.strftime("%d %B %Y")
+            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime("%d %B %Y")
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
                 auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
@@ -284,6 +285,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommendationStepClass=recommendationStepClass,
                 recommStatus=recommStatus,
                 recommDate=recommDate,
+                authorsReplyDate=authorsReplyDate,
                 managerDecisionDoneClass=managerDecisionDoneClass,
                 managerDecisionDoneStepClass=managerDecisionDoneStepClass,
                 authorsReplyClass=authorsReplyClass,
@@ -318,6 +320,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             recommendationStepClass=recommendationStepClass,
             recommStatus=recommStatus,
             recommDate=recommDate,
+            authorsReplyDate=authorsReplyDate,
             managerDecisionDoneClass=managerDecisionDoneClass,
             managerDecisionDoneStepClass=managerDecisionDoneStepClass,
             totalRecomm=totalRecomm,
@@ -412,7 +415,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         authorsReplyDate = None
         if (recomm.reply is not None) and (len(recomm.reply) > 0):
             authorsReply = DIV(WIKI(recomm.reply or "", safe_mode=False))
-            authorsReplyDate = recomm.last_change.strftime(DEFAULT_DATE_FORMAT)
+            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT+ " %H:%M")
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:

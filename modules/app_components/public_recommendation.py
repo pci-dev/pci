@@ -281,7 +281,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         authorsReplyDate = None
         if recomm.reply:
             authorsReply = DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext")
-            authorsReplyDate = recomm.last_change.strftime(DEFAULT_DATE_FORMAT)
+            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT)
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
