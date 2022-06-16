@@ -609,7 +609,13 @@ db.define_table(
         comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")
     ),
     Field("codes_used_in_study", type="string", label="", requires=IS_IN_SET(db.code_choices), widget=SQLFORM.widgets.radio.widget,),
-    Field("codes_doi", type="string", length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ")"), comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")),
+    Field("codes_doi",
+        type="list:string",
+        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ")"),
+        length=512,
+        comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
+    ),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
