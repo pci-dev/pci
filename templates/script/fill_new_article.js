@@ -286,7 +286,7 @@ function toggleRadioElementDetailsOnChange(
     `input[name="${question_number}"]`
   );
   let details_div = document.querySelector(details_div_id);
-  let input = document.querySelector(input_id);
+  let inputItems = document.querySelectorAll(input_id);
 
   if (levelRadioItems) {
     levelRadioItems.forEach((item) => {
@@ -297,7 +297,13 @@ function toggleRadioElementDetailsOnChange(
 
         item.onchange = function () {
           if (details_div) {
-            input.value = "";
+            if (inputItems){
+              inputItems.forEach((inputItem) => {
+                if (inputItem) {
+                  inputItem.value = "";
+                }
+              });
+            }
             details_div.style.display = "none";
           }
         };

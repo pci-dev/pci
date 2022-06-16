@@ -526,6 +526,14 @@ def edit_my_article():
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
 
+    db.t_articles.results_based_on_data.requires(db.data_choices)
+    db.t_articles.scripts_used_for_result.requires(db.script_choices)
+    db.t_articles.codes_used_in_study.requires(db.code_choices)
+
+    db.t_articles.data_doi.writable = True
+    db.t_articles.scripts_doi.writable = True
+    db.t_articles.codes_doi.writable = True
+
     pciRRjsScript = ""
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
