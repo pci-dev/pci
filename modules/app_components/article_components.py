@@ -287,7 +287,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
 
-    if with_cover_letter and not article.already_published and policy_1():
+    if with_cover_letter and article.cover_letter is not None and not article.already_published and policy_1():
         articleContent.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=False))])
 
     if submittedBy:
