@@ -439,6 +439,14 @@ mail.settings.login = myconf.get("smtp.login")
 mail.settings.tls = myconf.get("smtp.tls") or True
 mail.settings.ssl = myconf.get("smtp.ssl") or False
 
+default_dkim_key_path = "/var/www/peercommunityin/DKIM-peercommunityin.org.key"
+class dkim:
+    key = open(myconf.get("dkim.key", default=default_dkim_key_path)).read()
+    selector = myconf.get("dkim.selector", default="s1024")
+
+mail.settings.dkim = dkim
+mail.settings.list_unsubscribe = myconf.take("contacts.contact")
+
 # -------------------------------------------------------------------------
 # configure auth policy
 # -------------------------------------------------------------------------
