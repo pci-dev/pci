@@ -67,7 +67,7 @@ def list_users():
     # )
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
-    
+
     fields = [
         db.auth_user.id,
         db.auth_user.registration_key,
