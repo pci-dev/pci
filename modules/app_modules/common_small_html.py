@@ -967,3 +967,10 @@ def mkRecommenderandContributorList(query):
              result_dict = {'id': i.contributor_id, 'details': i.contributor_details}
         result.append(result_dict)
     return result
+######################################################################################################################################
+def fetch_url(data):
+    result = []
+    for doi in data:
+        url = mkDOI(doi)
+        result.append(url)
+    return result
