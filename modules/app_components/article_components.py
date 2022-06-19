@@ -258,15 +258,15 @@ def getArticleInfosCard(auth, db, response, article, printable,
         ]
     )
     if article.data_doi and policy_2():
-        article_data_doi = common_tools.fetch_url(article.data_doi)
+        article_data_doi = common_small_html.fetch_url(article.data_doi)
         articleContent.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
 
     if article.scripts_doi and policy_2():
-        article_script_doi = common_tools.fetch_url(article.scripts_doi)
+        article_script_doi = common_small_html.fetch_url(article.scripts_doi)
         articleContent.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
 
     if article.codes_doi and policy_2():
-        article_code_doi = common_tools.fetch_url(article.codes_doi)
+        article_code_doi = common_small_html.fetch_url(article.codes_doi)
         articleContent.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
 
     if article.suggest_reviewers and policy_1():

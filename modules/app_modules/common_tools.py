@@ -6,7 +6,6 @@ from gluon.html import *
 import gluon.http
 
 from gluon.contrib.appconfig import AppConfig
-from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
@@ -64,10 +63,3 @@ absoluteButtonScript = SCRIPT(
     _type="text/javascript",
 )
 
-###################################################################
-def fetch_url(data):
-    result = []
-    for doi in data:
-        url = common_small_html.mkDOI(doi)
-        result.append(url)
-    return result
