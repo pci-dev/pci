@@ -223,6 +223,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
             (db.t_reviews.recommendation_id == db.t_recommendations.id) &
             (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count() > 0
+    isRecommended = article.status == "Recommended"
 
     def policy_1():
         return (
@@ -237,6 +238,8 @@ def getArticleInfosCard(auth, db, response, article, printable,
             policy_1()
             or
             isReviewer
+            or
+            isRecommended
         )
 
     articleContent = dict()
