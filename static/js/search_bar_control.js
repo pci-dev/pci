@@ -1,15 +1,147 @@
 // if there is an ongoing search, we need to change buttons and 
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
-if (search_bar.value != '') { ongoing_search(); }
-else { result_counter_initial(); }
+var user_type = false;
+checkCookie()
 
-remove_asterisks();
+if (search_bar != null) {
+    var user_type = get_user_type();
+    if (search_bar.value != '') { ongoing_search(); }
+    else { 
+        result_counter_initial();
+        initialise_simple_search();
+     }
+    remove_asterisks();
+}
 user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user'}
+
+
+function get_user_type() {
+    var first_column = document.querySelector('.web2py_htmltable > table col').id;
+    return first_column.split('-')[0]
+}
+
+
+function initialise_simple_search() {
+    // if the page is opened and no search is ongoing, initialise simple search
+    var grid = document.querySelector('.web2py_grid');
+    var advanced_search = grid.querySelector('#w2p_query_panel');
+    var console = grid.querySelector('.web2py_console');
+    advanced_search.style.display = 'none';
+
+    var simple_search = document.createElement('div');
+    simple_search.id = 'simple-search';
+    var input_field = document.createElement('input');
+    input_field.classList.add('simple');
+    input_field.classList.add('form-control');
+    input_field.setAttribute('type', 'text');
+    input_field.id = 'simple-search-input';
+
+    var search_btn = document.createElement('input');
+    search_btn.classList.add('btn');
+    search_btn.classList.add('btn-default');
+    search_btn.classList.add('add-btn');
+    search_btn.id = 'simple-search-btn';
+    search_btn.style.backgroundColor = '#93c54b';
+    search_btn.setAttribute('type', 'button');
+    search_btn.setAttribute('onclick', 'simple_search()');
+    search_btn.setAttribute('value', 'SEARCH');
+
+    var clear_btn = document.createElement('input');
+    clear_btn.classList.add('btn');
+    clear_btn.classList.add('btn-default');
+    clear_btn.style.backgroundColor = '#393a35';
+    clear_btn.setAttribute('type', 'button');
+    clear_btn.id = 'simple-clear-btn';
+    clear_btn.setAttribute('onclick', 'clear_simple_search()');
+    clear_btn.setAttribute('value', 'Reset');
+
+    simple_search.appendChild(input_field);
+    simple_search.appendChild(clear_btn);
+    simple_search.appendChild(search_btn);
+    grid.insertBefore(simple_search, console);
+
+    var switch_search_btn = document.createElement('input');
+    switch_search_btn.classList.add('btn');
+    switch_search_btn.classList.add('btn-default');
+    switch_search_btn.id = 'switch-search-btn';
+    switch_search_btn.style.backgroundColor = '#393a35';
+    switch_search_btn.style.color = 'white';
+    switch_search_btn.setAttribute('type', 'button');
+    switch_search_btn.setAttribute('onclick', 'switch_search()');
+    switch_search_btn.setAttribute('value', 'Advanced Search');
+
+    insertAfter(switch_search_btn, console);
+    setCookie('simple');
+}
+
+
+function clear_simple_search() {
+    window.location = window.location.pathname;
+}
+
+function insertAfter(newNode, existingNode) {
+    existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
+}
+
+
+function switch_search() {
+    /* switch search (simple/advanced) and change switch button accordingly */
+    var switch_search_btn = document.querySelector('#switch-search-btn');
+    var advanced_search = document.querySelector('#w2p_query_panel');
+    var simple_search = document.querySelector('#simple-search');
+    if (switch_search_btn.value == 'Advanced Search') {
+        switch_search_btn.setAttribute('value', 'Simple Search');
+        advanced_search.style.display = 'flex';
+        simple_search.style.display = 'none';
+        setCookie('advanced');
+    }
+    else {
+        switch_search_btn.setAttribute('value', 'Advanced Search');
+        advanced_search.style.display = 'none';
+        simple_search.style.display = 'flex';
+        setCookie('simple');
+    }
+}
+
+
+function simple_search() {
+    /* use hidden advanced search entities to perform simple search*/
+    // get query
+    var search_term = document.querySelector('#simple-search-input').value;
+
+    // create add all query xxx
+    // create add all query
+    var search_statement = '';
+    var options = document.querySelectorAll('#w2p_query_fields option');
+    
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].value != 'all' && options[i].value != 'thematics' && options[i].style.display != 'none') {
+            search_statement += options[i].value + ' contains "' + search_term + '" or ';
+        }
+        else if (options[i].value == 'thematics') {
+            search_statement += user_type + '.' + options[i].value + ' contains "' + search_term + '" or ';
+        }
+    }
+
+    // get the statement to the search field and trigger it
+    var search_field = document.querySelector('#w2p_keywords');
+    var search_form = document.querySelector('.web2py_console > form');
+    search_form.style.display = 'flex';
+    search_field.value = search_statement.substring(0,search_statement.length-4);
+    var main_search_form = document.querySelector('.web2py_console > form');
+    main_search_form.submit();
+}
 
 
 function ongoing_search() {
     // for an ongoing search, display the non-empty search bar
+    var search_type = getCookie('search_type');
+    if (search_type == 'simple') {
+        initialise_simple_search();
+        return
+    }
+
     var search_bar = document.querySelector('.web2py_console > form');
     search_bar.style.display = 'flex';
 
@@ -76,11 +208,10 @@ function add_to_search(input_field) {
     // add statement to search bar
     var search_bar = document.querySelector('#w2p_keywords');
     search_bar.value += statement;
-
 }
 
 
-function add_all(field, regulator) {
+function add_all(field, regulator, search_name = false) {
     /* when All fields is chosen, take the argument
     from the input fields, concatenate all possible search fields,
     and add them to the search field with OR */
@@ -107,6 +238,9 @@ function add_all(field, regulator) {
     for (var i = 0; i < options.length; i++) {
         if (options[i].value != 'all' && options[i].value != 'thematics' && options[i].style.display != 'none') {
             search_statement += prefix + options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
+        }
+        else if (options[i].value == 'thematics') {
+            search_statement += prefix + user_type + '.' + options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
         }
     }
 
@@ -151,7 +285,7 @@ function add_thematics(user_type, regulator, not_statement = false) {
     var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
     var thematic = drop_field_thematics.value;
 
-    var user_field = user_type2field[user_type];
+    var user_field = user_type;
 
     // special case of not statement
     if (not_statement) { var inner_regulator = '!='; }
@@ -202,4 +336,31 @@ function new_search(input_field) {
         main_search_input.value = statement;
         main_search_form.submit();
     }
+}
+
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+}
+
+
+function setCookie(cvalue) {
+    document.cookie = 'search_type=' + cvalue + '; SameSite=None; Secure'
+}
+
+
+function checkCookie() {
+    var search_type = getCookie("search_type");
+    if (search_type == "") { setCookie('simple'); }
 }

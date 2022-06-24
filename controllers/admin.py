@@ -186,6 +186,7 @@ def list_users():
         pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
         customText=getText(request, auth, db, "#AdministrateUsersText"),
         grid=grid,
+        
     )
 
 
