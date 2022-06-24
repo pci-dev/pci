@@ -5,6 +5,21 @@
         hyphens: auto;
     }
 
+    .web2py_console .w2p_query_row .btn {
+        height: 3rem;
+        max-height: 3rem;
+    }
+
+    .web2py_console .form-control {
+        width: fit-content;
+    }
+
+    .web2py_counter {
+        width: fit-content;
+        float: right;
+        margin-bottom: 2rem;
+    }
+
     #myNavbar {
         position: absolute;
         background-color: white;
