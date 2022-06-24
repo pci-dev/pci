@@ -1632,7 +1632,7 @@ def email_for_registered_reviewer():
             label=T("Reviewer e-mail address"),
             type="string",
             length=250,
-            # default=reviewer.email,
+            default=db.auth_user[reviewerId].email,
             writable=False,
             requires=IS_EMAIL(error_message=T("invalid e-mail!")),
         ),
