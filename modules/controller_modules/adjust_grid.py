@@ -105,15 +105,15 @@ def adjust_grid_basic(grid, search_name, thematics = []):
             input.__getattribute__('attributes').update({'_id': 'w2p_value_all'})
             input.__getattribute__('attributes').update({'_class': 'all form-control'})
         if 'add-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "new")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "new", "' + search_name + '")'})
             input.__getattribute__('attributes').update({'_value': 'SEARCH'})
             input.__getattribute__('attributes').update({'_style': 'background-color:#93c54b'})
         if 'and-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "and")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "and", "' + search_name + '")'})
         if 'or-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "or")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "or", "' + search_name + '")'})
         if 'not-btn' in input.__getattribute__('attributes')['_class']:
-            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "not")'})
+            input.__getattribute__('attributes').update({'_onclick': 'add_all(this, "not", "' + search_name + '")'})
 
     panel_search_field.__getattribute__('attributes').update({'_id': 'w2p_field_all'})
 
