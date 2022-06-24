@@ -785,6 +785,27 @@
         width: 100%;
         padding-bottom: 2rem;
     }
+    
+    .web2py_console {
+        padding-top: .3rem;
+        padding-bottom: .5rem;
+    }
+
+    #simple-search {
+        display: flex;
+    }
+
+    #simple-search-btn {
+        width: fit-content;
+        height: 3rem;
+        margin-right: .2rem;
+    }
+
+    #simple-search-input {
+        margin-top: .5rem;
+        margin-left: .2rem;
+        height: 3.2rem;
+    }
 
     .navbar-header {
         margin-top: 0;
