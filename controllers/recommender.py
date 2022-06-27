@@ -1467,10 +1467,12 @@ def send_reviewer_generic_mail():
     req_is_email = IS_EMAIL(error_message=T("invalid e-mail!"))
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
+    replyTo = ", ".join([replyto.email, contact])
+
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=(sender_email,)),
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=req_is_email, default=replyto.email, writable=False),
+        Field.CC(default=(sender_email, contact)),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1478,6 +1480,7 @@ def send_reviewer_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        request.vars["replyto"] = replyTo
         try:
             emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
         except Exception as e:
