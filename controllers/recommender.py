@@ -1478,6 +1478,7 @@ def send_reviewer_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        request.vars["replyto"] = replyto.email
         try:
             emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
         except Exception as e:
