@@ -2,6 +2,7 @@
 
 import os
 import time
+import re
 from re import sub, match
 
 from datetime import datetime, timedelta
@@ -101,7 +102,7 @@ def getCorrectHashtag(hashtag, article=None):
 
 #######################################################################################################################################################################
 def list_addresses(addresses):
-    return [x.strip(' ') for x in list(addresses.split(","))] \
+    return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []
 
 ######################################################################################################################################################################
