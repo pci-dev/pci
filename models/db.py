@@ -1060,6 +1060,7 @@ def reviewDone(s, f):
     reviewId = o["id"]
     rev = db.t_reviews[reviewId]
     recomm = db.t_recommendations[rev.recommendation_id]
+    no_of_completed_reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
     try:
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
     except:
@@ -1152,6 +1153,11 @@ def reviewDone(s, f):
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
+        
+        if no_of_completed_reviews >= 2 and o["review_state"] in ["Willing to review", "Awaiting response"] and f["review_state"] == "Awaiting review":
+            emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionSoonDue", recomm["article_id"])
+            emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionDue", recomm["article_id"])
+            emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderDecisionOverDue", recomm["article_id"])
 
     return None
 
