@@ -110,7 +110,7 @@ echo
 mkdir -p site
 
 for role in manager recommender Reviewers: Authors: Others: Semestrial: ; do
-	target=$(echo $role | sed 's/s:$//' | tr '[A-Z]' '[a-z]')
+	target=$(echo $role | sed 's/s\?:$//' | tr '[A-Z]' '[a-z]')
 	cat *.$role.txt | sort -u > $target.txt
 	for site_file in *.$role.txt; do
 		site=${site_file%%.*}
