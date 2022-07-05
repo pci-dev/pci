@@ -127,6 +127,8 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterParallelPreprintUnderConsideration", article)
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterPreprintUnderConsideration", article)
+            if pciRRactivated:
+                mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
 
         elif article.status != newStatus and newStatus == "Cancelled":
             mail_vars["parallelText"] = ""
