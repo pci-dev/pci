@@ -32,7 +32,7 @@ COPY public.t_status_article (id, status, color_class, explaination, priority_le
 10	Not considered	default	No recommender considered this article in due time.	C
 11	Pre-rejected	warning	Rejected by the Recommender; awaiting confirmation by Managing board	A
 12	Pre-revision	warning	Revision asked by the recommender; awaiting confirmation by Managing board	A
-13	Scheduled submission pending	danger	Scheduled submission waiting for Managing board approval	A
+13	Scheduled submission pending	danger	Scheduled submission waiting for Recommender approval	A
 14	Scheduled submission under consideration	info	Scheduled submission accepted by Recommender	A
 15	Pending-survey	good	Submitted by user; awaiting survey submission	A
 \.
