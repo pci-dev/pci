@@ -1969,7 +1969,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             (
                 (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
                 & (db.t_articles.is_searching_reviewers == True)
-                & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submissionn under consideration"))
+                & ((db.t_articles.status == "Under consideration") | (db.t_articles.status == "Scheduled submission under consideration"))
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
