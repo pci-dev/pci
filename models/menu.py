@@ -315,6 +315,18 @@ def _RecommendationMenu():
     else:
         classPreprintsRequireRecomm = ""
 
+    # scheduled submissions (RR only) specific menu entry (validation also available for Managers, as usual)
+    nbPend = db(db.t_articles.status.belongs(("Scheduled submission pending",))).count()
+    if nbPend > 0:
+        colorRequests = True
+        notificationPin = DIV(nPreprintsRecomPend + nbPend, _class="pci2-notif-pin")
+        txtPending = str(nbPend) + " " + (T("Pending validation(s)"))
+
+        recommendationsMenu += [
+            menu_entry(txtPending, "glyphicon-time", URL("manager", "pending_articles", vars=dict(recommender=auth.user_id)),
+                       _class="pci-enhancedMenuItem"),
+        ]
+
     recommendationsMenu += [
         (
             SPAN(

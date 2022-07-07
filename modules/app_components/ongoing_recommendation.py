@@ -724,6 +724,11 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 def getManagerButton(art, auth, isRecommender):
     if art.user_id == auth.user_id:
         return None
+
+    if pciRRactivated and auth.has_membership(role="recommender"):
+        if art.status == "Scheduled submission pending":
+            return validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
+
     if not auth.has_membership(role="manager"):
         return None
     if isRecommender:
@@ -780,14 +785,7 @@ def validate_stage_button(art):
                     style="info",
                 )
             elif art.status == "Scheduled submission pending":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
-                        _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
-                    ),
-                    _class="pci-EditButtons-centered",
-                )
+                managerButton = validate_scheduled_submission_button(articleId=art.id)
 
             return None
 
@@ -819,6 +817,17 @@ def send_back_button(art):
         SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
         _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
         _title=current.T("Click here to send back this decision to the recommender"),
+    )
+
+
+def validate_scheduled_submission_button(articleId, **extra_vars):
+    return DIV(
+            A(
+                SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
+                _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
+            ),
+            _class="pci-EditButtons-centered",
     )
 
 

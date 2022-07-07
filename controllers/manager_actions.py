@@ -146,7 +146,7 @@ def do_reject_article():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def do_validate_scheduled_submission():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
@@ -168,6 +168,10 @@ def do_validate_scheduled_submission():
         
         art.update_record()
         session.flash = T("Request now available to recommenders")
+
+    if is_recommender(auth, request):
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
 

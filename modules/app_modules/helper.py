@@ -137,3 +137,10 @@ def replaceMailVars(text, mail_vars):
             text = text.replace("{{" + var + "}}", replacement_var)
 
     return text
+
+
+def is_recommender(auth, request):
+    return (
+        auth.has_membership(role="recommender") and
+        str(auth.user_id) == request.vars["recommender"]
+    )
