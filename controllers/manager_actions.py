@@ -140,7 +140,7 @@ def do_reject_article():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def do_validate_scheduled_submission():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
