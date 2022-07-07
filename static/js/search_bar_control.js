@@ -26,7 +26,7 @@ function initialise_simple_search() {
     // if the page is opened and no search is ongoing, initialise simple search
     var grid = document.querySelector('.web2py_grid');
     var advanced_search = grid.querySelector('#w2p_query_panel');
-    var console = grid.querySelector('.web2py_console');
+    var wconsole = grid.querySelector('.web2py_console');
     advanced_search.style.display = 'none';
 
     var simple_search = document.createElement('div');
@@ -46,7 +46,7 @@ function initialise_simple_search() {
     search_btn.setAttribute('type', 'button');
     search_btn.setAttribute('onclick', 'simple_search()');
     search_btn.setAttribute('value', 'SEARCH');
-
+    
     var clear_btn = document.createElement('input');
     clear_btn.classList.add('btn');
     clear_btn.classList.add('btn-default');
@@ -59,8 +59,19 @@ function initialise_simple_search() {
     simple_search.appendChild(input_field);
     simple_search.appendChild(clear_btn);
     simple_search.appendChild(search_btn);
-    grid.insertBefore(simple_search, console);
+    grid.insertBefore(simple_search, wconsole);
 
+    var switch_search_btn = document.querySelector('#switch-search-btn');
+    if (switch_search_btn == null) {
+        switch_search_btn = create_switch_search_btn('advanced');
+        insertAfter(switch_search_btn, wconsole);
+    }
+   
+    setCookie('simple');
+}
+
+
+function create_switch_search_btn(modus) {
     var switch_search_btn = document.createElement('input');
     switch_search_btn.classList.add('btn');
     switch_search_btn.classList.add('btn-default');
@@ -69,10 +80,10 @@ function initialise_simple_search() {
     switch_search_btn.style.color = 'white';
     switch_search_btn.setAttribute('type', 'button');
     switch_search_btn.setAttribute('onclick', 'switch_search()');
-    switch_search_btn.setAttribute('value', 'Advanced Search');
+    if (modus == 'advanced') { switch_search_btn.setAttribute('value', 'Advanced Search'); }
+    else { switch_search_btn.setAttribute('value', 'Simple Search'); }
 
-    insertAfter(switch_search_btn, console);
-    setCookie('simple');
+    return switch_search_btn
 }
 
 
@@ -97,10 +108,15 @@ function switch_search() {
         setCookie('advanced');
     }
     else {
-        switch_search_btn.setAttribute('value', 'Advanced Search');
-        advanced_search.style.display = 'none';
-        simple_search.style.display = 'flex';
         setCookie('simple');
+        try {
+            simple_search.style.display = 'flex';
+            switch_search_btn.setAttribute('value', 'Advanced Search');
+        }
+        catch {
+            clear_simple_search();
+        }
+        advanced_search.style.display = 'none';
     }
 }
 
@@ -110,8 +126,7 @@ function simple_search() {
     // get query
     var search_term = document.querySelector('#simple-search-input').value;
 
-    // create add all query xxx
-    // create add all query
+    // create add all query 
     var search_statement = '';
     var options = document.querySelectorAll('#w2p_query_fields option');
     
@@ -127,7 +142,7 @@ function simple_search() {
     // get the statement to the search field and trigger it
     var search_field = document.querySelector('#w2p_keywords');
     var search_form = document.querySelector('.web2py_console > form');
-    search_form.style.display = 'flex';
+    search_form.style.display = 'none';
     search_field.value = search_statement.substring(0,search_statement.length-4);
     var main_search_form = document.querySelector('.web2py_console > form');
     main_search_form.submit();
@@ -141,9 +156,12 @@ function ongoing_search() {
         initialise_simple_search();
         return
     }
-
-    var search_bar = document.querySelector('.web2py_console > form');
-    search_bar.style.display = 'flex';
+    else {
+        var search_bar = document.querySelector('.web2py_console > form');
+        search_bar.style.display = 'flex';
+        var simple_search_btn = create_switch_search_btn('simple');
+        insertAfter(simple_search_btn, search_bar);
+    }
 
     // adapt buttons and form controls for ongoing search
     var query_rows = document.querySelectorAll('.w2p_query_row');
