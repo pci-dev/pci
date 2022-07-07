@@ -769,7 +769,7 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionDue", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionOverDue", o["id"])
 
-            elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Cancelled":
+            elif o.status in ("Pending", "Awaiting consideration", "Under consideration", "Scheduled submission pending", "Scheduled submission under consideration") and f["status"] == "Cancelled":
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
@@ -778,6 +778,19 @@ def deltaStatus(s, f):
 
             elif o["status"].startswith("Pre-") and f["status"] == "Under consideration":
                 emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
+                
+            elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
+                articleId = o.id
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+
+            elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
+                emailing.send_to_recommender_preprint_submitted(session, auth, db, o["id"])
+
+            elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
+                emailing.send_to_reviewers_preprint_submitted(session, auth, db, o["id"])
 
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
@@ -814,9 +827,6 @@ def newArticle(s, articleId):
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
-
-    if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
-        emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
 
     return None
 
