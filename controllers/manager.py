@@ -71,14 +71,18 @@ def all_articles():
 
 ######################################################################################################################################################################
 # Display pending articles and allow management
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def pending_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(
-        ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private", "Scheduled submission pending"], URL("manager", "pending_articles", host=host, scheme=scheme, port=port)
-    )
+    if is_recommender(auth, request):
+        states = ["Scheduled submission pending"]
+    else:
+        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private", "Scheduled submission pending"]
+
+
+    resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingArticlesTitle")
@@ -119,7 +123,7 @@ def completed_articles():
 
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def _manage_articles(statuses, whatNext):
     response.view = "default/myLayout.html"
 
@@ -170,9 +174,9 @@ def _manage_articles(statuses, whatNext):
             body=lambda row: DIV(
                 A(
                     SPAN(current.T("View / Edit")),
-                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id), user_signature=True),
+                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id, recommender=auth.user_id)),
                     _class="buttontext btn btn-default pci-button pci-manager",
-                    _title=current.T("View and/or edit review"),
+                    _title=current.T("View and/or edit"),
                 ),
                 A(
                     SPAN(current.T('Set "Not')),
@@ -253,7 +257,7 @@ def _manage_articles(statuses, whatNext):
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def recommendations():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]

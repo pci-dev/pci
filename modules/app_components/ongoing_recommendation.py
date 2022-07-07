@@ -753,16 +753,24 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Scheduled submission pending":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
-                        _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
-                    ),
-                    _class="pci-EditButtons-centered",
-                )
+                managerButton = validate_scheduled_submission_button(articleId=art.id)
+
+    elif auth.has_membership(role="recommender") and not (art.user_id == auth.user_id) and not (printable):
+                managerButton = validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
+
 
     return DIV(recommendationRounds, managerButton or "")
+
+
+def validate_scheduled_submission_button(articleId, **extra_vars):
+    return DIV(
+            A(
+                SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
+                _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
+            ),
+            _class="pci-EditButtons-centered",
+    )
 
 
 ######################################################################################################################################
