@@ -25,7 +25,9 @@ from app_components import recommender_components
 from app_modules import emailing_parts
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules import emailing_tools, emailing_vars, emailing 
+from app_modules import emailing_tools
+from app_modules import emailing_vars
+from app_modules import emailing
 
 # to change to common
 from controller_modules import admin_module
@@ -997,10 +999,12 @@ def show_report_survey():
 
     if form.process().accepted:
         doUpdateArticle = False
+        prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
+            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -1008,6 +1012,14 @@ def show_report_survey():
 
         if doUpdateArticle == True:
             art.update_record()
+        
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
@@ -1482,10 +1494,12 @@ def send_reviewer_generic_mail():
     req_is_email = IS_EMAIL(error_message=T("invalid e-mail!"))
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
+    replyTo = ", ".join([replyto.email, contact])
+
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=(sender_email,)),
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=req_is_email, default=replyto.email, writable=False),
+        Field.CC(default=(sender_email, contact)),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1493,6 +1507,7 @@ def send_reviewer_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        request.vars["replyto"] = replyTo
         try:
             emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
         except Exception as e:
@@ -1557,16 +1572,13 @@ def get_review_duration_options(isScheduledTrack=False):
 def email_for_registered_reviewer():
     response.view = "default/myLayout.html"
 
-    reviewId = request.vars["reviewId"]
+    recommId = request.vars["recommId"]
     new_round = convert_string(request.vars["new_round"])
-    if reviewId is None:
+    reviewerId = request.vars["reviewerId"]
+    if recommId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    review = db.t_reviews[reviewId]
-    if review is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    recomm = db.t_recommendations[review.recommendation_id]
+    recomm = db.t_recommendations[recommId]
     if recomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1574,14 +1586,9 @@ def email_for_registered_reviewer():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    reviewer = db.auth_user[review.reviewer_id]
-    if reviewer is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
 
     sender = None
     if auth.user_id == recomm.recommender_id:
@@ -1599,17 +1606,6 @@ def email_for_registered_reviewer():
     articleAuthors = art_authors
     articleTitle = art_title
     articleDoi = art_doi
-
-
-    if not review.quick_decline_key:
-        review.quick_decline_key = web2py_uuid()
-        review.update_record()
-
-    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-    declineLinkTarget = URL(c="user_actions", f="decline_review", scheme=scheme, host=host, port=port, vars=dict(
-        id=review.id,
-        key=review.quick_decline_key,
-    ))
 
     _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
@@ -1638,7 +1634,13 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
+
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
@@ -1666,7 +1668,7 @@ def email_for_registered_reviewer():
             label=T("Reviewer e-mail address"),
             type="string",
             length=250,
-            default=reviewer.email,
+            default=db.auth_user[reviewerId].email,
             writable=False,
             requires=IS_EMAIL(error_message=T("invalid e-mail!")),
         ),
@@ -1677,6 +1679,23 @@ def email_for_registered_reviewer():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+
+        reviewId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
+        review = db.t_reviews[reviewId]
+        reviewer = db.auth_user[review.reviewer_id]
+        destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+
+
+        if not review.quick_decline_key:
+            review.quick_decline_key = web2py_uuid()
+            review.update_record()
+
+        linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+        declineLinkTarget = URL(c="user_actions", f="decline_review", scheme=scheme, host=host, port=port, vars=dict(
+            id=review.id,
+            key=review.quick_decline_key,
+        ))
+
         cc_addresses = emailing_tools.list_addresses(form.vars.cc)
         replyto_addresses = emailing_tools.list_addresses(replyto_address)
         review.review_duration = form.vars.review_duration
@@ -1770,6 +1789,13 @@ def email_for_new_reviewer():
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)

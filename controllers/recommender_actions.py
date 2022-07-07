@@ -9,6 +9,7 @@ from gluon.html import markmin_serializer
 
 
 from app_modules.helper import *
+from app_modules import emailing
 
 
 # frequently used constants
@@ -232,11 +233,7 @@ def suggest_review_to():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        revId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
-        if revId is None:
-            session.flash = T("Recommender for the article doesn't exist or Invite has been previously sent", lazy=False)
-            redirect(request.env.http_referer)
-        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(reviewId=revId, new_round=new_round)))
+        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(recommId=recommId, reviewerId=reviewerId, new_round=new_round)))
 
 
 ######################################################################################################################################################################
@@ -491,6 +488,7 @@ def make_preprint_not_searching_for_reviewers():
         redirect(request.env.http_referer)
 
 
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def delete_recommendation_file():
     recommId = request.vars["recommId"]
@@ -535,3 +533,35 @@ def delete_recommendation_file():
     session.flash = T("File successfully deleted")
     
     redirect(request.env.http_referer)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def do_end_scheduled_submission():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if art.status == "Scheduled submission under consideration":
+        art.status = "Under consideration"
+        art.update_record()
+
+        # Create reminder for reviewers
+        awaitingReviews = db(
+            (db.t_reviews.recommendation_id == db.t_recommendations.id)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_articles.id == articleId)
+            & (db.t_reviews.review_state == "Awaiting review")
+        ).select()
+        for review in awaitingReviews:
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
+
+        session.flash = T("Submission now available to reviewers")
+
+    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
