@@ -3,6 +3,7 @@
     html {
         font-size: 10px;
         hyphens: auto;
+        word-wrap: break-word;
     }
 
     #myNavbar {
