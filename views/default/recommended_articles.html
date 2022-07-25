@@ -98,7 +98,7 @@
 				</h2>
 
 				{{if not printable:}}      
-					<a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center"
+					<a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" id="author-reply"
 						onclick="if( jQuery('#recomm-process-container' ).hasClass('pci2-panel-closed')) { 
 							jQuery('#recomm-process-container').removeClass('pci2-panel-closed') 						
 							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate') 
@@ -125,7 +125,7 @@
 			</div>
 
 
-			<div id="recomm-process-container" class="pci2-fade-in-top {{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}pci2-panel-closed{{pass}}">
+			<div id="recomm-process-container"  class="pci2-fade-in-top {{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}pci2-panel-closed{{pass}}">
 				{{=recommendationProgression}}
 			</div>
 		{{pass}}
