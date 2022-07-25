@@ -236,6 +236,16 @@ def mailing_lists():
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
 
+    # Semestrial Newsletter users
+    myContents.append(H1(T("Semestrial:")))
+    query = db.executesql("""
+        SELECT email FROM auth_user
+        WHERE alerts != 'Never' AND country is not NULL;
+    """
+    )
+    list_emails = ", ".join([email[0] for email in query])
+    myContents.append(list_emails)
+
     return dict(
         titleIcon="earphone",
         pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
