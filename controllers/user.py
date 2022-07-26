@@ -709,8 +709,10 @@ def edit_my_article():
             article = db.t_articles[articleId]
             article.art_stage_1_id = None
             article.update_record()
-
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        if art.status == "Pending":
+            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        else:
+            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
