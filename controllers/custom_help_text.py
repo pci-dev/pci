@@ -7,6 +7,7 @@ track_changes(True)  # reimport module if changed; disable in production
 from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
+from controller_modules import adjust_grid
 
 csv = True  # export allowed
 expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
@@ -71,18 +72,22 @@ def mail_templates():
     db.mail_templates._id.writable = False
 
 
-    grid = SQLFORM.grid(
-        db.mail_templates,
-        details=False,
-        editable=True,
-        create=auth.has_membership(role="developer"),
-        deletable=auth.has_membership(role="developer"),
-        paginate=100,
-        maxtextlength=4096,
-        csv=False,
-        exportclasses=expClass,
-        orderby=~db.mail_templates.id,
+    original_grid = SQLFORM.grid(
+            db.mail_templates,
+            details=False,
+            editable=True,
+            create=auth.has_membership(role="developer"),
+            deletable=auth.has_membership(role="developer"),
+            paginate=100,
+            maxtextlength=4096,
+            csv=False,
+            exportclasses=expClass,
+            orderby=~db.mail_templates.id,
     )
+
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'templates')
+    except: grid = original_grid
 
     if grid.update_form and grid.update_form.process().accepted:
         if redirect_url:

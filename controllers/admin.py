@@ -12,10 +12,10 @@ import datetime
 # import tweepy
 from gluon.contrib.markdown import WIKI
 
-
 from app_modules.helper import *
 
 from controller_modules import admin_module
+from controller_modules import adjust_grid
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules import emailing_tools
@@ -90,7 +90,7 @@ def list_users():
         # db.auth_user.institution,
         # db.auth_user.city,
         # db.auth_user.country,
-        # db.auth_user.thematics,
+        db.auth_user.thematics,
         db.auth_membership.user_id,
         db.auth_membership.group_id,
         db.t_articles.id,
@@ -129,41 +129,50 @@ def list_users():
     db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
     db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
-
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
 
-    grid = SQLFORM.smartgrid(
-        db.auth_user,
-        fields=fields,
-        linked_tables=[
-            "auth_user",
-            "auth_membership",
-            "t_articles",
-            "t_recommendations",
-            "t_reviews",
-            "t_press_reviews",
-            "t_comments",
-        ],
-        links=links,
-        csv=False,
-        exportclasses=dict(auth_user=expClass, auth_membership=expClass),
-        editable=dict(auth_user=True, auth_membership=False),
-        details=dict(auth_user=True, auth_membership=False),
-        searchable=dict(auth_user=True, auth_membership=False),
-        create=dict(
-            auth_user=create,
-            auth_membership=create,
-            t_articles=create,
-            t_recommendations=create,
-            t_reviews=create,
-            t_press_reviews=create,
-            t_comments=create,
-        ),
-        selectable=selectable,
-        maxtextlength=250,
-        paginate=25,
+    original_grid = SQLFORM.smartgrid(
+                    db.auth_user,
+                    fields=fields,
+                    linked_tables=[
+                        "auth_user",
+                        "auth_membership",
+                        "t_articles",
+                        "t_recommendations",
+                        "t_reviews",
+                        "t_press_reviews",
+                        "t_comments",
+                    ],
+                    links=links,
+                    csv=False,
+                    exportclasses=dict(auth_user=expClass, auth_membership=expClass),
+                    editable=dict(auth_user=True, auth_membership=False),
+                    details=dict(auth_user=True, auth_membership=False),
+                    searchable=dict(auth_user=True, auth_membership=False),
+                    create=dict(
+                        auth_user=create,
+                        auth_membership=create,
+                        t_articles=create,
+                        t_recommendations=create,
+                        t_reviews=create,
+                        t_press_reviews=create,
+                        t_comments=create,
+                    ),
+                    selectable=selectable,
+                    maxtextlength=250,
+                    paginate=25,
     )
+
+    thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+    specific_thematics = []
+    for t in thematics_query:
+        specific_thematics.append(t[1])
+
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', specific_thematics)
+    except: grid = original_grid
+
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
             grid.element(_title="Add record to database")[0] = T("Add role")
@@ -176,6 +185,7 @@ def list_users():
         pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
         customText=getText(request, auth, db, "#AdministrateUsersText"),
         grid=grid,
+        
     )
 
 
@@ -184,7 +194,6 @@ def list_users():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_lists():
     response.view = "default/myLayout.html"
-
     myContents = DIV()
     myContents.append(H1(T("Roles:")))
     contentDiv = DIV(_style="padding-left:32px;")
@@ -696,3 +705,5 @@ def mail_form_processing(form):
 
     if form.content_saved:
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
+
+
