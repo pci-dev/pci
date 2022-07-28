@@ -70,6 +70,7 @@ def last_recomms():
             db.t_articles.keywords,
             db.t_articles.already_published,
             db.t_articles.auto_nb_recommendations,
+            db.t_articles.scheduled_submission_date,
             limitby=(0, maxArticles),
             orderby=~db.t_articles.last_status_change,
         )
