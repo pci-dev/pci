@@ -87,7 +87,7 @@ def getMailCommonVars():
 
 
 ######################################################################################################################################################################
-def getCorrectHashtag(hashtag, article=None):
+def getCorrectHashtag(hashtag, article=None, focre_scheduled=False):
     if pciRRactivated and article is not None:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
@@ -95,7 +95,7 @@ def getCorrectHashtag(hashtag, article=None):
             hashtag += "Stage1"
 
     if scheduledSubmissionActivated and article is not None:
-        if article.doi is None and article.scheduled_submission_date is not None:
+        if (article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission")) or (focre_scheduled):
             hashtag += "ScheduledSubmission"
 
     return hashtag
@@ -131,7 +131,7 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
     result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    # result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
