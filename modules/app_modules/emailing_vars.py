@@ -37,6 +37,8 @@ scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
+DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
 ######################################################################################################################################################################
 # Mailing parts
 ######################################################################################################################################################################
@@ -63,6 +65,9 @@ def getManagersMails(db):
     return result
 
 
+######################################################################################################################################################################
+# PCI RR vars
+######################################################################################################################################################################
 def getPCiRRinvitationTexts(report_surey):
     programmaticRR_invitation_text = ""
     signedreview_invitation_text = ""
@@ -88,6 +93,36 @@ def getPCiRRinvitationTexts(report_surey):
     return dict(programmaticRR_invitation_text=programmaticRR_invitation_text, signedreview_invitation_text=signedreview_invitation_text,)
 
 
+######################################################################################################################################################################
+def getPCiRRScheduledSubmissionsVars(db, article):
+    scheduledSubmissionDate = ""
+    scheduledSubmissionLatestReviewStartDate = ""
+    scheduledReviewDueDate = ""
+    snapshotUrl = ""
+
+    if article.scheduled_submission_date is not None:
+        submission_date = article.scheduled_submission_date
+        review_start_date = submission_date + timedelta(days=7)
+        dow = review_start_date.weekday()
+        five_working_days = 7 if dow < 5 else (7 + (7-dow))
+        review_due_date = review_start_date + timedelta(days=five_working_days)
+
+        scheduledSubmissionDate = submission_date.strftime(DEFAULT_DATE_FORMAT)
+        scheduledSubmissionLatestReviewStartDate = review_start_date.strftime(DEFAULT_DATE_FORMAT)
+        scheduledReviewDueDate = review_due_date.strftime(DEFAULT_DATE_FORMAT)
+
+    report_surey = db(db.t_report_survey.article_id == article.id).select().last()
+    if report_surey:
+        snapshotUrl = report_surey.q1_1
+
+    return dict(
+        scheduledSubmissionDate=scheduledSubmissionDate,
+        scheduledSubmissionLatestReviewStartDate=scheduledSubmissionLatestReviewStartDate,
+        scheduledReviewDueDate=scheduledReviewDueDate,
+        snapshotUrl=snapshotUrl,
+    )
+
+
 # def getArticleVars(db, articleId=None, article=None, anonymousAuthors=False):
 #     art = None
 #     if article is not None:
@@ -109,4 +144,3 @@ def getPCiRRinvitationTexts(report_surey):
 #         )
 
 #         return mail_vars
-
