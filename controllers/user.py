@@ -661,14 +661,17 @@ def edit_my_article():
         if pciRRactivated:
             fields += ["record_url_version", "record_id_version"]
 
+        fields += [
+            "title",
+            "abstract",
+            "anonymous_submission",
+            "authors",
+            "picture_rights_ok",
+            "uploaded_picture",
+        ]
+
         if not pciRRactivated:
             fields += [
-                "title",
-                "anonymous_submission",
-                "authors",
-                "picture_rights_ok",
-                "uploaded_picture",
-                "abstract",
                 "results_based_on_data",
                 "data_doi",
                 "scripts_used_for_result", 
