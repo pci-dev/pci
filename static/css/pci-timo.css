@@ -11,9 +11,9 @@
         max-height: 3rem;
     }
 
-    .web2py_console .form-control {
+    /*.web2py_console .form-control {
         width: fit-content;
-    }
+    }*/
 
     .web2py_counter {
         width: fit-content;

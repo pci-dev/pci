@@ -4,6 +4,7 @@ var search_bar = document.querySelector('#w2p_keywords');
 var user_type = false;
 checkCookie()
 
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user'}
 if (search_bar != null) {
     var user_type = get_user_type();
     if (search_bar.value != '') { ongoing_search(); }
@@ -13,7 +14,6 @@ if (search_bar != null) {
      }
     remove_asterisks();
 }
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user'}
 
 
 function get_user_type() {
@@ -206,7 +206,6 @@ function add_to_search(input_field) {
 
     // lastly get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
-
     if (db_field == 'all') {
         add_all(input_field, regulator);
         return
@@ -303,7 +302,7 @@ function add_thematics(user_type, regulator, not_statement = false) {
     var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
     var thematic = drop_field_thematics.value;
 
-    var user_field = user_type;
+    var user_field = user_type2field[user_type];
 
     // special case of not statement
     if (not_statement) { var inner_regulator = '!='; }
