@@ -51,7 +51,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     # author's button allowing article edition
     allowEditArticle = False
-    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey"))) and not (quiet):
+    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"))) and not (quiet):
         allowEditArticle = True
 
     # manager buttons
