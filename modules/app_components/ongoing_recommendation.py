@@ -722,7 +722,16 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         _href=URL(c="manager_actions", f="pre_submission_list", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to put this article in a pre-submission stage"),
                     ),
-                    _class="pci-EditButtons-centered",                   
+                    _class="pci-EditButtons-centered",
+                )
+            elif art.status == "Pre-submission":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Request Changes from Author"), _class="buttontext btn btn-default pci-manager"),
+                        _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate recommendation of this article"),
+                    ),
+                    _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
                 managerButton = DIV(
