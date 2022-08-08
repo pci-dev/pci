@@ -408,6 +408,13 @@ def _ManagerMenu():
         (txtPendingSurvey, False, URL("manager", "pending_surveys", user_signature=True)),
     ]
 
+    nPreSubmittedArticles = db((db.t_articles.status == "Pre-submission")).count()
+    if pciRRactivated: managerMenu += [
+        menu_entry(T("%s Article(s) in Pre-submission stage") % nPreSubmittedArticles, "glyphicon-warning-sign",
+                        URL("manager", "presubmissions", user_signature=True),
+                        _class="pci-enhancedMenuItem" if nPreSubmittedArticles > 0 else ""
+    ]
+
     managerMenu += [
         menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
         menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),

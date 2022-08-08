@@ -100,6 +100,22 @@ def pending_surveys():
     resu["pageHelp"] = getHelp(request, auth, db, "#ManagerPendingSurveyReports")
     return resu
 
+
+@auth.requires(auth.has_membership(role="manager"))
+def presubmissions():
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    resu = _manage_articles(
+        ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
+    )
+    resu["customText"] = getText(request, auth, db, "#ManagePresubmittedArticlesText")
+    resu["titleIcon"] = "warning-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, "#ManagePresubmittedArticlesTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#ManagePresubmittedArticles")
+    return resu
+
+
 ######################################################################################################################################################################
 # Display ongoing articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
