@@ -398,21 +398,22 @@ def _ManagerMenu():
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
         notificationCount += nbPendingSurvey
 
+    nbPreSubmitted = db((db.t_articles.status == "Pre-submission")).count()
+    txtPreSubmitted = str(nbPreSubmitted) + " " + (T("Article(s) in Pre-submission stage"))
+    if nbPreSubmitted > 0 and pciRRactivated:
+        txtPreSubmitted = SPAN(menu_entry_item(txtPreSubmitted, "glyphicon-warning-sign", _class="pci-enhancedMenuItem"), _class="pci-manager")
+        txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
+        notificationCount += nbPreSubmitted
+
     notificationPin = DIV(notificationCount, _class="pci2-notif-pin") if notificationCount > 0 else ""
     managerMenu = [
         (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
         (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
+        (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
     ]
 
     if pciRRactivated: managerMenu += [
         (txtPendingSurvey, False, URL("manager", "pending_surveys", user_signature=True)),
-    ]
-
-    nPreSubmittedArticles = db((db.t_articles.status == "Pre-submission")).count()
-    if pciRRactivated: managerMenu += [
-        menu_entry(T("%s Article(s) in Pre-submission stage") % nPreSubmittedArticles, "glyphicon-warning-sign",
-                        URL("manager", "presubmissions", user_signature=True),
-                        _class="pci-enhancedMenuItem" if nPreSubmittedArticles > 0 else ""
     ]
 
     managerMenu += [
