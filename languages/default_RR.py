@@ -542,6 +542,7 @@
     "Pre-recommended": "Recommendation pending validation",
     "Pre-rejected": "Rejection pending validation",
     "Pre-revision": "Request for revision pending validation",
+    "Pre-submission": "Submission pending validation",
     "Press review": "Press review",
     "previous %s rows": "previous %s rows",
     "Printable page": "Printable page",
