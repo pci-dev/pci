@@ -740,11 +740,11 @@ def edit_my_article():
 
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
-
+        if art.status == "Pre-submission":
+            art.status = "Pending"
         if form.vars.report_stage == "STAGE 1":
-            article = db.t_articles[articleId]
-            article.art_stage_1_id = None
-            article.update_record()
+            art.art_stage_1_id = None
+        art.update_record()
         if art.status == "Pending":
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
         else:
@@ -976,7 +976,7 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
-    if art.status not in ("Pending", "Awaiting revision", "Pending-survey"):
+    if art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     if art.user_id != auth.user_id:
@@ -1134,7 +1134,7 @@ def edit_report_survey():
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
 
-        if art.status == "Pending-survey":
+        if art.status in ["Pending-survey", "Pre-submission"]:
             art.status = "Pending"
             doUpdateArticle = True
 
