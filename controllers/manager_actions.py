@@ -62,7 +62,7 @@ def pre_submission_list():
     if art.status == "Pending":
         art.status = "Pre-submission"
         art.update_record()
-        session.flash = T("Request now sent to pre-submission list")
+        session.flash = T("Submission now in pre-submission list")
     redirect(URL(c="manager", f="presubmissions", vars=dict(articleId=articleId), user_signature=True))
 
 ######################################################################################################################################################################
