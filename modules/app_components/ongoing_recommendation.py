@@ -721,7 +721,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         SPAN(current.T("Put in Pre-submission list"), _class="buttontext btn btn-default pci-manager"),
                         _href=URL(c="manager_actions", f="pre_submission_list", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to put this article in a pre-submission stage"),
-                    ),
+                    ) if pciRRactivated else "",
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-submission":
