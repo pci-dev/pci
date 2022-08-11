@@ -409,11 +409,14 @@ def _ManagerMenu():
     managerMenu = [
         (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
         (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
-        (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
     ]
 
     if pciRRactivated: managerMenu += [
         (txtPendingSurvey, False, URL("manager", "pending_surveys", user_signature=True)),
+    ]
+
+    if pciRRactivated: managerMenu += [
+        (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
     ]
 
     managerMenu += [
