@@ -1900,7 +1900,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################
-def send_author_generic_mail(session, auth, db, author_email, articleId, form):
+def send_submitter_generic_mail(session, auth, db, author_email, articleId, form):
 
 
     cc_addresses = emailing_tools.list_addresses(form.cc)

@@ -1361,7 +1361,7 @@ def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
 
 @auth.requires(auth.has_membership(role="manager"))
-def send_author_generic_mail():
+def send_submitter_generic_mail():
     response.view = "default/myLayout.html"
 
     def fail(message):
@@ -1416,7 +1416,7 @@ def send_author_generic_mail():
     if form.process().accepted:
         request.vars["replyto"] = replyTo
         try:
-            emailing.send_author_generic_mail(session, auth, db, author.email, art, request.vars)
+            emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
