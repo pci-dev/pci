@@ -181,6 +181,8 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.keywords.writable = False
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.auto_nb_recommendations.writable = False
+    db.t_articles.request_submission_change.represent = lambda text, row: T('YES') if row.request_submission_change == True else T("NO") 
+    db.t_articles.request_submission_change.label = T('Changes requested?')
     db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
     db.t_articles._id.label = T("Article")
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
@@ -256,6 +258,10 @@ def _manage_articles(statuses, whatNext):
             db.t_articles.submitter_details,
             db.t_articles.anonymous_submission,
         ]
+    if "Pre-submission" in statuses:
+        fields += [db.t_articles.request_submission_change]
+        links.pop(0)
+
 
     grid = SQLFORM.grid(
         query,
@@ -1414,6 +1420,8 @@ def send_submitter_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
+        art.request_submission_change = True
+        art.update_record()
         request.vars["replyto"] = replyTo
         try:
             emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
