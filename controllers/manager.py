@@ -1394,7 +1394,6 @@ def send_submitter_generic_mail():
 
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
-    recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id) #change to manager person
     articleDoi = common_small_html.mkLinkDOI(art.doi)
     articleTitle = art.title
     articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
