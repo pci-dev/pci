@@ -732,8 +732,6 @@ def deltaStatus(s, f):
                 emailing.send_to_managers(session, auth, db, o["id"], "Pending")
                 # create reminders
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
-                # delete reminders
-                emailing.delete_reminder_for_submitter(db, "#", o["id"]) #cancel reminder to update submission
 
             if o.status == "Pending" and f["status"] == "Pre-submission":
                 # delete reminders
