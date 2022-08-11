@@ -25,9 +25,11 @@ remove_options = ['auth_user.registration_key',# 'auth_user.website',
                   'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
                   'auth_user.ethical_code_approved']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-hijacks_all_field = {'users': 'w2p_field_auth_user-id', 'templates': 'w2p_field_mail_templates-lang', 'reviewers': 'w2p_field_qy_reviewers-id'}
-hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles'}
-hijack_values = ['auth_user.id', 'mail_templates.lang', 'qy_reviewers.id']
+hijacks_all_field = {'users': 'w2p_field_auth_user-id', 'templates': 'w2p_field_mail_templates-lang',
+                     'reviewers': 'w2p_field_qy_reviewers-id', 'recommenders': 'w2p_field_qy_recomm-id'}
+hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
+                           'recommenders': 'w2p_field_qy_recomm-laboratory'}
+hijack_values = ['auth_user.id', 'mail_templates.lang', 'qy_reviewers.id', 'qy_recomm.id']
 
 
 def adjust_grid_basic(grid, search_name, thematics = []):
@@ -36,6 +38,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     '''
     # gather elements
     web2py_grid = grid.elements('div.web2py_grid')[0]
+
     panel = grid.elements('div#w2p_query_panel')[0]
     btns = grid.elements('input.btn-default')
     select_panel = grid.elements('select#w2p_query_fields')[0]
@@ -64,6 +67,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field2 = grid.elements('div#w2p_field_qy_reviewers-roles')[0]
         select_panel_id = grid.elements('#w2p_field_qy_reviewers-id select.form-control')[0]
         select_panel_id2 = grid.elements('#w2p_field_qy_reviewers-roles select.form-control')[0]
+    elif search_name == 'recommenders':
+        panel_search_field = grid.elements('div#w2p_field_qy_recomm-id')[0]
+        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+        panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-laboratory')[0]
+        select_panel_id = grid.elements('#w2p_field_qy_recomm-id select.form-control')[0]
+        select_panel_id2 = grid.elements('#w2p_field_qy_recomm-laboratory select.form-control')[0]
+
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:

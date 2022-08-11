@@ -4,7 +4,7 @@ var search_bar = document.querySelector('#w2p_keywords');
 var user_type = false;
 checkCookie()
 
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user'}
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm'}
 if (search_bar != null) {
     var user_type = get_user_type();
     if (search_bar.value != '') { ongoing_search(); }
@@ -29,8 +29,8 @@ function initialise_simple_search() {
     var wconsole = grid.querySelector('.web2py_console');
     advanced_search.style.display = 'none';
 
-    var simple_search = document.createElement('div');
-    simple_search.id = 'simple-search';
+    var simple_search_div = document.createElement('div');
+    simple_search_div.id = 'simple-search';
     var input_field = document.createElement('input');
     input_field.classList.add('simple');
     input_field.classList.add('form-control');
@@ -56,10 +56,10 @@ function initialise_simple_search() {
     clear_btn.setAttribute('onclick', 'clear_simple_search()');
     clear_btn.setAttribute('value', 'Reset');
 
-    simple_search.appendChild(input_field);
-    simple_search.appendChild(clear_btn);
-    simple_search.appendChild(search_btn);
-    grid.insertBefore(simple_search, wconsole);
+    simple_search_div.appendChild(input_field);
+    simple_search_div.appendChild(clear_btn);
+    simple_search_div.appendChild(search_btn);
+    grid.insertBefore(simple_search_div, wconsole);
 
     var switch_search_btn = document.querySelector('#switch-search-btn');
     if (switch_search_btn == null) {
@@ -88,8 +88,30 @@ function create_switch_search_btn(modus) {
 
 
 function clear_simple_search() {
-    window.location = window.location.pathname;
+    // remove keywords parameter from URL and reload page
+    var url = removeURLParameter(String(window.location), 'keywords')
+    window.location = url;
 }
+
+
+function removeURLParameter(url, parameter) {
+    var urlparts = url.split('?');
+    if (urlparts.length >= 2) {
+
+        var prefix = encodeURIComponent(parameter) + '=';
+        var pars = urlparts[1].split(/[&;]/g);
+
+        for (var i = pars.length; i-- > 0;) {    
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
+            }
+        }
+
+        return urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : '');
+    }
+    return url;
+}
+
 
 function insertAfter(newNode, existingNode) {
     existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
@@ -100,17 +122,17 @@ function switch_search() {
     /* switch search (simple/advanced) and change switch button accordingly */
     var switch_search_btn = document.querySelector('#switch-search-btn');
     var advanced_search = document.querySelector('#w2p_query_panel');
-    var simple_search = document.querySelector('#simple-search');
+    var simple_search_div = document.querySelector('#simple-search');
     if (switch_search_btn.value == 'Advanced Search') {
         switch_search_btn.setAttribute('value', 'Simple Search');
         advanced_search.style.display = 'flex';
-        simple_search.style.display = 'none';
+        simple_search_div.style.display = 'none';
         setCookie('advanced');
     }
     else {
         setCookie('simple');
         try {
-            simple_search.style.display = 'flex';
+            simple_search_div.style.display = 'flex';
             switch_search_btn.setAttribute('value', 'Advanced Search');
         }
         catch {

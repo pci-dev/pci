@@ -10,6 +10,7 @@ from app_modules.helper import *
 
 # App modules
 from controller_modules import user_module
+from controller_modules import adjust_grid
 
 from app_components import app_forms
 
@@ -247,7 +248,7 @@ def search_recommenders():
         for fr in filtered:
             qy_recomm.insert(**fr)
 
-        temp_db.qy_recomm._id.readable = False
+        #temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
         links = [
             dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
@@ -256,35 +257,47 @@ def search_recommenders():
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
-        grid = SQLFORM.grid(
-            qy_recomm,
-            editable=False,
-            deletable=False,
-            create=False,
-            details=False,
-            searchable=False,
-            selectable=selectable,
-            maxtextlength=250,
-            paginate=1000,
-            csv=csv,
-            exportclasses=expClass,
-            fields=[
-                temp_db.qy_recomm.num,
-                temp_db.qy_recomm.score,
-                temp_db.qy_recomm.uploaded_picture,
-                temp_db.qy_recomm.first_name,
-                temp_db.qy_recomm.last_name,
-                temp_db.qy_recomm.laboratory,
-                temp_db.qy_recomm.institution,
-                temp_db.qy_recomm.city,
-                temp_db.qy_recomm.country,
-                temp_db.qy_recomm.thematics,
-                temp_db.qy_recomm.excluded,
-            ],
-            links=links,
-            orderby=temp_db.qy_recomm.num,
-            args=request.args,
-        )
+        original_grid = SQLFORM.smartgrid(
+                        qy_recomm,
+                        editable=False,
+                        deletable=False,
+                        create=False,
+                        details=False,
+                        searchable=dict(auth_user=True, auth_membership=False),
+                        selectable=selectable,
+                        maxtextlength=250,
+                        paginate=1000,
+                        csv=csv,
+                        exportclasses=expClass,
+                        fields=[
+                            temp_db.qy_recomm._id,
+                            temp_db.qy_recomm.num,
+                            temp_db.qy_recomm.score,
+                            temp_db.qy_recomm.uploaded_picture,
+                            temp_db.qy_recomm.first_name,
+                            temp_db.qy_recomm.last_name,
+                            temp_db.qy_recomm.laboratory,
+                            temp_db.qy_recomm.institution,
+                            temp_db.qy_recomm.city,
+                            temp_db.qy_recomm.country,
+                            temp_db.qy_recomm.thematics,
+                            temp_db.qy_recomm.excluded,
+                        ],
+                        links=links,
+                        orderby=temp_db.qy_recomm.num,
+                        args=request.args,
+                        _class="web2py_grid action-button-absolute",
+                    )
+        
+        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+        specific_thematics = []
+        for t in thematics_query:
+            specific_thematics.append(t[1])
+        
+        # the grid is adjusted after creation to adhere to our requirements
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
+        except: grid = original_grid
+
         if len(excludeList) > 1:
             btnTxt = current.T("Done")
         else:
@@ -310,7 +323,6 @@ def search_recommenders():
             pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
-            searchForm=searchForm,
             grid=grid,
         )
 
