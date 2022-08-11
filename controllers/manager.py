@@ -1390,7 +1390,7 @@ def send_submitter_generic_mail():
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#ReviewerGenericMail")
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#SubmitterGenericMail")
 
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
@@ -1432,9 +1432,9 @@ def send_submitter_generic_mail():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp(request, auth, db, "#EmailForSubmitter"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle(request, auth, db, "#EmailForSubmitterInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForSubmitterInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
