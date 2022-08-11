@@ -1919,7 +1919,7 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
         mail_content        = mail_content,
 
         article_id          = articleId,
-        mail_template_hashtag = "#ReviewerGenericMail",
+        mail_template_hashtag = "#SubmitterGenericMail",
     )
 
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
