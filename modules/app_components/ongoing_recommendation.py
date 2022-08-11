@@ -728,7 +728,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 managerButton = DIV(
                     A(
                         SPAN(current.T("Request Changes from Author"), _class="buttontext btn btn-default pci-manager"),
-                        _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
+                        _href=URL(c="manager", f="send_author_generic_mail", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate recommendation of this article"),
                     ),
                     _class="pci-EditButtons-centered",

@@ -1899,6 +1899,31 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     reports = emailing_tools.createMailReport(True, reviewer_email, reports=[])
     emailing_tools.getFlashMessage(session, reports)
 
+######################################################################################################################################################################
+def send_author_generic_mail(session, auth, db, author_email, articleId, form):
+
+
+    cc_addresses = emailing_tools.list_addresses(form.cc)
+    replyto_addresses = emailing_tools.list_addresses(form.replyto)
+    form.subject
+    form.message
+
+    mail_content = mk_mail(form.subject, form.message)
+
+    db.mail_queue.insert(
+        user_id             = auth.user_id,
+        dest_mail_address   = author_email,
+        replyto_addresses   = replyto_addresses,
+        cc_mail_addresses   = cc_addresses,
+        mail_subject        = form.subject,
+        mail_content        = mail_content,
+
+        article_id          = articleId,
+        mail_template_hashtag = "#ReviewerGenericMail",
+    )
+
+    reports = emailing_tools.createMailReport(True, author_email, reports=[])
+    emailing_tools.getFlashMessage(session, reports)
 
 def mk_mail(subject, message):
     mail_vars = emailing_tools.getMailCommonVars()
