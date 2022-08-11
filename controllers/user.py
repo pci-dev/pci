@@ -383,6 +383,8 @@ def fill_new_article():
     db.t_articles.already_published.default = False
     db.t_articles.already_published.readable = False
     db.t_articles.already_published.writable = False
+    db.t_articles.request_submission_change.readable = False
+    db.t_articles.request_submission_change.writable = False
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
     db.t_articles.suggest_reviewers.readable = True
@@ -558,6 +560,8 @@ def edit_my_article():
     db.t_articles.status.writable = False
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
+    db.t_articles.request_submission_change.readable = False
+    db.t_articles.request_submission_change.writable = False
 
     db.t_articles.results_based_on_data.requires(db.data_choices)
     db.t_articles.scripts_used_for_result.requires(db.script_choices)
@@ -742,6 +746,7 @@ def edit_my_article():
         response.flash = T("Article saved", lazy=False)
         if art.status == "Pre-submission":
             art.status = "Pending"
+            art.request_submission_change = False
         if form.vars.report_stage == "STAGE 1":
             art.art_stage_1_id = None
         art.update_record()
@@ -1136,6 +1141,7 @@ def edit_report_survey():
 
         if art.status in ["Pending-survey", "Pre-submission"]:
             art.status = "Pending"
+            art.request_submission_change = False
             doUpdateArticle = True
 
         if doUpdateArticle == True:

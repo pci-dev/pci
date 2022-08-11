@@ -630,6 +630,7 @@ db.define_table(
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
+    Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
     Field(
         "thematics",
         type="list:string",
