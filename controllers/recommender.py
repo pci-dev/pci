@@ -1358,7 +1358,7 @@ def send_review_cancellation():
     if (review.review_state or "Awaiting response") == "Awaiting response" or (review.review_state or "Awaiting review") == "Awaiting review":
         if (review.review_state or "Awaiting response") == "Awaiting response":
             hashtag_template = "#DefaultReviewCancellation"
-        if (review.review_state or "Awaiting review") == "Awaiting review":
+        elif (review.review_state or "Awaiting review") == "Awaiting review":
             hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
         mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
         default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
