@@ -1425,7 +1425,7 @@ db.define_table(
         type="string",
         length=1024,
         label=T(
-            "10. Opposed reviewers. Choose up to 5 reviewers that you oppose, including the reasons for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
+            "10. Opposed reviewers. Choose up to 5 reviewers that you oppose. You do NOT need provide a reason for the opposition. PCI RR confirms that specifically-named opposed reviewers will not be invited to review the report or RR snapshot."
         ),
         requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))
     ),
