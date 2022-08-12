@@ -744,12 +744,12 @@ def edit_my_article():
 
     if form.process().accepted:
         response.flash = T("Article saved", lazy=False)
-        if art.status == "Pre-submission":
-            art.status = "Pending"
-            art.request_submission_change = False
+        article = db.t_articles[articleId]
+        if article.status == "Pre-submission":
+            article.status = "Pending"
         if form.vars.report_stage == "STAGE 1":
-            art.art_stage_1_id = None
-        art.update_record()
+            article.art_stage_1_id = None
+        article.update_record()
         if art.status == "Pending":
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
         else:
