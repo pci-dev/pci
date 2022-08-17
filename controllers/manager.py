@@ -258,7 +258,7 @@ def _manage_articles(statuses, whatNext):
             db.t_articles.submitter_details,
             db.t_articles.anonymous_submission,
         ]
-    if "Pre-submission" in statuses:
+    if statuses is not None and "Pre-submission" in statuses:
         fields += [db.t_articles.request_submission_change]
         links.pop(0)
 
