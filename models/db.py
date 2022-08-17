@@ -1306,6 +1306,22 @@ db.define_table(
     migrate=False,
 )
 
+def _Field_CC(default):
+    return Field(
+            "cc",
+            label=T("CC"),
+            widget=SQLFORM.widgets.string.widget,
+            type="list:string",
+            length=250,
+            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
+            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
+            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            default=default,
+            writable=True,
+        )
+
+Field.CC = _Field_CC
+
 ##-------------------------------- PCI RR ---------------------------------
 db.TOP_guidelines_choices = (
     "YES",
