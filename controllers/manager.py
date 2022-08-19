@@ -84,6 +84,21 @@ def pending_articles():
     resu["pageHelp"] = getHelp(request, auth, db, "#ManagePendingValidations")
     return resu
 
+######################################################################################################################################################################
+# Display articles in presubmission and allow management
+@auth.requires(auth.has_membership(role="manager"))
+def pending_surveys():
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    resu = _manage_articles(
+        ["Pending-survey"], URL("manager", "pending_surveys", host=host, scheme=scheme, port=port)
+    )
+    resu["customText"] = getText(request, auth, db, "#ManagerPendingSurveyReportsText")
+    resu["titleIcon"] = "time"
+    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingSurveyReportsTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#ManagerPendingSurveyReports")
+    return resu
 
 ######################################################################################################################################################################
 # Display ongoing articles and allow management
