@@ -664,7 +664,7 @@ db.define_table(
         type="list:string",
         label=T("Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"),
         length=20000,
-        comment=SPAN(T("e.g. Chris Chambers [chris@chambers.com]")),
+        comment=SPAN(T("e.g. John Doe [john@doe.com]")),
     ),
     Field(
         "parallel_submission",
@@ -1524,7 +1524,7 @@ db.define_table(
             ),
         ),
         length=2000,
-        default=T("[First name] [Surname], [URL]\n[First name] [Surname], [URL]\ne.g. Chris Chambers, https://osf.io/pkm67/"),
+        default=T("[First name] [Surname], [URL]\n[First name] [Surname], [URL]\ne.g. John Doe, https://osf.io/pkm67/"),
     ),
     Field(
         "q16",
