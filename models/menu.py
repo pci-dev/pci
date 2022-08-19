@@ -372,6 +372,7 @@ def _ManagerMenu():
     ctr = request.controller
     isActive = False
     notificationPin = ""
+    notificationCount = 0
     if ctr == "manager":
         isActive = True
 
@@ -382,29 +383,38 @@ def _ManagerMenu():
     if nbPend > 0:
         txtPending = SPAN(menu_entry_item(txtPending, "glyphicon-time", _class="pci-enhancedMenuItem"), _class="pci-manager")
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
-        notificationPin = DIV(nbPend, _class="pci2-notif-pin")
-
+        notificationCount += nbPend
     nbGoing = db(db.t_articles.status.belongs(("Under consideration", "Awaiting revision", "Awaiting consideration"))).count()
     txtGoing = str(nbGoing) + " " + (T("Handling process(es) underway"))
     if nbGoing > 0:
         txtGoing = SPAN(menu_entry_item(txtGoing, "glyphicon-refresh", _class="pci-enhancedMenuItem"), _class="pci-manager")
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
+        notificationCount += nbGoing
 
-    return [
-        (
-            SPAN(txtMenu, notificationPin, _class="pci-manager"),
-            isActive,
-            "#",
-            [
-                (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
-                (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
-                menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
-                menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
-                menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
-                menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
-            ],
-        ),
+    nbPendingSurvey = db((db.t_articles.status == "Pending-survey")).count()
+    txtPendingSurvey= str(nbPendingSurvey) + " " + (T("Report(s) pending survey"))
+    if nbPendingSurvey > 0 and pciRRactivated:
+        txtPendingSurvey = SPAN(menu_entry_item(txtPendingSurvey, "glyphicon-time", _class="pci-enhancedMenuItem"), _class="pci-manager")
+        txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
+        notificationCount += nbPendingSurvey
+
+    notificationPin = DIV(notificationCount, _class="pci2-notif-pin") if notificationCount > 0 else ""
+    managerMenu = [
+        (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
+        (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
     ]
+
+    if pciRRactivated: managerMenu += [
+        (txtPendingSurvey, False, URL("manager", "pending_surveys", user_signature=True)),
+    ]
+
+    managerMenu += [
+        menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
+        menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
+        menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
+        menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
+    ]
+    return [(SPAN(txtMenu, notificationPin, _class="pci-manager"), isActive, "#", managerMenu)]
 
 
 def _AboutMenu():
