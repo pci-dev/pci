@@ -1355,16 +1355,14 @@ def send_review_cancellation():
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-    if (review.review_state or "Awaiting response") == "Awaiting response" or (review.review_state or "Awaiting review") == "Awaiting review":
-        if (review.review_state or "Awaiting response") == "Awaiting response":
-            hashtag_template = "#DefaultReviewCancellation"
-        elif (review.review_state or "Awaiting review") == "Awaiting review":
-            hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
-        mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-        default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-        default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
-    else:
-        pass
+    if review.review_state == "Awaiting response":
+        hashtag_template = "#DefaultReviewCancellation"
+    if review.review_state == "Awaiting review":
+        hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
+
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
