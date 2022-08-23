@@ -317,23 +317,53 @@ def search_recommenders():
 
 ######################################################################################################################################################################
 def new_submission():
+    form = None
+    state = None
     loginLink = None
     registerLink = None
     submitPreprintLink = None
-    if auth.user:
-        submitPreprintLink = URL("user", "fill_new_article", user_signature=True)
-    else:
-        loginLink = URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission")))
-        registerLink = URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission")))
+
+
+    pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
+    customText=getText(request, auth, db, "#SubmissionOnHoldInfo")
+
+    db.submissions.allow_submissions.writable = True
+    db.submissions.allow_submissions.readable = True
+
+    status = db.submissions[1]
+    fields = ["allow_submissions"]
+    
+    if pciRRactivated and auth.has_membership(role="manager"):
+        form = SQLFORM(db.submissions, 1, fields=fields)
+        form.element(_type="checkbox")["_id"] = "toggle"
+        if request.vars["allow_submissions"]:
+            state = request.vars["allow_submissions"]
+        else:
+            state = "off"
+        state = True if state == "on" else False
+        if request.vars["update"]:
+            status.update_record(allow_submissions=state)
+    
+
+    if status['allow_submissions']:
+        pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
+        customText=getText(request, auth, db, "#NewRecommendationRequestInfo")
+        
+        if auth.user:
+            submitPreprintLink = URL("user", "fill_new_article", user_signature=True)
+        else:
+            loginLink = URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission")))
+            registerLink = URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission")))
 
     response.view = "controller/user/new_submission.html"
     return dict(
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle"),
-        customText=getText(request, auth, db, "#NewRecommendationRequestInfo"),
+        pageTitle=pageTitle,
+        customText=customText,
         submitPreprintLink=submitPreprintLink,
         loginLink=loginLink,
         registerLink=registerLink,
+        form=form
     )
 
 
@@ -489,6 +519,9 @@ def fill_new_article():
     customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
     if pciRRactivated:
         customText = ""
+    status = db.submissions[1]
+    if pciRRactivated and status['allow_submissions'] is False:
+        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_template("script", "fill_new_article.js")
     response.view = "default/gab_form_layout.html"

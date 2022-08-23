@@ -1,6 +1,19 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
+<div style="display: flex; justify-content: flex-end">
+{{ if form:}}
+{{=form.custom.begin}}
+<label class="switch"> 
+  {{=form.custom.widget.allow_submissions}}
+    <span class="slider round"></span>
+    <input type="hidden" name="update" value=true>
+    </label>
+<label for="some_id">&nbsp;ALLOW SUBMISSIONS</label> 
+{{=form.custom.end}}
+{{pass}}
+</div>
+
 {{if 'customText' in locals():}}
 	{{=customText}}
 {{pass}}
@@ -10,7 +23,7 @@
   <div class="pci2-full-width pci2-flex-center">
       <a class="btn btn-success" href="{{=submitPreprintLink}}">{{=T("Submit your preprint")}}</a>
   </div>
-{{else:}}
+{{elif loginLink:}}
   <div class="pci2-full-width pci2-flex-center">
     <b>
       <span>{{=T("Before submitting your preprint, please:")}}</span>
@@ -19,4 +32,13 @@
       <a class="btn btn-info" href="{{=registerLink}}">{{=T('Register')}}</a>
     </b>
   </div>
+{{else:}}
 {{pass}}
+
+<script>
+  jQuery('#toggle').change(function() {
+    ajax('{{=URL(c='user',f='new_submission')}}', ['allow_submissions', 'update']);
+    location.reload();
+    return false;
+  });
+  </script>
