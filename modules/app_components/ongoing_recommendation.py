@@ -184,7 +184,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
     recommendationStepClass = "step-default"
     managerDecisionDoneClass = "step-default"
 
-    if not (art.status == "Pending"):
+    if not (art.status == "Pending" or art.status == "Pending-survey"):
         submissionValidatedClassClass = "step-done"
     uploadDate = art.upload_timestamp.strftime("%d %B %Y")
 
