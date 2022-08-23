@@ -279,9 +279,8 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
         authorsReply = None
         authorsReplyDate = None
-        if recomm.reply:
+        if (recomm.reply is not None and len(recomm.reply) > 0):
             authorsReply = DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext")
-            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT)
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
@@ -300,6 +299,8 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                 _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
+        if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
+            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT)
 
         recommendationPdfLink = None
         if recomm.recommender_file:
