@@ -333,7 +333,7 @@ def new_submission():
     status = db.submissions[1]
     fields = ["allow_submissions"]
     
-    if pciRRactivated and auth.has_membership(role="manager"):
+    if auth.has_membership(role="manager"):
         form = SQLFORM(db.submissions, 1, fields=fields)
         form.element(_type="checkbox")["_id"] = "toggle"
         if request.vars["allow_submissions"]:
@@ -520,7 +520,7 @@ def fill_new_article():
     if pciRRactivated:
         customText = ""
     status = db.submissions[1]
-    if pciRRactivated and status['allow_submissions'] is False:
+    if status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_template("script", "fill_new_article.js")
