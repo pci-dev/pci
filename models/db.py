@@ -1867,6 +1867,17 @@ db.define_table(
     migrate=False,
 )
 
+##-------------------------------- Submissions ---------------------------------
+db.define_table(
+    "submissions",
+    Field("id", type="id"),
+    Field(
+        "allow_submissions",
+        type="boolean",
+        default=True,
+        label=T("Allow Submissions"),
+    )
+)
 
 # -------------------------------------------------------------------------
 # after defining tables, uncomment below to enable auditing
