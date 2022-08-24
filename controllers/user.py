@@ -516,7 +516,7 @@ def edit_my_article():
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    elif art.status not in ("Pending", "Awaiting revision"):
+    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     # deletable = (art.status == 'Pending')
@@ -943,7 +943,7 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
-    if art.status not in ("Pending", "Awaiting revision"):
+    if art.status not in ("Pending", "Awaiting revision", "Pending-survey"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     if art.user_id != auth.user_id:
@@ -1099,6 +1099,10 @@ def edit_report_survey():
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if art.status == "Pending-survey":
+            art.status = "Pending"
             doUpdateArticle = True
 
         if doUpdateArticle == True:

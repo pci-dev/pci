@@ -274,3 +274,11 @@ VALUES
 (E'#SideBarManagingBoard',E'default',E'<p>Corina Logan<br>Anna Eklof<br>Julia Astegiano<br>Ben Phillips<br>Cyrille Gravel<br>Dominique Gravel<br>Tim Coulson<br>Francois Massol</p>'),
 (E'#SideBarSupporters',E'default',E'<p><img src="../static/images/leuven.jpg" alt="" width="200" height="80"></p>\n<p><img src="../static/images/liege.jpg" alt="" width="200" height="80"></p>\n<p><img src="../static/images/sorbonne.jpg" alt="" width="200" height="80"></p>'),
 (E'#NewFooterSubtext',E'default',E'<p><span style="color: #7e8c8d;">{{longname}} is the first community of the non-profit organization Peer Community In. The goal of Peer Community In is to promote scientific knowledge. Authors of comments, reviews and recommendations retain copyright under CC BY-ND. Contact &amp; credits. Publication director/directeur de la publication: Denis Bourguet. ISSN: 2551-668X.</span></p>');
+
+
+-- updates/pending_survey_help_text.sql (RR specific)
+INSERT INTO help_texts("hashtag","lang","contents")
+VALUES
+(E'#ManagerPendingSurveyReports',E'default',E''),
+(E'#ManagerPendingSurveyReportsText',E'default',E''),
+(E'#ManagerPendingSurveyReportsTitle',E'default',E'Report(s) without surveys');
