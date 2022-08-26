@@ -48,6 +48,22 @@ def do_validate_article():
         session.flash = T("Request now available to recommenders")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def pre_submission_list():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if art.status == "Pending":
+        art.status = "Pre-submission"
+        art.update_record()
+        session.flash = T("Submission now in pre-submission list")
+    redirect(URL(c="manager", f="presubmissions", vars=dict(articleId=articleId), user_signature=True))
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))

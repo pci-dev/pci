@@ -51,7 +51,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     # author's button allowing article edition
     allowEditArticle = False
-    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey"))) and not (quiet):
+    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"))) and not (quiet):
         allowEditArticle = True
 
     # manager buttons
@@ -184,7 +184,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
     recommendationStepClass = "step-default"
     managerDecisionDoneClass = "step-default"
 
-    if not (art.status == "Pending" or art.status == "Pending-survey"):
+    if not (art.status in ["Pending", "Pending-survey", "Pre-submission"]):
         submissionValidatedClassClass = "step-done"
     uploadDate = art.upload_timestamp.strftime("%d %B %Y")
 
@@ -716,6 +716,20 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         SPAN(current.T("Validate this submission"), _class="buttontext btn btn-success pci-manager"),
                         _href=URL(c="manager_actions", f="do_validate_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate this request and start recommendation process"),
+                    ),
+                    A(
+                        SPAN(current.T("Put in Pre-submission list"), _class="buttontext btn btn-default pci-manager"),
+                        _href=URL(c="manager_actions", f="pre_submission_list", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to put this article in a pre-submission stage"),
+                    ) if pciRRactivated else "",
+                    _class="pci-EditButtons-centered",
+                )
+            elif art.status == "Pre-submission":
+                managerButton = DIV(
+                    A(
+                        SPAN(current.T("Request Changes from Author"), _class="buttontext btn btn-default pci-manager"),
+                        _href=URL(c="manager", f="send_submitter_generic_mail", vars=dict(articleId=art.id), user_signature=True),
+                        _title=current.T("Click here to validate recommendation of this article"),
                     ),
                     _class="pci-EditButtons-centered",
                 )

@@ -298,7 +298,7 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="S
 def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set"):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
-    if status.startswith("Pre-"):
+    if status.startswith("Pre-") and status != "Pre-submission":
         status2 = "Under consideration"
     else:
         status2 = status
@@ -359,7 +359,7 @@ def mkStatusBigDiv(auth, db, status, printable=False):
 def mkStatusBigDivUser(auth, db, status, printable=False):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
-    if status.startswith("Pre-"):
+    if status.startswith("Pre-") and status != "Pre-submission":
         status2 = "Under consideration"
     else:
         status2 = status

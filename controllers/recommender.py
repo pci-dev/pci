@@ -40,7 +40,7 @@ trgmLimit = myconf.take("config.trgm_limit") or 0.4
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
-
+Field.CC = db.Field.CC
 ######################################################################################################################################################################
 def index():
     return my_awaiting_articles()
@@ -1497,25 +1497,6 @@ def send_reviewer_generic_mail():
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
-
-#########################################################################
-## Helper
-
-def _Field_CC(default):
-    return Field(
-            "cc",
-            label=T("CC"),
-            widget=SQLFORM.widgets.string.widget,
-            type="list:string",
-            length=250,
-            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
-            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
-            default=default,
-            writable=True,
-        )
-
-Field.CC = _Field_CC
 
 ######################################################################################################################################################################
 def convert_string(value):

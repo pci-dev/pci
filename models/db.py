@@ -630,6 +630,7 @@ db.define_table(
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
+    Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
     Field(
         "thematics",
         type="list:string",
@@ -726,6 +727,17 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
                 # emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
+
+            if o.status == "Pre-submission" and f["status"] == "Pending":
+                emailing.send_to_managers(session, auth, db, o["id"], "Pending")
+                # create reminders
+                emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
+
+            if o.status == "Pending" and f["status"] == "Pre-submission":
+                # delete reminders
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
+            
+                
 
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"])
@@ -1293,6 +1305,22 @@ db.define_table(
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
     migrate=False,
 )
+
+def _Field_CC(default):
+    return Field(
+            "cc",
+            label=T("CC"),
+            widget=SQLFORM.widgets.string.widget,
+            type="list:string",
+            length=250,
+            requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
+            filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
+            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            default=default,
+            writable=True,
+        )
+
+Field.CC = _Field_CC
 
 ##-------------------------------- PCI RR ---------------------------------
 db.TOP_guidelines_choices = (

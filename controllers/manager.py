@@ -47,7 +47,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
-
+Field.CC = db.Field.CC
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
@@ -99,6 +99,22 @@ def pending_surveys():
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingSurveyReportsTitle")
     resu["pageHelp"] = getHelp(request, auth, db, "#ManagerPendingSurveyReports")
     return resu
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def presubmissions():
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    resu = _manage_articles(
+        ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
+    )
+    resu["customText"] = getText(request, auth, db, "#ManagePresubmittedArticlesText")
+    resu["titleIcon"] = "warning-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, "#ManagePresubmittedArticlesTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#ManagePresubmittedArticles")
+    return resu
+
 
 ######################################################################################################################################################################
 # Display ongoing articles and allow management
@@ -165,6 +181,8 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.keywords.writable = False
     db.t_articles.auto_nb_recommendations.readable = False
     db.t_articles.auto_nb_recommendations.writable = False
+    db.t_articles.request_submission_change.represent = lambda text, row: T('YES') if row.request_submission_change == True else T("NO") 
+    db.t_articles.request_submission_change.label = T('Changes requested?')
     db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
     db.t_articles._id.label = T("Article")
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
@@ -240,6 +258,10 @@ def _manage_articles(statuses, whatNext):
             db.t_articles.submitter_details,
             db.t_articles.anonymous_submission,
         ]
+    if statuses is not None and "Pre-submission" in statuses:
+        fields += [db.t_articles.request_submission_change]
+        links.pop(0)
+
 
     grid = SQLFORM.grid(
         query,
@@ -672,6 +694,9 @@ def edit_article():
 
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
+
+    db.t_articles.request_submission_change.readable = False
+    db.t_articles.request_submission_change.writable = False
 
     myFinalScript = None
     if pciRRactivated:
@@ -1340,3 +1365,75 @@ def article_emails():
 
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+
+@auth.requires(auth.has_membership(role="manager"))
+def send_submitter_generic_mail():
+    response.view = "default/myLayout.html"
+
+    def fail(message):
+        session.flash = T(message)
+        referrer = request.env.http_referer
+        redirect(referrer if referrer else URL("default", "index"))
+
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art is None:
+        fail("no article for review")
+    author = db.auth_user[art.user_id]
+    if author is None:
+        fail("no author for article")
+
+    description = myconf.take("app.description")
+    longname = myconf.take("app.longname")
+    appName = myconf.take("app.name")
+    contact = myconf.take("contacts.managers")
+
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#SubmitterGenericMail")
+
+    # template variables, along with all other locals()
+    destPerson = common_small_html.mkUser(auth, db, art.user_id)
+    articleDoi = common_small_html.mkLinkDOI(art.doi)
+    articleTitle = art.title
+    articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    default_subject = emailing.patch_email_subject(default_subject, articleId)
+
+    req_is_email = IS_EMAIL(error_message=T("invalid e-mail!"))
+    replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+
+    replyTo = ", ".join([replyto.email, contact])
+
+    form = SQLFORM.factory(
+        Field("author_email", label=T("Author email address"), type="string", length=250, requires=req_is_email, default=author.email, writable=False),
+        Field.CC(default=(sender_email, contact)),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
+        Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
+        Field("message", label=T("Message"), type="text", default=default_message, required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Send email")
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
+    if form.process().accepted:
+        art.request_submission_change = True
+        art.update_record()
+        request.vars["replyto"] = replyTo
+        try:
+            emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
+        except Exception as e:
+            session.flash = (session.flash or "") + T("Email failed.")
+            raise e
+        redirect(URL(c="manager", f="presubmissions"))
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForSubmitter"),
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#EmailForSubmitterInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForSubmitterInfo"),
+        myBackButton=common_small_html.mkBackButton(),
+    )
