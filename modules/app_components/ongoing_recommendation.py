@@ -721,6 +721,14 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     return DIV(recommendationRounds, managerButton or "")
 
 
+def is_scheduled_track(article):
+    return article.status == "Scheduled submission pending"
+
+
+def is_stage_1(article):
+    return article.report_stage == "STAGE 1"
+
+
 def getManagerButton(art, auth, isRecommender):
     if art.user_id == auth.user_id:
         return None
@@ -731,6 +739,10 @@ def getManagerButton(art, auth, isRecommender):
 
     if not auth.has_membership(role="manager"):
         return None
+
+    if pciRRactivated and is_scheduled_track(art) and is_stage_1(art):
+        return validate_stage_button(art)
+
     if isRecommender:
         return sorry_you_are_recommender_note()
     else:
