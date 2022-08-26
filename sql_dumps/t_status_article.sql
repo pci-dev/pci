@@ -51,3 +51,7 @@ SELECT pg_catalog.setval('public.t_status_article_id_seq', 50, true);
 -- PostgreSQL database dump complete
 --
 
+-- 2022-08-26 updates/new_status_article.sql
+INSERT INTO public.t_status_article("status","color_class","explaination","priority_level")
+VALUES
+(E'Pre-submission',E'danger',E'Submission needs changes from author',E'A');
