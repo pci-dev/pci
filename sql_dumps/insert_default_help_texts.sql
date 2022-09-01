@@ -282,3 +282,19 @@ VALUES
 (E'#ManagerPendingSurveyReports',E'default',E''),
 (E'#ManagerPendingSurveyReportsText',E'default',E''),
 (E'#ManagerPendingSurveyReportsTitle',E'default',E'Report(s) without surveys');
+
+-- 2022-08-26 updates/pre_submission_help_text.sql
+INSERT INTO help_texts("hashtag","lang","contents")
+VALUES
+(E'#ManagePresubmittedArticles',E'default',E''),
+(E'#ManagePresubmittedArticlesText',E'default',E''),
+(E'#ManagePresubmittedArticlesTitle',E'default',E'Presubmitted Articles needing changes'),
+(E'#EmailForSubmitter',E'default',E''),
+(E'#EmailForSubmitterInfoTitle',E'default',E''),
+(E'#EmailForSubmitterInfo',E'default',E'');
+
+-- updates/sub_help_texts.sql
+INSERT INTO help_texts("hashtag","lang","contents")
+VALUES
+(E'#SubmissionOnHoldInfo',E'default',E'<h2><span style="line-height: 1.2em;"><span style="color: #598398;">Submissions on temporary hold</span></span></h2>
+<p><span style="line-height: 1.2em;">Submissions on hold, please check back at a later time. </span></p>');

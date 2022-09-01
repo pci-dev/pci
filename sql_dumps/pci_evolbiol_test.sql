@@ -2922,3 +2922,20 @@ ALTER TABLE "t_articles"
 ALTER COLUMN  data_doi TYPE text,
 ALTER COLUMN  scripts_doi TYPE text,
 ALTER COLUMN  codes_doi TYPE text;
+
+-- 2022-08-26 updates/new_t_article_field.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS request_submission_change boolean DEFAULT false;
+
+-- updates/new_table.sql
+CREATE TABLE submissions (
+    id serial PRIMARY KEY,
+    allow_submissions boolean DEFAULT true
+);
+
+ALTER TABLE public.submissions OWNER TO pci_admin;
+
+-- updates/insert_into_submissions.sql
+INSERT INTO submissions("allow_submissions")
+VALUES
+(true);
