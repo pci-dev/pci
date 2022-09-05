@@ -226,6 +226,7 @@ def search_reviewers():
         Field("thematics", type="list:string", label=T("Thematic fields")),
         Field("roles", type="string", length=1024, label=T("Roles")),
         Field("excluded", type="boolean", label=T("Excluded")),
+        Field("any", type="string", label=T("All fields")),
     )
     temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href="mailto:" + text)
     myVars = request.vars
@@ -284,11 +285,28 @@ def search_reviewers():
         is_recomm = fr['id'] in user_module.getAllRecommenders(db)
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
 
+    full_text_search_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'laboratory',
+        'institution',
+        'city',
+        'country',
+        'thematics', # aka "areas of expertise"
+        "keywords",
+        #'id',
+        #'num',
+        #'uploaded_picture',
+        #'score',
+        #'roles',
+        #'excluded',
+    ]
     users_ids = [ fr['id'] for fr in filtered ]
     keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
     for fr in filtered:
         fr['keywords'] = keywords[fr['id']] or ""
-        qy_reviewers.insert(**fr)
+        qy_reviewers.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
     temp_db.qy_reviewers.uploaded_picture.readable = False
     temp_db.qy_reviewers.excluded.readable = False
