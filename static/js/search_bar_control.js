@@ -149,23 +149,13 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query 
-    var search_statement = '';
-    var options = document.querySelectorAll('#w2p_query_fields option');
-    
-    for (var i = 0; i < options.length; i++) {
-        if (options[i].value != 'all' && options[i].value != 'thematics' && options[i].style.display != 'none') {
-            search_statement += options[i].value + ' contains "' + search_term + '" or ';
-        }
-        else if (options[i].value == 'thematics') {
-            search_statement += user_type + '.' + options[i].value + ' contains "' + search_term + '" or ';
-        }
-    }
+    var search_statement = 'any contains "' + search_term + '"'
 
     // get the statement to the search field and trigger it
     var search_field = document.querySelector('#w2p_keywords');
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
-    search_field.value = search_statement.substring(0,search_statement.length-4);
+    search_field.value = search_statement;
     var main_search_form = document.querySelector('.web2py_console > form');
     main_search_form.submit();
 }
