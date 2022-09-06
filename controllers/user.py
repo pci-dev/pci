@@ -235,6 +235,7 @@ def search_recommenders():
             Field("thematics", type="list:string", label=T("Thematic fields")),
             Field("keywords", type="string", label=T("Keywords")),
             Field("excluded", type="boolean", label=T("Excluded")),
+            Field("any", type="string", label=T("All fields")),
         )
         qyKwArr = qyKw.split(" ")
         searchForm = app_forms.searchByThematic(auth, db, myVars)
@@ -247,11 +248,23 @@ def search_recommenders():
 
         filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
+        full_text_search_fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'laboratory',
+            'institution',
+            'city',
+            'country',
+            'thematics', # aka "areas of expertise"
+            "keywords",
+        ]
+
         users_ids = [ fr['id'] for fr in filtered ]
         keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
         for fr in filtered:
             fr['keywords'] = keywords[fr['id']] or ""
-            qy_recomm.insert(**fr)
+            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
         #temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
