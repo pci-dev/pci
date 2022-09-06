@@ -511,6 +511,7 @@ def search_recommenders():
             Field("thematics", type="list:string", label=T("Thematic fields")),
             Field("keywords", type="string", label=T("Keywords")),
             Field("excluded", type="boolean", label=T("Excluded")),
+            Field("any", type="string", label=T("All fields")),
         )
         temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
         qyKwArr = qyKw.split(" ")
@@ -527,11 +528,23 @@ def search_recommenders():
         excludeList = [int(numeric_string) for numeric_string in excludeList]
         filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
+        full_text_search_fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'laboratory',
+            'institution',
+            'city',
+            'country',
+            'thematics', # aka "areas of expertise"
+            "keywords",
+        ]
+
         users_ids = [ fr['id'] for fr in filtered ]
         keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
         for fr in filtered:
             fr['keywords'] = keywords[fr['id']] or ""
-            qy_recomm.insert(**fr)
+            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
         links = [
             dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
