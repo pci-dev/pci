@@ -165,7 +165,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     for option in select_panel:
         if option.__getattribute__('attributes')['_value'] in hijack_values:
             option.__getattribute__('attributes').update({'_class':'selector'})
-            select_panel.elements('option.selector', replace=OPTION('All fields', _value="all"))
             grid.elements('div#w2p_field_all')[0].__getattribute__('attributes').update({'_style':'display:flex'})
         elif option.__getattribute__('attributes')['_value'] == 'auth_user.website':
             option.__getattribute__('attributes').update({'_class':'selector'})
@@ -186,7 +185,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     
     # set "All Fields" as primary choice
     for option in select_panel:
-        if option.__getattribute__('attributes')['_value'] == 'all':
+        if option.__getattribute__('attributes')['_value'].endswith('.any'):
             option.__getattribute__('attributes').update({'_selected':'selected'})
 
     for selector in regulator_panels:
