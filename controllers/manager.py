@@ -509,6 +509,7 @@ def search_recommenders():
             Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
             Field("thematics", type="list:string", label=T("Thematic fields")),
+            Field("keywords", type="string", label=T("Keywords")),
             Field("excluded", type="boolean", label=T("Excluded")),
         )
         temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
@@ -525,7 +526,11 @@ def search_recommenders():
 
         excludeList = [int(numeric_string) for numeric_string in excludeList]
         filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+
+        users_ids = [ fr['id'] for fr in filtered ]
+        keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
         for fr in filtered:
+            fr['keywords'] = keywords[fr['id']] or ""
             qy_recomm.insert(**fr)
 
         links = [
