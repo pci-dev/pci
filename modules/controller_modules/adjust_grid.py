@@ -45,6 +45,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     search_field = grid.elements('.web2py_console form')[0]
     search_field = grid.elements('.web2py_console form')[0]
     panel_query_rows = grid.elements('div#w2p_query_panel div')
+    input_buttons = grid.elements('form input.btn')
 
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -178,6 +179,11 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     grid.elements('div#w2p_query_panel', replace=None)
     grid.elements('div.web2py_breadcrumbs', replace=None)
     grid.elements('div.web2py_console a.btn-secondary', replace=None)
+
+    # change button label from Clear to Reset
+    for button in input_buttons:
+        if button.__getattribute__('attributes')['_value'] == 'Clear':
+            button.__getattribute__('attributes').update({'_value': 'Reset'})
 
     # add elements at different positions
     grid.elements('div.web2py_console ')[0].insert(0, panel)
