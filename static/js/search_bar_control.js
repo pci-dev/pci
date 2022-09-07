@@ -1,13 +1,17 @@
 // if there is an ongoing search, we need to change buttons and 
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
-var user_type = false;
-checkCookie()
+checkCookie();
 
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art'}
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art', 'unknown': false}
 if (search_bar != null) {
     // user_type on default/index cannot be determined in the same way
-    var user_type = get_user_type();
+    try { 
+        var user_type = get_user_type();
+        setCookieUT(user_type); }
+    catch {
+        var user_type = getCookie('user_type');
+    }
     if (search_bar.value != '') { ongoing_search(); }
     else { 
         result_counter_initial();
@@ -71,7 +75,7 @@ function initialise_simple_search() {
     var simple_search_bar = document.querySelector('#simple-search-input');
     simple_search_bar.value = search_bar.value;
 
-    setCookie('simple');
+    setCookieST('simple');
 }
 
 
@@ -131,10 +135,10 @@ function switch_search() {
         switch_search_btn.setAttribute('value', 'Simple Search');
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
-        setCookie('advanced');
+        setCookieST('advanced');
     }
     else {
-        setCookie('simple');
+        setCookieST('simple');
         try {
             simple_search_div.style.display = 'flex';
             switch_search_btn.setAttribute('value', 'Advanced Search');
@@ -161,6 +165,7 @@ function simple_search() {
     search_form.style.display = 'none';
     search_field.value = search_statement;
     var main_search_form = document.querySelector('.web2py_console > form');
+    setCookieST('simple');
     main_search_form.submit();
 }
 
@@ -319,7 +324,7 @@ function add_thematics(user_type, regulator, not_statement = false) {
     var thematic = drop_field_thematics.value;
 
     var user_field = user_type2field[user_type];
-
+    
     // special case of not statement
     if (not_statement) { var inner_regulator = '!='; }
     else { var inner_regulator = 'contains'}
@@ -388,12 +393,17 @@ function getCookie(cname) {
 }
 
 
-function setCookie(cvalue) {
+function setCookieST(cvalue) {
     document.cookie = 'search_type=' + cvalue + '; SameSite=None; Secure'
+}
+
+
+function setCookieUT(cvalue) {
+    document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
 }
 
 
 function checkCookie() {
     var search_type = getCookie("search_type");
-    if (search_type == "") { setCookie('simple'); }
+    if (search_type == "") { setCookieST('simple'); }
 }
