@@ -4,8 +4,9 @@ var search_bar = document.querySelector('#w2p_keywords');
 var user_type = false;
 checkCookie()
 
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm'}
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art'}
 if (search_bar != null) {
+    // user_type on default/index cannot be determined in the same way
     var user_type = get_user_type();
     if (search_bar.value != '') { ongoing_search(); }
     else { 
@@ -66,7 +67,10 @@ function initialise_simple_search() {
         switch_search_btn = create_switch_search_btn('advanced');
         insertAfter(switch_search_btn, wconsole);
     }
-   
+    // also show the current search query in the simple search bar to avoid confusion
+    var simple_search_bar = document.querySelector('#simple-search-input');
+    simple_search_bar.value = search_bar.value;
+
     setCookie('simple');
 }
 

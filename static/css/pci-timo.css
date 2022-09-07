@@ -6,9 +6,16 @@
         word-wrap: break-word;
     }
 
+    #wrapper-home-articles .web2py_breadcrumbs {
+        display: none;
+    }
+
     .web2py_console .w2p_query_row .btn {
         height: 3rem;
         max-height: 3rem;
+        margin-top: 0;
+        margin-bottom: .6rem;
+        padding: .6rem 1.5rem;
     }
 
     /*.web2py_console .form-control {
@@ -19,6 +26,10 @@
         width: fit-content;
         float: right;
         margin-bottom: 2rem;
+    }
+
+    .web2py_console .form-control {
+        margin-bottom: .6rem;
     }
 
     #myNavbar {

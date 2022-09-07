@@ -606,11 +606,8 @@ def search_recommenders():
             specific_thematics.append(t[1])
 
         # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
-        #try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
-        #except:
-        #    print('failed')            
-        #    grid = original_grid
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
+        except: grid = original_grid
 
         response.view = "default/gab_list_layout.html"
         return dict(

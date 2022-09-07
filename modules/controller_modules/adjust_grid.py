@@ -26,10 +26,11 @@ remove_options = ['auth_user.registration_key',# 'auth_user.website',
                   'auth_user.ethical_code_approved']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_all_field = {'users': 'w2p_field_auth_user-id', 'templates': 'w2p_field_mail_templates-lang',
-                     'reviewers': 'w2p_field_qy_reviewers-id', 'recommenders': 'w2p_field_qy_recomm-id'}
+                     'reviewers': 'w2p_field_qy_reviewers-id', 'recommenders': 'w2p_field_qy_recomm-id',
+                     'articles': 'w2p_field_qy_art-id'}
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
                            'recommenders': 'w2p_field_qy_recomm-laboratory'}
-hijack_values = ['auth_user.id', 'mail_templates.lang', 'qy_reviewers.id', 'qy_recomm.id']
+hijack_values = ['auth_user.id', 'mail_templates.lang', 'qy_reviewers.id', 'qy_recomm.id', 'qy_art.id']
 
 
 def adjust_grid_basic(grid, search_name, thematics = []):
@@ -73,7 +74,10 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-laboratory')[0]
         select_panel_id = grid.elements('#w2p_field_qy_recomm-id select.form-control')[0]
         select_panel_id2 = grid.elements('#w2p_field_qy_recomm-laboratory select.form-control')[0]
-
+    elif search_name == 'articles':
+        panel_search_field = grid.elements('div#w2p_field_qy_art-id')[0]
+        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+        select_panel_id = grid.elements('#w2p_field_qy_art-id select.form-control')[0]
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:
