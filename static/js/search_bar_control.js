@@ -3,7 +3,7 @@
 var search_bar = document.querySelector('#w2p_keywords');
 checkCookie();
 
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art', 'unknown': false}
+user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art'}
 if (search_bar != null) {
     // user_type on default/index cannot be determined in the same way
     try { 
@@ -227,11 +227,7 @@ function add_to_search(input_field) {
 
     // lastly get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
-    if (db_field == 'all') {
-        add_all(input_field, regulator);
-        return
-    }
-    else if (db_field == 'thematics') {
+    if (db_field == 'thematics') {
         add_thematics();
     }
 
@@ -250,49 +246,31 @@ function add_to_search(input_field) {
 
 
 function add_all(field, regulator, search_name = false) {
-    /* when All fields is chosen, take the argument
-    from the input fields, concatenate all possible search fields,
-    and add them to the search field with OR */
     // get search term
     var search_field_all = document.querySelector('#w2p_value_all');
     var search_term = search_field_all.value;
 
-    // get all search options and create statement:
-    var search_statement = '';
     var regulator_field = field.parentElement.querySelector('select.form-control').value;
     if (regulator_field == 'not contains') {
         var prefix = 'not ';
-        var inner_regulator = 'contains';
-        var inner_logic = 'and';
     }
     else {
         var prefix = '';
-        var inner_regulator = 'contains';
-        var inner_logic = 'or';
     }
 
-    var options = document.querySelectorAll('#w2p_query_fields option');
-    
-    for (var i = 0; i < options.length; i++) {
-        if (options[i].value != 'all' && options[i].value != 'thematics' && options[i].style.display != 'none') {
-            search_statement += prefix + options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
-        }
-        else if (options[i].value == 'thematics') {
-            search_statement += prefix + user_type + '.' + options[i].value + ' ' + inner_regulator + ' "' + search_term + '" ' + inner_logic + ' ';
-        }
-    }
+    var search_statement = prefix + 'any contains "' + search_term + '"';
 
-    // get the statement to the search field
     var search_field = document.querySelector('#w2p_keywords');
+
     if (regulator == 'new') {
         var search_form = document.querySelector('.web2py_console > form');
         search_form.style.display = 'flex';
-        search_field.value = search_statement.substring(0,search_statement.length-4);
+        search_field.value = search_statement;
         var main_search_form = document.querySelector('.web2py_console > form');
         main_search_form.submit();
     }
     else {
-        search_field.value += ' ' + regulator + ' ' + search_statement.substring(0,search_statement.length-4);
+        search_field.value += ' ' + regulator + ' ' + search_statement;
     }
 }
 
@@ -360,20 +338,16 @@ function new_search(input_field) {
 
     var statement = '';
     var select_field = document.querySelector('#w2p_query_fields');
-    if (select_field.value == 'all') {
-        add_all(input_field, 'new');
+    if (not_statement) {
+        statement += 'not ' + select_field.value + ' contains "' + search_term + '"';
     }
     else {
-        if (not_statement) {
-            statement += 'not ' + select_field.value + ' contains "' + search_term + '"';
-        }
-        else {
-            statement += select_field.value + ' contains "' + search_term + '"';
-        }
-        var main_search_input = main_search_form.querySelector('#w2p_keywords');
-        main_search_input.value = statement;
-        main_search_form.submit();
+        statement += select_field.value + ' contains "' + search_term + '"';
     }
+    var main_search_input = main_search_form.querySelector('#w2p_keywords');
+    main_search_input.value = statement;
+    setCookieST('advanced');
+    main_search_form.submit();
 }
 
 
