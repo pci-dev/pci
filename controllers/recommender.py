@@ -551,6 +551,7 @@ def my_awaiting_articles():
             db.t_articles.keywords,
             db.t_articles.user_id,
             db.t_articles.auto_nb_recommendations,
+            db.t_articles.submitter_details,
         ]
     else:
         fields = [
