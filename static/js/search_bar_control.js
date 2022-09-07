@@ -62,7 +62,7 @@ function initialise_simple_search() {
     clear_btn.setAttribute('value', 'Reset');
 
     simple_search_div.appendChild(input_field);
-    simple_search_div.appendChild(clear_btn);
+    simple_search_div.appendChild(clear_btn);    
     simple_search_div.appendChild(search_btn);
     grid.insertBefore(simple_search_div, wconsole);
 
@@ -72,8 +72,9 @@ function initialise_simple_search() {
         insertAfter(switch_search_btn, wconsole);
     }
     // also show the current search query in the simple search bar to avoid confusion
-    var simple_search_bar = document.querySelector('#simple-search-input');
-    simple_search_bar.value = search_bar.value;
+    //var simple_search_bar = document.querySelector('#simple-search-input');
+    //simple_search_bar.value = search_bar.value;
+    search_bar.value = '';
 
     setCookieST('simple');
 }
@@ -92,13 +93,6 @@ function create_switch_search_btn(modus) {
     else { switch_search_btn.setAttribute('value', 'Simple Search'); }
 
     return switch_search_btn
-}
-
-
-function clear_simple_search() {
-    // remove keywords parameter from URL and reload page
-    var url = removeURLParameter(String(window.location), 'keywords')
-    window.location = url;
 }
 
 
@@ -151,9 +145,16 @@ function switch_search() {
 }
 
 
+function clear_simple_search() {
+    var url = removeURLParameter(String(window.location), 'keywords');
+    window.location = url;
+}
+
+
 function simple_search() {
     /* use hidden advanced search entities to perform simple search*/
     // get query
+    setCookieST('simple');
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query 
@@ -164,9 +165,9 @@ function simple_search() {
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
     search_field.value = search_statement;
-    var main_search_form = document.querySelector('.web2py_console > form');
-    setCookieST('simple');
-    main_search_form.submit();
+    console.log('1');
+    console.log(search_field.value);
+    search_form.submit();
 }
 
 
@@ -266,8 +267,9 @@ function add_all(field, regulator, search_name = false) {
         var search_form = document.querySelector('.web2py_console > form');
         search_form.style.display = 'flex';
         search_field.value = search_statement;
-        var main_search_form = document.querySelector('.web2py_console > form');
-        main_search_form.submit();
+        console.log('2');
+        console.log(search_field.value);
+        search_form.submit();
     }
     else {
         search_field.value += ' ' + regulator + ' ' + search_statement;
@@ -317,8 +319,16 @@ function add_thematics(user_type, regulator, not_statement = false) {
     if (regulator == 'new') {
         var search_bar = document.querySelector('.web2py_console > form');
         search_bar.style.display = 'flex';
+        console.log('3');
+        console.log(search_field.value);
+
+        search_bar.submit();
+
     }
     var main_search_form = document.querySelector('.web2py_console > form');
+    console.log('4');
+    console.log(search_field.value);
+
     main_search_form.submit();
 }
 
@@ -347,6 +357,9 @@ function new_search(input_field) {
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
     setCookieST('advanced');
+    console.log('5');
+    console.log(main_search_input.value);
+
     main_search_form.submit();
 }
 

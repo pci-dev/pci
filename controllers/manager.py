@@ -596,7 +596,6 @@ def search_recommenders():
             ],
             links=links,
             orderby=temp_db.qy_recomm.num,
-            args=request.args,
             _class="web2py_grid action-button-absolute",
         )
 

@@ -230,6 +230,7 @@ def search_reviewers():
     )
     temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href="mailto:" + text)
     myVars = request.vars
+
     qyKw = ""
     qyTF = []
     excludeList = []
@@ -261,16 +262,6 @@ def search_reviewers():
                         excludeList.append(uid)
 
     qyKwArr = qyKw.split(" ")
-    
-    '''
-    searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
-    if searchForm.process(keepvalues=True).accepted:
-        response.flash = None
-    else:
-        qyTF = []
-        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-            qyTF.append(thema.keyword)
-    '''
     qyTF = []
     for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
         qyTF.append(thema.keyword)
@@ -340,6 +331,7 @@ def search_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+        
         temp_db.qy_reviewers.num.readable = False
         temp_db.qy_reviewers.score.readable = False
         original_grid = SQLFORM.smartgrid(
@@ -365,7 +357,6 @@ def search_reviewers():
             ],
             links=links,
             orderby=temp_db.qy_reviewers.num,
-            args=request.args,
             _class="web2py_grid action-button-absolute",
         )
 
@@ -380,6 +371,7 @@ def search_reviewers():
 
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
+
         return dict(
             pageHelp=pageHelp,
             titleIcon="search",
