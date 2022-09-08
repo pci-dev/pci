@@ -183,6 +183,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
     reviewsStepDoneClass = "step-default"
     recommendationStepClass = "step-default"
     managerDecisionDoneClass = "step-default"
+    isRecommAvalaibleToSubmitter = False
 
     if not (art.status in ["Pending", "Pending-survey", "Pre-submission"]):
         submissionValidatedClassClass = "step-done"
@@ -333,8 +334,9 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
         )
 
         recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
-
-    return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=(managerDecisionDoneClass == "step-done"), content=recommendationDiv)
+    if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
+        isRecommAvalaibleToSubmitter = True
+    return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
 
 
 ########################################################################################################################################################################
