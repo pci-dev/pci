@@ -40,16 +40,6 @@ function initialise_simple_search() {
     input_field.classList.add('form-control');
     input_field.setAttribute('type', 'text');
     input_field.id = 'simple-search-input';
-
-    var search_btn = document.createElement('input');
-    search_btn.classList.add('btn');
-    search_btn.classList.add('btn-default');
-    search_btn.classList.add('add-btn');
-    search_btn.id = 'simple-search-btn';
-    search_btn.style.backgroundColor = '#93c54b';
-    search_btn.setAttribute('type', 'button');
-    search_btn.setAttribute('onclick', 'simple_search()');
-    search_btn.setAttribute('value', 'SEARCH');
     
     var clear_btn = document.createElement('input');
     clear_btn.classList.add('btn');
@@ -60,9 +50,19 @@ function initialise_simple_search() {
     clear_btn.setAttribute('onclick', 'clear_simple_search()');
     clear_btn.setAttribute('value', 'Reset');
 
+    var search_btn = document.createElement('input');
+    search_btn.classList.add('btn');
+    search_btn.classList.add('btn-default');
+    search_btn.classList.add('add-btn');
+    search_btn.id = 'simple-search-btn';
+    search_btn.style.backgroundColor = '#93c54b';
+    search_btn.setAttribute('type', 'button');
+    search_btn.setAttribute('onclick', 'simple_search()');
+    search_btn.setAttribute('value', 'SEARCH');
+
     simple_search_div.appendChild(input_field);
-    simple_search_div.appendChild(clear_btn);    
     simple_search_div.appendChild(search_btn);
+    simple_search_div.appendChild(clear_btn);
     grid.insertBefore(simple_search_div, wconsole);
 
     var switch_search_btn = document.querySelector('#switch-search-btn');
