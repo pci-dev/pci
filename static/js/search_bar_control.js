@@ -1,11 +1,10 @@
 // if there is an ongoing search, we need to change buttons and 
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
-checkCookie();
 
 user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art'}
 if (search_bar != null) {
-    // user_type on default/index cannot be determined in the same way
+    checkCookie();
     try { 
         var user_type = get_user_type();
         setCookieUT(user_type); }
@@ -157,7 +156,7 @@ function simple_search() {
     setCookieST('simple');
     var search_term = document.querySelector('#simple-search-input').value;
 
-    // create add all query 
+    // create add all query
     var search_statement = 'any contains "' + search_term + '"'
 
     // get the statement to the search field and trigger it
