@@ -17,6 +17,37 @@ if (search_bar != null) {
         initialise_simple_search();
      }
     remove_asterisks();
+    set_onclick_events();
+}
+
+
+function set_onclick_events() {
+    // on a search page we need onclick events to trigger the searches on enter key
+    // first, the simple search
+    var simple_search_input = document.querySelector('#simple-search-input');
+    simple_search_input.addEventListener('keypress', function(event) {
+        let key = event.which;
+        if(key == 13) {
+            simple_search();
+
+        }
+    })
+
+    // next, the advanced search fields. This is more tricky, as there are several
+    var input_fields = document.querySelectorAll('input.form-control');
+    for (var i = 0; i < input_fields.length; i++) {
+        
+        if (input_fields[i].id != 'w2p_keywords' && input_fields[i].id != 'simple-search-input') {
+            let input_field = input_fields[i];
+            input_field.addEventListener('keypress', function(event) {
+                let key = event.which;
+                if(key == 13) {
+                    let new_btn = input_field.parentElement.querySelector('.add-btn');
+                    new_search(new_btn);
+                }
+            })
+        }
+    }
 }
 
 
@@ -164,8 +195,6 @@ function simple_search() {
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
     search_field.value = search_statement;
-    console.log('1');
-    console.log(search_field.value);
     search_form.submit();
 }
 
@@ -213,6 +242,21 @@ function ongoing_search() {
         not_contains.value = 'not contains';
         not_contains.innerHTML = 'not contains';
         form_controls.appendChild(not_contains);
+    }
+    
+    // finally, create new onclick events for the ADD buttons
+    var input_fields = document.querySelectorAll('input.form-control');
+    for (var i = 0; i < input_fields.length; i++) {
+        if (input_fields[i].id != 'w2p_keywords' && input_fields[i].id != 'simple-search-input') {
+            let input_field = input_fields[i];
+            input_field.addEventListener('keypress', function(event) {
+                let key = event.which;
+                if(key == 13) {
+                    let new_btn = input_field.nextSibling;
+                    add_to_search(new_btn);
+                }
+            })
+        }
     }
 }
 
@@ -266,8 +310,6 @@ function add_all(field, regulator, search_name = false) {
         var search_form = document.querySelector('.web2py_console > form');
         search_form.style.display = 'flex';
         search_field.value = search_statement;
-        console.log('2');
-        console.log(search_field.value);
         search_form.submit();
     }
     else {
@@ -318,16 +360,10 @@ function add_thematics(user_type, regulator, not_statement = false) {
     if (regulator == 'new') {
         var search_bar = document.querySelector('.web2py_console > form');
         search_bar.style.display = 'flex';
-        console.log('3');
-        console.log(search_field.value);
-
         search_bar.submit();
 
     }
     var main_search_form = document.querySelector('.web2py_console > form');
-    console.log('4');
-    console.log(search_field.value);
-
     main_search_form.submit();
 }
 
@@ -339,7 +375,7 @@ function new_search(input_field) {
 
     // get regulator (contains/not contains)
     var regulator = input_field.parentElement.querySelector('select.form-control').value;
-    if (regulator == 'contains') { var not_statement = false; }
+    if (regulator == 'contains' || regulator == 'and contains') { var not_statement = false; }
     else { var not_statement = true; }
 
     // get search term
@@ -356,9 +392,6 @@ function new_search(input_field) {
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
     setCookieST('advanced');
-    console.log('5');
-    console.log(main_search_input.value);
-
     main_search_form.submit();
 }
 
