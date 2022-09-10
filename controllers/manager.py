@@ -820,8 +820,11 @@ def edit_article():
         db.t_articles.record_url_version.writable = False
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
+    def onvalidation(form):
+        if float(art.ms_version) > form.vars.ms_version:
+            form.errors.ms_version = "New version number must be greater than or same as previous version number"
 
-    if form.process().accepted:
+    if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:
             lastRecomm = db((db.t_recommendations.article_id == art.id)).select().last()
             if lastRecomm is not None:
