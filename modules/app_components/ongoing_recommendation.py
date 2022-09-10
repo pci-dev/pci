@@ -241,7 +241,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
 
-            if completedReviewCount == acceptedReviewCount:
+            if completedReviewCount == acceptedReviewCount and completedReviewCount != 0:
                 reviewsStepDoneClass = "step-done"
 
             if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
