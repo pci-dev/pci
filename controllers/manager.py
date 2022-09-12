@@ -510,6 +510,7 @@ def search_recommenders():
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
             Field("thematics", type="list:string", label=T("Thematic fields")),
             Field("keywords", type="string", label=T("Keywords")),
+            Field("expertise", type="string", label=T("Areas of Expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),
             Field("any", type="string", label=T("All fields")),
         )
@@ -536,14 +537,17 @@ def search_recommenders():
             'institution',
             'city',
             'country',
-            'thematics', # aka "areas of expertise"
+            'thematics',
+            'expertise',
             "keywords",
         ]
 
         users_ids = [ fr['id'] for fr in filtered ]
         keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+        expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
         for fr in filtered:
             fr['keywords'] = keywords[fr['id']] or ""
+            fr['expertise'] = expertise[fr['id']] or ""
             qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
         links = [
