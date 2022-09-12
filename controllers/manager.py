@@ -551,9 +551,7 @@ def search_recommenders():
             fr['expertise'] = expertise[fr['id']] or ""
             qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
-        links = [
-            dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
-        ]
+        links = []
         if articleId:
             links += [
             dict(
@@ -572,6 +570,7 @@ def search_recommenders():
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
+        
         original_grid = SQLFORM.smartgrid(
             qy_recomm,
             editable=False,
