@@ -224,6 +224,7 @@ def search_reviewers():
         Field("keywords", type="string", label=T("Keywords")),
         Field("institution", type="string", label=T("Institution")),
         Field("thematics", type="list:string", label=T("Thematic fields")),
+        Field("expertise", type="string", label=T("Areas of Expertise")),
         Field("roles", type="string", length=1024, label=T("Roles")),
         Field("excluded", type="boolean", label=T("Excluded")),
         Field("any", type="string", label=T("All fields")),
@@ -284,7 +285,8 @@ def search_reviewers():
         'institution',
         'city',
         'country',
-        'thematics', # aka "areas of expertise"
+        'thematics',
+        'expertise',
         "keywords",
         #'id',
         #'num',
@@ -295,7 +297,9 @@ def search_reviewers():
     ]
     users_ids = [ fr['id'] for fr in filtered ]
     keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+    expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
     for fr in filtered:
+        fr['expertise'] = expertise[fr['id']] or ""
         fr['keywords'] = keywords[fr['id']] or ""
         qy_reviewers.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
