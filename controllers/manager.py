@@ -527,7 +527,7 @@ def search_recommenders():
                 qyTF.append(thema.keyword)
 
         excludeList = [int(numeric_string) for numeric_string in excludeList]
-        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
         full_text_search_fields = [
             'first_name',
