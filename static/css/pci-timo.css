@@ -10,6 +10,11 @@
         display: none;
     }
 
+    .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
+        flex-direction: row;
+        align-items: center;
+    }
+
     .web2py_console .w2p_query_row .btn {
         height: 3rem;
         max-height: 3rem;
