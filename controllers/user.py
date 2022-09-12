@@ -232,7 +232,7 @@ def search_recommenders():
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
             Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="list:string", label=T("Thematic fields")),
+            Field("thematics", type="string", label=T("Thematic fields")),
             Field("keywords", type="string", label=T("Keywords")),
             Field("expertise", type="string", label=T("Areas of Expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),

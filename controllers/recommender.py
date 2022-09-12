@@ -223,7 +223,7 @@ def search_reviewers():
         #Field("reviewer_stat", type="list:string", label=T("Active in PCI Evaluation")),
         Field("keywords", type="string", label=T("Keywords")),
         Field("institution", type="string", label=T("Institution")),
-        Field("thematics", type="list:string", label=T("Thematic fields")),
+        Field("thematics", type="string", label=T("Thematic fields")),
         Field("expertise", type="string", label=T("Areas of Expertise")),
         Field("roles", type="string", length=1024, label=T("Roles")),
         Field("excluded", type="boolean", label=T("Excluded")),
