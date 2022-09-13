@@ -34,11 +34,17 @@ function set_onclick_events() {
         })
     }
 
+    // set listener for thematics dropdown
+    /*var thematics_dropdown = document.querySelector('#w2p_field_thematics > select.form-control');
+    if (thematics_dropdown) {
+        thematics_dropdown.addEventListener('change', function() {
+            add_thematics(user_type, 'new');
+        })
+    }*/
 
     // next, the advanced search fields. This is more tricky, as there are several
     var input_fields = document.querySelectorAll('input.form-control');
     for (var i = 0; i < input_fields.length; i++) {
-        
         if (input_fields[i].id != 'w2p_keywords' && input_fields[i].id != 'simple-search-input') {
             let input_field = input_fields[i];
             input_field.addEventListener('keypress', function(event) {
