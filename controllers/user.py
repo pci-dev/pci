@@ -223,6 +223,7 @@ def search_recommenders():
             "qy_recomm",
             Field("id", type="integer"),
             Field("num", type="integer"),
+            Field("roles", type="string"),
             Field("score", type="double", label=T("Score"), default=0),
             Field("first_name", type="string", length=128, label=T("First name")),
             Field("last_name", type="string", length=128, label=T("Last name")),

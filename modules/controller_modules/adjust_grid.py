@@ -27,7 +27,8 @@ remove_options = ['auth_user.registration_key',# 'auth_user.website',
                   'mail_templates.lang', 'qy_reviewers.id']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
-                           'recommenders': 'w2p_field_qy_recomm-laboratory'}
+                           'recommenders': 'w2p_field_qy_recomm-roles'}
+thematics_hijacked_options = ['auth_user.website', 'qy_reviewers.roles', 'qy_recomm.roles']
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 'qy_art'}
 
@@ -69,8 +70,8 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     elif search_name == 'recommenders':
         panel_search_field = grid.elements('div#w2p_field_qy_recomm-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-laboratory')[0]
-        select_panel_id2 = grid.elements('#w2p_field_qy_recomm-laboratory select.form-control')[0]
+        panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-roles')[0]
+        select_panel_id2 = grid.elements('#w2p_field_qy_recomm-roles select.form-control')[0]
     elif search_name == 'articles':
         panel_search_field = grid.elements('div#w2p_field_qy_art-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -138,18 +139,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         if option.__getattribute__('attributes')['_value'].endswith('any'):
             option.__getattribute__('attributes').update({'_class':'selector'})
             grid.elements('div#w2p_field_' + search_name2field[search_name] + '-any')[0].__getattribute__('attributes').update({'_style':'display:flex'})
-        if option.__getattribute__('attributes')['_value'] == 'auth_user.website':
+        # setup Thematic Fields custom control
+        if option.__getattribute__('attributes')['_value'] in thematics_hijacked_options:
             option.__getattribute__('attributes').update({'_class':'selector'})
             select_panel.elements('option.selector', replace=OPTION('Thematic Fields', _value="thematics", _class="thematics"))
             new_thematics_field = select_panel.elements('option.thematics')
             select_panel.elements('option.thematics', replace=None)
             grid.elements('select#w2p_query_fields')[0].insert(1,new_thematics_field[0]) # set Thematic fields to 2nd position
-        elif option.__getattribute__('attributes')['_value'] == 'qy_reviewers.roles':
-            option.__getattribute__('attributes').update({'_class':'selector'})
-            select_panel.elements('option.selector', replace=OPTION('Thematic Fields', _value="thematics", _class="thematics"))
-            new_thematics_field = select_panel.elements('option.thematics')
-            select_panel.elements('option.thematics', replace=None)
-            grid.elements('select#w2p_query_fields')[0].insert(1,new_thematics_field[0]) # set Thematic fields to 2nd position            
         # remove the fields that are not required
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})
