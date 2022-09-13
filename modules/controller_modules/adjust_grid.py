@@ -24,7 +24,8 @@ from gluon.contrib.appconfig import AppConfig
 remove_options = ['auth_user.registration_key',# 'auth_user.website',
                   'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
                   'auth_user.ethical_code_approved', 'qy_recomm.id', 'auth_user.id',
-                  'mail_templates.lang', 'qy_reviewers.id']
+                  'mail_templates.lang', 'qy_reviewers.id',
+                  'qy_reviewers.thematics', 'qy_recomm.thematics']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
                            'recommenders': 'w2p_field_qy_recomm-roles'}
