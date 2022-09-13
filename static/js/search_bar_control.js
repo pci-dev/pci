@@ -25,13 +25,15 @@ function set_onclick_events() {
     // on a search page we need onclick events to trigger the searches on enter key
     // first, the simple search
     var simple_search_input = document.querySelector('#simple-search-input');
-    simple_search_input.addEventListener('keypress', function(event) {
-        let key = event.which;
-        if(key == 13) {
-            simple_search();
+    if (simple_search_input) {
+        simple_search_input.addEventListener('keypress', function(event) {
+            let key = event.which;
+            if(key == 13) {
+                simple_search();
+            }
+        })
+    }
 
-        }
-    })
 
     // next, the advanced search fields. This is more tricky, as there are several
     var input_fields = document.querySelectorAll('input.form-control');
@@ -188,12 +190,14 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    var search_statement = 'any contains "' + search_term + '"'
+    if (user_type == 'auth_user') { var search_statement = search_term; }
+    else { var search_statement = 'any contains "' + search_term + '"'; }
 
     // get the statement to the search field and trigger it
     var search_field = document.querySelector('#w2p_keywords');
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
+
     search_field.value = search_statement;
     search_form.submit();
 }
@@ -343,9 +347,9 @@ function add_thematics(user_type, regulator, not_statement = false) {
     // get thematic search term
     var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
     var thematic = drop_field_thematics.value;
+    try { var user_field = user_type2field[user_type]; }
+    catch { var user_field = user_type; }
 
-    var user_field = user_type2field[user_type];
-    
     // special case of not statement
     if (not_statement) { var inner_regulator = '!='; }
     else { var inner_regulator = 'contains'}
