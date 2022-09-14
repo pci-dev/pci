@@ -3,23 +3,25 @@
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null) {
-    checkCookie();
-    try { 
+    let search_type = checkCookie();
+    try {
         var user_type = get_user_type();
         setCookieUT(user_type);
-    }
-    catch {
+    } catch {
         var user_type = getCookie('user_type');
     }
-    if (search_bar.value != '') { ongoing_search(); }
-    else { 
+    if (search_bar.value != '') {
+        ongoing_search();
+    } else {
         result_counter_initial();
         initialise_simple_search();
-     }
+        if (search_type == 'advanced') {
+            switch_search();
+        }
+    }
     remove_asterisks();
     set_onclick_events();
 }
-
 
 function set_onclick_events() {
     // on a search page we need onclick events to trigger the searches on enter key
@@ -28,7 +30,7 @@ function set_onclick_events() {
     if (simple_search_input) {
         simple_search_input.addEventListener('keypress', function(event) {
             let key = event.which;
-            if(key == 13) {
+            if (key == 13) {
                 simple_search();
             }
         })
@@ -49,7 +51,7 @@ function set_onclick_events() {
             let input_field = input_fields[i];
             input_field.addEventListener('keypress', function(event) {
                 let key = event.which;
-                if(key == 13) {
+                if (key == 13) {
                     let new_btn = input_field.parentElement.querySelector('.add-btn');
                     new_search(new_btn);
                 }
@@ -58,12 +60,10 @@ function set_onclick_events() {
     }
 }
 
-
 function get_user_type() {
     var first_column = document.querySelector('.web2py_htmltable > table col').id;
     return first_column.split('-')[0]
 }
-
 
 function initialise_simple_search() {
     // if the page is opened and no search is ongoing, initialise simple search
@@ -79,7 +79,6 @@ function initialise_simple_search() {
     input_field.classList.add('form-control');
     input_field.setAttribute('type', 'text');
     input_field.id = 'simple-search-input';
-    
     var clear_btn = document.createElement('input');
     clear_btn.classList.add('btn');
     clear_btn.classList.add('btn-default');
@@ -117,7 +116,6 @@ function initialise_simple_search() {
     setCookieST('simple');
 }
 
-
 function create_switch_search_btn(modus) {
     var switch_search_btn = document.createElement('input');
     switch_search_btn.classList.add('btn');
@@ -127,12 +125,14 @@ function create_switch_search_btn(modus) {
     switch_search_btn.style.color = 'white';
     switch_search_btn.setAttribute('type', 'button');
     switch_search_btn.setAttribute('onclick', 'switch_search()');
-    if (modus == 'advanced') { switch_search_btn.setAttribute('value', 'Advanced Search'); }
-    else { switch_search_btn.setAttribute('value', 'Simple Search'); }
+    if (modus == 'advanced') {
+        switch_search_btn.setAttribute('value', 'Advanced Search');
+    } else {
+        switch_search_btn.setAttribute('value', 'Simple Search');
+    }
 
     return switch_search_btn
 }
-
 
 function removeURLParameter(url, parameter) {
     var urlparts = url.split('?');
@@ -141,8 +141,8 @@ function removeURLParameter(url, parameter) {
         var prefix = encodeURIComponent(parameter) + '=';
         var pars = urlparts[1].split(/[&;]/g);
 
-        for (var i = pars.length; i-- > 0;) {    
-            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+        for (var i = pars.length; i-- > 0;) {
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {
                 pars.splice(i, 1);
             }
         }
@@ -152,11 +152,9 @@ function removeURLParameter(url, parameter) {
     return url;
 }
 
-
 function insertAfter(newNode, existingNode) {
     existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
-
 
 function switch_search() {
     /* switch search (simple/advanced) and change switch button accordingly */
@@ -168,26 +166,22 @@ function switch_search() {
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
         setCookieST('advanced');
-    }
-    else {
+    } else {
         setCookieST('simple');
         try {
             simple_search_div.style.display = 'flex';
             switch_search_btn.setAttribute('value', 'Advanced Search');
-        }
-        catch {
+        } catch {
             clear_simple_search();
         }
         advanced_search.style.display = 'none';
     }
 }
 
-
 function clear_simple_search() {
     var url = removeURLParameter(String(window.location), 'keywords');
     window.location = url;
 }
-
 
 function simple_search() {
     /* use hidden advanced search entities to perform simple search*/
@@ -196,8 +190,11 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    if (user_type == 'auth_user') { var search_statement = search_term; }
-    else { var search_statement = 'any contains "' + search_term + '"'; }
+    if (user_type == 'auth_user') {
+        var search_statement = search_term;
+    } else {
+        var search_statement = 'any contains "' + search_term + '"';
+    }
 
     // get the statement to the search field and trigger it
     var search_field = document.querySelector('#w2p_keywords');
@@ -208,15 +205,13 @@ function simple_search() {
     search_form.submit();
 }
 
-
 function ongoing_search() {
     // for an ongoing search, display the non-empty search bar
     var search_type = getCookie('search_type');
     if (search_type == 'simple') {
         initialise_simple_search();
         return
-    }
-    else {
+    } else {
         var search_bar = document.querySelector('.web2py_console > form');
         search_bar.style.display = 'flex';
         var simple_search_btn = create_switch_search_btn('simple');
@@ -253,7 +248,6 @@ function ongoing_search() {
         not_contains.innerHTML = 'not contains';
         form_controls.appendChild(not_contains);
     }
-    
     // finally, create new onclick events for the ADD buttons
     var input_fields = document.querySelectorAll('input.form-control');
     for (var i = 0; i < input_fields.length; i++) {
@@ -261,7 +255,7 @@ function ongoing_search() {
             let input_field = input_fields[i];
             input_field.addEventListener('keypress', function(event) {
                 let key = event.which;
-                if(key == 13) {
+                if (key == 13) {
                     let new_btn = input_field.nextSibling;
                     add_to_search(new_btn);
                 }
@@ -269,7 +263,6 @@ function ongoing_search() {
         }
     }
 }
-
 
 function add_to_search(input_field) {
     // first get db field
@@ -281,21 +274,28 @@ function add_to_search(input_field) {
 
     // lastly get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
-    if (db_field == 'thematics') { add_thematics(user_type, 'and', false); }
+    if (db_field == 'thematics') {
+        add_thematics(user_type, 'and', false);
+    }
 
     // create statement
-    if (regulator == 'not') { var statement = ' and not '; }
-    else { var statement = ' ' + regulator + ' '; }
+    if (regulator == 'not') {
+        var statement = ' and not ';
+    } else {
+        var statement = ' ' + regulator + ' ';
+    }
     statement += db_field;
-    if (regulator == 'not') { statement += ' contains "'; }
-    else { statement += ' contains "'; }
+    if (regulator == 'not') {
+        statement += ' contains "';
+    } else {
+        statement += ' contains "';
+    }
     statement += search_term + '"';
 
     // add statement to search bar
     var search_bar = document.querySelector('#w2p_keywords');
     search_bar.value += statement;
 }
-
 
 function add_all(field, regulator, search_name = false) {
     // get search term
@@ -305,8 +305,7 @@ function add_all(field, regulator, search_name = false) {
     var regulator_field = field.parentElement.querySelector('select.form-control').value;
     if (regulator_field == 'not contains') {
         var prefix = 'not ';
-    }
-    else {
+    } else {
         var prefix = '';
     }
 
@@ -319,18 +318,15 @@ function add_all(field, regulator, search_name = false) {
         search_form.style.display = 'flex';
         search_field.value = search_statement;
         search_form.submit();
-    }
-    else {
+    } else {
         search_field.value += ' ' + regulator + ' ' + search_statement;
     }
 }
-
 
 function result_counter_initial() {
     var result_count = document.querySelector('.web2py_counter').innerHTML;
     document.querySelector('.web2py_counter').innerHTML = result_count.replace(' found', '');
 }
-
 
 function remove_asterisks() {
     var options = document.querySelectorAll('#w2p_query_fields > option');
@@ -344,7 +340,6 @@ function remove_asterisks() {
     }
 }
 
-
 function add_thematics(user_type, regulator, not_statement = false) {
     /* when Thematic Fields is chosen, choose the argument
     from the new dropdown, but not from the input field */
@@ -353,15 +348,21 @@ function add_thematics(user_type, regulator, not_statement = false) {
     var thematic = drop_field_thematics.value;
 
     // special case of not statement
-    if (not_statement) { var inner_regulator = '!='; }
-    else { var inner_regulator = 'contains'}
+    if (not_statement) {
+        var inner_regulator = '!=';
+    } else {
+        var inner_regulator = 'contains'
+    }
 
-    var search_statement = user_type + '.thematics ' + inner_regulator +' "' + thematic + '"';
+    var search_statement = user_type + '.thematics ' + inner_regulator + ' "' + thematic + '"';
 
     // get the statement to the search field
     var search_field = document.querySelector('#w2p_keywords');
-    if (regulator == 'new') { search_field.value = search_statement; }
-    else { search_field.value += ' ' + regulator + ' ' + search_statement; }
+    if (regulator == 'new') {
+        search_field.value = search_statement;
+    } else {
+        search_field.value += ' ' + regulator + ' ' + search_statement;
+    }
 
     if (regulator == 'new') {
         var search_bar = document.querySelector('.web2py_console > form');
@@ -373,7 +374,6 @@ function add_thematics(user_type, regulator, not_statement = false) {
     main_search_form.submit();
 }
 
-
 function new_search(input_field) {
     // make search bar visible
     var main_search_form = document.querySelector('.web2py_console > form');
@@ -381,8 +381,11 @@ function new_search(input_field) {
 
     // get regulator (contains/not contains)
     var regulator = input_field.parentElement.querySelector('select.form-control').value;
-    if (regulator == 'contains' || regulator == 'and contains') { var not_statement = false; }
-    else { var not_statement = true; }
+    if (regulator == 'contains' || regulator == 'and contains') {
+        var not_statement = false;
+    } else {
+        var not_statement = true;
+    }
 
     // get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
@@ -391,8 +394,7 @@ function new_search(input_field) {
     var select_field = document.querySelector('#w2p_query_fields');
     if (not_statement) {
         statement += 'not ' + select_field.value + ' contains "' + search_term + '"';
-    }
-    else {
+    } else {
         statement += select_field.value + ' contains "' + search_term + '"';
     }
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
@@ -401,34 +403,35 @@ function new_search(input_field) {
     main_search_form.submit();
 }
 
-
 function getCookie(cname) {
     var name = cname + "=";
     var ca = document.cookie.split(';');
-    for(var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
     }
     return "";
 }
-
 
 function setCookieST(cvalue) {
     document.cookie = 'search_type=' + cvalue + '; SameSite=None; Secure'
 }
 
-
 function setCookieUT(cvalue) {
     document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
 }
 
-
 function checkCookie() {
+    console.log('ici')
     var search_type = getCookie("search_type");
-    if (search_type == "") { setCookieST('simple'); }
+    if (search_type == "") {
+        setCookieST('simple');
+    }
+
+    return search_type;
 }
