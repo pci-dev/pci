@@ -52,8 +52,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
     if search_name == 'templates':
-        hashtag_regulator = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
-        hashtag_regulator.__getattribute__('attributes').update({'_style':'display:none'})
         panel_search_field = grid.elements('div#w2p_field_mail_templates-lang')[0]
     elif search_name == 'users':
         panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
@@ -157,17 +155,23 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         if option.__getattribute__('attributes')['_value'].endswith('.any'):
             option.__getattribute__('attributes').update({'_selected':'selected'})
 
-    # in list_users(), where we have no "All fields", set "First name" as primary choice
+    # in list_users(), where we have no "All fields", set "First name" as primary choice.
+    # similarly, in mail_templates we set "Hashtag" as primary choice.
     if search_name == 'users':
         for option in select_panel:
             if option.__getattribute__('attributes')['_value'].endswith('.first_name'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
                 first_name_input_field = grid.elements('div#w2p_field_auth_user-first_name')[0]
                 first_name_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
-                
-
-    # hide the (initially primary) field options, because now "All fields" is primary
-    panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
+    elif search_name == 'templates':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.hashtag'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                hashtag_input_field = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
+                hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    else:
+        # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
+        panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
 
     for selector in regulator_panels:
         options = selector.elements('option')

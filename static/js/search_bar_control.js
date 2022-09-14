@@ -190,7 +190,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    if (user_type == 'auth_user') {
+    if (user_type == 'auth_user' || user_type == 'mail_templates') {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';
@@ -200,7 +200,7 @@ function simple_search() {
     var search_field = document.querySelector('#w2p_keywords');
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
-
+    
     search_field.value = search_statement;
     search_form.submit();
 }
@@ -427,7 +427,6 @@ function setCookieUT(cvalue) {
 }
 
 function checkCookie() {
-    console.log('ici')
     var search_type = getCookie("search_type");
     if (search_type == "") {
         setCookieST('simple');
