@@ -6,6 +6,37 @@
         word-wrap: break-word;
     }
 
+    #wrapper-home-articles .web2py_breadcrumbs {
+        display: none;
+    }
+
+    .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .web2py_console .w2p_query_row .btn {
+        height: 3rem;
+        max-height: 3rem;
+        margin-top: 0;
+        margin-bottom: .6rem;
+        padding: .6rem 1.5rem;
+    }
+
+    /*.web2py_console .form-control {
+        width: fit-content;
+    }*/
+
+    .web2py_counter {
+        width: fit-content;
+        float: right;
+        margin-bottom: 2rem;
+    }
+
+    .web2py_console .form-control {
+        margin-bottom: .6rem;
+    }
+
     #myNavbar {
         position: absolute;
         background-color: white;
@@ -769,6 +800,27 @@
     .navbar {
         width: 100%;
         padding-bottom: 2rem;
+    }
+    
+    .web2py_console {
+        padding-top: .3rem;
+        padding-bottom: .5rem;
+    }
+
+    #simple-search {
+        display: flex;
+    }
+
+    #simple-search-btn {
+        width: fit-content;
+        height: 3rem;
+        margin-right: .2rem;
+    }
+
+    #simple-search-input {
+        margin-top: .5rem;
+        margin-left: .2rem;
+        height: 3.2rem;
     }
 
     .navbar-header {

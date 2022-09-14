@@ -14,6 +14,7 @@ from app_modules.helper import *
 
 from controller_modules import recommender_module
 from controller_modules import user_module
+from controller_modules import adjust_grid
 
 from app_components import app_forms
 
@@ -222,12 +223,15 @@ def search_reviewers():
         #Field("reviewer_stat", type="list:string", label=T("Active in PCI Evaluation")),
         Field("keywords", type="string", label=T("Keywords")),
         Field("institution", type="string", label=T("Institution")),
-        Field("thematics", type="list:string", label=T("Thematic fields")),
+        Field("thematics", type="string", label=T("Thematic fields")),
+        Field("expertise", type="string", label=T("Areas of Expertise")),
         Field("roles", type="string", length=1024, label=T("Roles")),
         Field("excluded", type="boolean", label=T("Excluded")),
+        Field("any", type="string", label=T("All fields")),
     )
     temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href="mailto:" + text)
     myVars = request.vars
+
     qyKw = ""
     qyTF = []
     excludeList = []
@@ -237,7 +241,6 @@ def search_reviewers():
             myValue = (myVars[myVar])[1]
         else:
             myValue = myVars[myVar]
-
         if myVar == "qyKeywords":
             qyKw = myValue
         elif myVar == "myGoal":
@@ -246,7 +249,6 @@ def search_reviewers():
             excludeList += myValue.split(",")
         elif re.match("^qy_", myVar) and myValue == "on":
             qyTF.append(re.sub(r"^qy_", "", myVar))
-
     recomm = None
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
@@ -261,14 +263,12 @@ def search_reviewers():
                         excludeList.append(uid)
 
     qyKwArr = qyKw.split(" ")
-    searchForm = app_forms.searchByThematic(auth, db, myVars, allowBlank=True)
-    if searchForm.process(keepvalues=True).accepted:
-        response.flash = None
-    else:
-        qyTF = []
-        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-            qyTF.append(thema.keyword)
-    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+    qyTF = []
+    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+        qyTF.append(thema.keyword)
+    #response.flash = None
+
+    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
     def collect_reviewer_stats(fr):
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
@@ -277,11 +277,31 @@ def search_reviewers():
         is_recomm = fr['id'] in user_module.getAllRecommenders(db)
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
 
+    full_text_search_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'laboratory',
+        'institution',
+        'city',
+        'country',
+        'thematics',
+        'expertise',
+        "keywords",
+        #'id',
+        #'num',
+        #'uploaded_picture',
+        #'score',
+        #'roles',
+        #'excluded',
+    ]
     users_ids = [ fr['id'] for fr in filtered ]
     keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+    expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
     for fr in filtered:
+        fr['expertise'] = expertise[fr['id']] or ""
         fr['keywords'] = keywords[fr['id']] or ""
-        qy_reviewers.insert(**fr)
+        qy_reviewers.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
     temp_db.qy_reviewers.uploaded_picture.readable = False
     temp_db.qy_reviewers.excluded.readable = False
@@ -315,15 +335,16 @@ def search_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+        
         temp_db.qy_reviewers.num.readable = False
         temp_db.qy_reviewers.score.readable = False
-        grid = SQLFORM.grid(
+        original_grid = SQLFORM.smartgrid(
             qy_reviewers,
             editable=False,
             deletable=False,
             create=False,
             details=False,
-            searchable=False,
+            searchable=dict(auth_user=True, auth_membership=False),
             maxtextlength=250,
             paginate=100,
             csv=csv,
@@ -340,19 +361,27 @@ def search_reviewers():
             ],
             links=links,
             orderby=temp_db.qy_reviewers.num,
-            args=request.args,
             _class="web2py_grid action-button-absolute",
         )
 
+        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+        specific_thematics = []
+        for t in thematics_query:
+            specific_thematics.append(t[1])
+
+        # the grid is adjusted after creation to adhere to our requirements
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', specific_thematics)
+        except: grid = original_grid
+
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
+
         return dict(
             pageHelp=pageHelp,
             titleIcon="search",
             pageTitle=pageTitle,
             customText=customText,
             myBackButton=common_small_html.mkBackButton(),
-            searchForm=searchForm,
             myFinalScript=myFinalScript,
             grid=grid,
             absoluteButtonScript=common_tools.absoluteButtonScript,

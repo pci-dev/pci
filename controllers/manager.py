@@ -21,6 +21,7 @@ from gluon.contrib.appconfig import AppConfig
 from app_modules.helper import *
 
 from controller_modules import manager_module
+from controller_modules import adjust_grid
 
 from app_components import app_forms
 
@@ -498,6 +499,7 @@ def search_recommenders():
             "qy_recomm",
             Field("id", type="integer"),
             Field("num", type="integer"),
+            Field("roles", type="string"),
             Field("score", type="double", label=T("Score"), default=0),
             Field("first_name", type="string", length=128, label=T("First name")),
             Field("last_name", type="string", length=128, label=T("Last name")),
@@ -507,8 +509,11 @@ def search_recommenders():
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
             Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="list:string", label=T("Thematic fields")),
+            Field("thematics", type="string", label=T("Thematic fields")),
+            Field("keywords", type="string", label=T("Keywords")),
+            Field("expertise", type="string", label=T("Areas of Expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),
+            Field("any", type="string", label=T("All fields")),
         )
         temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
         qyKwArr = qyKw.split(" ")
@@ -523,13 +528,30 @@ def search_recommenders():
                 qyTF.append(thema.keyword)
 
         excludeList = [int(numeric_string) for numeric_string in excludeList]
-        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-        for fr in filtered:
-            qy_recomm.insert(**fr)
+        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
-        links = [
-            dict(header=T("Days since last recommendation"), body=lambda row: db.v_last_recommendation[row.id].days_since_last_recommendation),
+        full_text_search_fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'laboratory',
+            'institution',
+            'city',
+            'country',
+            'thematics',
+            'expertise',
+            "keywords",
         ]
+
+        users_ids = [ fr['id'] for fr in filtered ]
+        keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+        expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
+        for fr in filtered:
+            fr['keywords'] = keywords[fr['id']] or ""
+            fr['expertise'] = expertise[fr['id']] or ""
+            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+
+        links = []
         if articleId:
             links += [
             dict(
@@ -543,23 +565,26 @@ def search_recommenders():
                 ),
             ),
         ]
-        temp_db.qy_recomm._id.readable = False
+        #temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
-        grid = SQLFORM.grid(
+        
+        original_grid = SQLFORM.smartgrid(
             qy_recomm,
             editable=False,
             deletable=False,
             create=False,
             details=False,
-            searchable=False,
+            searchable=dict(auth_user=True, auth_membership=False),
+            selectable=None,
             maxtextlength=250,
             paginate=1000,
             csv=csv,
             exportclasses=expClass,
             fields=[
+                temp_db.qy_recomm._id,
                 temp_db.qy_recomm.num,
                 temp_db.qy_recomm.score,
                 temp_db.qy_recomm.uploaded_picture,
@@ -575,8 +600,17 @@ def search_recommenders():
             ],
             links=links,
             orderby=temp_db.qy_recomm.num,
-            args=request.args,
+            _class="web2py_grid action-button-absolute",
         )
+
+        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+        specific_thematics = []
+        for t in thematics_query:
+            specific_thematics.append(t[1])
+
+        # the grid is adjusted after creation to adhere to our requirements
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
+        except: grid = original_grid
 
         response.view = "default/gab_list_layout.html"
         return dict(
@@ -585,7 +619,6 @@ def search_recommenders():
             pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
             customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
             myBackButton=common_small_html.mkBackButton(),
-            searchForm=searchForm,
             grid=grid,
             articleHeaderHtml=articleHeaderHtml,
         )

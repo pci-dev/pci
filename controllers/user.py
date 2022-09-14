@@ -10,6 +10,7 @@ from app_modules.helper import *
 
 # App modules
 from controller_modules import user_module
+from controller_modules import adjust_grid
 
 from app_components import app_forms
 
@@ -222,6 +223,7 @@ def search_recommenders():
             "qy_recomm",
             Field("id", type="integer"),
             Field("num", type="integer"),
+            Field("roles", type="string"),
             Field("score", type="double", label=T("Score"), default=0),
             Field("first_name", type="string", length=128, label=T("First name")),
             Field("last_name", type="string", length=128, label=T("Last name")),
@@ -231,8 +233,11 @@ def search_recommenders():
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
             Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="list:string", label=T("Thematic fields")),
+            Field("thematics", type="string", label=T("Thematic fields")),
+            Field("keywords", type="string", label=T("Keywords")),
+            Field("expertise", type="string", label=T("Areas of Expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),
+            Field("any", type="string", label=T("All fields")),
         )
         qyKwArr = qyKw.split(" ")
         searchForm = app_forms.searchByThematic(auth, db, myVars)
@@ -243,11 +248,30 @@ def search_recommenders():
             for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
                 qyTF.append(thema.keyword)
 
-        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-        for fr in filtered:
-            qy_recomm.insert(**fr)
+        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
-        temp_db.qy_recomm._id.readable = False
+        full_text_search_fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'laboratory',
+            'institution',
+            'city',
+            'country',
+            'thematics',
+            'expertise',
+            "keywords",
+        ]
+
+        users_ids = [ fr['id'] for fr in filtered ]
+        keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+        expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
+        for fr in filtered:
+            fr['keywords'] = keywords[fr['id']] or ""
+            fr['expertise'] = expertise[fr['id']] or ""
+            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+
+        #temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
         links = [
             dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
@@ -256,35 +280,47 @@ def search_recommenders():
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
-        grid = SQLFORM.grid(
-            qy_recomm,
-            editable=False,
-            deletable=False,
-            create=False,
-            details=False,
-            searchable=False,
-            selectable=selectable,
-            maxtextlength=250,
-            paginate=1000,
-            csv=csv,
-            exportclasses=expClass,
-            fields=[
-                temp_db.qy_recomm.num,
-                temp_db.qy_recomm.score,
-                temp_db.qy_recomm.uploaded_picture,
-                temp_db.qy_recomm.first_name,
-                temp_db.qy_recomm.last_name,
-                temp_db.qy_recomm.laboratory,
-                temp_db.qy_recomm.institution,
-                temp_db.qy_recomm.city,
-                temp_db.qy_recomm.country,
-                temp_db.qy_recomm.thematics,
-                temp_db.qy_recomm.excluded,
-            ],
-            links=links,
-            orderby=temp_db.qy_recomm.num,
-            args=request.args,
-        )
+        original_grid = SQLFORM.smartgrid(
+                        qy_recomm,
+                        editable=False,
+                        deletable=False,
+                        create=False,
+                        details=False,
+                        searchable=dict(auth_user=True, auth_membership=False),
+                        selectable=selectable,
+                        maxtextlength=250,
+                        paginate=1000,
+                        csv=csv,
+                        exportclasses=expClass,
+                        fields=[
+                            temp_db.qy_recomm._id,
+                            temp_db.qy_recomm.num,
+                            temp_db.qy_recomm.score,
+                            temp_db.qy_recomm.uploaded_picture,
+                            temp_db.qy_recomm.first_name,
+                            temp_db.qy_recomm.last_name,
+                            temp_db.qy_recomm.laboratory,
+                            temp_db.qy_recomm.institution,
+                            temp_db.qy_recomm.city,
+                            temp_db.qy_recomm.country,
+                            temp_db.qy_recomm.thematics,
+                            temp_db.qy_recomm.excluded,
+                        ],
+                        links=links,
+                        orderby=temp_db.qy_recomm.num,
+                        args=request.args,
+                        _class="web2py_grid action-button-absolute",
+                    )
+        
+        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
+        specific_thematics = []
+        for t in thematics_query:
+            specific_thematics.append(t[1])
+        
+        # the grid is adjusted after creation to adhere to our requirements
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
+        except: grid = original_grid
+
         if len(excludeList) > 1:
             btnTxt = current.T("Done")
         else:
@@ -310,7 +346,6 @@ def search_recommenders():
             pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
-            searchForm=searchForm,
             grid=grid,
         )
 
