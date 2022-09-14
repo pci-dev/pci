@@ -2,12 +2,12 @@
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
 
-user_type2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user', 'recommenders': 'qy_recomm', 'articles': 'qy_art'}
 if (search_bar != null) {
     checkCookie();
     try { 
         var user_type = get_user_type();
-        setCookieUT(user_type); }
+        setCookieUT(user_type);
+    }
     catch {
         var user_type = getCookie('user_type');
     }
@@ -35,12 +35,12 @@ function set_onclick_events() {
     }
 
     // set listener for thematics dropdown
-    /*var thematics_dropdown = document.querySelector('#w2p_field_thematics > select.form-control');
+    var thematics_dropdown = document.querySelector('#w2p_field_thematics > select.form-control');
     if (thematics_dropdown) {
         thematics_dropdown.addEventListener('change', function() {
             add_thematics(user_type, 'new');
         })
-    }*/
+    }
 
     // next, the advanced search fields. This is more tricky, as there are several
     var input_fields = document.querySelectorAll('input.form-control');
@@ -233,7 +233,7 @@ function ongoing_search() {
         and_btn.style.color = 'white';
         and_btn.value = 'ADD';
         if (query_rows[i].id == 'w2p_field_thematics') {
-            and_btn.setAttribute('onclick', 'add_thematics("' + and_btn.getAttribute('onclick').split('"')[1] + '", "and", false)');
+            and_btn.setAttribute('onclick', 'add_thematics("' + user_type + '", "and", false)');
             continue;
         }
         and_btn.setAttribute('onclick', 'add_to_search(this)');
@@ -281,9 +281,7 @@ function add_to_search(input_field) {
 
     // lastly get search term
     var search_term = input_field.parentElement.querySelector('input.form-control').value;
-    if (db_field == 'thematics') {
-        add_thematics();
-    }
+    if (db_field == 'thematics') { add_thematics(user_type, 'and', false); }
 
     // create statement
     if (regulator == 'not') { var statement = ' and not '; }
@@ -353,14 +351,12 @@ function add_thematics(user_type, regulator, not_statement = false) {
     // get thematic search term
     var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
     var thematic = drop_field_thematics.value;
-    try { var user_field = user_type2field[user_type]; }
-    catch { var user_field = user_type; }
 
     // special case of not statement
     if (not_statement) { var inner_regulator = '!='; }
     else { var inner_regulator = 'contains'}
 
-    var search_statement = user_field + '.thematics ' + inner_regulator +' "' + thematic + '"';
+    var search_statement = user_type + '.thematics ' + inner_regulator +' "' + thematic + '"';
 
     // get the statement to the search field
     var search_field = document.querySelector('#w2p_keywords');

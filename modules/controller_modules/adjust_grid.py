@@ -123,13 +123,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                     input.__getattribute__('attributes').update({'_class': 'thematics form-control'})
                     input.__getattribute__('attributes').update({'_disabled':'disabled'})
                 if 'add-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name + '", "new")'})
+                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "new")'})
                 if 'and-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name + '", "and")'})
+                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "and")'})
                 if 'or-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name + '", "or")'})
+                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "or")'})
                 if 'not-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name + '", "not", true)'})
+                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "not", true)'})
 
             panel_search_field2.__getattribute__('attributes').update({'_id': 'w2p_field_thematics'})
         except:
