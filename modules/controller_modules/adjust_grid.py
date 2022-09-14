@@ -157,6 +157,15 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         if option.__getattribute__('attributes')['_value'].endswith('.any'):
             option.__getattribute__('attributes').update({'_selected':'selected'})
 
+    # in list_users(), where we have no "All fields", set "First name" as primary choice
+    if search_name == 'users':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.first_name'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                first_name_input_field = grid.elements('div#w2p_field_auth_user-first_name')[0]
+                first_name_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
+                
+
     # hide the (initially primary) field options, because now "All fields" is primary
     panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
 
