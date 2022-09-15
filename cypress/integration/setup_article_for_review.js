@@ -75,10 +75,10 @@ describe("Preprint recommendation setup for review", () => {
 
     it("Should search and suggest recommender", () => {
       cy.contains("a", "Suggest recommenders").click();
-      cy.get('input[name="qyKeywords"]').clear();
-      cy.get('input[name="qyKeywords"]').typeFast(recommender.firstname);
+      cy.get('#simple-search-input').clear();
+      cy.get('#simple-search-input').typeFast(recommender.firstname);
       //cy.get(".pci2-search-button").click(); // search button not shown (pci-timo.css), use enter
-      cy.get('input[name="qyKeywords"]').type("{enter}");
+      cy.get('#simple-search-input').type("{enter}");
       cy.contains("a", "Suggest as recommender").should("exist");
       cy.contains("a", "Suggest as recommender").click();
     });
@@ -177,9 +177,9 @@ describe("Preprint recommendation setup for review", () => {
     it("Should search for reviewer (developer user)", () => {
       cy.contains(".btn", "Choose a reviewer from the PCI Evol Biol DEV database").click();
 
-      cy.get('input[name="qyKeywords"]').typeFast(reviewer.firstname);
+      cy.get('#simple-search-input').typeFast(reviewer.firstname);
       //cy.get(".pci2-search-button").click(); // search button not shown (pci-timo.css), use enter
-      cy.get('input[name="qyKeywords"]').type("{enter}");
+      cy.get('#simple-search-input').type("{enter}");
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });

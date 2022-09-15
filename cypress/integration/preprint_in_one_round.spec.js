@@ -103,17 +103,17 @@ describe("Preprint recommended in one round", () => {
       cy.contains("a", "Suggest recommenders").click();
 
       // search nonsense string to expect no result
-      cy.get('input[name="qyKeywords"]').typeFast("zuklshlkjehrlkjaherlkjahr");
-      cy.get('input[name="qyKeywords"]').type("{enter}");
+      cy.get('#simple-search-input').typeFast("zuklshlkjehrlkjaherlkjahr");
+      cy.get('#simple-search-input').type("{enter}");
 
       cy.contains("a", "Suggest as recommender").should("not.exist");
     });
 
     it("Should search and suggest recommender", () => {
-      cy.get('input[name="qyKeywords"]').clear();
+      cy.get('#simple-search-input').clear();
 
-      cy.get('input[name="qyKeywords"]').typeFast(recommender.firstname);
-      cy.get('input[name="qyKeywords"]').type("{enter}");
+      cy.get('#simple-search-input').typeFast(recommender.firstname);
+      cy.get('#simple-search-input').type("{enter}");
       cy.contains("a", "Suggest as recommender").should("exist");
 
       cy.contains("a", "Suggest as recommender").click();
@@ -336,8 +336,8 @@ describe("Preprint recommended in one round", () => {
         "Choose a reviewer from the PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').typeFast(reviewer_1.firstname);
-      cy.get('input[name="qyKeywords"]').type("{enter}");
+      cy.get('#simple-search-input').typeFast(reviewer_1.firstname);
+      cy.get('#simple-search-input').type("{enter}");
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });
@@ -362,8 +362,8 @@ describe("Preprint recommended in one round", () => {
         "Choose a reviewer from the PCI Evol Biol DEV database"
       ).click();
 
-      cy.get('input[name="qyKeywords"]').typeFast(reviewer_2.firstname);
-      cy.get('input[name="qyKeywords"]').type('{enter}');
+      cy.get('#simple-search-input').typeFast(reviewer_2.firstname);
+      cy.get('#simple-search-input').type('{enter}');
 
       cy.contains("a", "Prepare an invitation").should("exist");
     });
