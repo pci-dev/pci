@@ -143,23 +143,26 @@ class FormValidator {
 
 const form = document.querySelector('.form-horizontal');
 const fields = ["t_articles_ms_version"];
+var queryString = window.location.search;
+var urlParams = new URLSearchParams(queryString);
+var articleId = urlParams.get('articleId')
 
 var prevVersion;
 var presentVersion = parseInt(document.getElementById('t_articles_ms_version').value);
 if (isNaN(presentVersion)){
   presentVersion = ""
 }
-if (localStorage.getItem('ms_version') === null){
-  localStorage.setItem('ms_version', presentVersion)
-  prevVersion = parseInt(localStorage.getItem('ms_version'))
+if (localStorage.getItem(`ms_version__${articleId}`) === null){
+  localStorage.setItem(`ms_version__${articleId}`, presentVersion)
+  prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
 }
 else {
-  if(presentVersion >= localStorage.getItem('ms_version')){
-    localStorage.setItem('ms_version', presentVersion)
-    prevVersion = parseInt(localStorage.getItem('ms_version', presentVersion))
+  if(presentVersion >= localStorage.getItem(`ms_version__${articleId}`)){
+    localStorage.setItem(`ms_version__${articleId}`, presentVersion)
+    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`, presentVersion))
     
   }else{
-    prevVersion = parseInt(localStorage.getItem('ms_version'))
+    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
   }
 }
 
