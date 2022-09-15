@@ -102,11 +102,10 @@ class FormValidator {
       this.setStatus(field, null, "success")
     }
 
-    // check for a valid email address
     if (field.id === "t_articles_ms_version") {
-      if (prev_version == parseFloat(field.value)) {
+      if (prevVersion == parseInt(field.value)) {
         this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
-      } else if (prev_version > parseFloat(field.value)){
+      } else if (prevVersion > parseInt(field.value)){
         this.setStatus(field, "New version number must be greater than or same as previous version number", "error")
       }else{
         this.setStatus(field, null, "success")
@@ -143,19 +142,22 @@ class FormValidator {
 const form = document.querySelector('.form-horizontal');
 const fields = ["t_articles_ms_version"];
 
-var prev_version;
-const present_version = document.getElementById('t_articles_ms_version').value;
+var prevVersion;
+var presentVersion = document.getElementById('t_articles_ms_version').value;
+if (isNaN(presentVersion)){
+  presentVersion = ""
+}
 if (localStorage.getItem('ms_version') === null){
-  localStorage.setItem('ms_version', present_version)
-  prev_version = parseFloat(localStorage.getItem('ms_version'))
+  localStorage.setItem('ms_version', presentVersion)
+  prevVersion = parseInt(localStorage.getItem('ms_version'))
 }
 else {
-  if(present_version >= localStorage.getItem('ms_version')){
-    localStorage.setItem('ms_version', present_version)
-    prev_version = parseFloat(localStorage.getItem('ms_version', present_version))
+  if(presentVersion >= localStorage.getItem('ms_version')){
+    localStorage.setItem('ms_version', presentVersion)
+    prevVersion = parseInt(localStorage.getItem('ms_version', presentVersion))
     
   }else{
-    prev_version = parseFloat(localStorage.getItem('ms_version'))
+    prevVersion = parseInt(localStorage.getItem('ms_version'))
   }
 }
 
