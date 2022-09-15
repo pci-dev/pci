@@ -88,7 +88,7 @@ set.conf.rr.%:
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 
 test:
-	npx cypress run --spec cypress/integration/preprint_in_one_round.spec.js
+	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
 
 test.basic:
 	cd tests ; pytest test_setup_article.py
