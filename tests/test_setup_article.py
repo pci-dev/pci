@@ -78,8 +78,8 @@ class User_submits:
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
-    select('input[name="qyKeywords"]').clear()
-    select('input[name="qyKeywords"]').send_keys(recommender.name + "\n")
+    select('#simple-search-input').clear()
+    select('#simple-search-input').send_keys(recommender.name + "\n")
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
@@ -177,7 +177,7 @@ class Recommender_handles:
 
  def search_and_invite_registered_reviewer(_):
     select(".btn", contains="Choose a reviewer from the".upper()).click()
-    select('input[name="qyKeywords"]').send_keys(reviewer.name + "\n")
+    select('#simple-search-input').send_keys(reviewer.name + "\n")
 
     select("a", "Prepare an invitation".upper()).click()
     select("input[type=submit]").click()
