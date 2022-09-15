@@ -774,11 +774,15 @@ def edit_my_article():
     ]
 
     form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, buttons=buttons, showid=False)
-
+    try:
+        article_version = int(art.ms_version)
+    except:
+        article_version = art.ms_version
     # form.element(_type="submit")["_value"] = T("Save")
     def onvalidation(form):
-        if float(art.ms_version) > form.vars.ms_version:
-            form.errors.ms_version = "New version number must be greater than or same as previous version number"
+        if isinstance(article_version, int):
+            if int(art.ms_version) > int(form.vars.ms_version):
+                form.errors.ms_version = "New version number must be greater than or same as previous version number"
 
     if form.process(onvalidation=onvalidation).accepted:
         response.flash = T("Article saved", lazy=False)
