@@ -103,12 +103,12 @@ class FormValidator {
     }
 
     if (field.id === "t_articles_ms_version") {
-      if (prevVersion == parseInt(field.value)) {
-        this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
+      if (isNaN(field.value)){
+        this.setStatus(field, "Enter an integer between 1 and 100", "error")
       } else if (prevVersion > parseInt(field.value)){
         this.setStatus(field, "New version number must be greater than or same as previous version number", "error")
-      } else if (isNaN(field.value)){
-        this.setStatus(field, "Enter an integer between 1 and 100", "error")
+      } else if (prevVersion === parseFloat(field.value)) {
+        this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
       } else{
         this.setStatus(field, null, "success")
       }
@@ -145,7 +145,7 @@ const form = document.querySelector('.form-horizontal');
 const fields = ["t_articles_ms_version"];
 
 var prevVersion;
-var presentVersion = document.getElementById('t_articles_ms_version').value;
+var presentVersion = parseInt(document.getElementById('t_articles_ms_version').value);
 if (isNaN(presentVersion)){
   presentVersion = ""
 }
