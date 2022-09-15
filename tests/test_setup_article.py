@@ -40,9 +40,12 @@ class User_submits:
     select("#t_articles_title").send_keys(article.title)
     select("#t_articles_authors").send_keys(article.authors)
     select("#t_articles_doi").send_keys(article.doi)
+
+    art_version = "1" if not is_rr else "v1"
+    select("#t_articles_ms_version").send_keys(art_version)
+
     if is_rr:
         select("#t_articles_report_stage").send_keys("Stage 1")
-        select("#t_articles_ms_version").send_keys("v1")
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
 
     if not is_rr:
