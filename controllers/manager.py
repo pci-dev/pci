@@ -820,9 +820,14 @@ def edit_article():
         db.t_articles.record_url_version.writable = False
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
+    try:
+        article_version = int(art.ms_version)
+    except:
+        article_version = art.ms_version
     def onvalidation(form):
-        if float(art.ms_version) > form.vars.ms_version:
-            form.errors.ms_version = "New version number must be greater than or same as previous version number"
+        if isinstance(article_version, int):
+            if int(art.ms_version) > int(form.vars.ms_version):
+                form.errors.ms_version = "New version number must be greater than or same as previous version number"
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:

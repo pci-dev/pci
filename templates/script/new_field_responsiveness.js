@@ -102,13 +102,14 @@ class FormValidator {
       this.setStatus(field, null, "success")
     }
 
-    // check for a valid email address
     if (field.id === "t_articles_ms_version") {
-      if (prev_version == parseFloat(field.value)) {
-        this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
-      } else if (prev_version > parseFloat(field.value)){
+      if (isNaN(field.value)){
+        this.setStatus(field, "Enter an integer between 1 and 100", "error")
+      } else if (prevVersion > parseInt(field.value)){
         this.setStatus(field, "New version number must be greater than or same as previous version number", "error")
-      }else{
+      } else if (prevVersion === parseFloat(field.value)) {
+        this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
+      } else{
         this.setStatus(field, null, "success")
       }
     }
@@ -142,20 +143,26 @@ class FormValidator {
 
 const form = document.querySelector('.form-horizontal');
 const fields = ["t_articles_ms_version"];
+var queryString = window.location.search;
+var urlParams = new URLSearchParams(queryString);
+var articleId = urlParams.get('articleId')
 
-var prev_version;
-const present_version = document.getElementById('t_articles_ms_version').value;
-if (localStorage.getItem('ms_version') === null){
-  localStorage.setItem('ms_version', present_version)
-  prev_version = parseFloat(localStorage.getItem('ms_version'))
+var prevVersion;
+var presentVersion = parseInt(document.getElementById('t_articles_ms_version').value);
+if (isNaN(presentVersion)){
+  presentVersion = ""
+}
+if (localStorage.getItem(`ms_version__${articleId}`) === null){
+  localStorage.setItem(`ms_version__${articleId}`, presentVersion)
+  prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
 }
 else {
-  if(present_version >= localStorage.getItem('ms_version')){
-    localStorage.setItem('ms_version', present_version)
-    prev_version = parseFloat(localStorage.getItem('ms_version', present_version))
+  if(presentVersion >= localStorage.getItem(`ms_version__${articleId}`)){
+    localStorage.setItem(`ms_version__${articleId}`, presentVersion)
+    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`, presentVersion))
     
   }else{
-    prev_version = parseFloat(localStorage.getItem('ms_version'))
+    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
   }
 }
 
