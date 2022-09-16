@@ -53,8 +53,16 @@ def getCoRecommendersMails(db, recommId):
 
 
 ######################################################################################################################################################################
+def getAdminsMails(db):
+    return getMails(db, "administrator")
+
+
 def getManagersMails(db):
-    managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
+    return getMails(db, "manager")
+
+
+def getMails(db, role):
+    managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == role)).select(db.auth_user.ALL)
 
     result = []
     for manager in managers:

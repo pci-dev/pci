@@ -1226,7 +1226,7 @@ def send_new_membreship(session, auth, db, membershipId):
             new_role_report = "new recommender "
 
         elif group.role == "manager":
-            mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+            mail_vars["ccAddresses"] = emailing_vars.getAdminsMails(db)
 
             hashtag_template = "#NewMembreshipManager"
             new_role_report = "new manager "
@@ -1307,28 +1307,27 @@ def send_to_managers(session, auth, db, articleId, newStatus):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ManagersArticleStatusChanged", article)
 
-        if hashtag_template == emailing_tools.getCorrectHashtag("#AdminArticleResubmited", article):
-            admins = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "administrator")).select(
-                db.auth_user.ALL
-            )
-
-            for admin in admins:
-                mail_vars["destAddress"] = admin.email
-
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
-
-                reports = emailing_tools.createMailReport(True, "manager " + (admin.email or ""), reports)
-
+        for_admins = [
+            "#AdminArticleResubmited",
+            "#ManagersArticleConsideredForRecommendation",
+            "#ManagersArticleStatusChanged",
+        ]
+        if hashtag_template in listCorrectHashtags(for_admins, article):
+            dest_emails = emailing_vars.getAdminsMails(db)
         else:
-            managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "manager")).select(db.auth_user.ALL)
+            dest_emails = emailing_vars.getManagersMails(db)
 
-            for manager in managers:
-                mail_vars["destAddress"] = manager.email
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
+        for email in dest_emails:
+            mail_vars["destAddress"] = email
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
+            reports = emailing_tools.createMailReport(True, "manager/admin " + (email or ""), reports)
 
-                reports = emailing_tools.createMailReport(True, "manager " + (manager.email or ""), reports)
 
     emailing_tools.getFlashMessage(session, reports)
+
+
+def listCorrectHashtags(hashtags, article):
+    return [ emailing_tools.getCorrectHashtag(hashtag, article) for hashtag in hashtags ]
 
 
 ######################################################################################################################################################################
