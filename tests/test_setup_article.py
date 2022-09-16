@@ -40,9 +40,12 @@ class User_submits:
     select("#t_articles_title").send_keys(article.title)
     select("#t_articles_authors").send_keys(article.authors)
     select("#t_articles_doi").send_keys(article.doi)
+
+    art_version = "1" if not is_rr else "v1"
+    select("#t_articles_ms_version").send_keys(art_version)
+
     if is_rr:
         select("#t_articles_report_stage").send_keys("Stage 1")
-        select("#t_articles_ms_version").send_keys("v1")
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
 
     if not is_rr:
@@ -78,8 +81,8 @@ class User_submits:
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
-    select('input[name="qyKeywords"]').clear()
-    select('input[name="qyKeywords"]').send_keys(recommender.name + "\n")
+    select('#simple-search-input').clear()
+    select('#simple-search-input').send_keys(recommender.name + "\n")
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
@@ -177,7 +180,7 @@ class Recommender_handles:
 
  def search_and_invite_registered_reviewer(_):
     select(".btn", contains="Choose a reviewer from the".upper()).click()
-    select('input[name="qyKeywords"]').send_keys(reviewer.name + "\n")
+    select('#simple-search-input').send_keys(reviewer.name + "\n")
 
     select("a", "Prepare an invitation".upper()).click()
     select("input[type=submit]").click()
