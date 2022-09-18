@@ -825,9 +825,10 @@ def edit_article():
     except:
         article_version = art.ms_version
     def onvalidation(form):
-        if isinstance(article_version, int):
-            if int(art.ms_version) > int(form.vars.ms_version):
-                form.errors.ms_version = "New version number must be greater than or same as previous version number"
+        if not pciRRactivated:
+            if isinstance(article_version, int):
+                if int(art.ms_version) > int(form.vars.ms_version):
+                    form.errors.ms_version = "New version number must be greater than or same as previous version number"
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:

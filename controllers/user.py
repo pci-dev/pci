@@ -606,6 +606,7 @@ def edit_my_article():
     db.t_articles.codes_doi.writable = True
 
     pciRRjsScript = ""
+    myScript = ""
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
         db.t_articles.cover_letter.readable = True
