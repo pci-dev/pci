@@ -94,7 +94,9 @@ def fields_awaiting_articles():
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
     for fr in filtered:
-        qy_art.insert(**fr)
+        excluded_recommender = db((db.t_excluded_recommenders.article_id == fr['id']) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select(db.t_excluded_recommenders.article_id).last()
+        if not excluded_recommender:
+            qy_art.insert(**fr)
 
     temp_db.qy_art.auto_nb_recommendations.readable = False
     temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
