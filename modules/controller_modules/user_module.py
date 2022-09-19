@@ -9,8 +9,7 @@ from gluon.contrib.markdown import WIKI
 from app_modules.helper import *
 
 from app_modules import common_small_html
-
-
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
 def mkSuggestedRecommendersUserButton(auth, db, row):
     butts = []
@@ -38,13 +37,14 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 ######################################################################################################################################################################
 def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
     vars["recommenderId"] = row["id"]
+    _class = "buttontext btn btn-default pci-submitter"
+    if pciRRactivated:
+        _class = "buttontext btn btn-success pci-submitter"
     anchor = A(
-        SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
+        SPAN(current.T("Suggest as recommender"), _class=_class),
         _href=URL(
             c="user_actions",
-            f="suggest_article_to"
-            # , vars=dict(articleId=articleId, recommenderId=row['id'], exclude=excludeList)
-            ,
+            f="suggest_article_to",
             vars=vars,
             user_signature=True,
         ),
@@ -52,6 +52,20 @@ def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
     )
     return anchor
 
+######################################################################################################################################################################
+def mkExcludeRecommenderButton(auth, db, row, articleId, excludeList, vars):
+    vars["recommenderId"] = row["id"]
+    anchor = A(
+        SPAN(current.T("Exclude recommender"), _class="buttontext btn btn-default pci-submitter"),
+        _href=URL(
+            c="user_actions",
+            f="exclude_article_from",
+            vars=vars,
+            user_signature=True,
+        ),
+        _class="button",
+    )
+    return anchor
 
 ######################################################################################################################################################################
 def mkRecommendation4ReviewFormat(auth, db, row):

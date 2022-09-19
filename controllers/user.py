@@ -272,6 +272,8 @@ def search_recommenders():
         links = [
             dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
         ]
+        if pciRRactivated:
+            links.append(dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkExcludeRecommenderButton(auth, db, row, art.id, excludeList, myVars)))
         selectable = None
         temp_db.qy_recomm.uploaded_picture.readable = False
         temp_db.qy_recomm.num.readable = False
