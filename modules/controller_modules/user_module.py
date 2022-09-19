@@ -78,6 +78,9 @@ def mkRecommendation4ReviewFormat(auth, db, row):
 def do_suggest_article_to(auth, db, articleId, recommenderId):
     db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
 
+######################################################################################################################################################################
+def do_exclude_article_from(auth, db, articleId, recommenderId):
+    db.t_excluded_recommenders.update_or_insert(excluded_recommender_id=recommenderId, article_id=articleId)
 
 ######################################################################################################################################################################
 def getRecommender(auth, db, row):
