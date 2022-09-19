@@ -1788,7 +1788,8 @@ def add_suggested_recommender():
         redirect(request.env.http_referer)
     else:
         recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
-        recommendersList = []
+        excludedrecommendersList = db((db.t_excluded_recommenders.article_id == articleId) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select()
+        recommendersList, excludedRecommenders = [], []
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
@@ -1809,15 +1810,32 @@ def add_suggested_recommender():
                         else "",
                     )
                 )
+        for con in excludedrecommendersList:
+            reviewersIds.append(con.auth_user.id)
+            excludedRecommenders.append(
+                    LI(
+                        common_small_html.mkUser(auth, db, con.auth_user.id),
+                        A(
+                            "Remove",
+                            _class="btn btn-warning",
+                            _href=URL(c="user_actions", f="del_excluded_recommender", vars=dict(exclId=con.t_excluded_recommenders.id)),
+                            _title=T("Delete"),
+                            _style="margin-left:8px;",
+                        )
+                        if (art.status == "Pending" or art.status == "Awaiting consideration")
+                        else "",
+                    )
+                )
         excludeList = ','.join(map(str,reviewersIds))
         myContents = DIV()
         txtbtn = current.T("Suggest recommenders")
         if len(recommendersList) > 0:
-            myContents = DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy"))
+            myContents.append(DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy")))
             txtbtn = current.T("Suggest another recommender?")
-        else:
-            myContents = ""
-            txtbtn = current.T("Suggest recommenders")
+
+        if len(excludedRecommenders) > 0:
+            myContents.append(DIV(LABEL(T("Excluded recommenders:")), UL(excludedRecommenders, _class="pci-li-spacy")))
+            txtbtn = current.T("Suggest another recommender?")
 
         myUpperBtn = DIV(
             A(
