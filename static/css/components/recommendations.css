@@ -168,20 +168,26 @@ h4.pci2-recomm-article-h2 .glyphicon {
 }
 
 .pci2-recomm-text-label {
-  position: absolute;
+  position: relative;
+  display: inline-block;
+  top: -11px;
   margin-top: -11px;
   margin-left: 10px;
+  margin-right: 1rem;
   color: #598398bb;
   background: #fff;
   padding: 0 7.5px;
   font-weight: bold;
 }
 
+.pci2-recomm-review-container {
+  border: 1px solid #42748d48;
+  border-radius: 5px;
+}
+
 .pci2-recomm-text {
   padding: 15px;
   margin: 10px 0;
-  border-radius: 5px;
-  border: 1px solid #42748d48;
 }
 
 .pci2-abstract-div {
