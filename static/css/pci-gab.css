@@ -254,7 +254,7 @@ div.w2p_flash.alert.custom-disappear {
   > td:last-child
   > div {
   position: relative;
-  padding-left: 3em;
+  padding-left: 1em;
   padding-right: 10px;
   display: flex;
   align-items: flex-end;
@@ -299,6 +299,7 @@ div.w2p_flash.alert.custom-disappear {
     rgba(247, 249, 251, 0.001) 0%,
     rgba(247, 249, 251) 15%
   );
+  align-items: first baseline;
 }
 
 .tox-tinymce {
