@@ -253,8 +253,7 @@ div.w2p_flash.alert.custom-disappear {
   > tr
   > td:last-child
   > div {
-  position: absolute;
-  right: 15px;
+  position: relative;
   padding-left: 3em;
   padding-right: 10px;
   display: flex;

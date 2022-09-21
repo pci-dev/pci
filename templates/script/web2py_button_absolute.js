@@ -18,8 +18,8 @@ for (let i = 0; i < action_buttons.length; i++) {
     itemHeight = 120;
   }
 
-  container.style.height = itemHeight + "px";
-  action_buttons[i].style.height = itemHeight + "px";
+  //container.style.height = itemHeight + "px";
+  //action_buttons[i].style.height = itemHeight + "px";
 }
 
 window.addEventListener("resize", () => {
