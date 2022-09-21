@@ -622,6 +622,7 @@ def search_recommenders():
             myBackButton=common_small_html.mkBackButton(),
             grid=grid,
             articleHeaderHtml=articleHeaderHtml,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 

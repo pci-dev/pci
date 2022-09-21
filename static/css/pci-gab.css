@@ -240,7 +240,7 @@ div.w2p_flash.alert.custom-disappear {
 
 /* see template/script/action_button_absolute.js */
 .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
-  min-width: 180px;
+  min-width: 200px;
   min-height: 105px;
   padding: 0;
   display: flex;
