@@ -279,6 +279,7 @@ div.w2p_flash.alert.custom-disappear {
     rgba(239, 243, 247, 0.001) 0%,
     rgba(239, 243, 247, 255) 15%
   );
+  align-items: first baseline;
 }
 
 .action-button-absolute
