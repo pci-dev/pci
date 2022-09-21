@@ -9,16 +9,11 @@
     .web2py_grid tbody td {
         overflow-wrap: break-word;
         hyphens: auto;
+        padding: 2rem .5rem;
     }
 
     #wrapper-home-articles .web2py_breadcrumbs {
         display: none;
-    }
-
-    .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child {
-        flex-direction: row;
-        align-items: center;
-        max-width: 10rem;
     }
 
     .web2py_console .w2p_query_row .btn {
