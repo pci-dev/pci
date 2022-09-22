@@ -1223,6 +1223,7 @@ def declineSuggRecommender(s, f):
     sugg_recomm = o['suggested_recommender_id']
     article = o['article_id']
     o['declined'] = o['declined'] if 'declined' in o.keys() else False
+    f['declined'] = f['declined'] if 'declined' in f.keys() else False
     if o['declined'] is False and f['declined'] is True:
         emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article, sugg_recomm)
     if o['declined'] is True and f['declined'] is False:
