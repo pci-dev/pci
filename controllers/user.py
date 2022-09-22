@@ -186,7 +186,6 @@ def recommendations():
 @auth.requires_login()
 def search_recommenders():
     myVars = request.vars
-
     qyKw = ""
     qyTF = []
     excludeList = []
@@ -247,7 +246,6 @@ def search_recommenders():
             qyTF = []
             for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
                 qyTF.append(thema.keyword)
-
         filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
         full_text_search_fields = [
@@ -271,15 +269,15 @@ def search_recommenders():
             fr['expertise'] = expertise[fr['id']] or ""
             qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
 
-        #temp_db.qy_recomm._id.readable = False
-        temp_db.qy_recomm.uploaded_picture.readable = False
         links = [
             dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
         ]
         selectable = None
+        temp_db.qy_recomm.uploaded_picture.readable = False
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
+
         original_grid = SQLFORM.smartgrid(
                         qy_recomm,
                         editable=False,
@@ -346,6 +344,7 @@ def search_recommenders():
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             grid=grid,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 
@@ -1810,6 +1809,8 @@ def add_suggested_recommender():
                     )
                 )
         excludeList = ','.join(map(str,reviewersIds))
+        myContents = DIV()
+        txtbtn = current.T("Suggest recommenders")
         if len(recommendersList) > 0:
             myContents = DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy"))
             txtbtn = current.T("Suggest another recommender?")

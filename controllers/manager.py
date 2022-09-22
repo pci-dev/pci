@@ -482,7 +482,9 @@ def search_recommenders():
         elif re.match("^qy_", myVar) and myValue == "on":
             qyTF.append(re.sub(r"^qy_", "", myVar))
         elif myVar == "exclude":
-            excludeList += myValue.split(",")
+            myValue = myVars[myVar]
+            myValue = myValue.split(",") if type(myValue) is str else myValue
+            excludeList = list(map(int, myValue))
 
     whatNext = request.vars["whatNext"]
     articleId = request.vars["articleId"]
@@ -515,19 +517,18 @@ def search_recommenders():
             Field("excluded", type="boolean", label=T("Excluded")),
             Field("any", type="string", label=T("All fields")),
         )
-        temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
+        #temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
         qyKwArr = qyKw.split(" ")
 
-        searchForm = app_forms.searchByThematic(auth, db, myVars)
+        #searchForm = app_forms.searchByThematic(auth, db, myVars)
+        #if searchForm.process(keepvalues=True).accepted:
+        #    response.flash = None
+        #else:
+        qyTF = []
+        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+            qyTF.append(thema.keyword)
 
-        if searchForm.process(keepvalues=True).accepted:
-            response.flash = None
-        else:
-            qyTF = []
-            for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-                qyTF.append(thema.keyword)
-
-        excludeList = [int(numeric_string) for numeric_string in excludeList]
+        #excludeList = [int(numeric_string) for numeric_string in excludeList]
         filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
         full_text_search_fields = [
@@ -559,7 +560,7 @@ def search_recommenders():
                 body=lambda row: ""
                 if row.excluded
                 else A(
-                    SPAN(current.T("Suggest"), _class="btn btn-default pci-manager"),
+                    SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
                     _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row["id"], whatNext=whatNext), user_signature=True),
                     _class="button",
                 ),
@@ -570,7 +571,8 @@ def search_recommenders():
         temp_db.qy_recomm.num.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
-        
+        selectable = None
+
         original_grid = SQLFORM.smartgrid(
             qy_recomm,
             editable=False,
@@ -578,7 +580,7 @@ def search_recommenders():
             create=False,
             details=False,
             searchable=dict(auth_user=True, auth_membership=False),
-            selectable=None,
+            selectable=selectable,
             maxtextlength=250,
             paginate=1000,
             csv=csv,
@@ -590,7 +592,6 @@ def search_recommenders():
                 temp_db.qy_recomm.uploaded_picture,
                 temp_db.qy_recomm.first_name,
                 temp_db.qy_recomm.last_name,
-                temp_db.qy_recomm.email,
                 temp_db.qy_recomm.laboratory,
                 temp_db.qy_recomm.institution,
                 temp_db.qy_recomm.city,
@@ -614,13 +615,14 @@ def search_recommenders():
 
         response.view = "default/gab_list_layout.html"
         return dict(
-            titleIcon="search",
-            pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
             pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
             customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
+            titleIcon="search",
+            pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
             myBackButton=common_small_html.mkBackButton(),
             grid=grid,
             articleHeaderHtml=articleHeaderHtml,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 
