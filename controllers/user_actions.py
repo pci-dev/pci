@@ -64,9 +64,9 @@ def suggest_article_to():
     exclude = request.vars["exclude"]
     myVars = request.vars
     user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
-    excludeList = exclude if type(exclude) is list else [ exclude ]
+    excludeList = exclude.split(",") if exclude else []
     excludeList.append(str(recommenderId))
-    myVars["exclude"] = excludeList
+    myVars["exclude"] = ",".join(excludeList)
     session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
     # redirect(request.env.http_referer)
     # redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))

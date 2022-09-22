@@ -1809,8 +1809,7 @@ def add_suggested_recommender():
                         else "",
                     )
                 )
-        # excludeList = ','.join(map(str,reviewersIds))
-        excludeList = reviewersIds
+        excludeList = ','.join(map(str,reviewersIds))
         if len(recommendersList) > 0:
             myContents = DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy"))
             txtbtn = current.T("Suggest another recommender?")
