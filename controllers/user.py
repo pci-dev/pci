@@ -682,7 +682,6 @@ def edit_my_article():
         fields += [
             "title",
             "anonymous_submission",
-            "is_not_reviewed_elsewhere",
             "parallel_submission",
             "authors",
             "picture_rights_ok",
