@@ -111,7 +111,8 @@ def show_coar_status():
 
 def show_coar_requests():
     text = "\n".join([
-        "<tt>%s</tt> = <a href=\"%s\">%s</a> / %s / <a href=\"%s\">%s</a>" % (
+        "<tt %s>%s</tt> = <a href=\"%s\">%s</a> / %s / <a href=\"%s\">%s</a>" % (
+            get_status_display(x.http_status),
             x.id,
             x.inbox_url,
             x.direction,
@@ -125,6 +126,13 @@ def show_coar_requests():
     ])
 
     return text
+
+
+def get_status_display(status):
+    return 'style="%s" title="%s"' % (
+                "background-color:orange",
+                "error: " + str(status),
+        ) if status > 500 else ""
 
 
 def get_type(body):
