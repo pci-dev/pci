@@ -86,11 +86,11 @@ class COARNotifier:
     def __init__(self, db):
         self.db = db
 
-    @property # py3.8: functools.cached_property
+    @functools.cached_property
     def base_url(self):
         return myconf["coar_notify"]["base_url"].strip()
 
-    @property # py3.8: functools.cached_property
+    @functools.cached_property
     def inbox_url(self):
         return myconf["coar_notify"]["inbox_url"].strip()
 
@@ -256,7 +256,7 @@ class COARNotifier:
         body: io.BytesIO,
         body_format: str = "json-ld",
         http_status: int = None,
-        direction: str, # py3.8: typing.Literal["Inbound", "Outbound"],
+        direction: typing.Literal["Inbound", "Outbound"],
         base: str = None,
     ) -> None:
         """Records a notification in the database for logging purposes.
