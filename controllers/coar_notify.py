@@ -110,8 +110,11 @@ def show_coar_status():
 
 
 def show_coar_requests():
-    text = "\n".join([
-        "<tt %s>%s</tt> = <a href=\"%s\">%s</a> / %s / <a href=\"%s\">%s</a>" % (
+    text = "\n".join([(
+            '<tt %s>[%s]</tt> = ' +
+            '<a href="%s">%s</a> / ' +
+            '%s / ' +
+            '<a href="%s">%s</a>') % (
             get_status_display(x.http_status),
             x.id,
             x.inbox_url,
