@@ -27,6 +27,8 @@ def index():
         return "COAR notifications for PCI (disabled: %s)" % (
                 "inbox_url not configured" if rdflib else "rdflib not installed")
 
+    ensure_trailing_slash()
+
     text = show_coar_status()
     text += "\n"
     text += show_coar_requests()
@@ -113,13 +115,14 @@ def show_coar_requests():
     text = "\n".join([(
             '<tt %s>[%s]</tt> <tt>%s</tt> = ' +
             '<a href="%s">%s</a> / ' +
-            '%s / ' +
+            '<a href="%s">%s</a> / ' +
             '<a href="%s">%s</a>') % (
             get_status_display(x.http_status),
             x.id,
             x.created,
             x.inbox_url,
             x.direction,
+            "show?id=%d" % x.id,
             get_request_type(x.body),
             get_object_ref(x.body),
             get_person_name(x.body),
@@ -132,11 +135,35 @@ def show_coar_requests():
     return text
 
 
+def show():
+    try:
+        req_id = request.vars.id
+        int(req_id)
+    except:
+        raise HTTP(400, "usage: ?id=&lt;coar request id (int)&gt;")
+
+    req = db(
+            db.t_coar_notification.id == req_id
+    ).select()
+
+    if not req:
+        raise HTTP(400, "error: no such coar request. id=" + req_id)
+
+    req_body = req[0].body
+    req_json = json.loads(req_body)
+    return "<pre>\n" + json.dumps(req_json, indent=4) + "\n</pre>"
+
+
 def get_status_display(status):
     return 'style="%s" title="%s"' % (
                 "background-color:orange",
                 "error: " + str(status),
         ) if status > 500 else ""
+
+
+def ensure_trailing_slash():
+    if not request.env.path_info.endswith("/"):
+        redirect(URL(' '))
 
 
 def get_type(body):
