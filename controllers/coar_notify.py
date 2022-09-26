@@ -151,7 +151,8 @@ def show():
 
     req_body = req[0].body
     req_json = json.loads(req_body)
-    return "<pre>\n" + json.dumps(req_json, indent=4) + "\n</pre>"
+    response.headers['Content-Type'] = 'application/ld+json'
+    return json.dumps(req_json, indent=4)
 
 
 def get_status_display(status):
