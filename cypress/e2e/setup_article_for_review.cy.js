@@ -4,6 +4,7 @@ describe("Preprint recommendation setup for review", () => {
 
   let submitter;
   let manager;
+  let admin;
   let recommender;
   let reviewer;
   let data;
@@ -12,6 +13,7 @@ describe("Preprint recommendation setup for review", () => {
     cy.fixture("users").then((user) => {
       submitter = user.normal_user;
       manager = user.manager;
+      admin = user.admin;
       recommender = user.recommender;
       reviewer = user.developer;
     });
@@ -169,7 +171,7 @@ describe("Preprint recommendation setup for review", () => {
 
     it("=> mail sent to manager, submitter and recommender", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to manager").should("exist");
+      cy.contains(".w2p_flash", "e-mail sent to admin").should("exist");
       cy.contains(".w2p_flash", "e-mail sent to submitter").should("exist");
       cy.contains(".w2p_flash", "e-mail sent to " + recommender.firstname).should("exist");
     });
