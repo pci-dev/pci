@@ -2914,8 +2914,9 @@ ALTER TABLE "t_press_reviews"
 ADD COLUMN IF NOT EXISTS  contributor_details character varying(512);
 
 -- 2022-06-15 updates/t_recomm_new_field.sql
+-- 2022-09-26 fix default value = NULL
 ALTER TABLE "t_recommendations"
-ADD COLUMN IF NOT EXISTS author_last_change timestamp without time zone DEFAULT statement_timestamp();
+ADD COLUMN IF NOT EXISTS author_last_change timestamp without time zone;
 
 -- 2022-06-16 updates/alter_data_scripts.sql
 ALTER TABLE "t_articles"
