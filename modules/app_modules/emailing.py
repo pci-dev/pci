@@ -1314,13 +1314,15 @@ def send_to_managers(session, auth, db, articleId, newStatus):
         ]
         if hashtag_template in listCorrectHashtags(for_admins, article):
             dest_emails = emailing_vars.getAdminsMails(db)
+            dest_role = "admin"
         else:
             dest_emails = emailing_vars.getManagersMails(db)
+            dest_role = "manager"
 
         for email in dest_emails:
             mail_vars["destAddress"] = email
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
-            reports = emailing_tools.createMailReport(True, "manager/admin " + (email or ""), reports)
+            reports = emailing_tools.createMailReport(True, dest_role + " " + (email or ""), reports)
 
 
     emailing_tools.getFlashMessage(session, reports)

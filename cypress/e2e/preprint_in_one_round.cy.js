@@ -5,6 +5,7 @@ describe("Preprint recommended in one round", () => {
 
   let submitter;
   let manager;
+  let admin;
   let recommender;
   let reviewer_2;
   let reviewer_1;
@@ -13,6 +14,7 @@ describe("Preprint recommended in one round", () => {
     cy.fixture("users").then((user) => {
       submitter = user.normal_user;
       manager = user.manager;
+      admin = user.admin;
       recommender = user.recommender;
       reviewer_1 = user.co_recommender;
       reviewer_2 = user.developer;
@@ -325,7 +327,7 @@ describe("Preprint recommended in one round", () => {
 
     it("=> mail sent to manager, submitter and recommender", () => {
       cy.wait(500);
-      cy.contains(".w2p_flash", "e-mail sent to manager").should("exist");
+      cy.contains(".w2p_flash", "e-mail sent to admin").should("exist");
       cy.contains(".w2p_flash", "e-mail sent to submitter").should("exist");
       cy.contains(
         ".w2p_flash",
@@ -877,7 +879,7 @@ describe("Preprint recommended in one round", () => {
       cy.wait(500);
       cy.contains(
         ".w2p_flash",
-        "e-mail sent to manager " + manager.mail
+        "e-mail sent to admin " + admin.mail
       ).should("exist");
       cy.contains(
         ".w2p_flash",

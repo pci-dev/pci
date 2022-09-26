@@ -174,7 +174,7 @@ class Recommender_handles:
     select("input[type=submit]").click()
 
     notif = select(".w2p_flash")
-    notif.contains("e-mail sent to manager")
+    notif.contains("e-mail sent to admin")
     notif.contains("e-mail sent to submitter")
     notif.contains("e-mail sent to " + recommender.name)
 
