@@ -33,6 +33,11 @@ apply_db() {
 	(cd $(dirname "$0")
 
 	for sql in *.sql; do
+		[ -f $sql ] || {
+			echo "no db update"
+			break
+		}
+
 		echo "applying $sql"
 		$PSQL $DB < $sql || exit 3
 	done
