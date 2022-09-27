@@ -1875,8 +1875,6 @@ def edit_reply():
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
-    recomm.author_last_change = request.now
-    recomm.update_record()
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReply"),
         # myBackButton = common_small_html.mkBackButton(),

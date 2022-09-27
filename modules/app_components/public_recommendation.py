@@ -300,7 +300,9 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
         if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
-            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT)
+            authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT) \
+                if not isLastRecomm else None
+        nextRound = recomm # iteration is last first; last round (final reco) has no author's reply
 
         recommendationPdfLink = None
         if recomm.recommender_file:

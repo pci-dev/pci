@@ -213,7 +213,11 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
             recommDate = recomm.last_change.strftime("%d %B %Y")
-            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime("%d %B %Y")
+            if roundNumber < totalRecomm:
+                nextRound = recomms[roundNumber]
+                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
+            else:
+                authorsReplyDate = None # current round
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
                 auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
@@ -436,7 +440,9 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             )
 
         if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
-            authorsReplyDate = (recomm.author_last_change or recomm.last_change).strftime(DEFAULT_DATE_FORMAT+ " %H:%M")
+            authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT+ " %H:%M") \
+                    if roundNb < nbRecomms else None
+        nextRound = recomm # iteration is most recent first; last round (final reco) has no author's reply
             
         editAuthorsReplyLink = None
         if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and (iRecomm == 1):

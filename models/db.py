@@ -864,7 +864,6 @@ db.define_table(
     ),
     Field("recommendation_timestamp", type="datetime", default=request.now, label=T("Recommendation start"), writable=False, requires=IS_NOT_EMPTY()),
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
-    Field("author_last_change", type="datetime", default=request.now, label=T("Author's last change"), writable=False),
     Field("is_closed", type="boolean", label=T("Closed"), default=False),
     Field("no_conflict_of_interest", type="boolean", label=T("I/we declare that I/we have no conflict of interest with the authors or the content of the article")),
     Field("reply", type="text", length=2097152, label=T("Author's Reply"), default=""),
