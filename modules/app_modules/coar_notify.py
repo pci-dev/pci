@@ -205,11 +205,7 @@ class COARNotifier:
 
         try:
             resp = requests.head(article.doi, timeout=5)
-            inbox = (resp.headers["Link"]
-                    .split(';')[0]
-                    .replace("<", "")
-                    .replace(">", "")
-                    )
+            inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
             assert inbox
             return inbox
         except:
