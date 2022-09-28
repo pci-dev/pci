@@ -199,6 +199,10 @@ class COARNotifier:
         }
 
     def _get_target_inbox(self, article):
+        """Grab the inbox url from the Link entry (if any) provided by the repo
+        We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
+        """
+
         try:
             resp = requests.head(article.doi, timeout=5)
             inbox = (resp.headers["Link"]
