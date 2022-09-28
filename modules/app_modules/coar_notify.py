@@ -204,7 +204,7 @@ class COARNotifier:
         """
 
         try:
-            resp = requests.head(article.doi, timeout=5)
+            resp = requests.head(article.doi, timeout=5, allow_redirects=True)
             inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
             assert inbox
             return inbox
