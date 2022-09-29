@@ -35,6 +35,9 @@ _reminders = {
     "ReminderSuggestedRecommenderInvitation": "[5, 9]",
 }
 
+if pciRRactivated:
+    _reminders[ "ReminderRecommenderReviewersNeeded"] = "[7, 9, 11]"
+
 _review_reminders = {
     "ReminderReviewerReviewSoonDue":    "reminder_soon_due",
     "ReminderReviewerReviewDue":        "reminder_due",
