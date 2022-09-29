@@ -3,7 +3,6 @@
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null) {
-    let search_type = checkCookie();
     try {
         var user_type = get_user_type();
         setCookieUT(user_type);
@@ -15,6 +14,7 @@ if (search_bar != null) {
     } else {
         result_counter_initial();
         initialise_simple_search();
+        let search_type = getSearchType().value;
         if (search_type == 'advanced') {
             switch_search();
         }
@@ -207,7 +207,7 @@ function simple_search() {
 
 function ongoing_search() {
     // for an ongoing search, display the non-empty search bar
-    var search_type = getCookie('search_type');
+    var search_type = getSearchType().value;
     if (search_type == 'simple') {
         initialise_simple_search();
         return
@@ -419,18 +419,21 @@ function getCookie(cname) {
 }
 
 function setCookieST(cvalue) {
-    document.cookie = 'search_type=' + cvalue + '; SameSite=None; Secure'
+    getSearchType().value = cvalue;
 }
 
 function setCookieUT(cvalue) {
     document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
 }
 
-function checkCookie() {
-    var search_type = getCookie("search_type");
-    if (search_type == "") {
-        setCookieST('simple');
+function getSearchType() {
+    var search_type = document.querySelector('input[name="search_type"]');
+    if (!search_type) {
+        search_type = document.createElement("input");
+        search_type.setAttribute("name", "search_type");
+        search_type.setAttribute("type", "hidden");
+        search_type.value = "simple";
+        document.forms[0].appendChild(search_type);
     }
-
     return search_type;
 }
