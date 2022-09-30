@@ -191,6 +191,30 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(row.last_status_change)
     db.t_articles.already_published.readable = False
 
+    db.t_articles.has_manager_in_authors.readable = False
+    db.t_articles.doi.readable = False
+    db.t_articles.ms_version.readable = False
+    db.t_articles.picture_rights_ok.readable = False
+    db.t_articles.abstract.readable = False
+    db.t_articles.results_based_on_data.readable = False
+    db.t_articles.scripts_used_for_result.readable = False
+    db.t_articles.codes_used_in_study.readable = False
+    db.t_articles.request_submission_change.readable = False
+    db.t_articles.cover_letter.readable = False
+    db.t_articles.parallel_submission.readable = False
+    db.t_articles.record_url_version.readable = False
+    db.t_articles.record_id_version.readable = False
+    db.t_articles.article_source.readable = False
+    db.t_articles.upload_timestamp.readable = False
+    db.t_articles.user_id.readable = False
+    db.t_articles.status.readable = False
+    db.t_articles.last_status_change.readable = False
+    db.t_articles.doi_of_published_article.readable = False
+    db.t_articles.is_searching_reviewers.readable = False
+    db.t_articles.sub_thematics.readable = False
+    db.t_articles.scheduled_submission_date.readable = False
+
+
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -264,13 +288,13 @@ def _manage_articles(statuses, whatNext):
         links.pop(0)
 
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.smartgrid(
         query,
         details=False,
         editable=False,
         deletable=False,
         create=False,
-        searchable=True,
+        searchable=dict(auth_user=True, auth_membership=False),
         maxtextlength=250,
         paginate=20,
         csv=csv,
@@ -280,6 +304,10 @@ def _manage_articles(statuses, whatNext):
         orderby=~db.t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
+   
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles')
+    except: grid = original_grid
 
     return dict(
         customText=getText(request, auth, db, "#ManagerArticlesText"),

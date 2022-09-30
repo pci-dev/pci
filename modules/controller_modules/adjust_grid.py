@@ -72,7 +72,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-roles')[0]
         select_panel_id2 = grid.elements('#w2p_field_qy_recomm-roles select.form-control')[0]
     elif search_name == 'articles':
-        panel_search_field = grid.elements('div#w2p_field_qy_art-id')[0]
+        panel_search_field = grid.elements('div#w2p_field_t_articles-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
 
     # restyle Add, And, Or, Close buttons
@@ -169,21 +169,32 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
                 hashtag_input_field = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
                 hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    elif search_name == 'articles': pass
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
 
     for selector in regulator_panels:
         options = selector.elements('option')
+        contains_field_set = False
         for option in options:
             if option.__getattribute__('attributes')['_value'] == 'contains':
                 option.__getattribute__('attributes').update({'_selected':'selected'})
+                contains_field_set = True
                 #selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
             elif option.__getattribute__('attributes')['_value'] == '!=':
                 option.__getattribute__('attributes').update({'_class': 'not_contains'})
                 selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))                
             elif option.__getattribute__('attributes')['_value'] in remove_regulators:
                 option.__getattribute__('attributes').update({'_style':'display:none'})
+        if not contains_field_set:
+            for option in options:
+                if option.__getattribute__('attributes')['_value'] == '=':
+                    option.__getattribute__('attributes').update({'_class': 'contains'})
+                    selector.elements('option.contains', replace=OPTION('contains', _class="contains"))                
+
+
+
         #selector.__getattribute__('attributes').update({'_style':'display:none'})
 
     grid.elements('div#w2p_query_panel', replace=None)

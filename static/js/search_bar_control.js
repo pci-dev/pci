@@ -190,7 +190,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    if (user_type == 'auth_user' || user_type == 'mail_templates') {
+    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles') {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';
