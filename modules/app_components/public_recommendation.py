@@ -52,6 +52,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
     articleInfosCard = article_components.getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False)
 
+    html = TAG(articleInfosCard)
+    html.elements('span[id=version]', replace=None)
+    articleInfosCard = XML(html)
+
     headerContent.update([("articleInfosCard", articleInfosCard)])
 
     isStage2 = art.art_stage_1_id is not None
