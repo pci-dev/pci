@@ -86,7 +86,7 @@ def do_accept_new_article_to_recommend():
     article = db.t_articles[articleId]
 
     if article.status == "Awaiting consideration":
-        recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state="Ongoing", no_conflict_of_interest=True)
+        recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state="Ongoing", no_conflict_of_interest=True, ms_version=article.ms_version)
         db.commit()
         article = db.t_articles[articleId]  # reload due to trigger!
         article.status = "Under consideration"
