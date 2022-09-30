@@ -288,7 +288,7 @@ def _manage_articles(statuses, whatNext):
         links.pop(0)
 
 
-    original_grid = SQLFORM.smartgrid(
+    original_grid = SQLFORM.grid(
         query,
         details=False,
         editable=False,
