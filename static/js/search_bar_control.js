@@ -113,7 +113,7 @@ function initialise_simple_search() {
     //simple_search_bar.value = search_bar.value;
     search_bar.value = '';
 
-    setCookieST('simple');
+    setSearchType('simple');
 }
 
 function create_switch_search_btn(modus) {
@@ -165,9 +165,9 @@ function switch_search() {
         switch_search_btn.setAttribute('value', 'Simple Search');
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
-        setCookieST('advanced');
+        setSearchType('advanced');
     } else {
-        setCookieST('simple');
+        setSearchType('simple');
         try {
             simple_search_div.style.display = 'flex';
             switch_search_btn.setAttribute('value', 'Advanced Search');
@@ -186,7 +186,7 @@ function clear_simple_search() {
 function simple_search() {
     /* use hidden advanced search entities to perform simple search*/
     // get query
-    setCookieST('simple');
+    setSearchType('simple');
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
@@ -399,7 +399,7 @@ function new_search(input_field) {
     }
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
-    setCookieST('advanced');
+    setSearchType('advanced');
     main_search_form.submit();
 }
 
@@ -418,7 +418,7 @@ function getCookie(cname) {
     return "";
 }
 
-function setCookieST(cvalue) {
+function setSearchType(cvalue) {
     getSearchType().value = cvalue;
 }
 
