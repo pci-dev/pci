@@ -3,7 +3,6 @@
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null) {
-    let search_type = checkCookie();
     try {
         var user_type = get_user_type();
         setCookieUT(user_type);
@@ -15,6 +14,7 @@ if (search_bar != null) {
     } else {
         result_counter_initial();
         initialise_simple_search();
+        let search_type = getSearchType().value;
         if (search_type == 'advanced') {
             switch_search();
         }
@@ -113,7 +113,7 @@ function initialise_simple_search() {
     //simple_search_bar.value = search_bar.value;
     search_bar.value = '';
 
-    setCookieST('simple');
+    setSearchType('simple');
 }
 
 function create_switch_search_btn(modus) {
@@ -165,9 +165,9 @@ function switch_search() {
         switch_search_btn.setAttribute('value', 'Simple Search');
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
-        setCookieST('advanced');
+        setSearchType('advanced');
     } else {
-        setCookieST('simple');
+        setSearchType('simple');
         try {
             simple_search_div.style.display = 'flex';
             switch_search_btn.setAttribute('value', 'Advanced Search');
@@ -186,7 +186,7 @@ function clear_simple_search() {
 function simple_search() {
     /* use hidden advanced search entities to perform simple search*/
     // get query
-    setCookieST('simple');
+    setSearchType('simple');
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
@@ -207,7 +207,7 @@ function simple_search() {
 
 function ongoing_search() {
     // for an ongoing search, display the non-empty search bar
-    var search_type = getCookie('search_type');
+    var search_type = getSearchType().value;
     if (search_type == 'simple') {
         initialise_simple_search();
         return
@@ -399,7 +399,7 @@ function new_search(input_field) {
     }
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
-    setCookieST('advanced');
+    setSearchType('advanced');
     main_search_form.submit();
 }
 
@@ -418,19 +418,22 @@ function getCookie(cname) {
     return "";
 }
 
-function setCookieST(cvalue) {
-    document.cookie = 'search_type=' + cvalue + '; SameSite=None; Secure'
+function setSearchType(cvalue) {
+    getSearchType().value = cvalue;
 }
 
 function setCookieUT(cvalue) {
     document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
 }
 
-function checkCookie() {
-    var search_type = getCookie("search_type");
-    if (search_type == "") {
-        setCookieST('simple');
+function getSearchType() {
+    var search_type = document.querySelector('input[name="search_type"]');
+    if (!search_type) {
+        search_type = document.createElement("input");
+        search_type.setAttribute("name", "search_type");
+        search_type.setAttribute("type", "hidden");
+        search_type.value = "simple";
+        document.forms[0].appendChild(search_type);
     }
-
     return search_type;
 }
