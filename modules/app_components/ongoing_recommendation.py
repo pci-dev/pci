@@ -214,6 +214,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
             recommDate = recomm.last_change.strftime("%d %B %Y")
+            validationDate = art.last_status_change.strftime("%d %B %Y")
             if roundNumber < totalRecomm:
                 nextRound = recomms[roundNumber]
                 authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
@@ -290,6 +291,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommendationStepClass=recommendationStepClass,
                 recommStatus=recommStatus,
                 recommDate=recommDate,
+                validationDate = validationDate,
                 authorsReplyDate=authorsReplyDate,
                 managerDecisionDoneClass=managerDecisionDoneClass,
                 managerDecisionDoneStepClass=managerDecisionDoneStepClass,
@@ -308,6 +310,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
         recommDate = False
         lastReviewDate = False
         authorsReplyDate = False
+        validationDate = False
 
         componentVars = dict(
             printable=printable,
@@ -326,6 +329,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             recommendationStepClass=recommendationStepClass,
             recommStatus=recommStatus,
             recommDate=recommDate,
+            validationDate = validationDate,
             authorsReplyDate=authorsReplyDate,
             managerDecisionDoneClass=managerDecisionDoneClass,
             managerDecisionDoneStepClass=managerDecisionDoneStepClass,
