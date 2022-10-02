@@ -161,7 +161,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
                 (
                     I(art.upload_timestamp.strftime("Submitted: %d %B %Y")) if art.upload_timestamp else "",
                     ", ",
-                    I(finalRecomm.last_change.strftime("Recommended: %d %B %Y")) if finalRecomm.last_change else "",
+                    I(art.last_status_change.strftime("Recommended: %d %B %Y")) if art.last_status_change else "", 
                 ),
             ),
             ("recomm_altmetric", recomm_altmetric),
