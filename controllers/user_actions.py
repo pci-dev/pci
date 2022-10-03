@@ -73,6 +73,20 @@ def suggest_article_to():
     # redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
     redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
 
+######################################################################################################################################################################
+@auth.requires_login()
+def exclude_article_from():
+    articleId = int(request.vars["articleId"])
+    recommenderId = int(request.vars["recommenderId"])
+    exclude = request.vars["exclude"]
+    myVars = request.vars
+    user_module.do_exclude_article_from(auth, db, articleId, recommenderId)
+    excludeList = exclude if type(exclude) is list else [ exclude ]
+    excludeList.append(str(recommenderId))
+    myVars["exclude"] = excludeList
+    session.flash = T('Recommender "%s" excluded from article.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
+    redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
+
 
 ######################################################################################################################################################################
 @auth.requires_login()
@@ -83,6 +97,15 @@ def del_suggested_recommender():
             db((db.t_suggested_recommenders.id == suggId)).delete()
     redirect(request.env.http_referer)
 
+
+######################################################################################################################################################################
+@auth.requires_login()
+def del_excluded_recommender():
+    exclId = request.vars["exclId"]
+    if exclId:
+        if db((db.t_excluded_recommenders.id == exclId) & (db.t_articles.id == db.t_excluded_recommenders.article_id) & (db.t_articles.user_id == auth.user_id)).count() > 0:
+            db((db.t_excluded_recommenders.id == exclId)).delete()
+    redirect(request.env.http_referer)
 
 ######################################################################################################################################################################
 @auth.requires_login()

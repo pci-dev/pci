@@ -493,6 +493,9 @@ def search_recommenders():
     else:
         art = db.t_articles[articleId]
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
+        excluded_recommenders = db((db.t_excluded_recommenders.article_id == art.id) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select()
+        for recommender in excluded_recommenders:
+            excludeList.append(recommender.auth_user.id)
 
     if True:
         # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql

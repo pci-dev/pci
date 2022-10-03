@@ -1229,6 +1229,23 @@ def declineSuggRecommender(s, f):
         emailing.create_reminder_for_suggested_recommender_invitation(session, auth, db, article, sugg_recomm)
 
 db.define_table(
+    "t_excluded_recommenders",
+    Field("id", type="id"),
+    Field("article_id", type="reference t_articles", ondelete="RESTRICT", label=T("Article")),
+    Field("excluded_recommender_id", type="reference auth_user", ondelete="RESTRICT", label=T("Excluded recommender")),
+    singular=T("Excluded recommender"),
+    plural=T("Excluded recommenders"),
+    migrate=False,
+)
+db.t_excluded_recommenders.excluded_recommender_id.requires = IS_EMPTY_OR(
+    IS_IN_DB(
+        db((db.auth_user._id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == "recommender")),
+        db.auth_user.id,
+        "%(last_name)s, %(first_name)s",
+    )
+)
+
+db.define_table(
     "t_press_reviews",
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
