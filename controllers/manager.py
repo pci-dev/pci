@@ -184,11 +184,21 @@ def _manage_articles(statuses, whatNext, db=db):
     t_articles = db.define_table(
         "t_articles",
         _db.t_articles,
+        Field("submitter", type="string", label=T("Submitter"),
+            compute=lambda row: mkSubmitter(row).flatten(),
+            represent=lambda txt, row: mkSubmitter(row),
+        ),
         Field("recommenders", type="string", label=T("Recommenders"),
             compute=lambda row: manager_module.mkRecommenderButton(row, auth, _db).flatten(),
             represent=lambda txt, row: manager_module.mkRecommenderButton(row, auth, _db),
         ),
     )
+
+    def mkSubmitter(row):
+        return SPAN(
+            DIV(common_small_html.mkAnonymousArticleField(auth, _db, row.anonymous_submission, "")),
+            TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, _db, row.user_id),
+        )
 
     for row in _db(query).select():
         t_articles.insert(**row)
@@ -197,10 +207,8 @@ def _manage_articles(statuses, whatNext, db=db):
 
     db.t_articles.user_id.default = auth.user_id
     db.t_articles.user_id.writable = False
+    db.t_articles.user_id.readable = False
     db.t_articles.anonymous_submission.readable = False
-    db.t_articles.user_id.represent = lambda text, row: SPAN(
-        DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, db, text)
-    )
 
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
@@ -296,6 +304,7 @@ def _manage_articles(statuses, whatNext, db=db):
             # db.t_articles.parallel_submission,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
+            db.t_articles.submitter,
             # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
@@ -314,6 +323,7 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles.already_published,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
+            db.t_articles.submitter,
             # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
