@@ -154,6 +154,19 @@ def completed_articles():
 def _manage_articles(statuses, whatNext):
     response.view = "default/myLayout.html"
 
+    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+    '''temp_db = DAL("sqlite:memory")
+    qy_articles = temp_db.define_table(
+        "qy_articles",
+        Field("id", type="integer"),
+        Field("last_status_change", type="string", label="Last status change"),
+        Field("status", type="string", label="Article status"),
+        Field("article", type="string", label="Article"),
+        Field("upload_timestamp", type="string", label="Submission date"),
+        Field("user_id", type="string", label="Recommenders"),
+        Field("actions", type="string", label="Actions"),
+    )'''
+
     if statuses:
         query = db.t_articles.status.belongs(statuses)
     else:
@@ -214,7 +227,6 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.sub_thematics.readable = False
     db.t_articles.scheduled_submission_date.readable = False
     #db.t_articles.id.readable = False
-
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
@@ -291,6 +303,7 @@ def _manage_articles(statuses, whatNext):
 
     original_grid = SQLFORM.grid(
         query,
+        #qy_articles,
         details=False,
         editable=False,
         deletable=False,

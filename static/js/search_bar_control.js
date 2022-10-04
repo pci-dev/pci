@@ -273,7 +273,16 @@ function add_to_search(input_field) {
     var regulator = regulator_whole.split(' ')[0];
 
     // lastly get search term
-    var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    var input_field_parent = input_field.parentElement;
+    var dd_regulator = 'contains';
+    if (input_field_parent.querySelector('#w2p_value_t_articles-user_id')) {
+        var search_term = input_field_parent.querySelector('#w2p_value_t_articles-user_id').value;
+        dd_regulator = '=';
+    }
+    else {
+        var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    }
+
     if (db_field == 'thematics') {
         add_thematics(user_type, 'and', false);
     }
@@ -286,9 +295,9 @@ function add_to_search(input_field) {
     }
     statement += db_field;
     if (regulator == 'not') {
-        statement += ' contains "';
+        statement += ' ' + dd_regulator + ' "';
     } else {
-        statement += ' contains "';
+        statement += ' ' + dd_regulator + ' "';
     }
     statement += search_term + '"';
 
@@ -388,14 +397,23 @@ function new_search(input_field) {
     }
 
     // get search term
-    var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    var input_field_parent = input_field.parentElement;
+    var dd_regulator = 'contains';
+    if (input_field_parent.querySelector('#w2p_value_t_articles-user_id')) {
+        var search_term = input_field_parent.querySelector('#w2p_value_t_articles-user_id').value;
+        dd_regulator = '=';
+    }
+    else {
+        var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    }
 
+    //var search_term = input_field.parentElement.querySelector('input.form-control').value;
     var statement = '';
     var select_field = document.querySelector('#w2p_query_fields');
     if (not_statement) {
-        statement += 'not ' + select_field.value + ' contains "' + search_term + '"';
+        statement += 'not ' + select_field.value + ' ' + dd_regulator + ' "' + search_term + '"';
     } else {
-        statement += select_field.value + ' contains "' + search_term + '"';
+        statement += select_field.value + ' ' + dd_regulator + ' "' + search_term + '"';
     }
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
