@@ -205,14 +205,15 @@ def _manage_articles(statuses, whatNext):
     db.t_articles.record_url_version.readable = False
     db.t_articles.record_id_version.readable = False
     db.t_articles.article_source.readable = False
-    db.t_articles.upload_timestamp.readable = False
-    db.t_articles.user_id.readable = False
-    db.t_articles.status.readable = False
-    db.t_articles.last_status_change.readable = False
+    #db.t_articles.upload_timestamp.readable = False
+    #db.t_articles.user_id.readable = False
+    #db.t_articles.status.readable = False
+    #db.t_articles.last_status_change.readable = False
     db.t_articles.doi_of_published_article.readable = False
     db.t_articles.is_searching_reviewers.readable = False
     db.t_articles.sub_thematics.readable = False
     db.t_articles.scheduled_submission_date.readable = False
+    #db.t_articles.id.readable = False
 
 
     scheme = myconf.take("alerts.scheme")

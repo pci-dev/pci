@@ -20,12 +20,18 @@ from app_components import app_forms
 
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 from gluon.contrib.appconfig import AppConfig
+    #db.t_articles.upload_timestamp.readable = False
+    #db.t_articles.user_id.readable = False
+    #db.t_articles.status.readable = False
+    #db.t_articles.last_status_change.readable = False
 
 remove_options = ['auth_user.registration_key',# 'auth_user.website',
                   'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
                   'auth_user.ethical_code_approved', 'qy_recomm.id', 'auth_user.id',
                   'mail_templates.lang', 'qy_reviewers.id',
-                  'qy_reviewers.thematics', 'qy_recomm.thematics']
+                  'qy_reviewers.thematics', 'qy_recomm.thematics', 't_articles.id',
+                  't_articles.upload_timestamp', 't_articles.user_id', 't_articles.status',
+                  't_articles.last_status_change']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
                            'recommenders': 'w2p_field_qy_recomm-roles'}
@@ -169,7 +175,12 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
                 hashtag_input_field = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
                 hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
-    elif search_name == 'articles': pass
+    elif search_name == 'articles':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.title'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                hashtag_input_field = grid.elements('div#w2p_field_t_articles-title')[0]
+                hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})        
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
