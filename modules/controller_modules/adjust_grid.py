@@ -41,13 +41,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     function that adjusts the grid after its generation
     '''
     # gather elements
-    web2py_grid = grid.elements('div.web2py_grid')[0]
-    panel = grid.elements('div#w2p_query_panel')[0]
+    web2py_grid = grid.element('div.web2py_grid')
+    panel = grid.element('div#w2p_query_panel')
     btns = grid.elements('input.btn-default')
-    select_panel = grid.elements('select#w2p_query_fields')[0]
+    select_panel = grid.element('select#w2p_query_fields')
     regulator_panels = grid.elements('select.form-control')
-    search_field = grid.elements('.web2py_console form')[0]
-    search_field = grid.elements('.web2py_console form')[0]
+    search_field = grid.element('.web2py_console form')
+    search_field = grid.element('.web2py_console form')
     panel_query_rows = grid.elements('div#w2p_query_panel div')
     input_buttons = grid.elements('form input.btn')
     w2p_query_rows = grid.elements('div.w2p_query_row')
@@ -55,33 +55,33 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
     if search_name == 'templates':
-        panel_search_field = grid.elements('div#w2p_field_mail_templates-lang')[0]
+        panel_search_field = grid.element('div#w2p_field_mail_templates-lang')
     elif search_name == 'users':
-        panel_search_field = grid.elements('div#w2p_field_auth_user-id')[0]
+        panel_search_field = grid.element('div#w2p_field_auth_user-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.elements('div#w2p_field_auth_user-website')[0]
-        select_panel_id2 = grid.elements('#w2p_field_auth_user-website select.form-control')[0]
+        panel_search_field2 = grid.element('div#w2p_field_auth_user-website')
+        select_panel_id2 = grid.element('#w2p_field_auth_user-website select.form-control')
         # restyle the add button
-        add_btn = grid.elements('div.web2py_console a.btn-secondary')[0]
+        add_btn = grid.element('div.web2py_console a.btn-secondary')
         add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
     elif search_name == 'reviewers':
-        panel_search_field = grid.elements('div#w2p_field_qy_reviewers-id')[0]
+        panel_search_field = grid.element('div#w2p_field_qy_reviewers-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.elements('div#w2p_field_qy_reviewers-roles')[0]
-        select_panel_id2 = grid.elements('#w2p_field_qy_reviewers-roles select.form-control')[0]
+        panel_search_field2 = grid.element('div#w2p_field_qy_reviewers-roles')
+        select_panel_id2 = grid.element('#w2p_field_qy_reviewers-roles select.form-control')
     elif search_name == 'recommenders':
-        panel_search_field = grid.elements('div#w2p_field_qy_recomm-id')[0]
+        panel_search_field = grid.element('div#w2p_field_qy_recomm-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-roles')[0]
-        select_panel_id2 = grid.elements('#w2p_field_qy_recomm-roles select.form-control')[0]
+        panel_search_field2 = grid.element('div#w2p_field_qy_recomm-roles')
+        select_panel_id2 = grid.element('#w2p_field_qy_recomm-roles select.form-control')
     elif search_name == 'articles':
-        panel_search_field = grid.elements('div#w2p_field_t_articles-id')[0]
+        panel_search_field = grid.element('div#w2p_field_t_articles-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
         # the submitter field has a dropdown, so we need to hide the "contains/not contains" control
         for query_row in w2p_query_rows:
             if query_row.__getattribute__('attributes')['_id'] == 'w2p_field_t_articles-user_id':
-                form_controls = query_row.elements('select.form-control')
-                form_controls[0].__getattribute__('attributes').update({'_style':'display:none'})
+                form_control = query_row.element('select.form-control')
+                form_control.__getattribute__('attributes').update({'_style':'display:none'})
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:
@@ -111,8 +111,8 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         # hi-jack unused field and re-create it to an "Thematics" search
         try:
             hijack_field2 = hijacks_thematics_field[search_name]
-            regulator_panel_id2 = grid.elements('div#%s .form-control'%hijack_field2)
-            options2 = regulator_panel_id2[0].elements('option')
+            regulator_panel_id2 = grid.element('div#%s .form-control'%hijack_field2)
+            options2 = regulator_panel_id2.elements('option')
             for i,option in enumerate(options2):
                 if i >= len(thematics):
                     option.__getattribute__('attributes').update({'_class': 'remove'}) # assign class to allow selection
@@ -145,14 +145,14 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     for option in select_panel:
         if option.__getattribute__('attributes')['_value'].endswith('any'):
             option.__getattribute__('attributes').update({'_class':'selector'})
-            grid.elements('div#w2p_field_' + search_name2field[search_name] + '-any')[0].__getattribute__('attributes').update({'_style':'display:flex'})
+            grid.element('div#w2p_field_' + search_name2field[search_name] + '-any').__getattribute__('attributes').update({'_style':'display:flex'})
         # setup Thematic Fields custom control
         if option.__getattribute__('attributes')['_value'] in thematics_hijacked_options:
             option.__getattribute__('attributes').update({'_class':'selector'})
             select_panel.elements('option.selector', replace=OPTION('Thematic Fields', _value="thematics", _class="thematics"))
             new_thematics_field = select_panel.elements('option.thematics')
             select_panel.elements('option.thematics', replace=None)
-            grid.elements('select#w2p_query_fields')[0].insert(1,new_thematics_field[0]) # set Thematic fields to 2nd position
+            grid.element('select#w2p_query_fields').insert(1,new_thematics_field[0]) # set Thematic fields to 2nd position
         # remove the fields that are not required
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})
@@ -169,19 +169,19 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         for option in select_panel:
             if option.__getattribute__('attributes')['_value'].endswith('.first_name'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                first_name_input_field = grid.elements('div#w2p_field_auth_user-first_name')[0]
+                first_name_input_field = grid.element('div#w2p_field_auth_user-first_name')
                 first_name_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
     elif search_name == 'templates':
         for option in select_panel:
             if option.__getattribute__('attributes')['_value'].endswith('.hashtag'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                hashtag_input_field = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
+                hashtag_input_field = grid.element('div#w2p_field_mail_templates-hashtag')
                 hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
     elif search_name == 'articles':
         for option in select_panel:
             if option.__getattribute__('attributes')['_value'].endswith('.title'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                hashtag_input_field = grid.elements('div#w2p_field_t_articles-title')[0]
+                hashtag_input_field = grid.element('div#w2p_field_t_articles-title')
                 hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})        
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
@@ -220,7 +220,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
             button.__getattribute__('attributes').update({'_value': 'Reset'})
 
     # add elements at different positions
-    grid.elements('div.web2py_console ')[0].insert(0, panel)
+    grid.element('div.web2py_console ').insert(0, panel)
     if search_name == 'users':
         web2py_grid.insert(0, add_btn)
 
