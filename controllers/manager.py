@@ -154,19 +154,6 @@ def completed_articles():
 def _manage_articles(statuses, whatNext, db=db):
     response.view = "default/myLayout.html"
 
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    '''temp_db = DAL("sqlite:memory")
-    qy_articles = temp_db.define_table(
-        "qy_articles",
-        Field("id", type="integer"),
-        Field("last_status_change", type="string", label="Last status change"),
-        Field("status", type="string", label="Article status"),
-        Field("article", type="string", label="Article"),
-        Field("upload_timestamp", type="string", label="Submission date"),
-        Field("user_id", type="string", label="Recommenders"),
-        Field("actions", type="string", label="Actions"),
-    )'''
-
     if statuses:
         query = db.t_articles.status.belongs(statuses)
     else:
@@ -206,26 +193,11 @@ def _manage_articles(statuses, whatNext, db=db):
     query = db.t_articles
 
     db.t_articles.user_id.default = auth.user_id
-    db.t_articles.user_id.writable = False
-    db.t_articles.user_id.readable = False
-    db.t_articles.anonymous_submission.readable = False
-
-    db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.report_stage.writable = False
-    db.t_articles.report_stage.readable = False
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
         auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
     )
 
-    db.t_articles.status.writable = True
-    db.t_articles.cover_letter.readable = True
-    db.t_articles.cover_letter.writable = False
-    db.t_articles.keywords.readable = False
-    db.t_articles.keywords.writable = False
-    db.t_articles.auto_nb_recommendations.readable = False
-    db.t_articles.auto_nb_recommendations.writable = False
     db.t_articles.request_submission_change.represent = lambda text, row: T('YES') if row.request_submission_change == True else T("NO") 
     db.t_articles.request_submission_change.label = T('Changes requested?')
     db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, _db, text), _class="pci-w300Cell")
@@ -233,38 +205,12 @@ def _manage_articles(statuses, whatNext, db=db):
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
     db.t_articles.upload_timestamp.label = T("Submission date")
     db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(row.last_status_change)
-    db.t_articles.already_published.readable = False
-
-    db.t_articles.has_manager_in_authors.readable = False
-    db.t_articles.doi.readable = False
-    db.t_articles.ms_version.readable = False
-    db.t_articles.picture_rights_ok.readable = False
-    db.t_articles.abstract.readable = False
-    db.t_articles.results_based_on_data.readable = False
-    db.t_articles.scripts_used_for_result.readable = False
-    db.t_articles.codes_used_in_study.readable = False
-    db.t_articles.request_submission_change.readable = False
-    db.t_articles.cover_letter.readable = False
-    db.t_articles.parallel_submission.readable = False
-    db.t_articles.record_url_version.readable = False
-    db.t_articles.record_id_version.readable = False
-    db.t_articles.article_source.readable = False
-    #db.t_articles.upload_timestamp.readable = False
-    #db.t_articles.user_id.readable = False
-    #db.t_articles.status.readable = False
-    #db.t_articles.last_status_change.readable = False
-    db.t_articles.doi_of_published_article.readable = False
-    db.t_articles.is_searching_reviewers.readable = False
-    db.t_articles.sub_thematics.readable = False
-    db.t_articles.scheduled_submission_date.readable = False
-    #db.t_articles.id.readable = False
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     links = [
-        # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
         dict(
             header=T("Actions"),
             body=lambda row: DIV(
@@ -297,15 +243,12 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
-            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
-            # db.t_articles.parallel_submission,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
             db.t_articles.submitter,
-            # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
             db.t_articles.recommenders,
@@ -317,14 +260,12 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
-            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
             db.t_articles.submitter,
-            # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
             db.t_articles.recommenders,
@@ -337,7 +278,6 @@ def _manage_articles(statuses, whatNext, db=db):
 
     original_grid = SQLFORM.grid(
         query,
-        #qy_articles,
         details=False,
         editable=False,
         deletable=False,
