@@ -237,8 +237,7 @@ def _manage_articles(statuses, whatNext, db=db):
             ),
         ),
     ]
-    if parallelSubmissionAllowed:
-        fields = [
+    fields = [
             db.t_articles.art_stage_1_id,
             db.t_articles.report_stage,
             db.t_articles.last_status_change,
@@ -246,31 +245,13 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
-            db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
             db.t_articles.submitter,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
             db.t_articles.recommenders,
             db.t_articles.anonymous_submission,
-        ]
-    else:
-        fields = [
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.already_published,
-            db.t_articles.auto_nb_recommendations,
-            db.t_articles.user_id,
-            db.t_articles.submitter,
-            db.t_articles.keywords,
-            db.t_articles.submitter_details,
-            db.t_articles.recommenders,
-            db.t_articles.anonymous_submission,
-        ]
+    ]
     if statuses is not None and "Pre-submission" in statuses:
         fields += [db.t_articles.request_submission_change]
         links.pop(0)
