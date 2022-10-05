@@ -6,6 +6,10 @@
         word-wrap: break-word;
     }
 
+    .web2py_console .w2p_query_row select#w2p_value_t_articles-user_id {
+        flex: 1;
+    }
+
     .web2py_grid tbody td {
         overflow-wrap: break-word;
         hyphens: auto;

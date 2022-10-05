@@ -21,11 +21,13 @@ from app_components import app_forms
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 from gluon.contrib.appconfig import AppConfig
 
-remove_options = ['auth_user.registration_key',# 'auth_user.website',
-                  'auth_user.alerts', 'auth_user.last_alert', 'auth_user.registration_datetime',
+remove_options = ['auth_user.registration_key', 'auth_user.alerts', 
+                  'auth_user.last_alert', 'auth_user.registration_datetime',
                   'auth_user.ethical_code_approved', 'qy_recomm.id', 'auth_user.id',
                   'mail_templates.lang', 'qy_reviewers.id',
-                  'qy_reviewers.thematics', 'qy_recomm.thematics']
+                  'qy_reviewers.thematics', 'qy_recomm.thematics', 't_articles.id',
+                  't_articles.upload_timestamp',  't_articles.status',
+                  't_articles.last_status_change']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
                            'recommenders': 'w2p_field_qy_recomm-roles'}
@@ -48,6 +50,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     search_field = grid.elements('.web2py_console form')[0]
     panel_query_rows = grid.elements('div#w2p_query_panel div')
     input_buttons = grid.elements('form input.btn')
+    w2p_query_rows = grid.elements('div.w2p_query_row')
 
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -72,8 +75,13 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field2 = grid.elements('div#w2p_field_qy_recomm-roles')[0]
         select_panel_id2 = grid.elements('#w2p_field_qy_recomm-roles select.form-control')[0]
     elif search_name == 'articles':
-        panel_search_field = grid.elements('div#w2p_field_qy_art-id')[0]
+        panel_search_field = grid.elements('div#w2p_field_t_articles-id')[0]
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+        # the submitter field has a dropdown, so we need to hide the "contains/not contains" control
+        for query_row in w2p_query_rows:
+            if query_row.__getattribute__('attributes')['_id'] == 'w2p_field_t_articles-user_id':
+                form_controls = query_row.elements('select.form-control')
+                form_controls[0].__getattribute__('attributes').update({'_style':'display:none'})
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:
@@ -169,21 +177,37 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
                 hashtag_input_field = grid.elements('div#w2p_field_mail_templates-hashtag')[0]
                 hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    elif search_name == 'articles':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.title'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                hashtag_input_field = grid.elements('div#w2p_field_t_articles-title')[0]
+                hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})        
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
 
     for selector in regulator_panels:
         options = selector.elements('option')
+        contains_field_set = False
         for option in options:
             if option.__getattribute__('attributes')['_value'] == 'contains':
                 option.__getattribute__('attributes').update({'_selected':'selected'})
+                contains_field_set = True
                 #selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
             elif option.__getattribute__('attributes')['_value'] == '!=':
                 option.__getattribute__('attributes').update({'_class': 'not_contains'})
                 selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))                
             elif option.__getattribute__('attributes')['_value'] in remove_regulators:
                 option.__getattribute__('attributes').update({'_style':'display:none'})
+        if not contains_field_set:
+            for option in options:
+                if option.__getattribute__('attributes')['_value'] == '=':
+                    option.__getattribute__('attributes').update({'_class': 'contains'})
+                    selector.elements('option.contains', replace=OPTION('contains', _class="contains"))                
+
+
+
         #selector.__getattribute__('attributes').update({'_style':'display:none'})
 
     grid.elements('div#w2p_query_panel', replace=None)
