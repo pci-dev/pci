@@ -77,11 +77,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     elif search_name == 'articles':
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        # the submitter field has a dropdown, so we need to hide the "contains/not contains" control
-        for query_row in w2p_query_rows:
-            if query_row.__getattribute__('attributes')['_id'] == 'w2p_field_t_articles-user_id':
-                form_control = query_row.element('select.form-control')
-                form_control.__getattribute__('attributes').update({'_style':'display:none'})
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:
