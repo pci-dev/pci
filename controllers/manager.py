@@ -159,24 +159,35 @@ def _manage_articles(statuses, whatNext, db=db):
     else:
         query = db.t_articles
 
+    # We use an in-memory table to add computed fields to the grid, so they are searchable
     _db = db
     db = DAL("sqlite:memory")
-    auth_user = db.define_table(
-        "auth_user",
-        _db.auth_user,
-    )
-    for row in _db(_db.auth_user).select():
-        auth_user.insert(**row)
 
     t_articles = db.define_table(
         "t_articles",
-        _db.t_articles,
+
+        # original table fields required for display code below
+        Field("status", type="string", label=T("Article status")),
+        Field("last_status_change", type="datetime", label=T("Last status change")),
+        Field("upload_timestamp", type="datetime"),
+        Field("user_id", type="integer", readable=False),
+        Field("art_stage_1_id", type="integer", readable=False),
+        Field("report_stage", type="string", readable=False),
+        Field("keywords", type="string", readable=False),
+        Field("submitter_details", type="string", readable=False),
+        Field("already_published", type="boolean", readable=False),
+        Field("anonymous_submission", type="boolean", readable=False),
+        Field("request_submission_change", type="boolean", readable=False),
+
+        # original fields used in advanced search
+        Field("title", type="string",),
+        Field("authors", type="string",),
+
+        # additional computed fields for plain-text search
         Field("submitter", type="string", label=T("Submitter"),
-            compute=lambda row: mkSubmitter(row).flatten(),
             represent=lambda txt, row: mkSubmitter(row),
         ),
         Field("recommenders", type="string", label=T("Recommenders"),
-            compute=lambda row: manager_module.mkRecommenderButton(row, auth, _db).flatten(),
             represent=lambda txt, row: manager_module.mkRecommenderButton(row, auth, _db),
         ),
     )
@@ -187,12 +198,29 @@ def _manage_articles(statuses, whatNext, db=db):
             TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, _db, row.user_id),
         )
 
-    for row in _db(query).select():
+    _ = _db.t_articles
+    fields = [
+            _.art_stage_1_id,
+            _.report_stage,
+            _.last_status_change,
+            _.status,
+            _._id,
+            _.upload_timestamp,
+            _.already_published,
+            _.user_id,
+            _.keywords,
+            _.submitter_details,
+            _.anonymous_submission,
+            _.request_submission_change,
+            _.title,
+            _.authors,
+    ]
+    for row in _db(query).select(*fields):
+        row['submitter'] = mkSubmitter(row).flatten()
+        row['recommenders'] = DIV(manager_module.mkRecommenderButton(row, auth, _db)).flatten()
         t_articles.insert(**row)
 
-    query = db.t_articles
-
-    db.t_articles.user_id.default = auth.user_id
+    query = t_articles
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
         auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
