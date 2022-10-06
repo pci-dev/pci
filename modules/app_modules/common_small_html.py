@@ -210,9 +210,15 @@ def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False,
 
 ######################################################################################################################################################################
 def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False):
-    resu = SPAN("?")
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    else:
+        theUser = None
+
+    return _mkUser(theUser, linked)
+
+
+def _mkUser(theUser, linked=False):
         if theUser:
             if linked:
                 resu = SPAN(
@@ -226,7 +232,8 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
                 resu = SPAN(SPAN("%s %s" % (theUser.first_name, theUser.last_name)), A(" [%s]" % theUser.email, _href="mailto:%s" % theUser.email))
         else:
             resu = SPAN("?")
-    return resu
+
+        return resu
 
 
 ######################################################################################################################################################################
