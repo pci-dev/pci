@@ -291,7 +291,7 @@ def recommenders():
     nbRecomm = len(filtered)
     for fr in filtered:
         sfr = Storage(fr)
-        if sfr.last_name[0].upper() != my1:
+        if sfr.last_name and sfr.last_name[0].upper() != my1:
             my1 = sfr.last_name[0].upper()
             myRows.append(TR(TD(my1, A(_name=my1)), TD(""), _class="pci-capitals"))
             myIdx.append(A(my1, _href="#%s" % my1, _style="margin-right:20px;"))
