@@ -159,6 +159,17 @@ def _manage_articles(statuses, whatNext, db=db):
     else:
         query = db.t_articles
 
+    def index_by(field, query): return { x[field]: x for x in db(query).select() }
+
+    users = index_by("id", db.auth_user)
+    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
+                   db.executesql("select max(id) from t_recommendations where article_id in " +
+                       "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
+                       "group by article_id")
+    last_recomms = [x[0] for x in last_recomms]
+    recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
+    co_recomms = db(db.t_press_reviews.recommendation_id.belongs(last_recomms)).select()
+
     # We use an in-memory table to add computed fields to the grid, so they are searchable
     _db = db
     db = DAL("sqlite:memory")
