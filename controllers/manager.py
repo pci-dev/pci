@@ -151,7 +151,7 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role="manager"))
-def _manage_articles(statuses, whatNext, db=db):
+def _manage_articles(statuses, whatNext):
     response.view = "default/myLayout.html"
 
     # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
@@ -172,43 +172,12 @@ def _manage_articles(statuses, whatNext, db=db):
     else:
         query = db.t_articles
 
-    _db = db
-    db = DAL("sqlite:memory")
-    auth_user = db.define_table(
-        "auth_user",
-        _db.auth_user,
-    )
-    for row in _db(_db.auth_user).select():
-        auth_user.insert(**row)
-
-    t_articles = db.define_table(
-        "t_articles",
-        _db.t_articles,
-        Field("submitter", type="string", label=T("Submitter"),
-            compute=lambda row: mkSubmitter(row).flatten(),
-            represent=lambda txt, row: mkSubmitter(row),
-        ),
-        Field("recommenders", type="string", label=T("Recommenders"),
-            compute=lambda row: manager_module.mkRecommenderButton(row, auth, _db).flatten(),
-            represent=lambda txt, row: manager_module.mkRecommenderButton(row, auth, _db),
-        ),
-    )
-
-    def mkSubmitter(row):
-        return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(auth, _db, row.anonymous_submission, "")),
-            TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, _db, row.user_id),
-        )
-
-    for row in _db(query).select():
-        t_articles.insert(**row)
-
-    query = db.t_articles
-
     db.t_articles.user_id.default = auth.user_id
     db.t_articles.user_id.writable = False
-    db.t_articles.user_id.readable = False
     db.t_articles.anonymous_submission.readable = False
+    db.t_articles.user_id.represent = lambda text, row: SPAN(
+        DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, db, text)
+    )
 
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
@@ -216,7 +185,7 @@ def _manage_articles(statuses, whatNext, db=db):
     db.t_articles.report_stage.readable = False
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
     )
 
     db.t_articles.status.writable = True
@@ -264,6 +233,7 @@ def _manage_articles(statuses, whatNext, db=db):
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     links = [
+        dict(header=T("Recommenders"), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
         # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
         dict(
             header=T("Actions"),
@@ -304,11 +274,9 @@ def _manage_articles(statuses, whatNext, db=db):
             # db.t_articles.parallel_submission,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
-            db.t_articles.submitter,
             # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
-            db.t_articles.recommenders,
             db.t_articles.anonymous_submission,
         ]
     else:
@@ -323,11 +291,9 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles.already_published,
             db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
-            db.t_articles.submitter,
             # db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
-            db.t_articles.recommenders,
             db.t_articles.anonymous_submission,
         ]
     if statuses is not None and "Pre-submission" in statuses:
@@ -358,8 +324,8 @@ def _manage_articles(statuses, whatNext, db=db):
     except: grid = original_grid
 
     return dict(
-        customText=getText(request, auth, _db, "#ManagerArticlesText"),
-        pageTitle=getTitle(request, auth, _db, "#ManagerArticlesTitle"),
+        customText=getText(request, auth, db, "#ManagerArticlesText"),
+        pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
