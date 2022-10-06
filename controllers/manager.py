@@ -203,10 +203,13 @@ def _manage_articles(statuses, whatNext, db=db):
         ),
     )
 
+    def mkUser(user_details, user_id):
+        return TAG(user_details) if user_details else common_small_html._mkUser(users.get(user_id))
+
     def mkSubmitter(row):
         return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(auth, _db, row.anonymous_submission, "")),
-            TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, _db, row.user_id),
+            DIV(common_small_html.mkAnonymousArticleField(None, None, row.anonymous_submission, "")),
+            mkUser(row.submitter_details, row.user_id),
         )
 
     _ = _db.t_articles
