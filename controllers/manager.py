@@ -199,12 +199,31 @@ def _manage_articles(statuses, whatNext, db=db):
             represent=lambda txt, row: mkSubmitter(row),
         ),
         Field("recommenders", type="string", label=T("Recommenders"),
-            represent=lambda txt, row: manager_module.mkRecommenderButton(row, auth, _db),
+            represent=lambda txt, row: mkRecommenders(row),
         ),
     )
 
     def mkUser(user_details, user_id):
         return TAG(user_details) if user_details else common_small_html._mkUser(users.get(user_id))
+
+    def mkRecommenders(row):
+        article_id = row.id
+
+        recomm = recomms.get(article_id)
+        if not recomm:
+            return DIV("no recommender")
+
+        resu = DIV()
+        resu.append(mkUser(recomm.recommender_details,recomm.recommender_id))
+
+        for co_recomm in co_recomms:
+            if co_recomm.recommendation_id == recomm.id:
+                resu.append(mkUser(co_recomm.contributor_details, co_recomm.contributor_id))
+
+        if len(resu) > 1:
+            resu.insert(1, DIV(B("Co-recommenders:")))
+
+        return resu
 
     def mkSubmitter(row):
         return SPAN(
@@ -231,7 +250,7 @@ def _manage_articles(statuses, whatNext, db=db):
     ]
     for row in _db(query).select(*fields):
         row['submitter'] = mkSubmitter(row).flatten()
-        row['recommenders'] = DIV(manager_module.mkRecommenderButton(row, auth, _db)).flatten()
+        row['recommenders'] = mkRecommenders(row).flatten()
         t_articles.insert(**row)
 
     query = t_articles
