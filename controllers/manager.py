@@ -151,90 +151,127 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role="manager"))
-def _manage_articles(statuses, whatNext):
+def _manage_articles(statuses, whatNext, db=db):
     response.view = "default/myLayout.html"
-
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    '''temp_db = DAL("sqlite:memory")
-    qy_articles = temp_db.define_table(
-        "qy_articles",
-        Field("id", type="integer"),
-        Field("last_status_change", type="string", label="Last status change"),
-        Field("status", type="string", label="Article status"),
-        Field("article", type="string", label="Article"),
-        Field("upload_timestamp", type="string", label="Submission date"),
-        Field("user_id", type="string", label="Recommenders"),
-        Field("actions", type="string", label="Actions"),
-    )'''
 
     if statuses:
         query = db.t_articles.status.belongs(statuses)
     else:
         query = db.t_articles
 
-    db.t_articles.user_id.default = auth.user_id
-    db.t_articles.user_id.writable = False
-    db.t_articles.anonymous_submission.readable = False
-    db.t_articles.user_id.represent = lambda text, row: SPAN(
-        DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "")), TAG(row.submitter_details) if row.submitter_details else common_small_html.mkUserWithMail(auth, db, text)
+    def index_by(field, query): return { x[field]: x for x in db(query).select() }
+
+    users = index_by("id", db.auth_user)
+    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
+                   db.executesql("select max(id) from t_recommendations where article_id in " +
+                       "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
+                       "group by article_id")
+    last_recomms = [x[0] for x in last_recomms]
+    recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
+    co_recomms = db(db.t_press_reviews.recommendation_id.belongs(last_recomms)).select()
+
+    # We use an in-memory table to add computed fields to the grid, so they are searchable
+    _db = db
+    db = DAL("sqlite:memory")
+
+    t_articles = db.define_table(
+        "t_articles",
+
+        # original table fields required for display code below
+        Field("status", type="string", label=T("Article status")),
+        Field("last_status_change", type="datetime", label=T("Last status change")),
+        Field("upload_timestamp", type="datetime"),
+        Field("user_id", type="integer", readable=False),
+        Field("art_stage_1_id", type="integer", readable=False),
+        Field("report_stage", type="string", readable=False),
+        Field("keywords", type="string", readable=False),
+        Field("submitter_details", type="string", readable=False),
+        Field("already_published", type="boolean", readable=False),
+        Field("anonymous_submission", type="boolean", readable=False),
+        Field("request_submission_change", type="boolean", readable=False),
+
+        # original fields used in advanced search
+        Field("title", type="string",),
+        Field("authors", type="string",),
+
+        # additional computed fields for plain-text search
+        Field("submitter", type="string", label=T("Submitter"),
+            represent=lambda txt, row: mkSubmitter(row),
+        ),
+        Field("recommenders", type="string", label=T("Recommenders"),
+            represent=lambda txt, row: mkRecommenders(row),
+        ),
     )
 
-    db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.report_stage.writable = False
-    db.t_articles.report_stage.readable = False
+    def mkUser(user_details, user_id):
+        return TAG(user_details) if user_details else common_small_html._mkUser(users.get(user_id))
+
+    def mkRecommenders(row):
+        article_id = row.id
+
+        recomm = recomms.get(article_id)
+        if not recomm:
+            return DIV("no recommender")
+
+        resu = DIV()
+        resu.append(mkUser(recomm.recommender_details,recomm.recommender_id))
+
+        for co_recomm in co_recomms:
+            if co_recomm.recommendation_id == recomm.id:
+                resu.append(mkUser(co_recomm.contributor_details, co_recomm.contributor_id))
+
+        if len(resu) > 1:
+            resu.insert(1, DIV(B("Co-recommenders:")))
+
+        return resu
+
+    def mkSubmitter(row):
+        return SPAN(
+            DIV(common_small_html.mkAnonymousArticleField(None, None, row.anonymous_submission, "")),
+            mkUser(row.submitter_details, row.user_id),
+        )
+
+    _ = _db.t_articles
+    fields = [
+            _.art_stage_1_id,
+            _.report_stage,
+            _.last_status_change,
+            _.status,
+            _._id,
+            _.upload_timestamp,
+            _.already_published,
+            _.user_id,
+            _.keywords,
+            _.submitter_details,
+            _.anonymous_submission,
+            _.request_submission_change,
+            _.title,
+            _.authors,
+    ]
+    for row in _db(query).select(*fields):
+        row['submitter'] = mkSubmitter(row).flatten()
+        row['recommenders'] = mkRecommenders(row).flatten()
+        t_articles.insert(**row)
+
+    query = t_articles
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+        auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
     )
 
-    db.t_articles.status.writable = True
-    db.t_articles.cover_letter.readable = True
-    db.t_articles.cover_letter.writable = False
-    db.t_articles.keywords.readable = False
-    db.t_articles.keywords.writable = False
-    db.t_articles.auto_nb_recommendations.readable = False
-    db.t_articles.auto_nb_recommendations.writable = False
     db.t_articles.request_submission_change.represent = lambda text, row: T('YES') if row.request_submission_change == True else T("NO") 
     db.t_articles.request_submission_change.label = T('Changes requested?')
-    db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
+    db.t_articles._id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, _db, text), _class="pci-w300Cell")
     db.t_articles._id.label = T("Article")
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
     db.t_articles.upload_timestamp.label = T("Submission date")
     db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(row.last_status_change)
-    db.t_articles.already_published.readable = False
-
-    db.t_articles.has_manager_in_authors.readable = False
-    db.t_articles.doi.readable = False
-    db.t_articles.ms_version.readable = False
-    db.t_articles.picture_rights_ok.readable = False
-    db.t_articles.abstract.readable = False
-    db.t_articles.results_based_on_data.readable = False
-    db.t_articles.scripts_used_for_result.readable = False
-    db.t_articles.codes_used_in_study.readable = False
-    db.t_articles.request_submission_change.readable = False
-    db.t_articles.cover_letter.readable = False
-    db.t_articles.parallel_submission.readable = False
-    db.t_articles.record_url_version.readable = False
-    db.t_articles.record_id_version.readable = False
-    db.t_articles.article_source.readable = False
-    #db.t_articles.upload_timestamp.readable = False
-    #db.t_articles.user_id.readable = False
-    #db.t_articles.status.readable = False
-    #db.t_articles.last_status_change.readable = False
-    db.t_articles.doi_of_published_article.readable = False
-    db.t_articles.is_searching_reviewers.readable = False
-    db.t_articles.sub_thematics.readable = False
-    db.t_articles.scheduled_submission_date.readable = False
-    #db.t_articles.id.readable = False
 
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     links = [
-        dict(header=T("Recommenders"), body=lambda row: manager_module.mkRecommenderButton(row, auth, db)),
-        # dict(header=T("Recommendation title"), body=lambda row: manager_module.mkLastRecommendation(auth, db, row.id)),
         dict(
             header=T("Actions"),
             body=lambda row: DIV(
@@ -261,41 +298,21 @@ def _manage_articles(statuses, whatNext):
             ),
         ),
     ]
-    if parallelSubmissionAllowed:
-        fields = [
+    fields = [
             db.t_articles.art_stage_1_id,
             db.t_articles.report_stage,
             db.t_articles.last_status_change,
             db.t_articles.status,
-            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.already_published,
-            # db.t_articles.parallel_submission,
-            db.t_articles.auto_nb_recommendations,
             db.t_articles.user_id,
-            # db.t_articles.thematics,
+            db.t_articles.submitter,
             db.t_articles.keywords,
             db.t_articles.submitter_details,
+            db.t_articles.recommenders,
             db.t_articles.anonymous_submission,
-        ]
-    else:
-        fields = [
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            # db.t_articles.uploaded_picture,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.already_published,
-            db.t_articles.auto_nb_recommendations,
-            db.t_articles.user_id,
-            # db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.submitter_details,
-            db.t_articles.anonymous_submission,
-        ]
+    ]
     if statuses is not None and "Pre-submission" in statuses:
         fields += [db.t_articles.request_submission_change]
         links.pop(0)
@@ -303,7 +320,6 @@ def _manage_articles(statuses, whatNext):
 
     original_grid = SQLFORM.grid(
         query,
-        #qy_articles,
         details=False,
         editable=False,
         deletable=False,
@@ -324,8 +340,8 @@ def _manage_articles(statuses, whatNext):
     except: grid = original_grid
 
     return dict(
-        customText=getText(request, auth, db, "#ManagerArticlesText"),
-        pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
+        customText=getText(request, auth, _db, "#ManagerArticlesText"),
+        pageTitle=getTitle(request, auth, _db, "#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
