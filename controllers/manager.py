@@ -315,7 +315,7 @@ def _manage_articles(statuses, whatNext, db=db):
     ]
     if statuses is not None and "Pre-submission" in statuses:
         fields += [db.t_articles.request_submission_change]
-        links.pop(0)
+        fields.pop(11) # .remove(t_articles.recommenders) won't work, for Field.__eq__
 
 
     original_grid = SQLFORM.grid(
