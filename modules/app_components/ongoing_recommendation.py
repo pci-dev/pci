@@ -214,7 +214,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
             recommDate = recomm.last_change.strftime("%d %B %Y")
-            validationDate = art.last_status_change.strftime("%d %B %Y")
+            validationDate = recomm.validation_timestamp.strftime("%d %B %Y")
             if roundNumber < totalRecomm:
                 nextRound = recomms[roundNumber]
                 authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
