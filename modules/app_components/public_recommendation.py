@@ -151,6 +151,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=scheme, host=host, port=port),
             _style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; display:block",
         )
+    article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y,")
+    article_validation_time = art.validation_timestamp.strftime("validated %d %B %Y") if art.validation_timestamp else ""
+    recomm_post_time = finalRecomm.last_change.strftime("posted %d %B %Y,")
+    recomm_validation_time = finalRecomm.validation_timestamp.strftime("validated %d %B %Y") if finalRecomm.validation_timestamp else ""
 
     headerContent.update(
         [
@@ -159,9 +163,9 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             (
                 "recommDateinfos",
                 (
-                    I(art.upload_timestamp.strftime("Submitted: %d %B %Y")) if art.upload_timestamp else "",
-                    ", ",
-                    I(art.last_status_change.strftime("Recommended: %d %B %Y")) if art.last_status_change else "", 
+                    I(f"Submission: {article_upload_time} {article_validation_time}"),
+                    BR(),
+                    I(f"Recommendation: {recomm_post_time} {recomm_validation_time}"),
                 ),
             ),
             ("recomm_altmetric", recomm_altmetric),
