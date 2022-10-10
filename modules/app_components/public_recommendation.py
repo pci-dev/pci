@@ -124,7 +124,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             SPAN("The recommender in charge of the evaluation of the article and the reviewers declared that they have no conflict of interest (as defined in ",
             A("the code of conduct of PCI",  _href="../about/ethics"), ") with the authors or with the content of the article."),
         ),
-        _class="pci-citation",
+        _class="pci-conflict-of-interest-note",
     )
 
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
