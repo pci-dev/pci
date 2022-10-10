@@ -15,18 +15,25 @@ def index():
 
 def user_public_page():
     response.view = "default/user_public_profile.html"
-    resu = None
-    myContents = ""
-    if not ("userId" in request.vars):
-        session.flash = T("Unavailable")
-        redirect(request.env.http_referer)
-    else:
+    try:
         userId = request.vars["userId"]
-        if userId:
-            user = db.auth_user[userId]
+        user = db.auth_user[userId]
+
+        return profile_page(user)
+    except:
+        return dict(
+            pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
+            titleIcon="briefcase",
+            pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"),
+            customText=B(T("Unavailable"))
+        )
+
+
+def profile_page(user):
             # (gab) is always on false ????
-            withMail = False
-            if user:
+                withMail = False
+                userId = user.id
+
                 nameTitle = (user.last_name or "").upper(), " ", (user.first_name or "")
                 pageTitle = (
                     (user.last_name or "").upper(),
@@ -106,7 +113,7 @@ def user_public_page():
                 for row in reviewsQy:
                     reviews.append(article_components.getRecommArticleRowCard(auth, db, response, row, withImg=True, withScore=False, withDate=True, fullURL=False,))
 
-                resu = dict(
+                return dict(
                     pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
                     titleIcon="briefcase",
                     pageTitle=pageTitle,
@@ -120,12 +127,3 @@ def user_public_page():
                     userInfosList=UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles),
                     userCv=userCv
                 )
-        else:
-            myContents = B(T("Unavailable"))
-
-    if resu is None:
-        resu = dict(
-            pageHelp=getHelp(request, auth, db, "#PublicUserCard"), titleIcon="briefcase", pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"), customText=myContents,
-        )
-    return resu
-
