@@ -7,6 +7,8 @@ from app_components import article_components
 
 ######################################################################################################################################################################
 def index():
+    request.function = "user_public_page"
+
     if "userId" in request.vars:
         return user_public_page()
     if auth.user:
