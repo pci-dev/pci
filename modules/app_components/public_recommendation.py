@@ -253,6 +253,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         roundNumber = recommRound
 
         lastChanges = ""
+        validationDate = ""
         recommendationText = ""
         preprintVersion = recomm.ms_version
         preprintDoi = ""
@@ -261,6 +262,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             isLastRecomm = True
         else:
             lastChanges = SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else ""
+            validationDate = SPAN(I(recomm.validation_timestamp.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.validation_timestamp else ""
             recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
             preprintDoi = SPAN(common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
@@ -348,6 +350,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             preprintVersion=preprintVersion,
             recommAuthors=recommAuthors,
             lastChanges=lastChanges,
+            validationDate=validationDate,
             recommendationText=recommendationText,
             preprintDoi=preprintDoi,
             reviewsList=reviwesPreparedData,
