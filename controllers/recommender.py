@@ -2204,6 +2204,7 @@ def edit_recommendation():
                     recomm.recommendation_title = form.vars.recommendation_title
                     recomm.recommendation_comments = form.vars.recommendation_comments
                     recomm.recommender_file = form.vars.recommender_file
+                    recomm.last_change = request.now
                     # manual bypass:
                     rf = request.vars.recommender_file
                     if rf is not None:
