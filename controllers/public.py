@@ -7,11 +7,14 @@ from app_components import article_components
 
 ######################################################################################################################################################################
 def index():
+    if "userId" in request.vars:
+        return user_public_page()
     if auth.user:
         request.vars["userId"] = auth.user.id
         return user_public_page()
     else:
         redirect(URL("../.."))
+
 
 def user_public_page():
     response.view = "default/user_public_profile.html"
