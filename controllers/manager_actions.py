@@ -134,11 +134,14 @@ def do_revise_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     if art.status == "Pre-revision":
         art.status = "Awaiting revision"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
@@ -151,11 +154,14 @@ def do_reject_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     if art.status == "Pre-rejected":
         art.status = "Rejected"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
