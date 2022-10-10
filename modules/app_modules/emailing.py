@@ -35,7 +35,7 @@ from app_modules import emailing_parts
 from app_modules import emailing_vars
 from app_modules import newsletter
 from app_modules import reminders
-
+from app_components import ongoing_recommendation
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -86,7 +86,7 @@ def send_test_mail(session, auth, db, userId):
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter(session, auth, db, articleId, newStatus):
+def send_to_submitter(session, auth, db, articleId, newStatus, response):
     print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -179,6 +179,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, lastRecomm.id)
+                mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRecommendedPreprint", article)
 
@@ -191,6 +192,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus):
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, lastRecomm.id)
+                mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRecommendedPreprintPrivate", article)
 
