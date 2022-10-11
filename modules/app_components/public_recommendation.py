@@ -151,6 +151,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=scheme, host=host, port=port),
             _style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; display:block",
         )
+    article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y,")
+    article_validation_time = art.validation_timestamp.strftime("validated %d %B %Y") if art.validation_timestamp else ""
+    recomm_post_time = finalRecomm.last_change.strftime("posted %d %B %Y,")
+    recomm_validation_time = finalRecomm.validation_timestamp.strftime("validated %d %B %Y") if finalRecomm.validation_timestamp else ""
 
     headerContent.update(
         [
@@ -159,9 +163,9 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             (
                 "recommDateinfos",
                 (
-                    I(art.upload_timestamp.strftime("Submitted: %d %B %Y")) if art.upload_timestamp else "",
-                    ", ",
-                    I(finalRecomm.last_change.strftime("Recommended: %d %B %Y")) if finalRecomm.last_change else "",
+                    I(f"Submission: {article_upload_time} {article_validation_time}"),
+                    BR(),
+                    I(f"Recommendation: {recomm_post_time} {recomm_validation_time}"),
                 ),
             ),
             ("recomm_altmetric", recomm_altmetric),
@@ -249,6 +253,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         roundNumber = recommRound
 
         lastChanges = ""
+        validationDate = ""
         recommendationText = ""
         preprintVersion = recomm.ms_version
         preprintDoi = ""
@@ -256,7 +261,8 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         if recomms[0].id == recomm.id:
             isLastRecomm = True
         else:
-            lastChanges = SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else ""
+            lastChanges = SPAN(I("posted ", recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else ""
+            validationDate = SPAN(I("validated ", recomm.validation_timestamp.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.validation_timestamp else ""
             recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
             preprintDoi = SPAN(common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
@@ -344,6 +350,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             preprintVersion=preprintVersion,
             recommAuthors=recommAuthors,
             lastChanges=lastChanges,
+            validationDate=validationDate,
             recommendationText=recommendationText,
             preprintDoi=preprintDoi,
             reviewsList=reviwesPreparedData,

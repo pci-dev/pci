@@ -44,6 +44,7 @@ def do_validate_article():
         redirect(request.env.http_referer)
     if art.status == "Pending":
         art.status = "Awaiting consideration"
+        art.validation_timestamp = request.now
         art.update_record()
         session.flash = T("Request now available to recommenders")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
@@ -94,7 +95,7 @@ def do_recommend_article():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-
+    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
     # PCI RR
     # update stage 1 article status from "Recommended-private" to "Recommended"
     if art.art_stage_1_id is not None and art.status == "Pre-recommended":
@@ -111,10 +112,14 @@ def do_recommend_article():
     # stage 1 recommended privately 
     if art.status == "Pre-recommended-private":	
         art.status = "Recommended-private"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))   
     elif art.status == "Pre-recommended":
         art.status = "Recommended"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
         redirect(URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True))    
     else:
@@ -129,11 +134,14 @@ def do_revise_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     if art.status == "Pre-revision":
         art.status = "Awaiting revision"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
@@ -146,11 +154,14 @@ def do_reject_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     if art.status == "Pre-rejected":
         art.status = "Rejected"
+        recomm.validation_timestamp = request.now
+        recomm.update_record()
         art.update_record()
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 

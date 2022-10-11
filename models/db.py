@@ -628,6 +628,7 @@ db.define_table(
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
     ),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
+    Field("validation_timestamp", type="datetime", label=T("Validation date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
@@ -863,6 +864,7 @@ db.define_table(
         requires=IS_EMPTY_OR(IS_IN_SET(("Ongoing", "Recommended", "Rejected", "Revision", "Awaiting revision"))),
     ),
     Field("recommendation_timestamp", type="datetime", default=request.now, label=T("Recommendation start"), writable=False, requires=IS_NOT_EMPTY()),
+    Field("validation_timestamp", type="datetime", label=T("Validation date")),
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
     Field("is_closed", type="boolean", label=T("Closed"), default=False),
     Field("no_conflict_of_interest", type="boolean", label=T("I/we declare that I/we have no conflict of interest with the authors or the content of the article")),
