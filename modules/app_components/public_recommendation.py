@@ -117,6 +117,16 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-citation",
     )
 
+    info = DIV(
+        SPAN(
+            B("Conflict of interest:", _class="pci2-main-color-text"),
+            BR(),
+            SPAN("The recommender in charge of the evaluation of the article and the reviewers declared that they have no conflict of interest (as defined in ",
+            A("the code of conduct of PCI",  _href="../about/ethics"), ") with the authors or with the content of the article."),
+        ),
+        _class="pci-conflict-of-interest-note",
+    )
+
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
             auth, db, recomm=finalRecomm,
             with_reviewers=True, linked=True,
@@ -156,6 +166,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ),
             ("recomm_altmetric", recomm_altmetric),
             ("cite", cite),
+            ("info", info),
             ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode=False)),
             ("pdfLink", pdfLink),
             ("printable", printable),
