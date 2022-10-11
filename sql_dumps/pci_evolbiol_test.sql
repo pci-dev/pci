@@ -2946,3 +2946,10 @@ CREATE TABLE t_excluded_recommenders (
 );
 
 ALTER TABLE public.t_excluded_recommenders OWNER TO pci_admin;
+
+-- 2022-10-11 updates/validation_fields.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS validation_timestamp timestamp without time zone;
+
+ALTER TABLE "t_recommendations"
+ADD COLUMN IF NOT EXISTS validation_timestamp timestamp without time zone;
