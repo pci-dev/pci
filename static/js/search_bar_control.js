@@ -70,6 +70,8 @@ function initialise_simple_search() {
     var grid = document.querySelector('.web2py_grid');
     var advanced_search = grid.querySelector('#w2p_query_panel');
     var wconsole = grid.querySelector('.web2py_console');
+    var possible_form = grid.querySelector('.web2py_console > form');
+    possible_form.style.display = 'none';
     advanced_search.style.display = 'none';
 
     var simple_search_div = document.createElement('div');
@@ -190,7 +192,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles') {
+    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art') {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';

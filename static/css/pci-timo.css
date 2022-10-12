@@ -15,7 +15,8 @@
         hyphens: auto;
     }
 
-    #wrapper-home-articles .web2py_breadcrumbs {
+    #wrapper-home-articles .web2py_breadcrumbs,
+    .action-button-absolute .web2py_breadcrumbs {
         display: none;
     }
 

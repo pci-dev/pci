@@ -1974,7 +1974,6 @@ def articles_awaiting_reviewers():
 
     db.t_articles.abstract.readable = False
     db.t_articles.keywords.readable = False
-    db.t_articles.thematics.readable = False
     db.t_articles.upload_timestamp.readable = False
     db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
     db.t_articles.upload_timestamp.label = T("Submitted")
@@ -1983,10 +1982,11 @@ def articles_awaiting_reviewers():
 
     if parallelSubmissionAllowed:
         fields = [
+            db.t_articles.thematics,
             db.t_articles.scheduled_submission_date,
-            db.t_articles.last_status_change,
+            # db.t_articles.last_status_change,
             # db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.title,
@@ -1997,16 +1997,16 @@ def articles_awaiting_reviewers():
             db.t_articles.abstract,
             db.t_articles.doi,
             db.t_articles.ms_version,
-            db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.auto_nb_recommendations,
         ]
     else:
         fields = [
+            db.t_articles.thematics,
             db.t_articles.scheduled_submission_date,
-            db.t_articles.last_status_change,
+            # db.t_articles.last_status_change,
             # db.t_articles.status,
-            db.t_articles.uploaded_picture,
+            # db.t_articles.uploaded_picture,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.title,
@@ -2016,14 +2016,13 @@ def articles_awaiting_reviewers():
             db.t_articles.abstract,
             db.t_articles.doi,
             db.t_articles.ms_version,
-            db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.auto_nb_recommendations,
         ]
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid(
         query,
-        searchable=False,
+        searchable=True,
         details=False,
         editable=False,
         deletable=False,
@@ -2039,13 +2038,15 @@ def articles_awaiting_reviewers():
         _class="web2py_grid action-button-absolute",
     )
 
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2')
+    except: grid = original_grid
+
     return dict(
-        # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),
         customText=getText(request, auth, db, "#ArticlesAwaitingReviewersText"),
         titleIcon="inbox",
         pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
-        #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
-        grid=DIV(grid, _style=""),
+        grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )

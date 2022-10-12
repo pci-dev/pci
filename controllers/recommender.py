@@ -89,8 +89,6 @@ def fields_awaiting_articles():
             qyTF.append(re.sub(r"^qy_", "", myVar))
     qyKwArr = qyKw.split(" ")
 
-    searchForm = app_forms.searchByThematic(auth, db, myVars)
-
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
     for fr in filtered:
@@ -105,7 +103,6 @@ def fields_awaiting_articles():
     temp_db.qy_art.anonymous_submission.readable = False
     temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
     temp_db.qy_art.parallel_submission.readable = False
-    temp_db.qy_art.thematics.readable = False
     temp_db.qy_art.keywords.readable = False
 
     if len(request.args) == 0:  # in grid
@@ -125,7 +122,14 @@ def fields_awaiting_articles():
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
     else:
-        temp_db.qy_art._id.readable = False
+        temp_db.qy_art._id.readable = True
+        temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
+        temp_db.qy_art._id.label = T("Article")
+        temp_db.qy_art.title.readable = False
+        temp_db.qy_art.authors.readable = False      
+        temp_db.qy_art.art_stage_1_id.readable = False
+        temp_db.qy_art.art_stage_1_id.writable = False
+        temp_db.qy_art.article_source.readable = False
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
         temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
@@ -136,12 +140,13 @@ def fields_awaiting_articles():
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
     if parallelSubmissionAllowed:
         fields = [
+            temp_db.qy_art.thematics,
             temp_db.qy_art.art_stage_1_id,
             temp_db.qy_art.num,
             temp_db.qy_art.score,
-            temp_db.qy_art.last_status_change,
-            temp_db.qy_art.status,
-            temp_db.qy_art.uploaded_picture,
+            # temp_db.qy_art.last_status_change,
+            # temp_db.qy_art.status,
+            # temp_db.qy_art.uploaded_picture,
             temp_db.qy_art._id,
             temp_db.qy_art.title,
             temp_db.qy_art.authors,
@@ -150,18 +155,18 @@ def fields_awaiting_articles():
             temp_db.qy_art.anonymous_submission,
             temp_db.qy_art.parallel_submission,
             # temp_db.qy_art.abstract,
-            temp_db.qy_art.thematics,
             temp_db.qy_art.keywords,
             temp_db.qy_art.auto_nb_recommendations,
         ]
     else:
         fields = [
+            temp_db.qy_art.thematics,
             temp_db.qy_art.art_stage_1_id,
             temp_db.qy_art.num,
             temp_db.qy_art.score,
-            temp_db.qy_art.last_status_change,
-            temp_db.qy_art.status,
-            temp_db.qy_art.uploaded_picture,
+            # temp_db.qy_art.last_status_change,
+            # temp_db.qy_art.status,
+            # temp_db.qy_art.uploaded_picture,
             temp_db.qy_art._id,
             temp_db.qy_art.title,
             temp_db.qy_art.authors,
@@ -169,14 +174,13 @@ def fields_awaiting_articles():
             temp_db.qy_art.upload_timestamp,
             temp_db.qy_art.anonymous_submission,
             # temp_db.qy_art.abstract,
-            temp_db.qy_art.thematics,
             temp_db.qy_art.keywords,
             temp_db.qy_art.auto_nb_recommendations,
         ]
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.smartgrid(
         temp_db.qy_art,
-        searchable=False,
+        searchable=True,
         editable=False,
         deletable=False,
         create=False,
@@ -191,16 +195,17 @@ def fields_awaiting_articles():
         _class="web2py_grid action-button-absolute",
     )
 
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp')
+    except: grid = original_grid
+
     response.view = "default/gab_list_layout.html"
     return dict(
-        # pageTitle=T('Articles requiring a recommender'),
         titleIcon="inbox",
         pageTitle=getTitle(request, auth, db, "#RecommenderAwaitingArticlesTitle"),
         customText=getText(request, auth, db, "#RecommenderArticlesAwaitingRecommendationText:InMyFields"),
         grid=grid,
         pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
-        searchableList=True,
-        searchForm=searchForm,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
