@@ -36,6 +36,7 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   't_articles.doi_of_published_article', 't_articles.is_searching_reviewers', 't_articles.report_stage',
                   't_articles.art_stage_1_id', 't_articles.record_url_version', 't_articles.sub_thematics',
                   't_articles.record_id_version', 'qy_art.doi', 'qy_art.abstract', 'qy_art.status',
+                  'qy_art.id',
                   'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
@@ -195,9 +196,9 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 title_input_field.__getattribute__('attributes').update({'_style':'display:flex'}) 
     elif search_name == 'articles_temp':
         for option in select_panel:
-            if option.__getattribute__('attributes')['_value'].endswith('.title'):
+            if option.__getattribute__('attributes')['_value'].endswith('.text'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                title_input_field = grid.element('div#w2p_field_qy_art-title')
+                title_input_field = grid.element('div#w2p_field_qy_art-text')
                 title_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
     elif search_name == 'articles2':
         for option in select_panel:

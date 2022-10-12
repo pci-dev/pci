@@ -73,6 +73,7 @@ def fields_awaiting_articles():
         Field("anonymous_submission", type="boolean", label=T("Anonymous submission")),
         Field("parallel_submission", type="boolean", label=T("Parallel submission")),
         Field("art_stage_1_id", type="integer"),
+        Field("text", type="string", label="Article"),
     )
     myVars = request.vars
     qyKw = ""
@@ -89,12 +90,18 @@ def fields_awaiting_articles():
             qyTF.append(re.sub(r"^qy_", "", myVar))
     qyKwArr = qyKw.split(" ")
 
+    def article_html(art_id):
+        return common_small_html.mkRepresentArticleLight(auth, db, art_id)
+
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
     for fr in filtered:
         excluded_recommender = db((db.t_excluded_recommenders.article_id == fr['id']) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select(db.t_excluded_recommenders.article_id).last()
         if not excluded_recommender:
+            fr['text'] = article_html(fr['id']).flatten()
             qy_art.insert(**fr)
+
+    temp_db.qy_art.text.represent = lambda text, row: article_html(row.id)
 
     temp_db.qy_art.auto_nb_recommendations.readable = False
     temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
@@ -106,9 +113,6 @@ def fields_awaiting_articles():
     temp_db.qy_art.keywords.readable = False
 
     if len(request.args) == 0:  # in grid
-        temp_db.qy_art._id.readable = True
-        temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
-        temp_db.qy_art._id.label = T("Article")
         temp_db.qy_art.title.readable = False
         temp_db.qy_art.authors.readable = False
         # temp_db.qy_art.status.readable = False
@@ -122,9 +126,6 @@ def fields_awaiting_articles():
         temp_db.qy_art.num.readable = False
         temp_db.qy_art.score.readable = False
     else:
-        temp_db.qy_art._id.readable = True
-        temp_db.qy_art._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
-        temp_db.qy_art._id.label = T("Article")
         temp_db.qy_art.title.readable = False
         temp_db.qy_art.authors.readable = False      
         temp_db.qy_art.art_stage_1_id.readable = False
@@ -139,7 +140,7 @@ def fields_awaiting_articles():
     # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
     fields = [
-            temp_db.qy_art._id,
+            temp_db.qy_art.text,
             temp_db.qy_art.title,
             temp_db.qy_art.thematics,
             temp_db.qy_art.art_stage_1_id,
