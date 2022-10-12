@@ -138,44 +138,23 @@ def fields_awaiting_articles():
     links = []
     # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
-    if parallelSubmissionAllowed:
-        fields = [
+    fields = [
+            temp_db.qy_art._id,
+            temp_db.qy_art.title,
             temp_db.qy_art.thematics,
             temp_db.qy_art.art_stage_1_id,
             temp_db.qy_art.num,
             temp_db.qy_art.score,
-            # temp_db.qy_art.last_status_change,
-            # temp_db.qy_art.status,
-            # temp_db.qy_art.uploaded_picture,
-            temp_db.qy_art._id,
-            temp_db.qy_art.title,
             temp_db.qy_art.authors,
             temp_db.qy_art.article_source,
             temp_db.qy_art.upload_timestamp,
             temp_db.qy_art.anonymous_submission,
-            temp_db.qy_art.parallel_submission,
-            # temp_db.qy_art.abstract,
             temp_db.qy_art.keywords,
             temp_db.qy_art.auto_nb_recommendations,
         ]
-    else:
-        fields = [
-            temp_db.qy_art.thematics,
-            temp_db.qy_art.art_stage_1_id,
-            temp_db.qy_art.num,
-            temp_db.qy_art.score,
-            # temp_db.qy_art.last_status_change,
-            # temp_db.qy_art.status,
-            # temp_db.qy_art.uploaded_picture,
-            temp_db.qy_art._id,
-            temp_db.qy_art.title,
-            temp_db.qy_art.authors,
-            temp_db.qy_art.article_source,
-            temp_db.qy_art.upload_timestamp,
-            temp_db.qy_art.anonymous_submission,
-            # temp_db.qy_art.abstract,
-            temp_db.qy_art.keywords,
-            temp_db.qy_art.auto_nb_recommendations,
+    if parallelSubmissionAllowed:
+        fields += [
+            temp_db.qy_art.parallel_submission,
         ]
 
     original_grid = SQLFORM.smartgrid(

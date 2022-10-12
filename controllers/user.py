@@ -1980,18 +1980,13 @@ def articles_awaiting_reviewers():
     db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(text)
     db.t_articles.auto_nb_recommendations.readable = True
 
-    if parallelSubmissionAllowed:
-        fields = [
+    fields = [
+            db.t_articles._id,
             db.t_articles.thematics,
             db.t_articles.scheduled_submission_date,
-            # db.t_articles.last_status_change,
-            # db.t_articles.status,
-            # db.t_articles.uploaded_picture,
-            db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.title,
             db.t_articles.anonymous_submission,
-            db.t_articles.parallel_submission,
             db.t_articles.authors,
             db.t_articles.article_source,
             db.t_articles.abstract,
@@ -2000,24 +1995,9 @@ def articles_awaiting_reviewers():
             db.t_articles.keywords,
             db.t_articles.auto_nb_recommendations,
         ]
-    else:
-        fields = [
-            db.t_articles.thematics,
-            db.t_articles.scheduled_submission_date,
-            # db.t_articles.last_status_change,
-            # db.t_articles.status,
-            # db.t_articles.uploaded_picture,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.title,
-            db.t_articles.anonymous_submission,
-            db.t_articles.authors,
-            db.t_articles.article_source,
-            db.t_articles.abstract,
-            db.t_articles.doi,
-            db.t_articles.ms_version,
-            db.t_articles.keywords,
-            db.t_articles.auto_nb_recommendations,
+    if parallelSubmissionAllowed:
+        fields += [
+            db.t_articles.parallel_submission,
         ]
 
     original_grid = SQLFORM.grid(
