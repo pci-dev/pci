@@ -48,6 +48,10 @@
         margin-bottom: .6rem;
     }
 
+    .web2py_console select.form-control:nth-child(2) {
+        width: 100%;
+    }
+
     #myNavbar {
         position: absolute;
         background-color: white;
