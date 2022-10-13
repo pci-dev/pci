@@ -25,7 +25,7 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   'auth_user.last_alert', 'auth_user.registration_datetime',
                   'auth_user.ethical_code_approved', 'qy_recomm.id', 'auth_user.id',
                   'mail_templates.lang', 'qy_reviewers.id',
-                  'qy_reviewers.thematics', 'qy_recomm.thematics', 't_articles.id',
+                  'qy_reviewers.thematics', 't_articles.id',
                   't_articles.upload_timestamp',  't_articles.status',
                   't_articles.last_status_change', 't_status_article.status',
                   't_status_article.color_class', 't_status_article.explaination', 't_status_article.priority_level',
@@ -40,9 +40,8 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   'qy_art.parallel_submission',
                   'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
-                           'recommenders': 'w2p_field_qy_recomm-roles'}
-thematics_hijacked_options = ['auth_user.website', 'qy_reviewers.roles', 'qy_recomm.roles']
+hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles', }
+thematics_hijacked_options = ['auth_user.website', 'qy_reviewers.roles', ]
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
                      'articles2': 't_status_article'}
