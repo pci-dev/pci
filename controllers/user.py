@@ -42,6 +42,9 @@ def recommendations():
     printable = "printable" in request.vars and request.vars["printable"] == "True"
 
     articleId = request.vars["articleId"]
+    if not articleId:
+        return my_articles()
+
     art = db.t_articles[articleId]
     if art is None:
         session.flash = auth.not_authorized()
