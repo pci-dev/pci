@@ -75,6 +75,9 @@ def fields_awaiting_articles():
         Field("art_stage_1_id", type="integer"),
         Field("text", type="string", label="Article"),
     )
+
+    qy_art.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+
     myVars = request.vars
     qyKw = ""
     qyTF = []
