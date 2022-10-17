@@ -316,7 +316,7 @@ def _RecommendationMenu():
         classPreprintsRequireRecomm = ""
 
     # scheduled submissions (RR only) specific menu entry (validation also available for Managers, as usual)
-    nbPend = db(db.t_articles.status.belongs(("Scheduled submission pending",))).count()
+    nbPend = db(db.pending_scheduled_submissions_query).count()
     if nbPend > 0:
         colorRequests = True
         notificationPin = DIV(nPreprintsRecomPend + nbPend, _class="pci2-notif-pin")

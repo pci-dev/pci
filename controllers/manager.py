@@ -165,6 +165,10 @@ def _manage_articles(statuses, whatNext, db=db):
     else:
         query = db.t_articles
 
+    # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+    if pciRRactivated and is_recommender(auth, request):
+        query = db.pending_scheduled_submissions_query
+
     def index_by(field, query): return { x[field]: x for x in db(query).select() }
 
     users = index_by("id", db.auth_user)

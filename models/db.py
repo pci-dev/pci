@@ -959,6 +959,13 @@ def get_last_recomms():
 db.get_last_recomms = get_last_recomms
 
 
+db.pending_scheduled_submissions_query = (
+    db.t_articles.status.belongs(("Scheduled submission pending",))
+    & (db.t_articles.id == db.t_recommendations.article_id)
+    & (db.t_recommendations.recommender_id == auth.user_id)
+)
+
+
 db.define_table(
     "t_pdf",
     Field("id", type="id"),
