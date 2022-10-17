@@ -719,12 +719,16 @@ def getManagerButton(art, auth, isRecommender):
         return None
     else:
         if isRecommender:
+            return sorry_you_are_recommender_note()
+        else:
+            return validate_stage_button(art)
+
+
+def sorry_you_are_recommender_note():
             return DIV(
                 B(current.T("Note: you also served as the Recommender for this submission, please ensure that another member of the Managing Board performs the validation")),
                 _class="pci2-flex-center"
             )
-        else:
-            return validate_stage_button(art)
 
 
 def validate_stage_button(art):
