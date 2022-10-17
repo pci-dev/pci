@@ -734,11 +734,7 @@ def validate_stage_button(art):
                     "Validate this submission",
                     "Click here to validate this request and start recommendation process",
                     art,
-                    A(
-                        SPAN(current.T("Put in Pre-submission list"), _class="buttontext btn btn-default pci-manager"),
-                        _href=URL(c="manager_actions", f="pre_submission_list", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to put this article in a pre-submission stage"),
-                    ) if pciRRactivated else "",
+                    put_in_presubmission_button(art) if pciRRactivated else "",
                 )
             elif art.status == "Pre-submission":
                 return manager_action_button(
@@ -785,6 +781,16 @@ def manager_action_button(action, text, info_text, art, extra_button="", style="
         extra_button,
         _class="pci-EditButtons-centered",
     )
+
+
+def put_in_presubmission_button(art):
+    return manager_action_button(
+            "pre_submission_list",
+            "Put in Pre-submission list",
+            "Click here to put this article in a pre-submission stage",
+            art,
+            style="default",
+    )[0]
 
 
 def send_back_button(art):
