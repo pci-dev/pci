@@ -708,22 +708,28 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             break
 
     # Manager button
-    managerButton = getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, printable)
+    managerButton = getManagerButton(art, auth, amIinRecommenderList or amIinCoRecommenderList) \
+            if not printable else None
 
     return DIV(recommendationRounds, managerButton or "")
 
 
-def getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, printable):
-    if not auth.has_membership(role="manager") or (art.user_id == auth.user_id) or (printable):
+def getManagerButton(art, auth, isRecommender):
+    if art.user_id == auth.user_id:
         return None
+    if not auth.has_membership(role="manager"):
+        return None
+    if isRecommender:
+        return sorry_you_are_recommender_note()
     else:
-        if amIinRecommenderList or amIinCoRecommenderList:
+        return validate_stage_button(art)
+
+
+def sorry_you_are_recommender_note():
             return DIV(
                 B(current.T("Note: you also served as the Recommender for this submission, please ensure that another member of the Managing Board performs the validation")),
                 _class="pci2-flex-center"
             )
-        else:
-            return validate_stage_button(art)
 
 
 def validate_stage_button(art):
