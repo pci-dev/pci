@@ -730,12 +730,6 @@ def getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, pr
 def validate_stage_button(art):
             managerButton = None
 
-            send_back_button =  A(
-                SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
-                _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
-                _title=current.T("Click here to send back this decision to the recommender"),
-            )
-
             if art.status == "Pending":
                 managerButton = DIV(
                     A(
@@ -766,7 +760,7 @@ def validate_stage_button(art):
                         _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate recommendation of this article"),
                     ),
-                    send_back_button,
+                    send_back_button(art),
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-revision":
@@ -776,7 +770,7 @@ def validate_stage_button(art):
                         _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate revision of this article"),
                     ),
-                    send_back_button,
+                    send_back_button(art),
                     _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-rejected":
@@ -786,11 +780,19 @@ def validate_stage_button(art):
                         _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to validate the rejection of this article"),
                     ),
-                    send_back_button,
+                    send_back_button(art),
                     _class="pci-EditButtons-centered",
                 )
 
             return managerButton
+
+
+def send_back_button(art):
+    return A(
+        SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
+        _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
+        _title=current.T("Click here to send back this decision to the recommender"),
+    )
 
 
 ######################################################################################################################################
