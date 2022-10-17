@@ -728,63 +728,63 @@ def getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, pr
 
 
 def validate_stage_button(art):
-            managerButton = None
-
             if art.status == "Pending":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this submission"), _class="buttontext btn btn-success pci-manager"),
-                        _href=URL(c="manager_actions", f="do_validate_article", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate this request and start recommendation process"),
-                    ),
+                return manager_action_button(
+                    "do_validate_article",
+                    "Validate this submission",
+                    "Click here to validate this request and start recommendation process",
+                    art,
                     A(
                         SPAN(current.T("Put in Pre-submission list"), _class="buttontext btn btn-default pci-manager"),
                         _href=URL(c="manager_actions", f="pre_submission_list", vars=dict(articleId=art.id), user_signature=True),
                         _title=current.T("Click here to put this article in a pre-submission stage"),
                     ) if pciRRactivated else "",
-                    _class="pci-EditButtons-centered",
                 )
             elif art.status == "Pre-submission":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Request Changes from Author"), _class="buttontext btn btn-default pci-manager"),
-                        _href=URL(c="manager", f="send_submitter_generic_mail", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate recommendation of this article"),
-                    ),
-                    _class="pci-EditButtons-centered",
+                return manager_action_button(
+                    "send_submitter_generic_mail",
+                    "Request Changes from Author",
+                    "Click here to validate recommendation of this article",
+                    art, base="manager",
+                    style="default",
                 )
             elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this recommendation"), _class="buttontext btn btn-success pci-manager"),
-                        _href=URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate recommendation of this article"),
-                    ),
-                    send_back_button(art),
-                    _class="pci-EditButtons-centered",
+                return manager_action_button(
+                    "do_recommend_article",
+                    "Validate this recommendation",
+                    "Click here to validate recommendation of this article",
+                    art, send_back_button(art)
                 )
             elif art.status == "Pre-revision":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this decision"), _class="buttontext btn btn-info pci-manager"),
-                        _href=URL(c="manager_actions", f="do_revise_article", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate revision of this article"),
-                    ),
-                    send_back_button(art),
-                    _class="pci-EditButtons-centered",
+                return manager_action_button(
+                    "do_revise_article",
+                    "Validate this decision",
+                    "Click here to validate revision of this article",
+                    art, send_back_button(art),
+                    style="info",
                 )
             elif art.status == "Pre-rejected":
-                managerButton = DIV(
-                    A(
-                        SPAN(current.T("Validate this rejection"), _class="buttontext btn btn-info pci-manager"),
-                        _href=URL(c="manager_actions", f="do_reject_article", vars=dict(articleId=art.id), user_signature=True),
-                        _title=current.T("Click here to validate the rejection of this article"),
-                    ),
-                    send_back_button(art),
-                    _class="pci-EditButtons-centered",
+                return manager_action_button(
+                    "do_reject_article",
+                    "Validate this rejection",
+                    "Click here to validate the rejection of this article",
+                    art, send_back_button(art),
+                    style="info",
                 )
 
-            return managerButton
+            return None
+
+
+def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions"):
+    return DIV(
+        A(
+            SPAN(current.T(text), _class="buttontext btn btn-"+str(style)+" pci-manager"),
+            _href=URL(c=base, f=action, vars=dict(articleId=art.id), user_signature=True),
+            _title=current.T(info_text),
+        ),
+        extra_button,
+        _class="pci-EditButtons-centered",
+    )
 
 
 def send_back_button(art):
