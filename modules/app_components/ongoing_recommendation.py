@@ -708,6 +708,12 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             break
 
     # Manager button
+    managerButton = getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, printable)
+
+    return DIV(recommendationRounds, managerButton or "")
+
+
+def getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, printable):
     managerButton = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
         if amIinRecommenderList or amIinCoRecommenderList:
@@ -716,6 +722,14 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 _class="pci2-flex-center"
             )
         else:
+            managerButton = validate_stage_button(art)
+
+    return managerButton
+
+
+def validate_stage_button(art):
+            managerButton = None
+
             send_back_button =  A(
                 SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
                 _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
@@ -776,7 +790,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                     _class="pci-EditButtons-centered",
                 )
 
-    return DIV(recommendationRounds, managerButton or "")
+            return managerButton
 
 
 ######################################################################################################################################
