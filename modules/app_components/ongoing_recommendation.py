@@ -714,17 +714,16 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
 
 def getManagerButton(art, auth, amIinRecommenderList, amIinCoRecommenderList, printable):
-    managerButton = None
-    if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
+    if not auth.has_membership(role="manager") or (art.user_id == auth.user_id) or (printable):
+        return None
+    else:
         if amIinRecommenderList or amIinCoRecommenderList:
-            managerButton = DIV(
+            return DIV(
                 B(current.T("Note: you also served as the Recommender for this submission, please ensure that another member of the Managing Board performs the validation")),
                 _class="pci2-flex-center"
             )
         else:
-            managerButton = validate_stage_button(art)
-
-    return managerButton
+            return validate_stage_button(art)
 
 
 def validate_stage_button(art):
