@@ -715,13 +715,14 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
 
 def getManagerButton(art, auth, isRecommender):
-    if not auth.has_membership(role="manager") or (art.user_id == auth.user_id):
+    if art.user_id == auth.user_id:
         return None
+    if not auth.has_membership(role="manager"):
+        return None
+    if isRecommender:
+        return sorry_you_are_recommender_note()
     else:
-        if isRecommender:
-            return sorry_you_are_recommender_note()
-        else:
-            return validate_stage_button(art)
+        return validate_stage_button(art)
 
 
 def sorry_you_are_recommender_note():
