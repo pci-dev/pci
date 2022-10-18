@@ -1944,64 +1944,55 @@ def articles_awaiting_reviewers():
 
     query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")
 
-    db.t_articles.auto_nb_recommendations.writable = False
-    db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
-    db.t_articles._id.label = T("Article")
-    db.t_articles.doi.readable = False
-    db.t_articles.title.readable = False
-    db.t_articles.authors.readable = False
-    db.t_articles.ms_version.readable = False
-    db.t_articles.article_source.readable = False
-    db.t_articles.parallel_submission.readable = False
-    db.t_articles.anonymous_submission.readable = False
+    qy_art = DAL("sqlite:memory").define_table(
+        "qy_art",
 
-    db.t_articles.scheduled_submission_date.readable = False
-    db.t_articles.scheduled_submission_date.writable = False
+        # displayed full-text searchable synthetic field
+        Field("text", type="string", label="Article"),
 
-    # db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
+        # displayed fields
+        Field("thematics", type="string", label=T("Thematic fields")),
+        Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
+
+        # additional advanced search fields (if not filtered in adjust_grid)
+        Field("abstract", type="text"),
+        Field("keywords", type="text"),
+
+        Field("last_status_change", type="date", readable=False), # sort key
+    )
+
+    art_html = {}
+    qy_art.text.represent = lambda text, row: art_html[row.id]
+    qy_art.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+
+    for row in db(query).select():
+        html = common_small_html.mkArticleCellNoRecomm(auth, db, row)
+        art_html[row.id] = html
+        row.text = html.flatten()
+        row.thematics = ", ".join(row.thematics)
+        row = {f: row[f] for f in [str(f).replace("qy_art.", "") for f in qy_art]}
+        qy_art.insert(**row)
+
     links = [
         dict(
             header="",
             body=lambda row: A(
                 SPAN(current.T("Willing to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
-                _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row["t_articles.id"]), user_signature=True),
+                _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row.id)),
                 _class="",
                 _title=current.T("View and/or edit article"),
             ),
         ),
     ]
 
-    db.t_articles.abstract.readable = False
-    db.t_articles.keywords.readable = False
-    db.t_articles.upload_timestamp.readable = False
-    db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
-    db.t_articles.upload_timestamp.label = T("Submitted")
-    db.t_articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(text)
-    db.t_articles.auto_nb_recommendations.readable = True
-
     fields = [
-            db.t_articles._id,
-            db.t_articles.thematics,
-            db.t_articles.scheduled_submission_date,
-            db.t_articles.upload_timestamp,
-            db.t_articles.title,
-            db.t_articles.anonymous_submission,
-            db.t_articles.authors,
-            db.t_articles.article_source,
-            db.t_articles.abstract,
-            db.t_articles.doi,
-            db.t_articles.ms_version,
-            db.t_articles.keywords,
-            db.t_articles.auto_nb_recommendations,
-        ]
-    if parallelSubmissionAllowed:
-        fields += [
-            db.t_articles.parallel_submission,
+            qy_art.text,
+            qy_art.thematics,
+            qy_art.auto_nb_recommendations,
         ]
 
     original_grid = SQLFORM.grid(
-        query,
+        qy_art,
         searchable=True,
         details=False,
         editable=False,
@@ -2013,14 +2004,12 @@ def articles_awaiting_reviewers():
         paginate=20,
         fields=fields,
         links=links,
-        left=db.t_status_article.on(db.t_status_article.status == db.t_articles.status),
-        orderby=~db.t_articles.last_status_change,
+        orderby=~qy_art.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2')
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2')
 
     return dict(
         pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),

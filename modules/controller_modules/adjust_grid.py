@@ -37,6 +37,7 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   't_articles.art_stage_1_id', 't_articles.record_url_version', 't_articles.sub_thematics',
                   't_articles.record_id_version', 'qy_art.doi', 'qy_art.abstract', 'qy_art.status',
                   'qy_art.id',
+                  'qy_art.parallel_submission',
                   'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
@@ -91,7 +92,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         panel_search_field = grid.element('div#w2p_field_qy_art-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
     elif search_name == 'articles2':
-        panel_search_field = grid.element('div#w2p_field_t_status_article-id')
+        panel_search_field = grid.element('div#w2p_field_qy_art-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
 
     # restyle Add, And, Or, Close buttons
@@ -202,9 +203,9 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 title_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
     elif search_name == 'articles2':
         for option in select_panel:
-            if option.__getattribute__('attributes')['_value'].endswith('.id'):
+            if option.__getattribute__('attributes')['_value'].endswith('.text'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                id_input_field = grid.element('div#w2p_field_t_status_article-id')
+                id_input_field = grid.element('div#w2p_field_qy_art-text')
                 id_input_field.__getattribute__('attributes').update({'_style':'display:flex'})                
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
