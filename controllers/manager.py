@@ -572,7 +572,7 @@ def search_recommenders():
             Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
             Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="string", label=T("Thematic fields")),
+            Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
             Field("keywords", type="string", label=T("Keywords")),
             Field("expertise", type="string", label=T("Areas of Expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),
@@ -630,6 +630,7 @@ def search_recommenders():
         #temp_db.qy_recomm._id.readable = False
         temp_db.qy_recomm.uploaded_picture.readable = False
         temp_db.qy_recomm.num.readable = False
+        temp_db.qy_recomm.roles.readable = False
         temp_db.qy_recomm.score.readable = False
         temp_db.qy_recomm.excluded.readable = False
         selectable = None
@@ -665,14 +666,8 @@ def search_recommenders():
             _class="web2py_grid action-button-absolute",
         )
 
-        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
-        specific_thematics = []
-        for t in thematics_query:
-            specific_thematics.append(t[1])
-
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
-        except: grid = original_grid
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders')
 
         response.view = "default/gab_list_layout.html"
         return dict(
