@@ -215,7 +215,6 @@ def search_reviewers():
         Field("institution", type="string", label=T("Institution")),
         Field("thematics", type="string", label=T("Thematic fields")),
         Field("expertise", type="string", label=T("Areas of Expertise")),
-        Field("roles", type="string", length=1024, label=T("Roles")),
         Field("excluded", type="boolean", label=T("Excluded")),
         Field("any", type="string", label=T("All fields")),
     )
@@ -298,6 +297,7 @@ def search_reviewers():
     temp_db.qy_reviewers._id.represent = lambda uid, row: DIV(common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]), _class="pci-w300Cell")
     temp_db.qy_reviewers._id.label = "Who?"
     #temp_db.qy_reviewers.reviewer_stat.represent = lambda stat, row: DIV(common_small_html.mkReviewerStat(auth, db, stat), _class="pci-w300Cell")
+    qy_reviewers.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
     pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
     customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
@@ -354,14 +354,8 @@ def search_reviewers():
             _class="web2py_grid action-button-absolute",
         )
 
-        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
-        specific_thematics = []
-        for t in thematics_query:
-            specific_thematics.append(t[1])
-
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', specific_thematics)
-        except: grid = original_grid
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers')
 
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
