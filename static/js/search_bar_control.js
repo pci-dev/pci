@@ -70,6 +70,8 @@ function initialise_simple_search() {
     var grid = document.querySelector('.web2py_grid');
     var advanced_search = grid.querySelector('#w2p_query_panel');
     var wconsole = grid.querySelector('.web2py_console');
+    var possible_form = grid.querySelector('.web2py_console > form');
+    possible_form.style.display = 'none';
     advanced_search.style.display = 'none';
 
     var simple_search_div = document.createElement('div');
@@ -190,7 +192,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query
-    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles') {
+    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art') {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';
@@ -273,7 +275,7 @@ function add_to_search(input_field) {
     var regulator = regulator_whole.split(' ')[0];
 
     // lastly get search term
-    var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    var search_term = get_search_term(input_field);
     if (db_field == 'thematics') {
         add_thematics(user_type, 'and', false);
     }
@@ -374,6 +376,17 @@ function add_thematics(user_type, regulator, not_statement = false) {
     main_search_form.submit();
 }
 
+function get_search_term(input_field) {
+    var search_form = input_field.parentElement;
+
+    var search_term = search_form.querySelector('input.form-control');
+    if (!search_term) {
+	search_term = search_form.querySelectorAll('select.form-control')[1];
+    }
+
+    return search_term.value;
+}
+
 function new_search(input_field) {
     // make search bar visible
     var main_search_form = document.querySelector('.web2py_console > form');
@@ -388,7 +401,7 @@ function new_search(input_field) {
     }
 
     // get search term
-    var search_term = input_field.parentElement.querySelector('input.form-control').value;
+    var search_term = get_search_term(input_field);
 
     var statement = '';
     var select_field = document.querySelector('#w2p_query_fields');

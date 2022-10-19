@@ -27,13 +27,25 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   'mail_templates.lang', 'qy_reviewers.id',
                   'qy_reviewers.thematics', 'qy_recomm.thematics', 't_articles.id',
                   't_articles.upload_timestamp',  't_articles.status',
-                  't_articles.last_status_change']
+                  't_articles.last_status_change', 't_status_article.status',
+                  't_status_article.color_class', 't_status_article.explaination', 't_status_article.priority_level',
+                  't_articles.has_manager_in_authors', 't_articles.picture_rights_ok',
+                  't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
+                  't_articles.codes_used_in_study', 't_articles.validation_timestamp',
+                  't_articles.user_id', 't_articles.request_submission_change', 't_articles.already_published',
+                  't_articles.doi_of_published_article', 't_articles.is_searching_reviewers', 't_articles.report_stage',
+                  't_articles.art_stage_1_id', 't_articles.record_url_version', 't_articles.sub_thematics',
+                  't_articles.record_id_version', 'qy_art.doi', 'qy_art.abstract', 'qy_art.status',
+                  'qy_art.id',
+                  'qy_art.parallel_submission',
+                  'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles',
                            'recommenders': 'w2p_field_qy_recomm-roles'}
 thematics_hijacked_options = ['auth_user.website', 'qy_reviewers.roles', 'qy_recomm.roles']
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
-                     'recommenders': 'qy_recomm', 'articles': 'qy_art'}
+                     'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
+                     'articles2': 't_status_article'}
 
 
 def adjust_grid_basic(grid, search_name, thematics = []):
@@ -50,7 +62,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     search_field = grid.element('.web2py_console form')
     panel_query_rows = grid.elements('div#w2p_query_panel div')
     input_buttons = grid.elements('form input.btn')
-    w2p_query_rows = grid.elements('div.w2p_query_row')
 
     # individual changes
     panel.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -77,6 +88,12 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     elif search_name == 'articles':
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    elif search_name == 'articles_temp':
+        panel_search_field = grid.element('div#w2p_field_qy_art-id')
+        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    elif search_name == 'articles2':
+        panel_search_field = grid.element('div#w2p_field_qy_art-id')
+        panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
 
     # restyle Add, And, Or, Close buttons
     for btn in btns:
@@ -91,7 +108,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
             btn.__getattribute__('attributes').update({'_class':'btn btn-default or-btn'})
         elif btn.__getattribute__('attributes')['_value'] == 'Close':
             btn.__getattribute__('attributes').update({'_style':'display:none'})
-    
+
     # initially, the ADD buttons are now green SEARCH buttons
     add_btns = grid.elements('div#w2p_query_panel input.add-btn')
     for ab in add_btns:
@@ -152,7 +169,7 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})
             grid.elements('div#w2p_field_' + option.__getattribute__('attributes')['_value'].replace('.', '-'), replace=None)
-    
+
     # set "All Fields" as primary choice
     for option in select_panel:
         if option.__getattribute__('attributes')['_value'].endswith('.any'):
@@ -176,8 +193,20 @@ def adjust_grid_basic(grid, search_name, thematics = []):
         for option in select_panel:
             if option.__getattribute__('attributes')['_value'].endswith('.title'):
                 option.__getattribute__('attributes').update({'_selected':'selected'})
-                hashtag_input_field = grid.element('div#w2p_field_t_articles-title')
-                hashtag_input_field.__getattribute__('attributes').update({'_style':'display:flex'})        
+                title_input_field = grid.element('div#w2p_field_t_articles-title')
+                title_input_field.__getattribute__('attributes').update({'_style':'display:flex'}) 
+    elif search_name == 'articles_temp':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.text'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                title_input_field = grid.element('div#w2p_field_qy_art-text')
+                title_input_field.__getattribute__('attributes').update({'_style':'display:flex'})
+    elif search_name == 'articles2':
+        for option in select_panel:
+            if option.__getattribute__('attributes')['_value'].endswith('.text'):
+                option.__getattribute__('attributes').update({'_selected':'selected'})
+                id_input_field = grid.element('div#w2p_field_qy_art-text')
+                id_input_field.__getattribute__('attributes').update({'_style':'display:flex'})                
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].__getattribute__('attributes').update({'_style':'display:none'})
@@ -200,10 +229,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
                 if option.__getattribute__('attributes')['_value'] == '=':
                     option.__getattribute__('attributes').update({'_class': 'contains'})
                     selector.elements('option.contains', replace=OPTION('contains', _class="contains"))                
-
-
-
-        #selector.__getattribute__('attributes').update({'_style':'display:none'})
 
     grid.elements('div#w2p_query_panel', replace=None)
     grid.elements('div.web2py_breadcrumbs', replace=None)
