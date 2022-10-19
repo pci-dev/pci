@@ -76,7 +76,9 @@ def list_users():
     db.auth_user.country.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.ethical_code_approved.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.alerts.requires = IS_EMPTY_OR(IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly")))
-    db.auth_user.thematics.requires = IS_EMPTY_OR(IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True))
+    db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)
+    db.auth_user.thematics.type = "string"
+    db.auth_user.website.readable = False
 
     fields = [
         db.auth_user.id,
@@ -164,13 +166,8 @@ def list_users():
                     paginate=25,
     )
 
-    thematics_query = db.executesql("""SELECT * FROM t_thematics""")
-    specific_thematics = []
-    for t in thematics_query:
-        specific_thematics.append(t[1])
-
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', specific_thematics)
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users')
     except: grid = original_grid
 
     if "auth_membership.user_id" in request.args:

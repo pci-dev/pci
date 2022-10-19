@@ -40,8 +40,8 @@ remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                   'qy_art.parallel_submission',
                   'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-hijacks_thematics_field = {'users': 'w2p_field_auth_user-website', 'reviewers': 'w2p_field_qy_reviewers-roles', }
-thematics_hijacked_options = ['auth_user.website', 'qy_reviewers.roles', ]
+hijacks_thematics_field = { 'reviewers': 'w2p_field_qy_reviewers-roles', }
+thematics_hijacked_options = [ 'qy_reviewers.roles', ]
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
                      'articles2': 't_status_article'}
@@ -69,8 +69,6 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     elif search_name == 'users':
         panel_search_field = grid.element('div#w2p_field_auth_user-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.element('div#w2p_field_auth_user-website')
-        select_panel_id2 = grid.element('#w2p_field_auth_user-website select.form-control')
         # restyle the add button
         add_btn = grid.element('div.web2py_console a.btn-secondary')
         add_btn.__getattribute__('attributes').update({'_style':'margin-bottom:4rem'})
