@@ -87,7 +87,7 @@ set.conf.rr.%:
 	rm -f languages/default.py
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 
-test:
+test.full:
 	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
 
 test.basic:

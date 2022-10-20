@@ -23,7 +23,7 @@ Setup test environment
 Run tests
 ---------
 
-	make test
+	make test.full
 
 or live:
 

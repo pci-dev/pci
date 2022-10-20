@@ -66,6 +66,7 @@ See [doc / Tests setup](doc/Tests-setup.md) then use:
 
 	make test.reset
 	make test.basic
+	make test.full
 
 
 ---
