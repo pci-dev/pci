@@ -53,43 +53,20 @@ In a prod setup, mails are sent by the mailing queue, run as a cronjob.
 See [doc / Mailing-queue](doc/Mailing-queue.md) to run one.
 
 
----
+Running tests
+-------------
 
-## Run tests
+There are currently two flavours of automated tests:
+- cypress
+- selenium+pytest
 
-#### Requirements:
+The tests can be used to populate an "empty" vanilla dev instance.
 
-Selenium tests:
-
-	make test.install.selenium
-
-Cypress tests:
-
-	make test.install
-
-#### Setup test environment:
-
-	make test.setup
-	make test.setup test.db.rr  # for RR
-
-#### Run tests:
-
-	make test
-
-or live:
-
-	npx cypress open
-
-shorter scenario:
-
-	make test.basic
-
-	SHOW=y make test.basic  # live-show
-
-#### Reset test environment:
+See [doc / Tests setup](doc/Tests-setup.md) then use:
 
 	make test.reset
-	make test.reset.rr  # for RR
+	make test.basic
+
 
 ---
 
