@@ -1,20 +1,24 @@
-# PCIDEV : Peer Community website dev
+PCI - Peer Community In
+=======================
 
-## A free recommendation process of published and unpublished scientific papers based on peer reviews
+Free recommendation process for published and unpublished scientific papers
+based on peer reviews
 
----
 
-## What is PCI ?
+What is PCI ?
+-------------
 
 The “Peer Community in” project is a non-profit scientific organization aimed at creating specific communities of researchers reviewing and recommending papers in their field. These specific communities are entitled Peer Community in X, e.g. Peer Community in Evolutionary Biology, Peer Community in Microbiology.
 
----
 
-## Install project
+Installing from source
+----------------------
 
-Requirements: Python (3.8 or greater), PostgreSql (9.6 or greater), web2py.
+Requirements:
 
-Additional requirements: libimage-exiftool-perl, ghostscript (9.26+)
+- python (3.8+), postgreSql (9.6+), web2py
+- libimage-exiftool-perl, ghostscript (9.26+)
+
 
 Suggestion: use a python virtual env
 
@@ -22,31 +26,20 @@ Suggestion: use a python virtual env
 	mkvirtualenv pci --python=`which python3.8`
 
 
-Install all required components:
+Install, configure, run:
 
-	make install
+	make install    # install all required components
 
-Give yourself postgres admin access
+	make db.admin   # give yourself postgres admin access
 
-	make db.admin
+	make db         # create PostgreSql database and user
 
-Create PostgreSql database and user
-
-	make db
+	make start      # run the PCI server
 
 
-Run the PCI server:
+Browse the "empty" PCI at http://localhost:8000/pci
 
-	make start
-
-creates default config file:
-- `private/appconfig.ini`
-
-
-
-
-
-
+The instance above runs with no mail server configured, which is ok for dev.
 
 In a prod setup, mails are sent by the mailing queue, run as a cronjob.
 
