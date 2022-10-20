@@ -96,6 +96,9 @@ test.basic:
 test.create-article:
 	cd tests ; pytest -k User_submits
 
+coar.refresh:
+	touch modules/app_modules/coar_notify.py
+
 build:
 	docker build -t pci .
 
