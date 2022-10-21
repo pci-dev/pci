@@ -335,8 +335,20 @@ def _manage_articles(statuses, whatNext, db=db):
         _class="web2py_grid action-button-absolute",
     )
    
+    # options to be removed from the search dropdown:
+    remove_options = ['t_articles.id', 't_articles.upload_timestamp',  't_articles.status',
+                  't_articles.last_status_change', 't_status_article.status',
+                  't_status_article.color_class', 't_status_article.explaination', 't_status_article.priority_level',
+                  't_articles.has_manager_in_authors', 't_articles.picture_rights_ok',
+                  't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
+                  't_articles.codes_used_in_study', 't_articles.validation_timestamp',
+                  't_articles.user_id', 't_articles.request_submission_change', 't_articles.already_published',
+                  't_articles.doi_of_published_article', 't_articles.is_searching_reviewers', 't_articles.report_stage',
+                  't_articles.art_stage_1_id', 't_articles.record_url_version', 't_articles.sub_thematics',
+                  't_articles.record_id_version']
+
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles')
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
     except: grid = original_grid
 
     return dict(
@@ -666,8 +678,11 @@ def search_recommenders():
             _class="web2py_grid action-button-absolute",
         )
 
+        # options to be removed from the search dropdown:
+        remove_options = ['qy_recomm.id']
+
         # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders')
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
 
         response.view = "default/gab_list_layout.html"
         return dict(

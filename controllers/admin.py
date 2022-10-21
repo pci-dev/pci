@@ -166,8 +166,13 @@ def list_users():
                     paginate=25,
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['auth_user.registration_key', 'auth_user.alerts', 
+                    'auth_user.last_alert', 'auth_user.registration_datetime',
+                    'auth_user.ethical_code_approved', 'auth_user.id',]
+
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users')
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', remove_options)
     except: grid = original_grid
 
     if "auth_membership.user_id" in request.args:

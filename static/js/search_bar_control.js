@@ -36,14 +36,6 @@ function set_onclick_events() {
         })
     }
 
-    // set listener for thematics dropdown
-    var thematics_dropdown = document.querySelector('#w2p_field_thematics > select.form-control');
-    if (thematics_dropdown) {
-        thematics_dropdown.addEventListener('change', function() {
-            add_thematics(user_type, 'new');
-        })
-    }
-
     // next, the advanced search fields. This is more tricky, as there are several
     var input_fields = document.querySelectorAll('input.form-control');
     for (var i = 0; i < input_fields.length; i++) {
@@ -229,12 +221,8 @@ function ongoing_search() {
         and_btn.style.backgroundColor = 'black';
         and_btn.style.color = 'white';
         and_btn.value = 'ADD';
-        if (query_rows[i].id == 'w2p_field_thematics') {
-            and_btn.setAttribute('onclick', 'add_thematics("' + user_type + '", "and", false)');
-            continue;
-        }
         and_btn.setAttribute('onclick', 'add_to_search(this)');
-        // add new options to form control (not for thematics)
+        // add new options to form control
         var form_controls = query_rows[i].querySelector('select.form-control');
         form_controls.innerHTML = '';
         var and_contains = document.createElement('option');
@@ -276,9 +264,6 @@ function add_to_search(input_field) {
 
     // lastly get search term
     var search_term = get_search_term(input_field);
-    if (db_field == 'thematics') {
-        add_thematics(user_type, 'and', false);
-    }
 
     // create statement
     if (regulator == 'not') {
@@ -340,40 +325,6 @@ function remove_asterisks() {
             }
         }
     }
-}
-
-function add_thematics(user_type, regulator, not_statement = false) {
-    /* when Thematic Fields is chosen, choose the argument
-    from the new dropdown, but not from the input field */
-    // get thematic search term
-    var drop_field_thematics = document.querySelector('#w2p_field_thematics > .form-control');
-    var thematic = drop_field_thematics.value;
-
-    // special case of not statement
-    if (not_statement) {
-        var inner_regulator = '!=';
-    } else {
-        var inner_regulator = 'contains'
-    }
-
-    var search_statement = user_type + '.thematics ' + inner_regulator + ' "' + thematic + '"';
-
-    // get the statement to the search field
-    var search_field = document.querySelector('#w2p_keywords');
-    if (regulator == 'new') {
-        search_field.value = search_statement;
-    } else {
-        search_field.value += ' ' + regulator + ' ' + search_statement;
-    }
-
-    if (regulator == 'new') {
-        var search_bar = document.querySelector('.web2py_console > form');
-        search_bar.style.display = 'flex';
-        search_bar.submit();
-
-    }
-    var main_search_form = document.querySelector('.web2py_console > form');
-    main_search_form.submit();
 }
 
 function get_search_term(input_field) {

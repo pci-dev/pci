@@ -85,8 +85,11 @@ def mail_templates():
             orderby=~db.mail_templates.id,
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['mail_templates.lang']
+
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'templates')
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'templates', remove_options)
     except: grid = original_grid
 
     if grid.update_form and grid.update_form.process().accepted:

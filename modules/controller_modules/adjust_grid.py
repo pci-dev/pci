@@ -21,33 +21,12 @@ from app_components import app_forms
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 from gluon.contrib.appconfig import AppConfig
 
-remove_options = ['auth_user.registration_key', 'auth_user.alerts', 
-                  'auth_user.last_alert', 'auth_user.registration_datetime',
-                  'auth_user.ethical_code_approved', 'qy_recomm.id', 'auth_user.id',
-                  'mail_templates.lang', 'qy_reviewers.id',
-                  't_articles.id',
-                  't_articles.upload_timestamp',  't_articles.status',
-                  't_articles.last_status_change', 't_status_article.status',
-                  't_status_article.color_class', 't_status_article.explaination', 't_status_article.priority_level',
-                  't_articles.has_manager_in_authors', 't_articles.picture_rights_ok',
-                  't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
-                  't_articles.codes_used_in_study', 't_articles.validation_timestamp',
-                  't_articles.user_id', 't_articles.request_submission_change', 't_articles.already_published',
-                  't_articles.doi_of_published_article', 't_articles.is_searching_reviewers', 't_articles.report_stage',
-                  't_articles.art_stage_1_id', 't_articles.record_url_version', 't_articles.sub_thematics',
-                  't_articles.record_id_version', 'qy_art.doi', 'qy_art.abstract', 'qy_art.status',
-                  'qy_art.id',
-                  'qy_art.parallel_submission',
-                  'qy_art.last_status_change', 'qy_art.already_published']
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-hijacks_thematics_field = {  }
-thematics_hijacked_options = [ ]
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
                      'articles2': 't_status_article'}
 
-
-def adjust_grid_basic(grid, search_name, thematics = []):
+def adjust_grid_basic(grid, search_name, remove_options = []):
     '''
     function that adjusts the grid after its generation
     '''
@@ -114,52 +93,11 @@ def adjust_grid_basic(grid, search_name, thematics = []):
     # initially, the large search field is hidden
     search_field.__getattribute__('attributes').update({'_style': 'display:none'})
 
-    if thematics:
-        # hi-jack unused field and re-create it to an "Thematics" search
-        try:
-            hijack_field2 = hijacks_thematics_field[search_name]
-            regulator_panel_id2 = grid.element('div#%s .form-control'%hijack_field2)
-            options2 = regulator_panel_id2.elements('option')
-            for i,option in enumerate(options2):
-                if i >= len(thematics):
-                    option.__getattribute__('attributes').update({'_class': 'remove'}) # assign class to allow selection
-                    select_panel_id2.elements('option.remove', replace='') # then select and remove
-                else:
-                    option.__getattribute__('attributes').update({'_class': 'hijack'}) # assign class to allow selection
-                    select_panel_id2.elements('option.hijack', replace=OPTION(thematics[i], _class=thematics[i])) # then select and replace
-                    option.__getattribute__('attributes').update({'_style':'display:none'})
-            
-            input_fields_id = regulator_panel_id2[0].siblings()
-            for input in input_fields_id:
-                if 'form-control' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_id': 'w2p_value_thematics'})
-                    input.__getattribute__('attributes').update({'_class': 'thematics form-control'})
-                    input.__getattribute__('attributes').update({'_disabled':'disabled'})
-                if 'add-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "new")'})
-                if 'and-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "and")'})
-                if 'or-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "or")'})
-                if 'not-btn' in input.__getattribute__('attributes')['_class']:
-                    input.__getattribute__('attributes').update({'_onclick': 'add_thematics("' + search_name2field[search_name] + '", "not", true)'})
-
-            panel_search_field2.__getattribute__('attributes').update({'_id': 'w2p_field_thematics'})
-        except:
-            print('Thematic Field Creation Failed')
-
     # remove options, regulators, and other elements that are not required
     for option in select_panel:
         if option.__getattribute__('attributes')['_value'].endswith('any'):
             option.__getattribute__('attributes').update({'_class':'selector'})
             grid.element('div#w2p_field_' + search_name2field[search_name] + '-any').__getattribute__('attributes').update({'_style':'display:flex'})
-        # setup Thematic Fields custom control
-        if option.__getattribute__('attributes')['_value'] in thematics_hijacked_options:
-            option.__getattribute__('attributes').update({'_class':'selector'})
-            select_panel.elements('option.selector', replace=OPTION('Thematic Fields', _value="thematics", _class="thematics"))
-            new_thematics_field = select_panel.elements('option.thematics')
-            select_panel.elements('option.thematics', replace=None)
-            grid.element('select#w2p_query_fields').insert(1,new_thematics_field[0]) # set Thematic fields to 2nd position
         # remove the fields that are not required
         elif option.__getattribute__('attributes')['_value'] in remove_options:
             option.__getattribute__('attributes').update({'_style':'display:none'})

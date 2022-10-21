@@ -313,14 +313,12 @@ def search_recommenders():
                         orderby=temp_db.qy_recomm.num,
                         _class="web2py_grid action-button-absolute",
                     )
-        
-        thematics_query = db.executesql("""SELECT * FROM t_thematics""")
-        specific_thematics = []
-        for t in thematics_query:
-            specific_thematics.append(t[1])
-        
+
+        # options to be removed from the search dropdown:
+        remove_options = ['qy_recomm.id']
+
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', specific_thematics)
+        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
         except: grid = original_grid
 
         if len(excludeList) > 1:
@@ -2008,8 +2006,13 @@ def articles_awaiting_reviewers():
         _class="web2py_grid action-button-absolute",
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['qy_art.doi', 'qy_art.abstract', 'qy_art.status', 'qy_art.id', 
+                      'qy_art.parallel_submission', 'qy_art.last_status_change', 
+                      'qy_art.already_published']
+
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2')
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2', remove_options)
 
     return dict(
         pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),
