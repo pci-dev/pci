@@ -102,9 +102,6 @@ function initialise_simple_search() {
         switch_search_btn = create_switch_search_btn('advanced');
         insertAfter(switch_search_btn, wconsole);
     }
-    // also show the current search query in the simple search bar to avoid confusion
-    //var simple_search_bar = document.querySelector('#simple-search-input');
-    //simple_search_bar.value = search_bar.value;
     search_bar.value = '';
 
     setSearchType('simple');
@@ -131,7 +128,6 @@ function create_switch_search_btn(modus) {
 function removeURLParameter(url, parameter) {
     var urlparts = url.split('?');
     if (urlparts.length >= 2) {
-
         var prefix = encodeURIComponent(parameter) + '=';
         var pars = urlparts[1].split(/[&;]/g);
 
@@ -140,7 +136,6 @@ function removeURLParameter(url, parameter) {
                 pars.splice(i, 1);
             }
         }
-
         return urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : '');
     }
     return url;
@@ -183,7 +178,7 @@ function simple_search() {
     setSearchType('simple');
     var search_term = document.querySelector('#simple-search-input').value;
 
-    // create add all query
+    // create add all query (some searches have "any" field, others do not)
     if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art') {
         var search_statement = search_term;
     } else {
@@ -194,7 +189,6 @@ function simple_search() {
     var search_field = document.querySelector('#w2p_keywords');
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
-    
     search_field.value = search_statement;
     search_form.submit();
 }
@@ -282,32 +276,6 @@ function add_to_search(input_field) {
     // add statement to search bar
     var search_bar = document.querySelector('#w2p_keywords');
     search_bar.value += statement;
-}
-
-function add_all(field, regulator, search_name = false) {
-    // get search term
-    var search_field_all = document.querySelector('#w2p_value_all');
-    var search_term = search_field_all.value;
-
-    var regulator_field = field.parentElement.querySelector('select.form-control').value;
-    if (regulator_field == 'not contains') {
-        var prefix = 'not ';
-    } else {
-        var prefix = '';
-    }
-
-    var search_statement = prefix + 'any contains "' + search_term + '"';
-
-    var search_field = document.querySelector('#w2p_keywords');
-
-    if (regulator == 'new') {
-        var search_form = document.querySelector('.web2py_console > form');
-        search_form.style.display = 'flex';
-        search_field.value = search_statement;
-        search_form.submit();
-    } else {
-        search_field.value += ' ' + regulator + ' ' + search_statement;
-    }
 }
 
 function result_counter_initial() {

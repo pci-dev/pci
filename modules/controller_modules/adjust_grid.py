@@ -1,25 +1,6 @@
 # -*- coding: utf-8 -*-
-import re
-import copy
-import random
-import os
-import tempfile
-import shutil
-import datetime
-
-from gluon.contrib.markdown import WIKI
-
 from app_modules.helper import *
-
-from controller_modules import admin_module
-from controller_modules import adjust_grid
-from app_modules import common_small_html
-from app_modules import common_tools
-from app_modules import emailing_tools
-from app_components import app_forms
-
-from gluon.contrib.markmin.markmin2latex import render, latex_escape
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.markdown import WIKI
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
@@ -57,8 +38,6 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
     elif search_name == 'recommenders':
         panel_search_field = grid.element('div#w2p_field_qy_recomm-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
-        panel_search_field2 = grid.element('div#w2p_field_qy_recomm-roles')
-        select_panel_id2 = grid.element('#w2p_field_qy_recomm-roles select.form-control')
     elif search_name == 'articles':
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
         panel_search_field.__getattribute__('attributes').update({'_style':'display:flex'})
@@ -72,7 +51,6 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
     # restyle Add, And, Or, Close buttons
     for btn in btns:
         if btn.__getattribute__('attributes')['_value'] == 'New Search':
-            #btn.__getattribute__('attributes').update({'_value':'ADD'})
             btn.__getattribute__('attributes').update({'_class':'btn btn-default add-btn'})
         elif btn.__getattribute__('attributes')['_value'] == '+ And':
             btn.__getattribute__('attributes').update({'_style':'display:none'})
@@ -151,7 +129,6 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
             if option.__getattribute__('attributes')['_value'] == 'contains':
                 option.__getattribute__('attributes').update({'_selected':'selected'})
                 contains_field_set = True
-                #selector.__getattribute__('attributes').update({'_disabled':'disabled'}) 
             elif option.__getattribute__('attributes')['_value'] == '!=':
                 option.__getattribute__('attributes').update({'_class': 'not_contains'})
                 selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))                
