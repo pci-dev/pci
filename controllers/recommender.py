@@ -178,9 +178,13 @@ def fields_awaiting_articles():
         _class="web2py_grid action-button-absolute",
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['qy_art.doi', 'qy_art.abstract', 'qy_art.status', 'qy_art.id', 
+                      'qy_art.parallel_submission', 'qy_art.last_status_change', 
+                      'qy_art.already_published']
+
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp')
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options)
 
     response.view = "default/gab_list_layout.html"
     return dict(
@@ -354,8 +358,11 @@ def search_reviewers():
             _class="web2py_grid action-button-absolute",
         )
 
+        # options to be removed from the search dropdown:
+        remove_options = ['qy_reviewers.id']
+
         # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers')
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
 
         response.view = "default/gab_list_layout.html"
         myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
