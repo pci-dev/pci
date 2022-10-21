@@ -318,8 +318,7 @@ def search_recommenders():
         remove_options = ['qy_recomm.id']
 
         # the grid is adjusted after creation to adhere to our requirements
-        try: grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
-        except: grid = original_grid
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
 
         if len(excludeList) > 1:
             btnTxt = current.T("Done")

@@ -348,8 +348,7 @@ def _manage_articles(statuses, whatNext, db=db):
                   't_articles.record_id_version']
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
 
     return dict(
         customText=getText(request, auth, _db, "#ManagerArticlesText"),

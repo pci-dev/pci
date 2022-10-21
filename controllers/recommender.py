@@ -184,8 +184,7 @@ def fields_awaiting_articles():
                       'qy_art.already_published']
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options)
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options)
 
     response.view = "default/gab_list_layout.html"
     return dict(
