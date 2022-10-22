@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from app_modules.helper import *
-from gluon.contrib.markdown import WIKI
+from app_modules.helper import OPTION
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
