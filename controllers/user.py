@@ -1403,24 +1403,23 @@ def my_reviews():
 
     response.view = "default/myLayout.html"
 
-    pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
-    if pendingOnly:
-        query = (
+    query = (
             (db.t_reviews.reviewer_id == auth.user_id)
-            & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
+    )
+    pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
+    if pendingOnly:
+        query = (query
+            & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_articles.status == "Under consideration")
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
     else:
-        query = (
-            (db.t_reviews.reviewer_id == auth.user_id)
+        query = (query
             & (db.t_reviews.review_state != "Awaiting response")
-            & (db.t_reviews.recommendation_id == db.t_recommendations._id)
-            & (db.t_recommendations.article_id == db.t_articles._id)
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsText")
