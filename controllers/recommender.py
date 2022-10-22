@@ -634,53 +634,47 @@ def my_recommendations():
     # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
+    links = [
+            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(
+                auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+    ]
+    fields = [
+            db.t_articles.scheduled_submission_date,
+            db.t_recommendations.last_change,
+            db.t_articles.status,
+            db.t_articles.art_stage_1_id,
+            db.t_recommendations._id,
+            db.t_recommendations.article_id,
+            db.t_recommendations.doi,
+            db.t_recommendations.is_closed,
+    ]
+    query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id)
+
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     if isPress:  ## NOTE: POST-PRINTS
-        query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == True)
+        query = query & (db.t_articles.already_published == True)
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_recommendations.last_change,
-            db.t_articles.status,
-            db.t_articles.art_stage_1_id,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            db.t_recommendations.is_closed,
-        ]
-        links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(
-                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
-            ),
-        ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False)
+        query = query & (db.t_articles.already_published == False)
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_recommendations.last_change,
-            db.t_articles.status,
-            db.t_articles.art_stage_1_id,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            db.t_recommendations.is_closed,
+        fields += [
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
         ]
-        links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+        links += [
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
+        ]
+        db.t_recommendations.article_id.label = T("Preprint")
+
+    links += [
             dict(
                 header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
             ),
-        ]
-        db.t_recommendations.article_id.label = T("Preprint")
+    ]
 
     db.t_recommendations.recommender_id.writable = False
     db.t_recommendations.doi.writable = False
