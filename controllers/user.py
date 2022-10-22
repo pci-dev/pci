@@ -1348,30 +1348,7 @@ def my_articles():
     else:
         db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
 
-    if parallelSubmissionAllowed:
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            # db.t_articles.uploaded_picture,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.title,
-            db.t_articles.anonymous_submission,
-            db.t_articles.parallel_submission,
-            db.t_articles.authors,
-            db.t_articles.article_source,
-            db.t_articles.abstract,
-            db.t_articles.doi,
-            db.t_articles.ms_version,
-            db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.auto_nb_recommendations,
-        ]
-    else:
-        fields = [
+    fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_articles.report_stage,
