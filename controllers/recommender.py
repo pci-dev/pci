@@ -114,30 +114,20 @@ def fields_awaiting_articles():
     temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
     temp_db.qy_art.parallel_submission.readable = False
     temp_db.qy_art.keywords.readable = False
+    temp_db.qy_art.title.readable = False
+    temp_db.qy_art.authors.readable = False
+    temp_db.qy_art.art_stage_1_id.readable = False
+    temp_db.qy_art.art_stage_1_id.writable = False
+    temp_db.qy_art.article_source.readable = False
+    temp_db.qy_art.num.readable = False
+    temp_db.qy_art.score.readable = False
 
     if len(request.args) == 0:  # in grid
-        temp_db.qy_art.title.readable = False
-        temp_db.qy_art.authors.readable = False
-        # temp_db.qy_art.status.readable = False
-        temp_db.qy_art.article_source.readable = False
         temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
-        # temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-        temp_db.qy_art.art_stage_1_id.readable = False
-        temp_db.qy_art.art_stage_1_id.writable = False
         temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
     else:
-        temp_db.qy_art.title.readable = False
-        temp_db.qy_art.authors.readable = False      
-        temp_db.qy_art.art_stage_1_id.readable = False
-        temp_db.qy_art.art_stage_1_id.writable = False
-        temp_db.qy_art.article_source.readable = False
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
         temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
-        # temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
 
     links = []
     # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
