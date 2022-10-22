@@ -535,43 +535,26 @@ def my_awaiting_articles():
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     if len(request.args) == 0:  # we are in grid
-        # db.t_articles.doi.readable = False
-        # db.t_articles.authors.readable = False
-        # db.t_articles.title.readable = False
         db.t_articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         db.t_articles.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
         db.t_articles._id.readable = True
         db.t_articles._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
         db.t_articles._id.label = T("Article")
-        # db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
     else:  # we are in grid's form
         db.t_articles._id.readable = False
-        # db.t_articles.abstract.represent = lambda text, row: WIKI(text)
-    if parallelSubmissionAllowed:
-        fields = [
+
+    fields = [
             db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.anonymous_submission,
+    ]
+    if parallelSubmissionAllowed: fields += [
             db.t_articles.parallel_submission,
-            # db.t_articles.abstract,
-            db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.user_id,
-            db.t_articles.auto_nb_recommendations,
-            db.t_articles.submitter_details,
-        ]
-    else:
-        fields = [
-            db.t_articles.art_stage_1_id,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.anonymous_submission,
-            # db.t_articles.abstract,
+    ]
+    fields += [
             db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.user_id,
