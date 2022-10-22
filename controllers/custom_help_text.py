@@ -89,8 +89,8 @@ def mail_templates():
     remove_options = ['mail_templates.lang']
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'templates', remove_options)
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'templates', remove_options) \
+            if len(request.args) == 1 else original_grid
 
     if grid.update_form and grid.update_form.process().accepted:
         if redirect_url:
