@@ -1755,15 +1755,15 @@ def email_for_new_reviewer():
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
+        # NOTE adapt long-delay key for invitation
+        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+
         # search for already-existing user
         existingUser = db(db.auth_user.email.upper() == request.vars["reviewer_email"].upper()).select().last()
         if existingUser:
             new_user_id = existingUser.id
             # NOTE: update reset_password_key if not empty with a fresh new one
-            if existingUser.reset_password_key is not None and existingUser.reset_password_key != "":
-                max_time = time.time()
-                # NOTE adapt long-delay key for invitation
-                reset_password_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
+            if existingUser.reset_password_key:
                 existingUser.update_record(reset_password_key=reset_password_key)
                 existingUser = None
             nbExistingReviews = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == new_user_id)).count()
@@ -1780,9 +1780,6 @@ def email_for_new_reviewer():
                 )
                 # reset password link
                 new_user = db.auth_user(new_user_id)
-                max_time = time.time()
-                # NOTE adapt long-delay key for invitation
-                reset_password_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
                 new_user.update_record(reset_password_key=reset_password_key)
                 nbExistingReviews = 0
                 session.flash = T('User "%(reviewer_email)s" created.') % (request.vars)
@@ -1806,45 +1803,16 @@ def email_for_new_reviewer():
             )
 
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+            declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
+                    scheme=scheme, host=host, port=port)
 
             if existingUser:
-                try:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
-
-                    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
-                        id=reviewId,
-                        key=quickDeclineKey,
-                    ),
-                    scheme=scheme, host=host, port=port)
-
-                    emailing.send_reviewer_invitation(
-                        session,
-                        auth,
-                        db,
-                        reviewId,
-                        replyto_addresses,
-                        cc_addresses,
-                        hashtag_template,
-                        request.vars["subject"],
-                        request.vars["message"],
-                        None,
-                        linkTarget,
-                        declineLinkTarget,
-                    )
-                except Exception as e:
-                    session.flash = (session.flash or "") + T("E-mail failed.")
-                    pass
+                    reset_password_key = None
             else:
-                try:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
 
-                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
-                        id=reviewId,
-                        key=quickDeclineKey,
-                    ),
-                    scheme=scheme, host=host, port=port)
-
+            try:
                     emailing.send_reviewer_invitation(
                         session,
                         auth,
@@ -1859,7 +1827,7 @@ def email_for_new_reviewer():
                         linkTarget,
                         declineLinkTarget,
                     )
-                except Exception as e:
+            except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")
                     pass
 
