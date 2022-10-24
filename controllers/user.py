@@ -1348,30 +1348,7 @@ def my_articles():
     else:
         db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
 
-    if parallelSubmissionAllowed:
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            # db.t_articles.uploaded_picture,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.title,
-            db.t_articles.anonymous_submission,
-            db.t_articles.parallel_submission,
-            db.t_articles.authors,
-            db.t_articles.article_source,
-            db.t_articles.abstract,
-            db.t_articles.doi,
-            db.t_articles.ms_version,
-            db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.auto_nb_recommendations,
-        ]
-    else:
-        fields = [
+    fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
             db.t_articles.report_stage,
@@ -1426,24 +1403,23 @@ def my_reviews():
 
     response.view = "default/myLayout.html"
 
-    pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
-    if pendingOnly:
-        query = (
+    query = (
             (db.t_reviews.reviewer_id == auth.user_id)
-            & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_reviews.recommendation_id == db.t_recommendations._id)
             & (db.t_recommendations.article_id == db.t_articles._id)
+    )
+    pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
+    if pendingOnly:
+        query = (query
+            & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_articles.status == "Under consideration")
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
     else:
-        query = (
-            (db.t_reviews.reviewer_id == auth.user_id)
+        query = (query
             & (db.t_reviews.review_state != "Awaiting response")
-            & (db.t_reviews.recommendation_id == db.t_recommendations._id)
-            & (db.t_recommendations.article_id == db.t_articles._id)
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsText")

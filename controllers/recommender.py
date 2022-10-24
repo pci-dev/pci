@@ -114,30 +114,20 @@ def fields_awaiting_articles():
     temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
     temp_db.qy_art.parallel_submission.readable = False
     temp_db.qy_art.keywords.readable = False
+    temp_db.qy_art.title.readable = False
+    temp_db.qy_art.authors.readable = False
+    temp_db.qy_art.art_stage_1_id.readable = False
+    temp_db.qy_art.art_stage_1_id.writable = False
+    temp_db.qy_art.article_source.readable = False
+    temp_db.qy_art.num.readable = False
+    temp_db.qy_art.score.readable = False
 
     if len(request.args) == 0:  # in grid
-        temp_db.qy_art.title.readable = False
-        temp_db.qy_art.authors.readable = False
-        # temp_db.qy_art.status.readable = False
-        temp_db.qy_art.article_source.readable = False
         temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
-        # temp_db.qy_art.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
-        temp_db.qy_art.art_stage_1_id.readable = False
-        temp_db.qy_art.art_stage_1_id.writable = False
         temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
     else:
-        temp_db.qy_art.title.readable = False
-        temp_db.qy_art.authors.readable = False      
-        temp_db.qy_art.art_stage_1_id.readable = False
-        temp_db.qy_art.art_stage_1_id.writable = False
-        temp_db.qy_art.article_source.readable = False
-        temp_db.qy_art.num.readable = False
-        temp_db.qy_art.score.readable = False
         temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
-        # temp_db.qy_art.abstract.represent = lambda text, row: WIKI(text or "")
 
     links = []
     # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
@@ -545,43 +535,26 @@ def my_awaiting_articles():
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
     if len(request.args) == 0:  # we are in grid
-        # db.t_articles.doi.readable = False
-        # db.t_articles.authors.readable = False
-        # db.t_articles.title.readable = False
         db.t_articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
         db.t_articles.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
         db.t_articles._id.readable = True
         db.t_articles._id.represent = lambda text, row: common_small_html.mkRepresentArticleLight(auth, db, text)
         db.t_articles._id.label = T("Article")
-        # db.t_articles.abstract.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
     else:  # we are in grid's form
         db.t_articles._id.readable = False
-        # db.t_articles.abstract.represent = lambda text, row: WIKI(text)
-    if parallelSubmissionAllowed:
-        fields = [
+
+    fields = [
             db.t_articles.art_stage_1_id,
             db.t_articles.last_status_change,
             db.t_articles.status,
             db.t_articles._id,
             db.t_articles.upload_timestamp,
             db.t_articles.anonymous_submission,
+    ]
+    if parallelSubmissionAllowed: fields += [
             db.t_articles.parallel_submission,
-            # db.t_articles.abstract,
-            db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.user_id,
-            db.t_articles.auto_nb_recommendations,
-            db.t_articles.submitter_details,
-        ]
-    else:
-        fields = [
-            db.t_articles.art_stage_1_id,
-            db.t_articles.last_status_change,
-            db.t_articles.status,
-            db.t_articles._id,
-            db.t_articles.upload_timestamp,
-            db.t_articles.anonymous_submission,
-            # db.t_articles.abstract,
+    ]
+    fields += [
             db.t_articles.thematics,
             db.t_articles.keywords,
             db.t_articles.user_id,
@@ -661,53 +634,47 @@ def my_recommendations():
     # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
+    links = [
+            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(
+                auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+    ]
+    fields = [
+            db.t_articles.scheduled_submission_date,
+            db.t_recommendations.last_change,
+            db.t_articles.status,
+            db.t_articles.art_stage_1_id,
+            db.t_recommendations._id,
+            db.t_recommendations.article_id,
+            db.t_recommendations.doi,
+            db.t_recommendations.is_closed,
+    ]
+    query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id)
+
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     if isPress:  ## NOTE: POST-PRINTS
-        query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == True)
+        query = query & (db.t_articles.already_published == True)
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_recommendations.last_change,
-            db.t_articles.status,
-            db.t_articles.art_stage_1_id,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            db.t_recommendations.is_closed,
-        ]
-        links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
-            dict(
-                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
-            ),
-        ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False)
+        query = query & (db.t_articles.already_published == False)
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
-        fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_recommendations.last_change,
-            db.t_articles.status,
-            db.t_articles.art_stage_1_id,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            db.t_recommendations.is_closed,
+        fields += [
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
         ]
-        links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
+        links += [
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
+        ]
+        db.t_recommendations.article_id.label = T("Preprint")
+
+    links += [
             dict(
                 header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
             ),
-        ]
-        db.t_recommendations.article_id.label = T("Preprint")
+    ]
 
     db.t_recommendations.recommender_id.writable = False
     db.t_recommendations.doi.writable = False
@@ -1788,15 +1755,15 @@ def email_for_new_reviewer():
         new_user_id = None
         request.vars.reviewer_email = request.vars.reviewer_email.lower()
 
+        # NOTE adapt long-delay key for invitation
+        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+
         # search for already-existing user
         existingUser = db(db.auth_user.email.upper() == request.vars["reviewer_email"].upper()).select().last()
         if existingUser:
             new_user_id = existingUser.id
             # NOTE: update reset_password_key if not empty with a fresh new one
-            if existingUser.reset_password_key is not None and existingUser.reset_password_key != "":
-                max_time = time.time()
-                # NOTE adapt long-delay key for invitation
-                reset_password_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
+            if existingUser.reset_password_key:
                 existingUser.update_record(reset_password_key=reset_password_key)
                 existingUser = None
             nbExistingReviews = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == new_user_id)).count()
@@ -1813,9 +1780,6 @@ def email_for_new_reviewer():
                 )
                 # reset password link
                 new_user = db.auth_user(new_user_id)
-                max_time = time.time()
-                # NOTE adapt long-delay key for invitation
-                reset_password_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
                 new_user.update_record(reset_password_key=reset_password_key)
                 nbExistingReviews = 0
                 session.flash = T('User "%(reviewer_email)s" created.') % (request.vars)
@@ -1839,45 +1803,16 @@ def email_for_new_reviewer():
             )
 
             linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+            declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
+                    scheme=scheme, host=host, port=port)
 
             if existingUser:
-                try:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
-
-                    linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
-                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
-                        id=reviewId,
-                        key=quickDeclineKey,
-                    ),
-                    scheme=scheme, host=host, port=port)
-
-                    emailing.send_reviewer_invitation(
-                        session,
-                        auth,
-                        db,
-                        reviewId,
-                        replyto_addresses,
-                        cc_addresses,
-                        hashtag_template,
-                        request.vars["subject"],
-                        request.vars["message"],
-                        None,
-                        linkTarget,
-                        declineLinkTarget,
-                    )
-                except Exception as e:
-                    session.flash = (session.flash or "") + T("E-mail failed.")
-                    pass
+                    reset_password_key = None
             else:
-                try:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
 
-                    declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(
-                        id=reviewId,
-                        key=quickDeclineKey,
-                    ),
-                    scheme=scheme, host=host, port=port)
-
+            try:
                     emailing.send_reviewer_invitation(
                         session,
                         auth,
@@ -1892,7 +1827,7 @@ def email_for_new_reviewer():
                         linkTarget,
                         declineLinkTarget,
                     )
-                except Exception as e:
+            except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")
                     pass
 
