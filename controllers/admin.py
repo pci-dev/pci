@@ -172,8 +172,8 @@ def list_users():
                     'auth_user.ethical_code_approved', 'auth_user.id',]
 
     # the grid is adjusted after creation to adhere to our requirements
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'users', remove_options)
-    except: grid = original_grid
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'users', remove_options) \
+            if len(request.args) == 1 else original_grid
 
     if "auth_membership.user_id" in request.args:
         if grid and grid.element(_title="Add record to database"):
