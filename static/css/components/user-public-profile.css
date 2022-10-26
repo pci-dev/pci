@@ -43,3 +43,20 @@
 .pci2-article-list-titled h2 {
     margin-top: 0;
 }
+
+.pci2-user-website {
+    width: 100%;
+    display: flex;
+    margin-bottom: 30px;
+}
+
+.pci2-user-website > b {
+    color: #598398bb;
+    margin-left: 19px;
+    flex-grow: 1;
+}
+
+.pci2-user-website > a {
+    width: 70%;
+    text-align: right;
+}
