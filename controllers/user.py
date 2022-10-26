@@ -505,7 +505,7 @@ def fill_new_article():
             "competitors" 
     ]
     
-    fields += ["cover_letter"]
+    fields += ["recomm_notice" , "cover_letter"]
 
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
