@@ -130,5 +130,6 @@ def profile_page(user):
                     userAvatar=img,
                     userName=nameTitle,
                     userInfosList=UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles),
-                    userCv=userCv
+                    userCv=userCv,
+                    userWebsite=user.website,
                 )
