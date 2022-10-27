@@ -585,7 +585,7 @@ def search_recommenders():
             Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
             Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
             Field("keywords", type="string", label=T("Keywords")),
-            Field("expertise", type="string", label=T("Areas of Expertise")),
+            Field("expertise", type="string", label=T("Areas of expertise")),
             Field("excluded", type="boolean", label=T("Excluded")),
             Field("any", type="string", label=T("All fields")),
         )
