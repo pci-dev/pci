@@ -241,17 +241,10 @@ def insertMailInQueue(
         reviewer_invitation_buttons=reviewer_invitation_buttons,
     )
 
-    ccAddresses = None
-    replytoAddresses = None
-    if "ccAddresses" in mail_vars:
-        ccAddresses = mail_vars["ccAddresses"]
-    if "replytoAddresses" in mail_vars:
-        replytoAddresses = mail_vars["replytoAddresses"]
-
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
-        cc_mail_addresses=ccAddresses,
-        replyto_addresses=replytoAddresses,
+        cc_mail_addresses=mail_vars.get("ccAddresses"),
+        replyto_addresses=mail_vars.get("replytoAddresses"),
         bcc_mail_addresses=mail_vars.get("bccAddresses"),
         mail_subject=mail["subject"],
         mail_content=mail["content"],
