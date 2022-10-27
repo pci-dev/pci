@@ -1318,6 +1318,7 @@ db.define_table(
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
     Field("dest_mail_address", type="string", length=256, label=T("Dest e-mail")),
     Field("cc_mail_addresses", type="list:string", label=T("CC e-mails")),
+    Field("bcc_mail_addresses", type="list:string", label=T("BCC e-mails")),
     Field("replyto_addresses", type="list:string", label=T("Reply-to")),
     Field("mail_subject", type="string", length=256, label=T("Subject")),
     Field("mail_content", type="text", length=1048576, label=T("Contents")),
