@@ -163,6 +163,7 @@ def process_mail_content(mail, form):
         mail.sending_date = form.vars.sending_date
         mail.cc_mail_addresses = emailing_tools.list_addresses(form.vars.cc_mail_addresses)
         mail.replyto_addresses = emailing_tools.list_addresses(form.vars.replyto_addresses)
+        mail.bcc_mail_addresses = emailing_tools.list_addresses(form.vars.bcc_mail_addresses)
         mail.update_record()
 
         content_saved = True
