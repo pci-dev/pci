@@ -252,6 +252,7 @@ def insertMailInQueue(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=ccAddresses,
         replyto_addresses=replytoAddresses,
+        bcc_mail_addresses=mail_vars.get("bccAddresses"),
         mail_subject=mail["subject"],
         mail_content=mail["content"],
         user_id=auth.user_id,
