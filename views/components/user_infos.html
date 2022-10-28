@@ -35,6 +35,13 @@
    
 </div>
 
+{{if userWebsite:}}
+<div class="pci2-user-website">
+  <b>Website</b>
+  <a href="{{=userWebsite}}">{{=userWebsite}}</a>
+</div>
+{{pass}}
+
 {{if userCv:}}
 <div class="pci2-user-cv-div">
   <b class="pci2-user-cv-label">{{=T("Areas of expertise")}}</b>
