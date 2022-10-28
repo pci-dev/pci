@@ -797,6 +797,9 @@ def deltaStatus(s, f):
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
+                
+                if f["status"] == "Not considered":
+                    emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
 
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
