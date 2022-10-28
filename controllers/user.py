@@ -510,7 +510,14 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,)
+    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,
+
+            extra_fields=[
+                Field("recomm_notice", widget=widget(_type="hidden"),
+                    label=T("On the next page you will have the possibility to suggest recommenders for your article"),
+                ),
+            ],
+    )
 
     app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
 
