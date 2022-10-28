@@ -208,7 +208,7 @@ def search_reviewers():
         Field("keywords", type="string", label=T("Keywords")),
         Field("institution", type="string", label=T("Institution")),
         Field("thematics", type="string", label=T("Thematic fields")),
-        Field("expertise", type="string", label=T("Areas of Expertise")),
+        Field("expertise", type="string", label=T("Areas of expertise")),
         Field("excluded", type="boolean", label=T("Excluded")),
         Field("any", type="string", label=T("All fields")),
     )

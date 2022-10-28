@@ -374,7 +374,7 @@ auth.settings.extra_fields["auth_user"] = [
         requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
-    Field("cv", type="text", length=2097152, label=T("Educational and work background")),
+    Field("cv", type="text", length=2097152, label=T("Areas of expertise")),
     Field("keywords", type="string", length=1024, label=T("Keywords")),
     Field("website", type="string", length=4096, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
     Field(

@@ -944,11 +944,15 @@ def mkReviewerInfo(auth, db, user):
         institution = user.institution
         institution = "" if institution is None else institution + ", "
         expertise = user.cv
+        areas_of_expertise = current.T("Areas of expertise")
         anchor = DIV(
             B(reviewer_name, _class="article-title"),
             DIV(institution, user.country or ""),
             DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
-            DIV(A("Area of expertise", _tabindex="0",  _role="button",  _title=(f"{reviewer_name}'s area of expertise"), **{'_data-toggle':'popover',  '_data-trigger':'focus', '_data-content':f'{expertise}'}) if expertise else ""),    
+            DIV(A(areas_of_expertise, _tabindex="0",  _role="button",
+                    _title=(f"{reviewer_name}'s {areas_of_expertise.lower()}"),
+                    **{'_data-toggle':'popover',  '_data-trigger':'focus', '_data-content':f'{expertise}'})
+                if expertise else ""),
         )
     return anchor
 

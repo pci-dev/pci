@@ -35,9 +35,9 @@
    
 </div>
 
-{{if len(userCv) > 0:}}
+{{if userCv:}}
 <div class="pci2-user-cv-div">
-  <b class="pci2-user-cv-label">Educational and work</b>
+  <b class="pci2-user-cv-label">{{=T("Areas of expertise")}}</b>
   {{=DIV((userCv), _class='pci2-user-cv')}}
 </div>
 {{pass}}
