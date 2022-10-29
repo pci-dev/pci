@@ -47,6 +47,7 @@ def tryToSendMail(mail_item):
         isSent = mail.send(
                 to=mail_item.dest_mail_address,
                 cc=mail_item.cc_mail_addresses,
+                bcc=mail_item.bcc_mail_addresses,
                 reply_to=mail_item.replyto_addresses,
                 subject=mail_item.mail_subject,
                 message=mail_item.mail_content,

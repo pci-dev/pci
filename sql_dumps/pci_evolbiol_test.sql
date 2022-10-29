@@ -2953,3 +2953,6 @@ ADD COLUMN IF NOT EXISTS validation_timestamp timestamp without time zone;
 
 ALTER TABLE "t_recommendations"
 ADD COLUMN IF NOT EXISTS validation_timestamp timestamp without time zone;
+
+-- 2022-10-27 updates/add_bcc_to_mailqueue.sql
+ALTER TABLE mail_queue ADD COLUMN bcc_mail_addresses text;

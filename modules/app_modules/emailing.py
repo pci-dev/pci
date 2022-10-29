@@ -311,6 +311,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
                 mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
+                mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
