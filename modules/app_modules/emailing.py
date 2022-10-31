@@ -1473,7 +1473,8 @@ def send_to_one_corecommender(session, auth, db, contribId):
                         mail_vars["articleAuthors"] = article.authors
 
                     if article.status in ("Under consideration", "Pre-recommended", "Pre-recommended-private"):
-                        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getManagersMails(db)
+                        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
+                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
 
                         if article.already_published:
                             hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderAddedOnArticleAlreadyPublished", article)
