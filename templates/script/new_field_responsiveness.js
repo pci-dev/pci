@@ -168,3 +168,28 @@ else {
 
 const validator = new FormValidator(form, fields);
 validator.initialize();
+
+$(".btn-success").on("click", function() {
+  if (prevVersion === parseFloat($("#t_articles_ms_version").val())){
+    $(".btn-success").attr("data-toggle", "modal");
+    $(".btn-success").attr("data-target", "#myModal"); 
+    $('.form-horizontal').submit(function (evt) {
+      evt.preventDefault();
+    });
+  } else {
+    $(".btn-success").attr("data-toggle", "");
+    $(".btn-success").attr("data-target", ""); 
+    $('.form-horizontal').submit(function (evt) {
+      $(this).unbind('submit').submit();
+    });
+  }
+});
+
+
+$(".btn-primary").on("click", function() {
+  console.log("EUREKSSS");
+  $('.form-horizontal').submit(function (evt) {
+    $(this).unbind('submit').submit();
+  });
+  $('.form-horizontal').submit();
+});
