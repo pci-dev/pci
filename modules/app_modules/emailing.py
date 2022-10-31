@@ -1223,7 +1223,7 @@ def send_new_membreship(session, auth, db, membershipId):
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["ethicsurl"] = mk_ethicsLink()
 
-            mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
 
             hashtag_template = "#NewMembreshipRecommender"
             new_role_report = "new recommender "
