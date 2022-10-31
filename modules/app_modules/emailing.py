@@ -1229,7 +1229,7 @@ def send_new_membreship(session, auth, db, membershipId):
             new_role_report = "new recommender "
 
         elif group.role == "manager":
-            mail_vars["ccAddresses"] = emailing_vars.getAdminsMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getAdminsMails(db)
 
             hashtag_template = "#NewMembreshipManager"
             new_role_report = "new manager "
