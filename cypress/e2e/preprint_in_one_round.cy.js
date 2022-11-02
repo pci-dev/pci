@@ -159,6 +159,10 @@ describe("Preprint recommended in one round", () => {
 
       cy.get("input[type=submit]").click();
 
+      cy.contains("h4", "Confirm changes").should("exist");
+
+      cy.get("button#bpt").click();
+
       cy.contains("h3", articleTitle).should("exist");
     });
   });
