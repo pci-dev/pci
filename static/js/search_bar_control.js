@@ -53,8 +53,12 @@ function set_onclick_events() {
 }
 
 function get_user_type() {
-    var first_column = document.querySelector('.web2py_htmltable > table col').id;
-    return first_column.split('-')[0]
+    var all_columns = document.querySelectorAll('.web2py_htmltable > table col');
+    for (var i = 0; i < all_columns.length; i++) {
+        if (all_columns[i].id != '') {
+            return all_columns[i].id.split('-')[0]
+        }
+    }
 }
 
 function initialise_simple_search() {
@@ -179,7 +183,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query (some searches have "any" field, others do not)
-    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art') {
+    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art' || user_type == 'mail_queue') {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';
@@ -190,6 +194,7 @@ function simple_search() {
     var search_form = document.querySelector('.web2py_console > form');
     search_form.style.display = 'none';
     search_field.value = search_statement;
+
     search_form.submit();
 }
 
