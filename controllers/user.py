@@ -160,6 +160,7 @@ def recommendations():
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
+        myScript = common_tools.get_template("script", "user_edit_reply.js")
 
         return dict(
             printable=printable,
@@ -182,6 +183,7 @@ def recommendations():
             isScheduledSubmission=isScheduledSubmission,
             scheduledSubmissionForm=scheduledSubmissionForm,
             scheduledSubmissionRemaningDays=scheduledSubmissionRemaningDays,
+            myFinalScript = SCRIPT(myScript)
         )
 
 
