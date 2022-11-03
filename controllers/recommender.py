@@ -26,6 +26,7 @@ from app_modules import emailing_parts
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import emailing_tools, emailing_vars, emailing 
+from app_modules.common_small_html import md_to_html
 
 # to change to common
 from controller_modules import admin_module
@@ -1339,7 +1340,7 @@ def send_review_cancellation():
     appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = WIKI(art.title)
+    art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
@@ -1442,7 +1443,7 @@ def send_reviewer_generic_mail():
     destPerson = common_small_html.mkUser(auth, db, review.reviewer_id)
     recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
     articleDoi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-    articleTitle = WIKI(art.title)
+    articleTitle = md_to_html(art.title)
     articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
@@ -1541,7 +1542,7 @@ def email_for_registered_reviewer():
     appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
     art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = WIKI(art.title)
+    art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleAuthors = art_authors
     articleTitle = art_title
@@ -1698,7 +1699,7 @@ def email_for_new_reviewer():
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     site_url = URL(c="default", f="index", scheme=scheme, host=host, port=port)
     art_authors = "[Undisclosed]" if (art.anonymous_submission) else art.authors
-    art_title = WIKI(art.title)
+    art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleAuthors = art_authors
     articleTitle = art_title

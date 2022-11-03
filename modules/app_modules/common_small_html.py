@@ -522,11 +522,11 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
         if urlArticle:
             anchor = DIV(
-                A(B(WIKI(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350",
+                A(B(md_to_html(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350",
             )
         else:
             anchor = DIV(
-                B(WIKI(art.title) or ""),
+                B(md_to_html(art.title) or ""),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
                 doi_text,
@@ -548,7 +548,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
 
         if urlArticle:
             anchor = DIV(
-                A(B(WIKI(article.title) or "", _class="article-title"), _href=urlArticle),
+                A(B(md_to_html(article.title) or "", _class="article-title"), _href=urlArticle),
                 BR(),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
@@ -558,7 +558,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
             )
         else:
             anchor = DIV(
-                B(WIKI(article.title) or ""),
+                B(md_to_html(article.title) or ""),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
                 doi_text,
@@ -579,7 +579,7 @@ def mkRepresentArticleLight(auth, db, article_id):
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         anchor = DIV(
-            B(WIKI(art.title), _class="article-title"),
+            B(md_to_html(art.title), _class="article-title"),
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
             doi_text,
             BR(),
@@ -605,7 +605,7 @@ def mkArticleCellNoRecomm(auth, db, art0):
             doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
         anchor = DIV(
-            B(WIKI(art.title) or "", _class="article-title"),
+            B(md_to_html(art.title) or "", _class="article-title"),
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
             doi_text,
             BR(),
@@ -648,7 +648,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                 mkDOI(recomm.recommendation_doi),
                 P(),
                 SPAN(current.T("A recommendation of ")),
-                I(WIKI(art.title) or "", _class="article-title"),
+                I(md_to_html(art.title) or "", _class="article-title"),
                 SPAN(current.T(" by ")),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 (SPAN(current.T(" in ")) + SPAN(art.article_source) if art.article_source else ""),
@@ -693,7 +693,7 @@ def mkArticleCitation(auth, db, myRecomm):
         citeArticle = SPAN(
             SPAN(art.authors),
             " ",
-            SPAN(WIKI(art.title) or "", _class="article-title"),
+            SPAN(md_to_html(art.title) or "", _class="article-title"),
             ". ",
             SPAN(art.last_status_change.strftime("%Y, ")),
             artSrc,
@@ -985,3 +985,9 @@ def fetch_url(data):
         url = mkDOI(doi)
         result.append(url)
     return result
+
+################################################################################
+def md_to_html(text):
+    return SPAN(
+            TAG(WIKI(text))[0].components
+    ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN

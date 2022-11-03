@@ -24,6 +24,7 @@ from gluon.sqlhtml import *
 
 from app_modules import common_small_html
 from app_modules import common_tools
+from app_modules.common_small_html import md_to_html
 
 from app_components import article_components
 
@@ -191,7 +192,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
 ######################################################################################################################################################################
 def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
-    desc = "A recommendation of: " + (art.authors or "") + " " + (WIKI(art.title) or "") + " " + (art.doi or "")
+    desc = "A recommendation of: " + (art.authors or "") + " " + (md_to_html(art.title).flatten() or "") + " " + (art.doi or "")
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
