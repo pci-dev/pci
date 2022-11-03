@@ -985,3 +985,9 @@ def fetch_url(data):
         url = mkDOI(doi)
         result.append(url)
     return result
+
+################################################################################
+def md_to_html(text):
+    return SPAN(
+            TAG(WIKI(text))[0].components
+    ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
