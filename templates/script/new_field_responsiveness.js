@@ -188,7 +188,6 @@ $(".btn-success").on("click", function() {
 
 
 $(".btn-primary").on("click", function() {
-  console.log("EUREKSSS");
   $('.form-horizontal').submit(function (evt) {
     $(this).unbind('submit').submit();
   });
