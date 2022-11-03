@@ -32,6 +32,7 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import emailing_tools
 from app_modules import common_small_html
+from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
 
@@ -1510,7 +1511,7 @@ def send_submitter_generic_mail():
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
     articleDoi = common_small_html.mkLinkDOI(art.doi)
-    articleTitle = WIKI(art.title)
+    articleTitle = md_to_html(art.title)
     articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())

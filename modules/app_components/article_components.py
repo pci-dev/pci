@@ -24,6 +24,7 @@ from gluon.sqlhtml import *
 
 from app_modules import common_small_html
 from app_modules import common_tools
+from app_modules.common_small_html import md_to_html
 
 
 myconf = AppConfig(reload=True)
@@ -83,7 +84,7 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     componentVars = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
-        articleTitle=WIKI(article.title),
+        articleTitle=md_to_html(article.title),
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
         articleAuthor=authors,
@@ -116,7 +117,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
         
         firstDate = article.upload_timestamp.strftime(DEFAULT_DATE_FORMAT)
         lastDate = article.last_status_change.strftime(DEFAULT_DATE_FORMAT)
-        title = WIKI(article.title)
+        title = md_to_html(article.title)
         if article.anonymous_submission:
             authors = "[anonymous submission]"
         else:
@@ -249,7 +250,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
             ("articleSource", I(article.article_source or "")),
             ("articleId", article.id),
             ("articleImg", article_img),
-            ("articleTitle", WIKI(article.title) or ""),
+            ("articleTitle", md_to_html(article.title) or ""),
             ("articleAuthor", authors or ""),
             ("articleDoi", doi_text),
             ("doiButton", doi_button),
