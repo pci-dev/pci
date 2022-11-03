@@ -182,6 +182,7 @@ $(".btn-success").on("click", function() {
     $('.form-horizontal').submit(function (evt) {
       $(this).unbind('submit').submit();
     });
+    localStorage.setItem(`editArticle__${articleId}`, true);
   }
 });
 
@@ -191,5 +192,6 @@ $(".btn-primary").on("click", function() {
   $('.form-horizontal').submit(function (evt) {
     $(this).unbind('submit').submit();
   });
+  localStorage.setItem(`editArticle__${articleId}`, true);
   $('.form-horizontal').submit();
 });
