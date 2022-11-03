@@ -76,9 +76,11 @@ def list_users():
     db.auth_user.country.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.ethical_code_approved.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.alerts.requires = IS_EMPTY_OR(IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly")))
-    db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)
-    db.auth_user.thematics.type = "string"
     db.auth_user.website.readable = False
+
+    if len(request.args) == 1: # list/search view (i.e. not edit form)
+        db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)
+        db.auth_user.thematics.type = "string" # for advanced search dd, vs "list:string" in edit form
 
     fields = [
         db.auth_user.id,
