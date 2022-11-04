@@ -55,11 +55,11 @@ def listing():
     response.title = "web2py sample listing"
 
     # define header and footers:
-    head = THEAD(TR(TH("Header 1", _width="50%"), 
+    head = THEAD(TR(TH("Header 1", _width="50%"),
                     TH("Header 2", _width="30%"),
-                    TH("Header 3", _width="20%"), 
+                    TH("Header 3", _width="20%"),
                     _bgcolor="#A0A0A0"))
-    foot = TFOOT(TR(TH("Footer 1", _width="50%"), 
+    foot = TFOOT(TR(TH("Footer 1", _width="50%"),
                     TH("Footer 2", _width="30%"),
                     TH("Footer 3", _width="20%"),
                     _bgcolor="#E0E0E0"))
@@ -71,11 +71,11 @@ def listing():
         rows.append(TR(TD("Row %s" %i),
                        TD("something", _align="center"),
                        TD("%s" % i, _align="right"),
-                       _bgcolor=col)) 
+                       _bgcolor=col))
 
     # make the table object
     body = TBODY(*rows)
-    table = TABLE(*[head, foot, body], 
+    table = TABLE(*[head, foot, body],
                   _border="1", _align="center", _width="50%")
 
 
@@ -108,11 +108,11 @@ def report(head):
     tb = TABLE(head,   _border="0", _align="left", _width="50%")
 
 
-        # create a custom class with the required functionality 
+        # create a custom class with the required functionality
     class MyFPDF(FPDF, HTMLMixin):
-        def header(self): 
+        def header(self):
             "hook to draw custom page header (logo and title)"
-           
+
             self.set_font('Arial', 'B', 8)
             self.cell(65) # padding
             self.cell(60, 10, response.title, 1, 0, 'C')
