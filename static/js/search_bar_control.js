@@ -3,12 +3,14 @@
 var search_bar = document.querySelector('#w2p_keywords');
 
 if (search_bar != null) {
-    try {
-        var user_type = get_user_type();
+    var user_type = get_user_type();
+    if (user_type != undefined) {
         setCookieUT(user_type);
-    } catch {
+    }
+    else {
         var user_type = getCookie('user_type');
     }
+
     if (search_bar.value != '') {
         ongoing_search();
     } else {
