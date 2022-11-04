@@ -695,7 +695,8 @@ def mailing_queue():
     )
 
     remove_options = ['mail_queue.user_id', 'mail_queue.recommendation_id',
-                      'mail_queue.review_id', 'mail_queue.reminder_count']
+                      'mail_queue.review_id', 'mail_queue.reminder_count',
+                      'mail_queue.sending_date']
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options)
