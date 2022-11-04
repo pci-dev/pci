@@ -7,8 +7,6 @@ import os
 import tempfile
 import shutil
 import datetime
-import pandas as pd
-# import xmltojson
 import json
 
 # sudo pip install tweepy
