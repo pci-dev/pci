@@ -633,7 +633,7 @@ def recap_reviews():
             % locals()
         )
 
-    response.title = "synthesis of reveiews"
+    response.title = "synthesis of reviews"
 
     # Get columns as header
     head = TR()
