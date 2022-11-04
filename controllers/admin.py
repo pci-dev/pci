@@ -611,7 +611,7 @@ def testRedir():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_queue():
     response.view = "default/myLayout.html"
-    
+
     searchable = "searchable" in request.vars and request.vars["searchable"] == "True"
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
@@ -649,7 +649,6 @@ def mailing_queue():
         db.mail_queue.mail_template_hashtag.readable = True
     else:
         db.mail_queue.mail_template_hashtag.readable = False
-
     myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
     links = [
@@ -666,7 +665,7 @@ def mailing_queue():
         )
     ]
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid(
         db.mail_queue,
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
@@ -694,6 +693,13 @@ def mailing_queue():
         links_placement="left",
         _class="web2py_grid action-button-absolute",
     )
+
+    remove_options = ['mail_queue.user_id', 'mail_queue.recommendation_id',
+                      'mail_queue.review_id', 'mail_queue.reminder_count',
+                      'mail_queue.sending_date']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options)
 
     return dict(
         titleIcon="send",
