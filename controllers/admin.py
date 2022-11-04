@@ -41,11 +41,11 @@ def convert_to_excel(table):
 
     with open("sample.html", "w") as html_file:
         html_file.write(table)
-      
+
     with open("sample.html", "r") as html_file:
         html = html_file.read()
         json_ = xmltojson.parse(html)
-        
+
     with open("data.json", "w") as file:
         json.dump(json_, file)
 
@@ -99,14 +99,14 @@ def listing():
     pdf.write_html(str(XML(table, sanitize=False)))
     response.headers['Content-Type'] = 'application/pdf'
     return pdf.output(dest='S')
-    
+
 
 def report(head):
     response.title = "web2py sample report"
 
 
     tb = TABLE(head,   _border="0", _align="left", _width="50%")
-    
+
 
         # create a custom class with the required functionality 
     class MyFPDF(FPDF, HTMLMixin):
@@ -131,7 +131,7 @@ def report(head):
     pdf.write_html(str(XML(tb, sanitize=True)))
         # prepare PDF to download:
     response.headers['Content-Type'] = 'application/pdf'
-    
+
     return pdf.output(name="test.pdf", dest='S')
     # else:
     #     # normal html view:
@@ -634,7 +634,7 @@ def recap_reviews():
         )
 
     response.title = "synthesis pf reveiews"
-    
+
     # Get columns as header
     head = TR()
     cols = db.executesql("""SELECT column_name FROM information_schema.columns WHERE table_name  LIKE '_t_%(runId)s'  ORDER BY ordinal_position;""" % locals())
@@ -662,7 +662,7 @@ def recap_reviews():
         iCol += 1
     grid = TABLE(_class="pci-AdminReviewsSynthesis")
     head1 =THEAD(head)
-    
+
     # test=report(head)
     grid.append(head)
     rows = []
@@ -697,11 +697,11 @@ def recap_reviews():
         # first page:
     pdf.add_page()
     pdf.write_html(str(XML(table, sanitize=False)))
-    
-    
+
+
     response.headers['Content-Type'] = 'application/pdf'
     test = pdf.output(dest='S')
-    
+
     db.executesql("DROP VIEW IF EXISTS _v_%(runId)s;" % locals())
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
     return test
