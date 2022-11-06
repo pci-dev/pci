@@ -548,7 +548,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
 
         if urlArticle:
             anchor = DIV(
-                A(B(md_to_html(article.title) or "", _class="article-title"), _href=urlArticle),
+                A(B(md_to_html(art.title) or "", _class="article-title"), _href=urlArticle),
                 BR(),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
@@ -558,7 +558,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
             )
         else:
             anchor = DIV(
-                B(md_to_html(article.title) or ""),
+                B(md_to_html(art.title) or ""),
                 SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
                 BR(),
                 doi_text,
