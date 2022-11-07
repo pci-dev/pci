@@ -643,6 +643,10 @@ def mailing_queue():
     db.mail_queue.removed_from_queue.writable = False
     db.mail_queue.removed_from_queue.readable = False
 
+    db.mail_queue.user_id.searchable = False
+    db.mail_queue.review_id.searchable = False
+    db.mail_queue.recommendation_id.searchable = False
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
     else:
