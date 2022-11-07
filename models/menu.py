@@ -167,7 +167,6 @@ def _AdminMenu():
         menu_entry("All recommendation citations", "glyphicon-education", URL("admin", "allRecommCitations", user_signature=True)),
         menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf", user_signature=True)),
         menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue", user_signature=True)),
-        menu_entry("Mailing queue Search", "glyphicon-send", URL("admin", "mailing_queue", vars=dict(searchable=True), user_signature=True)),
         divider(),
         menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list", user_signature=True)),
         menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status", user_signature=True)),
