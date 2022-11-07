@@ -612,8 +612,6 @@ def testRedir():
 def mailing_queue():
     response.view = "default/myLayout.html"
 
-    searchable = "searchable" in request.vars and request.vars["searchable"] == "True"
-
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
         SPAN(I(T("Sending attempts:")), XML("&nbsp;"), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
@@ -671,7 +669,7 @@ def mailing_queue():
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
         create=False,
-        searchable=searchable,
+        searchable=True,
         paginate=50,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
