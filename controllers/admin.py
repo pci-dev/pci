@@ -697,7 +697,8 @@ def mailing_queue():
                       'mail_queue.sending_date']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options) \
+            if len(request.args) == 0 else original_grid
 
     return dict(
         titleIcon="send",
