@@ -1,31 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-import tempfile
-from datetime import datetime, timedelta
-import glob
-import os
-
-# sudo pip install tweepy
-# import tweepy
-
-import codecs
-
-# import html2text
-from gluon.contrib.markdown import WIKI
-
 from app_modules.helper import *
 
-from gluon.contrib.appconfig import AppConfig
-
-myconf = AppConfig(reload=True)
-
-
-csv = False  # no export allowed
-expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", default=20)
 
 
 ######################################################################################################################################################################

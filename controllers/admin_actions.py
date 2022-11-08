@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-import random
 import os
 import tempfile
 import shutil
-
-# sudo pip install tweepy
-# import tweepy
-from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 
@@ -17,16 +10,10 @@ from controller_modules import admin_module
 from app_modules import emailing
 from app_modules import common_small_html
 
-from gluon.contrib.markmin.markmin2latex import render, latex_escape
-
 from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
 
-
-# frequently used constants
-csv = False  # no export allowed
-expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 
 
 ######################################################################################################################################################################
