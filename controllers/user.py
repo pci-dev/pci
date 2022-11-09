@@ -40,6 +40,7 @@ def index():
 def recommendations():
 
     printable = "printable" in request.vars and request.vars["printable"] == "True"
+    myScript = ""
 
     articleId = request.vars["articleId"]
     if not articleId:
@@ -160,7 +161,8 @@ def recommendations():
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
-        myScript = common_tools.get_template("script", "user_edit_reply.js")
+        if not pciRRactivated:
+            myScript = common_tools.get_template("script", "user_edit_reply.js")
 
         return dict(
             printable=printable,
