@@ -35,7 +35,7 @@ SITE=PCIAnimSci
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 
-SITE=PCICNeuro
+SITE=PCINeuro
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
 */5 * * * * $BASE/$SITE/$RUN newsletter.py
@@ -113,6 +113,13 @@ SITE=PCIInfections
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 
 SITE=PCIMicrobiol
+
+* *   * * * $BASE/$SITE/$RUN mail_queue.py
+*/5 * * * * $BASE/$SITE/$RUN newsletter.py
+1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
+0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
+
+SITE=PCIHealthMovSci
 
 * *   * * * $BASE/$SITE/$RUN mail_queue.py
 */5 * * * * $BASE/$SITE/$RUN newsletter.py
