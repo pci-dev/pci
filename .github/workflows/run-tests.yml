@@ -2,8 +2,7 @@ name: Run tests
 
 on:
   push:
-    tags:
-      - '*'
+
 
 jobs:
   run-tests:
