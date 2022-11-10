@@ -1,22 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-from dateutil.relativedelta import *
-from gluon.utils import web2py_uuid
-from gluon.contrib.markdown import WIKI
-from gluon.html import markmin_serializer
-
-
 from app_modules.helper import *
 
-
-# frequently used constants
-myconf = AppConfig(reload=True)
-csv = False  # no export allowed
-expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-trgmLimit = myconf.take("config.trgm_limit") or 0.4
 
 
 ######################################################################################################################################################################

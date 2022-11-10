@@ -37,7 +37,7 @@ myconf = AppConfig(reload=True)
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-trgmLimit = myconf.take("config.trgm_limit") or 0.4
+trgmLimit = myconf.get("config.trgm_limit") or 0.4
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 

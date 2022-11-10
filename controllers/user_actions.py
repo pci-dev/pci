@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
 import datetime
-
-from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 
@@ -13,11 +9,6 @@ from app_modules import common_small_html
 from app_components import app_forms
 from app_modules import emailing
 
-# frequently used constants
-csv = False  # no export allowed
-expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.get("config.trgm_limit", default=0.4)
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 
 ######################################################################################################################################################################
