@@ -14,6 +14,7 @@ from app_modules.helper import *
 from app_components import app_forms
 from app_modules import common_tools
 from app_modules import common_small_html
+from controller_modules import adjust_grid
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -273,43 +274,107 @@ def recommenders():
             qyKw = myValue
         elif re.match("^qy_", myVar) and myValue == "on":
             qyTF.append(re.sub(r"^qy_", "", myVar))
+        elif myVar == "exclude":
+            myValue = myVars[myVar]
+            myValue = myValue.split(",") if type(myValue) is str else myValue
+            excludeList = list(map(int, myValue))
+
+    temp_db = DAL("sqlite:memory")
+    qy_recomm = temp_db.define_table(
+        "qy_recomm",
+        Field("id", type="integer"),
+        Field("num", type="integer"),
+        Field("roles", type="string"),
+        Field("score", type="double", label=T("Score"), default=0),
+        Field("first_name", type="string", length=128, label=T("First name")),
+        Field("last_name", type="string", length=128, label=T("Last name")),
+        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
+        Field("city", type="string", label=T("City"), represent=lambda t, r: t if t else ""),
+        Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
+        Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
+        Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
+        Field("keywords", type="string", label=T("Keywords")),
+        Field("expertise", type="string", label=T("Areas of expertise")),
+        Field("excluded", type="boolean", label=T("Excluded")),
+        Field("any", type="string", label=T("All fields")),
+    )
     qyKwArr = qyKw.split(" ")
 
-    searchForm = app_forms.searchByThematic(auth, db, myVars)
-    if searchForm.process(keepvalues=True).accepted:
-        response.flash = None
-    else:
-        qyTF = []
-        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-            qyTF.append(thema.keyword)
+    qyTF = []
+    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+        qyTF.append(thema.keyword)
 
     filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) ORDER BY last_name, first_name;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-    myRows = []
-    my1 = ""
-    myIdx = []
-    nbRecomm = len(filtered)
+
+    full_text_search_fields = [
+        'first_name',
+        'last_name',
+        'laboratory',
+        'city',
+        'country',
+        'thematics',
+        'expertise',
+        "keywords",
+    ]
+
+    users_ids = [ fr['id'] for fr in filtered ]
+    keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
+    expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
     for fr in filtered:
-        sfr = Storage(fr)
-        if sfr.last_name and sfr.last_name[0].upper() != my1:
-            my1 = sfr.last_name[0].upper()
-            myRows.append(TR(TD(my1, A(_name=my1)), TD(""), _class="pci-capitals"))
-            myIdx.append(A(my1, _href="#%s" % my1, _style="margin-right:20px;"))
-        myRows.append(common_small_html.mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
-    grid = DIV(
-        HR(),
-        DIV(nbRecomm + T(" recommenders selected"), _style="text-align:center; margin-bottom:20px;"),
-        LABEL(T("Quick access: "), _style="margin-right:20px;"),
-        SPAN(myIdx, _class="pci-capitals"),
-        HR(),
-        TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
-        _class="pci2-flex-column pci2-flex-center recommender-list-front",
+        fr['keywords'] = keywords[fr['id']] or ""
+        fr['expertise'] = expertise[fr['id']] or ""
+        qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+
+    links = []
+
+    temp_db.qy_recomm.uploaded_picture.readable = False
+    temp_db.qy_recomm.num.readable = False
+    temp_db.qy_recomm.roles.readable = False
+    temp_db.qy_recomm.score.readable = False
+    temp_db.qy_recomm.excluded.readable = False
+    selectable = None
+
+    original_grid = SQLFORM.smartgrid(
+        qy_recomm,
+        editable=False,
+        deletable=False,
+        create=False,
+        details=False,
+        searchable=dict(auth_user=True, auth_membership=False),
+        selectable=selectable,
+        maxtextlength=250,
+        paginate=1000,
+        csv=csv,
+        exportclasses=expClass,
+        fields=[
+            temp_db.qy_recomm._id,
+            temp_db.qy_recomm.num,
+            temp_db.qy_recomm.score,
+            temp_db.qy_recomm.uploaded_picture,
+            temp_db.qy_recomm.first_name,
+            temp_db.qy_recomm.last_name,
+            temp_db.qy_recomm.laboratory,
+            temp_db.qy_recomm.city,
+            temp_db.qy_recomm.country,
+            temp_db.qy_recomm.thematics,
+            temp_db.qy_recomm.excluded,
+        ],
+        links=links,
+        orderby=temp_db.qy_recomm.num,
+        _class="web2py_grid action-button-absolute",
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['qy_recomm.id']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
+
     response.view = "default/gab_list_layout.html"
+
     return dict(
         pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
         customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
         pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
-        searchForm=searchForm,
         grid=grid,
     )
