@@ -5,11 +5,11 @@ SITES="
 archaeo
 animsci
 ecology
-compstat
 evolbiol
 microbiol
 ecotoxenvchem
 forestwoodsci
+healthmovsci
 networksci
 infections
 genomics
