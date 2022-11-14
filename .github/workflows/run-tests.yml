@@ -1,0 +1,21 @@
+name: Run tests
+
+on:
+  push:
+
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - run: make install db.admin
+
+      - run: make test.install.selenium
+
+      - run: make test.reset
+      - run: make test.basic
+
+      - run: make test.reset.rr test.basic
