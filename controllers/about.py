@@ -260,7 +260,6 @@ def journal_adopter_faq():
 
 ######################################################################################################################################################################
 def recommenders():
-    tweeterAcc = myconf.get("social.tweeter")
     myVars = request.vars
     qyKw = ""
     qyTF = []
@@ -307,12 +306,10 @@ def recommenders():
     )
 
     response.view = "default/gab_list_layout.html"
-    resu = dict(
+    return dict(
         pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
         customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
         pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
         searchForm=searchForm,
         grid=grid,
-        tweeterAcc=tweeterAcc,
     )
-    return resu
