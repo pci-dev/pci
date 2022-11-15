@@ -70,7 +70,7 @@ def do_recommend_article():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
+    recomm = get_last_recomm(articleId)
     # PCI RR
     # update stage 1 article status from "Recommended-private" to "Recommended"
     if art.art_stage_1_id is not None and art.status == "Pre-recommended":
@@ -101,6 +101,10 @@ def do_recommend_article():
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
 
+def get_last_recomm(articleId):
+    return db((db.t_recommendations.article_id == articleId)).select().last()
+
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def do_revise_article():
@@ -109,7 +113,7 @@ def do_revise_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
+    recomm = get_last_recomm(articleId)
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -129,7 +133,7 @@ def do_reject_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == articleId)).select().last()
+    recomm = get_last_recomm(articleId)
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -218,7 +222,7 @@ def do_send_back_decision():
 
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
-    lastRecomm = db((db.t_recommendations.article_id == articleId)).select().last()
+    lastRecomm = get_last_recomm(articleId)
     
     if art is None:
         session.flash = auth.not_authorized()
