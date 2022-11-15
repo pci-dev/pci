@@ -813,7 +813,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     ###NOTE: recommendations counting
-    recomm = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id).last()
+    recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
 
     ###NOTE: here start recommendations display
     whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
