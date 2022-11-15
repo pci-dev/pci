@@ -74,7 +74,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
 
     # Last recommendation
-    finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=~db.t_recommendations.id).last()
+    finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     citeNum = ""
     citeRef = None
     if finalRecomm.recommendation_doi:
