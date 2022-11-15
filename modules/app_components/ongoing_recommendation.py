@@ -97,12 +97,11 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, scheme=False, host=False, port=False):
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
-    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
-    nbRecomms = len(recomms)
+    nbRecomms = db(db.t_recommendations.article_id == art.id).count()
     myButtons = DIV()
 
     if (
-        len(recomms) == 0
+        nbRecomms == 0
         and auth.has_membership(role="recommender")
         and not (art.user_id == auth.user_id)
         and art.status == "Awaiting consideration"
