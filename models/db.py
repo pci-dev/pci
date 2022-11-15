@@ -838,14 +838,16 @@ def newArticle(s, articleId):
     return None
 
 
+db.article_thumb_size = (150,150)
+
 def insArticleThumb(f, i):
-    common_small_html.makeArticleThumbnail(auth, db, i, size=(150, 150))
+    common_small_html.makeArticleThumbnail(auth, db, i, size=db.article_thumb_size)
     return None
 
 
 def updArticleThumb(s, f):
     o = s.select().first()
-    common_small_html.makeArticleThumbnail(auth, db, o.id, size=(150, 150))
+    common_small_html.makeArticleThumbnail(auth, db, o.id, size=db.article_thumb_size)
     return None
 
 
