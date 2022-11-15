@@ -838,7 +838,7 @@ def newArticle(s, articleId):
     return None
 
 
-db.article_thumb_size = (150,150)
+db.article_thumb_size = (500,500)
 
 def insArticleThumb(f, i):
     common_small_html.makeArticleThumbnail(auth, db, i, size=db.article_thumb_size)
