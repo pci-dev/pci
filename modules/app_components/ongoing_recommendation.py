@@ -73,7 +73,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
     recommenderSurveyButton = None
-    if len(recomms) > 0 and auth.user_id == lastRecomm.recommender_id:
+    if nbRecomms > 0 and auth.user_id == lastRecomm.recommender_id:
         printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True)
         recommenderSurveyButton = True
 

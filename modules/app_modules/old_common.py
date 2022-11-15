@@ -322,7 +322,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         )
 
     if (
-        len(recomms) == 0
+        nbRecomms == 0
         and auth.has_membership(role="recommender")
         and not (art.user_id == auth.user_id)
         and art.status == "Awaiting consideration"
