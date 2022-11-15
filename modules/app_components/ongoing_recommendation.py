@@ -31,8 +31,9 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id)
     nbRecomms = len(recomms)
+    lastRecomm = recomms.last()
 
     if userDiv:
         statusDiv = DIV(
@@ -72,7 +73,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
     recommenderSurveyButton = None
-    if len(recomms) > 0 and auth.user_id == recomms[-1].recommender_id:
+    if len(recomms) > 0 and auth.user_id == lastRecomm.recommender_id:
         printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True)
         recommenderSurveyButton = True
 
