@@ -102,7 +102,7 @@ def do_recommend_article():
 
 
 def get_last_recomm(articleId):
-    return db((db.t_recommendations.article_id == articleId)).select().last()
+    return db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
 
 
 ######################################################################################################################################################################
