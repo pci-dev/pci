@@ -97,7 +97,6 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, scheme=False, host=False, port=False):
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
-    ###NOTE: recommendations counting
     recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
     nbRecomms = len(recomms)
     myButtons = DIV()
@@ -350,7 +349,6 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
 def getRecommendationProcess(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationRounds = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
-    ###NOTE: recommendations counting
     recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
     nbRecomms = len(recomms)
 
@@ -813,10 +811,8 @@ def send_back_button(art):
 def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
-    ###NOTE: recommendations counting
     recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
 
-    ###NOTE: here start recommendations display
     whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
@@ -835,7 +831,6 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         # recommender's button allowing recommendation edition
         editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True)
 
-        # (gab) minimal_number_of_corecommenders is not defiend ! => set it to 0
         minimal_number_of_corecommenders = 0
 
         if len(contributors) >= minimal_number_of_corecommenders:
@@ -853,8 +848,6 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         # recommender's button allowing cancellation
         cancelSubmissionLink = URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id), user_signature=True)
 
-    # (gab) why this ???
-    # if myRound and (recomm.is_closed or art.status == "Awaiting revision" or art.user_id != auth.user_id):
     showRecommendation = False
     if recomm.is_closed or art.status == "Awaiting revision" or art.user_id != auth.user_id:
         showRecommendation = True
