@@ -35,7 +35,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
-def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False):
+def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False):
     if fullURL:
         scheme = myconf.take("alerts.scheme")
         host = myconf.take("alerts.host")
@@ -50,8 +50,6 @@ def getRecommArticleRowCard(auth, db, response, article, withImg=True, withScore
     if isStage2:
         stage1Url = URL(c="articles", f="rec", vars=dict(id=article.art_stage_1_id))
 
-    # Get Recommendation
-    recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
 

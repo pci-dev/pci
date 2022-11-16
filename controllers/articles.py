@@ -74,9 +74,11 @@ def last_recomms():
             orderby=~db.t_articles.last_status_change,
         )
 
+    recomms = db.get_last_recomms()
+
     recommendedArticlesList = []
     for row in queryRecommendedArticles:
-        r = article_components.getRecommArticleRowCard(auth, db, response, row, withDate=True)
+        r = article_components.getRecommArticleRowCard(auth, db, response, row, recomms.get(row.id), withDate=True)
         if r:
             recommendedArticlesList.append(r)
 
@@ -131,11 +133,13 @@ def recommended_articles():
 
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
 
+    recomms = db.get_last_recomms()
+
     totalArticles = len(filtered)
     myRows = []
     for row in filtered:
         r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row),
+                auth, db, response, Storage(row), recomms.get(row['id']),
                 withImg=True, withScore=False, withDate=True,
                 withLastRecommOnly=True,
                 )
@@ -299,10 +303,11 @@ def tracking():
 def all_recommended_articles():
     tweeterAcc = myconf.get("social.tweeter")
     allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
+    recomms = db.get_last_recomms()
     myRows = []
     for row in allR:
         r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row),
+                auth, db, response, Storage(row), recomms.get(row['id']),
                 withImg=True, withScore=False, withDate=True,
                 withLastRecommOnly=True,
                 )
