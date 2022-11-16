@@ -47,6 +47,10 @@ update_crontab() {
 	crontab -l | tail
 }
 
+update_gitauth() {
+	echo "    directory = `realpath $PWD`" >> /var/www/.gitconfig
+}
+
 chkconfig() {
        	ls {small-,}$logo_base > /dev/null
 	PSQL <<< '\d'
