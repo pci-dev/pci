@@ -4,6 +4,7 @@
 *.DS_Store
 errors/*
 sessions/*
+uploads/
 static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/appconfig.ini

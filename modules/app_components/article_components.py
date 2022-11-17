@@ -67,7 +67,13 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
     if withImg:
         if article.uploaded_picture is not None and article.uploaded_picture != "":
             articleImg = IMG(
-                _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _class="pci-articlePicture",
+                _src=URL(
+                    "static", "uploads",
+                    scheme=scheme, host=host, port=port,
+                    args=article.uploaded_picture,
+                ),
+                _alt="article picture",
+                _class="pci-articlePicture",
             )
 
     recommShortText = DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="fade-transparent-text")

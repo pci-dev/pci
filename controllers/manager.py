@@ -891,7 +891,7 @@ def edit_article():
         db.t_articles.record_url_version.readable = False
         db.t_articles.record_url_version.writable = False
 
-    form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
+    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True)
     try:
         article_version = int(art.ms_version)
     except:

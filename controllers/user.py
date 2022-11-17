@@ -784,7 +784,7 @@ def edit_my_article():
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
-    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, buttons=buttons, showid=False)
+    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("static", "uploads"), deletable=deletable, buttons=buttons, showid=False)
     try:
         article_version = int(art.ms_version)
     except:
