@@ -3,6 +3,7 @@
 # import pprint
 # pp = pprint.PrettyPrinter(indent=4)
 from app_modules.coar_notify import COARNotifier
+from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
@@ -600,7 +601,7 @@ db.define_table(
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
         requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
-    Field("uploaded_picture", type="upload", label=T("Picture")),
+    Field("uploaded_picture", type="upload", label=T("Picture"), requires=RESIZE(500,500)),
     Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("data_doi", 
