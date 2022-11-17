@@ -84,7 +84,6 @@ def _DevMenu():
                 # (T('Test flash'), False, URL('alerts', 'test_flash')),
                 # (T('Test FB + tweeter'), False, URL('about', 'test')),
                 # (T('Shrink user images'), False, URL('admin', 'resizeAllUserImages')),
-                # (T('Shrink article images'), False, URL('admin', 'resizeAllArticleImages')),
             ],
         ),
     ]

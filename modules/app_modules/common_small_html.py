@@ -437,24 +437,6 @@ def makeUserThumbnail(auth, db, userId, size=(150, 150)):
 
 
 ######################################################################################################################################################################
-def makeArticleThumbnail(auth, db, articleId, size=(150, 150)):
-    art = db(db.t_articles.id == articleId).select().last()
-    if art and art.picture_data:
-        try:
-            im = Image.open(io.BytesIO(art.picture_data))
-            width, height = im.size
-            if width > 200 or height > 200:
-                im.thumbnail(size, Image.ANTIALIAS)
-                imgByteArr = io.BytesIO()
-                im.save(imgByteArr, format="PNG")
-                imgByteArr = imgByteArr.getvalue()
-                art.update_record(picture_data=imgByteArr)
-        except:
-            pass
-    return
-
-
-######################################################################################################################################################################
 # Other images helper
 ######################################################################################################################################################################
 def mkAnonymousMask(auth, db, anon):
