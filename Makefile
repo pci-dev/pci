@@ -99,6 +99,14 @@ test.create-article:
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
 
+reload.web2py:
+	touch ../../wsgihandler.py
+
+update.deps:
+	if [ "$$PKG" ]; then pip install --upgrade $$PKG; fi
+	pip-compile 2>/dev/null
+	git diff requirements.txt
+
 build:
 	docker build -t pci .
 

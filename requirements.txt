@@ -26,7 +26,7 @@ orderedmultidict==1.0.1
     # via
     #   -r requirements.in
     #   furl
-pillow==9.2.0
+pillow==9.3.0
     # via
     #   -r requirements.in
     #   treepoem
