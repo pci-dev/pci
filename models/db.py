@@ -694,7 +694,7 @@ db.define_table(
     plural=T("Articles"),
     migrate=True,
 )
-db.t_articles.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
+db.t_articles.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("static", "uploads", args=text), _width=100)) if (text is not None and text != "") else ("")
 db.t_articles.authors.represent = lambda t, r: "[undisclosed]" if (r.anonymous_submission and r.status != "Recommended") else (t)
 db.t_articles.upload_timestamp.writable = False
 db.t_articles.last_status_change.writable = False

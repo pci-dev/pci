@@ -188,7 +188,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     ):
     ## NOTE: article facts
     if article.uploaded_picture is not None and article.uploaded_picture != "":
-        article_img = IMG(_alt="picture", _src=URL("default", "download", args=article.uploaded_picture))
+        article_img = IMG(_alt="picture", _src=URL("static", "uploads", args=article.uploaded_picture))
     else:
         article_img = ""
 

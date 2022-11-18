@@ -187,7 +187,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
     if art.uploaded_picture is not None and art.uploaded_picture != "":
         img = DIV(
             IMG(
-                _alt="article picture", _src=URL("default", "download", args=art.uploaded_picture, scheme=scheme, host=host, port=port), _style="max-width:150px; max-height:150px;"
+                _alt="article picture", _src=URL("static", "uploads", args=art.uploaded_picture, scheme=scheme, host=host, port=port), _style="max-width:150px; max-height:150px;"
             )
         )
     else:

@@ -57,13 +57,6 @@ def list_users():
             )
         ]
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
-    db.auth_user.registration_datetime.readable = True
-
-    # db.auth_user.uploaded_picture.represent = (
-    #     lambda text, row: (IMG(_src=URL("default", "download", args=row.uploaded_picture), _width=100))
-    #     if (row.uploaded_picture is not None and row.uploaded_picture != "")
-    #     else (IMG(_src=URL(r=request, c="static", f="images/default_user.png"), _width=100))
-    # )
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
     db.auth_user.first_name.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
@@ -75,7 +68,9 @@ def list_users():
     db.auth_user.country.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.ethical_code_approved.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.alerts.requires = IS_EMPTY_OR(IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly")))
+
     db.auth_user.website.readable = False
+    db.auth_user.registration_datetime.readable = True
 
     if len(request.args) == 1: # list/search view (i.e. not edit form)
         db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)

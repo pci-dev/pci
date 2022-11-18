@@ -43,7 +43,7 @@ def mkRecommArticleRss(auth, db, row):
     if recomm is None:
         return None
     if row.uploaded_picture is not None and row.uploaded_picture != "":
-        img = IMG(_alt="article picture", _src=URL("default", "download", scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style="padding:8px;")
+        img = IMG(_alt="article picture", _src=URL("static", "uploads", scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style="padding:8px;")
     else:
         img = None
     link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
