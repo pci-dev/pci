@@ -911,6 +911,10 @@ db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
         if COARNotifier(db).enabled else None
 
+def get_last_recomm(articleId):
+    return db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+
+db.get_last_recomm = get_last_recomm
 
 def newRecommendation(s, i):
     recomm = db.t_recommendations[i]

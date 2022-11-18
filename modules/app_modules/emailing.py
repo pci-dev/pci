@@ -879,7 +879,7 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
         else:
             mail_vars["articleAuthors"] = article.authors
 
-        lastRecomm = db(db.t_recommendations.article_id == article.id).select(orderby=db.t_recommendations.id).last()
+        lastRecomm = db.get_last_recomm(article.id)
         if lastRecomm:
             reviewers = db((db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed"))).select()
             for rev in reviewers:

@@ -64,7 +64,7 @@ def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
 # From common.py
 ######################################################################################################################################################################
 def mkLastRecommendation(auth, db, articleId):
-    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    lastRecomm = db.get_last_recomm(articleId)
     if lastRecomm:
         return DIV(lastRecomm.recommendation_title or "", _class="pci-w200Cell")
     else:

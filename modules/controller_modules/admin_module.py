@@ -255,7 +255,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
     ndPng = os.path.normpath(os.path.join(request.folder, "static", "images", "nd_large.png"))
     Atitle = latex_escape(art.title)
     Aauthors = latex_escape(art.authors)
-    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    lastRecomm = db.get_last_recomm(articleId)
     recommds = mkRecommendersList(auth, db, lastRecomm)
     n = len(recommds)
     recommenders = "\n"
@@ -387,7 +387,7 @@ def recommBibtex(articleId):
         session.flash = T("Unavailable")
         redirect(URL("articles", "recommended_articles", user_signature=True))
 
-    lastRecomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
+    lastRecomm = db.get_last_recomm(articleId)
     template = """@article{recommendation,
 		title = {%(title)s},
 		doi = {%(doi)s},
