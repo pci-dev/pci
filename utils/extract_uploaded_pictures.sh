@@ -20,8 +20,9 @@ main() {
 	| sed '/^$/ d' \
 	| \
 	while read line; do
-		id=`echo $line | cut -d "|" -f1`
-		file=`echo $line | cut -d "|" -f2 | tr -d ' '`
+		set $line
+		id=$1
+		file=$3
 
 		get_picture $id > uploads/$file
 		printf "."
