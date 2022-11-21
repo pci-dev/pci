@@ -3,8 +3,12 @@
 
 PCI_DB=$1
 
-PSQL="psql -h mydb1 -p 33648 -U peercom $PCI_DB"
-#PSQL="psql -U postgres $PCI_DB"
+case `hostname` in
+	pci-app*)	PSQL_OPTS="-h mydb1 -p 33648 -U peercom" ;;
+	*)		PSQL_OPTS="-U postgres" ;;
+esac
+
+PSQL="psql $PSQL_OPTS $PCI_DB"
 
 main() {
 	[ "$PCI_DB" ] || {
@@ -15,10 +19,14 @@ main() {
 	$PSQL -t -c "
 	select id, uploaded_picture
 	from t_articles
-	where picture_data not null
-	" | while read line; do
-		id=`echo $line | cut -d "|" -f1`
-		file=`echo $line | cut -d "|" -f2 | tr -d ' '`
+	where picture_data is not null
+	" \
+	| sed '/^$/ d' \
+	| \
+	while read line; do
+		set $line
+		id=$1
+		file=$3
 
 		get_picture $id > uploads/$file
 		printf "."
