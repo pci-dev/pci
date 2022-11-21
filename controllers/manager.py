@@ -904,7 +904,7 @@ def edit_article():
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:
-            lastRecomm = db((db.t_recommendations.article_id == art.id)).select().last()
+            lastRecomm = db.get_last_recomm(art.id)
             if lastRecomm is not None:
                 lastRecomm.doi = form.vars.doi
                 lastRecomm.update_record()
