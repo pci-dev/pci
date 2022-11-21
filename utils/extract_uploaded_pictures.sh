@@ -3,8 +3,12 @@
 
 PCI_DB=$1
 
-PSQL="psql -h mydb1 -p 33648 -U peercom $PCI_DB"
-#PSQL="psql -U postgres $PCI_DB"
+case `hostname` in
+	pci-app*)	PSQL_OPTS="-h mydb1 -p 33648 -U peercom" ;;
+	*)		PSQL_OPTS="-U postgres" ;;
+esac
+
+PSQL="psql $PSQL_OPTS $PCI_DB"
 
 main() {
 	[ "$PCI_DB" ] || {
