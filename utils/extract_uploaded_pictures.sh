@@ -16,7 +16,10 @@ main() {
 	select id, uploaded_picture
 	from t_articles
 	where picture_data is not null
-	" | while read line; do
+	" \
+	| sed '/^$/ d' \
+	| \
+	while read line; do
 		id=`echo $line | cut -d "|" -f1`
 		file=`echo $line | cut -d "|" -f2 | tr -d ' '`
 
