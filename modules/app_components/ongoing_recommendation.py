@@ -810,7 +810,7 @@ def send_back_button(art):
 def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=True, scheme=False, host=False, port=False):
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
-    recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
+    recomm = db.get_last_recomm(art.id)
 
     whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
