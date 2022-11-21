@@ -3,6 +3,7 @@
 # import pprint
 # pp = pprint.PrettyPrinter(indent=4)
 from app_modules.coar_notify import COARNotifier
+from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
@@ -600,8 +601,7 @@ db.define_table(
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
         requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
-    Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-    Field("picture_data", type="blob"),
+    Field("uploaded_picture", type="upload", label=T("Picture"), requires=RESIZE(500,500)),
     Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("data_doi", 
@@ -694,7 +694,7 @@ db.define_table(
     plural=T("Articles"),
     migrate=True,
 )
-db.t_articles.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
+db.t_articles.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("static", "uploads", args=text), _width=100)) if (text is not None and text != "") else ("")
 db.t_articles.authors.represent = lambda t, r: "[undisclosed]" if (r.anonymous_submission and r.status != "Recommended") else (t)
 db.t_articles.upload_timestamp.writable = False
 db.t_articles.last_status_change.writable = False
@@ -703,9 +703,7 @@ db.t_articles.auto_nb_recommendations.readable = False
 db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(last_name)s, %(first_name)s"))
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(s, i))
-db.t_articles._after_insert.append(lambda f, i: insArticleThumb(f, i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
-db.t_articles._after_update.append(lambda s, f: updArticleThumb(s, f))
 
 
 def deltaStatus(s, f):
@@ -835,17 +833,6 @@ def newArticle(s, articleId):
     if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
         emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
 
-    return None
-
-
-def insArticleThumb(f, i):
-    common_small_html.makeArticleThumbnail(auth, db, i, size=(150, 150))
-    return None
-
-
-def updArticleThumb(s, f):
-    o = s.select().first()
-    common_small_html.makeArticleThumbnail(auth, db, o.id, size=(150, 150))
     return None
 
 

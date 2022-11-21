@@ -33,7 +33,7 @@ freq = dict(weekly=weekly, two_weeks=two_weeks, monthly=monthly)
 
 def getArticleImage(article):
     if article.uploaded_picture is not None and article.uploaded_picture != "":
-        article_img = IMG(_src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _style="width: 150px",)
+        article_img = IMG(_src=URL("static", "uploads", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _style="width: 150px",)
     else:
         article_img = IMG(_src=URL("static", "images/small-background.png", scheme=scheme, host=host, port=port), _alt="article picture", _style="width: 150px",)
     return article_img

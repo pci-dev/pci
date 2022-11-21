@@ -891,11 +891,14 @@ def edit_article():
         db.t_articles.record_url_version.readable = False
         db.t_articles.record_url_version.writable = False
 
-    form = SQLFORM(db.t_articles, articleId, upload=URL("default", "download"), deletable=True, showid=True)
+    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True)
     try:
         article_version = int(art.ms_version)
     except:
         article_version = art.ms_version
+
+    prev_picture = art.uploaded_picture
+
     def onvalidation(form):
         if not pciRRactivated:
             if isinstance(article_version, int):
@@ -908,6 +911,10 @@ def edit_article():
             if lastRecomm is not None:
                 lastRecomm.doi = form.vars.doi
                 lastRecomm.update_record()
+
+        if prev_picture and form.vars.uploaded_picture:
+            try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
+            except: pass
 
         session.flash = T("Article saved", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))

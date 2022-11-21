@@ -46,14 +46,6 @@ def resizeAllUserImages():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
-def resizeAllArticleImages():
-    for articleId in db(db.t_articles.uploaded_picture != None).select(db.t_articles.id):
-        common_small_html.makeArticleThumbnail(auth, db, articleId, size=(150, 150))
-    redirect(request.env.http_referer)
-
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeUserImages(ids):
     for userId in ids:
         common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))

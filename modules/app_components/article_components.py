@@ -67,7 +67,13 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
     if withImg:
         if article.uploaded_picture is not None and article.uploaded_picture != "":
             articleImg = IMG(
-                _src=URL("default", "download", scheme=scheme, host=host, port=port, args=article.uploaded_picture), _alt="article picture", _class="pci-articlePicture",
+                _src=URL(
+                    "static", "uploads",
+                    scheme=scheme, host=host, port=port,
+                    args=article.uploaded_picture,
+                ),
+                _alt="article picture",
+                _class="pci-articlePicture",
             )
 
     recommShortText = DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="fade-transparent-text")
@@ -182,7 +188,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     ):
     ## NOTE: article facts
     if article.uploaded_picture is not None and article.uploaded_picture != "":
-        article_img = IMG(_alt="picture", _src=URL("default", "download", args=article.uploaded_picture))
+        article_img = IMG(_alt="picture", _src=URL("static", "uploads", args=article.uploaded_picture))
     else:
         article_img = ""
 

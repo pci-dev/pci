@@ -108,7 +108,7 @@ def fields_awaiting_articles():
     temp_db.qy_art.text.represent = lambda text, row: article_html(row.id)
 
     temp_db.qy_art.auto_nb_recommendations.readable = False
-    temp_db.qy_art.uploaded_picture.represent = lambda text, row: (IMG(_src=URL("default", "download", args=text), _width=100)) if (text is not None and text != "") else ("")
+    temp_db.qy_art.uploaded_picture.represent = db.t_articles.uploaded_picture.represent
     temp_db.qy_art.authors.represent = lambda text, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
     temp_db.qy_art.anonymous_submission.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon or False)
     temp_db.qy_art.anonymous_submission.readable = False

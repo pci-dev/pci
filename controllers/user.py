@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import copy
 from datetime import date
@@ -784,11 +785,14 @@ def edit_my_article():
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
-    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("default", "download"), deletable=deletable, buttons=buttons, showid=False)
+    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("static", "uploads"), deletable=deletable, buttons=buttons, showid=False)
     try:
         article_version = int(art.ms_version)
     except:
         article_version = art.ms_version
+
+    prev_picture = art.uploaded_picture
+
     # form.element(_type="submit")["_value"] = T("Save")
     def onvalidation(form):
         if not pciRRactivated:
@@ -797,6 +801,10 @@ def edit_my_article():
                     form.errors.ms_version = "New version number must be greater than or same as previous version number"
 
     if form.process(onvalidation=onvalidation).accepted:
+        if prev_picture and form.vars.uploaded_picture:
+            try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
+            except: pass
+
         response.flash = T("Article saved", lazy=False)
         article = db.t_articles[articleId]
         if article.status == "Pre-submission":
