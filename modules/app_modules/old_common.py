@@ -306,7 +306,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
     myContents = DIV(myArticle, _class=("pci-article-div-printable" if printable else "pci-article-div"))
     # myContents = DIV('', _class=('pci-article-div-printable' if printable else 'pci-article-div'))
 
-    ###NOTE: recommendations counting
     recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
     nbRecomms = len(recomms)
     myButtons = DIV()
@@ -323,7 +322,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         )
 
     if (
-        len(recomms) == 0
+        nbRecomms == 0
         and auth.has_membership(role="recommender")
         and not (art.user_id == auth.user_id)
         and art.status == "Awaiting consideration"
