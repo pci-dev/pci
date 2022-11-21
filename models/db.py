@@ -944,6 +944,19 @@ def recommendationUpdated(s, updated_recommendation):
         coar_notifier.article_endorsed(updated_recommendation)
 
 
+def get_last_recomms():
+    lastRecomms = db.executesql("""
+        SELECT * FROM t_recommendations
+        WHERE id in (SELECT max(id) FROM t_recommendations GROUP BY article_id)
+        AND recommendation_state = 'Recommended'
+        ;
+    """, as_dict=True)
+    return { recomm['article_id']: Storage(recomm) for recomm in lastRecomms }
+
+
+db.get_last_recomms = get_last_recomms
+
+
 db.define_table(
     "t_pdf",
     Field("id", type="id"),
