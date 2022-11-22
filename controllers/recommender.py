@@ -69,7 +69,7 @@ def fields_awaiting_articles():
         Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews"), default=0),
         Field("status", type="string", length=50, default="Pending", label=T("Status")),
         Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
-        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
+        Field("uploaded_picture", type="upload", label=T("Picture")),
         Field("already_published", type="boolean", label=T("Postprint")),
         Field("anonymous_submission", type="boolean", label=T("Anonymous submission")),
         Field("parallel_submission", type="boolean", label=T("Parallel submission")),
@@ -780,7 +780,7 @@ def direct_submission():
 					});
 				});
 	"""
-    fields = ["title", "authors", "article_source", "doi", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords", "picture_data"]
+    fields = ["title", "authors", "article_source", "doi", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords"]
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True, submit_button=T("Continue..."), hidden=dict(no_conflict_of_interest="yes" if noConflict else "no"))
     if form.process().accepted:
         articleId = form.vars.id
