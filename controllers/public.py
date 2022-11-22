@@ -4,6 +4,8 @@ from app_modules.helper import *
 
 from app_components import article_components
 
+from gluon.storage import Storage
+
 
 ######################################################################################################################################################################
 def index():
