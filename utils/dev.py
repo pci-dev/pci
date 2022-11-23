@@ -12,6 +12,7 @@ _items = [
     "status",
     "update",
     "force",
+    "uploads",
     "db",
 ]
 
@@ -85,6 +86,11 @@ def version():
 
 def _curr_branch():
     return _run("git rev-parse --abbrev-ref HEAD").strip()
+
+
+def uploads():
+    cmd = """sh -c "cd ..; du -hs PCI*/uploads | sed 's:/uploads::'" """
+    return _shell(cmd)
 
 
 def index():
