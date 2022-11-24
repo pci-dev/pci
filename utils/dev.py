@@ -2,6 +2,7 @@
 
 from subprocess import Popen, PIPE, STDOUT
 import shlex
+import json
 
 from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
@@ -12,12 +13,20 @@ _items = [
     "status",
     "update",
     "force",
+    "uploads",
+    "pcis",
     "db",
 ]
 
 
 def log():
     return _shell("git log --decorate --graph --oneline -50")
+
+
+def log_():
+    opt = "--merges --decorate --decorate-refs=refs/tags/*"
+    fmt = "--pretty='%s\t%d'"
+    return _shell(f"git log {opt} {fmt} --since 'one year'") + "[...]"
 
 
 def status():
@@ -40,7 +49,7 @@ def force():
 
 
 def db():
-    scripts = _run("sh -c 'ls updates/*.sql 2>/dev/null'").strip().split()
+    scripts = _run("sh -c 'cd updates; ls *.sql 2>/dev/null'").strip().split()
     if scripts:
         return "<br>\n" .join([
             '<a href="db_exec?script='+f+'">'+f+'</a>'
@@ -51,8 +60,8 @@ def db():
 
 def db_exec():
     db = DAL(AppConfig().get("db.uri"))
-    script = request.vars.script
-    sql = _run("cat " + script)
+    script = request.vars.script.split("/")[-1]
+    sql = _run("cat updates/" + script)
     out = ["executing: " + script]
     try:
         res = db.executesql(sql)
@@ -63,21 +72,6 @@ def db_exec():
     return "<pre>\n" + "\n".join(out) + "\n</pre>"
 
 
-def sh():
-    scripts = _run("sh -c 'ls updates/*.sh 2>/dev/null'").strip().split()
-    if scripts:
-        return "<br>\n" .join([
-            '<a href="sh_exec?script='+f+'">'+f+'</a>'
-                for f in scripts ])
-    else:
-        return "updates: no sh files"
-
-
-def sh_exec():
-    script = request.vars.script
-    return _shell("sh " + script)
-
-
 def version():
     opt = "--decorate --decorate-refs-exclude remotes/origin/*"
     return _shell(f"git log {opt} --oneline HEAD -1")
@@ -85,6 +79,35 @@ def version():
 
 def _curr_branch():
     return _run("git rev-parse --abbrev-ref HEAD").strip()
+
+
+def uploads():
+    cmd = """sh -c "cd ..; du -hs PCI*/uploads | sed 's:/uploads::'" """
+    return _shell(cmd)
+
+
+def pcis():
+    host = read_confs("host", cleanup="s:[.].*::")
+    desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
+
+    response.headers['Content-Type'] = 'application/json'
+    return _json({
+        host[i]: desc[i] for i,_ in enumerate(host)
+    })
+
+
+def read_confs(key, cleanup=""):
+    return _run(f"""sh -c "
+        cd ..
+        cat PCI*/private/appconfig.ini \\
+        | egrep '^{key} = ' \\
+        | sed  's:{key} = ::; {cleanup}'
+        " """
+        ).strip().split('\n')
+
+
+def _json(arg):
+    return json.dumps(arg, indent=4)
 
 
 def index():
