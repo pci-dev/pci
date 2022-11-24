@@ -2,6 +2,7 @@
 
 from subprocess import Popen, PIPE, STDOUT
 import shlex
+import json
 
 from gluon.custom_import import track_changes
 track_changes(True)  # reimport module if changed; disable in production
@@ -13,6 +14,7 @@ _items = [
     "update",
     "force",
     "uploads",
+    "pcis",
     "db",
 ]
 
@@ -97,6 +99,30 @@ def _curr_branch():
 def uploads():
     cmd = """sh -c "cd ..; du -hs PCI*/uploads | sed 's:/uploads::'" """
     return _shell(cmd)
+
+
+def pcis():
+    host = read_confs("host", cleanup="s:[.].*::")
+    desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
+
+    response.headers['Content-Type'] = 'application/json'
+    return _json({
+        host[i]: desc[i] for i,_ in enumerate(host)
+    })
+
+
+def read_confs(key, cleanup=""):
+    return _run(f"""sh -c "
+        cd ..
+        cat PCI*/private/appconfig.ini \\
+        | egrep '^{key} = ' \\
+        | sed  's:{key} = ::; {cleanup}'
+        " """
+        ).strip().split('\n')
+
+
+def _json(arg):
+    return json.dumps(arg, indent=4)
 
 
 def index():
