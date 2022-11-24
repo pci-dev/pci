@@ -21,6 +21,12 @@ def log():
     return _shell("git log --decorate --graph --oneline -50")
 
 
+def log_():
+    opt = "--merges --decorate --decorate-refs=refs/tags/*"
+    fmt = "--pretty='%s\t%d'"
+    return _shell(f"git log {opt} {fmt} --since 'one year'") + "[...]"
+
+
 def status():
     return _shell("git status")
 
