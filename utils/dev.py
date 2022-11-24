@@ -49,7 +49,7 @@ def force():
 
 
 def db():
-    scripts = _run("sh -c 'ls updates/*.sql 2>/dev/null'").strip().split()
+    scripts = _run("sh -c 'cd updates; ls *.sql 2>/dev/null'").strip().split()
     if scripts:
         return "<br>\n" .join([
             '<a href="db_exec?script='+f+'">'+f+'</a>'
@@ -60,8 +60,8 @@ def db():
 
 def db_exec():
     db = DAL(AppConfig().get("db.uri"))
-    script = request.vars.script
-    sql = _run("cat " + script)
+    script = request.vars.script.split("/")[-1]
+    sql = _run("cat updates/" + script)
     out = ["executing: " + script]
     try:
         res = db.executesql(sql)
