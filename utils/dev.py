@@ -72,21 +72,6 @@ def db_exec():
     return "<pre>\n" + "\n".join(out) + "\n</pre>"
 
 
-def sh():
-    scripts = _run("sh -c 'ls updates/*.sh 2>/dev/null'").strip().split()
-    if scripts:
-        return "<br>\n" .join([
-            '<a href="sh_exec?script='+f+'">'+f+'</a>'
-                for f in scripts ])
-    else:
-        return "updates: no sh files"
-
-
-def sh_exec():
-    script = request.vars.script
-    return _shell("sh " + script)
-
-
 def version():
     opt = "--decorate --decorate-refs-exclude remotes/origin/*"
     return _shell(f"git log {opt} --oneline HEAD -1")
