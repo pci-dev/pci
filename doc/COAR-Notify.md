@@ -17,6 +17,14 @@ base_url = http://this-service.invalid/pci/
 If `coar_notify.inbox_url` is missing or empty, COAR Notify support — both the inbox and outward notifications — is
 disabled.
 
+We recommend against enabling the COAR sub-system in a real production system, because
+a.) it'll accept notifications from anywhere without authentication, and
+b.) rdflib still doesn't have a constrained URL resolver, which could lead to DoS attacks.
+
+
+Checking it works
+-----------------
+
 To check that the coar notify sub-system works:
 - use POST url `coar_notify/inbox` to send inbound COAR notifications to PCI
 - validate a PCI recommendation and check the remote-service at `inbox_url` for received notifications
@@ -24,6 +32,10 @@ To check that the coar notify sub-system works:
 Both outbound notifications (to the remote service at `inbox_url`)
 and inbound notifications (posted to `coar_notify/inbox`)
 are stored in table `t_coar_notifications` in the pci database.
+
+
+Deployment
+----------
 
 The COAR sub-system requires the following extra python libs:
 - rdflib (and dependencies)
@@ -35,8 +47,3 @@ directly into your web2py apps directory under `modules/`.
 
 The PCI `coar_notify/inbox` endpoint somehow requires the captcha to be turned off.  To disable
 the captcha, comment-out the line `private` in section `[captcha]` in `appconfig.ini`.
-
-We recommend against enabling the COAR sub-system in a real production system, because
-a.) it'll accept notifications from anywhere without authentication, and
-b.) rdflib still doesn't have a constrained URL resolver, which could lead to DoS attacks.
-
