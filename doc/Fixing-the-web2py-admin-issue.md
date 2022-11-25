@@ -45,6 +45,19 @@ source: https://github.com/web2py/web2py/issues/2173
 	chgrp www-data .ht*
 
 
+5./ route tickets to new url
+----------------------------
+
+in the toplevel `/routes.py`, add:
+
+```
+# direct tickets to /web2py instead of /admin
+error_message_ticket = '''<html><body><h1>Internal error</h1>
+     Ticket issued: <a href="/web2py/default/ticket/%(ticket)s"
+     target="_blank">%(ticket)s</a></body></html>'''
+```
+
+
 annex: the patch
 ----------------
 
