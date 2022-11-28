@@ -6,6 +6,7 @@ is_admin = auth.has_membership(role="administrator")
 stats = lambda: {
     "by pci": by_pci,
     "by status": by_status,
+    "by status all PCIs": by_status_all_pci,
 }
 
 
@@ -56,6 +57,13 @@ def by_status():
     )
 
 
+@auth.requires(is_admin)
+def by_status_all_pci():
+    return PAGE(
+        CROSSTAB(stack(years_by_status))
+    )
+
+
 def years_by_pci(uris):
     stats = {
         get_db_from_uri(uri): years_totals(uri)
@@ -93,6 +101,20 @@ def PAGE(*args):
         list_stats(butt_style=""),
         PRE(*args),
     )
+
+
+def stack(func):
+    stats = {
+        get_db_from_uri(uri): func(uri)
+        for uri in all_pci_db_uris()
+    }
+    rows = []
+    for pci in stats:
+        for line, col, val in stats[pci]:
+            rows.append([str(line), col, val])
+    rows.sort()
+
+    return rows
 
 
 def crosstab(lines_dict):
