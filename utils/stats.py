@@ -4,6 +4,7 @@ from app_modules.utils import all_pci_db_uris
 is_admin = auth.has_membership(role="administrator")
 
 stats = lambda: {
+    "by pci": by_pci,
     "by status": by_status,
 }
 
@@ -24,6 +25,16 @@ def years_by_status(uri):
     """)
 
 
+def years_totals(uri):
+    return DAL(uri).executesql(f"""
+    select
+        extract (year from {date_field()}) as year,
+        count(id)
+    from t_articles
+    group by year
+    """)
+
+
 def date_field(_=request.vars):
     return dict(
         creation="upload_timestamp",
@@ -32,10 +43,30 @@ def date_field(_=request.vars):
 
 
 @auth.requires(is_admin)
+def by_pci():
+    return PAGE(
+        CROSSTAB(years_by_pci(all_pci_db_uris()))
+    )
+
+
+@auth.requires(is_admin)
 def by_status():
     return PAGE(
         ALL_CROSSTABS(years_by_status)
     )
+
+
+def years_by_pci(uris):
+    stats = {
+        get_db_from_uri(uri): years_totals(uri)
+        for uri in uris
+    }
+    rows = []
+    for pci in stats:
+        for year, total in stats[pci]:
+            rows.append([pci, year, total])
+
+    return rows
 
 
 def CROSSTAB(rows):
