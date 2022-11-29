@@ -7,6 +7,7 @@ stats = lambda: {
     "by pci": by_pci,
     "by status": by_status,
     "by status all PCIs": by_status_all_pci,
+    "by reviews": by_reviews,
     "by review states": by_review_states,
 }
 
@@ -52,6 +53,41 @@ def years_by_review_states(uri):
     """)
 
 
+def years_by_reviewers(uri):
+    return DAL(uri).executesql(f"""
+    select
+        {extract_review_year()} as year,
+        count(distinct reviewer_id)
+    from t_reviews
+    group by year
+    """)
+
+
+def years_x_review_states(uri, states):
+    return DAL(uri).executesql(f"""
+    select
+        {extract_review_year()} as year,
+        count(id)
+    from t_reviews
+    where review_state in ('{"','".join(states)}')
+    group by year
+    """)
+
+
+def years_by_declined(uri):
+    return years_x_review_states(uri, [
+        'Declined',
+        'Declined manually',
+        'Declined by recommender',
+    ])
+
+
+def years_by_willing(uri):
+    return years_x_review_states(uri, [
+        'Willing to review',
+    ])
+
+
 def date_field(_=request.vars):
     return dict(
         creation="upload_timestamp",
@@ -88,6 +124,13 @@ def by_status_all_pci():
 
 
 @auth.requires(is_admin)
+def by_reviews():
+    return PAGE(
+        ALL_CROSSTABS(years_by_reviews)
+    )
+
+
+@auth.requires(is_admin)
 def by_review_states():
     return PAGE(
         ALL_CROSSTABS(years_by_review_states)
@@ -103,6 +146,22 @@ def years_by_pci(uris):
     for pci in stats:
         for year, total in stats[pci]:
             rows.append([pci, year, total])
+
+    return rows
+
+
+def years_by_reviews(uri):
+    queries = {
+        "invited reviewers": years_by_reviewers,
+        "declined reviews": years_by_declined,
+        "willing to review": years_by_willing,
+    }
+    rows = []
+
+    for topic, func in queries.items():
+        years = func(uri)
+        for year, val in years:
+            rows.append([topic, year, val])
 
     return rows
 
