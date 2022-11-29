@@ -7,6 +7,7 @@ stats = lambda: {
     "by pci": by_pci,
     "by status": by_status,
     "by status all PCIs": by_status_all_pci,
+    "by review states": by_review_states,
 }
 
 
@@ -36,10 +37,32 @@ def years_totals(uri):
     """)
 
 
+extract_review_year = lambda: \
+    f"coalesce(extract(year from {review_date_field()}), 0)"
+
+def years_by_review_states(uri):
+    return DAL(uri).executesql(f"""
+    select
+        review_state,
+        {extract_review_year()} as year,
+        count(id)
+    from t_reviews
+    group by year, review_state
+    order by review_state, year
+    """)
+
+
 def date_field(_=request.vars):
     return dict(
         creation="upload_timestamp",
         decision="last_status_change",
+    ).get(_.date or "creation")
+
+
+def review_date_field(_=request.vars):
+    return dict(
+        creation="last_change",
+        decision="acceptation_timestamp",
     ).get(_.date or "creation")
 
 
@@ -61,6 +84,13 @@ def by_status():
 def by_status_all_pci():
     return PAGE(
         CROSSTAB(stack(years_by_status))
+    )
+
+
+@auth.requires(is_admin)
+def by_review_states():
+    return PAGE(
+        ALL_CROSSTABS(years_by_review_states)
     )
 
 
