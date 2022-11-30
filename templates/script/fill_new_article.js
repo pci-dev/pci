@@ -18,11 +18,13 @@ jQuery(document).ready(function() {
         't_articles_is_not_reviewed_elsewhere'
       ]
   }
-  if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
-    jQuery("#t_articles_uploaded_picture").prop("disabled", false);
-  } else {
-    jQuery("#t_articles_uploaded_picture").prop("disabled", true);
-  }
+  if (pciRRactivated) {
+    if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
+      jQuery("#t_articles_uploaded_picture").prop("disabled", false);
+    } else {
+      jQuery("#t_articles_uploaded_picture").prop("disabled", true);
+    }
+} 
 
   if (jQuery("#t_articles_already_published").prop("checked")) {
     jQuery("#t_articles_article_source__row").show();

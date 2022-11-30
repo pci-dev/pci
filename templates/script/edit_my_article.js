@@ -15,14 +15,14 @@ jQuery(document).ready(function () {
   }
 
   // if checkbox for picture adding is clicked, enable picture browse button
-  jQuery("#t_articles_picture_rights_ok").change(function () {
-    if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
-      jQuery("#t_articles_uploaded_picture").prop("disabled", false);
-    } else {
-      jQuery("#t_articles_uploaded_picture").prop("disabled", true);
-      jQuery("#t_articles_uploaded_picture").val("");
-    }
-  });
+  // jQuery("#t_articles_picture_rights_ok").change(function () {
+  //  if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
+  //    jQuery("#t_articles_uploaded_picture").prop("disabled", false);
+  //  } else {
+  //    jQuery("#t_articles_uploaded_picture").prop("disabled", true);
+  //    jQuery("#t_articles_uploaded_picture").val("");
+  // }
+  // });
 
   // if the article is already published, display the field for the source
   // to the publication
