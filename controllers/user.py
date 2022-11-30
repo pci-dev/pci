@@ -1806,7 +1806,7 @@ def add_suggested_recommender():
         redirect(request.env.http_referer)
     else:
         recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
-        excludedrecommendersList = db((db.t_excluded_recommenders.article_id == articleId) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select()
+        excludedrecommendersList = db(db.t_excluded_recommenders.article_id == articleId).select()
         recommendersList, excludedRecommenders = [], []
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
@@ -1829,14 +1829,15 @@ def add_suggested_recommender():
                     )
                 )
         for con in excludedrecommendersList:
-            reviewersIds.append(con.auth_user.id)
+            user_id = con.excluded_recommender_id
+            reviewersIds.append(user_id)
             excludedRecommenders.append(
                     LI(
-                        common_small_html.mkUser(auth, db, con.auth_user.id),
+                        common_small_html.mkUser(auth, db, user_id),
                         A(
                             "Remove",
                             _class="btn btn-warning",
-                            _href=URL(c="user_actions", f="del_excluded_recommender", vars=dict(exclId=con.t_excluded_recommenders.id)),
+                            _href=URL(c="user_actions", f="del_excluded_recommender", vars=dict(exclId=user_id)),
                             _title=T("Delete"),
                             _style="margin-left:8px;",
                         )
