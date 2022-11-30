@@ -100,7 +100,7 @@ def fields_awaiting_articles():
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
     for fr in filtered:
-        excluded_recommender = db((db.t_excluded_recommenders.article_id == fr['id']) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select(db.t_excluded_recommenders.article_id).last()
+        excluded_recommender = db((db.t_excluded_recommenders.article_id == fr['id']) & (db.t_excluded_recommenders.excluded_recommender_id == auth.user.id)).select(db.t_excluded_recommenders.article_id).last()
         if not excluded_recommender:
             fr['text'] = article_html(fr['id']).flatten()
             qy_art.insert(**fr)
