@@ -73,6 +73,7 @@ describe("Preprint recommended in one round", () => {
       }
 
       if (!is_rr) {
+      cy.get("#t_articles_uploaded_picture").selectFile("tests/image.png");
       cy.get("#t_articles_no_results_based_on_data").click();
       cy.get("#t_articles_no_scripts_used_for_result").click();
       cy.get("#t_articles_codes_used_in_study").click();
