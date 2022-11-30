@@ -94,7 +94,7 @@ def del_suggested_recommender():
 def del_excluded_recommender():
     exclId = request.vars["exclId"]
     if exclId:
-        if db((db.t_excluded_recommenders.id == exclId) & (db.t_articles.id == db.t_excluded_recommenders.article_id) & (db.t_articles.user_id == auth.user_id)).count() > 0:
+        if db(db.t_excluded_recommenders.id == exclId).count() > 0:
             db((db.t_excluded_recommenders.id == exclId)).delete()
     redirect(request.env.http_referer)
 
