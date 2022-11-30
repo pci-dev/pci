@@ -1806,7 +1806,7 @@ def add_suggested_recommender():
         redirect(request.env.http_referer)
     else:
         recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
-        excludedrecommendersList = db(db.t_excluded_recommenders.article_id == articleId).select()
+        excluded_recommenders = db(db.t_excluded_recommenders.article_id == articleId).select()
         recommendersList, excludedRecommenders = [], []
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
@@ -1828,8 +1828,8 @@ def add_suggested_recommender():
                         else "",
                     )
                 )
-        for con in excludedrecommendersList:
-            user_id = con.excluded_recommender_id
+        for row in excluded_recommenders:
+            user_id = row.excluded_recommender_id
             reviewersIds.append(user_id)
             excludedRecommenders.append(
                     LI(
