@@ -807,6 +807,9 @@ def edit_article():
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0
 
+        db.t_articles.preprint_server.readable = False
+        db.t_articles.preprint_server.writable = False
+
         db.t_articles.results_based_on_data.readable = False
         db.t_articles.results_based_on_data.writable = False
         db.t_articles.data_doi.readable = False

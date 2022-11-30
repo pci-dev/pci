@@ -471,8 +471,12 @@ def fill_new_article():
 
     fields += [
         "doi",
-        "ms_version",
     ]
+
+    if not pciRRactivated:
+        fields += ["preprint_server"]
+    
+    fields += ["ms_version"]
 
     if pciRRactivated:
         fields += ["record_url_version", "record_id_version"]
@@ -686,8 +690,12 @@ def edit_my_article():
 
         fields += [
             "doi",
-            "ms_version",
         ]
+
+        if not pciRRactivated:
+            fields += ["preprint_server"]
+        
+        fields += ["ms_version"]
 
         if pciRRactivated:
             fields += ["record_url_version", "record_id_version"]
@@ -738,8 +746,12 @@ def edit_my_article():
 
         fields += [
             "doi",
-            "ms_version",
         ]
+
+        if not pciRRactivated:
+            fields += ["preprint_server"]
+        
+        fields += ["ms_version"]
 
         if pciRRactivated:
             fields += ["record_url_version", "record_id_version"]
