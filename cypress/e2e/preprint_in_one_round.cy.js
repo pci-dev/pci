@@ -77,6 +77,7 @@ describe("Preprint recommended in one round", () => {
       cy.get("#t_articles_no_scripts_used_for_result").click();
       cy.get("#t_articles_codes_used_in_study").click();
       cy.get("#t_articles_codes_doi").typeFast("https://github.com/");
+      cy.get("#t_articles_preprint_server").typeFast("Preprint server");
       }
 
       cy.get('input[name="thematics"]').first().click();

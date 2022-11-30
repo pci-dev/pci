@@ -2956,3 +2956,7 @@ ADD COLUMN IF NOT EXISTS validation_timestamp timestamp without time zone;
 
 -- 2022-10-27 updates/add_bcc_to_mailqueue.sql
 ALTER TABLE mail_queue ADD COLUMN bcc_mail_addresses text;
+
+-- 2022-11-30 updates/new_t_article_field.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS  preprint_server character varying(512);

@@ -598,6 +598,7 @@ db.define_table(
     Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t)),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
     Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=T("URL must start with http:// or https://")),
+    Field("preprint_server", type="string", length=512, label=T("Name of the preprint server or open archive (eg bioRxiv, Zenodo, arXiv, HAL, OSF prepints...) where your preprint has been posted"), requires=[IS_NOT_EMPTY(), IS_LENGTH(512, 0)]),
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
         requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
     Field("picture_rights_ok", type="boolean", label=T("I wish to add a small picture (png or jpeg format) for which no rights are required")),
