@@ -9,6 +9,7 @@ stats = lambda: {
     "articles by status (all pci)": by_status_all_pci,
     "reviews invites": by_reviews,
     "reviews by states": by_review_states,
+    "reviews by states (all pci)": by_review_states_all_pci,
 }
 
 
@@ -134,6 +135,13 @@ def by_reviews():
 def by_review_states():
     return PAGE(
         ALL_CROSSTABS(years_by_review_states)
+    )
+
+
+@auth.requires(is_admin)
+def by_review_states_all_pci():
+    return PAGE(
+        CROSSTAB(stack(years_by_review_states))
     )
 
 
