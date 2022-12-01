@@ -435,7 +435,7 @@
     "Modified On": "Modified On",
     "More": "More",
     "More...": "More...",
-    "Most recent DOI (or URL)": "Full web address (DOI or URL) to most recent version of the preprint",
+    "Most recent DOI (or URL)": "Full web address (DOI or URL) of your preprint (eg for bioRxiv = https://doi.org/10.1101/xxx, for arXiv = https://doi.org/10.48550/arXiv.xxx, for HAL = https://hal.archives-ouvertes.fr/hal-xxx, for Zenodo = https://doi.org/10.5281/zenodo.xxx, for OSF preprints https://doi.org/10.31219/osf.io/xxx)",
     "Most recent recommendations in:": "Most recent recommendations in:",
     "Most recent version of the manuscript": "Most recent version of the manuscript",
     "My closed articles recommendations": "My closed articles recommendations",
