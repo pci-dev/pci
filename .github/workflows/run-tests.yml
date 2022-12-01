@@ -10,6 +10,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+
+      - run: |
+          : divert chromedriver snap install so it is cached
+
+          sudo add-apt-repository ppa:saiarcot895/chromium-beta
+          sudo apt-get update
+
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: chromium-chromedriver postgresql postgresql-contrib libimage-exiftool-perl
