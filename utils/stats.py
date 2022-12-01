@@ -4,11 +4,11 @@ from app_modules.utils import all_pci_db_uris
 is_admin = auth.has_membership(role="administrator")
 
 stats = lambda: {
-    "by pci": by_pci,
-    "by status": by_status,
-    "by status all PCIs": by_status_all_pci,
-    "by reviews": by_reviews,
-    "by review states": by_review_states,
+    "articles by pci": by_pci,
+    "articles by status": by_status,
+    "articles by status (all pci)": by_status_all_pci,
+    "reviews invites": by_reviews,
+    "reviews by states": by_review_states,
 }
 
 
