@@ -99,11 +99,15 @@ def fields_awaiting_articles():
 
     filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
 
+    hidden_articles = [row.article_id for row in db(
+            db.t_excluded_recommenders.excluded_recommender_id == auth.user.id
+        ).select(db.t_excluded_recommenders.article_id) ]
+
     for fr in filtered:
-        excluded_recommender = db((db.t_excluded_recommenders.article_id == fr['id']) & (db.t_excluded_recommenders.excluded_recommender_id == db.auth_user.id)).select(db.t_excluded_recommenders.article_id).last()
-        if not excluded_recommender:
-            fr['text'] = article_html(fr['id']).flatten()
-            qy_art.insert(**fr)
+        if fr['id'] in hidden_articles: continue
+
+        fr['text'] = article_html(fr['id']).flatten()
+        qy_art.insert(**fr)
 
     temp_db.qy_art.text.represent = lambda text, row: article_html(row.id)
 
