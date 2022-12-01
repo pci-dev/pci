@@ -2,6 +2,7 @@ from conftest import config, select
 from conftest import login, logout
 from conftest import test
 
+import os
 import time
 import pytest
 
@@ -52,6 +53,7 @@ class User_submits:
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
 
     if not is_rr:
+        select("#t_articles_uploaded_picture").send_keys(os.getcwd() + "/image.png")
         select("#t_articles_no_results_based_on_data").click()
         select("#t_articles_no_scripts_used_for_result").click()
         select("#t_articles_codes_used_in_study").click()

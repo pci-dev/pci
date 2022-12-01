@@ -519,6 +519,7 @@
     "Permission": "Permission",
     "Permissions": "Permissions",
     "Picture": "Picture",
+    "Picture right": "To illustrate your article, please add a picture (png or jpeg format) for which no rights are required (it can be a figure or a picture of your article)",
     "Please, cancel this recommendation request": "Please, cancel this recommendation request",
     "please input your password again": "please input your password again",
     "Plugins": "Plugins",

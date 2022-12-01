@@ -521,6 +521,7 @@
     "Permission": "Permission",
     "Permissions": "Permissions",
     "Picture": "Picture",
+    "Picture right": "I wish to add a small picture (png or jpeg format) for which no rights are required",
     "Please, cancel this recommendation request": "Please, cancel this recommendation request",
     "please input your password again": "please input your password again",
     "Plugins": "Plugins",
