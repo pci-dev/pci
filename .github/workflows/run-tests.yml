@@ -10,6 +10,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: chromium-chromedriver postgresql postgresql-contrib libimage-exiftool-perl
+          version: 1.0
 
       - run: make install db.admin
 
