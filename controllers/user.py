@@ -831,6 +831,11 @@ def edit_my_article():
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+    status = db.submissions[1]
+
+    if pciRRactivated and status['allow_submissions'] is False:
+        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
         customText=getText(request, auth, db, "#UserEditArticleText"),
@@ -1229,6 +1234,10 @@ def edit_report_survey():
         redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+
+    status = db.submissions[1]
+    if pciRRactivated and status['allow_submissions'] is False:
+        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_template("script", "fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
