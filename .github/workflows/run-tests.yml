@@ -15,9 +15,8 @@ jobs:
           packages: chromium-chromedriver postgresql postgresql-contrib libimage-exiftool-perl
           version: 1.0
 
-      - run: make install db.admin
-
-      - run: make test.install.selenium
+      - run: make web2py pydeps db.admin
+      - run: make install.selenium
 
       - run: make test.reset
       - run: make test.basic

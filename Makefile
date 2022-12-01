@@ -55,8 +55,12 @@ logo:	static/images/background.png \
 private/% static/%:
 	cd $(dir $@) && cp sample.$(notdir $@) $(notdir $@)
 
-test.install.selenium:
+test.install.selenium: install.selenium install.chromium
+
+install.selenium:
 	pip install -r tests/requirements.txt
+
+install.chromium:
 	sudo apt install chromium-chromedriver
 
 test.install.cypress:
