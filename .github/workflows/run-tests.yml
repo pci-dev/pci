@@ -11,9 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - run: make install db.admin
+      - run: |
+          : divert chromedriver snap install so it is cached
 
-      - run: make test.install.selenium
+          sudo add-apt-repository ppa:saiarcot895/chromium-beta
+          sudo apt-get update
+
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: chromium-chromedriver postgresql postgresql-contrib libimage-exiftool-perl
+          version: 1.0
+
+      - run: make web2py pydeps db.admin
+      - run: make install.selenium
 
       - run: make test.reset
       - run: make test.basic
