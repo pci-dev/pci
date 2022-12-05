@@ -11,6 +11,7 @@ stats = lambda: {
     "reviews by states": by_review_states,
     "reviews by states (all pci)": by_review_states_all_pci,
     "": None,
+    "review completion durations (days)": review_invited_to_completed,
     "recommended articles submitters emails": emails_recommended_submitters,
 }
 
@@ -54,6 +55,21 @@ def recommended_submitters(uri):
         where art.status = 'Recommended'
     ) as submitters
     where year > extract(year from now()) - 2
+    group by year
+    order by year desc
+    """)
+
+
+def review_durations(uri):
+    return DAL(uri).executesql(f"""
+    select
+        year, string_agg(nb_days::text, ',' order by nb_days desc)
+    from (select
+        {extract_review_year()} as year,
+        extract(day from last_change - acceptation_timestamp) as nb_days
+        from t_reviews
+        where review_state = 'Review completed'
+    ) as durations
     group by year
     order by year desc
     """)
@@ -166,6 +182,13 @@ def by_review_states_all_pci():
 
 
 @auth.requires(is_admin)
+def review_invited_to_completed():
+    return PAGE(
+        ALL_REPORTS(durations_by_year(review_durations))
+    )
+
+
+@auth.requires(is_admin)
 def emails_recommended_submitters():
     return PAGE(
         ALL_REPORTS(recommended_submitters_last_2_years)
@@ -199,6 +222,17 @@ def years_by_reviews(uri):
             rows.append([topic, year, val])
 
     return rows
+
+
+def durations_by_year(query):
+    return lambda pci: durations(pci, query)
+
+
+def durations(pci, query):
+    return TABLE(*[
+        TR(*[ TD(x) for x in [int(year)] + (values or "").split(",")])
+        for year, values in query(pci) if year
+    ])
 
 
 def recommended_submitters_last_2_years(pci):
