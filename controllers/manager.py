@@ -902,11 +902,16 @@ def edit_article():
 
     prev_picture = art.uploaded_picture
 
+    if type(db.t_articles.uploaded_picture.requires) == list: # non-RR see db.py
+        not_empty = db.t_articles.uploaded_picture.requires.pop()
+
     def onvalidation(form):
         if not pciRRactivated:
             if isinstance(article_version, int):
                 if int(art.ms_version) > int(form.vars.ms_version):
                     form.errors.ms_version = "New version number must be greater than or same as previous version number"
+            if not prev_picture:
+                form.errors.uploaded_picture = not_empty.error_message
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:
