@@ -10,6 +10,8 @@ stats = lambda: {
     "reviews invites": by_reviews,
     "reviews by states": by_review_states,
     "reviews by states (all pci)": by_review_states_all_pci,
+    "": None,
+    "recommended articles submitters emails": emails_recommended_submitters,
 }
 
 
@@ -36,6 +38,24 @@ def years_totals(uri):
         count(id)
     from t_articles
     group by year
+    """)
+
+
+def recommended_submitters(uri):
+    return DAL(uri).executesql(f"""
+    select
+        year, string_agg(email, '\n' order by email)
+    from (select
+        distinct concat(usr.email, art.submitter_details) as email,
+        extract (year from art.{date_field()}) as year
+    from auth_user as usr
+    left join t_articles as art
+        on (usr.id = art.user_id)
+        where art.status = 'Recommended'
+    ) as submitters
+    where year > extract(year from now()) - 2
+    group by year
+    order by year desc
     """)
 
 
@@ -145,6 +165,13 @@ def by_review_states_all_pci():
     )
 
 
+@auth.requires(is_admin)
+def emails_recommended_submitters():
+    return PAGE(
+        ALL_REPORTS(recommended_submitters_last_2_years)
+    )
+
+
 def years_by_pci(uris):
     stats = {
         get_db_from_uri(uri): years_totals(uri)
@@ -172,6 +199,16 @@ def years_by_reviews(uri):
             rows.append([topic, year, val])
 
     return rows
+
+
+def recommended_submitters_last_2_years(pci):
+    return TABLE(*[
+        TR(
+            TR(int(year)),
+            TR(TD(), TD(PRE(emails)))
+        )
+        for year, emails in recommended_submitters(pci)
+    ])
 
 
 def CROSSTAB(rows):
