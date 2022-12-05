@@ -184,10 +184,14 @@ def CROSSTAB(rows):
 
  
 def ALL_CROSSTABS(func):
+    return ALL_REPORTS(func, item=CROSSTAB)
+
+
+def ALL_REPORTS(func, item=DIV):
     return DIV(*[
         DIV(
             P(get_db_from_uri(uri)),
-            CROSSTAB(func(uri)),
+            item(func(uri)),
         )
         for uri in all_pci_db_uris()
     ])
@@ -252,7 +256,8 @@ def list_stats(butt_style="display:block"):
             BUTTON(text, _value=URL(f=val),
                 _onclick="butt_click(this)",
                 _style=butt_style,
-            )
+            ) \
+                if text else BR()
             for text, val in stats().items()
         ]),
         DIV(
