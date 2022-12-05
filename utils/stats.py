@@ -12,6 +12,7 @@ stats = lambda: {
     "reviews by states (all pci)": by_review_states_all_pci,
     "": None,
     "review completion durations (days)": review_invited_to_completed,
+    "article first-decision durations (days)": article_submission_to_1st_decision,
     "recommended articles submitters emails": emails_recommended_submitters,
 }
 
@@ -69,6 +70,22 @@ def review_durations(uri):
         extract(day from last_change - acceptation_timestamp) as nb_days
         from t_reviews
         where review_state = 'Review completed'
+    ) as durations
+    group by year
+    order by year desc
+    """)
+
+
+def first_recommendation_durations(uri):
+    return DAL(uri).executesql(f"""
+    select
+        year, string_agg(nb_days::text, ',' order by nb_days desc)
+    from (select
+        extract(year from {date_field()}) as year,
+        extract(day from reco.last_change - art.upload_timestamp) as nb_days
+        from t_recommendations as reco
+            join t_articles as art on (art.id = reco.article_id)
+        where reco.id = (select min(id) from t_recommendations where article_id = art.id)
     ) as durations
     group by year
     order by year desc
@@ -185,6 +202,13 @@ def by_review_states_all_pci():
 def review_invited_to_completed():
     return PAGE(
         ALL_REPORTS(durations_by_year(review_durations))
+    )
+
+
+@auth.requires(is_admin)
+def article_submission_to_1st_decision():
+    return PAGE(
+        ALL_REPORTS(durations_by_year(first_recommendation_durations))
     )
 
 
