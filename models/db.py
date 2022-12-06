@@ -711,6 +711,10 @@ def deltaStatus(s, f):
     # pprint(s,f)
     if "status" in f:
         o = s.select().first()
+
+        if f.status == "Awaiting revision" and o.status != f.status:
+            f.request_submission_change = True
+
         if o.already_published:  # POSTPRINTS
             if o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
