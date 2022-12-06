@@ -33,3 +33,13 @@ def run(command):
 def auto_reload():
     from gluon.custom_import import track_changes
     track_changes(True)
+
+
+def all_pci_db_uris():
+    return map(str.strip,
+    run("""sh -c '
+        cat ../PCI*/private/appconfig.ini \
+        | grep psyco \
+        | sed "s/^[^=]*=//"
+    '"""
+    ).strip().split('\n'))
