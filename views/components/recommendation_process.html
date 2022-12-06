@@ -28,7 +28,8 @@
                   {{=T('Update your article data')}}
                 </a>
 
-                <a class="buttontext btn btn-info pci2-flex-center"
+                <a {{if replyButtonDisabled:}}disabled{{pass}}
+                  class="buttontext btn btn-info pci2-flex-center"
                   style="flex: 1;" 
                   href="{{=editAuthorsReplyLink}}"
                   >

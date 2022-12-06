@@ -665,6 +665,11 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         if len(recomm.recommendation_comments or "") > 2:
             recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False) if (hideOngoingRecomm is False) else ""
 
+        replyButtonDisabled = (
+            recomm.recommendation_state == "Revision" and art.request_submission_change
+            and not pciRRactivated
+        )
+
         componentVars = dict(
             articleId=art.id,
             recommId=recomm.id,
@@ -695,6 +700,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             scheduledSubmissionActivated=scheduledSubmissionActivated,
             isScheduledSubmission=isScheduledSubmission,
             isArticleSubmitter=(art.user_id == auth.user_id),
+            replyButtonDisabled=replyButtonDisabled,
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
