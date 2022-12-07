@@ -277,7 +277,7 @@ def CROSSTAB(rows):
             for i, line in enumerate(lines) ]
     )
 
- 
+
 def ALL_CROSSTABS(func):
     return ALL_REPORTS(func, item=CROSSTAB)
 
@@ -356,8 +356,9 @@ def list_stats(butt_style="display:block"):
             for text, val in stats().items()
         ]),
         DIV(
-        SPAN("date: "),
-        *[ LABEL(INPUT(_value=val, _type="radio", _name="date_type"), val)
+        SPAN("year: "),
+        *[ LABEL(INPUT(_type="radio", _name="date_type", _value=val,
+                _onclick="radio_click(this)"), val)
             for val in [ "creation", "decision"] ],
         ),
         script_for_buttons("date_type"),
@@ -375,6 +376,10 @@ def script_for_buttons(_):
                 .value
         }
 
+        function radio_click(butt) {
+            location.search = "?date=" + butt.value
+        }
+
         function set_buttons_state() {
             let radio_buttons = 'input[name="date_type"]'
             let val = new URLSearchParams(window.location.search)
@@ -383,9 +388,10 @@ def script_for_buttons(_):
             document.querySelector(radio_buttons+'[value="'+val+'"]')
                 .checked = "yes"
 
+            if (_=
             document.querySelector(
                 'button[value="'+document.location.pathname+'"]')
-                .setAttribute("class", "selected")
+            ) _.setAttribute("class", "selected")
         }
 
         window.onload = set_buttons_state
