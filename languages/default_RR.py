@@ -71,6 +71,7 @@
     "Article DOI": "Report DOI",
     "Article": "Report",
     "Article saved": "Report saved",
+    "Article submitted": "Report submitted",
     "Articles awaiting consideration in my fields": "Reports awaiting consideration in my fields",
     'Article set "Not considered"': 'Report set "Not considered"',
     "Articles for which you have been sollicitated: 1": "Reports for which you have been sollicitated: 1",
