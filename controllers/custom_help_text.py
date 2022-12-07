@@ -76,7 +76,7 @@ def mail_templates():
             db.mail_templates,
             details=False,
             editable=True,
-            create=auth.has_membership(role="developer"),
+            create=True,
             deletable=auth.has_membership(role="developer"),
             paginate=100,
             maxtextlength=4096,
