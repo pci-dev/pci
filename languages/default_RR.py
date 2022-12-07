@@ -72,6 +72,7 @@
     "Article": "Report",
     "Article saved": "Report saved",
     "Article submitted": "Report submitted",
+    "Article(s) in Pre-submission stage": "Report(s) in Pre-submission stage",
     "Articles awaiting consideration in my fields": "Reports awaiting consideration in my fields",
     'Article set "Not considered"': 'Report set "Not considered"',
     "Articles for which you have been sollicitated: 1": "Reports for which you have been sollicitated: 1",
