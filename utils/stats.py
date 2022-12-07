@@ -383,9 +383,10 @@ def script_for_buttons(_):
             document.querySelector(radio_buttons+'[value="'+val+'"]')
                 .checked = "yes"
 
+            if (_=
             document.querySelector(
                 'button[value="'+document.location.pathname+'"]')
-                .setAttribute("class", "selected")
+            ) _.setAttribute("class", "selected")
         }
 
         window.onload = set_buttons_state
