@@ -357,7 +357,8 @@ def list_stats(butt_style="display:block"):
         ]),
         DIV(
         SPAN("year: "),
-        *[ LABEL(INPUT(_value=val, _type="radio", _name="date_type"), val)
+        *[ LABEL(INPUT(_type="radio", _name="date_type", _value=val,
+                _onclick="radio_click(this)"), val)
             for val in [ "creation", "decision"] ],
         ),
         script_for_buttons("date_type"),
@@ -373,6 +374,10 @@ def script_for_buttons(_):
             document.location = butt.value + '?date=' +
                 document.querySelector('input[name="date_type"]:checked')
                 .value
+        }
+
+        function radio_click(butt) {
+            location.search = "?date=" + butt.value
         }
 
         function set_buttons_state() {
