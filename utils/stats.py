@@ -277,7 +277,7 @@ def CROSSTAB(rows):
             for i, line in enumerate(lines) ]
     )
 
- 
+
 def ALL_CROSSTABS(func):
     return ALL_REPORTS(func, item=CROSSTAB)
 
@@ -356,7 +356,7 @@ def list_stats(butt_style="display:block"):
             for text, val in stats().items()
         ]),
         DIV(
-        SPAN("date: "),
+        SPAN("year: "),
         *[ LABEL(INPUT(_value=val, _type="radio", _name="date_type"), val)
             for val in [ "creation", "decision"] ],
         ),
