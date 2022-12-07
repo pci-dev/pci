@@ -82,7 +82,8 @@ class User_submits:
         fill_survey()
         select("input[type=submit]").click()
 
-    select(".w2p_flash", "Article submitted").wait_clickable()
+    Article = articles[:-1].capitalize()
+    select(".w2p_flash", Article+" submitted").wait_clickable()
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
