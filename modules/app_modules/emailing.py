@@ -2493,9 +2493,18 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if pciRRactivated and isScheduledTrack(article):
+                _ = emailing_vars.getPCiRRScheduledSubmissionsVars(db, article)
+                mail_vars["reviewDueDate"] = _["scheduledReviewDueDate"]
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
             emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+
+
+def isScheduledTrack(art):
+    report_survey = art.t_report_survey.select().last()
+    return report_survey and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
 
 
 ######################################################################################################################################################################
