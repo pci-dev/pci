@@ -161,8 +161,6 @@ def recommendations():
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
-        if not pciRRactivated:
-            myScript = common_tools.get_template("script", "user_edit_reply.js")
 
         return dict(
             printable=printable,
@@ -185,7 +183,6 @@ def recommendations():
             isScheduledSubmission=isScheduledSubmission,
             scheduledSubmissionForm=scheduledSubmissionForm,
             scheduledSubmissionRemaningDays=scheduledSubmissionRemaningDays,
-            myFinalScript = SCRIPT(myScript)
         )
 
 
@@ -828,6 +825,7 @@ def edit_my_article():
             article.status = "Pending"
         if form.vars.report_stage == "STAGE 1":
             article.art_stage_1_id = None
+        article.request_submission_change = False
         article.update_record()
         if art.status == "Pending":
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))

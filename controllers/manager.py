@@ -1549,8 +1549,9 @@ def send_submitter_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        art.request_submission_change = True
-        art.update_record()
+        if pciRRactivated:
+            art.request_submission_change = True
+            art.update_record()
         request.vars["replyto"] = replyTo
         try:
             emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
