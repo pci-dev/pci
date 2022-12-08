@@ -1529,7 +1529,7 @@ def my_reviews():
                                     else "btn btn-default",
                                     _style="margin: 20px 10px 5px",
                                 ),
-                                I(current.T("You will be able to upload you're review as soon as the author submit his preprint."),)
+                                I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
                                 if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
                                 else "",
                                 _style="margin-bottom: 20px",
