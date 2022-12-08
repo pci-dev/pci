@@ -260,7 +260,6 @@ def mk_recommender(auth, db, article):
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
 def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
-    print("send_to_recommender_postprint_status_changed")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -292,7 +291,6 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
 def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
-    print("send_to_recommender_status_changed")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -360,7 +358,6 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
 
 ######################################################################################################################################################################
 def send_to_recommender_decision_sent_back(session, auth, db, articleId, newStatus):
-    print("send_to_recommender_decision_sent_back")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -392,7 +389,6 @@ def send_to_recommender_decision_sent_back(session, auth, db, articleId, newStat
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
 def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
-    print("send_to_suggested_recommenders_not_needed_anymore")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -437,7 +433,6 @@ def mkAuthors(article):
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
 def send_to_suggested_recommenders(session, auth, db, articleId):
-    print("send_to_suggested_recommenders")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -522,7 +517,6 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
 def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
-    print("send_to_suggested_recommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -740,7 +734,6 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
 ######################################################################################################################################################################
 # Do send email to recommender when a review is accepted for consideration
 def send_to_recommenders_review_considered(session, auth, db, reviewId):
-    print("send_to_recommenders_review_considered")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -780,7 +773,6 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
 
 ######################################################################################################################################################################
 def send_to_recommenders_review_declined(session, auth, db, reviewId):
-    print("send_to_recommenders_review_declined")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -817,7 +809,6 @@ def send_to_recommenders_review_declined(session, auth, db, reviewId):
 
 ######################################################################################################################################################################
 def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
-    print("send_to_recommenders_review_request")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -848,7 +839,6 @@ def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
 ######################################################################################################################################################################
 # Do send email to recommender when a review is re-opened
 def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
-    print("send_to_reviewer_review_reopened")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -880,7 +870,6 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 
 ######################################################################################################################################################################
 def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
-    print("send_to_reviewers_article_cancellation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -920,7 +909,6 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
 
 ######################################################################################################################################################################
 def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newForm):
-    print("send_to_reviewer_review_request_accepted")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -957,7 +945,6 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
 
 ######################################################################################################################################################################
 def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newForm):
-    print("send_to_reviewer_review_request_declined")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -992,7 +979,6 @@ def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newFor
 
 ######################################################################################################################################################################
 def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
-    print("send_to_thank_reviewer_acceptation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1033,7 +1019,6 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
 ######################################################################################################################################################################
 def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
-    print("send_to_thank_reviewer_done")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1075,7 +1060,6 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
 
 ######################################################################################################################################################################
 def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, manual_insert=False):
-    print("send_to_admin_2_reviews_under_consideration")
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1112,7 +1096,6 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, man
 
 ######################################################################################################################################################################
 def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
-    print("send_to_admin_all_reviews_completed")
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1253,7 +1236,6 @@ def send_new_membreship(session, auth, db, membershipId):
 
 ######################################################################################################################################################################
 def send_to_managers(session, auth, db, articleId, newStatus):
-    print("send_to_managers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1344,7 +1326,6 @@ def listCorrectHashtags(hashtags, article):
 
 ######################################################################################################################################################################
 def send_to_thank_recommender_postprint(session, auth, db, recommId):
-    print("send_to_thank_recommender_postprint")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1380,7 +1361,6 @@ def send_to_thank_recommender_postprint(session, auth, db, recommId):
 
 ######################################################################################################################################################################
 def send_to_thank_recommender_preprint(session, auth, db, articleId):
-    print("send_to_thank_recommender_preprint")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1421,7 +1401,6 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
 
 ######################################################################################################################################################################
 def send_to_delete_one_corecommender(session, auth, db, contribId):
-    print("send_to_delete_one_corecommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1454,7 +1433,6 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
 
 ######################################################################################################################################################################
 def send_to_one_corecommender(session, auth, db, contribId):
-    print("send_to_one_corecommender")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1493,7 +1471,6 @@ def send_to_one_corecommender(session, auth, db, contribId):
 
 ######################################################################################################################################################################
 def send_to_corecommenders(session, auth, db, articleId, newStatus):
-    print("send_to_corecommenders")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
