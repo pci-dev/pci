@@ -76,11 +76,13 @@ def getMails(db, role):
 ######################################################################################################################################################################
 # PCI RR vars
 ######################################################################################################################################################################
-def getPCiRRinvitationTexts(report_surey):
+def getPCiRRinvitationTexts(article):
+    report_survey = article.t_report_survey.select().last()
+
     programmaticRR_invitation_text = ""
     signedreview_invitation_text = ""
-    if report_surey is not None:
-        if report_surey.q2 == "PROGRAMMATIC RR":
+    if report_survey is not None:
+        if report_survey.q2 == "PROGRAMMATIC RR":
             # Gab: As it is editable template, I found no other way to display the link than hardcoding it.
             programmaticRR_invitation_text = SPAN(
                 current.T("Please note that this submission is being submitted via the "),
@@ -89,7 +91,7 @@ def getPCiRRinvitationTexts(report_surey):
                     " in which one Stage 1 manuscript can propose a sufficient volume of work to justify multiple Stage 2 articles. A Stage 1 programmatic RR must prespecify which parts of the protocol will eventually produce separate Stage 2 articles, and as part of the Stage 1 review process, we ask reviewers to evaluate the validity and substantive contribution of each component. These prespecified boundaries are effectively treated as design elements; therefore, like any other design element, Stage 1 IPA will be conditional on authors adhering to the prespecified and approved article boundaries at Stage 2."
                 ),
             )
-        if report_surey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
+        if report_survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
             signedreview_invitation_text = SPAN(
                 current.T("The current submission is being submitted via a route in which PCI RR considers evaluations only from reviewers who sign their reviews. "),
                 "<b>Therefore, please accept this review request only if you are willing to sign your review.</b>",

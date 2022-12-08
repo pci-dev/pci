@@ -1607,8 +1607,7 @@ def email_for_registered_reviewer():
             )
 
     if pciRRactivated:
-        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1761,10 +1760,8 @@ def email_for_new_reviewer():
                 % locals()
             )
 
-    # PCi RR specific mail vars based on report survey answers
     if pciRRactivated:
-        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 

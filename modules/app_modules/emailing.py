@@ -40,6 +40,7 @@ from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
 
+
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
@@ -2380,7 +2381,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRinvitationTexts(article))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
@@ -2436,7 +2437,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["trackchanges_url"] = trackchanges_url
 
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRinvitationTexts(article))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
