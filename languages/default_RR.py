@@ -945,7 +945,7 @@
     "Your submitted preprints": "Your submitted reports",
     "You cannot be anonymous because there is a manager in the authors": "Because a member of the PCI RR Managing Board is a co-author, all reviews might be signed. Please continue with your review only if you are happy for your identity to be known to the authors and published alongside the article in the event of acceptance",
     "You visited the url %s": "You visited the url %s",
-    "You will be able to upload your review as soon as the author submit his preprint.": "You will be able to upload your review as soon as the author submit his report.",
+    "You will be able to upload your review as soon as the author submit his preprint.": "You will be able to upload your review once the full Stage 1 manuscript has been submitted and approved for in-depth evaluation by the Managing Board.",
     " (YOU) ": " (YOU) ",
     "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.": "This report has not been published or sent for review elsewhere. I agree not to submit this report to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review.",
     "You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter.": "You can indicate anything you want in the box, but be aware that all recommenders and the managing board will be able to read the cover letter.",
