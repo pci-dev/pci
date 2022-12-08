@@ -1360,7 +1360,21 @@ def send_review_cancellation():
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
+
+    # aliases - for some templates
+    articleTitle = art_title
+    articleDoi = art_doi
+    articleAuthors = art_authors
+
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+
+    if pciRRactivated:
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
     if review.review_state == "Awaiting response":
         hashtag_template = "#DefaultReviewCancellation"
     if review.review_state == "Awaiting review":
