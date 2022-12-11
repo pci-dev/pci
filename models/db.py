@@ -1057,12 +1057,26 @@ def updateReviewerDetails(row):
             row.reviewer_details = None
 
 
+from app_modules.emailing import isScheduledTrack
+
+def notify_submitter(review):
+    recomm = db.t_recommendations[review.recommendation_id]
+    article = db.t_articles[recomm.article_id]
+
+    if pciRRactivated and isScheduledTrack(article):
+        nb_reviews = recomm.t_reviews.count()
+        if nb_reviews == 1:
+            emailing.send_to_submitter_reviews_open(auth, db, article)
+
+
 def reviewSuggested(s, row):
     reviewId = row["id"]
     recommendationId = row["recommendation_id"]
     recomm = db.t_recommendations[recommendationId]
     rev = db.t_reviews[reviewId]
     revwr = db.t_recommendations[rev.recommendation_id]
+
+    notify_submitter(row)
 
     try:
         rev_recomm_mail = db.auth_user[revwr.recommender_id]["email"]

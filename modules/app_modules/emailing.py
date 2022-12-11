@@ -236,6 +236,26 @@ def send_to_submitter_acknowledgement_submission(session, auth, db, articleId):
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
 
+##############################################################################
+def send_to_submitter_reviews_open(auth, db, article):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destAddress"] = db.auth_user[article.user_id].email
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
+    mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
+
+    mail_vars.update(emailing_vars.getPCiRRScheduledSubmissionsVars(db, article))
+
+    hashtag_template = "#SubmitterScheduledSubmissionOpen"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+
+
+def mk_recommender(auth, db, article):
+    recomm = db.get_last_recomm(article.id)
+    return common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
+
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
 def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
