@@ -222,3 +222,18 @@ E'default',
 :'REMINDER_SUBJECT_2',
 :'REMINDER_TEXT_2'
 );
+
+-- 2022-12-11 add placeholders for missing RR templates
+
+INSERT INTO mail_templates (hashtag, lang, subject, description, contents)
+select hashtag, E'default', hashtag, hashtag, hashtag from (VALUES
+('#DefaultReviewAlreadyAcceptedCancellationStage1'),
+('#DefaultReviewAlreadyAcceptedCancellationStage2'),
+('#RecommenderPreprintSubmittedScheduledSubmission'),
+('#ReviewerFullPreprintStage1'),
+('#ReminderSubmitterScheduledSubmissionSoonDue'),
+('#ReminderSubmitterScheduledSubmissionDue'),
+('#ReminderSubmitterScheduledSubmissionOverDue'),
+('#ReminderScheduledReviewComingSoon'),
+('#SubmitterScheduledSubmissionOpen')
+) as t (hashtag);
