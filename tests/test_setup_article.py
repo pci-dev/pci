@@ -79,8 +79,9 @@ class User_submits:
         fill_survey()
         select("input[type=submit]").click()
 
-    Article = articles[:-1].capitalize()
-    select(".w2p_flash", Article+" submitted").wait_clickable()
+    article_submitted = "Article submitted" \
+        if not is_rr else "Survey saved. Report NOT yet submitted"
+    select(".w2p_flash", article_submitted).wait_clickable()
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
