@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-certifi==2022.9.14
+certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
     # via requests
@@ -30,15 +30,15 @@ pillow==9.3.0
     # via
     #   -r requirements.in
     #   treepoem
-psycopg2-binary==2.9.3
+psycopg2-binary==2.9.5
     # via -r requirements.in
-pydal==20220807.1
+pydal==20221110.1
     # via -r requirements.in
 pyparsing==3.0.9
     # via rdflib
 python-dateutil==2.8.2
     # via dateutils
-pytz==2022.2.1
+pytz==2022.6
     # via dateutils
 rdflib==6.2.0
     # via -r requirements.in
@@ -52,7 +52,7 @@ six==1.16.0
     #   python-dateutil
 treepoem==3.17.0
     # via -r requirements.in
-urllib3==1.26.12
+urllib3==1.26.13
     # via requests
 yatl==20220907.1
     # via -r requirements.in
