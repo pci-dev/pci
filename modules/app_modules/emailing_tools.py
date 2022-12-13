@@ -285,7 +285,12 @@ def insertReminderMailInQueue(
 
         sending_date = datetime.now() + timedelta(days=elapsed_days)
 
-        if pciRRactivated:
+    if sending_date_forced:
+        sending_date = sending_date_forced
+
+    if True:
+
+        if pciRRactivated and not sending_date_forced:
             if sending_date.weekday() == 5:
                 sending_date = sending_date + timedelta(days=2)
             if sending_date.weekday() == 6:
@@ -300,27 +305,6 @@ def insertReminderMailInQueue(
         db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
-            dest_mail_address=mail_vars["destAddress"],
-            cc_mail_addresses=ccAddresses,
-            replyto_addresses=replytoAddresses,
-            mail_subject=mail["subject"],
-            mail_content=mail["content"],
-            user_id=auth.user_id,
-            recommendation_id=recommendation_id,
-            article_id=article_id,
-            mail_template_hashtag=hashtag_template,
-            review_id=review_id
-        )
-
-    if sending_date_forced:
-        mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
-            article_id=article_id,
-        )
-
-        db.mail_queue.insert(
-            sending_status="pending",
-            sending_date=sending_date_forced,
             dest_mail_address=mail_vars["destAddress"],
             cc_mail_addresses=ccAddresses,
             replyto_addresses=replytoAddresses,
