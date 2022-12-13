@@ -268,6 +268,7 @@ def insertReminderMailInQueue(
     review=None,
     authors_reply=None,
     sending_date_forced=None,
+    base_sending_date=None,
     reviewer_invitation_buttons=None,
 ):
 
@@ -282,8 +283,8 @@ def insertReminderMailInQueue(
 
     if reminder:
         elapsed_days = reminder["elapsed_days"][0]
-
-        sending_date = datetime.now() + timedelta(days=elapsed_days)
+        base_sending_date = base_sending_date or datetime.now()
+        sending_date = base_sending_date + timedelta(days=elapsed_days)
 
     if sending_date_forced:
         sending_date = sending_date_forced

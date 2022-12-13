@@ -108,8 +108,10 @@ def getPCiRRScheduledSubmissionsVars(db, article):
     scheduledReviewDueDate = ""
     snapshotUrl = ""
 
-    if article.scheduled_submission_date is not None:
-        submission_date = article.scheduled_submission_date
+    report_survey = article.t_report_survey.select().last()
+
+    if report_survey and report_survey.q10:
+        submission_date = report_survey.q10 # article.scheduled_submission_date
         review_start_date = submission_date + timedelta(days=7)
         dow = review_start_date.weekday()
         five_working_days = 7 if dow < 5 else (7 + (7-dow))
@@ -119,7 +121,6 @@ def getPCiRRScheduledSubmissionsVars(db, article):
         scheduledSubmissionLatestReviewStartDate = review_start_date.strftime(DEFAULT_DATE_FORMAT)
         scheduledReviewDueDate = review_due_date.strftime(DEFAULT_DATE_FORMAT)
 
-    report_survey = db(db.t_report_survey.article_id == article.id).select().last()
     if report_survey:
         snapshotUrl = report_survey.q1_1
 

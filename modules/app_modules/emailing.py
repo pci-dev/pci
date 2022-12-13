@@ -2237,8 +2237,9 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, d
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionSoonDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(article.scheduled_submission_date - datetime.timedelta(days=7)))
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=7)))
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
@@ -2263,8 +2264,9 @@ def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, ar
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=article.scheduled_submission_date)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId):
@@ -2289,13 +2291,15 @@ def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, d
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionOverDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(article.scheduled_submission_date + datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
 
 
 def mk_submitter_my_articles_url(mail_vars):
     return URL(c="user", f="my_articles",
             scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
 
 ######################################################################################################################################################################
 def delete_reminder_for_submitter(db, hashtag_template, articleId):
@@ -2564,18 +2568,29 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
-            if pciRRactivated and isScheduledTrack(article):
-                _ = emailing_vars.getPCiRRScheduledSubmissionsVars(db, article)
-                mail_vars["reviewDueDate"] = _["scheduledReviewDueDate"]
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(db, article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 def isScheduledTrack(art):
     report_survey = art.t_report_survey.select().last()
-    return report_survey and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
+    return report_survey and report_survey.q10
+
+
+def getScheduledSubmissionDate(article):
+    return article.t_report_survey.select().last().q10
+
+
+def getScheduledReviewDueDate(db, article):
+    _ = getPCiRRScheduledSubmissionsVars(db, article)
+    return _["scheduledReviewDueDate"]
 
 
 ######################################################################################################################################################################
@@ -2604,9 +2619,15 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(db, article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 ######################################################################################################################################################################
@@ -2635,9 +2656,15 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(db, article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 ######################################################################################################################################################################
