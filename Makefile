@@ -95,14 +95,23 @@ test.full:
 	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
 
 test.basic:
-	cd tests ; pytest test_setup_article.py
+	cd tests ; pytest test_basic.py
 
-test.create-article:
-	cd tests ; pytest -k User_submits
+test.medium:
+	cd tests ; pytest -v test_medium.py
 
 test.scheduled-track:
-	cd tests; RR_SCHEDULED_TRACK=1 \
-	pytest test_setup_article.py
+	cd tests ; pytest -v test_scheduled_track.py
+
+test.create-article:
+	cd tests ; pytest -k "basic and User_submits"
+
+
+delete.external.user:
+	$(psql) main -c "delete from auth_user where first_name='Titi';"
+
+test.medium test.scheduled-track: delete.external.user
+
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
