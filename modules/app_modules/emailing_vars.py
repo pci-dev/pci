@@ -102,7 +102,7 @@ def getPCiRRinvitationTexts(report_surey):
 
 
 ######################################################################################################################################################################
-def getPCiRRScheduledSubmissionsVars(db, article):
+def getPCiRRScheduledSubmissionsVars(article):
     scheduledSubmissionDate = ""
     scheduledSubmissionLatestReviewStartDate = ""
     scheduledReviewDueDate = ""

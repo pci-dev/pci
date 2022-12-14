@@ -1369,7 +1369,7 @@ def send_review_cancellation():
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
 
     if pciRRactivated:
-        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
@@ -1611,7 +1611,7 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
@@ -1767,7 +1767,7 @@ def email_for_new_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(db, art)
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
