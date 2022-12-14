@@ -126,3 +126,33 @@ def config_set_scheduled_track(value=getenv("RR_SCHEDULED_TRACK")):
 
 config.is_rr = is_rr()
 config_set_scheduled_track()
+
+
+
+import sys
+
+modules = []
+before = []
+
+def begin_import():
+    global before
+    before = sys.modules.copy()
+
+def end_import():
+    global modules
+    after = sys.modules
+    modules += [m for m in after if not m in before]
+
+def pytest_collection_modifyitems(items):
+    _items = []
+    for module in modules:
+        _items += [ it for it in items if it.function.__module__ == module ]
+    _items += [ it for it in items if it not in _items ]
+    items[:] = _items
+
+
+import pytest
+@pytest.fixture(scope="class")
+def store():
+    class _: pass
+    return _
