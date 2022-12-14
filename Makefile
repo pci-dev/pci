@@ -106,6 +106,15 @@ test.scheduled-track:
 test.create-article:
 	cd tests ; pytest -k "basic and User_submits"
 
+test.review.registered-user:
+	cd tests; pytest -v -k "review_article and Reviewer"
+
+test.review.external:
+	cd tests; pytest -v -k "review_article and External"
+
+test.review.no-upload:
+	cd tests; RR_SCHEDULED_TRACK=1 \
+	pytest -v -k "review_article and Reviewer"
 
 delete.external.user:
 	$(psql) main -c "delete from auth_user where first_name='Titi';"
