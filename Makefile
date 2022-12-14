@@ -100,6 +100,10 @@ test.basic:
 test.create-article:
 	cd tests ; pytest -k User_submits
 
+test.scheduled-track:
+	cd tests; RR_SCHEDULED_TRACK=1 \
+	pytest test_setup_article.py
+
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
 

@@ -120,4 +120,9 @@ def is_rr():
     config.read("../private/appconfig.ini")
     return config["config"].getboolean("registered_reports")
 
+def config_set_scheduled_track(value=getenv("RR_SCHEDULED_TRACK")):
+    if config.is_rr:
+        config.is_rr = Namespace(scheduled_track=value)
+
 config.is_rr = is_rr()
+config_set_scheduled_track()

@@ -6,6 +6,8 @@ import os
 import time
 import pytest
 
+from datetime import datetime, timedelta
+
 
 users = config.users
 
@@ -15,7 +17,7 @@ reviewer = users.reviewer
 
 class article:
     doi = "http://DOI"
-    title = "Article Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
+    title = "Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
     abstract = "Abstract"
     keywords = "Keywords"
@@ -105,13 +107,18 @@ class User_submits:
 
 
 def fill_survey():
-    select("#t_report_survey_q1").send_keys("Complete Stage 1")
+    report_type = "RR SNAPSHOT" if is_rr.scheduled_track else "COMPLETE"
+
+    select("#t_report_survey_q1").send_keys(report_type)
     select("#t_report_survey_q2").send_keys("Regular RR")
     select("#t_report_survey_q3").send_keys("Fully public")
     select("input[id^='q6YES']")[0].click()
     select("input[id^='q7No']").click()
     select("#t_report_survey_q8").send_keys("a reviewer")
     select("#t_report_survey_q9").send_keys("an opposed reviewer")
+    if is_rr.scheduled_track:
+        report_due_date = datetime.now() + timedelta(weeks=7)
+        select("#t_report_survey_q10").send_keys(report_due_date.strftime("%Y-%m-%d"))
     select("#t_report_survey_q11").send_keys("yes")
     select("#t_report_survey_q12").send_keys("yes")
     select("#q13YES").click()
