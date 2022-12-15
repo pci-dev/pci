@@ -907,9 +907,6 @@ def edit_article():
 
     def onvalidation(form):
         if not pciRRactivated:
-            if isinstance(article_version, int):
-                if int(art.ms_version) > int(form.vars.ms_version):
-                    form.errors.ms_version = "New version number must be greater than or same as previous version number"
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
 

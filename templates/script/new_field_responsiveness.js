@@ -106,6 +106,7 @@ class FormValidator {
       if (isNaN(field.value)){
         this.setStatus(field, "Enter an integer between 1 and 100", "error")
       } else if (prevVersion > parseInt(field.value)){
+	if (window.location.pathname.match("/user/"))
         this.setStatus(field, "New version number must be greater than or same as previous version number", "error")
       } else if (prevVersion === parseFloat(field.value)) {
         this.setStatus(field, "This version number is the same as the version number of the preprint of the previous round of evaluation", "static")
@@ -147,24 +148,7 @@ var queryString = window.location.search;
 var urlParams = new URLSearchParams(queryString);
 var articleId = urlParams.get('articleId')
 
-var prevVersion;
-var presentVersion = parseInt(document.getElementById('t_articles_ms_version').value);
-if (isNaN(presentVersion)){
-  presentVersion = ""
-}
-if (localStorage.getItem(`ms_version__${articleId}`) === null){
-  localStorage.setItem(`ms_version__${articleId}`, presentVersion)
-  prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
-}
-else {
-  if(presentVersion >= localStorage.getItem(`ms_version__${articleId}`)){
-    localStorage.setItem(`ms_version__${articleId}`, presentVersion)
-    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`, presentVersion))
-    
-  }else{
-    prevVersion = parseInt(localStorage.getItem(`ms_version__${articleId}`))
-  }
-}
+var prevVersion = parseInt(document.getElementById('t_articles_ms_version').value);
 
 const validator = new FormValidator(form, fields);
 validator.initialize();
