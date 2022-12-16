@@ -4,7 +4,6 @@ from conftest import test
 
 import os
 import time
-import pytest
 
 from datetime import datetime, timedelta
 
@@ -159,8 +158,7 @@ class Manager_validates:
  def check_article_status_is_no_longer_pending_validation(_):
     select(".dropdown-toggle", contains="For managers").click()
     select("a", contains="Pending validation").click()
-    with pytest.raises(KeyError):
-        select("tr", contains=article.title)
+    select.fails("tr", contains=article.title)
 
  def logout_manager(_):
     logout(users.manager)

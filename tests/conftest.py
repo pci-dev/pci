@@ -99,6 +99,15 @@ def lookup(css, text="", contains="", _=driver):
             return e
     raise KeyError("no such element: " + text)
 
+def check_fails(func):
+    def fails(*args, **kwargs):
+        with pytest.raises(KeyError):
+            func(*args, **kwargs)
+    return fails
+
+select.fails = check_fails(select)
+lookup.fails = check_fails(lookup)
+
 def login(user):
     visit(config.base_url)
     select(".dropdown-toggle", "Log in").click()
