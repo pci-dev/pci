@@ -34,7 +34,7 @@ db.admin:
 	sudo sed -i '/local *all *postgres *peer/ s/$$/ map=map_admin/' /etc/postgresql/*/main/pg_hba.conf
 	sudo systemctl restart postgresql
 
-psql = psql -U postgres -v "ON_ERROR_STOP=1"
+psql = psql -q -U postgres -v "ON_ERROR_STOP=1"
 
 start:
 	web2py/web2py.py --password pci > log.txt &
@@ -95,10 +95,32 @@ test.full:
 	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
 
 test.basic:
-	cd tests ; pytest test_setup_article.py
+	cd tests ; pytest test_basic.py
+
+test.medium:
+	cd tests ; pytest -v test_medium.py
+
+test.scheduled-track:
+	cd tests ; pytest -v test_scheduled_track.py
 
 test.create-article:
-	cd tests ; pytest -k User_submits
+	cd tests ; pytest -k "basic and User_submits"
+
+test.review.registered-user:
+	cd tests; pytest -v -k "review_article and Reviewer"
+
+test.review.external:
+	cd tests; pytest -v -k "review_article and External"
+
+test.review.no-upload:
+	cd tests; RR_SCHEDULED_TRACK=1 \
+	pytest -v -k "review_article and Reviewer"
+
+delete.external.user:
+	$(psql) main -c "delete from auth_user where first_name='Titi';"
+
+test.medium test.scheduled-track: delete.external.user
+
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
