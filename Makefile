@@ -34,7 +34,7 @@ db.admin:
 	sudo sed -i '/local *all *postgres *peer/ s/$$/ map=map_admin/' /etc/postgresql/*/main/pg_hba.conf
 	sudo systemctl restart postgresql
 
-psql = psql -U postgres -v "ON_ERROR_STOP=1"
+psql = psql -q -U postgres -v "ON_ERROR_STOP=1"
 
 start:
 	web2py/web2py.py --password pci > log.txt &
