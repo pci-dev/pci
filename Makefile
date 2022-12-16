@@ -83,9 +83,9 @@ test.db.rr:
 cypress/%:
 	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
-test.reset: stop db.clean db test.setup start set.conf.rr.false
-
-test.reset.rr: test.reset test.db.rr set.conf.rr.true
+test.reset:	reset set.conf.rr.false
+test.reset.rr:	reset set.conf.rr.true test.db.rr
+reset:		stop db.clean db test.setup start
 
 set.conf.rr.%:
 	rm -f languages/default.py
