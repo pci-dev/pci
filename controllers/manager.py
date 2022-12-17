@@ -1112,11 +1112,12 @@ def edit_report_survey():
         doUpdateArticle = False
         prepareReminders = False
         if form.vars.q10 is not None:
-            art.scheduled_submission_date = form.vars.q10
-            # art.doi = None
-            doUpdateArticle = True
+            if art.scheduled_submission_date:
+                # /!\ used as a _flag_ and reset to None in user.py
+                #     do not set it back to non-None accidently
+                art.scheduled_submission_date = form.vars.q10
+                doUpdateArticle = True
             prepareReminders = True
-
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
