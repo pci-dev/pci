@@ -1579,8 +1579,8 @@ def email_for_registered_reviewer():
             )
 
     if pciRRactivated:
-        report_surey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
+        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1601,7 +1601,7 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
-    isScheduledSubmission = pciRRactivated and report_surey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
+    isScheduledSubmission = pciRRactivated and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
@@ -1729,8 +1729,8 @@ def email_for_new_reviewer():
 
     # PCi RR specific mail vars based on report survey answers
     if pciRRactivated:
-        report_surey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_surey)
+        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1744,7 +1744,7 @@ def email_for_new_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
-    isScheduledSubmission = pciRRactivated and report_surey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
+    isScheduledSubmission = pciRRactivated and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
