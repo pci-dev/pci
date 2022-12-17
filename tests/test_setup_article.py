@@ -1,14 +1,10 @@
-from conftest import config, select
-from conftest import login, logout
-from conftest import test
+from conftest import test, select, login, logout, users
+from conftest import config
 
 import os
 import time
 
 from datetime import datetime, timedelta
-
-
-users = config.users
 
 submitter = users.user
 recommender = users.recommender

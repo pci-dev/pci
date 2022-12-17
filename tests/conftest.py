@@ -29,6 +29,7 @@ def users_dict(users):
 
 driver = get_driver()
 config = get_config()
+users = config.users
 
 
 # Test class decorator
