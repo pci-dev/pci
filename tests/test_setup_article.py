@@ -1,15 +1,10 @@
-from conftest import config, select
-from conftest import login, logout
-from conftest import test
+from conftest import test, select, login, logout, users
+from conftest import config
 
 import os
 import time
-import pytest
 
 from datetime import datetime, timedelta
-
-
-users = config.users
 
 submitter = users.user
 recommender = users.recommender
@@ -159,8 +154,7 @@ class Manager_validates:
  def check_article_status_is_no_longer_pending_validation(_):
     select(".dropdown-toggle", contains="For managers").click()
     select("a", contains="Pending validation").click()
-    with pytest.raises(KeyError):
-        select("tr", contains=article.title)
+    select.fails("tr", contains=article.title)
 
  def logout_manager(_):
     logout(users.manager)

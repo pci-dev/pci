@@ -1,6 +1,5 @@
-from conftest import config, select
-from conftest import login, logout
-from conftest import test
+from conftest import test, select, login, logout, users
+from conftest import config
 from pytest import mark
 
 
