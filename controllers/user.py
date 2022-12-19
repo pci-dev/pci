@@ -105,13 +105,20 @@ def recommendations():
             db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
-            # Show form and get remaning days
+            # Show form and get remaining days
             if  art.scheduled_submission_date is not None:
                 isScheduledSubmission = True
                 scheduledSubmissionRemaningDays = (art.scheduled_submission_date - date.today()).days
 
+            showFullSubmissionUploadScreen = (
+                art.scheduled_submission_date and
+                (art.scheduled_submission_date - date.today()).days <= 7
+            )
+            if not showFullSubmissionUploadScreen:
+                scheduledSubmissionForm = None
+            else:
             # Remove scheduled submission date when doi is updated
-            if scheduledSubmissionForm.process().accepted:
+              if scheduledSubmissionForm.process().accepted:
                 art.scheduled_submission_date = None
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
