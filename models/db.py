@@ -1528,14 +1528,14 @@ db.define_table(
         label=SPAN(
             T("11. ONLY for Stage 1 RR Snapshots submitted for Scheduled Review:"),
             BR(),
-            T("Choose a date "),
-            SPAN("no sooner", _style="text-decoration: underline"),
+            T("Choose a "),
+            SPAN("weekday no sooner than 6 weeks from today", _style="text-decoration: underline"),
             T(
-                " than 6 weeks from today by which the full manuscript will be submitted if the RR snapshot is invited to the next stage. The authors can submit their Stage 1 report at any time leading up to this date, but note that (1) they must submit their Stage 1 report for evaluation "
+                " by which the full manuscript will be submitted if the RR snapshot is invited to the next stage. Saturdays and Sundays are not eligible submission dates. Authors may submit their Stage 1 report no earlier than one week in advance of this date. Please note that (1) authors must submit the Stage 1 report for evaluation "
             ),
             SPAN("no later", _style="text-decoration: underline"),
             T(
-                " than this date to preserve the timeline of scheduled review, and (2) if they submit earlier then this date the manuscript will not be reviewed earlier than scheduled. This deadline, once selected, cannot be extended and if the authors fail to submit by the deadline, the scheduled review will be cancelled."
+                " than this date to preserve the timeline of scheduled review, and (2) where authors submit earlier than this date, the manuscript will probably not be reviewed earlier than scheduled. This deadline, once selected, cannot be extended and if authors fail to submit by the deadline, the scheduled review process will be cancelled."
             ),
         ),
         requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')),

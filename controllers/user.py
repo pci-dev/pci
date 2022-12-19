@@ -987,7 +987,13 @@ def fill_report_survey():
     form.element(_type="submit")["_value"] = T("Complete your submission")
     form.element(_type="submit")["_class"] = "btn btn-success"
 
-    if form.process().accepted:
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
+
+    def onvalidation(form):
+        if form.vars.q10 and form.vars.q10.weekday() >= 5:
+            form.errors.q10 = "selected date must be a week day"
+
+    if form.process(onvalidation=onvalidation).accepted:
         surveyId = form.vars.id
         survey = db.t_report_survey[surveyId]
         survey.article_id = articleId
@@ -1207,7 +1213,13 @@ def edit_report_survey():
 
     form = SQLFORM(db.t_report_survey, survey.id, fields=fields, keepvalues=True,)
 
-    if form.process().accepted:
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
+
+    def onvalidation(form):
+        if form.vars.q10 and form.vars.q10.weekday() >= 5:
+            form.errors.q10 = "selected date must be a week day"
+
+    if form.process(onvalidation=onvalidation).accepted:
         doUpdateArticle = False
         prepareReminders = False
         if form.vars.q10 is not None:
