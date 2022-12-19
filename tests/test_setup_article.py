@@ -114,6 +114,7 @@ def fill_survey():
     if is_rr.scheduled_track:
         report_due_date = datetime.now() + timedelta(weeks=7)
         select("#t_report_survey_q10").send_keys(report_due_date.strftime("%Y-%m-%d"))
+        select("#t_report_survey_q1_1").send_keys("https://snapshot.URL")
     select("#t_report_survey_q11").send_keys("yes")
     select("#t_report_survey_q12").send_keys("yes")
     select("#q13YES").click()
