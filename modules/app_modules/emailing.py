@@ -2668,6 +2668,38 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
+def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review):
+    recomm = db.t_recommendations[review.recommendation_id]
+    article = db.t_articles[recomm.article_id]
+    reviewer = db.auth_user[review.reviewer_id]
+
+    if not reviewer: return
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+    mail_vars.update({
+        "destPerson": common_small_html.mkUser(auth, db, reviewer.id),
+        "destAddress": reviewer.email,
+        "articleTitle": md_to_html(article.title),
+        "articleAuthors": authors_or_undisclosed(article),
+        "recommenderPerson": mk_recommender(auth, db, article),
+        "reviewDueDate": mail_vars["scheduledReviewDueDate"],
+        "myReviewsLink": reviewLink(),
+    })
+
+    sending_date = getScheduledSubmissionDate(article) # = LatestReviewStartDate minus 1 week
+    hashtag_template = "#ReminderScheduledReviewComingSoon"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
+
+
+def authors_or_undisclosed(article):
+    return (article.authors
+            if not article.anonymous_submission
+            else current.T("[undisclosed]"))
+
+
+######################################################################################################################################################################
 def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]

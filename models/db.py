@@ -1073,6 +1073,7 @@ def reviewSuggested(s, row):
     reviewId = row["id"]
     recommendationId = row["recommendation_id"]
     recomm = db.t_recommendations[recommendationId]
+    article = db.t_articles[recomm.article_id]
     rev = db.t_reviews[reviewId]
     revwr = db.t_recommendations[rev.recommendation_id]
 
@@ -1093,6 +1094,8 @@ def reviewSuggested(s, row):
         elif row["review_state"] == "Awaiting review":
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, row["id"])
             emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"], manual_insert=True)
+            if isScheduledTrack(article):
+                emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, row)
             # create reminder
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, row["id"])
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, row["id"])
@@ -1190,6 +1193,7 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], o["id"])
 
         if o["reviewer_id"] is not None and o["review_state"] in ["Awaiting review", "Awaiting response"] and f["review_state"] == "Review completed":
             emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
@@ -1203,6 +1207,7 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], o["id"])
 
             if o["review_state"] == "Awaiting response":
                 # delete reminder
@@ -1892,6 +1897,21 @@ db.define_table(
     ),
     migrate=False,
 )
+
+
+db.t_report_survey._after_update.append(lambda s, f: survey_updated(s.select().first()))
+
+def survey_updated(survey):
+    article = db.t_articles[survey.article_id]
+    recomm = db.get_last_recomm(article.id)
+
+    if not isScheduledTrack(article): return
+    if not recomm: return
+
+    for review in recomm.t_reviews.select():
+        emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], review.id)
+        emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review)
+
 
 ##---------------------- COAR Notify notifications -----------------------
 
