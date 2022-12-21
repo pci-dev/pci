@@ -919,18 +919,15 @@ def get_last_recomm(articleId):
 
 db.get_last_recomm = get_last_recomm
 
-def newRecommendation(s, i):
-    recomm = db.t_recommendations[i]
-    if recomm:
-        art = db.t_articles[recomm.article_id]
-        if art:
-            if art.already_published:
-                emailing.send_to_thank_recommender_postprint(session, auth, db, i)
+def newRecommendation(s, recomm):
+    article = db.t_articles[recomm.article_id]
 
-            if isScheduledTrack(art):
-                # schedule (not really send) message as soon as we have a recommender
-                emailing.send_to_submitter_scheduled_submission_open(auth, db, art)
-    return None
+    if article.already_published:
+        emailing.send_to_thank_recommender_postprint(session, auth, db, recomm)
+
+    if isScheduledTrack(article):
+        # "send" future message as soon as we have a {{recommenderPerson}}
+        emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
 
 
 def recommendationUpdated(s, updated_recommendation):
