@@ -1920,6 +1920,10 @@ def survey_updated(survey):
     emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
 
 
+from datetime import timedelta
+db.full_upload_opening_offset = timedelta(weeks=1)
+
+
 ##---------------------- COAR Notify notifications -----------------------
 
 db.define_table(

@@ -248,7 +248,7 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
     hashtag_template = "#SubmitterScheduledSubmissionOpen"
-    sending_date = getScheduledSubmissionDate(article) - datetime.timedelta(weeks=1)
+    sending_date = getScheduledSubmissionDate(article) - db.full_upload_opening_offset
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 

@@ -112,7 +112,7 @@ def recommendations():
 
             showFullSubmissionUploadScreen = (
                 art.scheduled_submission_date and
-                (art.scheduled_submission_date - date.today()).days <= 7
+                scheduledSubmissionRemaningDays <= db.full_upload_opening_offset.days
             )
             if not showFullSubmissionUploadScreen:
                 scheduledSubmissionForm = None
