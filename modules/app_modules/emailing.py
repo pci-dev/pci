@@ -2239,7 +2239,7 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, d
         hashtag_template = "#ReminderSubmitterScheduledSubmissionSoonDue"
         scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=7)))
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
