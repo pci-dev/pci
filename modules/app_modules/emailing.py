@@ -237,7 +237,7 @@ def send_to_submitter_acknowledgement_submission(session, auth, db, articleId):
 
 
 ##############################################################################
-def send_to_submitter_reviews_open(auth, db, article):
+def send_to_submitter_scheduled_submission_open(auth, db, article):
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
     mail_vars["destAddress"] = db.auth_user[article.user_id].email
@@ -248,8 +248,9 @@ def send_to_submitter_reviews_open(auth, db, article):
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
     hashtag_template = "#SubmitterScheduledSubmissionOpen"
+    sending_date = getScheduledSubmissionDate(article) - datetime.timedelta(weeks=1)
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 
 
 def mk_recommender(auth, db, article):

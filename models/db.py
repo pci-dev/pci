@@ -925,6 +925,10 @@ def newRecommendation(s, i):
         if art:
             if art.already_published:
                 emailing.send_to_thank_recommender_postprint(session, auth, db, i)
+
+            if isScheduledTrack(art):
+                # schedule (not really send) message as soon as we have a recommender
+                emailing.send_to_submitter_scheduled_submission_open(auth, db, art)
     return None
 
 
@@ -1066,7 +1070,7 @@ def notify_submitter(review):
     if pciRRactivated and isScheduledTrack(article):
         nb_reviews = recomm.t_reviews.count()
         if nb_reviews == 1:
-            emailing.send_to_submitter_reviews_open(auth, db, article)
+            pass
 
 
 def reviewSuggested(s, row):
@@ -1911,6 +1915,9 @@ def survey_updated(survey):
     for review in recomm.t_reviews.select():
         emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], review.id)
         emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review)
+
+    emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", article.id)
+    emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
 
 
 ##---------------------- COAR Notify notifications -----------------------
