@@ -37,6 +37,8 @@ from app_modules import newsletter
 from app_modules import reminders
 from app_components import ongoing_recommendation
 from app_modules.common_small_html import md_to_html
+from app_modules.emailing_vars import getPCiRRinvitationTexts
+from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -128,6 +130,9 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterParallelPreprintUnderConsideration", article)
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterPreprintUnderConsideration", article)
+
+            if pciRRactivated:
+                mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         elif article.status != newStatus and newStatus == "Cancelled":
             mail_vars["parallelText"] = ""
@@ -230,6 +235,27 @@ def send_to_submitter_acknowledgement_submission(session, auth, db, articleId):
 
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
 
+
+##############################################################################
+def send_to_submitter_scheduled_submission_open(auth, db, article):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destAddress"] = db.auth_user[article.user_id].email
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
+    mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
+
+    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
+    hashtag_template = "#SubmitterScheduledSubmissionOpen"
+    sending_date = getScheduledSubmissionDate(article) - db.full_upload_opening_offset
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
+
+
+def mk_recommender(auth, db, article):
+    recomm = db.get_last_recomm(article.id)
+    return common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
@@ -385,6 +411,9 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
         else:
             mail_vars["articleAuthors"] = article.authors
 
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
         # TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
         suggested_recommenders = db(
             (db.t_suggested_recommenders.article_id == articleId)
@@ -422,6 +451,9 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
         else:
             mail_vars["articleAuthors"] = article.authors
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None
@@ -508,6 +540,9 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
         else:
             mail_vars["articleAuthors"] = article.authors
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None
@@ -738,11 +773,13 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
             mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
             mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
-
             if article.anonymous_submission:
                 mail_vars["articleAuthors"] = current.T("[undisclosed]")
             else:
                 mail_vars["articleAuthors"] = article.authors
+
+            if pciRRactivated:
+                mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderReviewConsidered", article)
 
@@ -879,6 +916,9 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
         else:
             mail_vars["articleAuthors"] = article.authors
 
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
         lastRecomm = db.get_last_recomm(article.id)
         if lastRecomm:
             reviewers = db((db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed"))).select()
@@ -1000,6 +1040,9 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
                     mail_vars["articleAuthors"] = current.T("[undisclosed]")
                 else:
                     mail_vars["articleAuthors"] = article.authors
+
+                if pciRRactivated:
+                    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
@@ -1388,6 +1431,9 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
                 c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=False)
             )
 
+            if pciRRactivated:
+                mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
             recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
             if recomm:
                 recommender = db.auth_user[recomm.recommender_id]
@@ -1600,10 +1646,21 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
     if article and finalRecomm:
 
         reviews = db((db.t_reviews.recommendation_id == finalRecomm.id) & (db.t_reviews.review_state == "Awaiting review")).select()
+        
+        mail_vars = emailing_tools.getMailCommonVars()
+
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleDoi"] = article.doi
+
+        mail_vars["sender"] = mkSender(auth, db, finalRecomm)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
 
         for review in reviews:
             # Get common variables :
-            mail_vars = emailing_tools.getMailCommonVars()
             reports = []
 
             # Set custom variables :
@@ -1612,7 +1669,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
             mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             # Insert mail in mail_queue :
-            hashtag_template = "#ReviewerPreprintSubmittedScheduledSubmission"
+            hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerFullPreprint", article, force_scheduled=True)
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
             # Create report for session flash alerts :
@@ -1621,6 +1678,14 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
             # Build reports :
             emailing_tools.getFlashMessage(session, reports)
 
+
+def mkSender(auth, db, recomm):
+    if auth.user_id == recomm.recommender_id:
+        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    else:
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+
+    return sender
 
 ######################################################################################################################################################################
 def send_to_recommender_preprint_submitted(session, auth, db, articleId):
@@ -1631,6 +1696,15 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
         # Get common variables :
         mail_vars = emailing_tools.getMailCommonVars()
         reports = []
+
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleDoi"] = article.doi
+        mail_vars["articleAuthors"] = article.authors \
+            if not article.anonymous_submission else current.T("[undisclosed]")
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
 
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
@@ -1652,7 +1726,6 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 # Mail with templates
 ######################################################################################################################################################################
 def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False):
-    print("send_reviewer_invitation")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1989,7 +2062,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             (
                 (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
                 & (db.t_articles.is_searching_reviewers == True)
-                & (db.t_articles.status == "Under consideration")
+                & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
@@ -2143,8 +2216,9 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId):
     mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
     article = db.t_articles[articleId]
 
@@ -2152,15 +2226,80 @@ def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, ar
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
     if recomm:
         recommId = recomm.id
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
     if article:
+        mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
+        # do not user getCorrectHashtag here to avoid fake name
+        hashtag_template = "#ReminderSubmitterScheduledSubmissionSoonDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
+
+######################################################################################################################################################################
+def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
+
+    article = db.t_articles[articleId]
+
+    recommId = None
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    if recomm:
+        recommId = recomm.id
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+    if article:
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=article.scheduled_submission_date)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
+
+######################################################################################################################################################################
+def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
+
+    article = db.t_articles[articleId]
+
+    recommId = None
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    if recomm:
+        recommId = recomm.id
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+    if article:
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
+        # do not user getCorrectHashtag here to avoid fake name
+        hashtag_template = "#ReminderSubmitterScheduledSubmissionOverDue"
+        scheduled_submission_date = getScheduledSubmissionDate(article)
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
+
+
+def mk_submitter_my_articles_url(mail_vars):
+    return URL(c="user", f="my_articles",
+            scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
 
 ######################################################################################################################################################################
@@ -2301,6 +2440,8 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     if review and recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
+        mail_vars["description"] = myconf.take("app.description")
+        mail_vars["sender"] = mkSender(auth, db, recomm)
         
         if article.anonymous_submission:
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
@@ -2315,9 +2456,8 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
         if pciRRactivated:
-            report_surey = db(db.t_report_survey.article_id == article.id).select().last()
-            invite_texts = emailing_vars.getPCiRRinvitationTexts(report_surey)
-            mail_vars.update(invite_texts)
+            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
@@ -2348,6 +2488,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
     if review and recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
+        mail_vars["sender"] = mkSender(auth, db, recomm)
         
         if article.anonymous_submission:
             mail_vars["articleAuthors"] = current.T("[undisclosed]")
@@ -2375,9 +2516,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["trackchanges_url"] = trackchanges_url
 
         if pciRRactivated:
-            report_surey = db(db.t_report_survey.article_id == article.id).select().last()
-            invite_texts = emailing_vars.getPCiRRinvitationTexts(report_surey)
-            mail_vars.update(invite_texts)
+            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
         if parallelSubmissionAllowed:
@@ -2390,6 +2530,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
                 ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
         authors_reply = None
         if new_round:
@@ -2409,7 +2550,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2428,9 +2569,29 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+
+
+def isScheduledTrack(art):
+    report_survey = art.t_report_survey.select().last()
+    return report_survey and report_survey.q10
+
+
+def getScheduledSubmissionDate(article):
+    return article.t_report_survey.select().last().q10
+
+
+def getScheduledReviewDueDate(article):
+    _ = getPCiRRScheduledSubmissionsVars(article)
+    return _["scheduledReviewDueDate"]
 
 
 ######################################################################################################################################################################
@@ -2442,7 +2603,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2459,9 +2620,15 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 ######################################################################################################################################################################
@@ -2473,7 +2640,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     article = db.t_articles[recomm.article_id]
 
     if review and recomm and article:
-        if scheduledSubmissionActivated and article.doi is None and article.scheduled_submission_date is not None:
+        if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2490,9 +2657,47 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
+            if isScheduledTrack(article):
+                mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
+                base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+            else:
+                base_sending_date = None
+
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+
+
+######################################################################################################################################################################
+def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review):
+    recomm = db.t_recommendations[review.recommendation_id]
+    article = db.t_articles[recomm.article_id]
+    reviewer = db.auth_user[review.reviewer_id]
+
+    if not reviewer: return
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+    mail_vars.update({
+        "destPerson": common_small_html.mkUser(auth, db, reviewer.id),
+        "destAddress": reviewer.email,
+        "articleTitle": md_to_html(article.title),
+        "articleAuthors": authors_or_undisclosed(article),
+        "recommenderPerson": mk_recommender(auth, db, article),
+        "reviewDueDate": mail_vars["scheduledReviewDueDate"],
+        "myReviewsLink": reviewLink(),
+    })
+
+    sending_date = getScheduledSubmissionDate(article) # = LatestReviewStartDate minus 1 week
+    hashtag_template = "#ReminderScheduledReviewComingSoon"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
+
+
+def authors_or_undisclosed(article):
+    return (article.authors
+            if not article.anonymous_submission
+            else current.T("[undisclosed]"))
 
 
 ######################################################################################################################################################################
@@ -2847,19 +3052,23 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     if not reviewer: # dest reviewer might have been deleted
         return
 
-    if auth.user_id == recomm.recommender_id:
-        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
-    else:
-        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
-
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, reviewer.id).flatten()
     mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["sender"] = sender
+    mail_vars["sender"] = mkSender(auth, db, recomm)
     mail_vars["art_doi"] = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     mail_vars["art_title"] = md_to_html(art.title)
     mail_vars["art_authors"] = "[undisclosed]" if (art.anonymous_submission) else art.authors
+
+    mail_vars.update({
+        "articleTitle": mail_vars["art_title"],
+        "articleDoi": mail_vars["art_doi"],
+        "articleAuthors": mail_vars["art_authors"],
+    })
+
+    if pciRRactivated:
+        mail_vars.update(getPCiRRScheduledSubmissionsVars(art))
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
     if check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id) is False:

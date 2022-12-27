@@ -4,6 +4,14 @@ from conftest import test, select, login, logout, users
 @test
 class Author_submits_manuscript:
 
+    def check_full_submission_not_yet_opened(_):
+        _.login_to_submitted()
+        select.fails("a", "CHECK / EDIT REPORT SURVEY")
+        logout(users.user)
+
+    def move_future_date_now(_):
+        Cheat.set_report_due_date_this_week()
+
     def login_to_submitted(_):
         login(users.user)
         select(".dropdown-toggle span", "For contributors").click()
@@ -27,6 +35,9 @@ class Author_submits_manuscript:
 
     def logout(_):
         logout(users.user)
+
+    def move_future_date_back(_):
+        Cheat.reset_report_due_date()
 
 
 @test
@@ -66,3 +77,40 @@ class Recommender_validates:
 
     def logout(_):
         logout(users.recommender)
+
+
+class Cheat:
+
+    def set_report_due_date_this_week():
+        login(users.manager)
+        manager_edit_report_survey()
+        set_report_due_date(weeks=1)
+        save_report_survey()
+        logout(users.manager)
+
+    def reset_report_due_date():
+        login(users.manager)
+        manager_edit_report_survey()
+        select("#t_report_survey_q1").send_keys("RR SNAPSHOT")
+        set_report_due_date(weeks=7)
+        select("#t_report_survey_q1").send_keys("COMPLETE")
+        save_report_survey()
+        logout(users.manager)
+
+def manager_edit_report_survey():
+        select(".dropdown-toggle span", "For managers").click()
+        select(".dropdown-menu span", contains="Handling process(es) underway").click()
+        select("tr", contains="HANDLING PROCESS UNDERWAY") \
+            .select("a", "VIEW / EDIT").click()
+        select("a", "Edit report survey").click()
+
+def save_report_survey():
+        select("input[type=submit]").click()
+
+def set_report_due_date(weeks):
+        from datetime import datetime, timedelta
+        report_due_date = datetime.now() + timedelta(weeks=weeks)
+        report_due_date -= timedelta(days=report_due_date.weekday())
+        date = select("#t_report_survey_q10")
+        date.clear()
+        date.send_keys(report_due_date.strftime("%Y-%m-%d"))

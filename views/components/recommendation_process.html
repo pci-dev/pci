@@ -127,8 +127,12 @@
         {{if editRecommendationLink:}}
         <div class="pci2-flex-column pci2-flex-center pci2-full-width">
           
-            {{if editRecommendationDisabled:}}
+            {{if editRecommendationDisabled and not isScheduledSubmission:}}
               <i style="font-size: 12px;">{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}</i>
+            {{pass}}
+
+            {{if editRecommendationDisabled and isScheduledSubmission:}}
+              <i style="font-size: 12px;">{{=T('Write your decision or recommendation once the full manuscript is submitted by the author.')}}</i>
             {{pass}}
 
             <a class="buttontext btn btn-default {{if editRecommendationDisabled:}}disabled{{pass}}" 
@@ -144,6 +148,21 @@
         {{pass}}
       </div>
     </div>
+  {{pass}}
+
+  {{if scheduledSubmissionEndingButton:}}
+  <div style="margin-top: 20px;">
+    <div style="padding: 15px; margin: 10px 0;">
+      <div class="pci2-flex-column pci2-flex-center pci2-full-width">
+        <i>{{=T('The full Stage 1 manuscript has now been submitted by the authors and validated by the Managing Board. By clicking this button, the invited reviewers will be informed that they can upload their reviews. You can issue this alert prior to the commencement of the scheduled review period.')}}</i>
+        <a class="buttontext btn btn-info" 
+            href="{{=URL(c='recommender_actions', f='do_end_scheduled_submission', vars=dict(articleId=articleId), user_signature=True)}}"
+          >
+            {{=T('Open submission to reviewers')}}
+          </a>
+      </div>
+    </div>
+  </div>
   {{pass}}
 
   {{=recommendationAuthor}}

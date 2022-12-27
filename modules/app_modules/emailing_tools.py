@@ -87,7 +87,7 @@ def getMailCommonVars():
 
 
 ######################################################################################################################################################################
-def getCorrectHashtag(hashtag, article=None):
+def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
     if pciRRactivated and article is not None:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
@@ -95,7 +95,7 @@ def getCorrectHashtag(hashtag, article=None):
             hashtag += "Stage1"
 
     if scheduledSubmissionActivated and article is not None:
-        if article.doi is None and article.scheduled_submission_date is not None:
+        if (article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission")) or (force_scheduled):
             hashtag += "ScheduledSubmission"
 
     return hashtag
@@ -131,7 +131,7 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
     result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    # result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
@@ -268,6 +268,7 @@ def insertReminderMailInQueue(
     review=None,
     authors_reply=None,
     sending_date_forced=None,
+    base_sending_date=None,
     reviewer_invitation_buttons=None,
 ):
 
@@ -282,10 +283,16 @@ def insertReminderMailInQueue(
 
     if reminder:
         elapsed_days = reminder["elapsed_days"][0]
+        sending_date = datetime.now() if not base_sending_date \
+                else base_sending_date - timedelta(days=7)
+        sending_date += timedelta(days=elapsed_days)
 
-        sending_date = datetime.now() + timedelta(days=elapsed_days)
+    if sending_date_forced:
+        sending_date = sending_date_forced
 
-        if pciRRactivated:
+    if True:
+
+        if pciRRactivated and not sending_date_forced:
             if sending_date.weekday() == 5:
                 sending_date = sending_date + timedelta(days=2)
             if sending_date.weekday() == 6:
@@ -300,27 +307,6 @@ def insertReminderMailInQueue(
         db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
-            dest_mail_address=mail_vars["destAddress"],
-            cc_mail_addresses=ccAddresses,
-            replyto_addresses=replytoAddresses,
-            mail_subject=mail["subject"],
-            mail_content=mail["content"],
-            user_id=auth.user_id,
-            recommendation_id=recommendation_id,
-            article_id=article_id,
-            mail_template_hashtag=hashtag_template,
-            review_id=review_id
-        )
-
-    if sending_date_forced:
-        mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
-            article_id=article_id,
-        )
-
-        db.mail_queue.insert(
-            sending_status="pending",
-            sending_date=sending_date_forced,
             dest_mail_address=mail_vars["destAddress"],
             cc_mail_addresses=ccAddresses,
             replyto_addresses=replytoAddresses,

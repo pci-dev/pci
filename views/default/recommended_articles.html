@@ -77,6 +77,20 @@
 							{{=T("days.")}}
 						</h4>
 					{{pass}}
+					
+					<div style="margin: 15px 15px 10px; text-align: center; width: calc(100% - 30px);">
+						<b>When you're ready to upload your submission, please:</b>
+					</div>
+
+					<a class=" btn btn-info" style="margin: 0 15px; text-align: center; width: calc(100% - 30px);" 
+          			  	href="{{=URL(c='user', f='edit_report_survey', vars=dict(articleId=articleId))}}"
+          			>
+  		  			    {{=T('Check / Edit report survey')}} 
+  	      			</a>
+
+					<div style="margin: 10px 15px 0; text-align: center; width: calc(100% - 30px);">
+						<b>and then, upload the full manuscript DOI URL and Version:</b>
+					</div>
 
 					{{=scheduledSubmissionForm}}
 				</div>

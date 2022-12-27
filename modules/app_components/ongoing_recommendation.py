@@ -373,7 +373,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         amIEngagedInStage2Process = True
 
     isScheduledSubmission = False
-    if scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+    if scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
         isScheduledSubmission = True
 
     isPendingRecommenderAcceptation = db(
@@ -410,7 +410,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
         )
         # During recommendation, no one is not allowed to see last (unclosed) recommendation
-        hideOngoingRecomm = ((art.status == "Under consideration") or (art.status.startswith("Pre-"))) and not (recomm.is_closed)  # (iRecomm==1)
+        hideOngoingRecomm = ((art.status in ("Under consideration", "Scheduled submission under consideration")) or (art.status.startswith("Pre-"))) and not (recomm.is_closed)  # (iRecomm==1)
         #  ... unless he/she is THE recommender
         if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender):
             hideOngoingRecomm = False
@@ -503,7 +503,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 (amIReviewer)
                 and (recomm.recommendation_state in ("Recommended", "Rejected", "Revision"))
                 and recomm.is_closed
-                and (art.status in ("Under consideration", "Recommended", "Rejected", "Awaiting revision"))
+                and (art.status in ("Under consideration", "Recommended", "Rejected", "Awaiting revision", "Scheduled submission under consideration"))
             ):
                 hideOngoingReview = False
             # ... or he/she is THE recommender and he/she already filled his/her own review ...
@@ -523,7 +523,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and (review.review_state == "Willing to review") and (art.status == "Under consideration"):
                 reviewVars.update([("showReviewRequest", True)])
 
-            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status == "Under consideration") and not (printable):
+            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status in ("Under consideration", "Scheduled submission pending", "Scheduled submission under consideration")) and not (printable):
                 if review.review_state == "Awaiting response":
                     # reviewer's buttons in order to accept/decline pending review
                     reviewVars.update([("showInvitationButtons", True)])
@@ -549,7 +549,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 hideOngoingReview = False
 
             # reviewer's buttons in order to edit/complete pending review
-            if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status == "Under consideration") and not (printable):
+            if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (printable):
                 reviewVars.update([("showEditButtons", True)])
 
             if not (hideOngoingReview):
@@ -630,6 +630,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 editRecommendationDisabled = True
                 editRecommendationButtonText = current.T("Write your decision / recommendation")
 
+        scheduledSubmissionEndingButton = False
+        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Scheduled submission under consideration") and not (printable):
+            scheduledSubmissionEndingButton = True
+
         recommendationPdfLink = None
         if hideOngoingRecomm is False and recomm.recommender_file:
             recommendationPdfLink = A(
@@ -656,7 +660,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         inviteReviewerLink = None
         showSearchingForReviewersButton = None
         showRemoveSearchingForReviewersButton = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status == "Under consideration"):
+        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status in ("Under consideration", "Scheduled submission under consideration")):
             inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
             showSearchingForReviewersButton = not art.is_searching_reviewers
             showRemoveSearchingForReviewersButton = art.is_searching_reviewers
@@ -701,6 +705,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             isScheduledSubmission=isScheduledSubmission,
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
+            scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
@@ -716,11 +721,28 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     return DIV(recommendationRounds, managerButton or "")
 
 
+def is_scheduled_track(article):
+    return article.status == "Scheduled submission pending"
+
+
+def is_stage_1(article):
+    return article.report_stage == "STAGE 1"
+
+
 def getManagerButton(art, auth, isRecommender):
     if art.user_id == auth.user_id:
         return None
+
+    if pciRRactivated and auth.has_membership(role="recommender"):
+        if art.status == "Scheduled submission pending":
+            return validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
+
     if not auth.has_membership(role="manager"):
         return None
+
+    if pciRRactivated and is_scheduled_track(art) and is_stage_1(art):
+        return validate_stage_button(art)
+
     if isRecommender:
         return sorry_you_are_recommender_note()
     else:
@@ -774,6 +796,8 @@ def validate_stage_button(art):
                     art, send_back_button(art),
                     style="info",
                 )
+            elif art.status == "Scheduled submission pending":
+                managerButton = validate_scheduled_submission_button(articleId=art.id)
 
             return None
 
@@ -808,6 +832,17 @@ def send_back_button(art):
     )
 
 
+def validate_scheduled_submission_button(articleId, **extra_vars):
+    return DIV(
+            A(
+                SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
+                _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
+            ),
+            _class="pci-EditButtons-centered",
+    )
+
+
 ######################################################################################################################################
 # Postprint recommendation process
 ######################################################################################################################################
@@ -830,7 +865,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     isRecommendationTooShort = True
     addContributorLink = None
     cancelSubmissionLink = None
-    if (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration") and not (recomm.is_closed) and not (printable):
+    if (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (recomm.is_closed) and not (printable):
         # recommender's button allowing recommendation edition
         editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True)
 

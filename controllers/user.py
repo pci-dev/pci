@@ -18,6 +18,7 @@ from app_components import app_forms
 from app_components import article_components
 from app_components import ongoing_recommendation
 
+from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 
@@ -104,35 +105,25 @@ def recommendations():
             db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
-            # Show form and get remaning days
-            if art.doi is None and art.scheduled_submission_date is not None:
+            # Show form and get remaining days
+            if  art.scheduled_submission_date is not None:
                 isScheduledSubmission = True
                 scheduledSubmissionRemaningDays = (art.scheduled_submission_date - date.today()).days
 
+            showFullSubmissionUploadScreen = (
+                art.scheduled_submission_date and
+                scheduledSubmissionRemaningDays <= db.full_upload_opening_offset.days
+            )
+            if not showFullSubmissionUploadScreen:
+                scheduledSubmissionForm = None
+            else:
             # Remove scheduled submission date when doi is updated
-            if scheduledSubmissionForm.process().accepted:
+              if scheduledSubmissionForm.process().accepted:
                 art.scheduled_submission_date = None
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
+                art.status = "Scheduled submission pending"
                 art.update_record()
-
-                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
-
-                # Send e-mails to reviewers and recommenders
-                emailing.send_to_reviewers_preprint_submitted(session, auth, db, articleId)
-                emailing.send_to_recommender_preprint_submitted(session, auth, db, articleId)
-
-                # Create reminder for reviewers
-                awaitingReviews = db(
-                    (db.t_reviews.recommendation_id == db.t_recommendations.id)
-                    & (db.t_recommendations.article_id == db.t_articles.id)
-                    & (db.t_articles.id == articleId)
-                    & (db.t_reviews.review_state == "Awaiting review")
-                ).select()
-                for review in awaitingReviews:
-                    emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
-                    emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
-                    emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
 
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
@@ -1003,17 +994,25 @@ def fill_report_survey():
     form.element(_type="submit")["_value"] = T("Complete your submission")
     form.element(_type="submit")["_class"] = "btn btn-success"
 
-    if form.process().accepted:
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
+
+    def onvalidation(form):
+        if form.vars.q10 and form.vars.q10.weekday() >= 5:
+            form.errors.q10 = "selected date must be a week day"
+
+    if form.process(onvalidation=onvalidation).accepted:
         surveyId = form.vars.id
         survey = db.t_report_survey[surveyId]
         survey.article_id = articleId
         survey.update_record()
 
         doUpdateArticle = False
+        prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
+            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -1025,6 +1024,14 @@ def fill_report_survey():
 
         if doUpdateArticle == True:
             art.update_record()
+
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
@@ -1063,7 +1070,10 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
-    if art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"):
+    if art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission") and not scheduledSubmissionActivated:
+        session.flash = T("Forbidden access")
+        redirect(URL("my_articles", user_signature=True))
+    if art.status in ("Under consideration", "Awaiting consideration") and scheduledSubmissionActivated and art.scheduled_submission_date is None:
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     if art.user_id != auth.user_id:
@@ -1210,12 +1220,20 @@ def edit_report_survey():
 
     form = SQLFORM(db.t_report_survey, survey.id, fields=fields, keepvalues=True,)
 
-    if form.process().accepted:
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
+
+    def onvalidation(form):
+        if form.vars.q10 and form.vars.q10.weekday() >= 5:
+            form.errors.q10 = "selected date must be a week day"
+
+    if form.process(onvalidation=onvalidation).accepted:
         doUpdateArticle = False
+        prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
+            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -1228,6 +1246,14 @@ def edit_report_survey():
 
         if doUpdateArticle == True:
             art.update_record()
+
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         myVars = dict(articleId=articleId)
@@ -1454,7 +1480,7 @@ def my_reviews():
     if pendingOnly:
         query = (query
             & (db.t_reviews.review_state == "Awaiting response")
-            & (db.t_articles.status == "Under consideration")
+            & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
@@ -1525,12 +1551,12 @@ def my_reviews():
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
                                     _class="btn btn-default disabled"
-                                    if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                    if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
                                     else "btn btn-default",
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
-                                if ((scheduledSubmissionActivated) and (row.t_articles.doi is None) and (row.t_articles.scheduled_submission_date is not None))
+                                if ((scheduledSubmissionActivated) and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1735,7 +1761,7 @@ def edit_review():
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     # Check if article is Scheduled submission without doi
-    elif scheduledSubmissionActivated and art.doi is None and art.scheduled_submission_date is not None:
+    elif scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
         session.flash = T("Unauthorized", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:
@@ -1958,7 +1984,7 @@ def delete_temp_user():
 def articles_awaiting_reviewers():
     response.view = "default/myLayout.html"
 
-    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status == "Under consideration")
+    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
 
     qy_art = DAL("sqlite:memory").define_table(
         "qy_art",

@@ -786,7 +786,7 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionDue", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionOverDue", o["id"])
 
-            elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Cancelled":
+            elif o.status in ("Pending", "Awaiting consideration", "Under consideration", "Scheduled submission pending", "Scheduled submission under consideration") and f["status"] == "Cancelled":
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
@@ -795,6 +795,19 @@ def deltaStatus(s, f):
 
             elif o["status"].startswith("Pre-") and f["status"] == "Under consideration":
                 emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
+
+            elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
+                articleId = o.id
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+                emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+
+            elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
+                emailing.send_to_recommender_preprint_submitted(session, auth, db, o["id"])
+
+            elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
+                emailing.send_to_reviewers_preprint_submitted(session, auth, db, o["id"])
 
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
@@ -834,9 +847,6 @@ def newArticle(s, articleId):
         emailing.send_to_managers(session, auth, db, articleId, "Pending")
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
-
-    if scheduledSubmissionActivated and s.doi is None and s.scheduled_submission_date is not None:
-        emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
 
     return None
 
@@ -915,6 +925,10 @@ def newRecommendation(s, i):
         if art:
             if art.already_published:
                 emailing.send_to_thank_recommender_postprint(session, auth, db, i)
+
+            if isScheduledTrack(art):
+                # schedule (not really send) message as soon as we have a recommender
+                emailing.send_to_submitter_scheduled_submission_open(auth, db, art)
     return None
 
 
@@ -947,6 +961,13 @@ def get_last_recomms():
 
 
 db.get_last_recomms = get_last_recomms
+
+
+db.pending_scheduled_submissions_query = (
+    db.t_articles.status.belongs(("Scheduled submission pending",))
+    & (db.t_articles.id == db.t_recommendations.article_id)
+    & (db.t_recommendations.recommender_id == auth.user_id)
+)
 
 
 db.define_table(
@@ -1040,12 +1061,27 @@ def updateReviewerDetails(row):
             row.reviewer_details = None
 
 
+from app_modules.emailing import isScheduledTrack
+
+def notify_submitter(review):
+    recomm = db.t_recommendations[review.recommendation_id]
+    article = db.t_articles[recomm.article_id]
+
+    if pciRRactivated and isScheduledTrack(article):
+        nb_reviews = recomm.t_reviews.count()
+        if nb_reviews == 1:
+            pass
+
+
 def reviewSuggested(s, row):
     reviewId = row["id"]
     recommendationId = row["recommendation_id"]
     recomm = db.t_recommendations[recommendationId]
+    article = db.t_articles[recomm.article_id]
     rev = db.t_reviews[reviewId]
     revwr = db.t_recommendations[rev.recommendation_id]
+
+    notify_submitter(row)
 
     try:
         rev_recomm_mail = db.auth_user[revwr.recommender_id]["email"]
@@ -1062,6 +1098,8 @@ def reviewSuggested(s, row):
         elif row["review_state"] == "Awaiting review":
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, row["id"])
             emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"], manual_insert=True)
+            if isScheduledTrack(article):
+                emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, row)
             # create reminder
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, row["id"])
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, row["id"])
@@ -1159,6 +1197,7 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], o["id"])
 
         if o["reviewer_id"] is not None and o["review_state"] in ["Awaiting review", "Awaiting response"] and f["review_state"] == "Review completed":
             emailing.send_to_recommenders_review_completed(session, auth, db, o["id"])
@@ -1172,6 +1211,7 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], o["id"])
 
             if o["review_state"] == "Awaiting response":
                 # delete reminder
@@ -1497,14 +1537,14 @@ db.define_table(
         label=SPAN(
             T("11. ONLY for Stage 1 RR Snapshots submitted for Scheduled Review:"),
             BR(),
-            T("Choose a date "),
-            SPAN("no sooner", _style="text-decoration: underline"),
+            T("Choose a "),
+            SPAN("weekday no sooner than 6 weeks from today", _style="text-decoration: underline"),
             T(
-                " than 6 weeks from today by which the full manuscript will be submitted if the RR snapshot is invited to the next stage. The authors can submit their Stage 1 report at any time leading up to this date, but note that (1) they must submit their Stage 1 report for evaluation "
+                " by which the full manuscript will be submitted if the RR snapshot is invited to the next stage. Saturdays and Sundays are not eligible submission dates. Authors may submit their Stage 1 report no earlier than one week in advance of this date. Please note that (1) authors must submit the Stage 1 report for evaluation "
             ),
             SPAN("no later", _style="text-decoration: underline"),
             T(
-                " than this date to preserve the timeline of scheduled review, and (2) if they submit earlier then this date the manuscript will not be reviewed earlier than scheduled. This deadline, once selected, cannot be extended and if the authors fail to submit by the deadline, the scheduled review will be cancelled."
+                " than this date to preserve the timeline of scheduled review, and (2) where authors submit earlier than this date, the manuscript will probably not be reviewed earlier than scheduled. This deadline, once selected, cannot be extended and if authors fail to submit by the deadline, the scheduled review process will be cancelled."
             ),
         ),
         requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')),
@@ -1861,6 +1901,28 @@ db.define_table(
     ),
     migrate=False,
 )
+
+
+db.t_report_survey._after_update.append(lambda s, f: survey_updated(s.select().first()))
+
+def survey_updated(survey):
+    article = db.t_articles[survey.article_id]
+    recomm = db.get_last_recomm(article.id)
+
+    if not isScheduledTrack(article): return
+    if not recomm: return
+
+    for review in recomm.t_reviews.select():
+        emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], review.id)
+        emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review)
+
+    emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", article.id)
+    emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
+
+
+from datetime import timedelta
+db.full_upload_opening_offset = timedelta(weeks=1)
+
 
 ##---------------------- COAR Notify notifications -----------------------
 

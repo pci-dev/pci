@@ -207,3 +207,12 @@ if (levelRadioItems) {
     };
   }
 }
+
+// un-disable selected inputs before submitting, so we don't loose data
+document.querySelector("input[type=submit]").onclick = function() {
+	document.querySelectorAll(":disabled")
+	.forEach(function (it) {
+		if (it.value) it.disabled = false;
+	})
+	this.form.submit();
+}

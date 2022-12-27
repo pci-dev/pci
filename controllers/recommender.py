@@ -25,7 +25,10 @@ from app_components import recommender_components
 from app_modules import emailing_parts
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules import emailing_tools, emailing_vars, emailing 
+from app_modules import emailing_tools
+from app_modules import emailing_vars
+from app_modules import emailing
+
 from app_modules.common_small_html import md_to_html
 
 # to change to common
@@ -975,10 +978,12 @@ def show_report_survey():
 
     if form.process().accepted:
         doUpdateArticle = False
+        prepareReminders = False
         if form.vars.q10 is not None:
             art.scheduled_submission_date = form.vars.q10
-            art.doi = None
+            # art.doi = None
             doUpdateArticle = True
+            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -986,6 +991,14 @@ def show_report_survey():
 
         if doUpdateArticle == True:
             art.update_record()
+
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
@@ -1347,7 +1360,21 @@ def send_review_cancellation():
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
+
+    # aliases - for some templates
+    articleTitle = art_title
+    articleDoi = art_doi
+    articleAuthors = art_authors
+
     linkTarget = None  # URL(c='user', f='my_reviews', vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+
+    if pciRRactivated:
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
     if review.review_state == "Awaiting response":
         hashtag_template = "#DefaultReviewCancellation"
     if review.review_state == "Awaiting review":
@@ -1402,6 +1429,7 @@ def send_review_cancellation():
 
     reminder_hashtag = ["#ReminderReviewerReviewSoonDue", "#ReminderReviewerReviewDue", "#ReminderReviewerReviewOverDue"]
     emailing.delete_reminder_for_reviewer(db, reminder_hashtag, reviewId)
+    emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
     
     return dict(
         form=form,
@@ -1584,7 +1612,13 @@ def email_for_registered_reviewer():
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-    
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
+
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
@@ -1733,6 +1767,13 @@ def email_for_new_reviewer():
         pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        snapshotUrl = sched_sub_vars["snapshotUrl"]
+
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)

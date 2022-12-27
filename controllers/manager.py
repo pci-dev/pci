@@ -32,6 +32,8 @@ from app_components import recommender_components
 from app_modules import common_tools
 from app_modules import emailing_tools
 from app_modules import common_small_html
+from app_modules import emailing
+
 from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
@@ -71,14 +73,18 @@ def all_articles():
 
 ######################################################################################################################################################################
 # Display pending articles and allow management
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def pending_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(
-        ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"], URL("manager", "pending_articles", host=host, scheme=scheme, port=port)
-    )
+    if is_recommender(auth, request):
+        states = ["Scheduled submission pending"]
+    else:
+        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private", "Scheduled submission pending"]
+
+
+    resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingArticlesTitle")
@@ -124,7 +130,7 @@ def ongoing_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerOngoingArticlesTitle")
@@ -150,7 +156,7 @@ def completed_articles():
 
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def _manage_articles(statuses, whatNext, db=db):
     response.view = "default/myLayout.html"
 
@@ -158,6 +164,10 @@ def _manage_articles(statuses, whatNext, db=db):
         query = db.t_articles.status.belongs(statuses)
     else:
         query = db.t_articles
+
+    # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+    if pciRRactivated and is_recommender(auth, request):
+        query = db.pending_scheduled_submissions_query
 
     def index_by(field, query): return { x[field]: x for x in db(query).select() }
 
@@ -277,9 +287,9 @@ def _manage_articles(statuses, whatNext, db=db):
             body=lambda row: DIV(
                 A(
                     SPAN(current.T("View / Edit")),
-                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id), user_signature=True),
+                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id, recommender=auth.user_id)),
                     _class="buttontext btn btn-default pci-button pci-manager",
-                    _title=current.T("View and/or edit review"),
+                    _title=current.T("View and/or edit"),
                 ),
                 A(
                     SPAN(current.T('Set "Not')),
@@ -359,7 +369,7 @@ def _manage_articles(statuses, whatNext, db=db):
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def recommendations():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
@@ -1098,19 +1108,36 @@ def edit_report_survey():
         keepvalues=True,
     )
 
-    if form.process().accepted:
-        doUpdateArticle = False
-        if form.vars.q10 is not None:
-            art.scheduled_submission_date = form.vars.q10
-            art.doi = None
-            doUpdateArticle = True
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
 
+    def onvalidation(form):
+        if form.vars.q10 and form.vars.q10.weekday() >= 5:
+            form.errors.q10 = "selected date must be a week day"
+
+    if form.process(onvalidation=onvalidation).accepted:
+        doUpdateArticle = False
+        prepareReminders = False
+        if form.vars.q10 is not None:
+            if art.scheduled_submission_date:
+                # /!\ used as a _flag_ and reset to None in user.py
+                #     do not set it back to non-None accidently
+                art.scheduled_submission_date = form.vars.q10
+                doUpdateArticle = True
+            prepareReminders = True
         if form.vars.temp_art_stage_1_id is not None:
             art.art_stage_1_id = form.vars.temp_art_stage_1_id
             doUpdateArticle = True
 
         if doUpdateArticle == True:
             art.update_record()
+
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
 
         session.flash = T("Article submitted", lazy=False)
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
@@ -1192,7 +1219,7 @@ def all_recommendations():
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status == "Under consideration")
+        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
@@ -1250,7 +1277,7 @@ def all_recommendations():
     db.t_articles.report_stage.readable = False
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
     )
 
     db.t_recommendations.doi.readable = False

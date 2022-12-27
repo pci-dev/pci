@@ -79,8 +79,9 @@ class User_submits:
         fill_survey()
         select("input[type=submit]").click()
 
-    Article = articles[:-1].capitalize()
-    select(".w2p_flash", Article+" submitted").wait_clickable()
+    article_submitted = "Article submitted" \
+        if not is_rr else "Survey saved. Report NOT yet submitted"
+    select(".w2p_flash", article_submitted).wait_clickable()
 
  def search_and_suggest_recommender(_):
     select("a", "Suggest recommenders".upper()).click()
@@ -113,6 +114,7 @@ def fill_survey():
     select("#t_report_survey_q9").send_keys("an opposed reviewer")
     if is_rr.scheduled_track:
         report_due_date = datetime.now() + timedelta(weeks=7)
+        report_due_date -= timedelta(days=report_due_date.weekday())
         select("#t_report_survey_q10").send_keys(report_due_date.strftime("%Y-%m-%d"))
         select("#t_report_survey_q1_1").send_keys("https://snapshot.URL")
     select("#t_report_survey_q11").send_keys("yes")

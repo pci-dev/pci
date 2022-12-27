@@ -146,6 +146,36 @@ def do_reject_article():
 
 
 ######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
+def do_validate_scheduled_submission():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if art.status == "Scheduled submission pending":
+
+        recomm = (
+            db((db.t_recommendations.article_id == art.id)).select().last()
+        )
+        if recomm and recomm.recommender_id:
+            art.status = "Scheduled submission under consideration"
+        else:
+            art.status = "Awaiting consideration"
+        
+        art.update_record()
+        session.flash = T("Request now available to recommenders")
+
+    if is_recommender(auth, request):
+        redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+
+    redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+
+
+######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def suggest_article_to():
     articleId = request.vars["articleId"]
