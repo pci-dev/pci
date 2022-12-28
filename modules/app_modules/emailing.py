@@ -2324,6 +2324,9 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
 
     article = db.t_articles[articleId]
     if article:
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
         suggested_recommenders = db(
             (db.t_suggested_recommenders.article_id == articleId)
             & (db.t_suggested_recommenders.declined == False)
@@ -2357,6 +2360,9 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
 
     article = db.t_articles[articleId]
     if article:
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSuggestedRecommenderInvitation", article)
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
