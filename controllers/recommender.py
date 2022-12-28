@@ -1356,7 +1356,7 @@ def send_review_cancellation():
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
-    art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    art_authors = emailing.mkAuthors(art)
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
@@ -1481,7 +1481,7 @@ def send_reviewer_generic_mail():
     recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
     articleDoi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleTitle = md_to_html(art.title)
-    articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    articleAuthors = emailing.mkAuthors(art)
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1581,7 +1581,7 @@ def email_for_registered_reviewer():
     longname = myconf.take("app.longname") # DEPRECATED: for compatibility purpose; to be removed after checkings
     appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
-    art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    art_authors = emailing.mkAuthors(art)
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleAuthors = art_authors

@@ -142,14 +142,9 @@ def getPCiRRScheduledSubmissionsVars(article):
 #         art = db.t_articles[articleId]
 
 #     if art is not None:
-#         if article.anonymous_submission and anonymousAuthors:
-#             articleAuthors = current.T("[undisclosed]")
-#         else:
-#             articleAuthors = article.authors
-
 #         mail_vars = dict(
 #             articleTitle=art.title,
-#             articleAuthors=articleAuthors,
+#             articleAuthors=mkAuthors(article),
 #             articleDoi=common_small_html.mkDOI(article.doi),
 #             articlePrePost="postprint" if art.already_published else "preprint",
 #         )

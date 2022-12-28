@@ -1630,8 +1630,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleDoi"] = article.doi
-        mail_vars["articleAuthors"] = article.authors \
-            if not article.anonymous_submission else current.T("[undisclosed]")
+        mail_vars["articleAuthors"] = mkAuthors(article)
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
@@ -2591,7 +2590,7 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
         "destPerson": common_small_html.mkUser(auth, db, reviewer.id),
         "destAddress": reviewer.email,
         "articleTitle": md_to_html(article.title),
-        "articleAuthors": authors_or_undisclosed(article),
+        "articleAuthors": mkAuthors(article),
         "recommenderPerson": mk_recommender(auth, db, article),
         "reviewDueDate": mail_vars["scheduledReviewDueDate"],
         "myReviewsLink": reviewLink(),
@@ -2601,12 +2600,6 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
     hashtag_template = "#ReminderScheduledReviewComingSoon"
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
-
-
-def authors_or_undisclosed(article):
-    return (article.authors
-            if not article.anonymous_submission
-            else current.T("[undisclosed]"))
 
 
 ######################################################################################################################################################################
@@ -2968,7 +2961,7 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     mail_vars["sender"] = mkSender(auth, db, recomm)
     mail_vars["art_doi"] = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     mail_vars["art_title"] = md_to_html(art.title)
-    mail_vars["art_authors"] = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    mail_vars["art_authors"] = mkAuthors(art)
 
     mail_vars.update({
         "articleTitle": mail_vars["art_title"],
