@@ -1356,7 +1356,7 @@ def send_review_cancellation():
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
-    art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    art_authors = emailing.mkAuthors(art)
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
@@ -1481,7 +1481,7 @@ def send_reviewer_generic_mail():
     recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
     articleDoi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleTitle = md_to_html(art.title)
-    articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    articleAuthors = emailing.mkAuthors(art)
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -1531,9 +1531,12 @@ def convert_string(value):
     else:
         return False
 
-def get_review_duration_options(isScheduledTrack=False):
+def get_review_duration_options(article):
     review_duration_choices = db.review_duration_choices
     review_duration_default = db.review_duration_default
+
+    isScheduledTrack = pciRRactivated and \
+        article.t_report_survey.select().last().q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
 
     if isScheduledTrack:
         review_duration_default = db.review_duration_scheduled_track
@@ -1578,7 +1581,7 @@ def email_for_registered_reviewer():
     longname = myconf.take("app.longname") # DEPRECATED: for compatibility purpose; to be removed after checkings
     appLongName = myconf.take("app.longname")
     appName = myconf.take("app.name")
-    art_authors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    art_authors = emailing.mkAuthors(art)
     art_title = md_to_html(art.title)
     art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     articleAuthors = art_authors
@@ -1607,8 +1610,7 @@ def email_for_registered_reviewer():
             )
 
     if pciRRactivated:
-        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1635,10 +1637,8 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
-    isScheduledSubmission = pciRRactivated and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
-
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
+        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field(
@@ -1761,10 +1761,8 @@ def email_for_new_reviewer():
                 % locals()
             )
 
-    # PCi RR specific mail vars based on report survey answers
     if pciRRactivated:
-        report_survey = db(db.t_report_survey.article_id == art.id).select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(report_survey)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1785,10 +1783,8 @@ def email_for_new_reviewer():
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
 
-    isScheduledSubmission = pciRRactivated and report_survey.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
-
     form = SQLFORM.factory(
-        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(isScheduledSubmission)),
+        Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
         Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),

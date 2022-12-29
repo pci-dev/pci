@@ -1550,7 +1550,7 @@ def send_submitter_generic_mail():
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
     articleDoi = common_small_html.mkLinkDOI(art.doi)
     articleTitle = md_to_html(art.title)
-    articleAuthors = "[undisclosed]" if (art.anonymous_submission) else art.authors
+    articleAuthors = emailing.mkAuthors(art)
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
