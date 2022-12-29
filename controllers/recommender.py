@@ -30,6 +30,7 @@ from app_modules import emailing_vars
 from app_modules import emailing
 
 from app_modules.common_small_html import md_to_html
+from app_modules.emailing import isScheduledTrack
 
 # to change to common
 from controller_modules import admin_module
@@ -1535,10 +1536,7 @@ def get_review_duration_options(article):
     review_duration_choices = db.review_duration_choices
     review_duration_default = db.review_duration_default
 
-    isScheduledTrack = pciRRactivated and \
-        article.t_report_survey.select().last().q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
-
-    if isScheduledTrack:
+    if isScheduledTrack(article):
         review_duration_default = db.review_duration_scheduled_track
         review_duration_choices = [review_duration_default]
 
