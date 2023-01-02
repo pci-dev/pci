@@ -1058,6 +1058,10 @@ def fill_report_survey():
 
 
 def survey_onvalidation(form):
+    if form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+        if not form.vars.q10:
+            form.errors.q10 = "Please provide a date"
+
     if form.vars.q10 and form.vars.q10.weekday() >= 5:
         form.errors.q10 = "selected date must be a week day"
 
