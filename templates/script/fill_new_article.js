@@ -6,7 +6,6 @@ jQuery(document).ready(function() {
     't_articles_approvals_obtained',
     't_articles_human_subject_consent_obtained',
     't_articles_lines_numbered',
-    't_articles_funding_sources_listed',
     't_articles_conflicts_of_interest_indicated',
     't_articles_no_financial_conflict_of_interest',
   ]

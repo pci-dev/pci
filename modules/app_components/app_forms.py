@@ -201,9 +201,6 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         "lines_numbered":
         "Lines are numbered (unless your preprint is deposited in arXiv or in any other archive not accepting line numbering)",
 
-        "funding_sources_listed":
-        "All sources of funding are listed (or absence of funding is indicated) in a separate funding section or in the cover letter",
-
         "conflicts_of_interest_indicated":
         "Non-financial conflicts of interest are indicated in the “Conflict of interest disclosure” section or in the cover letter",
 
