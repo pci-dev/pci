@@ -1058,12 +1058,23 @@ def fill_report_survey():
 
 
 def survey_onvalidation(form):
-    if form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
-        if not form.vars.q10:
-            form.errors.q10 = "Please provide a date"
+    error = validate_due_date(form)
+    if error:
+        form.errors.q10 = error
 
-    if form.vars.q10 and form.vars.q10.weekday() >= 5:
-        form.errors.q10 = "selected date must be a week day"
+def validate_due_date(form):
+    due_date = form.vars.q10
+
+    if not due_date and form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+        return "Please provide a date"
+
+    if not due_date: return
+
+    if due_date.weekday() >= 5:
+        return "selected date must be a week day"
+
+    if due_date < date.today():
+        return "Please select a date in the future"
 
 
 ######################################################################################################################################################################
