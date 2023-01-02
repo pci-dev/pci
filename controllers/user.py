@@ -998,8 +998,7 @@ def fill_report_survey():
     form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
 
     def onvalidation(form):
-        if form.vars.q10 and form.vars.q10.weekday() >= 5:
-            form.errors.q10 = "selected date must be a week day"
+        survey_onvalidation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
         surveyId = form.vars.id
@@ -1056,6 +1055,11 @@ def fill_report_survey():
         form=form,
         myFinalScript=SCRIPT(myScript),
     )
+
+
+def survey_onvalidation(form):
+    if form.vars.q10 and form.vars.q10.weekday() >= 5:
+        form.errors.q10 = "selected date must be a week day"
 
 
 ######################################################################################################################################################################
@@ -1224,8 +1228,7 @@ def edit_report_survey():
     form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
 
     def onvalidation(form):
-        if form.vars.q10 and form.vars.q10.weekday() >= 5:
-            form.errors.q10 = "selected date must be a week day"
+        survey_onvalidation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
         doUpdateArticle = False
