@@ -55,6 +55,7 @@ class User_submits:
         select("#t_articles_no_scripts_used_for_result").click()
         select("#t_articles_codes_used_in_study").click()
         select("#t_articles_codes_doi").send_keys("https://github.com/")
+        select("#t_articles_funding").send_keys("The authors declare that they have received no specific funding for this study")
 
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(article.abstract)

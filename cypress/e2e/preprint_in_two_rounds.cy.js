@@ -76,7 +76,6 @@ describe("Preprint recommended in two round", () => {
       cy.get("#t_articles_approvals_obtained").click();
       cy.get("#t_articles_human_subject_consent_obtained").click();
       cy.get("#t_articles_lines_numbered").click();
-      cy.get("#t_articles_funding_sources_listed").click();
       cy.get("#t_articles_conflicts_of_interest_indicated").click();
       cy.get("#t_articles_no_financial_conflict_of_interest").click();
 
