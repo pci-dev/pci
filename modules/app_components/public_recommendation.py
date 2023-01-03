@@ -132,6 +132,15 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         _class="pci-conflict-of-interest-note",
     )
 
+    funding = DIV(
+        SPAN(
+            B("Funding:", _class="pci2-main-color-text"),
+            BR(),
+            SPAN(art.funding)
+        ) if art.funding else "",
+        _class="pci-funding",
+    ) if not pciRRactivated else ""
+
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
             auth, db, recomm=finalRecomm,
             with_reviewers=True, linked=True,
@@ -176,6 +185,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             ("recomm_altmetric", recomm_altmetric),
             ("cite", cite),
             ("info", info),
+            ("funding", funding),
             ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode=False)),
             ("pdfLink", pdfLink),
             ("printable", printable),

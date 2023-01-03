@@ -634,6 +634,7 @@ db.define_table(
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
     Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
+    Field("funding", type="string", length=1024, label=T("Fundings"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)], comment="Indicate in this box the origin of the funding of your study. If your study has not been supported by particular funding, please indicate \"The authors declare that they have received no specific funding for this study\"."),
     Field(
         "thematics",
         type="list:string",

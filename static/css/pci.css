@@ -1072,6 +1072,7 @@ header {
 }
 
 .pci-citation,
+.pci-funding,
 .pci-conflict-of-interest-note {
   font-size: 10px;
   border-left: 2px solid #598398;

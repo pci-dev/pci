@@ -2960,3 +2960,7 @@ ALTER TABLE mail_queue ADD COLUMN bcc_mail_addresses text;
 -- 2022-11-30 updates/new_t_article_field.sql
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS  preprint_server character varying(512);
+
+-- 2023-01-02 updates/fundings.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS  funding character varying(1024) DEFAULT '';

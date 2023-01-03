@@ -55,6 +55,7 @@ class User_submits:
         select("#t_articles_no_scripts_used_for_result").click()
         select("#t_articles_codes_used_in_study").click()
         select("#t_articles_codes_doi").send_keys("https://github.com/")
+        select("#t_articles_funding").send_keys("The authors declare that they have received no specific funding for this study")
 
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(article.abstract)
@@ -70,7 +71,6 @@ class User_submits:
         select("#t_articles_approvals_obtained").click()
         select("#t_articles_human_subject_consent_obtained").click()
         select("#t_articles_lines_numbered").click()
-        select("#t_articles_funding_sources_listed").click()
         select("#t_articles_conflicts_of_interest_indicated").click()
         select("#t_articles_no_financial_conflict_of_interest").click()
     select("input[type=submit]").click()
