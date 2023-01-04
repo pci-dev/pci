@@ -366,6 +366,8 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
         form.element(_type="submit")["_class"] = "btn btn-success"
 
     def onvalidation(form):
+        form.vars.article_id = art.id
+
         error = validate_due_date(form)
         if error:
             form.errors.q10 = error
@@ -387,12 +389,6 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
 
     if form.process(onvalidation=onvalidation).accepted:
-        if controller == "user_fill":
-            surveyId = form.vars.id
-            survey = db.t_report_survey[surveyId]
-            survey.article_id = art.id
-            survey.update_record()
-
         doUpdateArticle = False
         prepareReminders = False
         if form.vars.q10 is not None:
