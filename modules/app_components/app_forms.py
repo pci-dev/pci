@@ -8,6 +8,7 @@ from app_modules import emailing
 from gluon.validators import *
 from app_modules.helper import *
 from app_modules import common_small_html
+from datetime import date
 
 myconf = AppConfig(reload=True)
 applongname = myconf.take("app.longname")
@@ -365,8 +366,25 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
         form.element(_type="submit")["_class"] = "btn btn-success"
 
     def onvalidation(form):
-        if form.vars.q10 and form.vars.q10.weekday() >= 5:
-            form.errors.q10 = "selected date must be a week day"
+        error = validate_due_date(form)
+        if error:
+            form.errors.q10 = error
+
+    def validate_due_date(form):
+        due_date = form.vars.q10
+
+        if not due_date and form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+            return "Please provide a date"
+
+        if not due_date:
+            return
+
+        if due_date.weekday() >= 5:
+            return "selected date must be a week day"
+
+        if due_date < date.today():
+            return "Please select a date in the future"
+
 
     if form.process(onvalidation=onvalidation).accepted:
         if controller == "user_fill":

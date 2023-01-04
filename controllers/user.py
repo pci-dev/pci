@@ -876,26 +876,6 @@ def fill_report_survey():
     )
 
 
-def survey_onvalidation(form):
-    error = validate_due_date(form)
-    if error:
-        form.errors.q10 = error
-
-def validate_due_date(form):
-    due_date = form.vars.q10
-
-    if not due_date and form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
-        return "Please provide a date"
-
-    if not due_date: return
-
-    if due_date.weekday() >= 5:
-        return "selected date must be a week day"
-
-    if due_date < date.today():
-        return "Please select a date in the future"
-
-
 ######################################################################################################################################################################
 @auth.requires_login()
 def edit_report_survey():
