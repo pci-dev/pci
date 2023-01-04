@@ -354,14 +354,14 @@ def new_submission():
     pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
     customText=getText(request, auth, db, "#SubmissionOnHoldInfo")
 
-    db.submissions.allow_submissions.writable = True
-    db.submissions.allow_submissions.readable = True
+    db.config.allow_submissions.writable = True
+    db.config.allow_submissions.readable = True
 
-    status = db.submissions[1]
+    status = db.config[1]
     fields = ["allow_submissions"]
     
     if auth.has_membership(role="manager"):
-        form = SQLFORM(db.submissions, 1, fields=fields)
+        form = SQLFORM(db.config, 1, fields=fields)
         form.element(_type="checkbox")["_id"] = "toggle"
         if request.vars["allow_submissions"]:
             state = request.vars["allow_submissions"]
@@ -560,7 +560,7 @@ def fill_new_article():
     customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
     if pciRRactivated:
         customText = ""
-    status = db.submissions[1]
+    status = db.config[1]
     if status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
@@ -826,7 +826,7 @@ def edit_my_article():
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
-    status = db.submissions[1]
+    status = db.config[1]
 
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
@@ -906,7 +906,7 @@ def edit_report_survey():
 
     form = app_forms.report_survey(auth, session, art, db, survey, "user_edit")
 
-    status = db.submissions[1]
+    status = db.config[1]
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
