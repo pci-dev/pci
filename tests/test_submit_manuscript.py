@@ -83,25 +83,26 @@ class Cheat:
 
     def set_report_due_date_this_week():
         login(users.manager)
-        manager_edit_report_survey()
+        manager_edit_report_survey("Handling process(es) underway")
         set_report_due_date(weeks=1)
         save_report_survey()
         logout(users.manager)
 
     def reset_report_due_date():
         login(users.manager)
-        manager_edit_report_survey()
+        manager_edit_report_survey("Pending validation(s)")
         select("#t_report_survey_q1").send_keys("RR SNAPSHOT")
         set_report_due_date(weeks=7)
         select("#t_report_survey_q1").send_keys("COMPLETE")
         save_report_survey()
         logout(users.manager)
 
-def manager_edit_report_survey():
+def manager_edit_report_survey(menu_entry):
         select(".dropdown-toggle span", "For managers").click()
-        select(".dropdown-menu span", contains="Handling process(es) underway").click()
-        select("tr", contains="HANDLING PROCESS UNDERWAY") \
-            .select("a", "VIEW / EDIT").click()
+        select(".dropdown-menu span", contains=menu_entry).click()
+        status = "HANDLING PROCESS UNDERWAY" if "underway" in menu_entry \
+                    else "PENDING VALIDATION"
+        select("tr", contains=status).select("a", "VIEW / EDIT").click()
         select("a", "Edit report survey").click()
 
 def save_report_survey():
