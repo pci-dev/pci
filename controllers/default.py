@@ -13,7 +13,9 @@ from gluon.utils import web2py_uuid
 
 from app_components import app_forms
 from app_modules import common_tools
+from controller_modules import adjust_grid
 
+trgmLimit = myconf.get("config.trgm_limit") or 0.4
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -56,103 +58,134 @@ def index():
     # for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
     # options.append(OPTION(thema.keyword, _value=thema.keyword))
 
-    myPanel = []
-    tweeterAcc = myconf.get("social.tweeter")
-    # tweetHash = myconf.get("social.tweethash")
-    # tweeterId = myconf.get("social.tweeter_id")
-    if tweeterAcc:
-        myPanel.append(
-            XML(
-                """
-                <a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
-			    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-			    """
-                % locals()
-            )
-        )
-    # if tweetHash and tweeterId:
-    # myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
-
-    nbMax = db(
-        (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
-    ).count()
-    myVars = copy.deepcopy(request.vars)
-    myVars["maxArticles"] = myVars["maxArticles"] or 10
-    myVarsNext = copy.deepcopy(myVars)
-    myVarsNext["maxArticles"] = myVarsNext["maxArticles"] + 10
-
-    lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
-
     tweeterAcc = myconf.get("social.tweeter")
 
-    lastRecommTitle = H3(
-        T("Latest recommendations"),
-        A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-            _href=URL("about", "rss_info"),
-            _class="btn pci-rss-btn",
-            _style="float:right;",
-        ),
-        A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
-            _href="https://twitter.com/%(tweeterAcc)s"%locals(),
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ),
+    myVars = request.vars
+    qyKw = ""
+    qyTF = []
+    for myVar in myVars:
+        if isinstance(myVars[myVar], list):
+            myValue = (myVars[myVar])[1]
+        else:
+            myValue = myVars[myVar]
+        if myVar == "qyKeywords":
+            qyKw = myValue
+        elif re.match("^qy_", myVar) and myValue == "on":
+            qyTF.append(re.sub(r"^qy_", "", myVar))
 
-        _class="pci-pageTitleText",
-        _style="margin-top: 15px; margin-bottom: 20px",
+    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
+    temp_db = DAL("sqlite:memory")
+    qy_articles = temp_db.define_table(
+        "qy_articles",
+        Field("id", type="integer"),
+        Field("num", type="integer"),
+        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
+        Field("title", type="string", label=T("Title")),
+        Field("authors", type="string", label=T("Authors")),
+        Field("article_source", type="string", label=T("Source")),
+        Field("abstract", type="string", label=T("Abstract")),
+        Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
+        Field("keywords", type="string", label=T("Keywords")),
+        Field("submission", type="datetime", label=T("Submission Date")),
+        Field("reviewers", type="string", label=T("Reviewers")),
+        Field("recommender", type="string", label=T("Recommender")),
+        Field("any", type="string", label=T("All fields")),
     )
 
-    myScript = SCRIPT(
-        """window.onload=function() {
-	        ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
-	        if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
-        }
-        """
-        % (URL("articles", "last_recomms", vars=myVars, user_signature=True)),
-        _type="text/javascript",
+    qyTF = []
+    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
+        qyTF.append(thema.keyword)
+
+    #filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList, trgmLimit, True], as_dict=True)
+
+    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
+
+    temp_db.qy_articles.num.readable = False
+    temp_db.qy_articles.id.readable = False
+    temp_db.qy_articles.uploaded_picture.readable = False
+
+    full_text_search_fields = [
+            'title',
+            'authors',
+            'article_source',
+            'abstract',
+            'thematics',
+            'keywords',
+            'reviewers',
+            'recommender',
+    ]
+
+    for fr in filtered:
+       qy_articles.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+
+    original_grid = SQLFORM.smartgrid(
+        qy_articles,
+        editable=False,
+        deletable=False,
+        create=False,
+        details=False,
+        searchable=dict(auth_user=True, auth_membership=False),
+        selectable=None,
+        maxtextlength=250,
+        paginate=1000,
+        csv=False,
+        exportclasses=None,
+        fields=[
+            temp_db.qy_articles.id,
+            temp_db.qy_articles.num,
+            temp_db.qy_articles.uploaded_picture,
+            temp_db.qy_articles.title,
+            temp_db.qy_articles.authors,
+            temp_db.qy_articles.article_source,
+            temp_db.qy_articles.abstract,
+            temp_db.qy_articles.thematics,
+            temp_db.qy_articles.keywords,
+            temp_db.qy_articles.reviewers,
+            temp_db.qy_articles.recommender,
+            temp_db.qy_articles.submission,
+        ],
+        links=[],
+        orderby=temp_db.qy_articles.num,
+        _class="web2py_grid action-button-absolute",
     )
 
-    searchForm = DIV(app_forms.searchByThematic(auth, db, myVars, redirectSearchArticle=True), _style="margin-bottom: 20px")
+    # options to be removed from the search dropdown:
+    remove_options = ['qy_articles._id']
 
-    # if auth.user_id:
-    # theUser = db.auth_user[auth.user_id]
-    # if theUser.ethical_code_approved is False:
-    # redirect(URL('about','ethics'))
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
 
     if request.user_agent().is_mobile:
         return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=searchForm,
-            lastRecommTitle=lastRecommTitle,
-            lastRecomms=lastRecomms,
-            myBottomPanel=DIV(
-                DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
-            ),
+            searchForm=False,#searchForm,
+            lastRecommTitle=False,#lastRecommTitle,
+            lastRecomms=False,#lastRecomms,
+            grid=grid,
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript,
             pciRRactivated=pciRRactivated,
             tweeterAcc=tweeterAcc,
             panel=None,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
     else:
         return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=searchForm,
-            lastRecommTitle=lastRecommTitle,
-            lastRecomms=lastRecomms,
-            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            searchForm=False,#searchForm,
+            lastRecommTitle=False,#lastRecommTitle,
+            lastRecomms=False,#lastRecomms,
+            grid=grid,
+            panel=None,
             shareable=True,
             currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript,
             pciRRactivated=pciRRactivated,
             tweeterAcc=tweeterAcc,
+            absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 
 
