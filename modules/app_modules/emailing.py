@@ -1588,7 +1588,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
-            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRinvitationTexts(article))
 
         for review in reviews:
             # Get common variables :
@@ -1634,7 +1634,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
-            mail_vars.update(getPCiRRinvitationTexts(article.t_report_survey.select().last()))
+            mail_vars.update(getPCiRRinvitationTexts(article))
 
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
