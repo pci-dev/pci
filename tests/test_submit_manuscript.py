@@ -107,6 +107,7 @@ def manager_edit_report_survey(menu_entry):
 
 def save_report_survey():
         select("input[type=submit]").click()
+        select(".w2p_flash", contains="Survey saved")
 
 def set_report_due_date(weeks):
         from datetime import datetime, timedelta
