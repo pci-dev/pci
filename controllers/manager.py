@@ -813,6 +813,10 @@ def edit_article():
     db.t_articles.request_submission_change.readable = False
     db.t_articles.request_submission_change.writable = False
 
+    if not art.already_published: # != "postprint"
+        db.t_articles.article_source.readable = False
+        db.t_articles.article_source.writable = False
+
     myFinalScript = None
     if pciRRactivated:
         havingStage2Articles = db(db.t_articles.art_stage_1_id == articleId).count() > 0

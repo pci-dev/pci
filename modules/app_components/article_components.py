@@ -251,7 +251,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     articleContent.update(
         [
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
-            ("articleSource", I(article.article_source or "")),
+            ("articleSource", I(article.article_source or make_article_source(db, article))),
             ("articleId", article.id),
             ("articleImg", article_img),
             ("articleTitle", md_to_html(article.title) or ""),
@@ -303,5 +303,13 @@ def getArticleInfosCard(auth, db, response, article, printable,
         articleContent.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article, _target="blank"))])
-    
     return XML(response.render("components/article_infos_card.html", articleContent))
+
+def make_article_source(db, article):
+    recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
+    year = recomm.last_change.strftime("%Y") if recomm is not None else ""
+    preprint_server = article.preprint_server
+    pci_name  = myconf.take("app.name")
+    version = article.ms_version
+    article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by Peer Community in {pci_name}"
+    return article_source if recomm is not None else ""
