@@ -104,7 +104,7 @@ test.medium:
 	cd tests ; pytest -v test_medium.py
 
 test.scheduled-track:
-	cd tests ; pytest -v test_scheduled_track.py
+	cd tests ; pytest -xv test_scheduled_track.py
 
 test.create-article:
 	cd tests ; pytest -k "basic and User_submits"
