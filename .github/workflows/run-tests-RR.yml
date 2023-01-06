@@ -1,0 +1,17 @@
+name: Run tests (RR)
+
+on:
+  push:
+    branch: test.rr
+
+
+jobs:
+
+  test-scheduled-track:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/setup-tests
+
+      - run: make test.reset.rr test.scheduled-track
