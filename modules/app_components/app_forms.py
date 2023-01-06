@@ -1,11 +1,14 @@
 from re import match
-
+from gluon import *
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
-
+from app_modules import emailing
+from gluon.validators import *
+from app_modules.helper import *
 from app_modules import common_small_html
+from datetime import date
 
 myconf = AppConfig(reload=True)
 applongname = myconf.take("app.longname")
@@ -176,7 +179,6 @@ def process_mail_content(mail, form):
 
 #########################################################################
 from pydal import Field
-from gluon.validators import IS_NOT_EMPTY
 
 def article_add_mandatory_checkboxes(form, pciRRactivated):
     checkboxes_min = {
@@ -229,3 +231,213 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
 
     for field in extra.elements('.form-group')[:-1]: # discard submit button
         form[0].insert(-1, field)
+
+#######################################################################################
+def report_survey(auth, session, art, db, survey=None, controller=None):
+    db.t_report_survey._id.readable = False
+    db.t_report_survey._id.writable = False
+
+    if art.report_stage == "STAGE 1":  # STAGE 1 survey
+        db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
+        db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
+        db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
+        db.t_report_survey.q6.requires = IS_IN_SET(
+            (
+                "YES - THE RESEARCH INVOLVES AT LEAST SOME QUANTITATIVE HYPOTHESIS-TESTING AND THE REPORT INCLUDES A STUDY DESIGN TEMPLATE",
+                "YES - EVEN THOUGH THE RESEARCH DOESN’T INVOLVE ANY QUANTITATIVE HYPOTHESIS-TESTING, THE REPORT NEVERTHELESS INCLUDES A STUDY DESIGN TEMPLATE",
+                "NO - THE REPORT DOES NOT INCLUDE ANY QUANTITATIVE STUDIES THAT TEST HYPOTHESES OR PREDICTIONS. NO STUDY DESIGN TEMPLATE IS INCLUDED.",
+                "N/A - THE SUBMISSION IS A STAGE 1 SNAPSHOT, NOT A STAGE 1 REPORT",
+            )
+        )
+        db.t_report_survey.q7.requires = IS_IN_SET(
+            (
+                "No part of the data or evidence that will be used to answer the research question yet exists and no part will be generated until after IPA [Level 6]",
+                "ALL of the data or evidence that will be used to answer the research question already exist, but are currently inaccessible to the authors and thus unobservable prior to IPA (e.g. held by a gatekeeper) [Level 5]",
+                "At least some of the data/evidence that will be used to answer the research question already exists AND is accessible in principle to the authors (e.g. residing in a public database or with a colleague), BUT the authors certify that they have not yet accessed any part of that data/evidence [Level 4]",
+                "At least some data/evidence that will be used to the answer the research question has been previously accessed by the authors (e.g. downloaded or otherwise received), but the authors certify that they have not yet observed ANY part of the data/evidence [Level 3]",
+                "At least some data/evidence that will be used to answer the research question has been accessed and partially observed by the authors, but the authors certify that they have not yet observed the key variables within the data that will be used to answer the research question AND they have taken additional steps to maximise bias control and rigour (e.g. conservative statistical threshold; recruitment of a blinded analyst; robustness testing, multiverse/specification analysis, or other approach) [Level 2]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, but the authors certify that they have not yet performed ANY of their preregistered analyses, and in addition they have taken stringent steps to reduce the risk of bias [Level 1]",
+                "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
+            )
+        )
+        db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
+        db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
+        db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
+        db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)
+        db.t_report_survey.q15.requires = [IS_NOT_EMPTY(), IS_LENGTH(2000, 0)]
+        db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
+        db.t_report_survey.q17.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
+        db.t_report_survey.q20.requires = IS_IN_SET(("YES - please alert PCI RR-interested journals in the event of IPA, as described above", "NO",))
+        db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
+        db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
+        db.t_report_survey.q23.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
+        db.t_report_survey.q24.requires = IS_DATE(format=current.T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD')
+        db.t_report_survey.q24_1.requires = [IS_NOT_EMPTY(), IS_LENGTH(128, 0)]
+
+        fields = [
+            "q1",
+            "q1_1",
+            "q1_2",
+            "q2",
+            "q3",
+            "q4",
+            # "q5",
+            "q6",
+            "q7",
+            "q8",
+            "q9",
+            "q10",
+            "q11",
+            "q11_details",
+            "q12",
+            "q12_details",
+            "q13",
+            "q13_details",
+            "q14",
+            "q15",
+            "q16",
+            "q17",
+            "q18",
+            "q19",
+            "q20",
+            "q21",
+            "q22",
+            "q23",
+            "q24",
+            "q24_1",
+            "q24_1_details",
+            "q32",
+        ]
+
+    else:  # STAGE 2 survey
+        db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
+            db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+        )
+
+        # TODO: remove the following constraints, they are copy/pasted from db.py
+        db.t_report_survey.q26.requires = IS_IN_SET(
+            (
+                "YES - All data are contained in manuscript",
+                "YES - Enter URL of the repository containing the data, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)",
+                "NO - Please state the ethical or legal reasons why study data are not publicly archived and explain how the data supporting the reported results can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+            )
+        )
+        db.t_report_survey.q27.requires = IS_IN_SET(
+            (
+                "YES - All digital materials are contained in manuscript",
+                "YES - Enter URL of the repository containing the digital materials, ensuring that it contains sufficient README documentation to explain file definitions, file structures, and variable names (e.g. using a codebook)",
+                "NO - Please state the ethical or legal reasons why digital study materials are not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - There are no digital study materials of any kind",
+            )
+        )
+        db.t_report_survey.q28.requires = IS_IN_SET(
+            (
+                "YES - All code is contained in manuscript",
+                "YES - Enter URL of the repository containing the analysis code/scripts",
+                "NO - Please state the ethical or legal reasons why analysis code is not publicly archived and explain how the materials can be obtained by readers. Please also confirm the page number in the manuscript that includes this statement.",
+                "N/A - No analysis code/scripts were used in any part of the data analysis",
+            )
+        )
+        db.t_report_survey.q30.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
+        db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
+
+        fields = [
+            "temp_art_stage_1_id",
+            "q25",
+            "q26",
+            "q26_details",
+            "q27",
+            "q27_details",
+            "q28",
+            "q28_details",
+            "q29",
+            "q30",
+            "q31",
+            "q32",
+        ]
+
+    form = SQLFORM(db.t_report_survey, survey.id if survey else "", fields=fields, keepvalues=True,)
+
+    form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
+
+    if controller == "user_fill":
+        form.element(_type="submit")["_value"] = current.T("Complete your submission")
+        form.element(_type="submit")["_class"] = "btn btn-success"
+
+    def onvalidation(form):
+        form.vars.article_id = art.id
+
+        error = validate_due_date(form)
+        if error:
+            form.errors.q10 = error
+
+    def validate_due_date(form):
+        due_date = form.vars.q10
+
+        if not due_date and form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
+            return "Please provide a date"
+
+        if not due_date:
+            return
+
+        if due_date.weekday() >= 5:
+            return "selected date must be a week day"
+
+        if due_date < date.today():
+            return "Please select a date in the future"
+
+
+    if form.process(onvalidation=onvalidation).accepted:
+        doUpdateArticle = False
+        prepareReminders = False
+        if form.vars.q10 is not None:
+            if art.scheduled_submission_date or controller == "user_fill":
+                # /!\ used as a _flag_ and reset to None in user.py
+                #     do not set it back to non-None accidently
+                art.scheduled_submission_date = form.vars.q10
+                doUpdateArticle = True
+            prepareReminders = True
+
+        if form.vars.temp_art_stage_1_id is not None:
+            art.art_stage_1_id = form.vars.temp_art_stage_1_id
+            doUpdateArticle = True
+
+        if controller == "user_edit" and art.status in ["Pending-survey", "Pre-submission"]:
+            art.status = "Pending"
+            art.request_submission_change = False
+            doUpdateArticle = True
+
+        if controller == "user_fill" and True:
+            art.status = "Pending"
+            doUpdateArticle = True
+
+        if doUpdateArticle == True:
+            art.update_record()
+
+        if prepareReminders == True:
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", art.id)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", art.id)
+            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", art.id)
+            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, art.id)
+            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, art.id)
+            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, art.id)
+
+        myVars = dict(articleId=art.id)
+        session.flash = current.T("Article submitted", lazy=False)
+
+        if controller == "user_fill":
+            emailing.send_to_submitter_acknowledgement_submission(session, auth, db, art.id)
+            emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, art.id)
+            redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
+
+        if controller == "manager_edit":
+            redirect(URL(c="manager", f="recommendations", vars=myVars, user_signature=True))
+
+        if controller == "user_edit":
+            redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
+
+    elif form.errors:
+        session.flash = current.T("Form has errors", lazy=False)
+
+    return form
