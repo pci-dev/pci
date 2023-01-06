@@ -771,22 +771,15 @@ def direct_submission():
     db.t_articles.already_published.writable = False
     db.t_articles.already_published.default = True
     db.t_articles.doi.label = T("Postprint DOI")
-    myScript = """jQuery(document).ready(function(){
-					
-					if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-						jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-					} else {
-						jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-					}
-					jQuery('#t_articles_picture_rights_ok').change(function(){
-								if(jQuery('#t_articles_picture_rights_ok').prop('checked')) {
-									jQuery('#t_articles_uploaded_picture').prop('disabled', false);
-								} else {
-									jQuery('#t_articles_uploaded_picture').prop('disabled', true);
-									jQuery('#t_articles_uploaded_picture').val('');
-								}
-					});
-				});
+    myScript = """
+            jQuery("#t_articles_picture_rights_ok").change(function() {
+                    if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
+                        jQuery("#t_articles_uploaded_picture").prop("disabled", false);
+                    } else {
+                        jQuery("#t_articles_uploaded_picture").prop("disabled", true);
+                        jQuery("#t_articles_uploaded_picture").val("");
+                    }
+                });
 	"""
     fields = ["title", "authors", "article_source", "doi", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords"]
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True, submit_button=T("Continue..."), hidden=dict(no_conflict_of_interest="yes" if noConflict else "no"))
