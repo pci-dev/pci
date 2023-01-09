@@ -41,7 +41,7 @@ start start.debug:
 
 stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
-	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
+	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "not running"
 
 start: conf init
 
