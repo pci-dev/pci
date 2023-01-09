@@ -41,7 +41,7 @@ start start.debug:
 
 stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
-	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "no running"
+	[ "$$PID" ] && kill $$PID && echo killed $$PID || echo "not running"
 
 start: conf init
 
@@ -104,7 +104,7 @@ test.medium:
 	cd tests ; pytest -v test_medium.py
 
 test.scheduled-track:
-	cd tests ; pytest -v test_scheduled_track.py
+	cd tests ; pytest -xv test_scheduled_track.py
 
 test.create-article:
 	cd tests ; pytest -k "basic and User_submits"

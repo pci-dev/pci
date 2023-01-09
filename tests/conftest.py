@@ -6,7 +6,6 @@ from os import getenv
 def get_driver():
     options = webdriver.chrome.options.Options()
     options.headless = not getenv("SHOW")
-    options.add_argument("--window-size=1920x1080")
     return webdriver.Chrome(options=options)
 
 def get_config():
@@ -30,6 +29,8 @@ def users_dict(users):
 driver = get_driver()
 config = get_config()
 users = config.users
+
+driver.set_window_size(1500, 1000)
 
 
 # Test class decorator
