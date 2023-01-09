@@ -93,6 +93,7 @@ reset:		stop db.clean db test.setup start
 set.conf.rr.%:
 	rm -f languages/default.py
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
+	sed -i '/^scheduled_submissions/ s/=.*/= $*/' private/appconfig.ini
 
 test.full:
 	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
