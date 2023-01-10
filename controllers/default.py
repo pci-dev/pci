@@ -10,6 +10,7 @@ from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 from gluon.utils import web2py_uuid
+from gluon.storage import Storage # for db.get_last_recomms()
 
 from app_components import app_forms
 from app_modules import common_tools
@@ -46,6 +47,109 @@ def loading():
 ######################################################################################################################################################################
 # Home page (public)
 def index():
+
+    def articleRow(row):
+        if "maxArticles" in request.vars:
+            maxArticles = int(request.vars["maxArticles"])
+        else:
+            maxArticles = 10
+        myVars = copy.deepcopy(request.vars)
+        myVars["maxArticles"] = myVars["maxArticles"] or 10
+        myVarsNext = copy.deepcopy(myVars)
+        myVarsNext["maxArticles"] = int(myVarsNext["maxArticles"]) + 10
+
+        queryRecommendedArticles = None
+
+        if queryRecommendedArticles is None:
+            queryRecommendedArticles = db(
+                (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
+            ).iterselect(
+                db.t_articles.art_stage_1_id,
+                db.t_articles.id,
+                db.t_articles.title,
+                db.t_articles.authors,
+                db.t_articles.article_source,
+                db.t_articles.doi,
+                db.t_articles.picture_rights_ok,
+                db.t_articles.uploaded_picture,
+                db.t_articles.abstract,
+                db.t_articles.upload_timestamp,
+                db.t_articles.user_id,
+                db.t_articles.status,
+                db.t_articles.last_status_change,
+                db.t_articles.thematics,
+                db.t_articles.keywords,
+                db.t_articles.already_published,
+                db.t_articles.auto_nb_recommendations,
+                db.t_articles.scheduled_submission_date,
+                limitby=(0, maxArticles),
+                orderby=~db.t_articles.last_status_change,
+            )
+
+        recomms = db.get_last_recomms()
+        recommendedArticlesList = []
+        for prow in queryRecommendedArticles:
+            r = article_components.getRecommArticleRowCard(auth, db, response, prow, recomms.get(prow.id), withDate=True)
+            if r:
+                recommendedArticlesList.append(r)
+
+        if len(recommendedArticlesList) == 0:
+            return DIV(I(T("Coming soon...")))
+
+        resu = DIV(_class="pci2-articles-list")
+        single_row = DIV(_class="pci2-flex-row pci2-article-row pci2-flex-column-mobile")
+
+        # generate left column (date + image)
+        left_column = DIV(_class="pci2-flex-column pci2-article-left-div")
+        date = I(SPAN(row.submission))
+        image_container = DIV(_class="pci2-flex-center pci2-flex-grow pci2-article-image-div", _onclick="window.open('/pci/articles/rec?id=" + str(row.id) + "')")
+        if row.uploaded_picture == '': image = IMG(_src="/pci/static/images/small-background.png")
+        else: image = IMG(_src=row.uploaded_picture)
+        image_container.append(image)
+        left_column.append(date)
+        left_column.append(image_container)
+        single_row.append(left_column)
+
+        # generate right column (rest of article content)
+        right_column = DIV(_class="pci2-flex-column")
+        top_container = DIV(_class="pci2-flex-column")
+        headline = H3(row.title)
+        authors = SPAN(row.authors, _class="pci2-article-infos")
+        doi = SPAN(_class="pci2-article-infos")
+        doi_link = A(_class="doi_url", _target="_blank", _href=row.article_source)
+        doi_b = B(row.article_source)
+        doi.append(doi_link)
+        doi.append(doi_b)
+        top_container.append(headline)
+        top_container.append(authors)
+        top_container.append(doi)
+        right_column.append(top_container)
+        bottom_container = DIV(_class="pci2-flex-column pci2-article-recommendation-div")
+        small_head = H4('small header')
+        recommend_container = I("Recommended by ")
+        recommend_sub = SPAN()
+        recommend_link = A(B(row.recommender), _class="cyp-user-profile-link")
+        recommend_sub.append(recommend_link)
+        recommend_sub.append(" based on reviews by")
+        '''for reviewer in row.reviewers:
+            rev_span = SPAN(reviewer)
+            recommend_sub.append(rev_span)'''
+        recommend_container.append(recommend_sub)
+        abstract_fader = SPAN(DIV(_class="fade-transparent-text"))
+
+        more_link = DIV(A("MORE", _class="btn btn-success pci-public pci-smallBtn", _href="/pci/articles/rec?id=" + str(row.id)))
+        bottom_container.append(small_head)
+        bottom_container.append(recommend_container)
+        bottom_container.append(abstract_fader)
+        bottom_container.append(more_link)
+
+        right_column.append(bottom_container)
+
+        single_row.append(right_column)
+        resu.append(single_row)
+
+        return resu
+
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -103,6 +207,8 @@ def index():
     temp_db.qy_articles.num.readable = False
     temp_db.qy_articles.id.readable = False
     temp_db.qy_articles.uploaded_picture.readable = False
+
+    temp_db.qy_articles.title.represent = lambda text, row: articleRow(row)
 
     full_text_search_fields = [
             'title',
