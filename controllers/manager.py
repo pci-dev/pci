@@ -839,6 +839,9 @@ def edit_article():
         db.t_articles.codes_doi.readable = False
         db.t_articles.codes_doi.writable = False
 
+        db.t_articles.funding.readable = False
+        db.t_articles.funding.writable = False
+
         db.t_articles.suggest_reviewers.readable = False
         db.t_articles.suggest_reviewers.writable = False
         db.t_articles.competitors.readable = False
