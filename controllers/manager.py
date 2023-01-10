@@ -344,7 +344,7 @@ def _manage_articles(statuses, whatNext, db=db):
         orderby=~db.t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
-   
+
     # options to be removed from the search dropdown:
     remove_options = ['t_articles.id', 't_articles.upload_timestamp',  't_articles.status',
                   't_articles.last_status_change', 't_status_article.status',
@@ -939,7 +939,7 @@ def edit_article():
         redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
-        
+
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -1099,7 +1099,7 @@ def all_recommendations():
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
     db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
-    
+
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.report_stage.writable = False
