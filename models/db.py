@@ -948,6 +948,17 @@ def recommendationUpdated(s, updated_recommendation):
         coar_notifier.article_endorsed(updated_recommendation)
 
 
+def setRecommendationDoi(s, _recomm):
+    recomm = s.select().first()
+    if not _recomm.recommendation_doi:
+        _recomm.recommendation_doi = generate_recommendation_doi(recomm)
+
+
+def generate_recommendation_doi(recomm):
+    pci_short_name = host
+    return f"https://doi.org/10.24072/pci.{pci_short_name}.100{recomm.article_id}"
+
+
 def get_last_recomms():
     lastRecomms = db.executesql("""
         SELECT * FROM t_recommendations
