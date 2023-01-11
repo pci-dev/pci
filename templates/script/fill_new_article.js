@@ -196,7 +196,6 @@ function getCrossrefDatas() {
     error_message.innerHTML =
       '<div class="pci2-flex-row pci2-align-items-center"><i class="glyphicon glyphicon-refresh icon-rotating" style="color: #ffbf00; font-size: 20px; margin-right:5px"></i> <span>Waiting for Crossref API...</span></div>';
 
-    console.log("toto");
     var doi = document.getElementById("t_articles_doi").value;
     httpRequest = new XMLHttpRequest();
 
@@ -224,7 +223,6 @@ function alertContents() {
 
 function fillFormFields(data) {
   data_json = JSON.parse(data);
-  console.log(data_json);
 
   // title
   document.getElementById("t_articles_title").value =
