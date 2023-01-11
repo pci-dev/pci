@@ -217,7 +217,7 @@ function alertContents() {
       error_message.classList = "success-text";
     } else {
       error_message.innerText = "Sorry: although the DOI or URL of your preprint is probably correct, it cannot be used to auto-fill the submission form. Please, fill the form below manually. Thanks!";
-      error_message.classList = "danger-text";
+      error_message.classList = "success-text";
     }
   }
 }
