@@ -956,7 +956,10 @@ def setRecommendationDoi(s, _recomm):
         if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
             return
 
-    if not _recomm.recommendation_doi:
+    if (not recomm.recommendation_doi
+        or hasattr(_recomm, "recommendation_doi") and
+        not _recomm.recommendation_doi
+    ):
         _recomm.recommendation_doi = generate_recommendation_doi(recomm)
 
 
