@@ -911,6 +911,7 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
     "%(first_name)s %(last_name)s %(email)s",
 )
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
+db.t_recommendations._before_update.append(lambda s, i: setRecommendationDoi(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
         if COARNotifier(db).enabled else None
 
@@ -919,18 +920,15 @@ def get_last_recomm(articleId):
 
 db.get_last_recomm = get_last_recomm
 
-def newRecommendation(s, i):
-    recomm = db.t_recommendations[i]
-    if recomm:
-        art = db.t_articles[recomm.article_id]
-        if art:
-            if art.already_published:
-                emailing.send_to_thank_recommender_postprint(session, auth, db, i)
+def newRecommendation(s, recomm):
+    article = db.t_articles[recomm.article_id]
 
-            if isScheduledTrack(art):
-                # schedule (not really send) message as soon as we have a recommender
-                emailing.send_to_submitter_scheduled_submission_open(auth, db, art)
-    return None
+    if article.already_published:
+        emailing.send_to_thank_recommender_postprint(session, auth, db, recomm)
+
+    if isScheduledTrack(article):
+        # "send" future message as soon as we have a {{recommenderPerson}}
+        emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
 
 
 def recommendationUpdated(s, updated_recommendation):
@@ -949,6 +947,22 @@ def recommendationUpdated(s, updated_recommendation):
         ).select(db.t_reviews.ALL):
             coar_notifier.review_completed(review)
         coar_notifier.article_endorsed(updated_recommendation)
+
+
+def setRecommendationDoi(s, _recomm):
+    recomm = s.select().first()
+
+    if pciRRactivated:
+        if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
+            return
+
+    if not _recomm.recommendation_doi:
+        _recomm.recommendation_doi = generate_recommendation_doi(recomm)
+
+
+def generate_recommendation_doi(recomm):
+    pci_short_name = host
+    return f"https://doi.org/10.24072/pci.{pci_short_name}.100{recomm.article_id}"
 
 
 def get_last_recomms():
