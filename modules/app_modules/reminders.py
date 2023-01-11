@@ -85,7 +85,7 @@ def getReviewReminders(days):
     reminder_soon_due = []
     reminder_due = []
     reminder_over_due = []
-    reminder_soon_due.extend([days-7, days-2])
+    reminder_soon_due.extend([days-7])
     reminder_due.append(days)
     while count < 5:
         days+=4
