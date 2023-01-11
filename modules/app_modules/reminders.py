@@ -81,16 +81,10 @@ def getReviewDaysFromDuration(duration):
 
 
 def getReviewReminders(days):
-    count = 0
-    reminder_soon_due = []
-    reminder_due = []
-    reminder_over_due = []
-    reminder_soon_due.extend([days-7, days-2])
-    reminder_due.append(days)
-    while count < 5:
-        days+=4
-        reminder_over_due.append(days)
-        count+= 1
+    reminder_due = [ days ]
+    reminder_soon_due = [ days - 7 ]
+    reminder_over_due = [ days + 5*x for x in range(1, 6) ]
+
     return reminder_soon_due, reminder_due, reminder_over_due
 
 
