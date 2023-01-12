@@ -933,6 +933,9 @@ def newRecommendation(s, recomm):
 
 def recommendationUpdated(s, updated_recommendation):
     original_recommendation = s.select().first()
+
+    if not original_recommendation: return # on delete user
+
     if (
         not original_recommendation.is_closed
         and updated_recommendation.get('is_closed')
