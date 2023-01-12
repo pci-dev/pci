@@ -952,6 +952,9 @@ def recommendationUpdated(s, updated_recommendation):
 def setRecommendationDoi(s, _recomm):
     recomm = s.select().first()
 
+    if not hasattr(recomm, "recommendation_doi"): # on delete
+        return
+
     if pciRRactivated:
         if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
             return
