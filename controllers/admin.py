@@ -715,3 +715,22 @@ def mail_form_processing(form):
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
 
 
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="administrator"))
+def edit_config():
+    form = SQLFORM(
+        db.config,
+        record=1,
+        showid=False,
+        fields=[request.args[0]] if request.args else db.config.fields,
+    )
+    if form.process().accepted:
+        session.flash = T("Configuration saved")
+        redirect(URL(c="admin", f=" "))
+    elif form.errors:
+        response.flash = T("Form has errors")
+
+    response.view = "default/myLayout.html"
+    return dict(
+        form=form,
+    )
