@@ -13,31 +13,31 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 
 _reminders = {
-    "ReminderRecommenderReviewersNeeded": "[1, 3, 5]",
-    "ReminderRecommenderNewReviewersNeeded": "[7]",
-    "ReminderRecommenderDecisionSoonDue": "[8]",
-    "ReminderRecommenderDecisionDue": "[10]",
-    "ReminderRecommenderDecisionOverDue": "[14, 18, 22]",
-    "ReminderRecommenderRevisedDecisionSoonDue": "[7]",
-    "ReminderRecommenderRevisedDecisionDue": "[10]",
-    "ReminderRecommenderRevisedDecisionOverDue": "[14, 18, 22]",
+    "ReminderRecommenderReviewersNeeded": [1, 3, 5],
+    "ReminderRecommenderNewReviewersNeeded": [7],
+    "ReminderRecommenderDecisionSoonDue": [8],
+    "ReminderRecommenderDecisionDue": [10],
+    "ReminderRecommenderDecisionOverDue": [14, 18, 22],
+    "ReminderRecommenderRevisedDecisionSoonDue": [7],
+    "ReminderRecommenderRevisedDecisionDue": [10],
+    "ReminderRecommenderRevisedDecisionOverDue": [14, 18, 22],
 
-    "ReminderReviewerReviewInvitationNewUser": "[5, 8]",
-    "ReminderReviewerReviewInvitationRegisteredUser": "[5, 8]",
-    "ReminderReviewerInvitationNewRoundRegisteredUser": "[5, 8]",
+    "ReminderReviewerReviewInvitationNewUser": [5, 8],
+    "ReminderReviewerReviewInvitationRegisteredUser": [5, 8],
+    "ReminderReviewerInvitationNewRoundRegisteredUser": [5, 8],
 
-    "ReminderSubmitterCancelSubmission": "[20]",
-    "ReminderSubmitterSuggestedRecommenderNeeded": "[1, 2, 3, 4, 5, 6, 7, 8, 9]",
-    "ReminderSubmitterNewSuggestedRecommenderNeeded": "[10]",
-    "ReminderSubmitterRevisedVersionWarning": "[7]",
-    "ReminderSubmitterRevisedVersionNeeded": "[60, 90]",
+    "ReminderSubmitterCancelSubmission": [20],
+    "ReminderSubmitterSuggestedRecommenderNeeded": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
+    "ReminderSubmitterRevisedVersionWarning": [7],
+    "ReminderSubmitterRevisedVersionNeeded": [60, 90],
 
-    "ReminderSuggestedRecommenderInvitation": "[5, 9]",
-    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": "[21, 28, 35, 42, 49, 56, 63, 70, 77, 84, 91, 98, 105]"
+    "ReminderSuggestedRecommenderInvitation": [5, 9],
+    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": [21, 28, 35, 42, 49, 56, 63, 70, 77, 84, 91, 98, 105],
 }
 
 if pciRRactivated:
-    _reminders[ "ReminderRecommenderReviewersNeeded"] = "[7, 9, 11]"
+    _reminders[ "ReminderRecommenderReviewersNeeded"] = [7, 9, 11]
 
 _review_reminders = {
     "ReminderReviewerReviewSoonDue":    "reminder_soon_due",
