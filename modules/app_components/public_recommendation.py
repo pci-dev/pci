@@ -220,7 +220,7 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
     myMeta["citation_publication_date"] = (lastRecomm.last_change.date()).strftime("%Y/%m/%d")
     myMeta["citation_online_date"] = (lastRecomm.last_change.date()).strftime("%Y/%m/%d")
     myMeta["citation_journal_abbrev"] = myconf.take("app.name")
-    myMeta["citation_issn"] = myconf.take("app.issn")
+    myMeta["citation_issn"] = db.config[1].issn
     myMeta["citation_volume"] = "1"
     myMeta["citation_publisher"] = "Peer Community In"
     if lastRecomm.recommendation_doi:

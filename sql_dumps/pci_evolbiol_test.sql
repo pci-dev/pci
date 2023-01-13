@@ -2964,3 +2964,7 @@ ADD COLUMN IF NOT EXISTS  preprint_server character varying(512);
 -- 2023-01-02 updates/fundings.sql
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS  funding character varying(1024) DEFAULT '';
+
+-- 2023-01-04 updates/update_configuration_table.sql
+alter table submissions rename to config;
+alter table config add column issn text;

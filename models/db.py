@@ -2014,16 +2014,21 @@ db.define_table(
     migrate=False,
 )
 
-##-------------------------------- Submissions ---------------------------------
+##-------------------------------- Configuration ---------------------------------
 db.define_table(
-    "submissions",
+    "config",
     Field("id", type="id"),
     Field(
         "allow_submissions",
         type="boolean",
         default=True,
         label=T("Allow Submissions"),
-    )
+    ),
+    Field(
+        "issn",
+        type="string",
+        label=T("This PCI's ISSN"),
+    ),
 )
 
 # -------------------------------------------------------------------------
