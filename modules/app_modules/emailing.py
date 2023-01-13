@@ -2994,7 +2994,7 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
     mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleAuthors"] = article.authors
+    mail_vars["articleAuthors"] = mkAuthors(article)
 
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
 
