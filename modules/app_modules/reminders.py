@@ -105,11 +105,12 @@ def getReminderValues(review):
 
 def get_reminders_from_config():
     for hashtag, days_default in _reminders.items():
-        try:
-            days = myconf.take("reminders." + hashtag)
-        except:
-            days = days_default
-        _reminders[hashtag] = eval(days)
+        days = myconf.get("reminders." + hashtag)
+        if not days:
+            continue
+        if type(days) == int: days = [ days ]
+        if type(days) == map: days = [ int(x) for x in days ]
+        _reminders[hashtag] = days
 
 
 def getReminder(db, hashtag_template, review_id):
