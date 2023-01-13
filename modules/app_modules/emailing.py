@@ -2813,7 +2813,12 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
 
         if (
-            hashtag_template in ("#ReminderRecommenderNewReviewersNeeded", "#ReminderRecommenderNewReviewersNeededStage1", "#ReminderRecommenderNewReviewersNeededStage2")
+            hashtag_template in (
+                "#ReminderRecommenderNewReviewersNeeded",
+                "#ReminderRecommenderNewReviewersNeededStage1",
+                "#ReminderRecommenderNewReviewersNeededStage2",
+                "#ReminderRecommender2ReviewsReceivedCouldMakeDecision",
+            )
             and not force_delete
         ):
             count_reviews_under_consideration = db(
