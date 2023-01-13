@@ -11,6 +11,9 @@ case_sensitive_config()
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+def daily(start, end): return every(1, start, end)
+def weekly(start, end): return every(7, start, end)
+def every(days, start, end): return [days*x for x in range(start, end+1)]
 
 _reminders = {
     "ReminderRecommenderReviewersNeeded": [1, 3, 5],
@@ -27,13 +30,13 @@ _reminders = {
     "ReminderReviewerInvitationNewRoundRegisteredUser": [5, 8],
 
     "ReminderSubmitterCancelSubmission": [20],
-    "ReminderSubmitterSuggestedRecommenderNeeded": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "ReminderSubmitterSuggestedRecommenderNeeded": daily(1, 9),
     "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
     "ReminderSubmitterRevisedVersionWarning": [7],
     "ReminderSubmitterRevisedVersionNeeded": [60, 90],
 
     "ReminderSuggestedRecommenderInvitation": [5, 9],
-    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": [21, 28, 35, 42, 49, 56, 63, 70, 77, 84, 91, 98, 105],
+    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),
 }
 
 if pciRRactivated:
