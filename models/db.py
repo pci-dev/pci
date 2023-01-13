@@ -1148,11 +1148,18 @@ def reviewDone(s, f):
     rev = db.t_reviews[reviewId]
     recomm = db.t_recommendations[rev.recommendation_id]
     no_of_completed_reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
+    no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
+    last_recomm_reminder_mail = db((db.mail_queue.sending_status == "pending") & (db.mail_queue.recommendation_id == recomm.id)
+    & (db.mail_queue.mail_template_hashtag == "#ReminderRecommender2ReviewsReceivedCouldMakeDecision")
+    & (db.mail_queue.sending_date >= (request.now + timedelta(days=7)))).select().first()
     try:
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
     except:
         recomm_mail = None
     if recomm_mail is not None:
+        if no_of_completed_reviews >= 1 and no_of_completed_reviews < no_of_accepted_invites and db((db.t_reviews.recommendation_id == recomm.id)
+        & (db.t_recommendations.recommendation_state == "Ongoing")) and last_recomm_reminder_mail is None:
+            emailing.create_reminder_recommender_could_make_decision(session, auth, db, recomm.id)
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"])
