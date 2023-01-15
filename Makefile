@@ -132,6 +132,14 @@ coar.refresh:
 reload.web2py:
 	touch ../../wsgihandler.py
 
+setup.new-pci: dirs = errors/ uploads/ sessions/
+setup.new-pci:
+	mkdir -p $(dirs)
+	chgrp www-data $(dirs) private
+	chmod g+w $(dirs)
+	chmod g+r private
+	ln -s default_base.py languages/default.py
+
 update.deps:
 	if [ "$$PKG" ]; then pip install --upgrade $$PKG; fi
 	pip-compile 2>/dev/null
