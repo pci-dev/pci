@@ -1110,6 +1110,9 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and article and count_reviews_completed >= 1 and count_reviews_under_consideration == 1:
+
+        delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)

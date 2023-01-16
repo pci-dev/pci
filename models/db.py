@@ -1160,6 +1160,9 @@ def reviewDone(s, f):
         if no_of_completed_reviews >= 1 and no_of_completed_reviews < no_of_accepted_invites and db((db.t_reviews.recommendation_id == recomm.id)
         & (db.t_recommendations.recommendation_state == "Ongoing")) and last_recomm_reminder_mail is None:
             emailing.create_reminder_recommender_could_make_decision(session, auth, db, recomm.id)
+        if o["review_state"] == "Awaiting review" and f['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"])

@@ -2195,7 +2195,6 @@ def edit_recommendation():
                     cancel_decided_article_pending_reviews(recomm)
                     recomm.update_record()
                     art.update_record()
-                    emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
                     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
                 else:
                     session.flash = T("Unauthorized: You need to be recommender or manager", lazy=False)
