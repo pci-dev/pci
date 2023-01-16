@@ -259,7 +259,7 @@ def index():
     remove_options = ['qy_articles._id']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
 
     if request.user_agent().is_mobile:
         return dict(
