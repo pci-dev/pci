@@ -5,6 +5,7 @@ import re
 import copy
 import os
 import io
+import calendar
 
 from gluon.contrib.markdown import WIKI
 
@@ -12,6 +13,7 @@ from app_modules.helper import *
 from gluon.utils import web2py_uuid
 from gluon.storage import Storage # for db.get_last_recomms()
 
+from app_components import article_components
 from app_components import app_forms
 from app_modules import common_tools
 from controller_modules import adjust_grid
@@ -101,10 +103,34 @@ def index():
 
         # generate left column (date + image)
         left_column = DIV(_class="pci2-flex-column pci2-article-left-div")
-        date = I(SPAN(row.submission))
+        date_str = '%s %s %s'%(row.last_status_change.day, calendar.month_name[row.last_status_change.month][:3], row.last_status_change.year)
+        date = I(SPAN(date_str))
         image_container = DIV(_class="pci2-flex-center pci2-flex-grow pci2-article-image-div", _onclick="window.open('/pci/articles/rec?id=" + str(row.id) + "')")
-        if row.uploaded_picture == '': image = IMG(_src="/pci/static/images/small-background.png")
-        else: image = IMG(_src=row.uploaded_picture)
+
+        if row.uploaded_picture is not None and row.uploaded_picture != "":
+            image = IMG(
+                _src=URL(
+                    "static", "uploads",
+                    scheme=scheme, host=host, port=port,
+                    args=row.uploaded_picture,
+                ),
+                _alt="article picture",
+                _class="pci-articlePicture",
+            )
+        else:
+            image = IMG(
+                _src=URL(
+                    "static", "images",
+                    scheme=scheme, host=host, port=port,
+                    args='small-background.png',
+                ),
+                _alt="article picture",
+                _class="pci-articlePicture",
+            )
+
+        #if row.uploaded_picture == '': image = IMG(_src="/pci/static/images/small-background.png")
+        #else: image = IMG(_src=row.uploaded_picture)
+
         image_container.append(image)
         left_column.append(date)
         left_column.append(image_container)
@@ -128,7 +154,7 @@ def index():
         small_head = H4('small header')
         recommend_container = I("Recommended by ")
         recommend_sub = SPAN()
-        recommend_link = A(B(row.recommender), _class="cyp-user-profile-link")
+        recommend_link = A(B())#row.recommender), _class="cyp-user-profile-link")
         recommend_sub.append(recommend_link)
         recommend_sub.append(" based on reviews by")
         '''for reviewer in row.reviewers:
@@ -136,8 +162,11 @@ def index():
             recommend_sub.append(rev_span)'''
         recommend_container.append(recommend_sub)
         abstract_fader = SPAN(DIV(_class="fade-transparent-text"))
-
-        more_link = DIV(A("MORE", _class="btn btn-success pci-public pci-smallBtn", _href="/pci/articles/rec?id=" + str(row.id)))
+        more_link = DIV(A(current.T("More..."),
+                        _id="moreLatestBtn",
+                        _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
+                        _class="btn btn-default",
+            ))
         bottom_container.append(small_head)
         bottom_container.append(recommend_container)
         bottom_container.append(abstract_fader)
@@ -190,9 +219,9 @@ def index():
         Field("abstract", type="string", label=T("Abstract")),
         Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
         Field("keywords", type="string", label=T("Keywords")),
-        Field("submission", type="datetime", label=T("Submission Date")),
+        Field("last_status_change", type="datetime", label=T("Submission Date")),
         Field("reviewers", type="string", label=T("Reviewers")),
-        Field("recommender", type="string", label=T("Recommender")),
+        #Field("recommender", type="string", label=T("Recommender")),
         Field("any", type="string", label=T("All fields")),
     )
 
@@ -247,8 +276,8 @@ def index():
             temp_db.qy_articles.thematics,
             temp_db.qy_articles.keywords,
             temp_db.qy_articles.reviewers,
-            temp_db.qy_articles.recommender,
-            temp_db.qy_articles.submission,
+            #temp_db.qy_articles.recommender,
+            temp_db.qy_articles.last_status_change,
         ],
         links=[],
         orderby=temp_db.qy_articles.num,
