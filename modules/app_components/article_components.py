@@ -308,6 +308,9 @@ def getArticleInfosCard(auth, db, response, article, printable,
     return XML(response.render("components/article_infos_card.html", articleContent))
 
 def make_article_source(db, article):
+    if pciRRactivated:
+        return ""
+
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     year = recomm.last_change.strftime("%Y") if recomm is not None else ""
     preprint_server = article.preprint_server
