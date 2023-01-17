@@ -11,33 +11,36 @@ case_sensitive_config()
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
+def daily(start, end): return every(1, start, end)
+def weekly(start, end): return every(7, start, end)
+def every(days, start, end): return [days*x for x in range(start, end+1)]
 
 _reminders = {
-    "ReminderRecommenderReviewersNeeded": "[1, 3, 5]",
-    "ReminderRecommenderNewReviewersNeeded": "[7]",
-    "ReminderRecommenderDecisionSoonDue": "[8]",
-    "ReminderRecommenderDecisionDue": "[10]",
-    "ReminderRecommenderDecisionOverDue": "[14, 18, 22]",
-    "ReminderRecommenderRevisedDecisionSoonDue": "[7]",
-    "ReminderRecommenderRevisedDecisionDue": "[10]",
-    "ReminderRecommenderRevisedDecisionOverDue": "[14, 18, 22]",
+    "ReminderRecommenderReviewersNeeded": [1, 3, 5],
+    "ReminderRecommenderNewReviewersNeeded": [7],
+    "ReminderRecommenderDecisionSoonDue": [8],
+    "ReminderRecommenderDecisionDue": [10],
+    "ReminderRecommenderDecisionOverDue": [14, 18, 22],
+    "ReminderRecommenderRevisedDecisionSoonDue": [7],
+    "ReminderRecommenderRevisedDecisionDue": [10],
+    "ReminderRecommenderRevisedDecisionOverDue": [14, 18, 22],
 
-    "ReminderReviewerReviewInvitationNewUser": "[5, 8]",
-    "ReminderReviewerReviewInvitationRegisteredUser": "[5, 8]",
-    "ReminderReviewerInvitationNewRoundRegisteredUser": "[5, 8]",
+    "ReminderReviewerReviewInvitationNewUser": [5, 8],
+    "ReminderReviewerReviewInvitationRegisteredUser": [5, 8],
+    "ReminderReviewerInvitationNewRoundRegisteredUser": [5, 8],
 
-    "ReminderSubmitterCancelSubmission": "[20]",
-    "ReminderSubmitterSuggestedRecommenderNeeded": "[1, 2, 3, 4, 5, 6, 7, 8, 9]",
-    "ReminderSubmitterNewSuggestedRecommenderNeeded": "[10]",
-    "ReminderSubmitterRevisedVersionWarning": "[7]",
-    "ReminderSubmitterRevisedVersionNeeded": "[60, 90]",
+    "ReminderSubmitterCancelSubmission": [20],
+    "ReminderSubmitterSuggestedRecommenderNeeded": daily(1, 9),
+    "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
+    "ReminderSubmitterRevisedVersionWarning": [7],
+    "ReminderSubmitterRevisedVersionNeeded": [60, 90],
 
-    "ReminderSuggestedRecommenderInvitation": "[5, 9]",
-    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": "[21, 28, 35, 42, 49, 56, 63, 70, 77, 84, 91, 98, 105]"
+    "ReminderSuggestedRecommenderInvitation": [5, 9],
+    "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),
 }
 
 if pciRRactivated:
-    _reminders[ "ReminderRecommenderReviewersNeeded"] = "[7, 9, 11]"
+    _reminders[ "ReminderRecommenderReviewersNeeded"] = [7, 9, 11]
 
 _review_reminders = {
     "ReminderReviewerReviewSoonDue":    "reminder_soon_due",
@@ -102,11 +105,12 @@ def getReminderValues(review):
 
 def get_reminders_from_config():
     for hashtag, days_default in _reminders.items():
-        try:
-            days = myconf.take("reminders." + hashtag)
-        except:
-            days = days_default
-        _reminders[hashtag] = eval(days)
+        days = myconf.get("reminders." + hashtag)
+        if not days:
+            continue
+        if type(days) == int: days = [ days ]
+        if type(days) == map: days = [ int(x) for x in days ]
+        _reminders[hashtag] = days
 
 
 def getReminder(db, hashtag_template, review_id):
