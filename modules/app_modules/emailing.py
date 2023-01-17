@@ -1110,6 +1110,9 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and article and count_reviews_completed >= 1 and count_reviews_under_consideration == 1:
+
+        delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
@@ -2813,7 +2816,12 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
 
         if (
-            hashtag_template in ("#ReminderRecommenderNewReviewersNeeded", "#ReminderRecommenderNewReviewersNeededStage1", "#ReminderRecommenderNewReviewersNeededStage2")
+            hashtag_template in (
+                "#ReminderRecommenderNewReviewersNeeded",
+                "#ReminderRecommenderNewReviewersNeededStage1",
+                "#ReminderRecommenderNewReviewersNeededStage2",
+                "#ReminderRecommender2ReviewsReceivedCouldMakeDecision",
+            )
             and not force_delete
         ):
             count_reviews_under_consideration = db(
@@ -2977,3 +2985,22 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
         emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
+def create_reminder_recommender_could_make_decision(session, auth, db, recommId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    recomm = db.t_recommendations[recommId]
+    article = db.t_articles[recomm.article_id]
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+    mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleAuthors"] = mkAuthors(article)
+
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+
+    hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", article)
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
