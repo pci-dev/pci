@@ -1,6 +1,9 @@
 Project File Structure
 ======================
 
+PCI is a `web2py` application, with a standard web2py file structure.
+
+
 Important files and code structure
 ----------------------------------
 

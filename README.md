@@ -62,25 +62,9 @@ See [doc / Tests setup](doc/Tests-setup.md) then use:
 	make test.full
 
 
-Docker container
-----------------
+Further reading
+---------------
 
-PCI can run as a docker container.
-
-See [doc / Docker](doc/Docker-container.md).
-
-
-File structure
---------------
-
-PCI is a `web2py` application, with a standard web2py file structure.
-
-See [doc / File structure](doc/File-structure.md) for details.
-
-
-COAR Notify
------------
-
-PCI contains a COAR Notify implementation.
-
-See [doc / COAR Notify](doc/COAR-Notify.md).
+- [doc / File structure](doc/File-structure.md)
+- [doc / COAR Notify](doc/COAR-Notify.md)
+- [doc / Docker](doc/Docker-container.md)
