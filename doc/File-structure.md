@@ -41,8 +41,6 @@ static/
   fonts/ # Static fonts files
 
 templates/
-  # mail/ # Html templates for mails (most of content is text here)
-  # text/ # Long text templates
   js/ # JavaScript templates (used to perform actions client-side)
 
 cypress/
