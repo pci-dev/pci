@@ -572,7 +572,7 @@ def fill_new_article():
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=SCRIPT(myScript) or "",
+        myFinalScript=myScript or "",
     )
 
 
@@ -837,7 +837,7 @@ def edit_my_article():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
         pciRRjsScript=pciRRjsScript,
     )
 
@@ -872,7 +872,7 @@ def fill_report_survey():
         pageTitle=getTitle(request, auth, db, "#FillReportSurveyTitle"),
         customText=getText(request, auth, db, "#FillReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -918,7 +918,7 @@ def edit_report_survey():
         pageTitle=getTitle(request, auth, db, "#EditReportSurveyTitle"),
         customText=getText(request, auth, db, "#EditReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -1457,8 +1457,8 @@ def edit_review():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
-        deleteFileButtonsScript=SCRIPT(common_tools.get_script("add_delete_review_file_buttons_user.js"), _type="text/javascript"),
+        myFinalScript=myScript,
+        deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
     )
 
 
@@ -1589,7 +1589,7 @@ def edit_reply():
         customText=getText(request, auth, db, "#UserEditReplyText"),
         pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
         form=form,
-        deleteFileButtonsScript=SCRIPT(common_tools.get_script("add_delete_recommendation_file_buttons_user.js"), _type="text/javascript"),
+        deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_user.js"),
     )
 
 
