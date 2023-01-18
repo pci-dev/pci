@@ -36,13 +36,12 @@ static/
   css/
     components/ # Css files for components / snippets
     *.css # Imported or common Css files
-  js/ # Static js files
+  js/
+    pci/ # Scripts (used inlined) to perform actions client-side
+    *.js # Static js files
   images/ # Static images files
   fonts/ # Static fonts files
   uploads/ # symlink to ../uploads = uploaded images, exposed publicly
-
-templates/
-  js/ # JavaScript templates (used to perform actions client-side)
 
 cypress/
   integration/ # Define all tests

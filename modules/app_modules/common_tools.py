@@ -22,8 +22,8 @@ def takePort(p):
 
 
 ######################################################################################################################################################################
-def get_template(folderName, templateName):
-    with open(os.path.join(os.path.dirname(__file__), "../../templates", folderName, templateName), encoding="utf-8") as myfile:
+def get_script(scriptName, folderName="static/js/pci"):
+    with open(os.path.join(os.path.dirname(__file__), "../..", folderName, scriptName), encoding="utf-8") as myfile:
         data = myfile.read()
     return data
 
@@ -59,6 +59,6 @@ def get_prev_recomm(db, recomm):
 
 ###################################################################
 absoluteButtonScript = SCRIPT(
-    get_template("script", "web2py_button_absolute.js"),
+    get_script("web2py_button_absolute.js"),
     _type="text/javascript",
 )

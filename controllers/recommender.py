@@ -364,7 +364,7 @@ def search_reviewers():
         grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
 
         response.view = "default/gab_list_layout.html"
-        myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
+        myFinalScript = SCRIPT(common_tools.get_script("popover.js"))
 
         return dict(
             pageHelp=pageHelp,
@@ -511,7 +511,7 @@ def new_submission():
             ),
             _class="pci-embeddedEthic",
         )
-        myScript = SCRIPT(common_tools.get_template("script", "new_submission.js"))
+        myScript = SCRIPT(common_tools.get_script("new_submission.js"))
 
     customText = DIV(getText(request, auth, db, "#NewRecommendationInfo"), myEthical, _class="pci2-flex-column pci2-align-items-center")
 
@@ -999,7 +999,7 @@ def show_report_survey():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
-    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#RecommenderReportSurvey"),
@@ -2012,7 +2012,7 @@ def contributions():
             fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details],
         )
 
-        myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
+        myScript = SCRIPT(common_tools.get_script("contributions.js"), _type="text/javascript")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),
             customText=getText(request, auth, db, "#RecommenderContributionsToPressReviewsText"),
@@ -2202,9 +2202,9 @@ def edit_recommendation():
             response.flash = T("Form has errors", lazy=False)
 
         if isPress is False:
-            myScript = common_tools.get_template("script", "edit_recommendation.js")
+            myScript = common_tools.get_script("edit_recommendation.js")
         else:
-            myScript = common_tools.get_template("script", "edit_recommendation_is_press.js")
+            myScript = common_tools.get_script("edit_recommendation_is_press.js")
 
         return dict(
             form=form,
@@ -2214,7 +2214,7 @@ def edit_recommendation():
             pageTitle=pageTitle,
             myFinalScript=SCRIPT(myScript),
             myBackButton=common_small_html.mkBackButton(),
-            deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_recommender.js"), _type="text/javascript"),
+            deleteFileButtonsScript=SCRIPT(common_tools.get_script("add_delete_recommendation_file_buttons_recommender.js"), _type="text/javascript"),
         )
 
 
@@ -2401,7 +2401,7 @@ def review_emails():
         )
     ]
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+    myScript = SCRIPT(common_tools.get_script("replace_mail_content.js"), _type="text/javascript")
 
     reviewer = db.auth_user[review.reviewer_id]
     reviewerEmail = reviewer.email if reviewer else None
@@ -2518,7 +2518,7 @@ def article_reviews_emails():
         )
     ]
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+    myScript = SCRIPT(common_tools.get_script("replace_mail_content.js"), _type="text/javascript")
 
     grid = SQLFORM.grid(
         db((db.mail_queue.article_id == articleId) & (db.mail_queue.dest_mail_address.belongs(reviewers))),

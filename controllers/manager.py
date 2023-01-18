@@ -537,7 +537,7 @@ def manage_recommendations():
         pageTitle=getTitle(request, auth, db, "#ManageRecommendationsTitle"),
         content=myContents,
         grid=grid,
-        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_file_buttons_manager.js"), _type="text/javascript"),
+        deleteFileButtonsScript=SCRIPT(common_tools.get_script("add_delete_file_buttons_manager.js"), _type="text/javascript"),
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
@@ -887,7 +887,7 @@ def edit_article():
                 """
             )
     else:
-        myFinalScript = SCRIPT(common_tools.get_template("script", "new_field_responsiveness.js"))
+        myFinalScript = SCRIPT(common_tools.get_script("new_field_responsiveness.js"))
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
 
@@ -976,7 +976,7 @@ def edit_report_survey():
 
     form = app_forms.report_survey(auth, session, art, db, survey, "manager_edit")
 
-    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#ManagerReportSurvey"),
@@ -1204,7 +1204,7 @@ def suggested_recommender_emails():
     else:
         db.mail_queue.mail_template_hashtag.readable = False
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+    myScript = SCRIPT(common_tools.get_script("replace_mail_content.js"), _type="text/javascript")
 
     grid = SQLFORM.grid(
         ((db.mail_queue.dest_mail_address == suggested_recommender.email) & (db.mail_queue.article_id == articleId) & (db.mail_queue.recommendation_id == None)),
@@ -1305,7 +1305,7 @@ def article_emails():
         )
     ]
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+    myScript = SCRIPT(common_tools.get_script("replace_mail_content.js"), _type="text/javascript")
 
     grid = SQLFORM.grid(
         ((db.mail_queue.article_id == articleId)),
