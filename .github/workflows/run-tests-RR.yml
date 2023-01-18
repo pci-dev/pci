@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - test.rr
+      - development
 
 
 jobs:
