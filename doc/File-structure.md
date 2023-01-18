@@ -39,6 +39,7 @@ static/
   js/ # Static js files
   images/ # Static images files
   fonts/ # Static fonts files
+  uploads/ # symlink to ../uploads = uploaded images, exposed publicly
 
 templates/
   js/ # JavaScript templates (used to perform actions client-side)
