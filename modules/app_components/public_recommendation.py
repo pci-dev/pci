@@ -167,6 +167,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
         )
     article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y")
     article_validation_time = art.validation_timestamp.strftime(", validated %d %B %Y") if art.validation_timestamp else ""
+    if pciRRactivated: article_validation_time = ""
     recomm_post_time = finalRecomm.last_change.strftime("posted %d %B %Y")
     recomm_validation_time = finalRecomm.validation_timestamp.strftime(", validated %d %B %Y") if finalRecomm.validation_timestamp else ""
 
