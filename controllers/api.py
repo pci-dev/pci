@@ -27,7 +27,7 @@ def version():
 
 
 def pcis():
-    host = read_confs("host", cleanup="s:[.].*::")
+    host = pci_hosts()
     desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
 
     return json({
@@ -43,6 +43,10 @@ def issn():
 
 # internals
 
+def pci_hosts(conf_key="host"):
+    return read_confs(conf_key, cleanup="s:[.].*::")
+
+
 def read_confs(key, cleanup=""):
     return run(f"""sh -c "
         cd ..
@@ -57,3 +61,18 @@ def menu(items):
     return "<br>\n".join(map(str, [
         A(x, _href=URL(x)) for x in items
     ]))
+
+
+import requests
+
+def api_call(host, endpoint):
+    api_url = f"https://{host}.peercommunityin.org/api/" \
+            if host != "localhost" else f"http://{host}:8000/pci/api/"
+
+    try:
+        return requests.get(
+            api_url + endpoint
+        ).json()
+
+    except Exception as err:
+        return { "error": f"{type(err).__name__}: {err}" }
