@@ -99,6 +99,31 @@ else:
     # session.connect(request, response, db = MEMDB(Client()))
     # ---------------------------------------------------------------------
 
+
+# ----------------------------- Configuration -----------------------------
+db.define_table(
+    "config",
+    Field(
+        "allow_submissions",
+        type="boolean",
+        default=True,
+        label=T("Allow Submissions"),
+    ),
+    Field(
+        "issn",
+        type="string",
+        label=T("This PCI's ISSN"),
+    ),
+    Field(
+        "allowed_upload_filetypes",
+        type="list:string",
+        label=T("Allowed upload filetypes"),
+    ),
+)
+cfg = db.config[1]
+# -------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------
 # by default give a view/generic.extension to all actions from localhost
 # none otherwise. a pattern can be 'controller/function.extension'
@@ -2032,29 +2057,6 @@ db.define_table(
     Field("roles", type="string", length=512, label=T("Roles")),
     # writable=False,
     migrate=False,
-)
-
-##-------------------------------- Configuration ---------------------------------
-db.define_table(
-    "config",
-    Field("id", type="id"),
-    Field(
-        "allow_submissions",
-        type="boolean",
-        default=True,
-        label=T("Allow Submissions"),
-    ),
-    Field(
-        "issn",
-        type="string",
-        label=T("This PCI's ISSN"),
-    ),
-    Field(
-        "allowed_upload_filetypes",
-        type="list:string",
-        default=["pdf", "docx", "odt"],
-        label=T("Allowed upload filetypes"),
-    ),
 )
 
 # -------------------------------------------------------------------------
