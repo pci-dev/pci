@@ -1136,23 +1136,7 @@ def reviews():
         )
 
         # This script renames the "Add record" button
-        myScript = SCRIPT(
-            """$(function() {
-						$('span').filter(function(i) {
-								return $(this).attr("title") ? $(this).attr("title").indexOf('"""
-            + T("Add record to database")
-            + """') != -1 : false;
-							})
-							.each(function(i) {
-								$(this).text('"""
-            + T("Add a review")
-            + """').attr("title", '"""
-            + T("Add a new review from scratch")
-            + """');
-							});
-						})""",
-            _type="text/javascript",
-        )
+        myScript = common_tools.get_script("rename_add_record_button.js")
 
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderArticleReviews"),
