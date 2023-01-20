@@ -12,6 +12,7 @@ def index():
     return menu([
         "pcis",
         "version",
+        "issn",
     ])
 
 
@@ -31,6 +32,12 @@ def pcis():
 
     return json({
         host[i]: desc[i] for i,_ in enumerate(host)
+    })
+
+
+def issn():
+    return json({
+        "issn": db.config[1].issn
     })
 
 
