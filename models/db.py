@@ -117,6 +117,12 @@ cfg = db.config[1]
 
 allowed_upload_filetypes = ["pdf", "docx", "odt"]
 
+if cfg.allowed_upload_filetypes:
+    allowed_upload_filetypes = cfg.allowed_upload_filetypes
+else:
+    cfg.update_record(
+        allowed_upload_filetypes=allowed_upload_filetypes)
+
 allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
 
 upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
