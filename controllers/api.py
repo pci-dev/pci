@@ -7,6 +7,8 @@ response.headers['Content-Type'] = 'application/json'
 
 
 def index():
+    response.headers['Content-Type'] = 'text/html'
+
     return menu([
         "pcis",
         "version",
@@ -32,6 +34,8 @@ def pcis():
     })
 
 
+# internals
+
 def read_confs(key, cleanup=""):
     return run(f"""sh -c "
         cd ..
@@ -43,8 +47,6 @@ def read_confs(key, cleanup=""):
 
 
 def menu(items):
-    response.headers['Content-Type'] = 'text/html'
-
     return "<br>\n".join(map(str, [
         A(x, _href=URL(x)) for x in items
     ]))
