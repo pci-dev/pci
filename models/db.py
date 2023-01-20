@@ -969,7 +969,7 @@ def setRecommendationDoi(s, _recomm):
 
 
 def generate_recommendation_doi(recomm):
-    pci_short_name = host
+    pci_short_name = host.split(".")[0]
     return f"https://doi.org/10.24072/pci.{pci_short_name}.100{recomm.article_id}"
 
 
