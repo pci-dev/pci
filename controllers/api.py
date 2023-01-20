@@ -13,6 +13,7 @@ def index():
         "pcis",
         "version",
         "issn",
+        "all/issn",
     ])
 
 
@@ -41,6 +42,17 @@ def issn():
     })
 
 
+def all():
+    endpoint = request.args[0] if request.args else None
+
+    if endpoint is None: return error("usage: api/all/<endpoint>")
+    if endpoint == "all": return error("recursive call on all")
+
+    return json({
+        host: res for host, res in call_all(pci_hosts(), endpoint)
+    })
+
+
 # internals
 
 def pci_hosts(conf_key="host"):
@@ -63,6 +75,10 @@ def menu(items):
     ]))
 
 
+def error(mesg, status=400):
+    response.status = status
+    return json({"error": mesg})
+
 import requests
 
 def api_call(host, endpoint):
@@ -76,3 +92,12 @@ def api_call(host, endpoint):
 
     except Exception as err:
         return { "error": f"{type(err).__name__}: {err}" }
+
+
+from multiprocessing.pool import ThreadPool
+
+def call_all(hosts, endpoint):
+    return ThreadPool().map(
+        lambda host: [host, api_call(host, endpoint)],
+        hosts
+    )
