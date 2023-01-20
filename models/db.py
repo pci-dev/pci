@@ -50,15 +50,6 @@ pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
-allowed_upload_filetypes = ["pdf", "docx", "odt"]
-
-allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
-
-upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
-        IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
-        IS_EMPTY_OR(IS_FILE(extension=extensions)),
-]
-
 from os import symlink, path
 def create_symlink(filename):
     base = current.request.folder
@@ -123,6 +114,15 @@ db.define_table(
 cfg = db.config[1]
 # -------------------------------------------------------------------------
 
+
+allowed_upload_filetypes = ["pdf", "docx", "odt"]
+
+allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
+
+upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
+        IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+        IS_EMPTY_OR(IS_FILE(extension=extensions)),
+]
 
 # -------------------------------------------------------------------------
 # by default give a view/generic.extension to all actions from localhost
