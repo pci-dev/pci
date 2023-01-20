@@ -969,8 +969,9 @@ def setRecommendationDoi(s, _recomm):
 
 
 def generate_recommendation_doi(recomm):
-    pci_short_name = host
-    return f"https://doi.org/10.24072/pci.{pci_short_name}.100{recomm.article_id}"
+    pci_short_name = host.split(".")[0]
+    article_id_filled = str(recomm.article_id).zfill(5)
+    return f"https://doi.org/10.24072/pci.{pci_short_name}.1{article_id_filled}"
 
 
 def get_last_recomms():
