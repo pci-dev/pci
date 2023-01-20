@@ -2049,6 +2049,12 @@ db.define_table(
         type="string",
         label=T("This PCI's ISSN"),
     ),
+    Field(
+        "allowed_upload_filetypes",
+        type="list:string",
+        default=["pdf", "docx", "odt"],
+        label=T("Allowed upload filetypes"),
+    ),
 )
 
 # -------------------------------------------------------------------------
