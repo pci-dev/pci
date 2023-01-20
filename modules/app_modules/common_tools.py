@@ -22,10 +22,8 @@ def takePort(p):
 
 
 ######################################################################################################################################################################
-def get_script(scriptName, folderName="static/js/pci"):
-    with open(os.path.join(os.path.dirname(__file__), "../..", folderName, scriptName), encoding="utf-8") as myfile:
-        data = myfile.read()
-    return SCRIPT(data, _type="text/javascript")
+def get_script(scriptName):
+    return SCRIPT(_src=URL("static", "js/pci/"+scriptName), _type="text/javascript")
 
 
 ######################################################################################################################################################################

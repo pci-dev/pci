@@ -4,15 +4,15 @@ $(function() {
       return $(this).attr("title")
         ? $(this)
             .attr("title")
-            .indexOf('"""+T("Add record to database")+"""') != -1
+            .indexOf("Add record to database") != -1
         : false;
     })
     .each(function(i) {
       $(this)
-        .text('"""+T("Add a contributor")+"""')
+        .text("Add a contributor")
         .attr(
           "title",
-          '"""+T("Add a new contributor to this recommendation")+"""'
+          "Add a new contributor to this recommendation"
         );
     });
 });

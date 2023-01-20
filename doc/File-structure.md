@@ -37,7 +37,7 @@ static/
     components/ # Css files for components / snippets
     *.css # Imported or common Css files
   js/
-    pci/ # Scripts (used inlined) to perform actions client-side
+    pci/ # Scripts to perform actions client-side
     *.js # Static js files
   images/ # Static images files
   fonts/ # Static fonts files

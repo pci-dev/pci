@@ -771,17 +771,8 @@ def direct_submission():
     db.t_articles.already_published.writable = False
     db.t_articles.already_published.default = True
     db.t_articles.doi.label = T("Postprint DOI")
-    myScript = SCRIPT(
-        """
-            jQuery("#t_articles_picture_rights_ok").change(function() {
-                    if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
-                        jQuery("#t_articles_uploaded_picture").prop("disabled", false);
-                    } else {
-                        jQuery("#t_articles_uploaded_picture").prop("disabled", true);
-                        jQuery("#t_articles_uploaded_picture").val("");
-                    }
-                });
-        """)
+    myScript = common_tools.get_script("picture_rights_change_sync_uploaded_picture.js")
+
     fields = ["title", "authors", "article_source", "doi", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords"]
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True, submit_button=T("Continue..."), hidden=dict(no_conflict_of_interest="yes" if noConflict else "no"))
     if form.process().accepted:
@@ -1136,23 +1127,7 @@ def reviews():
         )
 
         # This script renames the "Add record" button
-        myScript = SCRIPT(
-            """$(function() {
-						$('span').filter(function(i) {
-								return $(this).attr("title") ? $(this).attr("title").indexOf('"""
-            + T("Add record to database")
-            + """') != -1 : false;
-							})
-							.each(function(i) {
-								$(this).text('"""
-            + T("Add a review")
-            + """').attr("title", '"""
-            + T("Add a new review from scratch")
-            + """');
-							});
-						})""",
-            _type="text/javascript",
-        )
+        myScript = common_tools.get_script("rename_add_record_button.js")
 
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderArticleReviews"),

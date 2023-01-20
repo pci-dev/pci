@@ -870,22 +870,7 @@ def edit_article():
             )
         else:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR([])
-            myFinalScript = SCRIPT(
-                """
-                    document.querySelector("#t_articles_art_stage_1_id").disabled = true;
-
-                    var parent = document.querySelector("#t_articles_art_stage_1_id__row > div");
-                    var text = document.createTextNode( "This article already have some related stages 2.");
-                    var child = document.createElement('span');
-
-                    child.style.color = "#fcc24d"
-                    child.style.fontWeight = "bold"
-                    child.style.fontStyle = "italic"
-
-                    child.appendChild(text);
-                    parent.appendChild(child);
-                """
-            )
+            myFinalScript = common_tools.get_script("disable_stage1_article.js")
     else:
         myFinalScript = common_tools.get_script("new_field_responsiveness.js")
         db.t_articles.report_stage.readable = False

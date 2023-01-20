@@ -30,7 +30,6 @@
     "Add a new review from scratch": "Add a new review from scratch",
     "Add a review": "Add a review",
     "Add Record": "Add Record",
-    "Add record to database": "Add record to database",
     "Add / Remove": "Add / Remove",
     "ADD / REMOVE": "ADD / REMOVE",
     "Add role": "Add role",
