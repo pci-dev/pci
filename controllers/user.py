@@ -564,7 +564,7 @@ def fill_new_article():
     if status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
-    myScript = common_tools.get_template("script", "fill_new_article.js")
+    myScript = common_tools.get_script("fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
@@ -572,7 +572,7 @@ def fill_new_article():
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=SCRIPT(myScript) or "",
+        myFinalScript=myScript or "",
     )
 
 
@@ -722,7 +722,7 @@ def edit_my_article():
             ]
 
         fields += ["cover_letter"]
-        myScript = common_tools.get_template("script", "edit_my_article.js")
+        myScript = common_tools.get_script("edit_my_article.js")
 
     else:
         fields = []
@@ -779,7 +779,7 @@ def edit_my_article():
 
         fields += ["cover_letter"]
         if not pciRRactivated:
-            myScript = common_tools.get_template("script", "new_field_responsiveness.js")
+            myScript = common_tools.get_script("new_field_responsiveness.js")
 
     buttons = [
         A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
@@ -837,7 +837,7 @@ def edit_my_article():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
         pciRRjsScript=pciRRjsScript,
     )
 
@@ -864,7 +864,7 @@ def fill_report_survey():
 
     form = app_forms.report_survey(auth, session, art, db, controller="user_fill")
 
-    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#FillReportSurvey"),
@@ -872,7 +872,7 @@ def fill_report_survey():
         pageTitle=getTitle(request, auth, db, "#FillReportSurveyTitle"),
         customText=getText(request, auth, db, "#FillReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -910,7 +910,7 @@ def edit_report_survey():
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
-    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#EditReportSurvey"),
@@ -918,7 +918,7 @@ def edit_report_survey():
         pageTitle=getTitle(request, auth, db, "#EditReportSurveyTitle"),
         customText=getText(request, auth, db, "#EditReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -1448,7 +1448,7 @@ def edit_review():
         elif form.errors:
             response.flash = T("Form has errors", lazy=False)
 
-    myScript = common_tools.get_template("script", "edit_review.js")
+    myScript = common_tools.get_script("edit_review.js")
 
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReview"),
@@ -1457,8 +1457,8 @@ def edit_review():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
-        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_review_file_buttons_user.js"), _type="text/javascript"),
+        myFinalScript=myScript,
+        deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
     )
 
 
@@ -1589,7 +1589,7 @@ def edit_reply():
         customText=getText(request, auth, db, "#UserEditReplyText"),
         pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
         form=form,
-        deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_user.js"), _type="text/javascript"),
+        deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_user.js"),
     )
 
 

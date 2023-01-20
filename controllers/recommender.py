@@ -364,7 +364,7 @@ def search_reviewers():
         grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
 
         response.view = "default/gab_list_layout.html"
-        myFinalScript = SCRIPT(common_tools.get_template("script", "popover.js"))
+        myFinalScript = common_tools.get_script("popover.js")
 
         return dict(
             pageHelp=pageHelp,
@@ -511,7 +511,7 @@ def new_submission():
             ),
             _class="pci-embeddedEthic",
         )
-        myScript = SCRIPT(common_tools.get_template("script", "new_submission.js"))
+        myScript = common_tools.get_script("new_submission.js")
 
     customText = DIV(getText(request, auth, db, "#NewRecommendationInfo"), myEthical, _class="pci2-flex-column pci2-align-items-center")
 
@@ -771,7 +771,8 @@ def direct_submission():
     db.t_articles.already_published.writable = False
     db.t_articles.already_published.default = True
     db.t_articles.doi.label = T("Postprint DOI")
-    myScript = """
+    myScript = SCRIPT(
+        """
             jQuery("#t_articles_picture_rights_ok").change(function() {
                     if (jQuery("#t_articles_picture_rights_ok").prop("checked")) {
                         jQuery("#t_articles_uploaded_picture").prop("disabled", false);
@@ -780,7 +781,7 @@ def direct_submission():
                         jQuery("#t_articles_uploaded_picture").val("");
                     }
                 });
-	"""
+        """)
     fields = ["title", "authors", "article_source", "doi", "picture_rights_ok", "uploaded_picture", "abstract", "thematics", "keywords"]
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True, submit_button=T("Continue..."), hidden=dict(no_conflict_of_interest="yes" if noConflict else "no"))
     if form.process().accepted:
@@ -798,7 +799,7 @@ def direct_submission():
         pageTitle=getTitle(request, auth, db, "#RecommenderDirectSubmissionTitle"),
         customText=getText(request, auth, db, "#RecommenderDirectSubmissionText"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -999,7 +1000,7 @@ def show_report_survey():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
-    myScript = common_tools.get_template("script", "fill_report_survey.js")
+    myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#RecommenderReportSurvey"),
@@ -1007,7 +1008,7 @@ def show_report_survey():
         pageTitle=getTitle(request, auth, db, "#RecommenderReportSurveyTitle"),
         customText=getText(request, auth, db, "#RecommenderReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=SCRIPT(myScript),
+        myFinalScript=myScript,
     )
 
 
@@ -2012,7 +2013,7 @@ def contributions():
             fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details],
         )
 
-        myScript = SCRIPT(common_tools.get_template("script", "contributions.js"), _type="text/javascript")
+        myScript = common_tools.get_script("contributions.js")
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),
             customText=getText(request, auth, db, "#RecommenderContributionsToPressReviewsText"),
@@ -2202,9 +2203,9 @@ def edit_recommendation():
             response.flash = T("Form has errors", lazy=False)
 
         if isPress is False:
-            myScript = common_tools.get_template("script", "edit_recommendation.js")
+            myScript = common_tools.get_script("edit_recommendation.js")
         else:
-            myScript = common_tools.get_template("script", "edit_recommendation_is_press.js")
+            myScript = common_tools.get_script("edit_recommendation_is_press.js")
 
         return dict(
             form=form,
@@ -2212,9 +2213,9 @@ def edit_recommendation():
             pageHelp=pageHelp,
             titleIcon="edit",
             pageTitle=pageTitle,
-            myFinalScript=SCRIPT(myScript),
+            myFinalScript=myScript,
             myBackButton=common_small_html.mkBackButton(),
-            deleteFileButtonsScript=SCRIPT(common_tools.get_template("script", "add_delete_recommendation_file_buttons_recommender.js"), _type="text/javascript"),
+            deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_recommender.js"),
         )
 
 
@@ -2401,7 +2402,6 @@ def review_emails():
         )
     ]
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
 
     reviewer = db.auth_user[review.reviewer_id]
     reviewerEmail = reviewer.email if reviewer else None
@@ -2435,6 +2435,7 @@ def review_emails():
         _class="web2py_grid action-button-absolute",
     )
 
+    myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
         titleIcon="send",
         pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
@@ -2518,8 +2519,6 @@ def article_reviews_emails():
         )
     ]
 
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
-
     grid = SQLFORM.grid(
         db((db.mail_queue.article_id == articleId) & (db.mail_queue.dest_mail_address.belongs(reviewers))),
         details=True,
@@ -2550,6 +2549,7 @@ def article_reviews_emails():
         _class="web2py_grid action-button-absolute",
     )
 
+    myScript = common_tools.get_script("replace_mail_content.js"),
     return dict(
         titleIcon="send",
         pageTitle=getTitle(request, auth, db, "#ArticleReviewsEmailsTitle"),

@@ -645,7 +645,7 @@ def mailing_queue():
         db.mail_queue.mail_template_hashtag.readable = True
     else:
         db.mail_queue.mail_template_hashtag.readable = False
-    myScript = SCRIPT(common_tools.get_template("script", "replace_mail_content.js"), _type="text/javascript")
+    myScript = common_tools.get_script("replace_mail_content.js")
 
     links = [
         dict(
