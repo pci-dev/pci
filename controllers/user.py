@@ -4,6 +4,8 @@ import os
 import re
 import copy
 from datetime import date
+from zipfile import ZipFile, ZIP_DEFLATED
+import io
 
 from gluon.contrib.markdown import WIKI
 
@@ -1398,6 +1400,7 @@ def edit_review():
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
+        db.t_reviews.review_pdf.widget = lambda field, value, kwargs: SQLFORM.widgets.upload.widget(field, value, _multiple='true')
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
         if art.has_manager_in_authors:
             review.anonymously = False
@@ -1423,8 +1426,18 @@ def edit_review():
             fields=fields,
             showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
+        def onvalidation(form):
+            files = form.vars['review_pdf']
+            writer = io.BytesIO()
+            if len(files) > 1:
+                with ZipFile(writer, 'w') as zf:
+                    for f in files:
+                        zf.writestr(f.filename, f.value)
+                files[0].filename = "uploaded_review.zip"
+                files[0].value = writer.getvalue()
+            form.vars['review_pdf'] = files[0]    
 
-        if form.process().accepted:
+        if form.process(onvalidation=onvalidation).accepted:
             if form.vars.save:
                 session.flash = T("Review saved", lazy=False)
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
