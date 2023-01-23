@@ -1432,10 +1432,8 @@ def edit_review():
 
         if form.process().accepted:
             files = form.vars.review_pdf
-            if len(files) > 1:
-                zipped = zip_uploaded_files(files)
-                filename = db.t_reviews.review_pdf.store(zipped, "uploaded_review.zip")
-                review.update_record(review_pdf=filename, review_pdf_data=zipped)
+            if type(files) == list:
+                handle_multiple_uploads(review, files)
 
             if form.vars.save:
                 session.flash = T("Review saved", lazy=False)
@@ -1472,6 +1470,21 @@ def zip_uploaded_files(files):
             zf.writestr(f.filename, f.value)
 
     return writer.getvalue()
+
+
+def handle_multiple_uploads(review, files):
+    if len(files) > 1:
+        data = zip_uploaded_files(files)
+        name = "uploaded_review.zip"
+    elif len(files) and files[0] is not None:
+        _ = files[0]
+        data = _.value
+        name = _.filename
+    else:
+        return
+
+    filename = db.t_reviews.review_pdf.store(data, name)
+    review.update_record(review_pdf=filename, review_pdf_data=data)
 
 
 ######################################################################################################################################################################
