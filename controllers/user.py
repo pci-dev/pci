@@ -1402,7 +1402,7 @@ def edit_review():
         db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
 
-        if True or pciRRactivated:
+        if pciRRactivated:
             divert_review_pdf_to_multi_upload()
 
         if art.has_manager_in_authors:
