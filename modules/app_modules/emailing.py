@@ -3001,6 +3001,6 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
 
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
 
-    hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", article)
+    hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
