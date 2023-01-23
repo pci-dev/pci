@@ -1400,8 +1400,11 @@ def edit_review():
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
-        db.t_reviews.review_pdf.widget = lambda field, value, kwargs: SQLFORM.widgets.upload.widget(field, value, _multiple='true')
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
+
+        if True or pciRRactivated:
+            divert_review_pdf_to_multi_upload()
+
         if art.has_manager_in_authors:
             review.anonymously = False
             db.t_reviews.anonymously.writable = False
@@ -1426,18 +1429,14 @@ def edit_review():
             fields=fields,
             showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
-        def onvalidation(form):
-            files = form.vars['review_pdf']
-            writer = io.BytesIO()
-            if len(files) > 1:
-                with ZipFile(writer, 'w') as zf:
-                    for f in files:
-                        zf.writestr(f.filename, f.value)
-                files[0].filename = "uploaded_review.zip"
-                files[0].value = writer.getvalue()
-            form.vars['review_pdf'] = files[0]    
 
-        if form.process(onvalidation=onvalidation).accepted:
+        if form.process().accepted:
+            files = form.vars.review_pdf
+            if len(files) > 1:
+                zipped = zip_uploaded_files(files)
+                filename = db.t_reviews.review_pdf.store(zipped, "uploaded_review.zip")
+                review.update_record(review_pdf=filename, review_pdf_data=zipped)
+
             if form.vars.save:
                 session.flash = T("Review saved", lazy=False)
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
@@ -1458,6 +1457,21 @@ def edit_review():
         myFinalScript=myScript,
         deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
     )
+
+def divert_review_pdf_to_multi_upload():
+    field = db.t_reviews.review_pdf
+
+    field.widget = lambda field, value, kwargs: \
+            SQLFORM.widgets.upload.widget(field, value, _multiple='true')
+    field.requires[1] = IS_LIST_OF(db.t_reviews.review_pdf.requires[1])
+
+def zip_uploaded_files(files):
+    writer = io.BytesIO()
+    with ZipFile(writer, 'w') as zf:
+        for f in files:
+            zf.writestr(f.filename, f.value)
+
+    return writer.getvalue()
 
 
 ######################################################################################################################################################################
