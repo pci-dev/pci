@@ -173,47 +173,32 @@ def recommended_articles():
 ######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    articleId = request.vars.get("articleId") or request.vars.get("id")
+    printable = request.vars.get("printable") == "True"
+    with_comments = not printable
+    as_pdf = request.vars.get("asPDF") == "True"
 
-    # with_comments = True
-    printable = "printable" in request.vars and request.vars["printable"] == "True"
-
-    if printable is None or printable is False:
-        with_comments = True
-    else:
-        with_comments = False
-
-    as_pdf = "asPDF" in request.vars and request.vars["asPDF"] == "True"
-
-    # security : Is content avalaible ?
-    if "articleId" in request.vars:
-        articleId = request.vars["articleId"]
-    elif "id" in request.vars:
-        articleId = request.vars["id"]
-    else:
-        session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+    if not articleId:
+        session.flash = T("No parameter id (or articleId)")
+        redirect(URL("articles", "recommended_articles"))
 
     # Remove "reviews" vars from url
     if "reviews" in request.vars:
         redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
 
-    # NOTE: check id is numeric!
     if not articleId.isdigit():
-        session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        session.flash = T("Article id must be a digit")
+        redirect(URL("articles", "recommended_articles"))
 
     art = db.t_articles[articleId]
 
     if art == None:
-        session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
-    # NOTE: security hole possible by articleId injection: Enforced checkings below.
-    elif art.status != "Recommended":
-        session.flash = T("Forbidden access")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        session.flash = T("No such article: id=") + articleId
+        redirect(URL("articles", "recommended_articles"))
+
+    if art.status != "Recommended":
+        session.flash = T("Access denied: item not recommended yet")
+        redirect(URL("articles", "recommended_articles"))
 
     if as_pdf:
         pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
