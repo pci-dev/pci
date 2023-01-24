@@ -210,10 +210,11 @@ def rec():
 
     # Set Page title
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-    if finalRecomm:
-        response.title = finalRecomm.recommendation_title or myconf.take("app.longname")
-    else:
-        response.title = myconf.take("app.longname")
+    if not finalRecomm:
+        session.flash = T("Item not recommended yet")
+        redirect(URL("articles", "recommended_articles"))
+
+    response.title = finalRecomm.recommendation_title
     response.title = common_tools.getShortText(response.title, 64)
 
     nbRecomms = db((db.t_recommendations.article_id == art.id)).count()
