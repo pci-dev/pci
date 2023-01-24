@@ -35,8 +35,8 @@
         width: 100%;
     }
 
-    #main-page-search-grid {
-
+    #main-page-search-grid .web2py_table .pci2-article-row .pci2-flex-column:last-child {
+        flex-grow: 1;
     }
 
     .web2py_grid tbody td {
@@ -527,7 +527,8 @@
         margin-left: 3rem;
     }
 
-    .pci2-articles-list .pci-smallBtn { 
+    .pci2-articles-list .pci-smallBtn,
+    #main-page-search-grid .pci-smallBtn { 
         width: 6.5rem;
         background-color: rgb(41, 171, 224);
     }

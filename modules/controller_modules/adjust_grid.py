@@ -48,7 +48,7 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
         panel_search_field = grid.element('div#w2p_field_qy_art-id')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'main_articles':
-        panel_search_field = grid.element('div#w2p_field_qy_articles-title')
+        panel_search_field = grid.element('div#w2p_field_t_articles-title')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'mail_queue':
         panel_search_field = grid.element('div#w2p_field_mail_queue-sending_status')
@@ -124,6 +124,12 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
                 option.attributes.update({'_selected':'selected'})
                 id_input_field = grid.element('div#w2p_field_qy_art-text')
                 id_input_field.attributes.update({'_style':'display:flex'})
+    elif search_name == 'main_articles':
+        for option in select_panel:
+            if option.attributes['_value'].endswith('.title'):
+                option.attributes.update({'_selected':'selected'})
+                title_input_field = grid.element('div#w2p_field_t_articles-title')
+                title_input_field.attributes.update({'_style':'display:flex'})                
     elif search_name == 'mail_queue':
         for option in select_panel:
             if option.attributes['_value'].endswith('.sending_status'):

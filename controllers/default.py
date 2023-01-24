@@ -18,7 +18,6 @@ from app_components import app_forms
 from app_modules import common_tools
 from controller_modules import adjust_grid
 
-trgmLimit = myconf.get("config.trgm_limit") or 0.4
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -49,278 +48,98 @@ def loading():
 ######################################################################################################################################################################
 # Home page (public)
 def index():
-
-    def articleRow(row):
-        if "maxArticles" in request.vars:
-            maxArticles = int(request.vars["maxArticles"])
-        else:
-            maxArticles = 10
-        myVars = copy.deepcopy(request.vars)
-        myVars["maxArticles"] = myVars["maxArticles"] or 10
-        myVarsNext = copy.deepcopy(myVars)
-        myVarsNext["maxArticles"] = int(myVarsNext["maxArticles"]) + 10
-
-        queryRecommendedArticles = None
-
-        if queryRecommendedArticles is None:
-            queryRecommendedArticles = db(
-                (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
-            ).iterselect(
-                db.t_articles.art_stage_1_id,
-                db.t_articles.id,
-                db.t_articles.title,
-                db.t_articles.authors,
-                db.t_articles.article_source,
-                db.t_articles.doi,
-                db.t_articles.picture_rights_ok,
-                db.t_articles.uploaded_picture,
-                db.t_articles.abstract,
-                db.t_articles.upload_timestamp,
-                db.t_articles.user_id,
-                db.t_articles.status,
-                db.t_articles.last_status_change,
-                db.t_articles.thematics,
-                db.t_articles.keywords,
-                db.t_articles.already_published,
-                db.t_articles.auto_nb_recommendations,
-                db.t_articles.scheduled_submission_date,
-                limitby=(0, maxArticles),
-                orderby=~db.t_articles.last_status_change,
-            )
-
-        recomms = db.get_last_recomms()
-        recommendedArticlesList = []
-        for prow in queryRecommendedArticles:
-            r = article_components.getRecommArticleRowCard(auth, db, response, prow, recomms.get(prow.id), withDate=True)
-            if r:
-                recommendedArticlesList.append(r)
-
-        if len(recommendedArticlesList) == 0:
-            return DIV(I(T("Coming soon...")))
-
-        resu = DIV(_class="pci2-articles-list")
-        single_row = DIV(_class="pci2-flex-row pci2-article-row pci2-flex-column-mobile")
-
-        # generate left column (date + image)
-        left_column = DIV(_class="pci2-flex-column pci2-article-left-div")
-        date_str = '%s %s %s'%(row.last_status_change.day, calendar.month_name[row.last_status_change.month][:3], row.last_status_change.year)
-        date = I(SPAN(date_str))
-        image_container = DIV(_class="pci2-flex-center pci2-flex-grow pci2-article-image-div", _onclick="window.open('/pci/articles/rec?id=" + str(row.id) + "')")
-
-        if row.uploaded_picture is not None and row.uploaded_picture != "":
-            image = IMG(
-                _src=URL(
-                    "static", "uploads",
-                    scheme=scheme, host=host, port=port,
-                    args=row.uploaded_picture,
-                ),
-                _alt="article picture",
-                _class="pci-articlePicture",
-            )
-        else:
-            image = IMG(
-                _src=URL(
-                    "static", "images",
-                    scheme=scheme, host=host, port=port,
-                    args='small-background.png',
-                ),
-                _alt="article picture",
-                _class="pci-articlePicture",
-            )
-
-        #if row.uploaded_picture == '': image = IMG(_src="/pci/static/images/small-background.png")
-        #else: image = IMG(_src=row.uploaded_picture)
-
-        image_container.append(image)
-        left_column.append(date)
-        left_column.append(image_container)
-        single_row.append(left_column)
-
-        # generate right column (rest of article content)
-        right_column = DIV(_class="pci2-flex-column")
-        top_container = DIV(_class="pci2-flex-column")
-        headline = H3(row.title)
-        authors = SPAN(row.authors, _class="pci2-article-infos")
-        doi = SPAN(_class="pci2-article-infos")
-        doi_link = A(_class="doi_url", _target="_blank", _href=row.article_source)
-        doi_b = B(row.article_source)
-        doi.append(doi_link)
-        doi.append(doi_b)
-        top_container.append(headline)
-        top_container.append(authors)
-        top_container.append(doi)
-        right_column.append(top_container)
-        bottom_container = DIV(_class="pci2-flex-column pci2-article-recommendation-div")
-        small_head = H4('small header')
-        recommend_container = I("Recommended by ")
-        recommend_sub = SPAN()
-        recommend_link = A(B())#row.recommender), _class="cyp-user-profile-link")
-        recommend_sub.append(recommend_link)
-        recommend_sub.append(" based on reviews by")
-        '''for reviewer in row.reviewers:
-            rev_span = SPAN(reviewer)
-            recommend_sub.append(rev_span)'''
-        recommend_container.append(recommend_sub)
-        abstract_fader = SPAN(DIV(_class="fade-transparent-text"))
-        more_link = DIV(A(current.T("More..."),
-                        _id="moreLatestBtn",
-                        _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
-                        _class="btn btn-default",
-            ))
-        bottom_container.append(small_head)
-        bottom_container.append(recommend_container)
-        bottom_container.append(abstract_fader)
-        bottom_container.append(more_link)
-
-        right_column.append(bottom_container)
-
-        single_row.append(right_column)
-        resu.append(single_row)
-
-        return resu
-
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    
     response.view = "default/index.html"
 
-    # NOTE: do not delete: kept for later use
-    # thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
-    # options = [OPTION('--- All thematic fields ---', _value='')]
-    # for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-    # options.append(OPTION(thema.keyword, _value=thema.keyword))
+    recomms = db.get_last_recomms()
 
-    tweeterAcc = myconf.get("social.tweeter")
+    def articleRow(row):
+        return article_components.getRecommArticleRowCard(auth, db, response,
+                        row,
+                        recomms.get(row.id),
+                        withDate=True)
 
-    myVars = request.vars
-    qyKw = ""
-    qyTF = []
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
+    t_articles = db.t_articles
 
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    temp_db = DAL("sqlite:memory")
-    qy_articles = temp_db.define_table(
-        "qy_articles",
-        Field("id", type="integer"),
-        Field("num", type="integer"),
-        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-        Field("title", type="string", label=T("Title")),
-        Field("authors", type="string", label=T("Authors")),
-        Field("article_source", type="string", label=T("Source")),
-        Field("abstract", type="string", label=T("Abstract")),
-        Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
-        Field("keywords", type="string", label=T("Keywords")),
-        Field("last_status_change", type="datetime", label=T("Submission Date")),
-        Field("reviewers", type="string", label=T("Reviewers")),
-        #Field("recommender", type="string", label=T("Recommender")),
-        Field("any", type="string", label=T("All fields")),
-    )
+    t_articles.id.represent = lambda text, row: articleRow(row)
 
-    qyTF = []
-    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-        qyTF.append(thema.keyword)
+    for field in ("""
+    anonymous_submission
+    has_manager_in_authors
+    doi
+    preprint_server
+    ms_version
+    picture_rights_ok
+    results_based_on_data
+    scripts_used_for_result
+    codes_used_in_study
+    validation_timestamp
+    user_id
+    status
+    last_status_change
+    request_submission_change
+    funding
+    already_published
+    doi_of_published_article
+    parallel_submission
+    is_searching_reviewers
+    report_stage
+    art_stage_1_id
+    record_url_version
+    record_id_version
+    scheduled_submission_date
+    upload_timestamp
+    """
+    .split()): t_articles[field].readable = False
 
-    #filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList, trgmLimit, True], as_dict=True)
-
-    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
-
-    temp_db.qy_articles.num.readable = False
-    temp_db.qy_articles.id.readable = False
-    temp_db.qy_articles.uploaded_picture.readable = False
-
-    temp_db.qy_articles.title.represent = lambda text, row: articleRow(row)
-
-    full_text_search_fields = [
-            'title',
-            'authors',
-            'article_source',
-            'abstract',
-            'thematics',
-            'keywords',
-            'reviewers',
-            'recommender',
-    ]
-
-    for fr in filtered:
-       qy_articles.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
-
-    original_grid = SQLFORM.smartgrid(
-        qy_articles,
-        editable=False,
-        deletable=False,
-        create=False,
-        details=False,
-        searchable=dict(auth_user=True, auth_membership=False),
-        selectable=None,
+    original_grid = SQLFORM.grid(
+        (t_articles.status == "Recommended"),
         maxtextlength=250,
         paginate=1000,
         csv=False,
-        exportclasses=None,
         fields=[
-            temp_db.qy_articles.id,
-            temp_db.qy_articles.num,
-            temp_db.qy_articles.uploaded_picture,
-            temp_db.qy_articles.title,
-            temp_db.qy_articles.authors,
-            temp_db.qy_articles.article_source,
-            temp_db.qy_articles.abstract,
-            temp_db.qy_articles.thematics,
-            temp_db.qy_articles.keywords,
-            temp_db.qy_articles.reviewers,
-            #temp_db.qy_articles.recommender,
-            temp_db.qy_articles.last_status_change,
-        ],
-        links=[],
-        orderby=temp_db.qy_articles.num,
+            t_articles.id,
+            t_articles.title,
+            t_articles.authors,
+            t_articles.abstract,
+            t_articles.anonymous_submission,
+            t_articles.article_source,
+            t_articles.last_status_change,
+            t_articles.uploaded_picture,
+            t_articles.status,
+            t_articles.art_stage_1_id,
+            t_articles.already_published,
+            t_articles.doi,
+            ],
+        orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
 
-    # options to be removed from the search dropdown:
-    remove_options = ['qy_articles._id']
-
-    # the grid is adjusted after creation to adhere to our requirements
+    remove_options = ['t_articles.id']
     grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
 
     if request.user_agent().is_mobile:
-        return dict(
-            pageTitle=getTitle(request, auth, db, "#HomeTitle"),
-            customText=getText(request, auth, db, "#HomeInfo"),
-            pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=False,#searchForm,
-            lastRecommTitle=False,#lastRecommTitle,
-            lastRecomms=False,#lastRecomms,
-            grid=grid,
-            shareable=True,
-            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            pciRRactivated=pciRRactivated,
-            tweeterAcc=tweeterAcc,
-            panel=None,
-            absoluteButtonScript=common_tools.absoluteButtonScript,
+        twitterTimeline = None # was: XML(twitter-timeline) if conf.social.tweeter
+        myBottomPanel = DIV(
+            DIV(twitterTimeline, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"),
+            _class="tweeterBottomPanel pci2-hide-under-tablet",
+            _style="overflow: hidden; padding: 0"
         )
     else:
-        return dict(
+        myBottomPanel = False
+
+    return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=False,#searchForm,
-            lastRecommTitle=False,#lastRecommTitle,
-            lastRecomms=False,#lastRecomms,
-            grid=grid,
-            panel=None,
+            searchForm=False,
+            lastRecomms=False,
+            lastRecommTitle=False,
+            grid = grid,
             shareable=True,
-            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
+            currentUrl=URL(c="default", f="index"),
             pciRRactivated=pciRRactivated,
-            tweeterAcc=tweeterAcc,
-            absoluteButtonScript=common_tools.absoluteButtonScript,
+            myBottomPanel=myBottomPanel,
+            panel=None,
         )
 
 
