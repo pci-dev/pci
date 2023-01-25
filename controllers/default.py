@@ -62,6 +62,10 @@ def index():
 
     t_articles.id.represent = lambda text, row: articleRow(row)
 
+    # make advanced search form field use simple dropdown widget
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+
     for field in ("""
     anonymous_submission
     has_manager_in_authors
@@ -110,6 +114,7 @@ def index():
             t_articles.already_published,
             t_articles.doi,
 
+            t_articles.thematics,
             t_articles.recommender,
             t_articles.reviewers,
             t_articles.submission_date,
