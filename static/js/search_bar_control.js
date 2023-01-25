@@ -1,6 +1,7 @@
 // if there is an ongoing search, we need to change buttons and 
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
+var user_types_without_any = ['auth_user', 'mail_templates', 't_articles', 'qy_art', 'mail_queue', 'v_article']
 
 if (search_bar != null) {
     var user_type = get_user_type();
@@ -185,7 +186,7 @@ function simple_search() {
     var search_term = document.querySelector('#simple-search-input').value;
 
     // create add all query (some searches have "any" field, others do not)
-    if (user_type == 'auth_user' || user_type == 'mail_templates' || user_type == 't_articles' || user_type == 'qy_art' || user_type == 'mail_queue') {
+    if (user_types_without_any.includes(user_type)) {
         var search_statement = search_term;
     } else {
         var search_statement = 'any contains "' + search_term + '"';

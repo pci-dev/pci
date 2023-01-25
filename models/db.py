@@ -1973,6 +1973,15 @@ db.define_table(
 
 
 ##-------------------------------- Views ---------------------------------
+
+db.define_table(
+    "v_article",
+    db.t_articles,
+    Field("submission_date", type="string", label=T("Submission date")),
+    Field("recommender", type="string"),
+    Field("reviewers", type="string"),
+)
+
 db.define_table(
     "v_last_recommendation",
     Field("id", type="id"),

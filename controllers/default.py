@@ -58,7 +58,7 @@ def index():
                         recomms.get(row.id),
                         withDate=True)
 
-    t_articles = db.t_articles
+    t_articles = db.v_article
 
     t_articles.id.represent = lambda text, row: articleRow(row)
 
@@ -109,12 +109,16 @@ def index():
             t_articles.art_stage_1_id,
             t_articles.already_published,
             t_articles.doi,
+
+            t_articles.recommender,
+            t_articles.reviewers,
+            t_articles.submission_date,
             ],
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
 
-    remove_options = ['t_articles.id']
+    remove_options = ['v_article.id']
     grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
 
     if request.user_agent().is_mobile:
