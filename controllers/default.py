@@ -85,6 +85,8 @@ def index():
     already_published
     doi_of_published_article
     parallel_submission
+    article_source
+    sub_thematics
     is_searching_reviewers
     report_stage
     art_stage_1_id
