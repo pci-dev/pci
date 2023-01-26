@@ -1094,6 +1094,14 @@ def reviews():
             selectable = None
             db.t_reviews.review.represent = lambda text, row: WIKI(text or "")
             db.t_reviews.emailing.readable = True
+        if pciRRactivated:
+            common_tools.divert_review_pdf_to_multi_upload()
+
+        def onvalidation(form):
+            files = form.vars.review_pdf
+            review = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == form.vars.reviewer_id)).select().last()
+            if type(files) == list and pciRRactivated:
+                common_tools.handle_multiple_uploads(review, files)
 
         query = db.t_reviews.recommendation_id == recommId
         grid = SQLFORM.grid(
@@ -1122,6 +1130,7 @@ def reviews():
                 db.t_reviews.reviewer_details,
             ],
             selectable=selectable,
+            onvalidation=onvalidation,
             _class="web2py_grid action-button-absolute",
             upload=URL("default", "download")
         )
