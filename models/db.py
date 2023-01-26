@@ -173,6 +173,11 @@ auth.settings.host = host
 # auth.settings.logout_next = ''
 
 # -------------------------------------------------------------------------
+from gluon import current
+current.auth = auth
+current.db = db
+
+# -------------------------------------------------------------------------
 db.define_table(
     "t_thematics",
     Field("id", type="id"),

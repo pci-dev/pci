@@ -4,8 +4,6 @@ import os
 import re
 import copy
 from datetime import date
-from zipfile import ZipFile, ZIP_DEFLATED
-import io
 
 from gluon.contrib.markdown import WIKI
 
@@ -1403,7 +1401,7 @@ def edit_review():
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
 
         if pciRRactivated:
-            divert_review_pdf_to_multi_upload()
+            common_tools.divert_review_pdf_to_multi_upload()
 
         if art.has_manager_in_authors:
             review.anonymously = False
@@ -1433,7 +1431,7 @@ def edit_review():
         if form.process().accepted:
             files = form.vars.review_pdf
             if type(files) == list:
-                handle_multiple_uploads(review, files)
+                common_tools.handle_multiple_uploads(review, files)
 
             if form.vars.save:
                 session.flash = T("Review saved", lazy=False)
@@ -1455,37 +1453,6 @@ def edit_review():
         myFinalScript=myScript,
         deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
     )
-
-def divert_review_pdf_to_multi_upload():
-    field = db.t_reviews.review_pdf
-
-    field.widget = lambda field, value, kwargs: \
-            SQLFORM.widgets.upload.widget(field, value, _multiple='true')
-    field.requires[1] = IS_LIST_OF(db.t_reviews.review_pdf.requires[1])
-
-def zip_uploaded_files(files):
-    writer = io.BytesIO()
-    with ZipFile(writer, 'w') as zf:
-        for f in files:
-            zf.writestr(f.filename, f.value)
-
-    return writer.getvalue()
-
-
-def handle_multiple_uploads(review, files):
-    if len(files) > 1:
-        data = zip_uploaded_files(files)
-        name = "uploaded_review.zip"
-    elif len(files) and files[0] is not None:
-        _ = files[0]
-        data = _.value
-        name = _.filename
-    else:
-        return
-
-    filename = db.t_reviews.review_pdf.store(data, name)
-    review.update_record(review_pdf=filename, review_pdf_data=data)
-
 
 ######################################################################################################################################################################
 @auth.requires_login()
