@@ -854,7 +854,7 @@
     "Unsheduled": "Unsheduled",
     '"update" is an optional expression like "field1=\'newvalue\'". You cannot update or delete the results of a JOIN': '"update" is an optional expression like "field1=\'newvalue\'". You cannot update or delete the results of a JOIN',
     "Update:": "Update:",
-    'Upload your PDF with the button or download it from the "file" link.': 'Upload your file with the button or download it from the "file" link.',
+    'Upload your PDF with the button or download it from the "file" link.': 'Select a file with the button then press "SAVE" to upload. Download the current document with the "file" link.',
     "Use (...)&(...) for AND, (...)|(...) for OR, and ~(...)  for NOT to build more complex queries.": "Use (...)&(...) for AND, (...)|(...) for OR, and ~(...)  for NOT to build more complex queries.",
     "User comments": "User comments",
     "User creation failed :-(": "User creation failed :-(",
