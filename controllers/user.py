@@ -1397,7 +1397,6 @@ def edit_review():
             INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save & Submit Your Review"),
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
-        db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
 
         if pciRRactivated:
