@@ -5,14 +5,18 @@ import re
 import copy
 import os
 import io
+import calendar
 
 from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 from gluon.utils import web2py_uuid
+from gluon.storage import Storage # for db.get_last_recomms()
 
+from app_components import article_components
 from app_components import app_forms
 from app_modules import common_tools
+from controller_modules import adjust_grid
 
 
 # -------------------------------------------------------------------------
@@ -44,115 +48,108 @@ def loading():
 ######################################################################################################################################################################
 # Home page (public)
 def index():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    
     response.view = "default/index.html"
 
-    # NOTE: do not delete: kept for later use
-    # thematics = db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword)
-    # options = [OPTION('--- All thematic fields ---', _value='')]
-    # for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-    # options.append(OPTION(thema.keyword, _value=thema.keyword))
+    recomms = db.get_last_recomms()
 
-    myPanel = []
-    tweeterAcc = myconf.get("social.tweeter")
-    # tweetHash = myconf.get("social.tweethash")
-    # tweeterId = myconf.get("social.tweeter_id")
-    if tweeterAcc:
-        myPanel.append(
-            XML(
-                """
-                <a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s" style="margin:10px">Tweets by %(tweeterAcc)s</a> 
-			    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-			    """
-                % locals()
-            )
-        )
-    # if tweetHash and tweeterId:
-    # myPanel.append(DIV(XML('<a class="twitter-timeline"  href="https://twitter.com/hashtag/%(tweetHash)s" data-widget-id="%(tweeterId)s">Tweets about #%(tweeterAcc)s</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\'; if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);} }(document,"script","twitter-wjs");</script>' % locals() ), _class='tweeterPanel'))
+    def articleRow(row):
+        return article_components.getRecommArticleRowCard(auth, db, response,
+                        row,
+                        recomms.get(row.id),
+                        withDate=True)
 
-    nbMax = db(
-        (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
-    ).count()
-    myVars = copy.deepcopy(request.vars)
-    myVars["maxArticles"] = myVars["maxArticles"] or 10
-    myVarsNext = copy.deepcopy(myVars)
-    myVarsNext["maxArticles"] = myVarsNext["maxArticles"] + 10
+    t_articles = db.v_article
 
-    lastRecomms = FORM(DIV(loading(), _id="lastRecommendations",),)
+    t_articles.id.represent = lambda text, row: articleRow(row)
 
-    tweeterAcc = myconf.get("social.tweeter")
+    # make advanced search form field use simple dropdown widget
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-    lastRecommTitle = H3(
-        T("Latest recommendations"),
-        A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-            _href=URL("about", "rss_info"),
-            _class="btn pci-rss-btn",
-            _style="float:right;",
-        ),
-        A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
-            _href="https://twitter.com/%(tweeterAcc)s"%locals(),
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ),
+    for field in ("""
+    anonymous_submission
+    has_manager_in_authors
+    doi
+    preprint_server
+    ms_version
+    picture_rights_ok
+    results_based_on_data
+    scripts_used_for_result
+    codes_used_in_study
+    validation_timestamp
+    user_id
+    status
+    last_status_change
+    request_submission_change
+    funding
+    already_published
+    doi_of_published_article
+    parallel_submission
+    article_source
+    sub_thematics
+    is_searching_reviewers
+    report_stage
+    art_stage_1_id
+    record_url_version
+    record_id_version
+    scheduled_submission_date
+    upload_timestamp
+    """
+    .split()): t_articles[field].readable = False
 
-        _class="pci-pageTitleText",
-        _style="margin-top: 15px; margin-bottom: 20px",
+    original_grid = SQLFORM.grid(
+        (t_articles.status == "Recommended"),
+        maxtextlength=250,
+        paginate=10,
+        csv=False,
+        fields=[
+            t_articles.id,
+            t_articles.title,
+            t_articles.authors,
+            t_articles.abstract,
+            t_articles.anonymous_submission,
+            t_articles.article_source,
+            t_articles.last_status_change,
+            t_articles.uploaded_picture,
+            t_articles.status,
+            t_articles.art_stage_1_id,
+            t_articles.already_published,
+            t_articles.doi,
+            t_articles.thematics,
+            t_articles.recommender,
+            t_articles.reviewers,
+            t_articles.submission_date,
+            ],
+        orderby=~t_articles.last_status_change,
+        _class="web2py_grid action-button-absolute",
     )
 
-    myScript = SCRIPT(
-        """window.onload=function() {
-	        ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations');
-	        if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();
-        }
-        """
-        % (URL("articles", "last_recomms", vars=myVars, user_signature=True)),
-        _type="text/javascript",
-    )
-
-    searchForm = DIV(app_forms.searchByThematic(auth, db, myVars, redirectSearchArticle=True), _style="margin-bottom: 20px")
-
-    # if auth.user_id:
-    # theUser = db.auth_user[auth.user_id]
-    # if theUser.ethical_code_approved is False:
-    # redirect(URL('about','ethics'))
+    remove_options = ['v_article.id']
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
 
     if request.user_agent().is_mobile:
-        return dict(
-            pageTitle=getTitle(request, auth, db, "#HomeTitle"),
-            customText=getText(request, auth, db, "#HomeInfo"),
-            pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=searchForm,
-            lastRecommTitle=lastRecommTitle,
-            lastRecomms=lastRecomms,
-            myBottomPanel=DIV(
-                DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterBottomPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"
-            ),
-            shareable=True,
-            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript,
-            pciRRactivated=pciRRactivated,
-            tweeterAcc=tweeterAcc,
-            panel=None,
+        twitterTimeline = None # was: XML(twitter-timeline) if conf.social.tweeter
+        myBottomPanel = DIV(
+            DIV(twitterTimeline, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"),
+            _class="tweeterBottomPanel pci2-hide-under-tablet",
+            _style="overflow: hidden; padding: 0"
         )
     else:
-        return dict(
+        myBottomPanel = False
+
+    return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=searchForm,
-            lastRecommTitle=lastRecommTitle,
-            lastRecomms=lastRecomms,
-            panel=DIV(DIV(myPanel, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"), _class="tweeterPanel pci2-hide-under-tablet", _style="overflow: hidden; padding: 0"),
+            searchForm=False,
+            lastRecomms=False,
+            lastRecommTitle=False,
+            grid = grid,
             shareable=True,
-            currentUrl=URL(c="default", f="index", host=host, scheme=scheme, port=port),
-            script=myScript,
+            currentUrl=URL(c="default", f="index"),
             pciRRactivated=pciRRactivated,
-            tweeterAcc=tweeterAcc,
+            myBottomPanel=myBottomPanel,
+            panel=None,
         )
 
 

@@ -2968,3 +2968,32 @@ ADD COLUMN IF NOT EXISTS  funding character varying(1024) DEFAULT '';
 -- 2023-01-04 updates/update_configuration_table.sql
 alter table submissions rename to config;
 alter table config add column issn text;
+
+-- 2023-01-25 updates/refactor_v_article_recommender.sql
+DROP VIEW v_article_recommender;
+CREATE OR REPLACE VIEW v_article_recommender AS
+SELECT
+	r.article_id AS id,
+	r.id AS recommendation_id,
+	(au.first_name || ' ' || au.last_name) AS recommender
+FROM (
+	t_recommendations r
+	LEFT JOIN auth_user au ON (r.recommender_id = au.id)
+)
+WHERE r.id in (select max(id) from t_recommendations group by article_id)
+;
+
+CREATE OR REPLACE VIEW v_article AS
+SELECT
+	a.*,
+	r.recommender,
+	rev.reviewers,
+	to_char(a.upload_timestamp, 'YYYY-MM-DD HH24:MI:SS') as submission_date
+FROM
+	t_articles a
+	JOIN v_article_recommender r ON a.id = r.id
+	JOIN v_reviewers rev ON rev.id = r.recommendation_id
+;
+
+alter view v_article owner to pci_admin;
+alter view v_article_recommender owner to pci_admin;

@@ -635,6 +635,7 @@ db.define_table(
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
     Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
     Field("funding", type="string", length=1024, label=T("Fundings"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)], comment="Indicate in this box the origin of the funding of your study. If your study has not been supported by particular funding, please indicate \"The authors declare that they have received no specific funding for this study\"."),
+    Field("keywords", type="string", length=4096, label=T("Keywords"), requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
     Field(
         "thematics",
         type="list:string",
@@ -642,7 +643,6 @@ db.define_table(
         requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
-    Field("keywords", type="string", length=4096, label=T("Keywords"), requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
     Field("already_published", type="boolean", label=T("Postprint"), default=False),
     Field("doi_of_published_article", type="string", label=T("DOI of published article"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=T("URL must start with http:// or https://")),
     Field(
@@ -1973,6 +1973,15 @@ db.define_table(
 
 
 ##-------------------------------- Views ---------------------------------
+
+db.define_table(
+    "v_article",
+    db.t_articles,
+    Field("submission_date", type="string", label=T("Submission date")),
+    Field("recommender", type="string"),
+    Field("reviewers", type="string"),
+)
+
 db.define_table(
     "v_last_recommendation",
     Field("id", type="id"),

@@ -16,6 +16,45 @@
     </header>
 {{end}}
 
+<!-- STYLE below: tmp copy/paste updates in pci-timo.css - one-off for deployment -->
+
+<STYLE>
+    #main-page-search-grid .web2py_table table thead {
+        display: none;
+    }
+
+    #main-page-search-grid .web2py_table table tr {
+        background: white;
+    }
+
+    #main-page-search-grid .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child{
+        max-width: 100%;
+    }
+
+    #main-page-search-grid .action-button-absolute .web2py_htmltable > table > tbody > tr > td:last-child > div {
+        position: relative;
+    }
+
+    #main-page-search-grid table tr td {
+        display: none;
+    }
+
+    #main-page-search-grid table tr td:nth-child(1) {
+        display: table;
+        width: 100%;
+    }
+
+    #main-page-search-grid .web2py_table .pci2-article-row .pci2-flex-column:last-child {
+        flex-grow: 1;
+    }
+
+    #main-page-search-grid .pci-smallBtn {
+        width: 6.5rem;
+        background-color: rgb(41, 171, 224);
+    }
+</STYLE>
+
+
 {{if 'pageHelp#TODO' in locals():}}
   {{=pageHelp}}
 {{pass}}
@@ -41,9 +80,11 @@
     	{{=T("Submit a preprint")}}
     </a>
   {{pass}} 
+  {{if searchForm != False :}}
   <div class="search-wrapper">
     {{=searchForm}}
   </div>
+  {{pass}}
 </div>  
 
 {{if 'pageTitle' in locals():}}
@@ -67,6 +108,7 @@
 	  {{=content}}
 	{{pass}}
   
+  {{ if lastRecommTitle: }}
   <div id="lastRecommendationsDiv">
     {{=lastRecommTitle}}
 
@@ -74,7 +116,14 @@
     	{{=lastRecomms}}
 	  {{pass}}
   </div>
+  {{pass}}
 </div>
+
+{{if 'grid' in locals():}}
+  <div id="main-page-search-grid">
+    {{=grid}}
+  </div>
+{{pass}}
 
 {{if 'panel' in locals() and panel:}}
 	{{block right_sidebar}}
