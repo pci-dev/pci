@@ -47,6 +47,10 @@
   border-radius: 6px 0 6px 6px;
 }
 
+.input-group .form-control {
+  z-index: inherit;
+}
+
 html {
   padding-bottom: 0px;
 }

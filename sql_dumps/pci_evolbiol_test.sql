@@ -2969,6 +2969,9 @@ ADD COLUMN IF NOT EXISTS  funding character varying(1024) DEFAULT '';
 alter table submissions rename to config;
 alter table config add column issn text;
 
+-- 2023-01-20 updates/add_allowed_filetypes_config.sql
+alter table config add column allowed_upload_filetypes text;
+
 -- 2023-01-25 updates/refactor_v_article_recommender.sql
 DROP VIEW v_article_recommender;
 CREATE OR REPLACE VIEW v_article_recommender AS

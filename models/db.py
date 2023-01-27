@@ -50,15 +50,6 @@ pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
-allowed_upload_filetypes = ["pdf", "docx", "odt"]
-
-allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
-
-upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
-        IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
-        IS_EMPTY_OR(IS_FILE(extension=extensions)),
-]
-
 from os import symlink, path
 def create_symlink(filename):
     base = current.request.folder
@@ -98,6 +89,46 @@ else:
     # from google.appengine.api.memcache import Client
     # session.connect(request, response, db = MEMDB(Client()))
     # ---------------------------------------------------------------------
+
+
+# ----------------------------- Configuration -----------------------------
+db.define_table(
+    "config",
+    Field(
+        "allow_submissions",
+        type="boolean",
+        default=True,
+        label=T("Allow Submissions"),
+    ),
+    Field(
+        "issn",
+        type="string",
+        label=T("This PCI's ISSN"),
+    ),
+    Field(
+        "allowed_upload_filetypes",
+        type="list:string",
+        label=T("Allowed upload filetypes"),
+    ),
+)
+cfg = db.config[1]
+# -------------------------------------------------------------------------
+
+
+allowed_upload_filetypes = ["pdf", "docx", "odt"]
+
+if cfg.allowed_upload_filetypes:
+    allowed_upload_filetypes = cfg.allowed_upload_filetypes
+else:
+    cfg.update_record(
+        allowed_upload_filetypes=allowed_upload_filetypes)
+
+allowed_review_filetypes = "pdf" if not pciRRactivated else allowed_upload_filetypes
+
+upload_file_contraints = lambda extensions=allowed_upload_filetypes: [
+        IS_LENGTH(pdf_max_size * 1048576, error_message="The file size is over " + str(pdf_max_size) + "MB."),
+        IS_EMPTY_OR(IS_FILE(extension=extensions)),
+]
 
 # -------------------------------------------------------------------------
 # by default give a view/generic.extension to all actions from localhost
@@ -2032,23 +2063,6 @@ db.define_table(
     Field("roles", type="string", length=512, label=T("Roles")),
     # writable=False,
     migrate=False,
-)
-
-##-------------------------------- Configuration ---------------------------------
-db.define_table(
-    "config",
-    Field("id", type="id"),
-    Field(
-        "allow_submissions",
-        type="boolean",
-        default=True,
-        label=T("Allow Submissions"),
-    ),
-    Field(
-        "issn",
-        type="string",
-        label=T("This PCI's ISSN"),
-    ),
 )
 
 # -------------------------------------------------------------------------
