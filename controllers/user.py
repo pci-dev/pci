@@ -1153,6 +1153,9 @@ def my_reviews():
     db.t_reviews.anonymously.readable = False
     db.t_reviews.review.readable = False
 
+    if pciRRactivated:
+        db.t_reviews.review_pdf.label = T("Review files")
+
     if pendingOnly:
         db.t_reviews.review.readable = False
         db.t_reviews.review_pdf.readable = False
@@ -1397,8 +1400,11 @@ def edit_review():
             INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save & Submit Your Review"),
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
-        db.t_reviews.review_pdf.label = T("AND/OR Upload review as PDF")
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
+
+        if pciRRactivated:
+            common_tools.divert_review_pdf_to_multi_upload()
+
         if art.has_manager_in_authors:
             review.anonymously = False
             db.t_reviews.anonymously.writable = False
@@ -1425,6 +1431,10 @@ def edit_review():
         )
 
         if form.process().accepted:
+            files = form.vars.review_pdf
+            if type(files) == list:
+                common_tools.handle_multiple_uploads(review, files)
+
             if form.vars.save:
                 session.flash = T("Review saved", lazy=False)
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
@@ -1445,7 +1455,6 @@ def edit_review():
         myFinalScript=myScript,
         deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
     )
-
 
 ######################################################################################################################################################################
 @auth.requires_login()

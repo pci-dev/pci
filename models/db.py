@@ -173,6 +173,11 @@ auth.settings.host = host
 # auth.settings.logout_next = ''
 
 # -------------------------------------------------------------------------
+from gluon import current
+current.auth = auth
+current.db = db
+
+# -------------------------------------------------------------------------
 db.define_table(
     "t_thematics",
     Field("id", type="id"),
@@ -1067,7 +1072,10 @@ db.define_table(
         "review_pdf",
         type="upload",
         uploadfield="review_pdf_data",
-        label=T("Review as PDF"),
+        label=T("AND/OR Upload review as PDF") if not pciRRactivated else (
+                T("AND/OR Upload review document(s) (one or more ") +
+                f"{', '.join(allowed_upload_filetypes)}). " +
+                T("Multiple files can be selected for upload and will be downloadable all at once as a zip.")),
         requires=upload_file_contraints(allowed_review_filetypes),
     ),
     Field("review_pdf_data", type="blob", readable=False),

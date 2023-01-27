@@ -1057,10 +1057,10 @@ def reviews():
     recomm = db.t_recommendations[recommId]
     if recomm == None:
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        redirect(URL(c=request.controller, f=" "))
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        redirect(URL(c=request.controller, f=" "))
     else:
         myContents = T(
             'If you want to give a reviewer who has completed his/her review an opportunity to modify the review, please check the reviewer below then click on the black button entitled "Re-open selected reviews"'
@@ -1086,6 +1086,9 @@ def reviews():
         db.t_reviews.emailing.represent = lambda text, row: XML(text) if text else ""
         db.t_reviews.last_change.writable = True
 
+        if pciRRactivated:
+            db.t_reviews.review_pdf.label = T("Review files")
+
         if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):  # grid view
             selectable = [(T("Re-open selected reviews"), lambda ids: [recommender_module.reopen_review(auth, db, ids)], "button btn btn-info")]
             db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
@@ -1094,6 +1097,14 @@ def reviews():
             selectable = None
             db.t_reviews.review.represent = lambda text, row: WIKI(text or "")
             db.t_reviews.emailing.readable = True
+        if pciRRactivated:
+            common_tools.divert_review_pdf_to_multi_upload()
+
+        def onvalidation(form):
+            files = form.vars.review_pdf
+            review = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == form.vars.reviewer_id)).select().last()
+            if type(files) == list and pciRRactivated:
+                common_tools.handle_multiple_uploads(review, files)
 
         query = db.t_reviews.recommendation_id == recommId
         grid = SQLFORM.grid(
@@ -1122,6 +1133,7 @@ def reviews():
                 db.t_reviews.reviewer_details,
             ],
             selectable=selectable,
+            onvalidation=onvalidation,
             _class="web2py_grid action-button-absolute",
             upload=URL("default", "download")
         )
