@@ -1057,10 +1057,10 @@ def reviews():
     recomm = db.t_recommendations[recommId]
     if recomm == None:
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        redirect(URL(c=request.controller, f=" "))
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        redirect(URL(c=request.controller, f=" "))
     else:
         myContents = T(
             'If you want to give a reviewer who has completed his/her review an opportunity to modify the review, please check the reviewer below then click on the black button entitled "Re-open selected reviews"'
