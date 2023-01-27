@@ -119,6 +119,7 @@ def index():
             t_articles.recommender,
             t_articles.reviewers,
             t_articles.submission_date,
+            t_articles.scheduled_submission_date,
             ],
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
