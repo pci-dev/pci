@@ -1153,6 +1153,9 @@ def my_reviews():
     db.t_reviews.anonymously.readable = False
     db.t_reviews.review.readable = False
 
+    if pciRRactivated:
+        db.t_reviews.review_pdf.label = T("Review files")
+
     if pendingOnly:
         db.t_reviews.review.readable = False
         db.t_reviews.review_pdf.readable = False

@@ -1086,6 +1086,9 @@ def reviews():
         db.t_reviews.emailing.represent = lambda text, row: XML(text) if text else ""
         db.t_reviews.last_change.writable = True
 
+        if pciRRactivated:
+            db.t_reviews.review_pdf.label = T("Review files")
+
         if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):  # grid view
             selectable = [(T("Re-open selected reviews"), lambda ids: [recommender_module.reopen_review(auth, db, ids)], "button btn btn-info")]
             db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
