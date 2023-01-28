@@ -230,6 +230,18 @@ def mailing_lists():
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
 
+    myContents.append(H1(T("Confirmed reviewers:")))
+    query = db(
+        (db.auth_user.id == db.t_reviews.reviewer_id)
+        & (db.t_reviews.review_state == "Review completed")
+        & (db.t_articles.status.belongs(["Recommended", "Rejected"]))
+    ).select(
+        db.auth_user.email, groupby=db.auth_user.email
+    )
+    myContents.append(", ".join(
+        [ _.email for _ in query]
+    ))
+
     # Other users
     myContents.append(H1(T("Others:")))
     emails = []
