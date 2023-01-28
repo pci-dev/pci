@@ -219,11 +219,13 @@ def mailing_lists():
     # Special searches: reviewers
     myContents.append(H1(T("Reviewers:")))
     emails = []
-    query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Awaiting review", "Review completed"]))).select(
+    query = db(
+        (db.auth_user.id == db.t_reviews.reviewer_id)
+        & (db.t_reviews.review_state.belongs(["Awaiting review", "Review completed"]))
+    ).select(
         db.auth_user.email, groupby=db.auth_user.email
     )
     for user in query:
-        if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
