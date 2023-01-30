@@ -84,6 +84,10 @@ body {
   margin-bottom: 5px;
 }
 
+#main-page-search-grid .web2py_paginator:not(:last-child) {
+  display: none;
+}
+
 .web2py_table {
   margin: 5px 0;
 }
