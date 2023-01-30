@@ -128,6 +128,26 @@ def index():
     remove_options = ['v_article.id']
     grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
 
+    tweeterAcc = myconf.get("social.tweeter")
+    lastRecommTitle = H3(
+        T("Latest recommendations"),
+        A(
+            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
+            _href=URL("about", "rss_info"),
+            _class="btn pci-rss-btn",
+            _style="float:right;",
+        ),
+        A(
+            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
+            _href="https://twitter.com/%(tweeterAcc)s"%locals(),
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+        ),
+
+        _class="pci-pageTitleText",
+        _style="margin-top: 15px; margin-bottom: 20px",
+    )
+
     if request.user_agent().is_mobile:
         twitterTimeline = None # was: XML(twitter-timeline) if conf.social.tweeter
         myBottomPanel = DIV(
@@ -142,9 +162,7 @@ def index():
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            searchForm=False,
-            lastRecomms=False,
-            lastRecommTitle=False,
+            lastRecommTitle=lastRecommTitle,
             grid = grid,
             shareable=True,
             currentUrl=URL(c="default", f="index"),
