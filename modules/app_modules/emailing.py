@@ -430,6 +430,9 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
 def mkAuthors(article):
     return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
 
+def mkUnanonymizedAuthors(article):
+    return SPAN(article.authors, (" [this is an anonymous submission]"))
+
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
@@ -446,6 +449,9 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = mkUnanonymizedAuthors(article)
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None
@@ -530,6 +536,9 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+
+            if article.anonymous_submission:
+                mail_vars["articleAuthors"] = mkUnanonymizedAuthors(article)
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None
