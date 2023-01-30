@@ -148,16 +148,6 @@ def index():
         _style="margin-top: 15px; margin-bottom: 20px",
     )
 
-    if request.user_agent().is_mobile:
-        twitterTimeline = None # was: XML(twitter-timeline) if conf.social.tweeter
-        myBottomPanel = DIV(
-            DIV(twitterTimeline, _style="overflow-y:auto; max-height: 95vh; height: 95vh;"),
-            _class="tweeterBottomPanel pci2-hide-under-tablet",
-            _style="overflow: hidden; padding: 0"
-        )
-    else:
-        myBottomPanel = False
-
     return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
@@ -167,7 +157,6 @@ def index():
             shareable=True,
             currentUrl=URL(c="default", f="index"),
             pciRRactivated=pciRRactivated,
-            myBottomPanel=myBottomPanel,
             panel=None,
         )
 
