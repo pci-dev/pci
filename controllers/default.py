@@ -152,7 +152,6 @@ def index():
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            lastRecommTitle=lastRecommTitle,
             grid = grid,
             shareable=True,
             currentUrl=URL(c="default", f="index"),
