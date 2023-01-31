@@ -39,8 +39,17 @@
         min-height: 0;
     }
 
+    #main-page-search-grid .web2py_console .w2p_query_row .form-control {
+        width: 100%;
+    }
+
     #main-page-search-grid .web2py_table .pci2-article-row .pci2-flex-column:last-child {
         flex-grow: 1;
+    }
+
+    #main-page-search-grid .web2py_console .w2p_query_row input[type="text"] {
+        flex-grow: 1;
+        flex: unset;
     }
 
     .web2py_grid tbody td {
@@ -199,6 +208,10 @@
         margin-top: 7rem;
     }
 
+    #main-page-search-grid .web2py_grid {
+        margin-top: 0;
+    }
+
     .logout-btn-alt {
         float: right;
         height: 0;
@@ -225,6 +238,7 @@
 
     #main-content {
         width: 100%;
+        margin-left: 0;
     }
 
     #articles-nav ul a,
@@ -425,10 +439,6 @@
     .pci2-thematic-link-div {
         padding-top: 1rem;
         margin-left: .5rem;
-    }
-
-    #lastRecommendationsDiv {
-        margin-left: 2.5rem;
     }
 
     .pci-pageTitleText {
@@ -851,6 +861,14 @@
         padding-bottom: 2rem;
     }
     
+    #main-page-search-grid .web2py_console .w2p_query_row .form-control {
+        max-width: 10rem;
+    }
+    
+    #main-page-search-grid .web2py_console .w2p_query_row .string.form-control {
+        max-width: unset;
+    }
+
     .web2py_console {
         padding-top: .3rem;
         padding-bottom: .5rem;
@@ -1266,6 +1284,10 @@
 
     #pci-logo {
         left: 0;
+    }
+
+    .pci-leftOfPanel {
+        padding-left: 2rem;
     }
 
     .navbar-nav {
