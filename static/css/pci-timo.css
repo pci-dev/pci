@@ -35,6 +35,10 @@
         width: 100%;
     }
 
+    #lastRecommendationsDiv {
+        min-height: 0;
+    }
+
     #main-page-search-grid .web2py_table .pci2-article-row .pci2-flex-column:last-child {
         flex-grow: 1;
     }

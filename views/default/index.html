@@ -80,23 +80,18 @@
     	{{=T("Submit a preprint")}}
     </a>
   {{pass}} 
-  {{if searchForm != False :}}
-  <div class="search-wrapper">
-    {{=searchForm}}
-  </div>
-  {{pass}}
 </div>  
 
 {{if 'pageTitle' in locals():}}
-<div class="pci2-flex-center">
-  <div class="pci-pageTitleText" style="width: 100%; max-width: 1200px;">{{=pageTitle}}</div>
-</div>
+  <div class="pci2-flex-center">
+    <div class="pci-pageTitleText" style="width: 100%; max-width: 1200px;">{{=pageTitle}}</div>
+  </div>
 {{pass}}
 
 {{if 'customText' in locals():}}
-<div class="pci2-flex-center">
-  <div style="max-width: 1200px;">{{=customText}}</div>
-</div>
+  <div class="pci2-flex-center">
+    <div style="max-width: 1200px;">{{=customText}}</div>
+  </div>
 {{pass}}
 
 <div class="pci-leftOfPanel">
@@ -109,28 +104,20 @@
 	{{pass}}
   
   {{ if lastRecommTitle: }}
-  <div id="lastRecommendationsDiv">
-    {{=lastRecommTitle}}
+    <div id="lastRecommendationsDiv">
+      {{=lastRecommTitle}}
+    </div>
+  {{pass}}
 
-    {{if 'lastRecomms' in locals():}}
-    	{{=lastRecomms}}
-	  {{pass}}
-  </div>
+  {{if 'grid' in locals():}}
+    <div id="main-page-search-grid">
+      {{=grid}}
+    </div>
   {{pass}}
 </div>
 
-{{if 'grid' in locals():}}
-  <div id="main-page-search-grid">
-    {{=grid}}
-  </div>
-{{pass}}
-
 {{if 'panel' in locals() and panel:}}
 	{{block right_sidebar}}
-	{{=panel}}
+	  {{=panel}}
 	{{end}}
-	{{pass}} 
-
-{{if 'myBottomPanel' in locals() and myBottomPanel:}}
-	{{=myBottomPanel}}
-	{{pass}}
+{{pass}} 
