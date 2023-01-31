@@ -217,19 +217,33 @@ def mailing_lists():
     myContents.append(list_emails)
 
     # Special searches: reviewers
-    myContents.append(H1(T("Reviewers:")))
+    myContents.append(H1(T("Users with completed or awaiting reviews:")))
     emails = []
-    query = db((db.auth_user._id == db.t_reviews.reviewer_id) & (db.t_reviews.review_state.belongs(["Awaiting review", "Review completed"]))).select(
+    query = db(
+        (db.auth_user.id == db.t_reviews.reviewer_id)
+        & (db.t_reviews.review_state.belongs(["Awaiting review", "Review completed"]))
+    ).select(
         db.auth_user.email, groupby=db.auth_user.email
     )
     for user in query:
-        if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
 
+    myContents.append(H1(T("Users with completed reviews for recommended or rejected preprints:")))
+    query = db(
+        (db.auth_user.id == db.t_reviews.reviewer_id)
+        & (db.t_reviews.review_state == "Review completed")
+        & (db.t_articles.status.belongs(["Recommended", "Rejected"]))
+    ).select(
+        db.auth_user.email, groupby=db.auth_user.email
+    )
+    myContents.append(", ".join(
+        [ _.email for _ in query]
+    ))
+
     # Other users
-    myContents.append(H1(T("Others:")))
+    myContents.append(H1(T("Other users (no role, not listed above):")))
     emails = []
     query = db.executesql(
         """SELECT DISTINCT auth_user.email FROM auth_user 
@@ -244,7 +258,7 @@ def mailing_lists():
     myContents.append(list_emails)
 
     # Semestrial Newsletter users
-    myContents.append(H1(T("Semestrial:")))
+    myContents.append(H1(T("Users receiving the newsletter:")))
     query = db.executesql("""
         SELECT email FROM auth_user
         WHERE alerts != 'Never' AND country is not NULL;
