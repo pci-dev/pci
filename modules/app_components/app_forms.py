@@ -432,7 +432,8 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
 
         if controller == "manager_edit":
-            redirect(URL(c="manager", f="recommendations", vars=myVars, user_signature=True))
+            controller = "manager" if auth.has_membership(role="manager") else "recommender"
+            redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
 
         if controller == "user_edit":
             redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
