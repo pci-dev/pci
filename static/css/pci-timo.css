@@ -39,6 +39,10 @@
         min-height: 0;
     }
 
+    #main-content > .col-md-9 .pci-public {
+        width: fit-content;
+    }
+
     #main-page-search-grid .web2py_console .w2p_query_row .form-control {
         width: 100%;
     }
