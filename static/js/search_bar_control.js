@@ -165,7 +165,7 @@ function switch_search() {
     } else {
         setSearchType('simple');
         try {
-            simple_search_div.style.display = 'flex';
+            simple_search_div.style.display = '';
             switch_search_btn.setAttribute('value', 'Advanced Search');
         } catch {
             clear_simple_search();

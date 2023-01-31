@@ -895,7 +895,7 @@
     }
 
     #simple-search {
-        display: flex;
+        display: block;
     }
 
     #simple-search-btn {
