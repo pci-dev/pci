@@ -3,13 +3,6 @@
 var search_bar = document.querySelector('#w2p_keywords');
 var user_types_without_any = ['auth_user', 'mail_templates', 't_articles', 'qy_art', 'mail_queue', 'v_article']
 
-// re-locate main page header into search grid
-var last_recommendations_header = document.querySelector('#lastRecommendationsDiv');
-if (last_recommendations_header != null) {
-    var results = document.querySelector('.web2py_table');
-    results.insertAdjacentElement('beforebegin', last_recommendations_header);
-}
-
 if (search_bar != null) {
     var user_type = get_user_type();
     if (user_type != undefined) {

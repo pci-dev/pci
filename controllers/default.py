@@ -147,12 +147,12 @@ def index():
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
     )
+    grid.element(".web2py_table").insert(0, lastRecommTitle)
 
     return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
             customText=getText(request, auth, db, "#HomeInfo"),
             pageHelp=getHelp(request, auth, db, "#Home"),
-            lastRecommTitle=lastRecommTitle,
             grid = grid,
             shareable=True,
             currentUrl=URL(c="default", f="index"),
