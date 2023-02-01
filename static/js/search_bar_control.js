@@ -108,6 +108,7 @@ function initialise_simple_search() {
     grid.insertBefore(simple_search_div, wconsole);
 
     search_bar.value = '';
+    input_field.value = getKeywords();
 
     move_buttons_to(simple_search_div);
     setSearchType('simple');
@@ -370,6 +371,11 @@ function setSearchType(cvalue) {
 
 function setCookieUT(cvalue) {
     document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
+}
+
+function getKeywords() {
+    return new URLSearchParams(window.location.search)
+        .get("keywords") || ""
 }
 
 function getSearchType() {
