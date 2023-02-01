@@ -12,6 +12,9 @@ if (search_bar != null) {
         var user_type = getCookie('user_type');
     }
 
+    var result_counter =  document.querySelector('.web2py_counter');
+    var switch_search_btn = create_switch_search_btn('advanced');
+
     if (search_bar.value != '') {
         ongoing_search();
     } else {
@@ -104,13 +107,9 @@ function initialise_simple_search() {
     simple_search_div.appendChild(clear_btn);
     grid.insertBefore(simple_search_div, wconsole);
 
-    var switch_search_btn = document.querySelector('#switch-search-btn');
-    if (switch_search_btn == null) {
-        switch_search_btn = create_switch_search_btn('advanced');
-        insertAfter(switch_search_btn, wconsole);
-    }
     search_bar.value = '';
 
+    move_buttons_to(simple_search_div);
     setSearchType('simple');
 }
 
@@ -152,20 +151,28 @@ function insertAfter(newNode, existingNode) {
     existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
 
+function move_buttons_to(dest) {
+    dest.appendChild(switch_search_btn);
+    dest.appendChild(result_counter);
+}
+
 function switch_search() {
     /* switch search (simple/advanced) and change switch button accordingly */
     var switch_search_btn = document.querySelector('#switch-search-btn');
     var advanced_search = document.querySelector('#w2p_query_panel');
     var simple_search_div = document.querySelector('#simple-search');
+    var wconsole = document.querySelector('.web2py_console');
     if (switch_search_btn.value == 'Advanced Search') {
         switch_search_btn.setAttribute('value', 'Simple Search');
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
+        move_buttons_to(wconsole);
         setSearchType('advanced');
     } else {
+        move_buttons_to(simple_search_div);
         setSearchType('simple');
         try {
-            simple_search_div.style.display = 'flex';
+            simple_search_div.style.display = '';
             switch_search_btn.setAttribute('value', 'Advanced Search');
         } catch {
             clear_simple_search();
@@ -287,8 +294,7 @@ function add_to_search(input_field) {
 }
 
 function result_counter_initial() {
-    var result_count = document.querySelector('.web2py_counter').innerHTML;
-    document.querySelector('.web2py_counter').innerHTML = result_count.replace(' found', '');
+    result_counter.innerHTML = result_counter.innerHTML.replace(' found', '');
 }
 
 function remove_asterisks() {
