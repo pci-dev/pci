@@ -165,6 +165,7 @@ function switch_search() {
     var wconsole = document.querySelector('.web2py_console');
     if (switch_search_btn.value == 'Advanced Search') {
         switch_search_btn.setAttribute('value', 'Simple Search');
+        wconsole.style.display = '';
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
         move_buttons_to(wconsole);
@@ -217,6 +218,8 @@ function ongoing_search() {
         return
     } else {
         var search_bar = document.querySelector('.web2py_console > form');
+        var wconsole = document.querySelector('.web2py_console');
+        wconsole.style.display = '';
         search_bar.style.display = 'flex';
         var simple_search_btn = create_switch_search_btn('simple');
         insertAfter(simple_search_btn, search_bar);
