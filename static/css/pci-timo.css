@@ -35,6 +35,14 @@
         width: 100%;
     }
 
+    .btn {
+        padding: 4px 12px;
+    }
+
+    .form-control {
+        height: 32px;
+    }
+
     #lastRecommendationsDiv {
         min-height: 0;
     }
@@ -864,7 +872,15 @@
         width: 100%;
         padding-bottom: 2rem;
     }
-    
+
+    .form-control {
+        height: 46px;
+    }
+
+    .btn {
+        padding: 4px 15px;
+    }
+
     #main-page-search-grid .web2py_console .w2p_query_row .form-control {
         max-width: 10rem;
     }
