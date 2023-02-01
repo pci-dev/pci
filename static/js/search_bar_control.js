@@ -171,13 +171,15 @@ function switch_search() {
         move_buttons_to(wconsole);
         setSearchType('advanced');
     } else {
-        move_buttons_to(simple_search_div);
         setSearchType('simple');
-        try {
+        if (simple_search_div) {
             simple_search_div.style.display = '';
             switch_search_btn.setAttribute('value', 'Advanced Search');
-        } catch {
-            clear_simple_search();
+            move_buttons_to(simple_search_div);
+        } else {
+            initialise_simple_search();
+            set_onclick_events();
+            switch_search_btn.remove();
         }
         advanced_search.style.display = 'none';
     }
