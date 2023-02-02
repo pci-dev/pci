@@ -13,6 +13,7 @@ shortname = myconf.take("app.name")
 longname = myconf.take("app.longname")
 contact = myconf.take("contacts.managers")
 siteUrl = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
+issn = "set in models/db.py"
 
 ######################################################################################################################################################################
 def getHelp(request, auth, db, myHashtag, myLanguage="default"):
@@ -54,12 +55,6 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
 
 ######################################################################################################################################################################
 def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200"):
-    description = myconf.take("app.description")
-    appname = myconf.take("app.name")
-    shortname = myconf.take("app.name")
-    longname = myconf.take("app.longname")
-    contact = myconf.take("contacts.managers")
-
     r0 = ""
     c = ""
     if not isinstance(db, str):

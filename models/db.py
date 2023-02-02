@@ -113,6 +113,9 @@ db.define_table(
 )
 cfg = db.config[1]
 # -------------------------------------------------------------------------
+from app_modules import helper
+helper.issn = cfg.issn
+# -------------------------------------------------------------------------
 
 
 allowed_upload_filetypes = ["pdf", "docx", "odt"]
