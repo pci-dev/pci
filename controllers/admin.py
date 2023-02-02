@@ -234,6 +234,8 @@ def mailing_lists():
     query = db(
         (db.auth_user.id == db.t_reviews.reviewer_id)
         & (db.t_reviews.review_state == "Review completed")
+        & (db.t_reviews.recommendation_id == db.t_recommendations.id)
+        & (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.status.belongs(["Recommended", "Rejected"]))
     ).select(
         db.auth_user.email, groupby=db.auth_user.email
