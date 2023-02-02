@@ -108,6 +108,7 @@ function initialise_simple_search() {
     grid.insertBefore(simple_search_div, wconsole);
 
     search_bar.value = '';
+    input_field.value = getKeywords();
 
     move_buttons_to(simple_search_div);
     setSearchType('simple');
@@ -164,18 +165,21 @@ function switch_search() {
     var wconsole = document.querySelector('.web2py_console');
     if (switch_search_btn.value == 'Advanced Search') {
         switch_search_btn.setAttribute('value', 'Simple Search');
+        wconsole.style.display = '';
         advanced_search.style.display = 'flex';
         simple_search_div.style.display = 'none';
         move_buttons_to(wconsole);
         setSearchType('advanced');
     } else {
-        move_buttons_to(simple_search_div);
         setSearchType('simple');
-        try {
+        if (simple_search_div) {
             simple_search_div.style.display = '';
             switch_search_btn.setAttribute('value', 'Advanced Search');
-        } catch {
-            clear_simple_search();
+            move_buttons_to(simple_search_div);
+        } else {
+            initialise_simple_search();
+            set_onclick_events();
+            switch_search_btn.remove();
         }
         advanced_search.style.display = 'none';
     }
@@ -216,6 +220,8 @@ function ongoing_search() {
         return
     } else {
         var search_bar = document.querySelector('.web2py_console > form');
+        var wconsole = document.querySelector('.web2py_console');
+        wconsole.style.display = '';
         search_bar.style.display = 'flex';
         var simple_search_btn = create_switch_search_btn('simple');
         insertAfter(simple_search_btn, search_bar);
@@ -370,6 +376,11 @@ function setSearchType(cvalue) {
 
 function setCookieUT(cvalue) {
     document.cookie = 'user_type=' + cvalue + '; SameSite=None; Secure'
+}
+
+function getKeywords() {
+    return new URLSearchParams(window.location.search)
+        .get("keywords") || ""
 }
 
 function getSearchType() {

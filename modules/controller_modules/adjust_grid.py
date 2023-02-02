@@ -172,4 +172,7 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
     if search_name == 'users':
         web2py_grid.insert(0, add_btn)
 
+    # default search to simple = hide advanced search console
+    grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
+
     return grid
