@@ -26,7 +26,9 @@ def help_texts():
     db.help_texts.contents.represent = lambda text, row: DIV(WIKI(text or "", safe_mode=False), _class="fade-transparent-text-300")
     db.help_texts._id.readable = False
     db.help_texts._id.writable = False
-    grid = SQLFORM.grid(
+    db.help_texts.lang.readable = False
+
+    original_grid = SQLFORM.grid(
         db.help_texts,
         create=auth.has_membership(role="developer"),
         deletable=False,
@@ -36,6 +38,10 @@ def help_texts():
         exportclasses=expClass,
         orderby=db.help_texts.hashtag,
     )
+
+    remove_options = ['help_texts.lang']
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'help_texts', remove_options)
+
     if grid.update_form and grid.update_form.process().accepted:
         if redirect_url:
             redirect(redirect_url)
