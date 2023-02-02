@@ -5,7 +5,7 @@ remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not 
 search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
-                     'main_articles': 'qy_articles'}
+                     'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
 def adjust_grid_basic(grid, search_name, remove_options = []):
     '''
@@ -52,6 +52,9 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'mail_queue':
         panel_search_field = grid.element('div#w2p_field_mail_queue-sending_status')
+        panel_search_field.attributes.update({'_style':'display:flex'})
+    elif search_name == 'help_texts':
+        panel_search_field = grid.element('div#w2p_field_help_texts-hashtag')
         panel_search_field.attributes.update({'_style':'display:flex'})
 
     # restyle Add, And, Or, Close buttons
@@ -136,6 +139,12 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
                 option.attributes.update({'_selected':'selected'})
                 sending_status_input_field = grid.element('div#w2p_field_mail_queue-sending_status')
                 sending_status_input_field.attributes.update({'_style':'display:flex'})
+    elif search_name == 'help_texts':
+        for option in select_panel:
+            if option.attributes['_value'].endswith('.hashtag'):
+                option.attributes.update({'_selected':'selected'})
+                sending_status_input_field = grid.element('div#w2p_field_help_texts-hashtag')
+                sending_status_input_field.attributes.update({'_style':'display:flex'})                
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].attributes.update({'_style':'display:none'})
