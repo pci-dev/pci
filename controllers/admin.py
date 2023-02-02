@@ -230,7 +230,7 @@ def mailing_lists():
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
 
-    myContents.append(H1(T("Users with completed reviews for recommended or rejected preprints:")))
+    myContents.append(H1(T("Users with completed reviews"), BR(), T("for recommended or rejected preprints:")))
     query = db(
         (db.auth_user.id == db.t_reviews.reviewer_id)
         & (db.t_reviews.review_state == "Review completed")
