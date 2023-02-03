@@ -65,6 +65,9 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
         manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
+    
+    if pciRRactivated and lastRecomm and (lastRecomm.recommender_id == auth.user_id and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
+       allowManageRequest = True
 
     printableUrl = None
     if auth.has_membership(role="manager"):

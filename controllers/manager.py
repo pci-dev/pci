@@ -792,7 +792,7 @@ def suggested_recommenders():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or (auth.has_membership(role="recommender") and pciRRactivated))
 def edit_article():
     response.view = "default/myLayout.html"
 
@@ -924,7 +924,8 @@ def edit_article():
             except: pass
 
         session.flash = T("Article saved", lazy=False)
-        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        controller = "manager" if auth.has_membership(role="manager") else "recommender"
+        redirect(URL(c=controller, f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
@@ -940,7 +941,7 @@ def edit_article():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or (auth.has_membership(role="recommender") and pciRRactivated))
 def edit_report_survey():
     response.view = "default/myLayout.html"
 
