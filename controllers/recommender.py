@@ -260,7 +260,7 @@ def search_reviewers():
         qyTF.append(thema.keyword)
     #response.flash = None
 
-    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
 
     def collect_reviewer_stats(fr):
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
