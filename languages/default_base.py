@@ -117,8 +117,6 @@
     "Change password": "Change password",
     "Check all thematic fields": "Check all thematic fields",
     "Check to delete": "Check to delete",
-    "Choose a reviewer from the %s database": "Choose a reviewer from the %s database",
-    "Choose a reviewer outside %s database": "Choose a reviewer outside %s database",
     "City": "City",
     "Clear CACHE?": "Clear CACHE?",
     "Clear": "Clear",
