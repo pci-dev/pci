@@ -199,33 +199,8 @@ def fields_awaiting_articles():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def search_reviewers():
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    temp_db = DAL("sqlite:memory")
-    qy_reviewers = temp_db.define_table(
-        "qy_reviewers",
-        Field("id", type="integer"),
-        Field("num", type="integer"),
-        Field("score", type="double", label=T("Score"), default=0),
-        Field("first_name", type="string", length=128, label=T("First name")),
-        Field("last_name", type="string", length=128, label=T("Last name")),
-        Field("email", type="string", length=512, label=T("e-mail")),
-        Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-        Field("city", type="string", label=T("City")),
-        Field("country", type="string", label=T("Country")),
-        Field("laboratory", type="string", label=T("Department")),
-        #Field("reviewer_stat", type="list:string", label=T("Active in PCI Evaluation")),
-        Field("keywords", type="string", label=T("Keywords")),
-        Field("institution", type="string", label=T("Institution")),
-        Field("thematics", type="string", label=T("Thematic fields")),
-        Field("expertise", type="string", label=T("Areas of expertise")),
-        Field("excluded", type="boolean", label=T("Excluded")),
-        Field("any", type="string", label=T("All fields")),
-    )
-    temp_db.qy_reviewers.email.represent = lambda text, row: A(text, _href="mailto:" + text)
     myVars = request.vars
 
-    qyKw = ""
-    qyTF = []
     excludeList = []
     myGoal = "4review"  # default
     for myVar in myVars:
@@ -233,14 +208,10 @@ def search_reviewers():
             myValue = (myVars[myVar])[1]
         else:
             myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif myVar == "myGoal":
+        if myVar == "myGoal":
             myGoal = myValue
         elif myVar == "exclude":
             excludeList += myValue.split(",")
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
     recomm = None
     if "recommId" in request.vars:
         recommId = request.vars["recommId"]
@@ -254,13 +225,12 @@ def search_reviewers():
                     if uid:
                         excludeList.append(uid)
 
-    qyKwArr = qyKw.split(" ")
-    qyTF = []
-    for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-        qyTF.append(thema.keyword)
-    #response.flash = None
-
-    filtered = db.executesql("SELECT * FROM search_reviewers(%s, %s, %s);", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
+    if not recomm or (
+            (recomm.recommender_id != auth.user_id)
+            and not auth.has_membership(role="manager")
+        ):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
 
     def collect_reviewer_stats(fr):
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
@@ -280,93 +250,69 @@ def search_reviewers():
         'thematics',
         'expertise',
         "keywords",
-        #'id',
-        #'num',
-        #'uploaded_picture',
-        #'score',
-        #'roles',
-        #'excluded',
     ]
-    users_ids = [ fr['id'] for fr in filtered ]
-    keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
-    expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
-    for fr in filtered:
-        fr['expertise'] = expertise[fr['id']] or ""
-        fr['keywords'] = keywords[fr['id']] or ""
-        qy_reviewers.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+    users = db.auth_user
 
-    temp_db.qy_reviewers.uploaded_picture.readable = False
-    temp_db.qy_reviewers.excluded.readable = False
-    temp_db.qy_reviewers._id.represent = lambda uid, row: DIV(common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]), _class="pci-w300Cell")
-    temp_db.qy_reviewers._id.label = "Who?"
-    #temp_db.qy_reviewers.reviewer_stat.represent = lambda stat, row: DIV(common_small_html.mkReviewerStat(auth, db, stat), _class="pci-w300Cell")
-    qy_reviewers.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    for f in users.fields:
+        if not f in full_text_search_fields:
+            users[f].readable = False
+
+    users.id.label = "Who?"
+    users.id.readable = True
+    users.id.represent = lambda uid, row: DIV(
+            common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+            _class="pci-w300Cell")
+
+    users.thematics.label = "Thematics fields"
+    users.thematics.type = "string"
+    users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
     pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
     customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
     pageHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
 
-    links = []
-    if "recommId" in request.vars:
-        recommId = request.vars["recommId"]
-        if myGoal == "4review":
+    if myGoal == "4review":
             header = T("")
             # use above defaults for: pageTitle, customText, pageHelp
-        elif myGoal == "4press":
+    elif myGoal == "4press":
             header = T("Propose contribution")
             pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
             customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
             pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
 
-        links.append(dict(
+    links = [
+        dict(
             header=header,
-            body=lambda row: "" if row.excluded else \
+            body=lambda row: "" if row.id in excludeList else \
                 recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)
-        ))
+        )]
 
-    if (recomm is not None) and (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    else:
-        
-        temp_db.qy_reviewers.num.readable = False
-        temp_db.qy_reviewers.score.readable = False
-        original_grid = SQLFORM.smartgrid(
-            qy_reviewers,
-            editable=False,
-            deletable=False,
+    original_grid = SQLFORM.smartgrid(
+            users,
             create=False,
-            details=False,
-            searchable=dict(auth_user=True, auth_membership=False),
+            buttons_placement=False,
             maxtextlength=250,
             paginate=100,
             csv=csv,
             exportclasses=expClass,
             fields=[
-                temp_db.qy_reviewers._id,
-                temp_db.qy_reviewers.num,
-                temp_db.qy_reviewers.score,
-                temp_db.qy_reviewers.uploaded_picture,
-                temp_db.qy_reviewers.thematics,
-                temp_db.qy_reviewers.keywords,
-                #temp_db.qy_reviewers.reviewer_stat,
-                temp_db.qy_reviewers.excluded,
+                users.id,
+                users.thematics,
+                users.keywords,
             ],
             links=links,
-            orderby=temp_db.qy_reviewers.num,
+            orderby=users.id,
             _class="web2py_grid action-button-absolute",
-        )
+    )
 
-        # options to be removed from the search dropdown:
-        remove_options = ['qy_reviewers.id']
+    # the grid is adjusted after creation to adhere to our requirements
+    remove_options = ['auth_user.id']
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
 
-        # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
+    response.view = "default/gab_list_layout.html"
+    myFinalScript = common_tools.get_script("popover.js")
 
-        response.view = "default/gab_list_layout.html"
-        myFinalScript = common_tools.get_script("popover.js")
-
-        return dict(
+    return dict(
             pageHelp=pageHelp,
             titleIcon="search",
             pageTitle=pageTitle,
@@ -375,7 +321,7 @@ def search_reviewers():
             myFinalScript=myFinalScript,
             grid=grid,
             absoluteButtonScript=common_tools.absoluteButtonScript,
-        )
+    )
 
 
 ######################################################################################################################################################################
