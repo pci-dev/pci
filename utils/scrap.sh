@@ -77,7 +77,8 @@ $WGET \
 	> $TEMP.data.html
 
 cat $TEMP.data.html \
-	| grep Roles | sed 's/<[^>]*>/\n/g' | sed 's/, /\n/g' \
+	| grep Roles | sed 's:<br />: :g' | sed 's/<[^>]*>/\n/g' \
+	| sed 's/, /\n/g' \
 	;
 
 rm -f $TEMP*
