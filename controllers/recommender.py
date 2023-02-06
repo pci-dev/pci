@@ -257,6 +257,8 @@ def search_reviewers():
     remove_options = ['auth_user.id']
     grid = adjust_grid.adjust_grid_basic(original_grid, 'reviewers', remove_options)
 
+    add_invite_new_reviewer_button(grid)
+
     response.view = "default/gab_list_layout.html"
     myFinalScript = common_tools.get_script("popover.js")
 
@@ -270,6 +272,17 @@ def search_reviewers():
             grid=grid,
             absoluteButtonScript=common_tools.absoluteButtonScript,
     )
+
+
+def add_invite_new_reviewer_button(grid):
+    button = BUTTON(
+        "Invite new reviewer",
+        _onclick="location.replace('%s')" % URL(
+            c="recommender",
+            f="email_for_new_reviewer?recommId="+request.vars.recommId),
+        _style="float:right",
+    )
+    grid.element('.web2py_table').insert(0, button)
 
 
 ######################################################################################################################################################################
