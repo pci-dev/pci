@@ -2940,3 +2940,7 @@ FROM
 
 alter view v_article owner to pci_admin;
 alter view v_article_recommender owner to pci_admin;
+
+-- 2023-02-06 updates/tracked_changes.sql
+ALTER TABLE "t_report_survey"
+ADD COLUMN IF NOT EXISTS  tracked_changes_url character varying(512) DEFAULT '';

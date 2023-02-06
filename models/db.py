@@ -1847,11 +1847,16 @@ db.define_table(
     ),
     # Stage 2 questions
     Field("temp_art_stage_1_id", type="reference t_articles", ondelete="CASCADE", label=T("1. Please select the related stage 1 report:")),
+    Field("tracked_changes_url",
+        type="string",
+        label=T("2. Please include below an accessible URL to the tracked-changes version of the Stage 2 manuscript, showing all textual changes between the current Stage 2 manuscript and the corresponding sections of the approved Stage 1 manuscript (e.g. Abstract, Introduction, Methods). All such differences, however minor must without exception be tracked. Please ensure that the tracked changes show both the addition and deletion of text (i.e. not just the final text but highlighted). This document will be shared with reviewers"),
+        length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), comment=T("URL must start with http:// or https://")
+    ),
     Field(
         "q25",
         type="boolean",
         label=T(
-            "2. In addition to meeting conventional citation standards for published articles, where applicable, I confirm that any references to published data sets, software, program code, or other methods are cited in the manuscript."
+            "3. In addition to meeting conventional citation standards for published articles, where applicable, I confirm that any references to published data sets, software, program code, or other methods are cited in the manuscript."
         ),
         default=False,
     ),
@@ -1859,7 +1864,7 @@ db.define_table(
         "q26",
         type="string",
         label=SPAN(
-            T("3. Have all raw and processed "),
+            T("4. Have all raw and processed "),
             SPAN(T("study data"), _style="text-decoration: underline"),
             T(" that are necessary and sufficient to reproduce all analyses and data presentations been made freely and publicly available?"),
         ),
@@ -1888,7 +1893,7 @@ db.define_table(
         "q27",
         type="string",
         label=SPAN(
-            T("4. Have all "),
+            T("5. Have all "),
             SPAN("digital materials", _style="text-decoration: underline"),
             T(
                 " that are necessary and sufficient to reproduce all data acquisition procedures been made freely and publicly available? Such materials can include, but are not limited to, software code associated with data acquisition hardware, stimuli (e.g. images, videos), survey text, and digital or digitized questionnaires."
@@ -1916,7 +1921,7 @@ db.define_table(
         "q28",
         type="string",
         label=SPAN(
-            T("5. Has all "),
+            T("6. Has all "),
             SPAN("analysis code", _style="text-decoration: underline"),
             T(" (where applicable) that would be necessary and sufficient to reproduce all data analyses been made freely and publicly available? "),
         ),
@@ -1942,7 +1947,7 @@ db.define_table(
         "q29",
         type="boolean",
         label=T(
-            '6. The authors confirm that the following statement is correct: "We report how we determined our sample size, all data exclusions (if any), all inclusion/exclusion criteria, whether inclusion/exclusion criteria were established prior to data analysis, all manipulations, and all measures in the study", elaborated as necessary in the main text.'
+            '7. The authors confirm that the following statement is correct: "We report how we determined our sample size, all data exclusions (if any), all inclusion/exclusion criteria, whether inclusion/exclusion criteria were established prior to data analysis, all manipulations, and all measures in the study", elaborated as necessary in the main text.'
         ),
         default=False,
     ),
@@ -1951,7 +1956,7 @@ db.define_table(
         type="string",
         label=SPAN(
             T(
-                "7. The Stage 2 manuscript must include the URL to the approved Stage 1 report on the Open Science Framework (OSF). PCI RR registered the Stage 1 report on behalf of the authors at the point of in-principle acceptance, and provided the authors with the URL to this formal registration in the Stage 1 acceptance letter. If the authors do not know the URL then please contact the recommender before proceeding further with the current submission."
+                "8. The Stage 2 manuscript must include the URL to the approved Stage 1 report on the Open Science Framework (OSF). PCI RR registered the Stage 1 report on behalf of the authors at the point of in-principle acceptance, and provided the authors with the URL to this formal registration in the Stage 1 acceptance letter. If the authors do not know the URL then please contact the recommender before proceeding further with the current submission."
             ),
             BR(),
             T(
@@ -1964,7 +1969,7 @@ db.define_table(
         "q31",
         type="string",
         label=SPAN(
-            T("8. If the authors are submitting a Stage 2 manuscript associated with a "),
+            T("9. If the authors are submitting a Stage 2 manuscript associated with a "),
             SPAN("programmatic", _style="text-decoration: underline"),
             T(
                 " Stage 1 RR (in which multiple Stage 2 manuscripts are intended from a single Stage 1 report), please confirm that the Stage 2 manuscript includes a section that (a) states that the current manuscript is one part of this larger protocol; (b) cites all previously published Stage 2 manuscripts arising from the report, if any; and (c) notes which, if any, Stage 2 components arising from the protocol are either awaiting completion, have been rejected at Stage 2 by PCI RR, or have been formally withdrawn by the authors."
