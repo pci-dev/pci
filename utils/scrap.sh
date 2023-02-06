@@ -125,7 +125,7 @@ mkdir -p site
 
 for target in manager recommender reviewer.{A,B} author other newsletter ; do
 	cat *.$target.txt | sort -u > $target.txt
-	for site_file in *.$role.txt; do
+	for site_file in *.$target.txt; do
 		site=${site_file%%.*}
 		cat $site_file | sort -u > site/$site.$target.txt
 	done
