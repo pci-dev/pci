@@ -1268,7 +1268,6 @@ def reviewers():
                 _style="width:100%; max-width: 1200px"))
         else:
             myContents = ""
-        longname = myconf.take("app.longname")
         tools_button = DIV(
             H5(B("Tools to help you find reviewers. Be careful not to invite any of the authors as reviewers, as their names can appear in search outputs.")),
             A(
@@ -1281,14 +1280,9 @@ def reviewers():
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",)
         myUpperBtn = DIV(
-            # A(
-            #     SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
-            #     _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", regUser=reg_user, exclude=excludeList)),
-            # ),
             A(
-                # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
-                SPAN(H6(B("Invite a reviewer")), _class="btn btn-lg btn-default"),
-                _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
+                SPAN(current.T("Invite a reviewer"), _class="btn btn-success"),
+                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", exclude=excludeList)),
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
