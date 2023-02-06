@@ -225,6 +225,10 @@ def search_reviewers():
                     if uid:
                         excludeList.append(uid)
 
+    for i, val in enumerate(excludeList):
+        try: excludeList[i] = int(val)
+        except: pass
+
     if not recomm or (
             (recomm.recommender_id != auth.user_id)
             and not auth.has_membership(role="manager")
