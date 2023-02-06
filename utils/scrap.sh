@@ -77,7 +77,9 @@ $WGET \
 	> $TEMP.data.html
 
 cat $TEMP.data.html \
-	| grep Roles | sed 's/<[^>]*>/\n/g' | sed 's/, /\n/g' \
+	| grep Roles | sed 's:<br />: :g' | sed 's/<[^>]*>/\n/g' \
+	| sed '/no role, not listed/ s/,//' \
+	| sed 's/, /\n/g' \
 	;
 
 rm -f $TEMP*
@@ -90,7 +92,7 @@ declare -A header=(
 [developer]="developer"
 [manager]="manager"
 [author]="Authors:"
-[other]="Other users (no role, not listed above):"
+[other]="Other users (no role not listed above):"
 [reviewer.A]="Users with completed or awaiting reviews:"
 [reviewer.B]="Users with completed reviews for recommended or rejected preprints:"
 [newsletter]="Users receiving the newsletter:"
@@ -123,7 +125,7 @@ mkdir -p site
 
 for target in manager recommender reviewer.{A,B} author other newsletter ; do
 	cat *.$target.txt | sort -u > $target.txt
-	for site_file in *.$role.txt; do
+	for site_file in *.$target.txt; do
 		site=${site_file%%.*}
 		cat $site_file | sort -u > site/$site.$target.txt
 	done
