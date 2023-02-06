@@ -78,6 +78,7 @@ $WGET \
 
 cat $TEMP.data.html \
 	| grep Roles | sed 's:<br />: :g' | sed 's/<[^>]*>/\n/g' \
+	| sed '/no role, not listed/ s/,//' \
 	| sed 's/, /\n/g' \
 	;
 
@@ -91,7 +92,7 @@ declare -A header=(
 [developer]="developer"
 [manager]="manager"
 [author]="Authors:"
-[other]="Other users (no role, not listed above):"
+[other]="Other users (no role not listed above):"
 [reviewer.A]="Users with completed or awaiting reviews:"
 [reviewer.B]="Users with completed reviews for recommended or rejected preprints:"
 [newsletter]="Users receiving the newsletter:"
