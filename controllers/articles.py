@@ -34,7 +34,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def index():
-    return recommended_articles()
+    redirect(URL('default','index'))
 
 @cache.action(time_expire=30, cache_model=cache.ram, quick="V")
 def last_recomms():
@@ -105,68 +105,6 @@ def last_recomms():
         # Reload mathjax to display math formula (and not latex code)
         SCRIPT("MathJax.typeset();", _type='text/javascript'),
         _class="pci-lastArticles-div",
-    )
-
-
-######################################################################################################################################################################
-# Recommended articles search & list (public)
-def recommended_articles():
-    tweeterAcc = myconf.get("social.tweeter")
-    myVars = request.vars
-    qyKwArr = []
-    qyTF = []
-    myVars2 = {}
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-            myVars2[myVar] = myValue
-            qyKwArr = qyKw.split(" ")
-        elif (myVar == "qyThemaSelect") and myValue:
-            qyTF = [myValue]
-            myVars2["qy_" + myValue] = True
-        elif re.match("^qy_", myVar) and myValue == "on" and not ("qyThemaSelect" in myVars):
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-            myVars2[myVar] = myValue
-
-    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
-
-    recomms = db.get_last_recomms()
-
-    totalArticles = len(filtered)
-    myRows = []
-    for row in filtered:
-        r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row), recomms.get(row['id']),
-                withImg=True, withScore=False, withDate=True,
-                withLastRecommOnly=True,
-                )
-        if r:
-            myRows.append(r)
-
-    grid = DIV(
-        DIV(DIV(T("%s items found") % (totalArticles), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"),
-        _class="searchRecommendationsDiv",
-    )
-
-    searchForm = app_forms.searchByThematic(auth, db, myVars2)
-
-    response.view = "default/gab_list_layout.html"
-    return dict(
-        titleIcon="search",
-        pageTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
-        customText=getText(request, auth, db, "#RecommendedArticlesText"),
-        pageHelp=getHelp(request, auth, db, "#RecommendedArticles"),
-        shareable=True,
-        currentUrl=URL(c="about", f="recommended_articles", host=host, scheme=scheme, port=port),
-        searchableList=True,
-        searchForm=searchForm,
-        grid=grid,
-        tweeterAcc=tweeterAcc,
-        pciRRactivated=pciRRactivated,
     )
 
 
