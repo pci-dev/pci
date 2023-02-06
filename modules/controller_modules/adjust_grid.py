@@ -2,7 +2,7 @@
 from app_modules.helper import OPTION
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
-search_name2field = {'reviewers': 'qy_reviewers', 'users': 'auth_user',
+search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
                      'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
@@ -32,9 +32,6 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
         # restyle the add button
         add_btn = grid.element('div.web2py_console a.btn-secondary')
         add_btn.attributes.update({'_style':'margin-bottom:4rem'})
-    elif search_name == 'reviewers':
-        panel_search_field = grid.element('div#w2p_field_qy_reviewers-id')
-        panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'recommenders':
         panel_search_field = grid.element('div#w2p_field_qy_recomm-id')
         panel_search_field.attributes.update({'_style':'display:flex'})
@@ -97,7 +94,7 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
 
     # in list_users(), where we have no "All fields", set "First name" as primary choice.
     # similarly, in mail_templates we set "Hashtag" as primary choice.
-    if search_name == 'users':
+    if search_name in ['users', 'reviewers']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.first_name'):
                 option.attributes.update({'_selected':'selected'})
