@@ -204,24 +204,17 @@ class Recommender_handles:
 
  def search_and_invite_registered_reviewer(_):
     select(".btn", contains= "Invite a reviewer".upper()).click()
+    select("#simple-search-input").send_keys(reviewer.name)
+    select("#simple-search-btn").click()
+    row = select("tr", contains=reviewer.name)
+    row.select(".button", contains="PREPARE AN INVITATION").click()
 
-    select("#no_table_reviewer_first_name").send_keys(reviewer.name)
-    select("#no_table_reviewer_last_name").send_keys("dude")
-    select("#no_table_reviewer_email").send_keys(reviewer.email)
-
-    select("input[type=submit]").click()
-    select("input#checkbox_0.user-checkbox").click()
-    select("a", contains="Yes, use the selected user and return to invitation editing".upper()).click()
     select("input[type=submit]").click()
 
  def invite_external_unregistered_reviewer(_):
-    select(".dropdown-toggle", contains="For recommenders").click()
-    select("a", f"{preprint.capitalize()}(s) you are handling").click()
+    select(".btn", "Invite a reviewer".upper()).click()
 
-    row = select("tr", contains=article.title)
-    row.select(".btn", "Invite a reviewer".upper()).click()
-
-    select(".btn", contains="Invite a reviewer".upper()).click()
+    select(".btn", contains="Invite new reviewer".upper()).click()
 
     select("#no_table_reviewer_first_name").send_keys("Titi")
     select("#no_table_reviewer_last_name").send_keys("Toto")
