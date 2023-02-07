@@ -316,5 +316,5 @@ def make_article_source(db, article):
     preprint_server = article.preprint_server
     pci_name  = myconf.take("app.name")
     version = article.ms_version
-    article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by Peer Community in {pci_name}"
+    article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by {pci_name}"
     return article_source if recomm is not None else ""
