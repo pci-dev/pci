@@ -834,6 +834,7 @@ def show_report_survey():
             "q28_details",
             "q29",
             "q30",
+            "q30_details",
             "q31",
             "q32",
         ]

@@ -341,7 +341,8 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
                 "N/A - No analysis code/scripts were used in any part of the data analysis",
             )
         )
-        db.t_report_survey.q30.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
+        db.t_report_survey.q30.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')
+        db.t_report_survey.q30_details.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
         db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
 
         fields = [
@@ -356,6 +357,7 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
             "q28_details",
             "q29",
             "q30",
+            "q30_details",
             "q31",
             "q32",
         ]

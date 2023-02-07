@@ -2944,3 +2944,9 @@ alter view v_article_recommender owner to pci_admin;
 -- 2023-02-06 updates/tracked_changes.sql
 ALTER TABLE "t_report_survey"
 ADD COLUMN IF NOT EXISTS  tracked_changes_url character varying(512) DEFAULT '';
+
+ALTER TABLE "t_report_survey" 
+RENAME COLUMN "q30" TO "q30_details";
+
+ALTER TABLE "t_report_survey"
+ADD COLUMN IF NOT EXISTS  q30 character varying(512) DEFAULT '';

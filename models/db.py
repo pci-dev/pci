@@ -1956,13 +1956,23 @@ db.define_table(
         type="string",
         label=SPAN(
             T(
-                "8. The Stage 2 manuscript must include the URL to the approved Stage 1 report on the Open Science Framework (OSF). PCI RR registered the Stage 1 report on behalf of the authors at the point of in-principle acceptance, and provided the authors with the URL to this formal registration in the Stage 1 acceptance letter. If the authors do not know the URL then please contact the recommender before proceeding further with the current submission."
+                "8. The Stage 2 manuscript must state the URL to the approved Stage 1 manuscript on the Open Science Framework (OSF). PCI RR registered the Stage 1 manuscript on behalf of the authors at the point of in-principle acceptance and provided the authors with the URL to this formal registration in the Stage 1 recommendation. If the authors are unable to find this URL then please contact the PCI RR Managing Board before proceeding further with the current submission."
             ),
             BR(),
             T(
-                "Please insert the page number containing the URL. If the authors chose for the accepted Stage 1 report to be registered under a private embargo then please note that PCI RR will now release the embargo and make the protocol fully public before the Stage 2 manuscript is sent for in-depth review."
+                "Please insert the exact URL below and the page number where this URL is stated in the Stage 2 submission. If the authors elected for the accepted Stage 1 manuscript to be registered under a private embargo then please note that PCI RR will now release the embargo and make the protocol public before the Stage 2 manuscript is sent for in-depth review."
             ),
+            BR(),
+            T(
+                "URL to the registered Stage 1 manuscript:"
+            )
         ),
+        length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), comment=T("URL must start with http:// or https://")
+    ),
+    Field(
+        "q30_details",
+        type="string",
+        label=T("Page number in the Stage 2 manuscript where this URL is stated:"),
         length=256,
     ),
     Field(
