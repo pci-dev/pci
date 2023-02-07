@@ -125,6 +125,8 @@ delete.external.user:
 
 test.medium test.scheduled-track: delete.external.user
 
+test.clean:
+	killall -9 chromedriver || true
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
