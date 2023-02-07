@@ -314,7 +314,7 @@ def make_article_source(db, article):
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     year = recomm.last_change.strftime("%Y") if recomm is not None else ""
     preprint_server = article.preprint_server
-    pci_name  = myconf.take("app.name")
+    pci_name  = myconf.take("app.longname")
     version = article.ms_version
     article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by {pci_name}"
     return article_source if recomm is not None else ""
