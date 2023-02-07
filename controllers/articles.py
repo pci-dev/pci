@@ -99,7 +99,6 @@ def last_recomms():
                 _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
                 _class="btn btn-default" + moreState,
             ),
-            A(current.T("See all recommendations"), _id="seeAllBtn", _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
             _style="text-align:center;",
         ),
         # Reload mathjax to display math formula (and not latex code)
@@ -222,40 +221,6 @@ def tracking():
             grid=DIV(article_list, _class="pci2-flex-center"),
         )
         return resu
-
-
-######################################################################################################################################################################
-def all_recommended_articles():
-    tweeterAcc = myconf.get("social.tweeter")
-    allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
-    recomms = db.get_last_recomms()
-    myRows = []
-    for row in allR:
-        r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row), recomms.get(row['id']),
-                withImg=True, withScore=False, withDate=True,
-                withLastRecommOnly=True,
-                )
-        if r:
-            myRows.append(r)
-    n = len(allR)
-
-    grid = DIV(
-        DIV(DIV(T("%s items found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
-    )
-
-    response.view = "default/myLayout.html"
-    return dict(
-        titleIcon="book",
-        pageTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
-        customText=getText(request, auth, db, "#AllRecommendedArticlesText"),
-        pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
-        grid=grid,
-        shareable=True,
-        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port),
-        tweeterAcc=tweeterAcc,
-        pciRRactivated=pciRRactivated,
-    )
 
 
 ######################################################################################################################################################################
