@@ -1431,6 +1431,7 @@ def email_for_registered_reviewer():
 
     recommId = request.vars["recommId"]
     new_round = convert_string(request.vars["new_round"])
+    new_stage = convert_string(request.vars["new_stage"])
     reviewerId = request.vars["reviewerId"]
     if recommId is None:
         session.flash = auth.not_authorized()
@@ -1484,9 +1485,12 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
+    if art.art_stage_1_id is not None:
+        stage1_art = db.t_articles[art.art_stage_1_id]
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
+        report_survey = art.t_report_survey.select().last()
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage else stage1_art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1503,6 +1507,11 @@ def email_for_registered_reviewer():
 
     destPerson = common_small_html.mkUser(auth, db, reviewerId).flatten()
 
+    if new_stage:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserReturningReviewer", art)
+        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
