@@ -216,7 +216,7 @@ def search_reviewers():
         dict(
             header=header,
             body=lambda row: "" if row.id in excludeList else \
-                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)
+                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal, reg_user)
         )]
 
     original_grid = SQLFORM.smartgrid(

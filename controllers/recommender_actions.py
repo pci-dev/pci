@@ -202,6 +202,9 @@ def decline_new_article_to_recommend():
 def suggest_review_to():
     reviewerId = request.vars["reviewerId"]
     new_round = request.vars["new_round"]
+    new_stage = request.vars["new_stage"]
+    reg_user = request.vars["reg_user"]
+
     if reviewerId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -218,7 +221,7 @@ def suggest_review_to():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(recommId=recommId, reviewerId=reviewerId, new_round=new_round)))
+        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(recommId=recommId, reviewerId=reviewerId, new_round=new_round, new_stage=new_stage, reg_user=reg_user)))
 
 
 ######################################################################################################################################################################
