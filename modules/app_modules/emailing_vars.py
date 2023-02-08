@@ -150,3 +150,12 @@ def getPCiRRScheduledSubmissionsVars(article):
 #         )
 
 #         return mail_vars
+def getPCiRRrecommendationText(db, article):
+    recommendation_text = ""
+    if article.status == "Recommended":
+        href=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port)
+        recommendation_text = SPAN (
+            current.T("You can also find the complete, public review history of the Stage 1 manuscript "), f'<a href="{href}" ><b>here on the PCI RR website.</b></a>', 
+        )
+    return recommendation_text
+
