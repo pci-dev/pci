@@ -59,7 +59,7 @@ def recommLatex(articleId, tmpDir, withHistory=False):
     art = db.t_articles[articleId]
     if art == None:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
     template = """
 \\documentclass[a4paper]{article}
 \\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
@@ -385,7 +385,7 @@ def recommBibtex(articleId):
     art = db.t_articles[articleId]
     if art == None:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
 
     lastRecomm = db.get_last_recomm(articleId)
     template = """@article{recommendation,
@@ -429,7 +429,7 @@ def frontPageLatex(articleId):
     art = db.t_articles[articleId]
     if art == None:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
 
     template = """
 \\documentclass[a4paper]{article}

@@ -411,7 +411,7 @@ def buildNewsLetterMail(
 
     allRecommendationsLink = A(
         current.T("See more recommendations..."),
-        _href=URL(c="articles", f="recommended_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]),
+        _href=(URL('default','index')),
         _style="border-radius: 5px; font-weight: bold; padding: 6px 20px; color: #ffffff; background-color: #3e3f3a;",
     )
 

@@ -49,7 +49,7 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
     actionForm = ""
     placeholderText = current.T("Search")
     if redirectSearchArticle == True:
-        actionForm = URL(c="articles", f="recommended_articles")
+        actionForm = URL('default','index')
         placeholderText = current.T("Search articles")
 
     return FORM(

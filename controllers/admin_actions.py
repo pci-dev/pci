@@ -60,10 +60,10 @@ def rec_as_pdf():
         articleId = request.vars["id"]
     else:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
     if not articleId.isdigit():
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
 
     tmpDir = tempfile.mkdtemp()
     cwd = os.getcwd()
@@ -105,10 +105,10 @@ def fp_as_pdf():
         articleId = request.vars["id"]
     else:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
     if not articleId.isdigit():
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
     art = db.t_articles[articleId]
     latFP = admin_module.frontPageLatex(articleId)
     tmpDir = tempfile.mkdtemp()

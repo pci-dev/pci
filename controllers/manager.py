@@ -377,7 +377,7 @@ def recommendations():
 
     if art is None:
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        redirect(URL('default','index'))
 
     if art.already_published:
         myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)

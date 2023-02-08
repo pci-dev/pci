@@ -589,10 +589,10 @@ def rec_as_latex():
         articleId = request.vars["id"]
     else:
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
     if not articleId.isdigit():
         session.flash = T("Unavailable")
-        redirect(URL("articles", "recommended_articles", user_signature=True))
+        redirect(URL('default','index'))
 
     withHistory = "withHistory" in request.vars
     bib = admin_module.recommBibtex(articleId)
