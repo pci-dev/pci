@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-
-from gluon.storage import Storage
-from gluon.contrib.markdown import WIKI
-
-from datetime import datetime, timedelta, date
-from dateutil import parser
-from gluon.contrib.appconfig import AppConfig
-from lxml import etree
-
 from app_modules.helper import *
-
-from app_components import app_forms
 
 from app_components import article_components
 from app_components import public_recommendation
@@ -21,15 +8,6 @@ from app_components import public_recommendation
 from app_modules import old_common
 from app_modules import common_tools
 
-
-myconf = AppConfig(reload=True)
-
-# frequently used constants
-csv = False  # no export allowed
-expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.get("config.trgm_limit") or 0.4
-
-pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def index():
@@ -127,7 +105,7 @@ def rec():
 
 ######################################################################################################################################################################
 def tracking():
-    tracking = myconf.get("config.tracking", default=False)
+    tracking = True # myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
@@ -154,8 +132,7 @@ def tracking():
 
 ######################################################################################################################################################################
 def pub_reviews():
-    myContents = DIV()
-    tracking = myconf.get("config.tracking", default=False)
+    tracking = True # myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
