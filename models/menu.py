@@ -97,20 +97,6 @@ def _BaseMenu(footerMenu=False):
     isHomeActive = False
     if ctr == "default" and fct != "user":
         isHomeActive = True
-    isArticleActive = False
-    if ctr == "articles":
-        isArticleActive = True
-
-    tracking = myconf.get("config.tracking", default=False)
-
-    articleMenu = [
-        menu_entry("Search articles", "glyphicon-search", URL("articles", "recommended_articles")),
-        menu_entry("All recommended articles", "glyphicon-book", URL("articles", "all_recommended_articles")),
-    ]
-
-    if tracking: articleMenu += [
-        menu_entry("Progress log", "glyphicon-tasks", URL("articles", "tracking")),
-    ]
 
     if footerMenu:
         homeLink = (IMG(_style="", _src=URL(c="static", f="images/pci-logo.svg")), isHomeActive, URL("default", "index"))
@@ -119,7 +105,6 @@ def _BaseMenu(footerMenu=False):
 
     menuBar = [
         homeLink,
-        (SPAN(I(_class="glyphicon glyphicon-book"), T("Articles")), isArticleActive, "#", articleMenu),
     ]
     return menuBar
 

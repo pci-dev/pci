@@ -11,7 +11,6 @@ from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
 
-
 from app_modules.helper import *
 
 from app_components import app_forms
@@ -36,6 +35,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 def index():
     redirect(URL('default','index'))
 
+######################################################################################################################################################################
 @cache.action(time_expire=30, cache_model=cache.ram, quick="V")
 def last_recomms():
     if "maxArticles" in request.vars:
@@ -262,4 +262,3 @@ def pub_reviews():
         grid=myContents,
     )
     return resu
-
