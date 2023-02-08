@@ -1113,9 +1113,9 @@ def reviewers():
         if article.user_id == auth.user_id:
             session.flash = auth.not_authorized()
             redirect(request.env.http_referer)
-    reg_user = False
+    reg_user, new_stage = False, False
     if article.report_stage == "STAGE 2":
-        reg_user = True
+        reg_user, new_stage = True, True
     if not recomm:
         return my_recommendations()
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
@@ -1126,7 +1126,7 @@ def reviewers():
         prevRoundHeader = ""
         customText=getText(request, auth, db, "#RecommenderAddReviewersText")
         if pciRRactivated and article.art_stage_1_id is not None and recomm_round == 1:
-            prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=True)
+            prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=new_stage)
         if recomm_round > 1:
             prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
@@ -1156,7 +1156,7 @@ def reviewers():
             ),
             A(
                 SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
-                _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId)),
+                _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
@@ -1498,7 +1498,7 @@ def email_for_registered_reviewer():
         Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage or reg_user else stage1_art, new_stage)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(stage1_art if new_stage or reg_user else art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1610,6 +1610,7 @@ def email_for_new_reviewer():
     response.view = "default/myLayout.html"
 
     recommId = request.vars["recommId"]
+    new_stage = convert_string(request.vars["new_stage"])
     recomm = db.t_recommendations[recommId]
     if recomm is None:
         session.flash = auth.not_authorized()
@@ -1656,9 +1657,15 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
+    if art.art_stage_1_id is not None:
+        stage1_art = db.t_articles[art.art_stage_1_id]
+        report_survey = art.t_report_survey.select().last()
+        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage else stage1_art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
