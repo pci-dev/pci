@@ -38,6 +38,10 @@ if request.global_settings.web2py_version < "2.14.1":
 # request.requires_https()
 
 # -------------------------------------------------------------------------
+# helper for redirects to / - usage: redirect(request.home)
+request.home = URL("../..")
+
+# -------------------------------------------------------------------------
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
 myconf = AppConfig(reload=True)

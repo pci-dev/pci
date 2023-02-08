@@ -33,7 +33,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def index():
-    redirect(URL('default','index'))
+    redirect(request.home)
 
 
 ######################################################################################################################################################################
@@ -46,7 +46,7 @@ def rec():
 
     if not articleId:
         session.flash = T("No parameter id (or articleId)")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     # Remove "reviews" vars from url
     if "reviews" in request.vars:
@@ -54,17 +54,17 @@ def rec():
 
     if not articleId.isdigit():
         session.flash = T("Article id must be a digit")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     art = db.t_articles[articleId]
 
     if art == None:
         session.flash = T("No such article: id=") + articleId
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     if art.status != "Recommended":
         session.flash = T("Access denied: item not recommended yet")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     if as_pdf:
         pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
@@ -78,7 +78,7 @@ def rec():
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     response.title = finalRecomm.recommendation_title
     response.title = common_tools.getShortText(response.title, 64)
