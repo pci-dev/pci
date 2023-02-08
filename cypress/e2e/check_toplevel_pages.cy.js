@@ -119,11 +119,6 @@ describe("Check toplevel pages", () => {
       });
     });
 
-    it("Should show page articles/", () => {
-      cy.visit(site_url + "articles/");
-      cy.contains(".pci-text-title", "Search articles").should("exist");
-    });
-
     it("Should show page about/", () => {
       cy.visit(site_url + "about/");
       cy.contains(".pci-text-title", /^About /).should("exist");

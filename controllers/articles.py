@@ -11,7 +11,6 @@ from dateutil import parser
 from gluon.contrib.appconfig import AppConfig
 from lxml import etree
 
-
 from app_modules.helper import *
 
 from app_components import app_forms
@@ -34,140 +33,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def index():
-    return recommended_articles()
-
-@cache.action(time_expire=30, cache_model=cache.ram, quick="V")
-def last_recomms():
-    if "maxArticles" in request.vars:
-        maxArticles = int(request.vars["maxArticles"])
-    else:
-        maxArticles = 10
-    myVars = copy.deepcopy(request.vars)
-    myVars["maxArticles"] = myVars["maxArticles"] or 10
-    myVarsNext = copy.deepcopy(myVars)
-    myVarsNext["maxArticles"] = int(myVarsNext["maxArticles"]) + 10
-
-    queryRecommendedArticles = None
-
-    if queryRecommendedArticles is None:
-        queryRecommendedArticles = db(
-            (db.t_articles.status == "Recommended") & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommendation_state == "Recommended")
-        ).iterselect(
-            db.t_articles.art_stage_1_id,
-            db.t_articles.id,
-            db.t_articles.title,
-            db.t_articles.authors,
-            db.t_articles.article_source,
-            db.t_articles.doi,
-            db.t_articles.picture_rights_ok,
-            db.t_articles.uploaded_picture,
-            db.t_articles.abstract,
-            db.t_articles.upload_timestamp,
-            db.t_articles.user_id,
-            db.t_articles.status,
-            db.t_articles.last_status_change,
-            db.t_articles.thematics,
-            db.t_articles.keywords,
-            db.t_articles.already_published,
-            db.t_articles.auto_nb_recommendations,
-            db.t_articles.scheduled_submission_date,
-            limitby=(0, maxArticles),
-            orderby=~db.t_articles.last_status_change,
-        )
-
-    recomms = db.get_last_recomms()
-
-    recommendedArticlesList = []
-    for row in queryRecommendedArticles:
-        r = article_components.getRecommArticleRowCard(auth, db, response, row, recomms.get(row.id), withDate=True)
-        if r:
-            recommendedArticlesList.append(r)
-
-    if len(recommendedArticlesList) == 0:
-        return DIV(I(T("Coming soon...")))
-
-    if len(recommendedArticlesList) < maxArticles:
-        moreState = " disabled"
-    else:
-        moreState = ""
-    return DIV(
-        DIV(recommendedArticlesList, _class="pci2-articles-list"),
-        DIV(
-            A(
-                current.T("More..."),
-                _id="moreLatestBtn",
-                _onclick="ajax('%s', ['qyThemaSelect', 'maxArticles'], 'lastRecommendations')" % (URL("articles", "last_recomms", vars=myVarsNext, user_signature=True)),
-                _class="btn btn-default" + moreState,
-            ),
-            A(current.T("See all recommendations"), _id="seeAllBtn", _href=URL("articles", "all_recommended_articles"), _class="btn btn-default"),
-            _style="text-align:center;",
-        ),
-        # Reload mathjax to display math formula (and not latex code)
-        SCRIPT("MathJax.typeset();", _type='text/javascript'),
-        _class="pci-lastArticles-div",
-    )
-
-
-######################################################################################################################################################################
-# Recommended articles search & list (public)
-def recommended_articles():
-    tweeterAcc = myconf.get("social.tweeter")
-    myVars = request.vars
-    qyKwArr = []
-    qyTF = []
-    myVars2 = {}
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-            myVars2[myVar] = myValue
-            qyKwArr = qyKw.split(" ")
-        elif (myVar == "qyThemaSelect") and myValue:
-            qyTF = [myValue]
-            myVars2["qy_" + myValue] = True
-        elif re.match("^qy_", myVar) and myValue == "on" and not ("qyThemaSelect" in myVars):
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-            myVars2[myVar] = myValue
-
-    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Recommended", trgmLimit, True], as_dict=True)
-
-    recomms = db.get_last_recomms()
-
-    totalArticles = len(filtered)
-    myRows = []
-    for row in filtered:
-        r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row), recomms.get(row['id']),
-                withImg=True, withScore=False, withDate=True,
-                withLastRecommOnly=True,
-                )
-        if r:
-            myRows.append(r)
-
-    grid = DIV(
-        DIV(DIV(T("%s items found") % (totalArticles), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"),
-        _class="searchRecommendationsDiv",
-    )
-
-    searchForm = app_forms.searchByThematic(auth, db, myVars2)
-
-    response.view = "default/gab_list_layout.html"
-    return dict(
-        titleIcon="search",
-        pageTitle=getTitle(request, auth, db, "#RecommendedArticlesTitle"),
-        customText=getText(request, auth, db, "#RecommendedArticlesText"),
-        pageHelp=getHelp(request, auth, db, "#RecommendedArticles"),
-        shareable=True,
-        currentUrl=URL(c="about", f="recommended_articles", host=host, scheme=scheme, port=port),
-        searchableList=True,
-        searchForm=searchForm,
-        grid=grid,
-        tweeterAcc=tweeterAcc,
-        pciRRactivated=pciRRactivated,
-    )
+    redirect(URL('default','index'))
 
 
 ######################################################################################################################################################################
@@ -180,7 +46,7 @@ def rec():
 
     if not articleId:
         session.flash = T("No parameter id (or articleId)")
-        redirect(URL("articles", "recommended_articles"))
+        redirect(URL('default','index'))
 
     # Remove "reviews" vars from url
     if "reviews" in request.vars:
@@ -188,17 +54,17 @@ def rec():
 
     if not articleId.isdigit():
         session.flash = T("Article id must be a digit")
-        redirect(URL("articles", "recommended_articles"))
+        redirect(URL('default','index'))
 
     art = db.t_articles[articleId]
 
     if art == None:
         session.flash = T("No such article: id=") + articleId
-        redirect(URL("articles", "recommended_articles"))
+        redirect(URL('default','index'))
 
     if art.status != "Recommended":
         session.flash = T("Access denied: item not recommended yet")
-        redirect(URL("articles", "recommended_articles"))
+        redirect(URL('default','index'))
 
     if as_pdf:
         pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
@@ -212,7 +78,7 @@ def rec():
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
-        redirect(URL("articles", "recommended_articles"))
+        redirect(URL('default','index'))
 
     response.title = finalRecomm.recommendation_title
     response.title = common_tools.getShortText(response.title, 64)
@@ -287,40 +153,6 @@ def tracking():
 
 
 ######################################################################################################################################################################
-def all_recommended_articles():
-    tweeterAcc = myconf.get("social.tweeter")
-    allR = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[[".*"], None, "Recommended", trgmLimit, True], as_dict=True)
-    recomms = db.get_last_recomms()
-    myRows = []
-    for row in allR:
-        r = article_components.getRecommArticleRowCard(
-                auth, db, response, Storage(row), recomms.get(row['id']),
-                withImg=True, withScore=False, withDate=True,
-                withLastRecommOnly=True,
-                )
-        if r:
-            myRows.append(r)
-    n = len(allR)
-
-    grid = DIV(
-        DIV(DIV(T("%s items found") % (n), _class="pci-nResults"), DIV(myRows, _class="pci2-articles-list"), _class="pci-lastArticles-div"), _class="searchRecommendationsDiv"
-    )
-
-    response.view = "default/myLayout.html"
-    return dict(
-        titleIcon="book",
-        pageTitle=getTitle(request, auth, db, "#AllRecommendedArticlesTitle"),
-        customText=getText(request, auth, db, "#AllRecommendedArticlesText"),
-        pageHelp=getHelp(request, auth, db, "#AllRecommendedArticles"),
-        grid=grid,
-        shareable=True,
-        currentUrl=URL(c="articles", f="all_recommended_articles", host=host, scheme=scheme, port=port),
-        tweeterAcc=tweeterAcc,
-        pciRRactivated=pciRRactivated,
-    )
-
-
-######################################################################################################################################################################
 def pub_reviews():
     myContents = DIV()
     tracking = myconf.get("config.tracking", default=False)
@@ -359,4 +191,3 @@ def pub_reviews():
         grid=myContents,
     )
     return resu
-
