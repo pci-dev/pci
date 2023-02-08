@@ -56,7 +56,7 @@ def mkSuggestReviewToButton(auth, db, row, recommId, myGoal, reg_user=False):
     if myGoal == "4review":
         anchor = A(
             SPAN(current.T("Prepare an invitation"), _class="buttontext btn btn-default pci-recommender"),
-            _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=row["id"], reg_user=reg_user), user_signature=True),
+            _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=row["id"], regUser=reg_user), user_signature=True),
             _class="button",
         )
     elif myGoal == "4press":

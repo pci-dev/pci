@@ -128,7 +128,7 @@ def fields_awaiting_articles():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def search_reviewers():
     myVars = request.vars
-    reg_user = myVars['reg_user']
+    reg_user = myVars["regUser"]
 
     excludeList = []
     myGoal = "4review"  # default
@@ -1152,7 +1152,7 @@ def reviewers():
         myUpperBtn = DIV(
             A(
                 SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
-                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", reg_user=reg_user, exclude=excludeList)),
+                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", regUser=reg_user, exclude=excludeList)),
             ),
             A(
                 SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
@@ -1436,7 +1436,7 @@ def email_for_registered_reviewer():
     recommId = request.vars["recommId"]
     new_round = convert_string(request.vars["new_round"])
     new_stage = convert_string(request.vars["new_stage"])
-    reg_user = convert_string(request.vars["reg_user"])
+    reg_user = convert_string(request.vars["regUser"])
     reviewerId = request.vars["reviewerId"]
     if recommId is None:
         session.flash = auth.not_authorized()
