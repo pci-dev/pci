@@ -1038,7 +1038,7 @@ def reviews():
         )
 
 ######################################################################################################################################################################
-def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
+def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new_stage=False):
             reviewersIds = [auth.user_id]
             reviewersList = []
             current_reviewers_id = []
@@ -1059,7 +1059,7 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
                             I("(" + (con.review_state or "") + ")"), 
                             )
-                    if prev_round:
+                    if new_round or new_stage:
                         current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
                         for i in current_reviewers:
                             current_reviewers_id.append(i.reviewer_id)
@@ -1069,12 +1069,36 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
                             " ",
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
                             A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
-                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=True), user_signature=True)) \
+                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                     if reviewer_id not in current_reviewers_id else "",
                         )
                     reviewersList.append(display)
             return reviewersList, reviewersIds
+######################################################################################################################################################################
+def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
+    total_count = []
+    recommList = db((db.t_recommendations.article_id == article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
+    for i in recommList:
+        total_count.append(i.id)
+    total_count.sort()
+    if new_stage:
+        latestRoundRecommId = recomm.id
+        prevRoundreviewersList = db((db.t_reviews.recommendation_id.belongs(total_count)) & (db.t_reviews.review_state == "Review completed")).select(
+            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+        )
+        text = "Choose a reviewer from Stage 1"
+    if new_round:
+        previousRoundRecommId = total_count[-2]
+        latestRoundRecommId = max(total_count)
+        prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
+            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+        )
+        text = "Choose a reviewer from the previous round of review"
+    prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
+    prevRoundHeader = DIV(H3(B(text)), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+    customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
+    return prevRoundHeader, customText
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def reviewers():
@@ -1097,21 +1121,10 @@ def reviewers():
         recomm_round = db((db.t_recommendations.article_id == article.id)).count()
         prevRoundHeader = ""
         customText=getText(request, auth, db, "#RecommenderAddReviewersText")
+        if pciRRactivated and article.art_stage_1_id is not None and recomm_round == 1:
+            prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=True)
         if recomm_round > 1:
-            total_count = []
-            recommList = db((db.t_recommendations.article_id == recomm.article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
-            for i in recommList:
-                total_count.append(i.id)
-            total_count.sort()
-            previousRoundRecommId = total_count[-2]
-            latestRoundRecommId = max(total_count)
-            prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
-                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
-            )
-            prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
-            if len(prevReviewersList) > 0:
-                prevRoundHeader = DIV(H3(B("Choose a reviewer from the previous round of review")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
-                customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
+            prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
         suggested_reviewers = ""
         oppossed_reviewers = ""
