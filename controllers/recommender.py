@@ -128,6 +128,7 @@ def fields_awaiting_articles():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def search_reviewers():
     myVars = request.vars
+    reg_user = myVars['reg_user']
 
     excludeList = []
     myGoal = "4review"  # default
@@ -1112,6 +1113,9 @@ def reviewers():
         if article.user_id == auth.user_id:
             session.flash = auth.not_authorized()
             redirect(request.env.http_referer)
+    reg_user = False
+    if article.report_stage == "STAGE 2":
+        reg_user = True
     if not recomm:
         return my_recommendations()
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
@@ -1148,7 +1152,7 @@ def reviewers():
         myUpperBtn = DIV(
             A(
                 SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
-                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", exclude=excludeList)),
+                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", reg_user=reg_user, exclude=excludeList)),
             ),
             A(
                 SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
@@ -1432,6 +1436,7 @@ def email_for_registered_reviewer():
     recommId = request.vars["recommId"]
     new_round = convert_string(request.vars["new_round"])
     new_stage = convert_string(request.vars["new_stage"])
+    reg_user = convert_string(request.vars["reg_user"])
     reviewerId = request.vars["reviewerId"]
     if recommId is None:
         session.flash = auth.not_authorized()
@@ -1487,10 +1492,13 @@ def email_for_registered_reviewer():
             )
     if art.art_stage_1_id is not None:
         stage1_art = db.t_articles[art.art_stage_1_id]
+        report_survey = art.t_report_survey.select().last()
+        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        report_survey = art.t_report_survey.select().last()
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage else stage1_art, new_stage)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage or reg_user else stage1_art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1507,11 +1515,11 @@ def email_for_registered_reviewer():
 
     destPerson = common_small_html.mkUser(auth, db, reviewerId).flatten()
 
-    if new_stage:
+    if pciRRactivated and new_stage:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserReturningReviewer", art)
-        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
-        Stage1_registeredURL = report_survey.q30
-        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
+    if pciRRactivated and reg_user:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserNewReviewer", art)
+
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
