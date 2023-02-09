@@ -127,6 +127,13 @@
           {{=MENU(response.help_about_menu, _class='nav navbar-nav bam', li_class='dropdown', ul_class='dropdown-menu')}}
         {{pass}}
       </div>
+      {{if (
+           not auth.user
+           and request.controller == "default"
+           and request.function in ["index", ""]
+      ):}}
+      <script src="{{=URL('static', 'js/pci/auto_show_topbar_logo.js')}}"></script>
+      {{pass}}
     </nav>  
 
     <!-- Masthead ===================================== -->
