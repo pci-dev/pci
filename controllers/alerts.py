@@ -1,24 +1,10 @@
 # -*- coding: utf-8 -*-
-# this file is released under public domain and you can use without limitations
 
-import re
-import os
+from datetime import datetime, timedelta
 
-# from gluon.contrib.markdown import WIKI
-
-from datetime import date, datetime, timedelta
-import calendar
-from time import sleep
-
-# import socket
-# host=socket.getfqdn()
 from gluon.contrib.appconfig import AppConfig
 
-from app_components import article_components
-
 from app_modules import emailing
-from app_modules import common_tools
-from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
 DELETE_DELAY = float(myconf.get("config.delete_mail_delay", default=60))
