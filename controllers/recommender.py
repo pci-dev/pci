@@ -1945,7 +1945,13 @@ def edit_recommendation():
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
     isPress = None
-
+    stage1_recomm_text = ""
+    stage1_recomm_comments = ""
+    if pciRRactivated and art.report_stage == "STAGE 2" and art.art_stage_1_id is not None:
+        stage1_recomm = db((db.t_recommendations.article_id == art.art_stage_1_id)).select(orderby=db.t_recommendations.id).last()
+        stage1_recomm_text = stage1_recomm.recommendation_title
+        stage1_recomm_comments = stage1_recomm.recommendation_comments
+        
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
@@ -2043,7 +2049,8 @@ def edit_recommendation():
         form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
         if isPress is False:
             form.insert(0, triptyque)
-
+        form.vars.recommendation_title = stage1_recomm_text
+        form.vars.recommendation_comments = stage1_recomm_comments
         if form.process().accepted:
             if form.vars.save:
                 if form.vars.recommender_opinion == "do_recommend":
