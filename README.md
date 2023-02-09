@@ -4,6 +4,8 @@ PCI - Peer Community In
 Free recommendation process for published and unpublished scientific papers
 based on peer reviews
 
+https://peercommunityin.org
+
 
 What is PCI ?
 -------------
@@ -11,26 +13,25 @@ What is PCI ?
 The “Peer Community in” project is a non-profit scientific organization aimed at creating specific communities of researchers reviewing and recommending papers in their field. These specific communities are entitled Peer Community in X, e.g. Peer Community in Evolutionary Biology, Peer Community in Microbiology.
 
 
-Installing from source
-----------------------
+Running a 'dev' PCI
+-------------------
 
 Requirements:
 
-- python (3.8+), postgreSql (9.6+), web2py
-- libimage-exiftool-perl, ghostscript (9.26+)
+	python (3.8+), postgreSql (9.6+), web2py (2.21+)
+	libimage-exiftool-perl, ghostscript (9.26+)
 
 
-Suggestion: use a python virtual env
+Create a python virtual env:
 
 	make virt-env
 
 
 Install, configure, run:
 
-	make install    # install all required components
+	make install    # setup runtime requirements
 
 	make db.admin   # give yourself postgres admin access
-
 	make db         # create PostgreSql database and user
 
 	make start      # run the PCI server
@@ -38,23 +39,25 @@ Install, configure, run:
 
 Browse the "empty" PCI at http://localhost:8000/pci
 
-The instance above runs with no mail server configured, which is ok for dev.
+Note: this 'dev' PCI runs with no mail server configured, so no mail
+will fly out; outbound and scheduled mails are however generally
+available via menu Admin > Mailing queue.
 
-In a prod setup, mails are sent by the mailing queue, run as a cronjob.
+On a 'prod' setup, mails are sent by the `mail_queue` cronjob.
 
-See [doc / Mailing-queue](doc/Mailing-queue.md) to run one.
+See [Mailing-queue](doc/Mailing-queue.md) to run one.
 
 
 Running tests
 -------------
 
-There are currently two flavours of automated tests:
-- cypress
-- selenium+pytest
+There are two flavours of automated tests: cypress & selenium+pytest.
 
 The tests can be used to populate an "empty" vanilla dev instance.
 
-See [doc / Tests setup](doc/Tests-setup.md) then use:
+See [Tests setup](doc/Tests-setup.md) then use:
+
+	make test.install # setup test requirements
 
 	make test.reset
 	make test.basic
@@ -64,6 +67,6 @@ See [doc / Tests setup](doc/Tests-setup.md) then use:
 Further reading
 ---------------
 
-- [doc / File structure](doc/File-structure.md)
-- [doc / COAR Notify](doc/COAR-Notify.md)
-- [doc / Docker](doc/Docker-container.md)
+- [File structure](doc/File-structure.md)
+- [COAR Notify](doc/COAR-Notify.md)
+- [Docker](doc/Docker-container.md)
