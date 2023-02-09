@@ -2,8 +2,7 @@ install: web2py pydeps postgresql additional
 
 
 web2py:
-	wget https://mdipierro.pythonanywhere.com/examples/static/web2py_src.zip
-	unzip web2py_src.zip && rm web2py_src.zip
+	git clone --depth=10 https://github.com/pci-dev/web2py
 	ln -s ../.. web2py/applications/pci
 
 pydeps:
@@ -125,6 +124,8 @@ delete.external.user:
 
 test.medium test.scheduled-track: delete.external.user
 
+test.clean:
+	killall -9 chromedriver || true
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py

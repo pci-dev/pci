@@ -5,7 +5,7 @@ from os import getenv
 
 def get_driver():
     options = webdriver.chrome.options.Options()
-    options.headless = not getenv("SHOW")
+    options.add_argument("--headless") if not getenv("SHOW") else None
     return webdriver.Chrome(options=options)
 
 def get_config():

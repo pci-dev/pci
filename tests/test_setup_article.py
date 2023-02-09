@@ -95,7 +95,7 @@ class User_submits:
 
  def complete_submission(_):
     select("a", "Complete your submission".upper()).click()
-
+    time.sleep(.1)
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
 
  def logout_user(_):

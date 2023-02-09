@@ -16,4 +16,5 @@ jobs:
       - run: make test.reset
       - run: make test.basic
 
-      - run: make test.reset.rr test.basic
+      - run: make test.reset.rr
+      - run: make test.basic
