@@ -1,5 +1,8 @@
 install: web2py pydeps postgresql additional
 
+virt-env:
+	sudo apt-get install virtualenvwrapper
+	mkvirtualenv pci --python=`which python3.8`
 
 web2py:
 	git clone --depth=10 https://github.com/pci-dev/web2py
@@ -72,7 +75,7 @@ test.install.cypress:
 	sudo npm install -g npm@latest
 	npm install
 
-test.install: test.install.cypress
+test.install: test.install.selenium test.install.cypress
 
 test.setup: test.db cypress/fixtures/users.json
 

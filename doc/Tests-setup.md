@@ -10,7 +10,7 @@ Selenium tests:
 
 Cypress tests:
 
-	make test.install
+	make test.install.cypress
 
 
 Setup test environment
