@@ -406,12 +406,14 @@ def buildNewsLetterMail(
     subject = replaceMailVars(mail_template["subject"], mail_vars)
     content = replaceMailVars(mail_template["content"], mail_vars)
 
+    full_link = { var: mail_vars[var] for var in ["scheme", "host", "port"] }
+
     subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
-    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    applogo = URL("static", "images/small-background.png", **full_link)
 
     allRecommendationsLink = A(
         current.T("See more recommendations..."),
-        _href=(URL('default','index')),
+        _href=URL('default','index', **full_link),
         _style="border-radius: 5px; font-weight: bold; padding: 6px 20px; color: #ffffff; background-color: #3e3f3a;",
     )
 

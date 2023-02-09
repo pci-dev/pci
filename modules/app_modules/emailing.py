@@ -1974,8 +1974,12 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = user["email"]
 
-    newsletter_interval = newsletter.interval[newsletterType]
-    hashtag_template = newsletter.template[newsletterType]
+    if newsletterType in ["Never", None]:
+        hashtag_template = newsletter.template["Weekly"]
+        newsletter_interval = 0
+    else:
+        hashtag_template = newsletter.template[newsletterType]
+        newsletter_interval = newsletter.interval[newsletterType]
 
     newRecommendationsCount = 0
     newPreprintRequiringRecommenderCount = 0
