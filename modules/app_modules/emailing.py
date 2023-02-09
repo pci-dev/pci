@@ -1974,7 +1974,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
     mail_vars["destAddress"] = user["email"]
 
-    if newsletterType == "Never":
+    if newsletterType in ["Never", None]:
         hashtag_template = newsletter.template["Weekly"]
         newsletter_interval = 0
     else:
