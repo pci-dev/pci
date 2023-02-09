@@ -22,8 +22,7 @@ Requirements:
 
 Suggestion: use a python virtual env
 
-	sudo apt-get install virtualenvwrapper
-	mkvirtualenv pci --python=`which python3.8`
+	make virt-env
 
 
 Install, configure, run:
