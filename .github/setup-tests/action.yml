@@ -11,7 +11,7 @@ runs:
       - run: |
           : divert chromedriver snap install so it is cached
 
-          sudo add-apt-repository ppa:saiarcot895/chromium-beta
+          sudo add-apt-repository ppa:saiarcot895/chromium-beta > /dev/null
           sudo apt-get update
         shell: bash
 
