@@ -125,7 +125,6 @@ def _ToolsMenu():
         (T("Send me the newsletter"), False, URL("alerts", "testMyNewsletterMail", user_signature=True)),
         (T("Delete trapped e-mails"), False, URL("admin_actions", "delete_trapped_emails")),
         (T("test delete mail"), False, URL("alerts", "testDeleteMail", user_signature=True)),
-        (T("Send newsletter now"), False, URL("alerts", "sendNewsletterMails", user_signature=True)),
         # (T('Test ALL e-mail alerts'), False, URL('alerts', 'alertUsers')),
         (T("RSS for bioRxiv"), False, URL("rss", "rss4bioRxiv", user_signature=True)),
         (T("RSS for eLife"), False, URL("rss", "rss4elife", user_signature=False)),
