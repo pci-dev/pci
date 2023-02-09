@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# import pprint
-# pp = pprint.PrettyPrinter(indent=4)
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
@@ -21,7 +19,6 @@ from app_modules.reminders import getDefaultReviewDuration
 
 from controller_modules import recommender_module
 
-# def pprint(*args): print args
 
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
@@ -36,6 +33,10 @@ if request.global_settings.web2py_version < "2.14.1":
 # be redirected to HTTPS, uncomment the line below:
 # -------------------------------------------------------------------------
 # request.requires_https()
+
+# -------------------------------------------------------------------------
+# helper for redirects to / - usage: redirect(request.home)
+request.home = URL("../..")
 
 # -------------------------------------------------------------------------
 # once in production, remove reload=True to gain full speed
@@ -748,7 +749,6 @@ db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 
 
 def deltaStatus(s, f):
-    # pprint(s,f)
     if "status" in f:
         o = s.select().first()
 

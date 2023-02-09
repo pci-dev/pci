@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-
-from gluon.storage import Storage
-from gluon.contrib.markdown import WIKI
-
-from datetime import datetime, timedelta, date
-from dateutil import parser
-from gluon.contrib.appconfig import AppConfig
-from lxml import etree
-
 from app_modules.helper import *
-
-from app_components import app_forms
 
 from app_components import article_components
 from app_components import public_recommendation
@@ -22,18 +9,9 @@ from app_modules import old_common
 from app_modules import common_tools
 
 
-myconf = AppConfig(reload=True)
-
-# frequently used constants
-csv = False  # no export allowed
-expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
-trgmLimit = myconf.get("config.trgm_limit") or 0.4
-
-pciRRactivated = myconf.get("config.registered_reports", default=False)
-
 ######################################################################################################################################################################
 def index():
-    redirect(URL('default','index'))
+    redirect(request.home)
 
 
 ######################################################################################################################################################################
@@ -46,7 +24,7 @@ def rec():
 
     if not articleId:
         session.flash = T("No parameter id (or articleId)")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     # Remove "reviews" vars from url
     if "reviews" in request.vars:
@@ -54,17 +32,17 @@ def rec():
 
     if not articleId.isdigit():
         session.flash = T("Article id must be a digit")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     art = db.t_articles[articleId]
 
     if art == None:
         session.flash = T("No such article: id=") + articleId
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     if art.status != "Recommended":
         session.flash = T("Access denied: item not recommended yet")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     if as_pdf:
         pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
@@ -78,7 +56,7 @@ def rec():
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
-        redirect(URL('default','index'))
+        redirect(request.home)
 
     response.title = finalRecomm.recommendation_title
     response.title = common_tools.getShortText(response.title, 64)
@@ -127,7 +105,7 @@ def rec():
 
 ######################################################################################################################################################################
 def tracking():
-    tracking = myconf.get("config.tracking", default=False)
+    tracking = True # myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
@@ -154,8 +132,7 @@ def tracking():
 
 ######################################################################################################################################################################
 def pub_reviews():
-    myContents = DIV()
-    tracking = myconf.get("config.tracking", default=False)
+    tracking = True # myconf.get("config.tracking", default=False)
     if tracking is False:
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
