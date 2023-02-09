@@ -75,7 +75,7 @@ test.install.cypress:
 	sudo npm install -g npm@latest
 	npm install
 
-test.install: test.install.cypress
+test.install: test.install.selenium test.install.cypress
 
 test.setup: test.db cypress/fixtures/users.json
 
