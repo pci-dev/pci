@@ -14,6 +14,15 @@ function onscroll() {
     }
 }
 
+function non_transparent_burger_menu() {
+    document.querySelector(".navbar-collapse")
+    .style.backgroundColor = window.
+        getComputedStyle(document.body).backgroundColor;
+}
+
+non_transparent_burger_menu()
+
 onscroll()
+
 document.addEventListener('scroll', onscroll)
 })()
