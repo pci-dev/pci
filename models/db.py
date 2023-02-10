@@ -113,6 +113,11 @@ db.define_table(
     ),
 )
 cfg = db.config[1]
+
+cfg.host = host.split(".")[0]
+
+db.cfg = cfg
+db.conf = myconf
 # -------------------------------------------------------------------------
 from app_modules import helper
 helper.issn = cfg.issn
