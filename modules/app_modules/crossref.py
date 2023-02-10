@@ -1,8 +1,12 @@
+import requests
+from time import sleep
 from gluon.html import TAG
 from app_modules.common_small_html import md_to_html
 
 
-class pci:
+def init_conf(db):
+
+ class pci:
     host = db.cfg.host
     issn = db.cfg.issn
     url = f"https://{host}.peercommunityin.org"
@@ -11,10 +15,37 @@ class pci:
     short_name = db.conf.get("app.longname")
     email = db.conf.get("contacts.contact")
 
-class crossref:
+ class crossref:
     version = "4.3.7"
     base = "http://www.crossref.org/schema"
     xsd = f"{base}/crossref{version}.xsd"
+
+    login = db.conf.get("crossref.login")
+    passwd = db.conf.get("crossref.passwd")
+    api_url = db.conf.get("crossref.api") or "https://doi.crossref.org/servlet"
+
+ globals().update(locals())
+
+
+def post_and_forget(recomm, xml=None):
+    recomm._filename = filename = get_filename(recomm)
+    try:
+        assert crossref.login, "crossref.login not set"
+        resp = post(filename, xml or crossref_xml(recomm))
+        resp.raise_for_status()
+    except Exception as e:
+        return f"error: {e}"
+
+
+def wait_for_status(recomm):
+    try:
+        return _wait_for_status(recomm)
+    except Exception as e:
+        return f"error: {e}"
+
+
+def get_filename(recomm):
+    return f"pci={pci.host}:rec={recomm.id}"
 
 
 def mk_recomm_description(recomm, article):
@@ -36,6 +67,40 @@ def mk_recomm_description(recomm, article):
 def mk_affiliation(user):
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
+
+
+def post(filename, crossref_xml):
+    return requests.post(
+        f"{crossref.api_url}/deposit",
+        params=dict(
+            operation="doMDUpload",
+            login_id=crossref.login,
+            login_passwd=crossref.passwd,
+        ),
+        files={filename: crossref_xml},
+    )
+
+
+def _wait_for_status(recomm):
+    for _ in range(5):
+        status = get_status(recomm).text
+        if "record_diagnostic" in status:
+            return status
+        sleep(1)
+
+    raise Exception("wait_for_status: timeout")
+
+
+def get_status(recomm):
+    return requests.get(
+        f"{crossref.api_url}/submissionDownload",
+        params=dict(
+            usr=crossref.login,
+            pwd=crossref.passwd,
+            file_name=get_filename(recomm),
+            type="result",
+        )
+    )
 
 
 def get_identifier_type(article):
