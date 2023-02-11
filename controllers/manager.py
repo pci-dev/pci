@@ -266,7 +266,7 @@ def _manage_articles(statuses, whatNext, db=db):
     query = t_articles
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage
+        auth, _db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage, submission_change=row.request_submission_change,
     )
 
     db.t_articles.request_submission_change.represent = lambda text, row: T('YES') if row.request_submission_change == True else T("NO") 
@@ -322,9 +322,9 @@ def _manage_articles(statuses, whatNext, db=db):
             db.t_articles.submitter_details,
             db.t_articles.recommenders,
             db.t_articles.anonymous_submission,
+            db.t_articles.request_submission_change
     ]
     if statuses is not None and "Pre-submission" in statuses:
-        fields += [db.t_articles.request_submission_change]
         fields.pop(11) # .remove(t_articles.recommenders) won't work, for Field.__eq__
 
 
