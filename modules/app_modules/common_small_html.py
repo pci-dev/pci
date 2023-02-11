@@ -260,12 +260,13 @@ def mkStatusSimple(auth, db, status):
 
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set"):
+def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
+    change_text = "Triage revision" if submission_change else "Initial submission"
 
     if showStage:
         if auth.has_membership(role="manager"):
@@ -287,11 +288,13 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="S
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
                 DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
+                DIV(B(current.T(change_text)), _style="text-align: center;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
                 DIV(B(current.T("Stage not set")), stage1Link, _style="text-align: center; width: 150px;"),
+                DIV(B(current.T(change_text)), _style="text-align: center;"),
             )
 
     else:
