@@ -592,6 +592,8 @@ def mkArticleCellNoRecomm(auth, db, art0):
             doi_text,
             BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
+            BR(),
+            SPAN(" " + current.T("ArticleID") + " " + str(art.id)),
             (BR() + SPAN(art.article_source) if art.article_source else ""),
         )
     return anchor
