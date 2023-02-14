@@ -71,6 +71,9 @@ def do_recommend_article():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     recomm = get_last_recomm(articleId)
+
+    redir_url = URL(c="manager", f="recommendations", vars=dict(articleId=art.id))
+
     # PCI RR
     # update stage 1 article status from "Recommended-private" to "Recommended"
     if art.art_stage_1_id is not None and art.status == "Pre-recommended":
@@ -82,7 +85,7 @@ def do_recommend_article():
                     artStage1.update_record()
             else:
                 session.flash = T("Stage 1 report recommendation process is not finished yet")
-                redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+                redirect(redir_url)
 
     # stage 1 recommended privately 
     if art.status == "Pre-recommended-private":	
@@ -90,15 +93,15 @@ def do_recommend_article():
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
-        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True))   
+        redirect(redir_url)
     elif art.status == "Pre-recommended":
         art.status = "Recommended"
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
-        redirect(URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True))    
-    else:
-        redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+        redirurl = URL(c="articles", f="rec", vars=dict(id=art.id))
+
+    redirect(redir_url)
 
 
 def get_last_recomm(articleId):
