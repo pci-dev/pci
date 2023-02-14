@@ -441,6 +441,7 @@ def recommendations():
 def crossref_toolbar(article):
     return DIV(
         crossref_button(article),
+        crossref_status(article),
         _style="margin-top: -2em;",
     )
 
@@ -451,6 +452,25 @@ def crossref_button(article):
         _href=URL("crossref", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
         _style="margin-right: 25px;",
+    )
+
+def crossref_status(article):
+    recomm = db.get_last_recomm(article)
+    status_url = URL("crossref", f"get_status?recomm_id={recomm.id}")
+    return SPAN(
+        SCRIPT('''
+        (function get_crossref_status() {
+            elt = document.currentScript.parentNode
+            req = new XMLHttpRequest()
+            req.addEventListener("load", function() {
+                status = this.responseText
+                status_str = "✅,❌,".split(",")
+                elt.innerHTML = status_str[status]
+            })
+            req.open("get", "'''+str(status_url)+'''")
+            req.send()
+        })()
+        '''),
     )
 
 ######################################################################################################################################################################

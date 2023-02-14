@@ -51,6 +51,23 @@ def post_form():
     )
 
 
+def get_status():
+    recomm_id = request.vars.recomm_id
+
+    try:
+        recomm = db.t_recommendations[recomm_id]
+        assert recomm
+    except:
+        return f"error: no such recomm_id={recomm_id}"
+
+    status = crossref.wait_for_status(recomm)
+    return (
+        2 if status.find("error:")+1 else
+        1 if '"Failure"' in status else
+        0
+    )
+
+
 def post_to_crossref(recomm, xml):
     status = (
         crossref.post_and_forget(recomm, xml) or
