@@ -565,6 +565,8 @@ def mkRepresentArticleLight(auth, db, article_id):
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
             doi_text,
             BR(),
+            SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),            
+            BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
             (BR() + SPAN(art.article_source) if art.article_source else ""),
         )
@@ -590,6 +592,8 @@ def mkArticleCellNoRecomm(auth, db, art0):
             B(md_to_html(art.title) or "", _class="article-title"),
             DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
             doi_text,
+            BR(),
+            SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),
             BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
             (BR() + SPAN(art.article_source) if art.article_source else ""),
