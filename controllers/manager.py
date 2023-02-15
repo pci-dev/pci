@@ -600,7 +600,6 @@ def search_recommenders():
             Field("excluded", type="boolean", label=T("Excluded")),
             Field("any", type="string", label=T("All fields")),
         )
-        #temp_db.qy_recomm.email.represent = lambda text, row: A(text, _href="mailto:" + text)
         qyKwArr = qyKw.split(" ")
 
         #searchForm = app_forms.searchByThematic(auth, db, myVars)

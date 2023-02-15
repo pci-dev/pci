@@ -58,7 +58,7 @@ def profile_page(user):
                     else:
                         uthema = [uthema]
                 thema = LI(", ".join(uthema))
-                mail = LI(A(" [%s]" % user.email, _href="mailto:%s" % user.email) if withMail else "")
+                mail = LI((" [%s]" % user.email) if withMail else "")
 
                 if user.uploaded_picture is not None and user.uploaded_picture != "":
                     img = IMG(_alt="avatar", _src=URL("default", "download", args=user.uploaded_picture), _class="pci-userPicture")

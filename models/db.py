@@ -1465,7 +1465,7 @@ def _Field_CC(default):
             length=250,
             requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
             filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            represent=lambda v, r: XML(', '.join([x.xml() for x in (v or [])])),
             default=default,
             writable=True,
         )

@@ -141,7 +141,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
         affil += userRow.country
     resu.append(TD(I(affil)))
     if withMail:
-        resu.append(TD(A(" [%s]" % userRow.email, _href="mailto:%s" % userRow.email) if withMail else TD("")))
+        resu.append(TD((" [%s]" % userRow.email) if withMail else TD("")))
     if withRoles:
         rolesQy = db((db.auth_membership.user_id == userRow.id) & (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role, orderby=db.auth_group.role)
         rolesList = []
@@ -224,12 +224,14 @@ def _mkUser(theUser, linked=False):
                 resu = SPAN(
                     A(
                         "%s %s" % (theUser.first_name, theUser.last_name),
-                        _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
+                        _href=URL(c="public", f="user_public_page",
+                            scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
                     ),
-                    A(" [%s]" % theUser.email, _href="mailto:%s" % theUser.email),
-                )
+                    SPAN(" [%s]" % theUser.email))
             else:
-                resu = SPAN(SPAN("%s %s" % (theUser.first_name, theUser.last_name)), A(" [%s]" % theUser.email, _href="mailto:%s" % theUser.email))
+                resu = SPAN(
+                    SPAN("%s %s" % (theUser.first_name, theUser.last_name)),
+                    SPAN(" [%s]" % theUser.email))
         else:
             resu = SPAN("?")
 
