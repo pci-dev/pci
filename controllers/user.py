@@ -537,6 +537,8 @@ def fill_new_article():
     form.element(_type="submit")["_class"] = "btn btn-success"
 
     def onvalidation(form):
+        if not pciRRactivated:
+            app_forms.checklist_validation(form)
         if pciRRactivated:
             form.vars.status = "Pending-survey"
     if form.process(onvalidation=onvalidation).accepted:
@@ -790,6 +792,7 @@ def edit_my_article():
                     form.errors.ms_version = "New version number must be greater than or same as previous version number"
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
+            app_forms.checklist_validation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
         if prev_picture and form.vars.uploaded_picture:

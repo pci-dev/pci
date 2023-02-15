@@ -442,3 +442,12 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
         session.flash = current.T("Form has errors", lazy=False)
 
     return form
+########################################################################################################################
+def checklist_validation(form):
+    if form.vars.results_based_on_data == "All or part of the results presented in this preprint are based on data" and form.vars.data_doi == []:
+        form.errors.data_doi = "Provide the web address(es) to the data used"
+    if form.vars.scripts_used_for_result == "Scripts were used to obtain or analyze the results" and form.vars.scripts_doi == []:
+        form.errors.scripts_doi = "Provide the web address(es) to the scripts used"
+    if form.vars.codes_used_in_study == "Codes have been used in this study" and form.vars.codes_doi == []:
+        form.errors.codes_doi = "Provide the web address(es) to the code used"
+        
