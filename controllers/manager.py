@@ -911,6 +911,7 @@ def edit_article():
         if not pciRRactivated:
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
+            app_forms.checklist_validation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.doi != art.doi:
