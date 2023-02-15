@@ -145,6 +145,11 @@ class Manager_validates:
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
     select("a", "View / Edit".upper()).click()
+    if not is_rr:
+        select("#article_doi_correct").click()
+        select("#data_ok").click()
+        select("#code_and_scripts_ok").click()
+        select("#scope_ok").click()
     select(".btn-success", "Validate this submission".upper()).click()
     select(".w2p_flash", "Request now available to recommenders").wait_clickable()
 
