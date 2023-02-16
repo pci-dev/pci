@@ -405,7 +405,6 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
         if controller == "user_edit" and art.status in ["Pending-survey", "Pre-submission"]:
             art.status = "Pending"
-            art.request_submission_change = False
             doUpdateArticle = True
 
         if controller == "user_fill" and True:

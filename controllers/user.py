@@ -805,7 +805,6 @@ def edit_my_article():
             article.status = "Pending"
         if form.vars.report_stage == "STAGE 1":
             article.art_stage_1_id = None
-        article.request_submission_change = False
         article.update_record()
         if art.status == "Pending":
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
