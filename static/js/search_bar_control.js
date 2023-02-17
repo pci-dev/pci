@@ -323,7 +323,7 @@ function get_search_term(input_field) {
 	search_term = search_form.querySelectorAll('select.form-control')[1];
     }
 
-    return search_term.value;
+    return search_term.value.trim();
 }
 
 function new_search(input_field) {
