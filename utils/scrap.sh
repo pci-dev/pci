@@ -98,7 +98,7 @@ _newsletter="Users receiving the newsletter:"
 
 split_to_files() {
 	for role in recommender manager administrator developer \
-			author reviewer.{A,B} other newsletter;
+			author reviewer_{A,B} other newsletter;
 	do
 		header="_$role"
 		sed "1,/^${!header}$/ d; /^[a-zA-Z: ]*$/,$ d" \
@@ -122,7 +122,7 @@ echo
 
 mkdir -p site
 
-for target in manager recommender reviewer.{A,B} author other newsletter ; do
+for target in manager recommender reviewer_{A,B} author other newsletter ; do
 	cat *.$target.txt | sort -u > $target.txt
 	for site_file in *.$target.txt; do
 		site=${site_file%%.*}
