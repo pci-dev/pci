@@ -86,23 +86,22 @@ rm -f $TEMP*
 }
 
 
-declare -A header=(
-[administrator]="administrator"
-[recommender]="recommender"
-[developer]="developer"
-[manager]="manager"
-[author]="Authors:"
-[other]="Other users (no role not listed above):"
-[reviewer.A]="Users with completed or awaiting reviews:"
-[reviewer.B]="Users with completed reviews for recommended or rejected preprints:"
-[newsletter]="Users receiving the newsletter:"
-)
+_administrator="administrator"
+_recommender="recommender"
+_developer="developer"
+_manager="manager"
+_author="Authors:"
+_other="Other users (no role not listed above):"
+_reviewer_A="Users with completed or awaiting reviews:"
+_reviewer_B="Users with completed reviews for recommended or rejected preprints:"
+_newsletter="Users receiving the newsletter:"
 
 split_to_files() {
 	for role in recommender manager administrator developer \
-			author reviewer.{A,B} other newsletter;
+			author reviewer_{A,B} other newsletter;
 	do
-		sed "1,/^${header[$role]}$/ d; /^[a-zA-Z: ]*$/,$ d" \
+		header="_$role"
+		sed "1,/^${!header}$/ d; /^[a-zA-Z: ]*$/,$ d" \
 			$site.txt > $site.$role.txt
 	done
 }
@@ -123,7 +122,7 @@ echo
 
 mkdir -p site
 
-for target in manager recommender reviewer.{A,B} author other newsletter ; do
+for target in manager recommender reviewer_{A,B} author other newsletter ; do
 	cat *.$target.txt | sort -u > $target.txt
 	for site_file in *.$target.txt; do
 		site=${site_file%%.*}
