@@ -811,9 +811,12 @@ def validate_stage_button(art):
 def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions"):
     return DIV(
         A(
-            SPAN(current.T(text), _class="buttontext btn btn-"+str(style)+" pci-manager"),
-            _href=URL(c=base, f=action, vars=dict(articleId=art.id), user_signature=True),
+            SPAN(current.T(text),
+                _style="width: 100%; margin: 0",
+                _class="buttontext btn btn-"+str(style)+" pci-manager"),
+            _href=URL(c=base, f=action, vars=dict(articleId=art.id)),
             _title=current.T(info_text),
+            _style="display: inline-block",
         ),
         extra_button,
         _class="pci-EditButtons-centered",
