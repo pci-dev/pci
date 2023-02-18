@@ -23,10 +23,14 @@ Setup test environment
 Run tests
 ---------
 
+full one-round scenario:
+
 	make test.full
 
 or live:
 
+	cd tmp
+	ln -s ../cypress* ../tests .
 	npx cypress open
 
 shorter scenario:
