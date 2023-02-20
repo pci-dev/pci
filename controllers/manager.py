@@ -427,6 +427,7 @@ def recommendations():
         isStage2=isStage2,
         stage1Link=stage1Link,
         stage2List=stage2List,
+        isPendingValidation=(art.status == "Pending" and not pciRRactivated),
     )
 
 
