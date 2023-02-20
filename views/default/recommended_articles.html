@@ -149,7 +149,12 @@
 		
 			<h2 style="margin-top: 40px" id="title-recomm-process" class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center">
 				<i class="glyphicon glyphicon-education" style="margin-right: 10px;"></i>
-				{{= T('Evaluation process')}}
+				{{= T('Before validating, please make sure that:')
+					if 'isPendingValidation' in locals()
+						and isPendingValidation
+					else
+				    T('Evaluation process')
+				}}
 			</h2>
 
 			{{=myContents}}

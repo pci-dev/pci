@@ -761,13 +761,16 @@ def sorry_you_are_recommender_note():
 
 def validate_stage_button(art):
             if art.status == "Pending":
-                return manager_action_button(
+                button = manager_action_button(
                     "do_validate_article",
                     "Validate this submission",
                     "Click here to validate this request and start recommendation process",
                     art,
                     put_in_presubmission_button(art) if pciRRactivated else "",
                 )
+                return SPAN(
+                    validation_checklist() if not pciRRactivated else "",
+                    button)
             elif art.status == "Pre-submission":
                 return manager_action_button(
                     "send_submitter_generic_mail",
@@ -808,9 +811,12 @@ def validate_stage_button(art):
 def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions"):
     return DIV(
         A(
-            SPAN(current.T(text), _class="buttontext btn btn-"+str(style)+" pci-manager"),
-            _href=URL(c=base, f=action, vars=dict(articleId=art.id), user_signature=True),
+            SPAN(current.T(text),
+                _style="width: 100%; margin: 0",
+                _class="buttontext btn btn-"+str(style)+" pci-manager"),
+            _href=URL(c=base, f=action, vars=dict(articleId=art.id)),
             _title=current.T(info_text),
+            _style="display: inline-block",
         ),
         extra_button,
         _class="pci-EditButtons-centered",
@@ -845,6 +851,31 @@ def validate_scheduled_submission_button(articleId, **extra_vars):
             _class="pci-EditButtons-centered",
     )
 
+def validation_checklist():
+    checkboxes = {
+        "article_doi_correct":
+        "DOI/URL of article is correct",
+
+        "data_ok":
+        "Link for data is ok",
+
+        "code_and_scripts_ok":
+        "Link for code and scripts is ok",
+
+        "scope_ok":
+        "Scope is ok",
+    }
+    fields = [
+        DIV(INPUT(
+            _name=name,
+            _type="checkbox",
+            _id=name,
+            requires=IS_NOT_EMPTY(),
+        ), LABEL(H5(label), _for=name))
+        for name, label in checkboxes.items()
+    ]
+    script = common_tools.get_script("validate_submission.js")
+    return DIV(*fields, script, _id="validation_checklist")
 
 ######################################################################################################################################
 # Postprint recommendation process

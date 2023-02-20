@@ -3,6 +3,8 @@ describe("Preprint recommended in one round", () => {
   const recommTitle = "recommendationTest" + new Date().toLocaleString();
   const currentTest = "preprint_1_round_recommendation";
 
+  const is_rr = false;
+
   let submitter;
   let manager;
   let admin;
@@ -61,8 +63,6 @@ describe("Preprint recommended in one round", () => {
           "Cover " + datas.long_html_text
         );
       });
-
-      var is_rr = false;
 
       var art_version = (is_rr ? "v1" : "1");
       cy.get("#t_articles_ms_version").typeFast(art_version);
@@ -222,6 +222,12 @@ describe("Preprint recommended in one round", () => {
       cy.contains("a", "View / Edit").first().click();
 
       cy.contains(".btn-success", "Validate this submission").should("exist");
+      if (!is_rr) {
+      cy.get("#article_doi_correct").click();
+      cy.get("#code_and_scripts_ok").click();
+      cy.get("#scope_ok").click();
+      cy.get("#data_ok").click();
+      }
       cy.contains(".btn-success", "Validate this submission").click();
 
       cy.wait(500);
