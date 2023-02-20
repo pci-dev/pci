@@ -101,7 +101,7 @@ test.full:
 	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
 
 test.basic:
-	cd tests ; pytest test_basic.py
+	cd tests ; pytest -xv test_basic.py
 
 test.medium:
 	cd tests ; pytest -v test_medium.py
