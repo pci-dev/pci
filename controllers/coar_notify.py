@@ -22,6 +22,8 @@ except:
  rdflib = None
 
 
+is_api = auth.has_membership(role="api")
+
 def index():
     if not COARNotifier(db).enabled or not rdflib:
         return "COAR notifications for PCI (disabled: %s)" % (
@@ -36,6 +38,7 @@ def index():
     return text .strip().replace('\n', '\n<br/>')
 
 
+@auth.requires(is_api)
 def inbox():
     coar_notifier = COARNotifier(db)
 
