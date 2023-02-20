@@ -1104,21 +1104,25 @@ db.auth_user._before_delete.append(lambda s: setCoRecommenderDetails(s.select().
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
         reviewer_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setRecommenderDetails(user):
     db(db.t_recommendations.recommender_id == user.id).update(
         recommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setArticleSubmitter(user):
     db(db.t_articles.user_id == user.id).update(
         submitter_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setCoRecommenderDetails(user):
     db(db.t_press_reviews.contributor_id == user.id).update(
         contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def updateReviewerDetails(row):
