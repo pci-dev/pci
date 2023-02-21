@@ -141,7 +141,7 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
         affil += userRow.country
     resu.append(TD(I(affil)))
     if withMail:
-        resu.append(TD(A(" [%s]" % userRow.email, _href="mailto:%s" % userRow.email) if withMail else TD("")))
+        resu.append(TD((" [%s]" % userRow.email) if withMail else TD("")))
     if withRoles:
         rolesQy = db((db.auth_membership.user_id == userRow.id) & (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role, orderby=db.auth_group.role)
         rolesList = []
@@ -224,12 +224,14 @@ def _mkUser(theUser, linked=False):
                 resu = SPAN(
                     A(
                         "%s %s" % (theUser.first_name, theUser.last_name),
-                        _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
+                        _href=URL(c="public", f="user_public_page",
+                            scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
                     ),
-                    A(" [%s]" % theUser.email, _href="mailto:%s" % theUser.email),
-                )
+                    SPAN(" [%s]" % theUser.email))
             else:
-                resu = SPAN(SPAN("%s %s" % (theUser.first_name, theUser.last_name)), A(" [%s]" % theUser.email, _href="mailto:%s" % theUser.email))
+                resu = SPAN(
+                    SPAN("%s %s" % (theUser.first_name, theUser.last_name)),
+                    SPAN(" [%s]" % theUser.email))
         else:
             resu = SPAN("?")
 
@@ -789,13 +791,14 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
+                    whoDidIt.append(
+                            get_name_from_details(theUser['details']) or mkUser(auth, db, theUser))
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else "")
+                        whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -827,13 +830,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else  "%s %s" % (db.auth_user[theUser['id']].first_name, db.auth_user[theUser['id']].last_name) if theUser['id'] else "")
+                    whoDidIt.append(get_name_from_details(theUser['details']) or mkUser(auth, db, theUser))
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser['details'].replace('<span>', '').split('</span>')[0] if theUser['details'] else "")
+                        whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -847,13 +850,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "%s %s" % (db.auth_user[theUser.reviewer_id].first_name, db.auth_user[theUser.reviewer_id].last_name) if theUser.reviewer_id else "")
+                    whoDidIt.append(mk_user_name(theUser, "reviewer_details"))
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(theUser.reviewer_details.replace('<span>', '').split('</span>')[0] if theUser.reviewer_details else "")
+                        whoDidIt.append(mk_user_name(theUser))
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
@@ -866,6 +869,17 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
 
     return whoDidIt
+
+
+def mk_user_name(user, details_field):
+    return (
+        get_name_from_details(user[details_field])
+        or mkUser_U(None, None, user)
+    )
+
+def get_name_from_details(user_details):
+    return user_details[:user_details.rfind(' [')] \
+            if user_details else ""
 
 
 ######################################################################################################################################################################
@@ -893,7 +907,8 @@ def getArticleSubmitter(auth, db, art):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter, B(art.submitter_details.replace('<span>', '').split('</span>')[0] \
+            I(mkAnonymousArticleField(auth, db, hideSubmitter,
+                B(get_name_from_details(art.submitter_details)
                 if art.submitter_details else mkUser_U(auth, db, submitter, linked=True)),)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )

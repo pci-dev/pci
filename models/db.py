@@ -1104,21 +1104,25 @@ db.auth_user._before_delete.append(lambda s: setCoRecommenderDetails(s.select().
 def setReviewerDetails(user):
     db(db.t_reviews.reviewer_id == user.id).update(
         reviewer_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setRecommenderDetails(user):
     db(db.t_recommendations.recommender_id == user.id).update(
         recommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setArticleSubmitter(user):
     db(db.t_articles.user_id == user.id).update(
         submitter_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def setCoRecommenderDetails(user):
     db(db.t_press_reviews.contributor_id == user.id).update(
         contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
+                                .flatten()
     )
 
 def updateReviewerDetails(row):
@@ -1465,7 +1469,7 @@ def _Field_CC(default):
             length=250,
             requires=IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message=T("invalid e-mail!"))),
             filter_in=lambda l: IS_LIST_OF_EMAILS.split_emails.findall(l[0]) if l else l,
-            represent=lambda v, r: XML(', '.join([A(x, _href='mailto:'+x).xml() for x in (v or [])])),
+            represent=lambda v, r: XML(', '.join([x.xml() for x in (v or [])])),
             default=default,
             writable=True,
         )
