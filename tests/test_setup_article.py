@@ -121,7 +121,6 @@ def fill_survey():
     select("#t_report_survey_q12").send_keys("yes")
     select("#q13YES").click()
     select("#t_report_survey_q16").send_keys("make public")
-    select("#t_report_survey_q17").send_keys("no embargo")
     select("#t_report_survey_q20").send_keys("yes")
     select("#t_report_survey_q21").send_keys("publish")
     select("#t_report_survey_q22").send_keys("yes")
