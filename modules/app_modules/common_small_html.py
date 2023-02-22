@@ -855,7 +855,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(mk_user_name(theUser))
+                        whoDidIt.append(mk_user_name(theUser, "reviewer_"))
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
