@@ -791,8 +791,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(
-                            get_name_from_details(theUser['details']) or mkUser(auth, db, theUser))
+                    whoDidIt.append(mk_user_name(theUser))
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -830,7 +829,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(get_name_from_details(theUser['details']) or mkUser(auth, db, theUser))
+                    whoDidIt.append(mk_user_name(theUser))
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -850,13 +849,13 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(mk_user_name(theUser, "reviewer_details"))
+                    whoDidIt.append(mk_user_name(theUser, "reviewer_"))
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(mk_user_name(theUser))
+                        whoDidIt.append(mk_user_name(theUser, "reviewer_"))
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
@@ -871,10 +870,10 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
     return whoDidIt
 
 
-def mk_user_name(user, details_field):
+def mk_user_name(user, _type=""):
     return (
-        get_name_from_details(user[details_field])
-        or mkUser_U(None, None, user)
+        get_name_from_details(user[_type+"details"])
+        or mkUser_U(None, None, user[_type+"id"]).flatten()
     )
 
 def get_name_from_details(user_details):
