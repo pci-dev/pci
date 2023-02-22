@@ -1589,6 +1589,7 @@ def email_for_registered_reviewer():
                     linkTarget,
                     declineLinkTarget,
                     new_round,
+                    True if new_stage or reg_user else False,
                 )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
@@ -1776,6 +1777,7 @@ def email_for_new_reviewer():
                         reset_password_key,
                         linkTarget,
                         declineLinkTarget,
+                        new_stage=new_stage,
                     )
             except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")
