@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from app_modules.helper import *
+from app_modules import crossref
 
+crossref.init_conf(db)
 
 
 ######################################################################################################################################################################
@@ -95,12 +97,15 @@ def do_recommend_article():
         art.update_record()
         redirect(redir_url)
     elif art.status == "Pre-recommended":
+        crossref.post_and_forget(recomm)
+
         art.status = "Recommended"
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
         redirurl = URL(c="articles", f="rec", vars=dict(id=art.id))
 
+    crossref.post_and_forget(recomm)
     redirect(redir_url)
 
 
