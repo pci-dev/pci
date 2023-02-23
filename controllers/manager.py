@@ -459,13 +459,15 @@ def crossref_status(article):
     status_url = URL("crossref", f"get_status?recomm_id={recomm.id}")
     return SPAN(
         SCRIPT('''
-        (function get_crossref_status() {
-            elt = document.currentScript.parentNode
+        (function get_crossref_status(elt) {
+            elt = elt || document.currentScript.parentNode
             req = new XMLHttpRequest()
             req.addEventListener("load", function() {
                 status = this.responseText
                 status_str = "✅,❌,".split(",")
                 elt.innerHTML = status_str[status]
+
+                if (status == "2") get_crossref_status(elt)
             })
             req.open("get", "'''+str(status_url)+'''")
             req.send()
