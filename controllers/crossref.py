@@ -2,11 +2,14 @@ from app_modules import crossref
 
 crossref.init_conf(db)
 
+is_admin = auth.has_membership(role="administrator")
 
 def index():
     request.function = "post_form" # zap header in layout.html
     return post_form()
 
+
+@auth.requires(is_admin)
 
 def post_form():
     article_id = request.vars.article_id
@@ -50,6 +53,8 @@ def post_form():
         pageTitle="Crossref post form",
     )
 
+
+@auth.requires(is_admin)
 
 def get_status():
     recomm_id = request.vars.recomm_id
