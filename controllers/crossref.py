@@ -37,15 +37,15 @@ def post_form():
         """,
         _rows=20,
     ))
+    form.insert(0, PRE(get_crossref_status(recomm), _name="status"))
 
     def onvalidation(form):
-        xml = form.vars.xml
-        status = post_to_crossref(recomm, xml)
-        form.insert(0, PRE(status))
-        form.errors = "error" in status
+        error = crossref.post_and_forget(recomm, form.vars.xml)
+        form.element(_name="status", replace=PRE(error or "request sent"))
 
     form.process(keepvalues=True, onvalidation=onvalidation)
 
+    response.flash = None
     response.view = "default/myLayout.html"
     return dict(
         form=form,
@@ -73,11 +73,8 @@ def get_status():
     )
 
 
-def post_to_crossref(recomm, xml):
-    status = (
-        crossref.post_and_forget(recomm, xml) or
-        crossref.wait_for_status(recomm)
-    )
+def get_crossref_status(recomm):
+    status = crossref.get_status(recomm).text
     if status.find("error:")+1:
         return status
 
