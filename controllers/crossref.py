@@ -39,11 +39,16 @@ def post_form():
     ))
     form.insert(0, PRE(get_crossref_status(recomm), _name="status"))
 
-    def onvalidation(form):
+    if form.process(keepvalues=True).accepted:
         error = crossref.post_and_forget(recomm, form.vars.xml)
         form.element(_name="status", replace=PRE(error or "request sent"))
 
-    form.process(keepvalues=True, onvalidation=onvalidation)
+        form.element(_name="xml")["_disabled"] = 1
+        url = URL("manager", f"recommendations?articleId={recomm.article_id}")
+        form.element(_type="submit").attributes.update(dict(
+            _value="Back",
+            _onclick= f'window.location.replace("{url}"); return false;'))
+
 
     response.flash = None
     response.view = "default/myLayout.html"
