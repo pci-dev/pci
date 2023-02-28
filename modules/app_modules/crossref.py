@@ -103,14 +103,12 @@ def get_status(recomm):
     )
 
 
-def get_identifier_type(article):
-    article_server = (article.preprint_server or "").lower()
-    source_has_doi = "biorxiv zenodo osf arxiv".split()
-    for doi_src in source_has_doi:
-        if doi_src in article_server:
-            return "doi"
+def get_identifier(article):
+    url = article.doi.strip()
+    typ = "doi" if "://doi.org/" in url[:16] else "other"
+    ref = url if typ != "doi" else url[16+url.find("https://"):]
 
-    return "other"
+    return typ, ref
 
 
 def crossref_xml(recomm):
@@ -121,7 +119,6 @@ def crossref_xml(recomm):
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
-    article_doi = article.doi
 
     recommender = db.auth_user[recomm.recommender_id]
     co_recommenders = []
@@ -129,8 +126,7 @@ def crossref_xml(recomm):
     for user in [recommender] + co_recommenders:
         user.affiliation = mk_affiliation(user)
 
-    interwork_type = get_identifier_type(article)
-    interwork_ref = article_doi
+    interwork_type, interwork_ref = get_identifier(article)
     item_number = recomm_doi[-6:]
 
     timestamp = recomm.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
