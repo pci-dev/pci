@@ -58,23 +58,28 @@
 						{{= T('Submit your report')}}
 					</h2>
 				</div>
-			
+
 				<div>
-					
+					<h4 style="margin: 5px 15px; text-align: center;">
 					{{if scheduledSubmissionRemaningDays < 0:}}
-						<h4 style="margin: 5px 15px; text-align: center;">
-							<b style="color: #ffbf00;">{{=T('Warning:')}}</b>
-							<span>
-								{{=T("Scheduled submission date has been reached.")}}
-							</span>
-						</h4>
+						<b style="color: #ffbf00;">{{=T('Warning:')}}</b>
+						<span>
+						{{=T("the scheduled submission date was")}}
+						{{=(
+						T("yesterday")
+							if scheduledSubmissionRemaningDays == -1 else
+						T("%s %%{day} ago",
+							-scheduledSubmissionRemaningDays)
+						)}}
+						</span>
+					{{elif scheduledSubmissionRemaningDays == 0:}}
+						{{=T("The scheduled submission date is TODAY.")}}
 					{{else:}}
-						<h4 style="margin: 5px 15px; text-align: center;">
-							{{=T("The scheduled submission date will be reached in ")}}
-							{{=TAG(T("<b>%s</b> %%{day}.",
-								scheduledSubmissionRemaningDays))}}
-						</h4>
+						{{=T("The scheduled submission date will be reached in ")}}
+						{{=TAG(T("<b>%s</b> %%{day}.",
+							scheduledSubmissionRemaningDays))}}
 					{{pass}}
+					</h4>
 					
 					<div style="margin: 15px 15px 10px; text-align: center; width: calc(100% - 30px);">
 						<b>When you're ready to upload your submission, please:</b>
