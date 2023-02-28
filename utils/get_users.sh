@@ -58,9 +58,31 @@ cat << EOT
 EOT
 }
 
+get_reviewers2() {
+
+local anon=False
+
+cat << EOT
+
+  select $FIELDS
+  from auth_user
+  where id in (
+        select distinct reviewer_id from t_reviews
+        where
+                review_state = 'Review completed'
+                and
+                acceptation_timestamp > '2021-01-01'
+                and
+                acceptation_timestamp < '2022-01-01'
+                and
+                anonymously = $anon
+  ) order by id
+
+EOT
+}
+
 get_recommenders() {
-
-
+cat << EOT
 
   select $FIELDS
   from auth_user
@@ -71,9 +93,22 @@ get_recommenders() {
 EOT
 }
 
+get_recommenders2() {
+cat << EOT
+
+  select $FIELDS
+  from auth_user
+  where id in (
+        select distinct recommender_id from t_recommendations
+        where
+                recommendation_state = 'Recommended'
+                and validation_timestamp >= '2016-01-01'
+  )
+
+EOT
+}
+
 get_authors() {
-
-
 cat << EOT
 
   select $FIELDS
