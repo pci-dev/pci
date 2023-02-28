@@ -47,7 +47,7 @@
 {{pass}}
 
 {{if ('isScheduledSubmission' in locals()) and ('scheduledSubmissionActivated' in locals()) and ('scheduledSubmissionForm' in locals()) and ('scheduledSubmissionRemaningDays' in locals()):}}
-	{{if scheduledSubmissionActivated and isScheduledSubmission and scheduledSubmissionForm and scheduledSubmissionRemaningDays:}}
+	{{if scheduledSubmissionActivated and isScheduledSubmission and scheduledSubmissionForm and scheduledSubmissionRemaningDays >=0 :}}
 		<div class="pci2-flex-column pci2-align-items-center">
 			<div style="max-width: 800px; width: 100%;">
 				<hr>
