@@ -71,10 +71,8 @@
 					{{else:}}
 						<h4 style="margin: 5px 15px; text-align: center;">
 							{{=T("The scheduled submission date will be reached in ")}}
-							<b>
-								{{=scheduledSubmissionRemaningDays}}
-							</b> 
-							{{=T("days.")}}
+							{{=TAG(T("<b>%s</b> %%{day}.",
+								scheduledSubmissionRemaningDays))}}
 						</h4>
 					{{pass}}
 					
