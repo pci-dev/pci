@@ -1,9 +1,11 @@
 #!/bin/bash
 
-DB=pci_ecology
+CMD=${1}
+DB=${2:-pci_ecology}
 
 FIELDS="first_name, last_name, email, country, registration_datetime"
 
+PSQL="psql -h mydb1 -p 33648 -U peercom $DB"
 
 main() {
     case $1 in
@@ -11,9 +13,11 @@ main() {
             echo "usage: $(basename $0) [reviewers|recommenders|authors|users] [pci_xxx]"
             exit 0
             ;;
-        reviewers|recommenders|users|authors)
-            cmd=$1
-            DB=$2
+          reviewers    | reviewers2       \
+        | recommenders | recommenders2    \
+        | authors                         \
+        | users                           \
+        )
             ;;
         *)
             echo "unknown command: $1"
@@ -21,29 +25,29 @@ main() {
             ;;
     esac
 
-    get_$cmd
+    get_$CMD | csv | $PSQL
 }
 
+csv() {
+    echo "copy ("
+    cat
+    echo ") to stdout with CSV DELIMITER ';'"
+    # or CSV DELIMITER ';' HEADER
+}
+
+
 get_users() {
-
-(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
-
-copy (
+cat << EOT
 
   select $FIELDS
   from auth_user
   order by id
 
-) to stdout with CSV DELIMITER ';' HEADER;
 EOT
-
 }
 
 get_reviewers() {
-
-(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
-
-copy (
+cat << EOT
 
   select $FIELDS
   from auth_user
@@ -51,16 +55,12 @@ copy (
         select distinct reviewer_id from t_reviews where review_state = 'Review completed'
   ) order by id
 
-) to stdout with CSV DELIMITER ';' HEADER;
 EOT
-
 }
 
 get_recommenders() {
 
-(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
 
-copy (
 
   select $FIELDS
   from auth_user
@@ -68,15 +68,13 @@ copy (
         select user_id from auth_membership where group_id = 2
   ) order by id
 
-) to stdout with CSV DELIMITER ';' HEADER;
 EOT
 }
 
 get_authors() {
 
-(db=$DB; psql -h mydb1 -p 33648 -U peercom $db ) << EOT
 
-copy (
+cat << EOT
 
   select $FIELDS
   from auth_user
@@ -84,8 +82,8 @@ copy (
         select distinct user_id from t_articles
   ) order by id
 
-) to stdout with CSV DELIMITER ';' HEADER;
 EOT
 }
+
 
 main "$@"
