@@ -2908,6 +2908,10 @@ alter table config add column issn text;
 -- 2023-01-20 updates/add_allowed_filetypes_config.sql
 alter table config add column allowed_upload_filetypes text;
 
+-- 2023-03-01 updates/add_article_year.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS article_year integer;
+
 -- 2023-01-25 updates/refactor_v_article_recommender.sql
 DROP VIEW v_article_recommender;
 CREATE OR REPLACE VIEW v_article_recommender AS
