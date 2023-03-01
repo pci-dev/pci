@@ -18,6 +18,7 @@ tmp/*
 static/images/background.png
 static/images/small-background.png
 languages/default.py
+languages/plural-*
 controllers/dev.py
 controllers/stats.py
 web2py/
