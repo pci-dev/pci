@@ -289,13 +289,13 @@
           <!-- Review edit button -->  
           {{if review['showEditButtons']:}}
             <div class="pci2-flex-column pci2-flex-center pci2-full-width" style="margin: 20px 0;">
-              <a class="buttontext btn btn-default {{if scheduledSubmissionActivated and isScheduledSubmission:}} disabled {{pass}}" 
+              <a class="buttontext btn btn-default {{if reviewButtonDisabled:}} disabled {{pass}}"
                 href="{{=URL(c='user', f='edit_review', vars=dict(reviewId=review['id']))}}"
                 style="margin-bottom: 5px;"
               >
                 {{=T('Write, edit or upload your review')}}
               </a>
-              {{if scheduledSubmissionActivated and isScheduledSubmission:}}
+              {{if reviewButtonDisabled:}}
                 <p>
                   {{=T("You will be able to upload your review as soon as the author submit his preprint.")}}
                 </p>
