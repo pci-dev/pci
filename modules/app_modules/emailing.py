@@ -2397,6 +2397,9 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
         mail_vars["description"] = myconf.take("app.description")
         mail_vars["sender"] = mkSender(auth, db, recomm)
+
+        mail_vars["art_doi"] = article.doi
+        mail_vars["art_title"] = md_to_html(article.title)
         
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = md_to_html(article.title)
