@@ -67,6 +67,9 @@ describe("Preprint recommended in one round", () => {
       var art_version = (is_rr ? "v1" : "1");
       cy.get("#t_articles_ms_version").typeFast(art_version);
 
+      var art_year = new Date().getFullYear();
+      cy.get("#t_articles_article_year").typeFast(art_year);
+
       if (is_rr) {
         cy.get("#t_articles_report_stage").send_keys("Stage 1");
         cy.get("#t_articles_sub_thematics").typeFast("sub-thematic");

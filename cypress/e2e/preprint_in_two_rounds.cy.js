@@ -63,6 +63,9 @@ describe("Preprint recommended in two round", () => {
         );
       });
 
+      var art_year = new Date().getFullYear();
+      cy.get("#t_articles_article_year").typeFast(art_year);
+
       cy.get("#t_articles_no_results_based_on_data").click();
       cy.get("#t_articles_no_scripts_used_for_result").click();
       cy.get("#t_articles_codes_used_in_study").click();
