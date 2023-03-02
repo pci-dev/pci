@@ -704,7 +704,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewsList=reviewsList,
             showSearchingForReviewersButton=showSearchingForReviewersButton,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
-            scheduledSubmissionActivated=scheduledSubmissionActivated,
             isScheduledSubmission=isScheduledSubmission,
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
