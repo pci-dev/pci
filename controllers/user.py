@@ -1264,6 +1264,8 @@ def my_reviews():
 
 def review_button_disabled(article):
     return scheduledSubmissionActivated and (
+        not article.status == "Under consideration"
+    ) and (
 
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
