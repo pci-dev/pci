@@ -49,12 +49,11 @@ def get_filename(recomm):
 
 
 def mk_recomm_description(recomm, article):
-    year = recomm.last_change.strftime("%Y")
     title = md_to_html(article.title).flatten()
     return " ".join([
         "A recommendation of:",
         f"{article.authors}",
-        f"({year})",
+        f"({article.article_year})",
         f"{title}.",
         f"{article.preprint_server},",
         f"ver.{article.ms_version}",
