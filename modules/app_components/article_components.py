@@ -253,7 +253,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
     articleContent.update(
         [
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
-            ("articleSource", I(article.article_source or make_article_source(db, article))),
+            ("articleSource", I(make_article_source(article) if isRecommended else "")),
             ("articleId", article.id),
             ("articleImg", article_img),
             ("articleTitle", md_to_html(article.title) or ""),
@@ -307,7 +307,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
                 _href=article.doi_of_published_article, _target="blank"))])
     return XML(response.render("components/article_infos_card.html", articleContent))
 
-def make_article_source(db, article):
+def make_article_source(article):
     if pciRRactivated:
         return ""
 
@@ -316,4 +316,4 @@ def make_article_source(db, article):
     pci_name  = myconf.take("app.longname")
     version = article.ms_version
     article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by {pci_name}"
-    return article_source if db.get_last_recomm(article.id) else ""
+    return article_source
