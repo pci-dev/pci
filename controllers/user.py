@@ -1182,13 +1182,13 @@ def my_reviews():
                                 A(
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
-                                    _class="btn btn-default disabled"
-                                    if ((scheduledSubmissionActivated)  and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
-                                    else "btn btn-default",
+                                    _class="btn btn-default" +
+                                        " disabled" if review_button_disabled(row.t_articles)
+                                        else "",
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
-                                if ((scheduledSubmissionActivated) and (row.t_articles.scheduled_submission_date is not None or (row.t_articles.status.startswith("Scheduled submission"))))
+                                if review_button_disabled(row.t_articles)
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1259,6 +1259,14 @@ def my_reviews():
         customText=customText,
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+    )
+
+
+def review_button_disabled(article):
+    return scheduledSubmissionActivated and (
+
+        article.scheduled_submission_date is not None
+        or article.status.startswith("Scheduled submission")
     )
 
 
