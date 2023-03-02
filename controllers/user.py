@@ -473,6 +473,7 @@ def fill_new_article():
         "anonymous_submission",
         "title",
         "authors",
+        "article_year",
         "picture_rights_ok",
         "uploaded_picture",
         "abstract",
@@ -681,6 +682,7 @@ def edit_my_article():
             "anonymous_submission",
             "parallel_submission",
             "authors",
+            "article_year",
             "picture_rights_ok",
             "uploaded_picture",
             "abstract",
@@ -737,6 +739,7 @@ def edit_my_article():
             "abstract",
             "anonymous_submission",
             "authors",
+            "article_year",
             "picture_rights_ok",
             "uploaded_picture",
         ]
