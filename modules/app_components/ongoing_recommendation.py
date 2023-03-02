@@ -724,6 +724,15 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     return DIV(recommendationRounds, managerButton or "")
 
 
+def review_button_disabled(article):
+    return scheduledSubmissionActivated and (
+        not article.status == "Under consideration"
+    ) and (
+        article.scheduled_submission_date is not None
+        or article.status.startswith("Scheduled submission")
+    )
+
+
 def is_scheduled_track(article):
     return article.status == "Scheduled submission pending"
 
