@@ -367,7 +367,9 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
     def onvalidation(form):
         form.vars.article_id = art.id
-
+        if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
+            form.errors.q17 = "Please provide a duration"
+        
         error = validate_due_date(form)
         if error:
             form.errors.q10 = error

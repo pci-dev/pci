@@ -216,3 +216,19 @@ document.querySelector("input[type=submit]").onclick = function() {
 	})
 	this.form.submit();
 }
+
+function checkEmbargo(){
+  if (jQuery("#t_report_survey_q16").val() === "MAKE PUBLIC IMMEDIATELY") {
+    jQuery("#t_report_survey_q17").prop("disabled", true);
+    jQuery("#t_report_survey_q17").val("");
+  } else {
+    jQuery("#t_report_survey_q17").prop("disabled", false);
+  }
+}
+
+jQuery(document).ready(function() {
+  checkEmbargo()
+  jQuery("#t_report_survey_q16").change(function() {
+    checkEmbargo()
+  })
+});
