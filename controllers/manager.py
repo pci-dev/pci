@@ -1058,21 +1058,21 @@ def all_recommendations():
 
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     if isPress:  ## NOTE: POST-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == True)
+        query = db.v_postprint_recommendations
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
         fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_recommendations.last_change,
-            # db.t_articles.status,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            # db.t_recommendations.recommendation_timestamp,
-            db.t_recommendations.is_closed,
-            db.t_recommendations.recommender_details,
+            query.scheduled_submission_date,
+            query.art_stage_1_id,
+            query.report_stage,
+            query.last_change,
+            # query.status,
+            query._id,
+            query.article_id,
+            query.doi,
+            # query.recommendation_timestamp,
+            query.is_closed,
+            query.recommender_details,
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
@@ -1080,26 +1080,26 @@ def all_recommendations():
                 header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
             ),
         ]
-        db.t_recommendations.article_id.label = T("Postprint")
+        query.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+        query = db.v_preprint_recommendations
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_articles.art_stage_1_id,
-            db.t_articles.report_stage,
-            db.t_recommendations.last_change,
-            # db.t_articles.status,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            # db.t_recommendations.recommendation_timestamp,
-            db.t_recommendations.is_closed,
-            db.t_recommendations.recommendation_state,
-            db.t_recommendations.is_closed,
-            db.t_recommendations.recommender_id,
-            db.t_recommendations.recommender_details,
+            query.scheduled_submission_date,
+            query.art_stage_1_id,
+            query.report_stage,
+            query.last_change,
+            # query.status,
+            query._id,
+            query.article_id,
+            query.doi,
+            # query.recommendation_timestamp,
+            query.is_closed,
+            query.recommendation_state,
+            query.is_closed,
+            query.recommender_id,
+            query.recommender_details,
         ]
         links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
@@ -1110,45 +1110,45 @@ def all_recommendations():
                 body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
             ),
         ]
-        db.t_recommendations.article_id.label = T("Preprint")
+        query.article_id.label = T("Preprint")
 
-    db.t_recommendations.recommender_id.writable = False
-    db.t_recommendations.doi.writable = False
-    # db.t_recommendations.article_id.readable = False
-    db.t_recommendations.article_id.writable = False
-    db.t_recommendations._id.readable = False
-    db.t_recommendations.recommender_id.readable = True
-    db.t_recommendations.recommender_id.represent =  lambda id, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
-    db.t_recommendations.recommendation_state.readable = False
-    db.t_recommendations.is_closed.readable = False
-    db.t_recommendations.is_closed.writable = False
-    db.t_recommendations.recommendation_timestamp.label = T("Started")
-    db.t_recommendations.last_change.label = T("Last change")
-    db.t_recommendations.last_change.represent = (
+    query.recommender_id.writable = False
+    query.doi.writable = False
+    # query.article_id.readable = False
+    query.article_id.writable = False
+    query._id.readable = False
+    query.recommender_id.readable = True
+    query.recommender_id.represent =  lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+    query.recommendation_state.readable = False
+    query.is_closed.readable = False
+    query.is_closed.writable = False
+    query.recommendation_timestamp.label = T("Started")
+    query.last_change.label = T("Last change")
+    query.last_change.represent = (
         lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.last_change) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.last_change)
     )
-    db.t_recommendations.recommendation_timestamp.represent = (
+    query.recommendation_timestamp.represent = (
         lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.recommendation_timestamp)
         if "t_recommendations" in row
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
+    query.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
 
-    db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.report_stage.writable = False
-    db.t_articles.report_stage.readable = False
+    query.art_stage_1_id.readable = False
+    query.art_stage_1_id.writable = False
+    query.report_stage.writable = False
+    query.report_stage.readable = False
 
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+    query.status.represent = lambda text, row: common_small_html.mkStatusDiv(
+        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.report_stage
     )
 
-    db.t_recommendations.doi.readable = False
-    db.t_recommendations.last_change.readable = True
-    db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+    query.doi.readable = False
+    query.last_change.readable = True
+    query.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
 
-    db.t_articles.scheduled_submission_date.readable = False
-    db.t_articles.scheduled_submission_date.writable = False
+    query.scheduled_submission_date.readable = False
+    query.scheduled_submission_date.writable = False
 
     grid = SQLFORM.grid(
         query,
@@ -1163,7 +1163,7 @@ def all_recommendations():
         exportclasses=expClass,
         fields=fields,
         links=links,
-        orderby=~db.t_recommendations.last_change,
+        orderby=~query.last_change,
         _class="web2py_grid action-button-absolute",
     )
 
