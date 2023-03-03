@@ -721,10 +721,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
 
 
 def review_button_disabled(article):
-    return scheduledSubmissionActivated and (
-        article.scheduled_submission_date is not None
-        or article.status.startswith("Scheduled submission")
-    )
+    return is_scheduled_submission(article)
 
 
 def is_scheduled_submission(article):
