@@ -14,6 +14,7 @@ class article:
     doi = "http://DOI"
     title = "Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
+    year = time.strftime("%Y")
     abstract = "Abstract"
     keywords = "Keywords"
     cover_letter = "Cover letter"
@@ -37,6 +38,7 @@ class User_submits:
  def submit_submission_form(_):
     select("#t_articles_title").send_keys(article.title)
     select("#t_articles_authors").send_keys(article.authors)
+    select("#t_articles_article_year").send_keys(article.year)
     select("#t_articles_doi").send_keys(article.doi)
 
     if not is_rr:
