@@ -526,79 +526,108 @@ def my_recommendations():
     # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
+    temp_db = DAL('sqlite:memory')
+    data = temp_db.define_table('t_recommendations',
+            Field('id', type='id'),
+            Field('article_id', type='integer', label=T("Article")),
+            Field('doi', type='string', label=T("Manuscript DOI (or URL) for the round")),
+            Field('last_change', type='datetime', label=T("Last change")),
+            Field('is_closed', type='boolean', label=T("Closed")),
+            Field('recommendation_state', type='string', label=T("Recommendation state")),
+            Field('recommender_id', type='integer', label=T("Recommender")),
+            Field('status', type='string', label=T("Article status")),
+            Field('art_stage_1_id', type='integer', label=T("Related stage 1 report")),
+            Field('scheduled_submission_date', type='string', label=T("Scheduled submission date")),
+            Field('recommendation_timestamp', type='string', label=T("Recommendation start")),
+            Field('recommendation_comments', type='string', label=T("Recommendation"))
+        )
+    sql_script = """SELECT r.id AS id, r.last_change, r.article_id, r.doi, r.is_closed, r.recommendation_state, r.recommender_id, r.recommendation_comments, r.recommendation_timestamp, a.status, a.art_stage_1_id, a.scheduled_submission_date
+        FROM t_recommendations r, t_articles a WHERE r.recommender_id=%s AND r.article_id = a.id
+        AND r.id in (select max(id) from t_recommendations group by article_id)
+    """ % auth.user_id
+
     links = [
             dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(
                 auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
     ]
     fields = [
-            db.t_articles.scheduled_submission_date,
-            db.t_recommendations.last_change,
-            db.t_articles.status,
-            db.t_articles.art_stage_1_id,
-            db.t_recommendations._id,
-            db.t_recommendations.article_id,
-            db.t_recommendations.doi,
-            db.t_recommendations.is_closed,
+            temp_db.t_recommendations.scheduled_submission_date,
+            temp_db.t_recommendations.last_change,
+            temp_db.t_recommendations.status,
+            temp_db.t_recommendations.art_stage_1_id,
+            temp_db.t_recommendations._id,
+            temp_db.t_recommendations.article_id,
+            temp_db.t_recommendations.doi,
+            temp_db.t_recommendations.is_closed,
     ]
-    query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id)
+
 
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     if isPress:  ## NOTE: POST-PRINTS
-        query = query & (db.t_articles.already_published == True)
+        sql_script = """SELECT r.id AS id, r.last_change, r.article_id, r.doi, r.is_closed, r.recommendation_state, r.recommender_id, r.recommendation_comments, r.recommendation_timestamp, a.status, a.art_stage_1_id, a.scheduled_submission_date
+        FROM t_recommendations r, t_articles a WHERE r.recommender_id=%s AND r.article_id = a.id AND a.already_published=true
+        AND r.id in (select max(id) from t_recommendations group by article_id)
+    """ % auth.user_id
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
-        db.t_recommendations.article_id.label = T("Postprint")
+        temp_db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = query & (db.t_articles.already_published == False)
+        sql_script = """SELECT r.id AS id, r.last_change, r.article_id, r.doi, r.is_closed, r.recommendation_state, r.recommender_id, r.recommendation_comments, r.recommendation_timestamp, a.status, a.art_stage_1_id, a.scheduled_submission_date
+        FROM t_recommendations r, t_articles a WHERE r.recommender_id=%s AND r.article_id = a.id AND a.already_published=false
+        AND r.id in (select max(id) from t_recommendations group by article_id)
+    """ % auth.user_id
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
         fields += [
-            db.t_recommendations.recommendation_state,
-            db.t_recommendations.is_closed,
-            db.t_recommendations.recommender_id,
+            temp_db.t_recommendations.recommendation_state,
+            temp_db.t_recommendations.is_closed,
+            temp_db.t_recommendations.recommender_id,
         ]
         links += [
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
         ]
-        db.t_recommendations.article_id.label = T("Preprint")
+        temp_db.t_recommendations.article_id.label = T("Preprint")
 
     links += [
             dict(
                 header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
             ),
     ]
+    records = db.executesql(sql_script, as_dict=True)
+    for record in records:
+        data.insert(**record)
 
-    db.t_recommendations.recommender_id.writable = False
-    db.t_recommendations.doi.writable = False
-    db.t_recommendations.article_id.writable = False
-    db.t_recommendations._id.readable = False
-    db.t_recommendations.recommender_id.readable = False
-    db.t_recommendations.recommendation_state.readable = False
-    db.t_recommendations.is_closed.readable = False
-    db.t_recommendations.is_closed.writable = False
-    db.t_recommendations.recommendation_timestamp.label = T("Started")
-    db.t_recommendations.last_change.label = T("Last change")
-    db.t_recommendations.last_change.represent = (
+    temp_db.t_recommendations.recommender_id.writable = False
+    temp_db.t_recommendations.doi.writable = False
+    temp_db.t_recommendations.article_id.writable = False
+    temp_db.t_recommendations._id.readable = False
+    temp_db.t_recommendations.recommender_id.readable = False
+    temp_db.t_recommendations.recommendation_state.readable = False
+    temp_db.t_recommendations.is_closed.readable = False
+    temp_db.t_recommendations.is_closed.writable = False
+    temp_db.t_recommendations.recommendation_timestamp.label = T("Started")
+    temp_db.t_recommendations.last_change.label = T("Last change")
+    temp_db.t_recommendations.last_change.represent = (
         lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.last_change) if "t_recommendations" in row else common_small_html.mkElapsedDays(row.last_change)
     )
-    db.t_recommendations.recommendation_timestamp.represent = (
+    temp_db.t_recommendations.recommendation_timestamp.represent = (
         lambda text, row: common_small_html.mkElapsedDays(row.t_recommendations.recommendation_timestamp)
         if "t_recommendations" in row
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
-    db.t_articles.art_stage_1_id.readable = False
-    db.t_articles.art_stage_1_id.writable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
-    db.t_recommendations.doi.readable = False
-    db.t_recommendations.last_change.readable = True
-    db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
+    temp_db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
+    temp_db.t_recommendations.art_stage_1_id.readable = False
+    temp_db.t_recommendations.art_stage_1_id.writable = False
+    temp_db.t_recommendations.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
+    temp_db.t_recommendations.doi.readable = False
+    temp_db.t_recommendations.last_change.readable = True
+    temp_db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
 
-    db.t_articles.scheduled_submission_date.readable = False
-    db.t_articles.scheduled_submission_date.writable = False
+    temp_db.t_recommendations.scheduled_submission_date.readable = False
+    temp_db.t_recommendations.scheduled_submission_date.writable = False
 
     grid = SQLFORM.grid(
-        query,
+        data,
         searchable=False,
         create=False,
         deletable=False,
@@ -610,7 +639,7 @@ def my_recommendations():
         exportclasses=expClass,
         fields=fields,
         links=links,
-        orderby=~db.t_recommendations.last_change,
+        orderby=~temp_db.t_recommendations.last_change,
         _class="web2py_grid action-button-absolute",
     )
 
