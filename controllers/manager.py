@@ -406,6 +406,13 @@ def recommendations():
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
+    if (auth.has_membership(role="administrator")
+        and db.get_last_recomm(art)
+        and art.status == "Recommended"
+    ):
+        recommStatusHeader = TAG(recommStatusHeader)
+        recommStatusHeader.append(crossref_toolbar(art))
+
     if printable:
         printableClass = "printable"
         response.view = "default/wrapper_printable.html"
@@ -430,6 +437,43 @@ def recommendations():
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
     )
 
+
+def crossref_toolbar(article):
+    return DIV(
+        crossref_button(article),
+        crossref_status(article),
+        _style="margin-top: -2em;",
+    )
+
+def crossref_button(article):
+    return A(
+        I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
+        T("Crossref"),
+        _href=URL("crossref", f"post_form?article_id={article.id}"),
+        _class="pci2-tool-link pci2-yellow-link",
+        _style="margin-right: 25px;",
+    )
+
+def crossref_status(article):
+    recomm = db.get_last_recomm(article)
+    status_url = URL("crossref", f"get_status?recomm_id={recomm.id}")
+    return SPAN(
+        SCRIPT('''
+        (function get_crossref_status(elt) {
+            elt = elt || document.currentScript.parentNode
+            req = new XMLHttpRequest()
+            req.addEventListener("load", function() {
+                status = this.responseText
+                status_str = "✅,❌,".split(",")
+                elt.innerHTML = status_str[status]
+
+                if (status == "2") get_crossref_status(elt)
+            })
+            req.open("get", "'''+str(status_url)+'''")
+            req.send()
+        })()
+        '''),
+    )
 
 ######################################################################################################################################################################
 # Allow management of article recommendations
