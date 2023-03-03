@@ -15,6 +15,7 @@ main() {
             ;;
           reviewers    | reviewers2       \
         | recommenders | recommenders2    \
+        | new_recommenders                \
         | authors                         \
         | users                           \
         )
@@ -88,6 +89,19 @@ cat << EOT
   from auth_user
   where id in (
         select user_id from auth_membership where group_id = 2
+  ) order by id
+
+EOT
+}
+
+get_new_recommenders() {
+cat << EOT
+
+  select $FIELDS
+  from auth_user
+  where id in (
+	select user_id from auth_membership where group_id = 2
+	and registration_datetime >= '2022-01-01'
   ) order by id
 
 EOT
