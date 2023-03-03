@@ -3,7 +3,7 @@ from app_modules.helper import OPTION
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
-                     'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 'qy_art',
+                     'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 't_articles',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
@@ -39,7 +39,7 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles_temp':
-        panel_search_field = grid.element('div#w2p_field_qy_art-id')
+        panel_search_field = grid.element('div#w2p_field_t_articles-title')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles2':
         panel_search_field = grid.element('div#w2p_field_qy_art-id')
@@ -106,17 +106,11 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
                 option.attributes.update({'_selected':'selected'})
                 hashtag_input_field = grid.element('div#w2p_field_mail_templates-hashtag')
                 hashtag_input_field.attributes.update({'_style':'display:flex'})
-    elif search_name == 'articles':
+    elif search_name in ['articles', 'articles_temp']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.title'):
                 option.attributes.update({'_selected':'selected'})
                 title_input_field = grid.element('div#w2p_field_t_articles-title')
-                title_input_field.attributes.update({'_style':'display:flex'})
-    elif search_name == 'articles_temp':
-        for option in select_panel:
-            if option.attributes['_value'].endswith('.text'):
-                option.attributes.update({'_selected':'selected'})
-                title_input_field = grid.element('div#w2p_field_qy_art-text')
                 title_input_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles2':
         for option in select_panel:

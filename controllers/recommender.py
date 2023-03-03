@@ -55,113 +55,38 @@ def index():
 @auth.requires(auth.has_membership(role="recommender"))
 def fields_awaiting_articles():
     myVars = request.vars
-    # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-    temp_db = DAL("sqlite:memory")
-    qy_art = temp_db.define_table(
-        "qy_art",
-        Field("id", type="integer"),
-        Field("num", type="integer"),
-        Field("score", type="double", label=T("Score"), default=0),
-        Field("title", type="text", label=T("Title")),
-        Field("authors", type="text", label=T("Authors")),
-        Field("article_source", type="string", label=T("Source")),
-        Field("doi", type="string", label=T("DOI")),
-        Field("abstract", type="text", label=T("Abstract")),
-        Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
-        Field("thematics", type="string", length=1024, label=T("Thematic fields")),
-        Field("keywords", type="text", label=T("Keywords")),
-        Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews"), default=0),
-        Field("status", type="string", length=50, default="Pending", label=T("Status")),
-        Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
-        Field("uploaded_picture", type="upload", label=T("Picture")),
-        Field("already_published", type="boolean", label=T("Postprint")),
-        Field("anonymous_submission", type="boolean", label=T("Anonymous submission")),
-        Field("parallel_submission", type="boolean", label=T("Parallel submission")),
-        Field("art_stage_1_id", type="integer"),
-        Field("text", type="string", label="Article"),
-    )
 
-    qy_art.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
-
-    myVars = request.vars
-    qyKw = ""
-    qyTF = []
-
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-    qyKwArr = qyKw.split(" ")
+    articles = db.t_articles
+    full_text_search_fields = [
+        'id',
+        'title',
+        'authors',
+        'thematics',
+        'upload_timestamp',
+    ]
 
     def article_html(art_id):
         return common_small_html.mkRepresentArticleLight(auth, db, art_id)
 
-    filtered = db.executesql("SELECT * FROM search_articles_new(%s, %s, %s, %s, %s);", placeholders=[qyTF, qyKwArr, "Awaiting consideration", trgmLimit, True], as_dict=True)
+    articles.id.readable = True
+    articles.id.represent = lambda text, row: article_html(row.id)
+    articles.thematics.label = "Thematics fields"
+    articles.thematics.type = "string"
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-    hidden_articles = [row.article_id for row in db(
-            db.t_excluded_recommenders.excluded_recommender_id == auth.user.id
-        ).select(db.t_excluded_recommenders.article_id) ]
+    for a_field in articles.fields:
+        if not a_field in full_text_search_fields:
+            articles[a_field].readable = False
 
-    for fr in filtered:
-        if fr['id'] in hidden_articles: continue
-
-        fr['text'] = article_html(fr['id']).flatten()
-        qy_art.insert(**fr)
-
-    temp_db.qy_art.text.represent = lambda text, row: article_html(row.id)
-
-    temp_db.qy_art.auto_nb_recommendations.readable = False
-    temp_db.qy_art.uploaded_picture.represent = db.t_articles.uploaded_picture.represent
-    temp_db.qy_art.authors.represent = lambda text, row: common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, (text or ""))
-    temp_db.qy_art.anonymous_submission.represent = lambda anon, row: common_small_html.mkAnonymousMask(auth, db, anon or False)
-    temp_db.qy_art.anonymous_submission.readable = False
-    temp_db.qy_art.parallel_submission.represent = lambda p, r: SPAN("//", _class="pci-parallelSubmission") if p else ""
-    temp_db.qy_art.parallel_submission.readable = False
-    temp_db.qy_art.keywords.readable = False
-    temp_db.qy_art.title.readable = False
-    temp_db.qy_art.authors.readable = False
-    temp_db.qy_art.art_stage_1_id.readable = False
-    temp_db.qy_art.art_stage_1_id.writable = False
-    temp_db.qy_art.article_source.readable = False
-    temp_db.qy_art.num.readable = False
-    temp_db.qy_art.score.readable = False
-
-    if len(request.args) == 0:  # in grid
-        temp_db.qy_art.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
-        temp_db.qy_art.last_status_change.represent = lambda t, row: common_small_html.mkLastChange(t)
-        temp_db.qy_art.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status, showStage=pciRRactivated, stage1Id=row.art_stage_1_id)
-    else:
-        temp_db.qy_art.doi.represent = lambda text, row: common_small_html.mkDOI(text)
+    articles.id.label = "Article"
+    articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
 
     links = []
-    # links.append(dict(header=T('Suggested recommenders'), body=lambda row: (db.v_suggested_recommenders[row.id]).suggested_recommenders))
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
-    fields = [
-            temp_db.qy_art.text,
-            temp_db.qy_art.title,
-            temp_db.qy_art.thematics,
-            temp_db.qy_art.art_stage_1_id,
-            temp_db.qy_art.num,
-            temp_db.qy_art.score,
-            temp_db.qy_art.authors,
-            temp_db.qy_art.article_source,
-            temp_db.qy_art.upload_timestamp,
-            temp_db.qy_art.anonymous_submission,
-            temp_db.qy_art.keywords,
-            temp_db.qy_art.auto_nb_recommendations,
-        ]
-    if parallelSubmissionAllowed:
-        fields += [
-            temp_db.qy_art.parallel_submission,
-        ]
 
-    original_grid = SQLFORM.smartgrid(
-        temp_db.qy_art,
+    query = articles.status == "Awaiting consideration"
+    original_grid = SQLFORM.grid(
+        query,
         searchable=True,
         editable=False,
         deletable=False,
@@ -171,16 +96,19 @@ def fields_awaiting_articles():
         paginate=10,
         csv=csv,
         exportclasses=expClass,
-        fields=fields,
+        buttons_placement=False,
+        fields=[
+            articles.id,
+            articles.thematics,
+            articles.upload_timestamp,
+        ],
         links=links,
-        orderby=temp_db.qy_art.num,
+        orderby=articles.id,
         _class="web2py_grid action-button-absolute",
     )
 
     # options to be removed from the search dropdown:
-    remove_options = ['qy_art.doi', 'qy_art.abstract', 'qy_art.status', 'qy_art.id', 
-                      'qy_art.parallel_submission', 'qy_art.last_status_change', 
-                      'qy_art.already_published']
+    remove_options = ['t_articles.id']
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options)
