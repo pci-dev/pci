@@ -375,10 +375,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     if pciRRactivated and art.status == "Recommended":
         amIEngagedInStage2Process = True
 
-    isScheduledSubmission = False
-    if scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
-        isScheduledSubmission = True
-
     isPendingRecommenderAcceptation = db(
           (db.t_recommendations.article_id == art.id)
         & (db.t_recommendations.id == db.t_reviews.recommendation_id)
@@ -704,8 +700,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewsList=reviewsList,
             showSearchingForReviewersButton=showSearchingForReviewersButton,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
-            scheduledSubmissionActivated=scheduledSubmissionActivated,
-            isScheduledSubmission=isScheduledSubmission,
+            isScheduledSubmission=is_scheduled_submission(art),
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
@@ -722,6 +717,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not printable else None
 
     return DIV(recommendationRounds, managerButton or "")
+
+
+def is_scheduled_submission(article):
+    return scheduledSubmissionActivated and (
+        article.scheduled_submission_date is not None
+        or article.status.startswith("Scheduled submission")
+    )
 
 
 def is_scheduled_track(article):
