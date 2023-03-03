@@ -2103,6 +2103,44 @@ db.define_table(
     migrate=False,
 )
 
+db.define_table('v_postprint_recommendations',
+    Field('id', type='id'),
+    Field('article_id', type='integer', label=T("Article")),
+    Field('doi', type='string', label=T("Manuscript DOI (or URL) for the round")),
+    Field('last_change', type='datetime', label=T("Last change")),
+    Field('is_closed', type='boolean', label=T("Closed")),
+    Field('recommendation_state', type='string', label=T("Recommendation state")),
+    Field('recommender_id', type='integer', label=T("Recommender")),
+    Field('status', type='string', label=T("Article status")),
+    Field('art_stage_1_id', type='integer', label=T("Related stage 1 report")),
+    Field('scheduled_submission_date', type='string', label=T("Scheduled submission date")),
+    Field('recommendation_timestamp', type='string', label=T("Recommendation start")),
+    Field('recommendation_comments', type='string', label=T("Recommendation")),
+    Field('recommender_details', type="text", label=T("Recommender details")),
+    Field('report_stage', type="string", label=T("Is this a Stage 1 or Stage 2 submission?")),
+    Field('already_published', type="boolean", label=T("Postprint")),
+    migrate=False
+)
+
+db.define_table('v_preprint_recommendations',
+    Field('id', type='id'),
+    Field('article_id', type='integer', label=T("Article")),
+    Field('doi', type='string', label=T("Manuscript DOI (or URL) for the round")),
+    Field('last_change', type='datetime', label=T("Last change")),
+    Field('is_closed', type='boolean', label=T("Closed")),
+    Field('recommendation_state', type='string', label=T("Recommendation state")),
+    Field('recommender_id', type='integer', label=T("Recommender")),
+    Field('status', type='string', label=T("Article status")),
+    Field('art_stage_1_id', type='integer', label=T("Related stage 1 report")),
+    Field('scheduled_submission_date', type='string', label=T("Scheduled submission date")),
+    Field('recommendation_timestamp', type='string', label=T("Recommendation start")),
+    Field('recommendation_comments', type='string', label=T("Recommendation")),
+    Field('recommender_details', type="text", label=T("Recommender details")),
+    Field('report_stage', type="string", label=T("Is this a Stage 1 or Stage 2 submission?")),
+    Field('already_published', type="boolean", label=T("Postprint")),
+    migrate=False
+)
+
 # -------------------------------------------------------------------------
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------
