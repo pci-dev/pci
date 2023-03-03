@@ -1183,12 +1183,12 @@ def my_reviews():
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
                                     _class="btn btn-default" +
-                                        " disabled" if review_button_disabled(row.t_articles)
+                                        " disabled" if is_scheduled_submission(row.t_articles)
                                         else "",
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
-                                if review_button_disabled(row.t_articles)
+                                if is_scheduled_submission(row.t_articles)
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1262,7 +1262,7 @@ def my_reviews():
     )
 
 
-from app_components.ongoing_recommendation import review_button_disabled
+from app_components.ongoing_recommendation import is_scheduled_submission
 
 
 ######################################################################################################################################################################

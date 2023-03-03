@@ -704,7 +704,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
-            reviewButtonDisabled=review_button_disabled(art),
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
@@ -718,10 +717,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not printable else None
 
     return DIV(recommendationRounds, managerButton or "")
-
-
-def review_button_disabled(article):
-    return is_scheduled_submission(article)
 
 
 def is_scheduled_submission(article):
