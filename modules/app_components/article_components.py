@@ -78,7 +78,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
 
     recommShortText = DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="fade-transparent-text")
 
-    authors = common_tools.getShortText(article.authors, 500) or ""
+    authors = common_tools.getShortText(article.authors, 500)
 
     # Scheduled submission
     doi_text = common_small_html.mkDOI(article.doi)
