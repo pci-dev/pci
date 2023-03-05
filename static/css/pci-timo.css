@@ -6,11 +6,6 @@
         word-wrap: break-word;
     }
 
-    tr.w2p_odd img,
-    tr.w2p_even img {
-        max-width: 100%;
-    }
-
     .web2py_console .w2p_query_row select#w2p_value_t_articles-user_id {
         flex: 1;
     }
