@@ -311,6 +311,9 @@ def make_article_source(article):
     if pciRRactivated:
         return ""
 
+    if article.article_source:
+        return article.article_source
+
     year = article.article_year
     preprint_server = article.preprint_server
     pci_name  = myconf.take("app.longname")
