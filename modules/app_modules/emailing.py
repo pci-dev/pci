@@ -1667,13 +1667,17 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False):
+def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
     mail_vars = emailing_tools.getMailCommonVars()
+    reg_user_reminder_template = None
+    new_user_reminder_template = None
+
     reports = []
 
     review = db.t_reviews[reviewId]
     if review:
         recomm = db.t_recommendations[review.recommendation_id]
+        article = db.t_articles[recomm.article_id]
         if recomm:
             rev = db.auth_user[review["reviewer_id"]]
             if rev:
@@ -1738,8 +1742,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                             _style="width: 100%; text-align: center; margin-bottom: 25px;",
                         ),
                     )
+                    if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
+                        new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-                    create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons)
+                    create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
 
                 elif linkTarget:
 
@@ -1772,8 +1778,13 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
                     elif review.review_state == "Awaiting review":
                         reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
+                    
+                    if hashtag_template == "#DefaultReviewInvitationRegisteredUserNewReviewerStage2":
+                        reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserNewReviewer", article)
+                    if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
+                        reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
 
-                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round)
+                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
 
                 subject_header = email_subject_header(recomm.article_id)
                 subject_without_appname = subject.replace("%s: " % subject_header, "")
@@ -2374,7 +2385,7 @@ def reviewLink(**kwargs):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None):
+def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2386,6 +2397,9 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
         mail_vars["description"] = myconf.take("app.description")
         mail_vars["sender"] = mkSender(auth, db, recomm)
+
+        mail_vars["art_doi"] = article.doi
+        mail_vars["art_title"] = md_to_html(article.title)
         
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -2395,8 +2409,15 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
+        if article.art_stage_1_id is not None:
+            stage1_art = db.t_articles[article.art_stage_1_id]
+            report_survey = article.t_report_survey.select().last()
+            mail_vars["Stage2_Stage1recommendationtext"] = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+            mail_vars["Stage1_registeredURL"] = report_survey.q30
+            mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
+
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(article))
+            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
@@ -2411,14 +2432,15 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
         mail_vars["replytoAddresses"] = replyto_addresses
-
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
+       
+        if hashtag_template is None:
+            hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, new_round=False):
+def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2451,8 +2473,15 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
 
+        if article.art_stage_1_id is not None:
+            stage1_art = db.t_articles[article.art_stage_1_id]
+            report_survey = article.t_report_survey.select().last()
+            mail_vars["Stage2_Stage1recommendationtext"] = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+            mail_vars["Stage1_registeredURL"] = report_survey.q30
+            mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
+
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(article))
+            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
@@ -2467,7 +2496,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
+        if hashtag_template is  None:
+            hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
         authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)

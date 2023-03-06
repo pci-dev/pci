@@ -29,6 +29,9 @@ _reminders = {
     "ReminderReviewerReviewInvitationRegisteredUser": [5, 8],
     "ReminderReviewerInvitationNewRoundRegisteredUser": [5, 8],
 
+    "ReminderReviewInvitationRegisteredUserNewReviewer": [5, 8],
+    "ReminderReviewInvitationRegisteredUserReturningReviewer": [5, 8],
+
     "ReminderSubmitterCancelSubmission": [20],
     "ReminderSubmitterSuggestedRecommenderNeeded": daily(1, 9),
     "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],

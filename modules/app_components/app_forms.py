@@ -312,8 +312,10 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
     else:  # STAGE 2 survey
         db.t_report_survey.temp_art_stage_1_id.requires = IS_IN_DB(
-            db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None)), "t_articles.id", 'Stage 2 of "%(title)s"'
+            db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.status.belongs("Recommended", "Recommended-private"))), "t_articles.id", 'Stage 2 of "%(title)s"'
         )
+
+        db.t_report_survey.tracked_changes_url.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')
 
         # TODO: remove the following constraints, they are copy/pasted from db.py
         db.t_report_survey.q26.requires = IS_IN_SET(
@@ -339,11 +341,13 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
                 "N/A - No analysis code/scripts were used in any part of the data analysis",
             )
         )
-        db.t_report_survey.q30.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
+        db.t_report_survey.q30.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')
+        db.t_report_survey.q30_details.requires = [IS_NOT_EMPTY(), IS_LENGTH(256, 0)]
         db.t_report_survey.q31.requires = IS_IN_SET(("N/A - NOT A PROGRAMMATIC RR", "CONFIRM",))
 
         fields = [
             "temp_art_stage_1_id",
+            "tracked_changes_url",
             "q25",
             "q26",
             "q26_details",
@@ -353,6 +357,7 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
             "q28_details",
             "q29",
             "q30",
+            "q30_details",
             "q31",
             "q32",
         ]

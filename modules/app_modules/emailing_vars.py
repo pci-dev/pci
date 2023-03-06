@@ -76,7 +76,7 @@ def getMails(db, role):
 ######################################################################################################################################################################
 # PCI RR vars
 ######################################################################################################################################################################
-def getPCiRRinvitationTexts(article):
+def getPCiRRinvitationTexts(article, new_stage=False):
     report_survey = article.t_report_survey.select().last()
 
     programmaticRR_invitation_text = ""
@@ -90,7 +90,7 @@ def getPCiRRinvitationTexts(article):
                 current.T(
                     " in which one Stage 1 manuscript can propose a sufficient volume of work to justify multiple Stage 2 articles. A Stage 1 programmatic RR must prespecify which parts of the protocol will eventually produce separate Stage 2 articles, and as part of the Stage 1 review process, we ask reviewers to evaluate the validity and substantive contribution of each component. These prespecified boundaries are effectively treated as design elements; therefore, like any other design element, Stage 1 IPA will be conditional on authors adhering to the prespecified and approved article boundaries at Stage 2."
                 ),
-            )
+            ) if not new_stage else current.T("The original Stage 1 manuscript was submitted via the programmatic track, in which one Stage 1 protocol is expected to lead to multiple Stage 2 outputs. The current Stage 2 submission is one such expected output. For this reason, the tracked-changes version of the Stage 2 manuscript documents changes in text for this expected output only. Sections of text reserved for other expected outputs are likely to be omitted without track changes because these will (or have already) appeared within at least one other Stage 2 output.")
         if report_survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
             signedreview_invitation_text = SPAN(
                 current.T("The current submission is being submitted via a route in which PCI RR considers evaluations only from reviewers who sign their reviews. "),
@@ -98,7 +98,7 @@ def getPCiRRinvitationTexts(article):
                 current.T(
                     " Signing your review means the authors will learn your identity, regardless of whether your review is positive or negative. In the event of a final positive recommendation from PCI RR, your signed review will be published on the PCI RR website, but in the event of a negative recommendation (rejection), your signed review will not be published."
                 ),
-            )
+            ) if not new_stage else current.T("As at Stage 1, the authors have submitted via a track in which PCI RR considers evaluations only from reviewers who sign their reviews, so please only accept the review assignment if you have happy to sign your Stage 2 review. Signing your review means the authors will learn your identity, regardless of whether your review is positive or negative. In the event of a final positive recommendation from PCI RR, your signed review will be published on the PCI RR website, but in the event of a negative recommendation (rejection), your signed Stage 2 review will not be published.")
 
     return dict(programmaticRR_invitation_text=programmaticRR_invitation_text, signedreview_invitation_text=signedreview_invitation_text,)
 
@@ -150,3 +150,12 @@ def getPCiRRScheduledSubmissionsVars(article):
 #         )
 
 #         return mail_vars
+def getPCiRRrecommendationText(db, article):
+    recommendation_text = ""
+    if article.status == "Recommended":
+        href=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port)
+        recommendation_text = SPAN (
+            current.T("You can also find the complete, public review history of the Stage 1 manuscript "), f'<a href="{href}" ><b>here on the PCI RR website.</b></a>', 
+        )
+    return recommendation_text
+

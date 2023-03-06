@@ -128,6 +128,7 @@ def fields_awaiting_articles():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def search_reviewers():
     myVars = request.vars
+    reg_user = myVars["regUser"]
 
     excludeList = []
     myGoal = "4review"  # default
@@ -216,7 +217,7 @@ def search_reviewers():
         dict(
             header=header,
             body=lambda row: "" if row.id in excludeList else \
-                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal)
+                recommender_module.mkSuggestReviewToButton(auth, db, row, recommId, myGoal, reg_user)
         )]
 
     original_grid = SQLFORM.smartgrid(
@@ -824,6 +825,7 @@ def show_report_survey():
 
         fields = [
             "temp_art_stage_1_id",
+            "tracked_changes_url",
             "q25",
             "q26",
             "q26_details",
@@ -833,6 +835,7 @@ def show_report_survey():
             "q28_details",
             "q29",
             "q30",
+            "q30_details",
             "q31",
             "q32",
         ]
@@ -1036,7 +1039,7 @@ def reviews():
         )
 
 ######################################################################################################################################################################
-def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
+def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new_stage=False):
             reviewersIds = [auth.user_id]
             reviewersList = []
             current_reviewers_id = []
@@ -1057,7 +1060,7 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
                             I("(" + (con.review_state or "") + ")"), 
                             )
-                    if prev_round:
+                    if new_round or new_stage:
                         current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
                         for i in current_reviewers:
                             current_reviewers_id.append(i.reviewer_id)
@@ -1067,12 +1070,36 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, prev_round=False):
                             " ",
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
                             A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
-                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=True), user_signature=True)) \
+                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                     if reviewer_id not in current_reviewers_id else "",
                         )
                     reviewersList.append(display)
             return reviewersList, reviewersIds
+######################################################################################################################################################################
+def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
+    total_count = []
+    recommList = db((db.t_recommendations.article_id == article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
+    for i in recommList:
+        total_count.append(i.id)
+    total_count.sort()
+    if new_stage:
+        latestRoundRecommId = recomm.id
+        prevRoundreviewersList = db((db.t_reviews.recommendation_id.belongs(total_count)) & (db.t_reviews.review_state == "Review completed")).select(
+            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+        )
+        text = "Choose a reviewer from Stage 1"
+    if new_round:
+        previousRoundRecommId = total_count[-2]
+        latestRoundRecommId = max(total_count)
+        prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
+            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+        )
+        text = "Choose a reviewer from the previous round of review"
+    prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
+    prevRoundHeader = DIV(H3(B(text)), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+    customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
+    return prevRoundHeader, customText
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def reviewers():
@@ -1086,6 +1113,9 @@ def reviewers():
         if article.user_id == auth.user_id:
             session.flash = auth.not_authorized()
             redirect(request.env.http_referer)
+    reg_user, new_stage = False, False
+    if article.report_stage == "STAGE 2":
+        reg_user, new_stage = True, True
     if not recomm:
         return my_recommendations()
     if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
@@ -1095,21 +1125,10 @@ def reviewers():
         recomm_round = db((db.t_recommendations.article_id == article.id)).count()
         prevRoundHeader = ""
         customText=getText(request, auth, db, "#RecommenderAddReviewersText")
+        if pciRRactivated and article.art_stage_1_id is not None and recomm_round == 1:
+            prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=new_stage)
         if recomm_round > 1:
-            total_count = []
-            recommList = db((db.t_recommendations.article_id == recomm.article_id)).select(db.t_recommendations.id, orderby=db.t_recommendations.id)
-            for i in recommList:
-                total_count.append(i.id)
-            total_count.sort()
-            previousRoundRecommId = total_count[-2]
-            latestRoundRecommId = max(total_count)
-            prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
-                db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
-            )
-            prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, True)
-            if len(prevReviewersList) > 0:
-                prevRoundHeader = DIV(H3(B("Choose a reviewer from the previous round of review")), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
-                customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
+            prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
         suggested_reviewers = ""
         oppossed_reviewers = ""
@@ -1133,11 +1152,11 @@ def reviewers():
         myUpperBtn = DIV(
             A(
                 SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
-                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", exclude=excludeList)),
+                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", regUser=reg_user, exclude=excludeList)),
             ),
             A(
                 SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
-                _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId)),
+                _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
@@ -1416,6 +1435,8 @@ def email_for_registered_reviewer():
 
     recommId = request.vars["recommId"]
     new_round = convert_string(request.vars["new_round"])
+    new_stage = convert_string(request.vars["new_stage"])
+    reg_user = convert_string(request.vars["regUser"])
     reviewerId = request.vars["reviewerId"]
     if recommId is None:
         session.flash = auth.not_authorized()
@@ -1469,9 +1490,15 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
+    if art.art_stage_1_id is not None:
+        stage1_art = db.t_articles[art.art_stage_1_id]
+        report_survey = art.t_report_survey.select().last()
+        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(stage1_art if new_stage or reg_user else art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1487,6 +1514,11 @@ def email_for_registered_reviewer():
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", art)
 
     destPerson = common_small_html.mkUser(auth, db, reviewerId).flatten()
+
+    if pciRRactivated and new_stage:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserReturningReviewer", art)
+    if pciRRactivated and reg_user:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserNewReviewer", art)
 
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
@@ -1557,6 +1589,7 @@ def email_for_registered_reviewer():
                     linkTarget,
                     declineLinkTarget,
                     new_round,
+                    True if new_stage or reg_user else False,
                 )
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
@@ -1578,6 +1611,7 @@ def email_for_new_reviewer():
     response.view = "default/myLayout.html"
 
     recommId = request.vars["recommId"]
+    new_stage = convert_string(request.vars["new_stage"])
     recomm = db.t_recommendations[recommId]
     if recomm is None:
         session.flash = auth.not_authorized()
@@ -1624,9 +1658,15 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % locals()
             )
+    if art.art_stage_1_id is not None:
+        stage1_art = db.t_articles[art.art_stage_1_id]
+        report_survey = art.t_report_survey.select().last()
+        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art)
+        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(art if not new_stage else stage1_art, new_stage)
         programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
         signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
@@ -1737,6 +1777,7 @@ def email_for_new_reviewer():
                         reset_password_key,
                         linkTarget,
                         declineLinkTarget,
+                        new_stage=new_stage,
                     )
             except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")
@@ -1906,7 +1947,13 @@ def edit_recommendation():
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
     isPress = None
-
+    stage1_recomm_text = ""
+    stage1_recomm_comments = ""
+    if pciRRactivated and art.report_stage == "STAGE 2" and art.art_stage_1_id is not None:
+        stage1_recomm = db((db.t_recommendations.article_id == art.art_stage_1_id)).select(orderby=db.t_recommendations.id).last()
+        stage1_recomm_text = stage1_recomm.recommendation_title
+        stage1_recomm_comments = stage1_recomm.recommendation_comments
+        
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
@@ -2004,7 +2051,8 @@ def edit_recommendation():
         form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
         if isPress is False:
             form.insert(0, triptyque)
-
+        form.vars.recommendation_title = stage1_recomm_text
+        form.vars.recommendation_comments = stage1_recomm_comments
         if form.process().accepted:
             if form.vars.save:
                 if form.vars.recommender_opinion == "do_recommend":
