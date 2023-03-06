@@ -60,6 +60,14 @@ def mk_recomm_description(recomm, article):
         f"peer-reviewed and recommended by {pci.short_name}",
         f"{article.doi}",
         #article.article_source,
+    ]) if not article.article_source \
+    else " ".join([
+        "A recommendation of:",
+        f"{article.authors}",
+        f"{title}.",
+        f"{article.article_source}",
+        f"peer-reviewed and recommended by {pci.short_name}",
+        f"{article.doi}",
     ])
 
 
