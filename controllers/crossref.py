@@ -40,8 +40,8 @@ def post_form():
     form.insert(0, PRE(get_crossref_status(recomm), _name="status"))
 
     if form.process(keepvalues=True).accepted:
-        error = crossref.post_and_forget(recomm, form.vars.xml)
-        form.element(_name="status", replace=PRE(error or "request sent"))
+        status = crossref.post_and_forget(recomm, form.vars.xml)
+        form.element(_name="status", replace=PRE(status or "request sent"))
 
         form.element(_name="xml")["_disabled"] = 1
         url = URL("manager", f"recommendations?articleId={recomm.article_id}")
