@@ -2908,10 +2908,6 @@ alter table config add column issn text;
 -- 2023-01-20 updates/add_allowed_filetypes_config.sql
 alter table config add column allowed_upload_filetypes text;
 
--- 2023-03-01 updates/add_article_year.sql
-ALTER TABLE "t_articles"
-ADD COLUMN IF NOT EXISTS article_year integer;
-
 -- 2023-01-25 updates/refactor_v_article_recommender.sql
 DROP VIEW v_article_recommender;
 CREATE OR REPLACE VIEW v_article_recommender AS
@@ -2941,7 +2937,11 @@ FROM
 alter view v_article owner to pci_admin;
 alter view v_article_recommender owner to pci_admin;
 
--- 2023-02-08 updates/tracked_changes.sql
+-- 2023-03-01 updates/add_article_year.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS article_year integer;
+
+-- 2023-03-06 updates/tracked_changes.sql
 ALTER TABLE "t_report_survey"
 ADD COLUMN IF NOT EXISTS  tracked_changes_url character varying(512) DEFAULT '';
 
