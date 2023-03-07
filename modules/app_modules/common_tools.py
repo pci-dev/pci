@@ -33,6 +33,7 @@ def get_script(scriptName):
 
 ######################################################################################################################################################################
 def getShortText(text, length):
+    text = text or ""
     if len(text) > length:
         text = text[0:length] + "..."
     return text
