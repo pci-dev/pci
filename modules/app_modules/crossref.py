@@ -122,7 +122,8 @@ def crossref_xml(recomm):
     article = db.t_articles[recomm.article_id]
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
-    recomm_doi = f"{pci.doi}.1"+str(article.id).zfill(5)
+    recomm_doi = recomm.recommendation_doi if recomm.recommendation_doi \
+                    else f"{pci.doi}.1"+str(article.id).zfill(5)
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
