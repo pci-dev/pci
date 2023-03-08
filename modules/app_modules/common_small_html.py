@@ -76,27 +76,20 @@ def mkElapsed(t):
 # Transforms  DOI
 # After CrossRef syntax must be: https://doi.org/xxxx.xx/xxx.xx
 def mkDOI(doi):
-    if (doi is not None) and (doi != ""):
-        if match("^http", doi):
-            return A(B(doi), _href=doi, _class="doi_url", _target="_blank")
-        else:
-            return A(B(doi), _href="https://doi.org/" + sub(r"doi: *", "", doi), _class="doi_url", _target="_blank")
+    doi_url = mkLinkDOI(doi)
+    if doi_url:
+        return A(B(doi), _href=doi_url, _class="doi_url", _target="_blank")
     else:
         return SPAN("", _class="doi_url")
 
 
 def mkSimpleDOI(doi):
-    if (doi is not None) and (doi != ""):
-        if match("^http", doi):
-            return A(doi, _href=doi)
-        else:
-            return A(doi, _href="https://doi.org/" + sub(r"doi: *", "", doi))
-    else:
-        return ""
+    doi_url = mkLinkDOI(doi)
+    return A(doi, _href=doi_url) if doi_url else ""
 
 
 def mkLinkDOI(doi):
-    if (doi is not None) and (doi != ""):
+    if doi:
         if match("^http", doi):
             return doi
         else:
