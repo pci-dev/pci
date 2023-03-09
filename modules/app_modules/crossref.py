@@ -129,7 +129,10 @@ def crossref_xml(recomm):
     recomm_description_text = mk_recomm_description(recomm, article)
 
     recommender = db.auth_user[recomm.recommender_id]
-    co_recommenders = []
+    co_recommenders = [ db.auth_user[row.contributor_id] for row in
+            db(
+                db.t_press_reviews.recommendation_id == recomm.id
+            ).select() ]
 
     for user in [recommender] + co_recommenders:
         user.affiliation = mk_affiliation(user)
@@ -168,7 +171,7 @@ def crossref_xml(recomm):
         """ if pci.issn else "") + f"""
         <doi_data>
             <doi>{pci.doi}</doi>
-            <resource>{pci.url}</resource>
+            <resource>{pci.url}/</resource>
         </doi_data>
     </journal_metadata>
 
