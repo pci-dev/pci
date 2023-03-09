@@ -31,7 +31,7 @@
                 <a {{if replyButtonDisabled:}}disabled{{pass}}
                   class="buttontext btn btn-info pci2-flex-center"
                   style="flex: 1;" 
-                  href="{{=editAuthorsReplyLink}}"
+                  {{if not replyButtonDisabled:}} href="{{=editAuthorsReplyLink}}" {{pass}}
                   >
                   {{=T('Write or upload your reply to the recommender')}}
                 </a>
