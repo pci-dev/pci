@@ -331,29 +331,49 @@ function new_search(input_field) {
     var main_search_form = document.querySelector('.web2py_console > form');
     main_search_form.style.display = 'flex';
 
-    // get regulator (contains/not contains)
+    // get regulator (contains/not contains) and set negative prefix
     var regulator = input_field.parentElement.querySelector('select.form-control').value;
+    var statement = '';
     if (regulator == 'contains' || regulator == 'and contains') {
         var not_statement = false;
     } else {
         var not_statement = true;
     }
 
-    // get search term
-    var search_term = get_search_term(input_field);
-
-    var statement = '';
     var select_field = document.querySelector('#w2p_query_fields');
     if (not_statement) {
-        statement += 'not ' + select_field.value + ' contains "' + search_term + '"';
-    } else {
+        statement += 'not '
+    }
+
+    // check the active selector to see if it is an integer field
+    var active_selector = get_active_selector('#w2p_query_fields')
+
+    // get search term and build search statement
+    var search_term = get_search_term(input_field);
+
+    if (active_selector.classList.contains('integer-field')) {
+        statement += select_field.value + ' == "' + search_term + '"';
+    }
+    else {
         statement += select_field.value + ' contains "' + search_term + '"';
     }
+
     var main_search_input = main_search_form.querySelector('#w2p_keywords');
     main_search_input.value = statement;
     setSearchType('advanced');
     main_search_form.submit();
 }
+
+
+function get_active_selector(select_field) {
+    var selectors = document.querySelector(select_field);
+    for (var i = 0; i < selectors.length; i++) {
+        if (selectors[i].selected) {
+            return selectors[i];
+        }
+    }
+}
+
 
 function getCookie(cname) {
     var name = cname + "=";
