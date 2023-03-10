@@ -1688,7 +1688,7 @@ def articles_awaiting_reviewers():
     remove_options = []
 
     # fields that are integer and need to be treated differently
-    integer_fields = ['t_articles.id']
+    integer_fields = ['t_articles.id', 't_articles.auto_nb_recommendations']
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options, integer_fields)
