@@ -287,12 +287,16 @@ function add_to_search(input_field) {
         var statement = ' ' + regulator + ' ';
     }
     statement += db_field;
-    if (regulator == 'not') {
-        statement += ' contains "';
-    } else {
-        statement += ' contains "';
+
+    // check the active selector to see if it is an integer field
+    var active_selector = get_active_selector('#w2p_query_fields')
+
+    if (active_selector.classList.contains('integer-field')) {
+        statement += ' == "' + search_term + '"';
     }
-    statement += search_term + '"';
+    else {
+        statement += ' contains "' + search_term + '"';
+    }
 
     // add statement to search bar
     var search_bar = document.querySelector('#w2p_keywords');
