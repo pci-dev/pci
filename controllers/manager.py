@@ -1061,6 +1061,7 @@ def all_recommendations():
     query = (
           (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == isPress)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
     )
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
