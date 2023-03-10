@@ -2072,6 +2072,7 @@ db.define_table(
     "v_article_recommender",
     Field("id", type="id"),
     Field("recommender", type="text", label=T("Recommender")),
+    Field("recommendation_id", type="id"),
     # writable=False,
     migrate=False,
 )
