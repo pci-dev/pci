@@ -467,7 +467,9 @@ def crossref_status(article):
                 status_str = "✅,❌,".split(",")
                 elt.innerHTML = status_str[status]
 
-                if (status == "2") get_crossref_status(elt)
+                if (status == "2") setTimeout(function() {
+                    get_crossref_status(elt)
+                }, 1000)
             })
             req.open("get", "'''+str(status_url)+'''")
             req.send()
