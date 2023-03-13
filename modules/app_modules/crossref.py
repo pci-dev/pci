@@ -1,5 +1,7 @@
 import requests
+import re
 from time import sleep
+
 from gluon.html import TAG
 from app_modules.common_small_html import md_to_html
 
@@ -112,8 +114,9 @@ def get_status(recomm):
 
 def get_identifier(doi_str):
     url = (doi_str or "").strip()
-    typ = "doi" if "://doi.org/" in url[:16] else "other"
-    ref = url if typ != "doi" else url[16+url.find("https://"):]
+    is_doi = re.match("https?://doi\.org/", url, re.IGNORECASE)
+    ref = url if not is_doi else url[len(is_doi[0]):]
+    typ = "doi" if is_doi else "other"
 
     return typ, ref
 
