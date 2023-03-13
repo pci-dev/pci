@@ -1,5 +1,7 @@
 import requests
+import re
 from time import sleep
+
 from gluon.html import TAG
 from app_modules.common_small_html import md_to_html
 
@@ -110,20 +112,26 @@ def get_status(recomm):
     )
 
 
-def get_identifier(article):
-    url = article.doi.strip()
-    typ = "doi" if "://doi.org/" in url[:16] else "other"
-    ref = url if typ != "doi" else url[16+url.find("https://"):]
+def get_identifier(doi_str):
+    url = (doi_str or "").strip()
+    is_doi = re.match("https?://doi\.org/", url, re.IGNORECASE)
+    ref = url if not is_doi else url[len(is_doi[0]):]
+    typ = "doi" if is_doi else "other"
 
     return typ, ref
+
+
+def get_recommendation_doi(recomm):
+    _, ref = get_identifier(recomm.recommendation_doi)
+
+    return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
 
 
 def crossref_xml(recomm):
     article = db.t_articles[recomm.article_id]
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
-    recomm_doi = recomm.recommendation_doi if recomm.recommendation_doi \
-                    else f"{pci.doi}.1"+str(article.id).zfill(5)
+    recomm_doi = get_recommendation_doi(recomm)
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
@@ -137,7 +145,7 @@ def crossref_xml(recomm):
     for user in [recommender] + co_recommenders:
         user.affiliation = mk_affiliation(user)
 
-    interwork_type, interwork_ref = get_identifier(article)
+    interwork_type, interwork_ref = get_identifier(article.doi)
     item_number = recomm_doi[-6:]
 
     timestamp = recomm.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
