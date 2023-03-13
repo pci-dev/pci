@@ -77,7 +77,7 @@ def mk_recomm_description(recomm, article):
 
 
 def mk_affiliation(user):
-    if not user: return ""
+    if hasattr(user, "is_pseudo"): return ""
 
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
@@ -122,6 +122,15 @@ def get_recommendation_doi(recomm):
     return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
 
 
+def pseudo_user(details):
+    class _user:
+        first_name = details
+        last_name = ""
+        is_pseudo = 1
+
+    return _user
+
+
 def crossref_xml(recomm):
     article = db.t_articles[recomm.article_id]
 
@@ -131,8 +140,11 @@ def crossref_xml(recomm):
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
 
-    recommender = db.auth_user[recomm.recommender_id]
-    co_recommenders = [ db.auth_user[row.contributor_id] for row in
+    recommender = db.auth_user[recomm.recommender_id] \
+                    or pseudo_user(recomm.recommender_details)
+    co_recommenders = [ db.auth_user[row.contributor_id]
+                            or pseudo_user(recomm.contributor_details)
+            for row in
             db(
                 db.t_press_reviews.recommendation_id == recomm.id
             ).select() ]
