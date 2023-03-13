@@ -118,12 +118,17 @@ def get_identifier(doi_str):
     return typ, ref
 
 
+def get_recommendation_doi(recomm):
+    _, ref = get_identifier(recomm.recommendation_doi)
+
+    return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
+
+
 def crossref_xml(recomm):
     article = db.t_articles[recomm.article_id]
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
-    recomm_doi = recomm.recommendation_doi if recomm.recommendation_doi \
-                    else f"{pci.doi}.1"+str(article.id).zfill(5)
+    recomm_doi = get_recommendation_doi(recomm)
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
