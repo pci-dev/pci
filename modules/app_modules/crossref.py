@@ -77,6 +77,8 @@ def mk_recomm_description(recomm, article):
 
 
 def mk_affiliation(user):
+    if not user: return ""
+
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
 
