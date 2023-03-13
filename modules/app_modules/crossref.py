@@ -110,8 +110,8 @@ def get_status(recomm):
     )
 
 
-def get_identifier(article):
-    url = article.doi.strip()
+def get_identifier(doi_str):
+    url = (doi_str or "").strip()
     typ = "doi" if "://doi.org/" in url[:16] else "other"
     ref = url if typ != "doi" else url[16+url.find("https://"):]
 
@@ -137,7 +137,7 @@ def crossref_xml(recomm):
     for user in [recommender] + co_recommenders:
         user.affiliation = mk_affiliation(user)
 
-    interwork_type, interwork_ref = get_identifier(article)
+    interwork_type, interwork_ref = get_identifier(article.doi)
     item_number = recomm_doi[-6:]
 
     timestamp = recomm.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
