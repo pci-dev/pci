@@ -1057,8 +1057,16 @@ def all_recommendations():
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
+
+    query = (
+          (db.t_recommendations.article_id == db.t_articles.id)
+        & (db.t_articles.already_published == isPress)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+    )
+    if not isPress:
+        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+
     if isPress:  ## NOTE: POST-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == True)
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
         fields = [
@@ -1082,7 +1090,6 @@ def all_recommendations():
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        query = (db.t_recommendations.article_id == db.t_articles.id) & (db.t_articles.already_published == False) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
         customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
         fields = [

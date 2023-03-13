@@ -540,7 +540,11 @@ def my_recommendations():
             db.t_recommendations.doi,
             db.t_recommendations.is_closed,
     ]
-    query = (db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == db.t_articles.id)
+    query = (
+          (db.t_recommendations.recommender_id == auth.user_id)
+        & (db.t_recommendations.article_id == db.t_articles.id)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+    )
 
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     if isPress:  ## NOTE: POST-PRINTS
