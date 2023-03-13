@@ -1629,57 +1629,42 @@ def delete_temp_user():
 def articles_awaiting_reviewers():
     response.view = "default/myLayout.html"
 
-    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
-
-    qy_art = DAL("sqlite:memory").define_table(
-        "qy_art",
-
-        # displayed full-text searchable synthetic field
-        Field("text", type="string", label="Article"),
-
-        # displayed fields
-        Field("thematics", type="string", label=T("Thematic fields")),
-        Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
-
-        # additional advanced search fields (if not filtered in adjust_grid)
-        Field("abstract", type="text"),
-        Field("keywords", type="text"),
-
-        Field("last_status_change", type="date", readable=False), # sort key
-    )
-
-    art_html = {}
-    qy_art.text.represent = lambda text, row: art_html[row.id]
-    qy_art.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
-
-    for row in db(query).select():
-        html = common_small_html.mkArticleCellNoRecomm(auth, db, row)
-        art_html[row.id] = html
-        row.text = html.flatten()
-        row.thematics = ", ".join(row.thematics)
-        row = {f: row[f] for f in [str(f).replace("qy_art.", "") for f in qy_art]}
-        qy_art.insert(**row)
-
-    links = [
-        dict(
-            header="",
-            body=lambda row: A(
-                SPAN(current.T("Willing to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
-                _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row.id)),
-                _class="",
-                _title=current.T("View and/or edit article"),
-            ),
-        ),
+    articles = db.t_articles
+    full_text_search_fields = [
+        'id',
+        'title',
+        'authors',
+        'thematics',
+        'auto_nb_recommendations'
     ]
 
-    fields = [
-            qy_art.text,
-            qy_art.thematics,
-            qy_art.auto_nb_recommendations,
-        ]
+    def article_html(art_id):
+        return common_small_html.mkRepresentArticleLight(auth, db, art_id)
 
+    articles.id.readable = True
+    articles.id.represent = lambda text, row: article_html(row.id)
+    articles.thematics.label = "Thematics fields"
+    articles.thematics.type = "string"
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    articles.auto_nb_recommendations.readable = True
+
+    for a_field in articles.fields:
+        if not a_field in full_text_search_fields:
+            articles[a_field].readable = False
+
+    articles.id.label = "Article"
+
+    links = []
+    links.append(dict(header="", body=lambda row: A(
+        SPAN(current.T("Willing to review"), _class="buttontext btn btn-default pci-button pci-submitter"),
+                _href=URL(c="user", f="ask_to_review", vars=dict(articleId=row.id)),
+                _class="",
+                _title=current.T("View and/or edit article"),),),)
+
+    query = (db.t_articles.is_searching_reviewers == True) & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+        
     original_grid = SQLFORM.grid(
-        qy_art,
+        query,
         searchable=True,
         details=False,
         editable=False,
@@ -1689,19 +1674,24 @@ def articles_awaiting_reviewers():
         exportclasses=expClass,
         maxtextlength=250,
         paginate=20,
-        fields=fields,
+        fields=[
+            articles.id,
+            articles.thematics,
+            articles.auto_nb_recommendations,
+        ],
         links=links,
-        orderby=~qy_art.last_status_change,
+        orderby=~articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
 
     # options to be removed from the search dropdown:
-    remove_options = ['qy_art.doi', 'qy_art.abstract', 'qy_art.status', 'qy_art.id', 
-                      'qy_art.parallel_submission', 'qy_art.last_status_change', 
-                      'qy_art.already_published']
+    remove_options = []
+
+    # fields that are integer and need to be treated differently
+    integer_fields = ['t_articles.id', 't_articles.auto_nb_recommendations']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles2', remove_options)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options, integer_fields)
 
     return dict(
         pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),

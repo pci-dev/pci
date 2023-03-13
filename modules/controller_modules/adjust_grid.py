@@ -7,7 +7,7 @@ search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
-def adjust_grid_basic(grid, search_name, remove_options = []):
+def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = []):
     '''
     function that adjusts the grid after its generation
     '''
@@ -77,7 +77,8 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
     # initially, the large search field is hidden
     search_field.attributes.update({'_style': 'display:none'})
 
-    # remove options, regulators, and other elements that are not required
+    # remove options, regulators, and other elements that are not required;
+    # also add integer CSS to mark integer fields
     for option in select_panel:
         if option.attributes['_value'].endswith('any'):
             option.attributes.update({'_class':'selector'})
@@ -86,6 +87,8 @@ def adjust_grid_basic(grid, search_name, remove_options = []):
         elif option.attributes['_value'] in remove_options:
             option.attributes.update({'_style':'display:none'})
             grid.elements('div#w2p_field_' + option.attributes['_value'].replace('.', '-'), replace=None)
+        elif option.attributes['_value'] in integer_fields:
+            option.attributes.update({'_class':'integer-field'})
 
     # set "All Fields" as primary choice
     for option in select_panel:
