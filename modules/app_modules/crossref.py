@@ -43,6 +43,7 @@ def get_status(recomm):
     try:
         req = _get_status(recomm)
         req.raise_for_status()
+        assert "record_diagnostic" in req.text, "no record_diagnostic"
         return req.text
     except Exception as e:
         return f"error: {e}"
