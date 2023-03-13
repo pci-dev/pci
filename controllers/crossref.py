@@ -70,7 +70,7 @@ def get_status():
     except:
         return f"error: no such recomm_id={recomm_id}"
 
-    status = crossref.wait_for_status(recomm)
+    status = crossref.get_status(recomm)
     return (
         2 if status.find("error:")+1 else
         1 if '"Failure"' in status else
@@ -79,7 +79,7 @@ def get_status():
 
 
 def get_crossref_status(recomm):
-    status = crossref.get_status(recomm).text
+    status = crossref.get_status(recomm)
     if status.find("error:")+1:
         return status
 

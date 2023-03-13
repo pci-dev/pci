@@ -39,9 +39,11 @@ def post_and_forget(recomm, xml=None):
         return f"error: {e}"
 
 
-def wait_for_status(recomm):
+def get_status(recomm):
     try:
-        return _wait_for_status(recomm)
+        req = _get_status(recomm)
+        req.raise_for_status()
+        return req.text
     except Exception as e:
         return f"error: {e}"
 
@@ -90,17 +92,7 @@ def post(filename, crossref_xml):
     )
 
 
-def _wait_for_status(recomm):
-    for _ in range(5):
-        status = get_status(recomm).text
-        if "record_diagnostic" in status:
-            return status
-        sleep(1)
-
-    raise Exception("wait_for_status: timeout")
-
-
-def get_status(recomm):
+def _get_status(recomm):
     return requests.get(
         f"{crossref.api_url}/submissionDownload",
         params=dict(
