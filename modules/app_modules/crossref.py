@@ -45,7 +45,7 @@ def get_status(recomm):
         req.raise_for_status()
         return req.text
     except Exception as e:
-        return f"error: {e}"
+        return f"error: {e.__class__.__name__}"
 
 
 def get_filename(recomm):
