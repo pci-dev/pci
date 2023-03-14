@@ -338,6 +338,9 @@ def _RecommendationMenu():
             False,
             URL("recommender", "my_recommendations", vars=dict(pressReviews=False), user_signature=True),
         ),
+    ]
+
+    recommendationsMenu += [
         menu_entry("Preprint(s) you are co-handling", "glyphicon-link",
             URL("recommender", "my_co_recommendations", vars=dict(pendingOnly=False), user_signature=True),
             _class="pci-recommender",
