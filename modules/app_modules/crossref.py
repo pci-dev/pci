@@ -79,7 +79,7 @@ def mk_recomm_description(recomm, article):
 
 
 def mk_affiliation(user):
-    if hasattr(user, "is_pseudo"): return ""
+    if hasattr(user, "is_pseudo"): return "(unavailable)"
 
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
@@ -125,9 +125,10 @@ def get_recommendation_doi(recomm):
 
 
 def pseudo_user(details):
+    name = details[:details.rfind(" [")].split()
     class _user:
-        first_name = details
-        last_name = ""
+        first_name = name[0]
+        last_name = " ".join(name[1:]) or "(unavailable)"
         is_pseudo = 1
 
     return _user
