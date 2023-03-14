@@ -1124,7 +1124,7 @@ def my_reviews():
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsText")
-        btnTxt = current.T("View / Edit")
+        btnTxt = current.T("View")
 
     # db.t_articles._id.readable = False
     db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(auth, db, aId)
