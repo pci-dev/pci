@@ -514,6 +514,16 @@ def accept_new_article_to_recommend():
         customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongName=appLongName, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
     )
 
+######################################################################################################################################################################
+# Display completed articles
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def completed_evaluations():
+    resu = _my_recomms(["Recommended-private", "Recommended", "Rejected", "Cancelled"])
+    resu["customText"] = getText(request, auth, db, "#RecommenderCompletedArticlesText")
+    resu["titleIcon"] = "ok-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, "#RecommenderCompletedArticlesTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#RecommenderCompletedArticles")
+    return resu
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
