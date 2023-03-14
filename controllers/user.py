@@ -1186,9 +1186,8 @@ def my_reviews():
                                 A(
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
-                                    _class="btn btn-default" +
-                                        " disabled" if is_scheduled_submission(row.t_articles)
-                                        else "",
+                                    _class="btn btn-default" + (" disabled" if is_scheduled_submission(row.t_articles)
+                                        else ""),
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
