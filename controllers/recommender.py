@@ -829,6 +829,7 @@ def show_report_survey():
 
         fields = [
             "temp_art_stage_1_id",
+            "report_server",
             "tracked_changes_url",
             "q25",
             "q26",

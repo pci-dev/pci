@@ -317,6 +317,8 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
         db.t_report_survey.tracked_changes_url.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')
 
+        db.t_report_survey.report_server.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
+
         # TODO: remove the following constraints, they are copy/pasted from db.py
         db.t_report_survey.q26.requires = IS_IN_SET(
             (
@@ -347,6 +349,7 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
 
         fields = [
             "temp_art_stage_1_id",
+            "report_server",
             "tracked_changes_url",
             "q25",
             "q26",
