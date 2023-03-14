@@ -29,6 +29,10 @@ def init_conf(db):
  globals().update(locals())
 
 
+QUEUED = '<doi_batch_diagnostic status="queued">'
+FAILED = '<record_diagnostic status="Failure">'
+
+
 def post_and_forget(recomm, xml=None):
     recomm._filename = filename = get_filename(recomm)
     try:

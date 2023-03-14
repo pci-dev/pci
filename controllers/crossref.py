@@ -73,8 +73,8 @@ def get_status():
     status = crossref.get_status(recomm)
     return (
         3 if status.startswith("error:") else
-        2 if 'diagnostic status="queued">' in status else
-        1 if '"Failure"' in status else
+        2 if crossref.QUEUED in status else
+        1 if crossref.FAILED in status else
         0
     )
 
@@ -82,12 +82,11 @@ def get_status():
 def get_crossref_status(recomm):
     status = crossref.get_status(recomm)
     if status.startswith("error:") \
-    or 'diagnostic status="queued">' in status:
+    or crossref.QUEUED in status:
         return status
 
-    error_str = 'record_diagnostic status="Failure"'
-    if error_str in status:
-        return "error: " + error_str + "\n\n" + status
+    if crossref.FAILED in status:
+        return "error: " + crossref.FAILED + "\n\n" + status
     else:
         return "success"
 
