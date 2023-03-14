@@ -36,7 +36,7 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 # From common.py
 ######################################################################################################################################################################
 def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
-    vars["recommenderId"] = row["id"]
+    vars["recommenderId"] = row.auth_user["id"]
     _class = "buttontext btn btn-default pci-submitter"
     if pciRRactivated:
         _class = "buttontext btn btn-success pci-submitter"
@@ -54,7 +54,7 @@ def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
 
 ######################################################################################################################################################################
 def mkExcludeRecommenderButton(auth, db, row, articleId, excludeList, vars):
-    vars["recommenderId"] = row["id"]
+    vars["recommenderId"] = row.auth_user["id"]
     anchor = A(
         SPAN(current.T("Exclude recommender"), _class="buttontext btn btn-default pci-submitter"),
         _href=URL(

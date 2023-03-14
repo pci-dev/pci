@@ -3,7 +3,7 @@ from app_modules.helper import OPTION
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
-                     'recommenders': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 't_articles',
+                     'recommenders': 'auth_user', 'articles': 't_articles', 'articles_temp': 't_articles',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
@@ -33,7 +33,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         add_btn = grid.element('div.web2py_console a.btn-secondary')
         add_btn.attributes.update({'_style':'margin-bottom:4rem'})
     elif search_name == 'recommenders':
-        panel_search_field = grid.element('div#w2p_field_qy_recomm-id')
+        panel_search_field = grid.element('div#w2p_field_auth_user-first_name')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles':
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
@@ -97,7 +97,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
 
     # in list_users(), where we have no "All fields", set "First name" as primary choice.
     # similarly, in mail_templates we set "Hashtag" as primary choice.
-    if search_name in ['users', 'reviewers']:
+    if search_name in ['users', 'reviewers', 'recommenders']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.first_name'):
                 option.attributes.update({'_selected':'selected'})
