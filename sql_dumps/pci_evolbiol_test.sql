@@ -2952,3 +2952,7 @@ ALTER TABLE "t_report_survey"
 ADD COLUMN IF NOT EXISTS  q30 character varying(512) DEFAULT '';
 
 -- templates updates => sql_dumps/insert_default_mail_templates_pci_RR.sql
+
+-- 2023-03-14 updates/preprint_server.sql
+ALTER TABLE "t_report_survey"
+ADD COLUMN IF NOT EXISTS  report_server character varying(512) DEFAULT '';
