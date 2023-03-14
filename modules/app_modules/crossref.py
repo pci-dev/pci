@@ -39,9 +39,12 @@ def post_and_forget(recomm, xml=None):
         return f"error: {e}"
 
 
-def wait_for_status(recomm):
+def get_status(recomm):
     try:
-        return _wait_for_status(recomm)
+        req = _get_status(recomm)
+        req.raise_for_status()
+        assert "record_diagnostic" in req.text, "no record_diagnostic"
+        return req.text
     except Exception as e:
         return f"error: {e}"
 
@@ -74,6 +77,8 @@ def mk_recomm_description(recomm, article):
 
 
 def mk_affiliation(user):
+    if hasattr(user, "is_pseudo"): return ""
+
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
 
@@ -90,17 +95,7 @@ def post(filename, crossref_xml):
     )
 
 
-def _wait_for_status(recomm):
-    for _ in range(5):
-        status = get_status(recomm).text
-        if "record_diagnostic" in status:
-            return status
-        sleep(1)
-
-    raise Exception("wait_for_status: timeout")
-
-
-def get_status(recomm):
+def _get_status(recomm):
     return requests.get(
         f"{crossref.api_url}/submissionDownload",
         params=dict(
@@ -127,6 +122,15 @@ def get_recommendation_doi(recomm):
     return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
 
 
+def pseudo_user(details):
+    class _user:
+        first_name = details
+        last_name = ""
+        is_pseudo = 1
+
+    return _user
+
+
 def crossref_xml(recomm):
     article = db.t_articles[recomm.article_id]
 
@@ -136,8 +140,11 @@ def crossref_xml(recomm):
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
 
-    recommender = db.auth_user[recomm.recommender_id]
-    co_recommenders = [ db.auth_user[row.contributor_id] for row in
+    recommender = db.auth_user[recomm.recommender_id] \
+                    or pseudo_user(recomm.recommender_details)
+    co_recommenders = [ db.auth_user[row.contributor_id]
+                            or pseudo_user(recomm.contributor_details)
+            for row in
             db(
                 db.t_press_reviews.recommendation_id == recomm.id
             ).select() ]
