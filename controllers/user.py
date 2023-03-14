@@ -1158,18 +1158,19 @@ def my_reviews():
     db.t_reviews.review_state.readable = False
     db.t_reviews.anonymously.readable = False
     db.t_reviews.review.readable = False
-
-    if pciRRactivated:
-        db.t_reviews.review_pdf.label = T("Review files")
+    db.t_reviews.review_pdf.readable = False
 
     if pendingOnly:
         db.t_reviews.review.readable = False
-        db.t_reviews.review_pdf.readable = False
     else:
         db.t_reviews.recommendation_id.readable = False
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
     links = [
+        dict(
+            header=T("Review uploaded as file") if not pciRRactivated else T("Review files"),
+            body=lambda row: A(T("file"), _href=URL(c="default", f='download', args=row.t_reviews.review_pdf)) if row.t_reviews.review_pdf else ""
+        ),
         dict(
             header=T("Review as text"),
             body=lambda row: DIV(
@@ -1245,7 +1246,7 @@ def my_reviews():
             db.t_reviews.review,
             db.t_reviews.review_pdf,
         ],
-        links=links,
+        links=links[1:] if pendingOnly else links,
         orderby=~db.t_reviews.last_change | ~db.t_reviews.review_state,
         _class="web2py_grid action-button-absolute",
         upload=URL("default", "download"),
