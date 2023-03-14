@@ -67,7 +67,6 @@ def mk_recomm_description(recomm, article):
         f"ver.{article.ms_version}",
         f"peer-reviewed and recommended by {pci.short_name}",
         f"{article.doi}",
-        #article.article_source,
     ]) if not article.article_source \
     else " ".join([
         "A recommendation of:",
