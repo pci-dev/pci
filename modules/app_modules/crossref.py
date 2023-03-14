@@ -146,7 +146,7 @@ def crossref_xml(recomm):
     recommender = db.auth_user[recomm.recommender_id] \
                     or pseudo_user(recomm.recommender_details)
     co_recommenders = [ db.auth_user[row.contributor_id]
-                            or pseudo_user(recomm.contributor_details)
+                            or pseudo_user(row.contributor_details)
             for row in
             db(
                 db.t_press_reviews.recommendation_id == recomm.id
