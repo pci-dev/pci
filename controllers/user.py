@@ -1124,7 +1124,7 @@ def my_reviews():
         )
         pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
         customText = getText(request, auth, db, "#UserMyReviewsText")
-        btnTxt = current.T("View / Edit")
+        btnTxt = current.T("View")
 
     # db.t_articles._id.readable = False
     db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(auth, db, aId)
@@ -1158,18 +1158,19 @@ def my_reviews():
     db.t_reviews.review_state.readable = False
     db.t_reviews.anonymously.readable = False
     db.t_reviews.review.readable = False
-
-    if pciRRactivated:
-        db.t_reviews.review_pdf.label = T("Review files")
+    db.t_reviews.review_pdf.readable = False
 
     if pendingOnly:
         db.t_reviews.review.readable = False
-        db.t_reviews.review_pdf.readable = False
     else:
         db.t_reviews.recommendation_id.readable = False
     # db.t_reviews.review.label = T('Your review')
     # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
     links = [
+        dict(
+            header=T("Review uploaded as file") if not pciRRactivated else T("Review files"),
+            body=lambda row: A(T("file"), _href=URL(c="default", f='download', args=row.t_reviews.review_pdf)) if row.t_reviews.review_pdf else ""
+        ),
         dict(
             header=T("Review as text"),
             body=lambda row: DIV(
@@ -1179,16 +1180,14 @@ def my_reviews():
                     _class="pci2-flex-row pci2-align-items-center",
                 ),
                 DIV(
-                    WIKI(
-                        row.t_reviews.review
-                        or DIV(
+                    WIKI(row.t_reviews.review or ""),
+                         DIV(
                             DIV(
                                 A(
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
-                                    _class="btn btn-default" +
-                                        " disabled" if is_scheduled_submission(row.t_articles)
-                                        else "",
+                                    _class="btn btn-default" + (" disabled" if is_scheduled_submission(row.t_articles)
+                                        else ""),
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
@@ -1199,10 +1198,7 @@ def my_reviews():
                             )
                             if row.t_reviews["review_state"] == "Awaiting review"
                             else ""
-                        )
-                        or "",
-                        safe_mode=False,
-                    ),
+                        ),
                     _style="color: #888",
                     _class="pci-div4wiki-large",
                 ),
@@ -1246,7 +1242,7 @@ def my_reviews():
             db.t_reviews.review,
             db.t_reviews.review_pdf,
         ],
-        links=links,
+        links=links[1:] if pendingOnly else links,
         orderby=~db.t_reviews.last_change | ~db.t_reviews.review_state,
         _class="web2py_grid action-button-absolute",
         upload=URL("default", "download"),
