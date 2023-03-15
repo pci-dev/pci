@@ -644,7 +644,11 @@ db.define_table(
     Field("article_year", type="integer", label=T("Year"), requires=IS_NOT_EMPTY()),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
     Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=SPAN(T("URL must start with http:// or https://"), BR(), T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
-    Field("preprint_server", type="string", length=512, label=T("Name of the preprint server or open archive (eg bioRxiv, Zenodo, arXiv, HAL, OSF prepints...) where your preprint has been posted"), requires=[IS_NOT_EMPTY(), IS_LENGTH(512, 0)]),
+    Field("preprint_server", type="string", length=512, requires=[IS_NOT_EMPTY(), IS_LENGTH(512, 0)], label=
+        T("Name of the server or open archive where your report has been deposited (eg OSF, Zenodo, arXiv, bioRxiv, HAL...)")
+            if pciRRactivated else
+        T("Name of the preprint server or open archive (eg bioRxiv, Zenodo, arXiv, HAL, OSF prepints...) where your preprint has been posted")
+    ),
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
         requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
     Field("picture_rights_ok",  widget=widget(_type="hidden") if not pciRRactivated else "",type="boolean", label=T("Picture right")),

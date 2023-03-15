@@ -70,6 +70,8 @@ describe("Preprint recommended in one round", () => {
       var art_year = new Date().getFullYear();
       cy.get("#t_articles_article_year").typeFast(art_year);
 
+      cy.get("#t_articles_preprint_server").typeFast("Preprint server");
+
       if (is_rr) {
         cy.get("#t_articles_report_stage").send_keys("Stage 1");
         cy.get("#t_articles_sub_thematics").typeFast("sub-thematic");
@@ -81,7 +83,6 @@ describe("Preprint recommended in one round", () => {
       cy.get("#t_articles_no_scripts_used_for_result").click();
       cy.get("#t_articles_codes_used_in_study").click();
       cy.get("#t_articles_codes_doi").typeFast("https://github.com/");
-      cy.get("#t_articles_preprint_server").typeFast("Preprint server");
       cy.get("#t_articles_funding").typeFast("The authors declare that they have received no specific funding for this study");
       }
 
