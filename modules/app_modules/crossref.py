@@ -29,6 +29,10 @@ def init_conf(db):
  globals().update(locals())
 
 
+QUEUED = '<doi_batch_diagnostic status="queued">'
+FAILED = '<record_diagnostic status="Failure">'
+
+
 def post_and_forget(recomm, xml=None):
     recomm._filename = filename = get_filename(recomm)
     try:
@@ -43,10 +47,9 @@ def get_status(recomm):
     try:
         req = _get_status(recomm)
         req.raise_for_status()
-        assert "record_diagnostic" in req.text, "no record_diagnostic"
         return req.text
     except Exception as e:
-        return f"error: {e}"
+        return f"error: {e.__class__.__name__}"
 
 
 def get_filename(recomm):
@@ -64,7 +67,6 @@ def mk_recomm_description(recomm, article):
         f"ver.{article.ms_version}",
         f"peer-reviewed and recommended by {pci.short_name}",
         f"{article.doi}",
-        #article.article_source,
     ]) if not article.article_source \
     else " ".join([
         "A recommendation of:",
@@ -77,7 +79,7 @@ def mk_recomm_description(recomm, article):
 
 
 def mk_affiliation(user):
-    if hasattr(user, "is_pseudo"): return ""
+    if hasattr(user, "is_pseudo"): return "(unavailable)"
 
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
@@ -123,9 +125,10 @@ def get_recommendation_doi(recomm):
 
 
 def pseudo_user(details):
+    name = details[:details.rfind(" [")].split()
     class _user:
-        first_name = details
-        last_name = ""
+        first_name = name[0]
+        last_name = " ".join(name[1:]) or "(unavailable)"
         is_pseudo = 1
 
     return _user
@@ -143,7 +146,7 @@ def crossref_xml(recomm):
     recommender = db.auth_user[recomm.recommender_id] \
                     or pseudo_user(recomm.recommender_details)
     co_recommenders = [ db.auth_user[row.contributor_id]
-                            or pseudo_user(recomm.contributor_details)
+                            or pseudo_user(row.contributor_details)
             for row in
             db(
                 db.t_press_reviews.recommendation_id == recomm.id

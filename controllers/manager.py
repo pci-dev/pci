@@ -464,10 +464,10 @@ def crossref_status(article):
             req = new XMLHttpRequest()
             req.addEventListener("load", function() {
                 status = this.responseText
-                status_str = "✅,❌,".split(",")
+                status_str = "✅,❌,,🏁".split(",")
                 elt.innerHTML = status_str[status]
 
-                if (status == "2") setTimeout(function() {
+                if (status >= "2") setTimeout(function() {
                     get_crossref_status(elt)
                 }, 1000)
             })
