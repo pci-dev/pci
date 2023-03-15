@@ -1180,9 +1180,8 @@ def my_reviews():
                     _class="pci2-flex-row pci2-align-items-center",
                 ),
                 DIV(
-                    WIKI(
-                        row.t_reviews.review
-                        or DIV(
+                    WIKI(row.t_reviews.review or ""),
+                         DIV(
                             DIV(
                                 A(
                                     SPAN(current.T("Write, edit or upload your review")),
@@ -1199,10 +1198,7 @@ def my_reviews():
                             )
                             if row.t_reviews["review_state"] == "Awaiting review"
                             else ""
-                        )
-                        or "",
-                        safe_mode=False,
-                    ),
+                        ),
                     _style="color: #888",
                     _class="pci-div4wiki-large",
                 ),
