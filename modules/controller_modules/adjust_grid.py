@@ -3,7 +3,7 @@ from app_modules.helper import OPTION
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
-                     'recommenders': 'auth_user', 'articles': 't_articles', 'articles_temp': 't_articles',
+                     'recommenders': 'auth_user', 'recommenders2': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 't_articles',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
@@ -34,6 +34,9 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         add_btn.attributes.update({'_style':'margin-bottom:4rem'})
     elif search_name == 'recommenders':
         panel_search_field = grid.element('div#w2p_field_auth_user-first_name')
+        panel_search_field.attributes.update({'_style':'display:flex'})
+    elif search_name == 'recommenders2':
+        panel_search_field = grid.element('div#w2p_field_qy_recomm-id')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles':
         panel_search_field = grid.element('div#w2p_field_t_articles-id')
