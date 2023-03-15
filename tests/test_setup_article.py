@@ -40,9 +40,7 @@ class User_submits:
     select("#t_articles_authors").send_keys(article.authors)
     select("#t_articles_article_year").send_keys(article.year)
     select("#t_articles_doi").send_keys(article.doi)
-
-    if not is_rr:
-        select("#t_articles_preprint_server").send_keys("Preprint server")
+    select("#t_articles_preprint_server").send_keys("Preprint server")
 
     art_version = "1" if not is_rr else "v1"
     select("#t_articles_ms_version").send_keys(art_version)
