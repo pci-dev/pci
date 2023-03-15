@@ -144,6 +144,10 @@ setup.new-pci:
 	chmod g+r private
 	ln -s default_base.py languages/default.py
 
+check.static:
+	@git diff --stat `git describe --tag --abbrev=0` \
+	| grep static/ || echo "no update needed"
+
 update.deps:
 	if [ "$$PKG" ]; then pip install --upgrade $$PKG; fi
 	pip-compile 2>/dev/null
