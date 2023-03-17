@@ -233,6 +233,9 @@ def search_recommenders():
             links.append(dict(header=T(""), body=lambda row: "" if row.auth_user.id in excludeList else user_module.mkExcludeRecommenderButton(auth, db, row, art.id, excludeList, myVars)))
 
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
+
+        db.auth_group.role.searchable = False
+
         original_grid = SQLFORM.grid(
                         query,
                         editable=False,
