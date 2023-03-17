@@ -225,12 +225,16 @@ def search_recommenders():
             if not f in full_text_search_fields:
                 users[f].readable = False
 
+        def mkButton(func):
+            return lambda row: "" if row.auth_user.id in excludeList \
+                    else func(auth, db, row, art.id, excludeList, myVars)
+
         links = [
-            dict(header=T(""), body=lambda row: "" if row.auth_user.id in excludeList else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
+            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
         ]
 
         if pciRRactivated:
-            links.append(dict(header=T(""), body=lambda row: "" if row.auth_user.id in excludeList else user_module.mkExcludeRecommenderButton(auth, db, row, art.id, excludeList, myVars)))
+            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton)))
 
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
