@@ -181,8 +181,6 @@ def recommendations():
 @auth.requires_login()
 def search_recommenders():
     myVars = request.vars
-    qyKw = ""
-    qyTF = []
     excludeList = []
     articleId = None
     for myVar in myVars:
@@ -194,55 +192,22 @@ def search_recommenders():
             myValue = (myVars[myVar])[1]
         else:
             myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-        elif myVar == "articleId":
+        if myVar == "articleId":
             articleId = myValue
 
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
+    
     art = db.t_articles[articleId]
     if art is None:
         raise HTTP(404, "404: " + T("Unavailable"))
+    
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     if art.user_id != auth.user_id:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-        temp_db = DAL("sqlite:memory")
-        qy_recomm = temp_db.define_table(
-            "qy_recomm",
-            Field("id", type="integer"),
-            Field("num", type="integer"),
-            Field("roles", type="string"),
-            Field("score", type="double", label=T("Score"), default=0),
-            Field("first_name", type="string", length=128, label=T("First name")),
-            Field("last_name", type="string", length=128, label=T("Last name")),
-            Field("email", type="string", length=512, label=T("e-mail")),
-            Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-            Field("city", type="string", label=T("City"), represent=lambda t, r: t if t else ""),
-            Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
-            Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
-            Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="string", label=T("Thematic fields")),
-            Field("keywords", type="string", label=T("Keywords")),
-            Field("expertise", type="string", label=T("Areas of expertise")),
-            Field("excluded", type="boolean", label=T("Excluded")),
-            Field("any", type="string", label=T("All fields")),
-        )
-        qyKwArr = qyKw.split(" ")
-        searchForm = app_forms.searchByThematic(auth, db, myVars)
-        if searchForm.process(keepvalues=True).accepted:
-            response.flash = None
-        else:
-            qyTF = []
-            for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-                qyTF.append(thema.keyword)
-        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-
+        users = db.auth_user
         full_text_search_fields = [
             'first_name',
             'last_name',
@@ -253,62 +218,64 @@ def search_recommenders():
             'country',
             'thematics',
             'expertise',
-            "keywords",
+            'keywords',
         ]
 
-        users_ids = [ fr['id'] for fr in filtered ]
-        keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
-        expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
-        for fr in filtered:
-            fr['keywords'] = keywords[fr['id']] or ""
-            fr['expertise'] = expertise[fr['id']] or ""
-            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
+        users.thematics.label = "Thematics fields"
+        users.thematics.type = "string"
+        users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+
+        for f in users.fields:
+            if not f in full_text_search_fields:
+                users[f].readable = False
+
+        def mkButton(func):
+            return lambda row: "" if row.auth_user.id in excludeList \
+                    else func(auth, db, row, art.id, excludeList, myVars)
 
         links = [
-            dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkSuggestUserArticleToButton(auth, db, row, art.id, excludeList, myVars)),
+            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
         ]
-        if pciRRactivated:
-            links.append(dict(header=T(""), body=lambda row: "" if row.excluded else user_module.mkExcludeRecommenderButton(auth, db, row, art.id, excludeList, myVars)))
-        selectable = None
-        temp_db.qy_recomm.uploaded_picture.readable = False
-        temp_db.qy_recomm.num.readable = False
-        temp_db.qy_recomm.score.readable = False
-        temp_db.qy_recomm.excluded.readable = False
 
-        original_grid = SQLFORM.smartgrid(
-                        qy_recomm,
+        if pciRRactivated:
+            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton)))
+
+        query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
+
+        db.auth_group.role.searchable = False
+
+        original_grid = SQLFORM.grid(
+                        query,
                         editable=False,
                         deletable=False,
                         create=False,
                         details=False,
                         searchable=dict(auth_user=True, auth_membership=False),
-                        selectable=selectable,
+                        selectable=None,
                         maxtextlength=250,
                         paginate=1000,
                         csv=csv,
                         exportclasses=expClass,
                         fields=[
-                            temp_db.qy_recomm._id,
-                            temp_db.qy_recomm.num,
-                            temp_db.qy_recomm.score,
-                            temp_db.qy_recomm.uploaded_picture,
-                            temp_db.qy_recomm.first_name,
-                            temp_db.qy_recomm.last_name,
-                            temp_db.qy_recomm.laboratory,
-                            temp_db.qy_recomm.institution,
-                            temp_db.qy_recomm.city,
-                            temp_db.qy_recomm.country,
-                            temp_db.qy_recomm.thematics,
-                            temp_db.qy_recomm.excluded,
+                            users._id,
+                            users.uploaded_picture,
+                            users.first_name,
+                            users.last_name,
+                            users.laboratory,
+                            users.institution,
+                            users.city,
+                            users.country,
+                            users.thematics,
                         ],
                         links=links,
-                        orderby=temp_db.qy_recomm.num,
+                        orderby=users._id,
                         _class="web2py_grid action-button-absolute",
                     )
 
         # options to be removed from the search dropdown:
-        remove_options = ['qy_recomm.id']
-
+        remove_options = ['auth_membership.id', 'auth_membership.user_id', 'auth_membership.group_id',
+                          'auth_group.id', 'auth_group.role', 'auth_group.description']
+        
         # the grid is adjusted after creation to adhere to our requirements
         grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
 
@@ -316,6 +283,7 @@ def search_recommenders():
             btnTxt = current.T("Done")
         else:
             btnTxt = current.T("I don't wish to suggest recommenders now")
+
         myAcceptBtn = DIV(
             A(
                 SPAN(btnTxt, _class="buttontext btn btn-info"),

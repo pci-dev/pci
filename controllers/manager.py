@@ -737,7 +737,7 @@ def search_recommenders():
         remove_options = ['qy_recomm.id']
 
         # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
+        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders2', remove_options)
 
         response.view = "default/gab_list_layout.html"
         return dict(
