@@ -221,6 +221,10 @@ def search_recommenders():
             'keywords',
         ]
 
+        users.thematics.label = "Thematics fields"
+        users.thematics.type = "string"
+        users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+
         for f in users.fields:
             if not f in full_text_search_fields:
                 users[f].readable = False
