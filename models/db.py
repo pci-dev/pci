@@ -1276,7 +1276,10 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
-        elif o["review_state"] == "Awaiting review" and \
+        # remove reminders if review declined or canceled
+        # irrespective of previous state
+        # (was): elif o["review_state"] == "Awaiting review" and \
+        elif \
              f["review_state"] in [
                  "Declined by recommender",
                  "Declined manually",
