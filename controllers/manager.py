@@ -594,8 +594,6 @@ def manage_recommendations():
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
     myVars = request.vars
-    qyKw = ""
-    qyTF = []
     excludeList = []
     articleId = None
     for myVar in myVars:
@@ -603,11 +601,7 @@ def search_recommenders():
             myValue = (myVars[myVar])[1]
         else:
             myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-        elif myVar == "exclude":
+        if myVar == "exclude":
             myValue = myVars[myVar]
             myValue = myValue.split(",") if type(myValue) is str else myValue
             excludeList = list(map(int, myValue))
@@ -619,137 +613,94 @@ def search_recommenders():
     else:
         art = db.t_articles[articleId]
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
-        excluded_recommenders = db(db.t_excluded_recommenders.article_id == art.id).select()
-        for recommender in excluded_recommenders:
-            excludeList.append(recommender.excluded_recommender_id)
 
-    if True:
-        # We use a trick (memory table) for builing a grid from executeSql ; see: http://stackoverflow.com/questions/33674532/web2py-sqlform-grid-with-executesql
-        temp_db = DAL("sqlite:memory")
-        qy_recomm = temp_db.define_table(
-            "qy_recomm",
-            Field("id", type="integer"),
-            Field("num", type="integer"),
-            Field("roles", type="string"),
-            Field("score", type="double", label=T("Score"), default=0),
-            Field("first_name", type="string", length=128, label=T("First name")),
-            Field("last_name", type="string", length=128, label=T("Last name")),
-            Field("email", type="string", length=512, label=T("e-mail")),
-            Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
-            Field("city", type="string", label=T("City"), represent=lambda t, r: t if t else ""),
-            Field("country", type="string", label=T("Country"), represent=lambda t, r: t if t else ""),
-            Field("laboratory", type="string", label=T("Department"), represent=lambda t, r: t if t else ""),
-            Field("institution", type="string", label=T("Institution"), represent=lambda t, r: t if t else ""),
-            Field("thematics", type="string", label=T("Thematic Fields"), requires=IS_IN_DB(db, db.t_thematics.keyword, zero=None)),
-            Field("keywords", type="string", label=T("Keywords")),
-            Field("expertise", type="string", label=T("Areas of expertise")),
-            Field("excluded", type="boolean", label=T("Excluded")),
-            Field("any", type="string", label=T("All fields")),
-        )
-        qyKwArr = qyKw.split(" ")
+    users = db.auth_user
+    full_text_search_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'laboratory',
+        'institution',
+        'city',
+        'country',
+        'thematics',
+        'expertise',
+        'keywords',
+    ]
 
-        #searchForm = app_forms.searchByThematic(auth, db, myVars)
-        #if searchForm.process(keepvalues=True).accepted:
-        #    response.flash = None
-        #else:
-        qyTF = []
-        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-            qyTF.append(thema.keyword)
+    for f in users.fields:
+        if not f in full_text_search_fields:
+            users[f].readable = False
+    
+    users.thematics.label = "Thematics fields"
+    users.thematics.type = "string"
+    users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-        #excludeList = [int(numeric_string) for numeric_string in excludeList]
-        filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) WHERE country is not null;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-
-        full_text_search_fields = [
-            'first_name',
-            'last_name',
-            'email',
-            'laboratory',
-            'institution',
-            'city',
-            'country',
-            'thematics',
-            'expertise',
-            "keywords",
-        ]
-
-        users_ids = [ fr['id'] for fr in filtered ]
-        keywords = { user.id: user.keywords for user in db(db.auth_user.id.belongs(users_ids)).select() }
-        expertise = { user.id: user.cv for user in db(db.auth_user.id.belongs(users_ids)).select() }
-        for fr in filtered:
-            fr['keywords'] = keywords[fr['id']] or ""
-            fr['expertise'] = expertise[fr['id']] or ""
-            qy_recomm.insert(**fr, any=" ".join([str(fr[k]) if k in full_text_search_fields else "" for k in fr]))
-
-        links = []
-        if articleId:
-            links += [
-            dict(
-                header="",
-                body=lambda row: ""
-                if row.excluded
-                else A(
-                    SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
-                    _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row["id"], whatNext=whatNext), user_signature=True),
-                    _class="button",
-                ),
+    links = []
+    if articleId:
+        links += [
+        dict(header="", body=lambda row: "" if row.auth_user.id in excludeList else A(
+                SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
+                _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
+                _class="button",
             ),
-        ]
-        #temp_db.qy_recomm._id.readable = False
-        temp_db.qy_recomm.uploaded_picture.readable = False
-        temp_db.qy_recomm.num.readable = False
-        temp_db.qy_recomm.roles.readable = False
-        temp_db.qy_recomm.score.readable = False
-        temp_db.qy_recomm.excluded.readable = False
-        selectable = None
+        ),
+    ]
 
-        original_grid = SQLFORM.smartgrid(
-            qy_recomm,
-            editable=False,
-            deletable=False,
-            create=False,
-            details=False,
-            searchable=dict(auth_user=True, auth_membership=False),
-            selectable=selectable,
-            maxtextlength=250,
-            paginate=1000,
-            csv=csv,
-            exportclasses=expClass,
-            fields=[
-                temp_db.qy_recomm._id,
-                temp_db.qy_recomm.num,
-                temp_db.qy_recomm.score,
-                temp_db.qy_recomm.uploaded_picture,
-                temp_db.qy_recomm.first_name,
-                temp_db.qy_recomm.last_name,
-                temp_db.qy_recomm.laboratory,
-                temp_db.qy_recomm.institution,
-                temp_db.qy_recomm.city,
-                temp_db.qy_recomm.country,
-                temp_db.qy_recomm.thematics,
-                temp_db.qy_recomm.excluded,
-            ],
-            links=links,
-            orderby=temp_db.qy_recomm.num,
-            _class="web2py_grid action-button-absolute",
-        )
+    query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
-        # options to be removed from the search dropdown:
-        remove_options = ['qy_recomm.id']
+    db.auth_group.role.searchable = False
 
-        # the grid is adjusted after creation to adhere to our requirements
-        grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders2', remove_options)
+    original_grid = SQLFORM.grid(
+        query,
+        editable=False,
+        deletable=False,
+        create=False,
+        details=False,
+        searchable=dict(auth_user=True, auth_membership=False),
+        selectable=None,
+        maxtextlength=250,
+        paginate=1000,
+        csv=csv,
+        exportclasses=expClass,
+        fields=[
+            users._id,
+            users.uploaded_picture,
+            users.first_name,
+            users.last_name,
+            users.laboratory,
+            users.institution,
+            users.city,
+            users.country,
+            users.thematics,
+        ],
+        links=links,
+        orderby=users._id,
+        _class="web2py_grid action-button-absolute",
+    )
 
-        response.view = "default/gab_list_layout.html"
-        return dict(
-            pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
-            customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
-            titleIcon="search",
-            pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
-            myBackButton=common_small_html.mkBackButton(),
-            grid=grid,
-            articleHeaderHtml=articleHeaderHtml,
-            absoluteButtonScript=common_tools.absoluteButtonScript,
-        )
+    # fields that are integer and need to be treated differently
+    integer_fields = []
+
+    # options to be removed from the search dropdown:
+    remove_options = ['auth_membership.id', 'auth_membership.user_id', 'auth_membership.group_id',
+                      'auth_group.id', 'auth_group.role', 'auth_group.description']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
+
+    response.view = "default/gab_list_layout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
+        customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
+        titleIcon="search",
+        pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
+        myBackButton=common_small_html.mkBackButton(),
+        grid=grid,
+        articleHeaderHtml=articleHeaderHtml,
+        absoluteButtonScript=common_tools.absoluteButtonScript,
+    )
+
 
 
 ######################################################################################################################################################################
