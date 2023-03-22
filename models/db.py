@@ -1276,7 +1276,10 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
 
-        elif o["review_state"] == "Awaiting review" and \
+        # remove reminders if review declined or canceled
+        # irrespective of previous state
+        # (was): elif o["review_state"] == "Awaiting review" and \
+        elif \
              f["review_state"] in [
                  "Declined by recommender",
                  "Declined manually",
@@ -2020,6 +2023,8 @@ def survey_updated(survey):
     if not recomm: return
 
     for review in recomm.t_reviews.select():
+        if not review.review_state == "Awaiting review": continue
+
         emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], review.id)
         emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review)
 

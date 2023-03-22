@@ -2629,6 +2629,7 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
     reviewer = db.auth_user[review.reviewer_id]
 
     if not reviewer: return
+    if not review.review_state == "Awaiting review": return
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
