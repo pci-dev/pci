@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-from app_modules.helper import OPTION
+from app_modules.helper import OPTION, TR, TD
+from app_modules import common_small_html
+import re
+
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
 search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
-                     'recommenders': 'auth_user', 'articles': 't_articles', 'articles_temp': 't_articles',
-                     'articles2': 't_status_article', 'mail_queue': 'mail_queue',
+                     'recommenders': 'auth_user', 'recommenders2': 'qy_recomm', 'articles': 't_articles', 'articles_temp': 't_articles',
+                     'articles2': 't_status_article', 'mail_queue': 'mail_queue', 'recommenders_about' : 'auth_user',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
 def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = []):
@@ -32,7 +35,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         # restyle the add button
         add_btn = grid.element('div.web2py_console a.btn-secondary')
         add_btn.attributes.update({'_style':'margin-bottom:4rem'})
-    elif search_name == 'recommenders':
+    elif search_name in ['recommenders', 'recommenders_about']:
         panel_search_field = grid.element('div#w2p_field_auth_user-first_name')
         panel_search_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles':
@@ -97,7 +100,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
 
     # in list_users(), where we have no "All fields", set "First name" as primary choice.
     # similarly, in mail_templates we set "Hashtag" as primary choice.
-    if search_name in ['users', 'reviewers', 'recommenders']:
+    if search_name in ['users', 'reviewers', 'recommenders', 'recommenders_about']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.first_name'):
                 option.attributes.update({'_selected':'selected'})
@@ -177,5 +180,44 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
 
     # default search to simple = hide advanced search console
     grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
+
+    # for the about/recommenders page, we introduce the character search widget
+    if search_name == 'recommenders_about':
+        markdown = lambda text,tag=None,attributes={}: {None: re.sub('\s+',' ',text), 'a':text+'\n\n'}.get(tag,text)
+        chars = []
+        result_table = grid.element('div.web2py_htmltable')
+        if result_table:
+            result_body = result_table.elements('tbody')[0]
+            result_table_rows = result_table.elements('tr')
+
+            # iterate over rows to...
+            if len(result_table_rows) > 1:
+                for i,row in enumerate(result_table_rows):
+                    columns_a = row.elements('td a')
+                    # ...create table rows with upper letters
+                    for i,c in enumerate(columns_a):
+                        name = c.flatten(markdown)
+                        first_char = name.upper().split(' ')[1:][0][0]
+                        char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)
+                        if chars == []:
+                            result_body.insert(i-1, char_row)
+                            chars.append(first_char) # initialise
+                        if first_char not in chars:
+                            result_body.insert(i, char_row)
+                            chars.append(first_char)
+                        break
+                    # ...and hide the columns that are not required (the next 7 lines are hacky; is there a better way?)
+                    columns = row.elements('td')
+                    if columns:
+                        for c_index in [1,2,4,5]: columns[c_index].attributes.update({'_style': 'display:none'})
+                        for c_index in [0,3]: columns[c_index].attributes.update({'_style': 'width:50%'})
+                headers = result_table.elements('th')
+                for c_index in [1,2,4,5]: headers[c_index].attributes.update({'_style': 'display:none'})
+                for c_index in [0,3]: headers[c_index].attributes.update({'_style': 'width:50%'})
+
+            # Finally, fetch the search widget
+            if len(chars) > 0:
+                search_widget = common_small_html.mkSearchWidget(chars)
+                web2py_grid.insert(1, search_widget)
 
     return grid

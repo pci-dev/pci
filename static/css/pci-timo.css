@@ -59,6 +59,11 @@
         flex-grow: 1;
     }
 
+    #about-search-widget {
+        text-align: center;
+        margin: 5rem 0;
+    }
+
     #main-page-search-grid .web2py_console .w2p_query_row input[type="text"] {
         flex-grow: 1;
         flex: unset;

@@ -987,3 +987,17 @@ def md_to_html(text):
     return SPAN(
             TAG(WIKI(text))[0].components
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
+
+################################################################################
+def mkSearchWidget(chars):
+    container = DIV(_id='about-search-widget')
+    label = LABEL('Quick access', _style='margin-right: 20px')
+    span = SPAN(_class='pci-capitals')
+    for char in chars:
+        span.append(A(char, _href='#' + char, _style="margin-right: 20px"))
+
+    container.append(label)
+    container.append(BR())
+    container.append(span)
+
+    return container

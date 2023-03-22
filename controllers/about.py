@@ -11,9 +11,8 @@ track_changes(True)  # reimport module if changed; disable in production
 # from app_modules.common import mkPanel
 from app_modules.helper import *
 
-from app_components import app_forms
 from app_modules import common_tools
-from app_modules import common_small_html
+from controller_modules import adjust_grid
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -260,56 +259,85 @@ def journal_adopter_faq():
 
 ######################################################################################################################################################################
 def recommenders():
-    myVars = request.vars
-    qyKw = ""
-    qyTF = []
-    excludeList = []
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "qyKeywords":
-            qyKw = myValue
-        elif re.match("^qy_", myVar) and myValue == "on":
-            qyTF.append(re.sub(r"^qy_", "", myVar))
-    qyKwArr = qyKw.split(" ")
+    users = db.auth_user
+    full_text_search_fields = [
+        'first_name',
+        'last_name',
+        'laboratory',
+        'institution',
+        'city',
+        'country',
+        'thematics'
+    ]
 
-    searchForm = app_forms.searchByThematic(auth, db, myVars)
-    if searchForm.process(keepvalues=True).accepted:
-        response.flash = None
-    else:
-        qyTF = []
-        for thema in db().select(db.t_thematics.ALL, orderby=db.t_thematics.keyword):
-            qyTF.append(thema.keyword)
+    users.thematics.label = "Thematics fields"
+    users.thematics.type = "string"
+    users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-    filtered = db.executesql("SELECT * FROM search_recommenders(%s, %s, %s) ORDER BY last_name, first_name;", placeholders=[qyTF, qyKwArr, excludeList], as_dict=True)
-    myRows = []
-    my1 = ""
-    myIdx = []
-    nbRecomm = len(filtered)
-    for fr in filtered:
-        sfr = Storage(fr)
-        if sfr.last_name and sfr.last_name[0].upper() != my1:
-            my1 = sfr.last_name[0].upper()
-            myRows.append(TR(TD(my1, A(_name=my1)), TD(""), _class="pci-capitals"))
-            myIdx.append(A(my1, _href="#%s" % my1, _style="margin-right:20px;"))
-        myRows.append(common_small_html.mkUserRow(auth, db, sfr, withMail=False, withRoles=False, withPicture=False))
-    grid = DIV(
-        HR(),
-        DIV(nbRecomm + T(" recommenders selected"), _style="text-align:center; margin-bottom:20px;"),
-        LABEL(T("Quick access: "), _style="margin-right:20px;"),
-        SPAN(myIdx, _class="pci-capitals"),
-        HR(),
-        TABLE(THEAD(TR(TH(T("Name")), TH(T("Affiliation")))), TBODY(myRows), _class="web2py_grid pci-UsersTable"),
-        _class="pci2-flex-column pci2-flex-center recommender-list-front",
-    )
+    users.first_name.label = 'Name'
+    users.first_name.represent = lambda txt, row: mkName(row)
+
+    users.institution.label = 'Affiliation'
+    users.institution.represent = lambda txt, row: mkAffiliation(row)
+
+    def mkName(row):
+        return A(str(row.auth_user.first_name) + ' ' + str(row.auth_user.last_name).upper(),
+                 _href=URL(c="public", f="user_public_page", vars=dict(userId=row.auth_user.id)))
+
+    def mkAffiliation(row):
+        return str(row.auth_user.laboratory) + ', ' + str(row.auth_user.institution) \
+                + ', ' + str(row.auth_user.city) + ', ' + str(row.auth_user.country)
+
+    for f in users.fields:
+        if not f in full_text_search_fields:
+            users[f].readable = False
+
+    links = []
+
+    query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
+    db.auth_group.role.searchable = False
+
+    original_grid = SQLFORM.grid(
+                    query,
+                    editable=False,
+                    deletable=False,
+                    create=False,
+                    details=False,
+                    searchable=dict(auth_user=True, auth_membership=False),
+                    selectable=None,
+                    maxtextlength=250,
+                    paginate=1000,
+                    csv=csv,
+                    exportclasses=expClass,
+                    fields=[
+                        users._id,
+                        users.first_name,
+                        users.last_name,
+                        users.laboratory,
+                        users.institution,
+                        users.city,
+                        users.country,
+                    ],
+                    links=links,
+                    orderby=users.last_name,
+                    _class="web2py_grid action-button-absolute",
+                )
+
+    # options to be removed from the search dropdown:
+    remove_options = ['auth_membership.id', 'auth_membership.user_id', 'auth_membership.group_id',
+                        'auth_group.id', 'auth_group.role', 'auth_group.description']
+    
+    # fields that are integer and need to be treated differently
+    integer_fields = []
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about', remove_options, integer_fields)
 
     response.view = "default/gab_list_layout.html"
+    
     return dict(
         pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
         customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
         pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
-        searchForm=searchForm,
         grid=grid,
     )
