@@ -195,7 +195,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                 for i,row in enumerate(result_table_rows):
                     columns_a = row.elements('td a')
                     # ...create table rows with upper letters
-                    for i,c in enumerate(columns_a):
+                    for c in columns_a:
                         name = c.flatten(markdown)
                         first_char = name.upper().split(' ')[1:][0][0]
                         char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)
