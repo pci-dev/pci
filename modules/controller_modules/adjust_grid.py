@@ -206,14 +206,6 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                             result_body.insert(i, char_row)
                             chars.append(first_char)
                         break
-                    # ...and hide the columns that are not required (the next 7 lines are hacky; is there a better way?)
-                    columns = row.elements('td')
-                    if columns:
-                        for c_index in [1,2,4,5]: columns[c_index].attributes.update({'_style': 'display:none'})
-                        for c_index in [0,3]: columns[c_index].attributes.update({'_style': 'width:50%'})
-                headers = result_table.elements('th')
-                for c_index in [1,2,4,5]: headers[c_index].attributes.update({'_style': 'display:none'})
-                for c_index in [0,3]: headers[c_index].attributes.update({'_style': 'width:50%'})
 
             # Finally, fetch the search widget
             if len(chars) > 0:
