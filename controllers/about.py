@@ -281,12 +281,14 @@ def recommenders():
     users.institution.represent = lambda txt, row: mkAffiliation(row)
 
     def mkName(row):
-        return A(str(row.auth_user.first_name) + ' ' + str(row.auth_user.last_name).upper(),
+        user = users[row.auth_user.id]
+        return A(str(user.first_name) + ' ' + str(user.last_name).upper(),
                  _href=URL(c="public", f="user_public_page", vars=dict(userId=row.auth_user.id)))
 
     def mkAffiliation(row):
-        return str(row.auth_user.laboratory) + ', ' + str(row.auth_user.institution) \
-                + ', ' + str(row.auth_user.city) + ', ' + str(row.auth_user.country)
+        user = users[row.auth_user.id]
+        return str(user.laboratory) + ', ' + str(user.institution) \
+                + ', ' + str(user.city) + ', ' + str(user.country)
 
     for f in users.fields:
         if not f in full_text_search_fields:
@@ -312,11 +314,7 @@ def recommenders():
                     fields=[
                         users._id,
                         users.first_name,
-                        users.last_name,
-                        users.laboratory,
                         users.institution,
-                        users.city,
-                        users.country,
                     ],
                     links=links,
                     orderby=users.last_name,
