@@ -199,12 +199,14 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                         name = c.flatten(markdown)
                         first_char = name.upper().split(' ')[1:][0][0]
                         char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)
-                        if chars == []:
+                        result_body.insert(i-1+len(chars), char_row)
+                        chars.append(first_char)
+                        '''if chars == []:
                             result_body.insert(i-1, char_row)
                             chars.append(first_char) # initialise
                         if first_char not in chars:
                             result_body.insert(i, char_row)
-                            chars.append(first_char)
+                            chars.append(first_char)'''
                         break
 
             # Finally, fetch the search widget
