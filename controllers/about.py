@@ -260,7 +260,7 @@ def journal_adopter_faq():
 ######################################################################################################################################################################
 def recommenders():
     users = db.auth_user
-    full_text_search_fields = [
+    search_fields = [
         'first_name',
         'last_name',
         'laboratory',
@@ -291,48 +291,36 @@ def recommenders():
                 + ', ' + str(user.city) + ', ' + str(user.country)
 
     for f in users.fields:
-        if not f in full_text_search_fields:
-            users[f].readable = False
-
-    links = []
+        users[f].readable = f in search_fields
+    for f in db.auth_group:
+        f.searchable = False
+    for f in db.auth_membership:
+        f.searchable = False
 
     query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
-    db.auth_group.role.searchable = False
 
     original_grid = SQLFORM.grid(
                     query,
-                    editable=False,
-                    deletable=False,
-                    create=False,
                     details=False,
-                    searchable=dict(auth_user=True, auth_membership=False),
-                    selectable=None,
                     maxtextlength=250,
                     paginate=1000,
                     csv=csv,
                     exportclasses=expClass,
                     fields=[
-                        users._id,
+                        users.id,
                         users.first_name,
                         users.institution,
                     ],
-                    links=links,
+                    links=None,
                     orderby=users.last_name,
                     _class="web2py_grid action-button-absolute",
                 )
 
-    # options to be removed from the search dropdown:
-    remove_options = ['auth_membership.id', 'auth_membership.user_id', 'auth_membership.group_id',
-                        'auth_group.id', 'auth_group.role', 'auth_group.description']
-    
-    # fields that are integer and need to be treated differently
-    integer_fields = []
-
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about', remove_options, integer_fields)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about')
 
     response.view = "default/gab_list_layout.html"
-    
+
     return dict(
         pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
         customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
