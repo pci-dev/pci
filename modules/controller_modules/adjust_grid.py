@@ -100,7 +100,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
 
     # in list_users(), where we have no "All fields", set "First name" as primary choice.
     # similarly, in mail_templates we set "Hashtag" as primary choice.
-    if search_name in ['users', 'reviewers', 'recommenders', 'recommenders_about']:
+    if search_name in ['users', 'reviewers', 'recommenders']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.first_name'):
                 option.attributes.update({'_selected':'selected'})
@@ -141,7 +141,16 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
             if option.attributes['_value'].endswith('.hashtag'):
                 option.attributes.update({'_selected':'selected'})
                 sending_status_input_field = grid.element('div#w2p_field_help_texts-hashtag')
-                sending_status_input_field.attributes.update({'_style':'display:flex'})                
+                sending_status_input_field.attributes.update({'_style':'display:flex'})
+    elif search_name == 'recommenders_about':
+        for option in select_panel:
+            if option.attributes['_value'].endswith('.first_name'):
+                option.attributes.update({'_selected':'selected'})
+                first_name_input_field = grid.element('div#w2p_field_auth_user-first_name')
+                first_name_input_field.attributes.update({'_style':'display:flex'})
+                option.__setitem__(0,'First Name')
+            elif option.attributes['_value'].endswith('.institution'):
+                option.__setitem__(0,'Institution')
     else:
         # for all other cases, hide the (initially primary) field options, because now "All fields" is primary
         panel_query_rows[1].attributes.update({'_style':'display:none'})
@@ -180,7 +189,16 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
 
     # default search to simple = hide advanced search console
     grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
+    
+    alphabetical_search_widget(search_name, grid, web2py_grid)
 
+    return grid
+
+
+def alphabetical_search_widget(search_name, grid, web2py_grid):
+    '''
+    creates the alphabetical search widget for about/recommenders
+    '''
     # for the about/recommenders page, we introduce the character search widget
     if search_name == 'recommenders_about':
         markdown = lambda text,tag=None,attributes={}: {None: re.sub('\s+',' ',text), 'a':text+'\n\n'}.get(tag,text)
@@ -202,17 +220,9 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                         if first_char not in chars:
                             result_body.insert(i-1+len(chars), char_row)
                             chars.append(first_char)
-                        '''if chars == []:
-                            result_body.insert(i-1, char_row)
-                            chars.append(first_char) # initialise
-                        if first_char not in chars:
-                            result_body.insert(i, char_row)
-                            chars.append(first_char)'''
                         break
 
             # Finally, fetch the search widget
             if len(chars) > 0:
                 search_widget = common_small_html.mkSearchWidget(chars)
                 web2py_grid.insert(1, search_widget)
-
-    return grid
