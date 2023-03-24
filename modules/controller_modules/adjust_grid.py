@@ -193,7 +193,10 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
     
     # for the about/recommenders page, we introduce the character search widget
     if search_name == 'recommenders_about':
-        alphabetical_search_widget(grid, web2py_grid)
+        chars = alphabetical_search_widget(grid, web2py_grid)
+        if chars:
+            search_widget = common_small_html.mkSearchWidget(chars)
+            web2py_grid.insert(1, search_widget)
 
     return grid
 
@@ -222,8 +225,4 @@ def alphabetical_search_widget(grid, web2py_grid):
                         result_body.insert(i-1+len(chars), char_row)
                         chars.append(first_char)
                     break
-
-        # Finally, fetch the search widget
-        if len(chars) > 0:
-            search_widget = common_small_html.mkSearchWidget(chars)
-            web2py_grid.insert(1, search_widget)
+    return chars
