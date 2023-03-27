@@ -313,7 +313,7 @@ def recommenders():
                     ],
                     links=None,
                     orderby=users.last_name,
-                    _class="web2py_grid action-button-absolute",
+                    _class="web2py_grid action-button-absolute about-recommender",
                 )
 
     # the grid is adjusted after creation to adhere to our requirements

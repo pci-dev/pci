@@ -85,6 +85,10 @@
         max-width: 10rem;
     }
 
+    .about-recommender .web2py_table .web2py_htmltable > table > tbody > tr > td:last-child {
+        max-width: unset;
+    }
+
     .web2py_console .w2p_query_row .btn {
         height: 3rem;
         max-height: 3rem;
