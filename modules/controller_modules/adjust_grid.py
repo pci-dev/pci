@@ -190,19 +190,16 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
     # default search to simple = hide advanced search console
     grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
 
-    
+
     # for the about/recommenders page, we introduce the character search widget
     if search_name == 'recommenders_about':
         result_table = grid.element('div.web2py_htmltable tbody')
-        chars = alphabetical_search_widget(result_table)
-        if chars:
-            search_widget = common_small_html.mkSearchWidget(chars)
-            web2py_grid.insert(1, search_widget)
+        alphabetical_search_widget(result_table, web2py_grid)
 
     return grid
 
 
-def alphabetical_search_widget(result_table):
+def alphabetical_search_widget(result_table, web2py_grid):
     '''
     creates the alphabetical search widget for about/recommenders
     '''
@@ -222,4 +219,6 @@ def alphabetical_search_widget(result_table):
                 result_table.insert(i-1+len(chars), char_row)
             break
 
-    return chars
+    if chars:
+        search_widget = common_small_html.mkSearchWidget(chars)
+        web2py_grid.insert(1, search_widget)
