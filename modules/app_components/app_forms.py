@@ -9,6 +9,7 @@ from gluon.validators import *
 from app_modules.helper import *
 from app_modules import common_small_html
 from datetime import date
+from app_components.ongoing_recommendation import is_scheduled_track
 
 myconf = AppConfig(reload=True)
 applongname = myconf.take("app.longname")
@@ -374,6 +375,9 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
         form.vars.article_id = art.id
         if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
             form.errors.q17 = "Please provide a duration"
+
+        if is_scheduled_track(art) and form.vars.q4 is False:
+            form.errors.q4 = "This box needs to be ticked"
         
         error = validate_due_date(form)
         if error:
