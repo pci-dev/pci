@@ -1374,7 +1374,7 @@ def edit_review():
             db.t_reviews.anonymously.writable = False
             db.t_reviews.anonymously.label = T("You cannot be anonymous because there is a manager in the authors")
         elif pciRRactivated and survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
-            db.t_reviews.anonymously.writable = False
+            db.t_reviews.anonymously.widget = widget(_type="hidden")
             db.t_reviews.anonymously.label = T("Please note that reviews of this submission must be signed")
         else:
             db.t_reviews.anonymously.label = T("I wish to remain anonymous")
