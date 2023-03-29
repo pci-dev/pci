@@ -248,6 +248,9 @@ def _RecommendationMenu():
     colorRequests = False
     nPostprintsOngoing = 0
     nPreprintsOngoing = 0
+    nPreprintsCompleted = 0
+    classPreprintsCompleted = ""
+    classPreprintsOngoing = ""
 
     # recommendations
 
@@ -277,11 +280,20 @@ def _RecommendationMenu():
         & ~(db.t_articles.already_published == True)
         & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
     ).count()
+
+    nPreprintsCompleted = db(
+        (db.t_recommendations.recommender_id == auth.user_id)
+        & (db.t_recommendations.article_id == db.t_articles.id)
+        & ~(db.t_articles.already_published == True)
+        & (db.t_articles.status.belongs(("Recommended-private", "Recommended", "Rejected", "Cancelled")))
+    ).count()
     if nPreprintsOngoing > 0:
         classPreprintsOngoing = "pci-enhancedMenuItem"
         colorRequests = True
-    else:
-        classPreprintsOngoing = ""
+        
+    if nPreprintsCompleted > 0:
+        classPreprintsCompleted = "pci-enhancedMenuItem"
+        colorRequests = True
 
     nPostprintsOngoing = db(
         (db.t_recommendations.recommender_id == auth.user_id)
@@ -337,6 +349,14 @@ def _RecommendationMenu():
             ),
             False,
             URL("recommender", "my_recommendations", vars=dict(pressReviews=False), user_signature=True),
+        ),
+        (
+            SPAN(
+                menu_entry_item("Your completed evaluation(s)", "glyphicon-ok-sign", _class="pci-recommender"),
+                _class=classPreprintsCompleted,
+            ),
+            False,
+            URL("recommender", "completed_evaluations", vars=dict(pressReviews=False), user_signature=True),
         ),
     ]
 
