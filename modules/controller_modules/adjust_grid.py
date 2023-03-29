@@ -190,40 +190,35 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
     # default search to simple = hide advanced search console
     grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
 
-    
+
     # for the about/recommenders page, we introduce the character search widget
     if search_name == 'recommenders_about':
-        alphabetical_search_widget(grid, web2py_grid)
+        result_table = grid.element('div.web2py_htmltable tbody')
+        alphabetical_search_widget(result_table, web2py_grid)
 
     return grid
 
 
-def alphabetical_search_widget(grid, web2py_grid):
+def alphabetical_search_widget(result_table, web2py_grid):
     '''
     creates the alphabetical search widget for about/recommenders
     '''
     markdown = lambda text,tag=None,attributes={}: {None: re.sub('\s+',' ',text), 'a':text+'\n\n'}.get(tag,text)
     chars = []
-    result_table = grid.element('div.web2py_htmltable')
-    if result_table:
-        result_body = result_table.elements('tbody')[0]
-        result_table_rows = result_table.elements('tr')
+    rows = result_table.elements('tr') if result_table else []
 
-        # iterate over rows to...
-        if len(result_table_rows) > 1:
-            for i,row in enumerate(result_table_rows):
-                columns_a = row.elements('td a')
-                # ...create table rows with upper letters
-                for c in columns_a:
-                    name = c.flatten(markdown)
-                    first_char = name.upper().split(' ')[1:][0][0]
-                    char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)
-                    if first_char not in chars:
-                        result_body.insert(i-1+len(chars), char_row)
-                        chars.append(first_char)
-                    break
+    for i,row in enumerate(rows):
+        columns_a = row.elements('td a')
+        # ...create table rows with upper letters
+        for c in columns_a:
+            name = c.flatten(markdown)
+            first_char = name.upper().split(' ')[1:][0][0]
+            char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)
+            if first_char not in chars:
+                chars.append(first_char)
+                result_table.insert(i-1+len(chars), char_row)
+            break
 
-        # Finally, fetch the search widget
-        if len(chars) > 0:
-            search_widget = common_small_html.mkSearchWidget(chars)
-            web2py_grid.insert(1, search_widget)
+    if chars:
+        search_widget = common_small_html.mkSearchWidget(chars)
+        web2py_grid.insert(1, search_widget)
