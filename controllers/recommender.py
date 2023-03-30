@@ -1056,29 +1056,34 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                         selfFlag = True
                         if con.review_state == "Cancelled":
                             selfFlagCancelled = True
-                    reviewersIds.append(reviewer_id)
-                    display = LI(
-                            TAG(con.reviewer_details) if con.reviewer_details else \
-                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
-                            " ",
-                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            I("(" + (con.review_state or "") + ")"), 
-                            )
-                    if new_round or new_stage:
-                        current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
-                        for i in current_reviewers:
-                            current_reviewers_id.append(i.reviewer_id)
+                    if reviewer_id in reviewersIds:
+                        pass
+                    else:
+                        reviewersIds.append(reviewer_id)
                         display = LI(
-                            TAG(con.reviewer_details) if con.reviewer_details else \
-                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
-                            " ",
-                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
-                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
-                                    if reviewer_id not in current_reviewers_id else "",
-                        )
-                    reviewersList.append(display)
-            return reviewersList, reviewersIds
+                                TAG(con.reviewer_details) if con.reviewer_details else \
+                                        common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                                " ",
+                                B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
+                                I("(" + (con.review_state or "") + ")"), 
+                                )
+                        if new_round or new_stage:
+                            current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
+                            for i in current_reviewers:
+                                current_reviewers_id.append(i.reviewer_id)
+                            display = LI(
+                                TAG(con.reviewer_details) if con.reviewer_details else \
+                                        common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                                " ",
+                                B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
+                                A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
+                                    _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
+                                        if reviewer_id not in current_reviewers_id else "",
+                            )
+                        
+                        reviewersList.append(display)
+                    
+            return list(set(reviewersList)), reviewersIds
 ######################################################################################################################################################################
 def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     total_count = []

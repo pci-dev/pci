@@ -1893,7 +1893,7 @@ db.define_table(
     Field(
         "q26_details",
         type="text",
-        label=T("3a. details"),
+        label=T("4a. details"),
         length=2000,
     ),
     Field(
@@ -1921,7 +1921,7 @@ db.define_table(
     Field(
         "q27_details",
         type="text",
-        label=T("4a. details"),
+        label=T("5a. details"),
         length=2000,
     ),
     Field(
@@ -1947,7 +1947,7 @@ db.define_table(
     Field(
         "q28_details",
         type="text",
-        label=T("5a. details"),
+        label=T("6a. details"),
         length=2000,
     ),
     Field(
