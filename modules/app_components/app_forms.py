@@ -374,10 +374,13 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
         form.vars.article_id = art.id
         if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
             form.errors.q17 = "Please provide a duration"
-        
+
         error = validate_due_date(form)
         if error:
             form.errors.q10 = error
+        
+        if form.vars.q10 is not None and form.vars.q4 is None:
+            form.errors.q4 = "This box needs to be ticked"
 
     def validate_due_date(form):
         due_date = form.vars.q10
