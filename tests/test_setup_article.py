@@ -117,6 +117,7 @@ def fill_survey():
         report_due_date -= timedelta(days=report_due_date.weekday())
         select("#t_report_survey_q10").send_keys(report_due_date.strftime("%Y-%m-%d"))
         select("#t_report_survey_q1_1").send_keys("https://snapshot.URL")
+        select("#t_report_survey_q4").click()
     select("#t_report_survey_q11").send_keys("yes")
     select("#t_report_survey_q12").send_keys("yes")
     select("#q13YES").click()
