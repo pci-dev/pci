@@ -514,10 +514,28 @@ def accept_new_article_to_recommend():
         customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongName=appLongName, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
     )
 
+######################################################################################################################################################################
+# Display completed articles
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def completed_evaluations():
+    resu = _my_recomms(["Recommended-private", "Recommended", "Rejected", "Cancelled"])
+    resu["customText"] = getText(request, auth, db, "#RecommenderCompletedArticlesText")
+    resu["titleIcon"] = "ok-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, "#RecommenderCompletedArticlesTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#RecommenderCompletedArticles")
+    return resu
+
+######################################################################################################################################################################
+# Display non-completed articles
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def my_recommendations():
+    pressReviews = request.vars["pressReviews"]
+    resu = _my_recomms(["Pre-recommended", "Pre-rejected", "Pre-revision", "Pre-recommended-private", "Awaiting revision", "Under consideration", "Scheduled submission under consideration"], pressReviews=pressReviews)
+    return resu
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
-def my_recommendations():
+def _my_recomms(statuses, pressReviews=None):
     response.view = "default/myLayout.html"
 
     scheme = myconf.take("alerts.scheme")
@@ -544,9 +562,10 @@ def my_recommendations():
           (db.t_recommendations.recommender_id == auth.user_id)
         & (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+        &  (db.t_articles.status.belongs(statuses))
     )
 
-    isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
+    isPress = (pressReviews == True)
     if isPress:  ## NOTE: POST-PRINTS
         query = query & (db.t_articles.already_published == True)
         pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
