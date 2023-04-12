@@ -23,7 +23,7 @@ pci_notif = b"""
   ],
   "context": {
     "id": "http://localhost:8000/pci/articles/rec?articleId=1#article-1",
-    "ietf:cite-as": "10.1038/nature.2014.14583",
+    "ietf:cite-as": "https://doi.org/10.1038/nature.2014.14583",
     "type": "sorg:AboutPage"
   },
   "object": {
