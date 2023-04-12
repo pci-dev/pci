@@ -945,4 +945,7 @@
     "You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter.": "You can indicate anything you want in the box, but be aware that all recommenders and the managing board will be able to read the cover letter.",
     "Reviewers hidden cause you are the submitter of this preprint.": "Reviewers hidden cause you are the submitter of this preprint.",
     "Scheduled submission pending": "Scheduled submission pending Validation",
+    "Confirm": "Confirm",
+    "Cancel": "Cancel",
+    "anonymousReviewerConfirmDialogMessage": "Please note that your review will be signed.<br/>This means that your identity will be revealed to the authors and will also be published in the event of a positive final recommendation.<br/>To instead remain anonymous, please tick the Anonymous box (if available; where the option to remain anonymous is unavailable, this indicates that the authors chose a submission route in which only signed reviews are solicited)."    
 }

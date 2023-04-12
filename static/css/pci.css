@@ -1301,3 +1301,18 @@ header {
 .pci-trackImg {
   width: 100px;
 }
+
+#anonymous-reviewer-confirm {
+  position: absolute;
+  width: 50%;
+  height: fit-content;
+  top: 50%;
+  left: 25%;
+  background-color: white;
+  border-radius: 6px;
+  
+}
+
+#anonymous-reviewer-confirm #confirm-dialog {
+  margin-bottom: 0px;
+}

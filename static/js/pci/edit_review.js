@@ -19,3 +19,26 @@ jQuery(document).ready(function() {
   });
 });
 
+$('input[name="save"],input[name="terminate"]').on('click', anonymousReviewerFunction);
+
+function anonymousReviewerFunction(e) {
+  const buttonName = e.target.name;
+
+  if (document.getElementById('t_reviews_anonymously')?.checked) {
+    return;
+  }
+
+  e.preventDefault();
+
+  $('#anonymous-reviewer-confirm').modal('show')
+  .on('click', '#confirm-dialog', function(){ 
+    const anonymousDialogInput = document.getElementById('anonymous-dialog-input');
+    anonymousDialogInput.value = buttonName;
+
+    const form = document.getElementsByClassName('form-horizontal')[0];
+    form.submit();
+  });
+  
+  $('#cancel-dialog')
+  .on('click',function(){ return; });
+}
