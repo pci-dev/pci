@@ -10,6 +10,7 @@ import uuid
 import requests
 
 from gluon.contrib.appconfig import AppConfig
+from app_modules.common_small_html import mkLinkDOI
 
 __all__ = ["COARNotifier"]
 
@@ -174,7 +175,7 @@ class COARNotifier:
         return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}",
             "type": ["Page", "sorg:WebPage"],
-            "ietf:cite-as": recommendation.recommendation_doi,
+            "ietf:cite-as": mkLinkDOI(recommendation.recommendation_doi),
         }
 
     def _article_as_jsonld(self, article):
