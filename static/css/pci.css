@@ -1303,11 +1303,11 @@ header {
 }
 
 #anonymous-reviewer-confirm {
-  position: absolute;
-  width: 50%;
+  position: fixed;
+  width: 30%;
   height: fit-content;
-  top: 50%;
-  left: 25%;
+  top: 25%;
+  left: 35%;
   background-color: white;
   border-radius: 6px;
   
