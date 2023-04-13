@@ -95,7 +95,7 @@ Cypress.Commands.add(
         cy.contains("a", "Your reviews").click();
 
         if (status != "not.exist")
-          cy.contains("a", "View / Edit").first().click();
+          cy.contains("a > span", "View").first().click();
         // cy.screenshot()
         break;
 
