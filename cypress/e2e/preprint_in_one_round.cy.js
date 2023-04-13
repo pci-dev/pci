@@ -577,7 +577,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.get(".cyp-review-state").first().should("contain", "COMPLETED");
 
-      cy.contains("a", "View / Edit").first().click();
+      cy.contains("a > span", "View").first().click();
 
       cy.contains("a", "Write, edit or upload your review").should("not.exist");
     });
@@ -670,7 +670,7 @@ describe("Preprint recommended in one round", () => {
 
       cy.get(".cyp-review-state").first().should("contain", "COMPLETED");
 
-      cy.contains("a", "View / Edit").first().click();
+      cy.contains("a > span", "View").first().click();
 
       cy.contains("a", "Write, edit or upload your review").should("not.exist");
     });
