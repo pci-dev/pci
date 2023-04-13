@@ -104,6 +104,8 @@ class Reviewer:
             select("body").send_keys("review text: luved it")
         select("input[type=submit][name=terminate]").click()
 
+        select("#confirm-dialog").wait_clickable().click()
+
         notif = select(".w2p_flash")
         notif.contains("e-mail sent to " + reviewer.name)
         notif.contains("e-mail sent to " + recommender.name)

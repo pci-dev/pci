@@ -555,6 +555,8 @@ describe("Preprint recommended in one round", () => {
       });
 
       cy.get('input[name="terminate"]').click();
+      cy.get('#confirm-dialog').click();
+
     });
 
     it("=> mail sent to recommender and current reviewer", () => {
@@ -647,6 +649,7 @@ describe("Preprint recommended in one round", () => {
       });
 
       cy.get('input[name="terminate"]').click();
+      cy.get('#confirm-dialog').click();
     });
 
     it("=> mail sent to recommender and current reviewer", () => {
