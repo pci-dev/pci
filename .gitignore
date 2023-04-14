@@ -24,3 +24,4 @@ controllers/stats.py
 web2py/
 misc/
 log.txt
+.vscode

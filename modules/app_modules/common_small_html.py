@@ -1001,3 +1001,13 @@ def mkSearchWidget(chars):
     container.append(span)
 
     return container
+
+#################################################################################
+
+def anonymousReviewerConfirmDialog():
+    return DIV( 
+    DIV(TAG(current.T("anonymousReviewerConfirmDialogMessage")), _class="modal-body"), 
+    DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
+        SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
+    _class="modal-footer"), _id="anonymous-reviewer-confirm", _class="modal fade", _role="dialog")
+

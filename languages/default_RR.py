@@ -952,4 +952,7 @@
     "Scheduled submission pending": "Scheduled submission pending Validation",
     "Version of the preprint:": "Version of the report:",
     "DOI or URL of the preprint:": "DOI or URL of the report:",
+    "Confirm": "Confirm",
+    "Cancel": "Cancel",
+    "anonymousReviewerConfirmDialogMessage": "Please note that your review will be signed.<br/>This means that your identity will be revealed to the authors and will also be published in the event of a positive final recommendation.<br/>To instead remain anonymous, please tick the Anonymous box (if available; where the option to remain anonymous is unavailable, this indicates that the authors chose a submission route in which only signed reviews are solicited)."    
 }

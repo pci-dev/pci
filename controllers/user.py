@@ -1394,15 +1394,18 @@ def edit_review():
             showid=False, buttons=buttons, keepvalues=True, upload=URL("default", "download")
         )
 
+        anonymous_dialog_input = INPUT(_name='anonymous_dialog_input', _id='anonymous-dialog-input', value='', _type='hidden')
+        form[0].insert(0, anonymous_dialog_input)
+
         if form.process().accepted:
             files = form.vars.review_pdf
             if type(files) == list:
                 common_tools.handle_multiple_uploads(review, files)
 
-            if form.vars.save:
+            if form.vars.save or form.vars.anonymous_dialog_input == 'save':
                 session.flash = T("Review saved", lazy=False)
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
-            elif form.vars.terminate:
+            elif form.vars.terminate or form.vars.anonymous_dialog_input == 'terminate':
                 redirect(URL(c="user_actions", f="review_completed", vars=dict(reviewId=review.id), user_signature=True))
         elif form.errors:
             response.flash = T("Form has errors", lazy=False)
@@ -1412,6 +1415,7 @@ def edit_review():
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReview"),
         myBackButton=common_small_html.mkBackButton(),
+        anonymousReviewerConfirmDialog=common_small_html.anonymousReviewerConfirmDialog(),
         customText=getText(request, auth, db, "#UserEditReviewText"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),

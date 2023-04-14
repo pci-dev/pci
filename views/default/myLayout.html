@@ -97,6 +97,10 @@
 {{=deleteFileButtonsScript}}
 {{pass}}
 
+{{if 'anonymousReviewerConfirmDialog' in locals():}}
+{{=anonymousReviewerConfirmDialog}}
+{{pass}}
+
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>
