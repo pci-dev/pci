@@ -82,6 +82,12 @@ Cypress.Commands.add(
         // cy.screenshot()
         break;
 
+      case "recommender-completed":
+        cy.contains(".dropdown-toggle", "For recommenders").click();
+        cy.contains("a", "Your completed evaluation(s)").click();
+        cy.contains("a > span", "View").first().click();
+        break;
+
       case "suggested_recommender":
         cy.contains(".dropdown-toggle", "For recommenders").click();
         cy.contains("a", "Request(s) to handle a preprint").click();
@@ -95,7 +101,7 @@ Cypress.Commands.add(
         cy.contains("a", "Your reviews").click();
 
         if (status != "not.exist")
-          cy.contains("a", "View / Edit").first().click();
+          cy.contains("a > span", "View").first().click();
         // cy.screenshot()
         break;
 
