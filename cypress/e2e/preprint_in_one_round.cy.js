@@ -947,7 +947,7 @@ describe("Preprint recommended in one round", () => {
       cy.pciCheckArticleStatus(
         currentTest,
         recommender,
-        "recommender",
+        "recommender-completed",
         "6-RECOMMENDED",
         "RECOMMENDED",
         articleTitle
