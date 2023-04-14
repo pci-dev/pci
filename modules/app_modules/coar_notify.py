@@ -110,7 +110,7 @@ class COARNotifier:
         """
         session = _get_requests_session()
 
-        target_inbox = self._get_target_inbox(article)
+        target_inbox = get_target_inbox(article)
 
         # Add the base properties for the notification, including the JSON-LD context.
         notification = {
@@ -139,6 +139,8 @@ class COARNotifier:
                 data=serialized_notification,
                 headers={"Content-Type": "application/ld+json"},
             )
+        except requests.exceptions.MissingSchema:
+            http_status = 418 # no target_inbox found in Link header
         except requests.exceptions.RequestException as e:
             # Repurpose Cloudflare's unofficial status codes
             # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Cloudflare
@@ -198,19 +200,6 @@ class COARNotifier:
             "type": ["Person"],
             "name": f"{user.first_name} {user.last_name}",
         }
-
-    def _get_target_inbox(self, article):
-        """Grab the inbox url from the Link entry (if any) provided by the repo
-        We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
-        """
-
-        try:
-            resp = requests.head(article.doi, timeout=5, allow_redirects=True)
-            inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
-            assert inbox
-            return inbox
-        except:
-            return self.inbox_url
 
     def review_completed(self, review):
         """Notify that a review has been completed for an article.
@@ -315,3 +304,16 @@ class COARNotifier:
             inbox_url=str(origin_inbox if direction == "Inbound" else target_inbox),
             http_status=http_status,
         )
+
+
+def get_target_inbox(article):
+    """Grab the inbox url from the Link entry (if any) provided by the repo
+    We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
+    """
+
+    try:
+        resp = requests.head(article.doi, timeout=5, allow_redirects=True)
+        inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
+        return inbox
+    except:
+        return ""
