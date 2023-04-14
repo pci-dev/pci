@@ -159,7 +159,7 @@ def get_status_display(status):
     return 'style="%s" title="%s"' % (
                 "background-color:orange",
                 "error: " + str(status),
-        ) if status > 500 else ""
+        ) if status >= 400 else ""
 
 
 def ensure_trailing_slash():
