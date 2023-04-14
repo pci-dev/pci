@@ -183,14 +183,14 @@ class COARNotifier:
     def _article_as_jsonld(self, article):
         return {
             "id": article.doi,
-            "ietf:cite-as": article.doi,
+            "ietf:cite-as": article_cite_as(article),
             "type": "sorg:AboutPage",
         }
 
     def _article_as_jsonld_using_pci_ref_to_article(self, article):
         return {
             "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
-            "ietf:cite-as": article.doi,
+            "ietf:cite-as": article_cite_as(article),
             "type": "sorg:AboutPage",
         }
 
@@ -317,3 +317,11 @@ def get_target_inbox(article):
         return inbox
     except:
         return ""
+
+
+def article_cite_as(article):
+    inbox = get_target_inbox(article)
+    if ".hal." in inbox:
+        return article.doi + f"v{article.ms_version}"
+    else:
+        return article.doi
