@@ -158,8 +158,8 @@ def show():
 def get_status_display(status):
     return 'style="%s" title="%s"' % (
                 "background-color:orange",
-                "error: " + str(status),
-        ) if status > 500 else ""
+                f"error: {status} = {errors.get(status, '?')}",
+        ) if status >= 400 else ""
 
 
 def ensure_trailing_slash():
@@ -191,3 +191,12 @@ def get_object_ref(body):
     obj_ref = re.match(r'.*/activitystreams#object": *\[ *{ *"@id": *"([^"]+)".*', body.replace('\n', ''))
 
     return obj_ref[1] if obj_ref else "(no object ref)"
+
+errors = {
+    418: "no inbox provided by article server",
+    520: "inbox returned Unknown Error",
+    521: "inbox server is down",
+    522: "inbox connection timeout",
+    524: "inbox read timeout",
+    525: "inbox ssl handshake failed",
+}
