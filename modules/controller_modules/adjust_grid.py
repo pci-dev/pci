@@ -220,5 +220,6 @@ def alphabetical_search_widget(result_table, web2py_grid):
             break
 
     if chars:
-        search_widget = common_small_html.mkSearchWidget(chars.sort())
+        chars.sort()
+        search_widget = common_small_html.mkSearchWidget(chars)
         web2py_grid.insert(1, search_widget)
