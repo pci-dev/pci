@@ -1085,7 +1085,7 @@ db.define_table(
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("reviewer_id", type="reference auth_user", ondelete="RESTRICT", label=T("Reviewer")),
     Field("anonymously", type="boolean", label=T("Anonymously"), default=False),
-    Field("anonymous_agreement", type="boolean", label=T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')),
+    Field("anonymous_agreement", type="boolean", label=T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name may be passed on in confidence to that journal.')),
     Field("no_conflict_of_interest", type="boolean", label=T("I declare that I have no conflict of interest with the authors or the content of the article")),
     Field(
         "review_state",
@@ -2140,6 +2140,23 @@ db.define_table(
     migrate=False,
 )
 
+db.define_table(
+    "v_recommender_stats",
+    Field("id", type="id", label=T("Recommender")),
+    Field("total_invitations", type="text", label=T("Total invitations")),
+    Field("total_accepted", type="text", label=T("Total accepted")),
+    Field("total_completed", type="text", label=T("Total completed")),
+    Field("current_invitations", type="text", label=T("Current invitations")),
+    Field("current_assignments", type="text", label=T("Current assignments")),
+    Field("awaiting_revision", type="text", label=T("Awaiting revision")),
+    # Field("requiring_action", type="text", label=T("Requiring action")),
+    # Field("requiring_reviewers", type="text", label=T("Requiring reviewers")),
+    # Field("required_reviews_completed", type="text", label=T("Required reviews completed")),
+    # Field("late_reviews", type="text", label=T("Late reviews")),
+    Field("recommender_details", type="text", label=T("Recommender Details")),
+    # writable=False,
+    migrate=False,
+)
 
 db.define_table(
     "v_reviewers",
