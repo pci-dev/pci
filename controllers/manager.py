@@ -1505,3 +1505,60 @@ def send_submitter_generic_mail():
         customText=getText(request, auth, db, "#EmailForSubmitterInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
+def recommender_statistics():
+    response.view = "default/myLayout.html"
+
+    db.v_recommender_stats.recommender_details.readable = False
+
+    db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+    db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    # db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    # db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    # db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    # db.v_recommender_stats.late_reviews = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+
+    grid = SQLFORM.grid(
+        query = db.v_recommender_stats,
+        details=True,
+        editable=False,
+        deletable=False,
+        create=False,
+        searchable=False,
+        csv=False,
+        paginate=50,
+        maxtextlength=256,
+        orderby=~db.v_recommender_stats.id,
+        fields=[
+            db.v_recommender_stats.id,
+            db.v_recommender_stats.total_invitations,
+            db.v_recommender_stats.total_accepted,
+            db.v_recommender_stats.total_completed,
+            db.v_recommender_stats.current_invitations,
+            db.v_recommender_stats.current_assignments,
+            db.v_recommender_stats.awaiting_revision,
+            db.v_recommender_stats.recommender_details,
+            # db.v_recommender_stats.requiring_action,
+            # db.v_recommender_stats.requiring_reviewers,
+            # db.v_recommender_stats.required_reviews_completed,
+            # db.v_recommender_stats.late_reviews
+        ],
+        _class="web2py_grid action-button-absolute",
+    )
+
+    return dict(
+        titleIcon="send",
+        pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
+        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
+        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        myBackButton=common_small_html.mkBackButton(),
+        grid=grid,
+        absoluteButtonScript=common_tools.absoluteButtonScript,
+    )
