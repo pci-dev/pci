@@ -214,7 +214,7 @@ def alphabetical_search_widget(result_table, web2py_grid):
             name = c.flatten(markdown)
             name_parts = name.split(' ')
             for part in name_parts:
-                if part.isupper() and '.' not in part:
+                if part.isupper() and '.' not in part and len(part) > 1:
                     first_char = part[0]
                     break
             char_row = TR( TD(first_char, _id=first_char), TD(), _class="pci-capitals",)

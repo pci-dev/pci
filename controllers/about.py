@@ -282,7 +282,8 @@ def recommenders():
 
     def mkName(row):
         user = users[row.auth_user.id]
-        return A(str(user.first_name) + ' ' + str(user.last_name).upper(),
+        first_name = str(user.first_name)
+        return A(' '.join([name.capitalize() for name in first_name.split(' ')]) + ' ' + str(user.last_name).upper(),
                  _href=URL(c="public", f="user_public_page", vars=dict(userId=row.auth_user.id)))
 
     def mkAffiliation(row):
