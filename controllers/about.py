@@ -318,7 +318,8 @@ def recommenders():
                 )
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about')
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about') \
+            if len(request.args) == 0 else original_grid
 
     response.view = "default/gab_list_layout.html"
 
