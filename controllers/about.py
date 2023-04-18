@@ -302,7 +302,10 @@ def recommenders():
 
     original_grid = SQLFORM.grid(
                     query,
+                    create=False,
                     details=False,
+                    editable=False,
+                    deletable=False,
                     maxtextlength=250,
                     paginate=1000,
                     csv=csv,
