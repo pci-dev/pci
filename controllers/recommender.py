@@ -1063,6 +1063,7 @@ def reviews():
 
 ######################################################################################################################################################################
 def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new_stage=False):
+            reviewers_emails = [auth.user.email] # To prevent duplication
             reviewersIds = [auth.user_id]
             reviewersList = []
             current_reviewers_id = []
@@ -1071,13 +1072,19 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                     db(db.t_reviews.id == con.id).delete()
                 else:
                     reviewer_id = con.reviewer_id
+                    reviewer_email = None
+                    if con.reviewer_details != None:
+                            reviewer_email = re.search(r'\[(.*?)\]',con.reviewer_details).group(1)
+                    if reviewer_email == None and con.reviewer_id != None:
+                        reviewer_email = db(db.auth_user.id == con.reviewer_id).select(db.auth_user.email).first().email
                     if recomm.recommender_id == reviewer_id:
                         selfFlag = True
                         if con.review_state == "Cancelled":
                             selfFlagCancelled = True
-                    if reviewer_id in reviewersIds:
+                    if reviewer_email != None and reviewer_email in reviewers_emails:
                         pass
                     else:
+                        reviewers_emails.append(reviewer_email)
                         reviewersIds.append(reviewer_id)
                         display = LI(
                                 TAG(con.reviewer_details) if con.reviewer_details else \
