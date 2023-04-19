@@ -1072,11 +1072,13 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                     db(db.t_reviews.id == con.id).delete()
                 else:
                     reviewer_id = con.reviewer_id
-                    reviewer_email = None
-                    if con.reviewer_details != None:
-                            reviewer_email = re.search(r'\[(.*?)\]',con.reviewer_details).group(1)
-                    if reviewer_email == None and con.reviewer_id != None:
-                        reviewer_email = db(db.auth_user.id == con.reviewer_id).select(db.auth_user.email).first().email
+                    if reviewer_id:
+                        reviewer_email = db.auth_user[reviewer_id].email
+                    elif con.reviewer_details:
+                        reviewer_email = re.search(r'\[(.*?)\]', con.reviewer_details).group(1)
+                    else:
+                        reviewer_email = None
+
                     if recomm.recommender_id == reviewer_id:
                         selfFlag = True
                         if con.review_state == "Cancelled":
@@ -1110,6 +1112,8 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                         reviewersList.append(display)
                     
             return list(set(reviewersList)), reviewersIds
+
+
 ######################################################################################################################################################################
 def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     total_count = []
@@ -1135,6 +1139,8 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
     return prevRoundHeader, customText
+
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def reviewers():
