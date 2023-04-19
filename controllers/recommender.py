@@ -2465,8 +2465,11 @@ def article_reviews_emails():
         )
     ]
 
+    user_mail = db.auth_user[auth.user_id].email
+    query = (db.mail_queue.article_id == articleId) & (db.mail_queue.cc_mail_addresses.ilike("%" + user_mail + "%") | db.mail_queue.dest_mail_address.ilike(user_mail) | db.mail_queue.replyto_addresses.ilike("%" + user_mail + "%"))
+
     grid = SQLFORM.grid(
-        db((db.mail_queue.article_id == articleId) & (db.mail_queue.dest_mail_address.belongs(reviewers))),
+        db(query),
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
@@ -2495,7 +2498,7 @@ def article_reviews_emails():
         _class="web2py_grid action-button-absolute",
     )
 
-    myScript = common_tools.get_script("replace_mail_content.js"),
+    myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
         titleIcon="send",
         pageTitle=getTitle(request, auth, db, "#ArticleReviewsEmailsTitle"),
