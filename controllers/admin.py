@@ -59,15 +59,7 @@ def list_users():
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
-    db.auth_user.first_name.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.last_name.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
     db.auth_user.email.requires = [IS_LENGTH(4096, 0), IS_NOT_IN_DB(db, db.auth_user.email)]
-    db.auth_user.laboratory.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.city.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.institution.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.country.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.ethical_code_approved.requires = IS_EMPTY_OR(IS_LENGTH(4096, 0))
-    db.auth_user.alerts.requires = IS_EMPTY_OR(IS_IN_SET(("Never", "Weekly", "Every two weeks", "Monthly")))
 
     db.auth_user.website.readable = False
     db.auth_user.registration_datetime.readable = True
