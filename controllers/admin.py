@@ -59,7 +59,6 @@ def list_users():
         links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
-    db.auth_user.email.requires = [IS_LENGTH(4096, 0), IS_NOT_IN_DB(db, db.auth_user.email)]
 
     db.auth_user.website.readable = False
     db.auth_user.registration_datetime.readable = True
