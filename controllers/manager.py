@@ -1520,10 +1520,10 @@ def recommender_statistics():
     db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
     db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
     db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    # db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    # db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    # db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    # db.v_recommender_stats.late_reviews = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
 
     grid = SQLFORM.grid(
         query = db.v_recommender_stats,
@@ -1545,10 +1545,10 @@ def recommender_statistics():
             db.v_recommender_stats.current_assignments,
             db.v_recommender_stats.awaiting_revision,
             db.v_recommender_stats.recommender_details,
-            # db.v_recommender_stats.requiring_action,
-            # db.v_recommender_stats.requiring_reviewers,
-            # db.v_recommender_stats.required_reviews_completed,
-            # db.v_recommender_stats.late_reviews
+            db.v_recommender_stats.requiring_action,
+            db.v_recommender_stats.requiring_reviewers,
+            db.v_recommender_stats.required_reviews_completed,
+            db.v_recommender_stats.late_reviews
         ],
         _class="web2py_grid action-button-absolute",
     )
