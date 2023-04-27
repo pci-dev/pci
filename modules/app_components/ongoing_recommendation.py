@@ -871,6 +871,16 @@ def validate_scheduled_submission_button(articleId, **extra_vars):
                 _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
                 _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
             ),
+            A(
+                SPAN(current.T("Revise prior to review"), _class="buttontext btn btn-warning pci-manager"),
+                _href=URL(c="manager", f="send_submitter_generic_mail", args=["revise_scheduled_submission"], vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to revise the full manuscript of this scheduled submission"),
+            ),
+            A(
+                SPAN(current.T("Reject without review"), _class="buttontext btn btn-danger pci-manager"),
+                _href=URL(c="manager", f="send_submitter_generic_mail", args=["reject_scheduled_submission"], vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to reject the full manuscript of this scheduled submission"),
+            ),
             _class="pci-EditButtons-centered",
     )
 
