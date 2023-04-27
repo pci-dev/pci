@@ -34,6 +34,7 @@ from app_modules import common_tools
 from app_modules import emailing_tools
 from app_modules import common_small_html
 from app_modules import emailing
+from app_modules import emailing_vars
 from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
@@ -1408,6 +1409,14 @@ def send_submitter_generic_mail():
     if author is None:
         fail("no author for article")
 
+    if request.args == []:
+        template = "#SubmitterGenericMail"
+    else: 
+        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" if request.args[0] == "revise_scheduled_submission" else "#SubmitterScheduledSubmissionDeskReject"
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
     appName = myconf.take("app.name")
@@ -1415,7 +1424,7 @@ def send_submitter_generic_mail():
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#SubmitterGenericMail")
+    mail_template = emailing_tools.getMailTemplateHashtag(db, template)
 
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
