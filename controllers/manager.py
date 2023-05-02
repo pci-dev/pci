@@ -163,10 +163,22 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
-def _manage_articles(statuses, whatNext, db=db):
+def _manage_articles(statuses, whatNext, db=db, stats_query=None):
     response.view = "default/myLayout.html"
 
     # users
+    if stats_query:
+        query = stats_query
+    else:
+        if statuses:
+            query = db.t_articles.status.belongs(statuses)
+        else:
+            query = db.t_articles
+
+        # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+        if pciRRactivated and is_recommender(auth, request):
+            query = db.pending_scheduled_submissions_query
+
     def index_by(field, query): return { x[field]: x for x in db(query).select() }
 
     users = index_by("id", db.auth_user)
@@ -1514,16 +1526,16 @@ def recommender_statistics():
     db.v_recommender_stats.recommender_details.readable = False
 
     db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
-    db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
-    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "bla_bla", vars=dict(recommId=row.id)))
+    db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_invitations"))) if text != 0 else "0"
+    db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_accepted"))) if text != 0 else "0"
+    db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_completed"))) if text != 0 else "0"
+    db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_invitations"))) if text != 0 else "0"
+    db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_assignments"))) if text != 0 else "0"
+    db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="awaiting_revision"))) if text != 0 else "0"
+    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_action"))) if text != 0 else "0"
+    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_reviewers"))) if text != 0 else "0"
+    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="required_reviews_completed"))) if text != 0 else "0"
+    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="late_reviews"))) if text != 0 else "0"
 
     grid = SQLFORM.grid(
         query = db.v_recommender_stats,
@@ -1562,3 +1574,56 @@ def recommender_statistics():
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
+
+######################################################################################################################################################################
+def fetch_query(action, recommenderId):
+    subquery = db((db.t_articles.id == db.t_recommendations.article_id) &
+              (db.t_articles.status == 'Under consideration') &
+              (db.t_reviews.recommendation_id == db.t_recommendations.id ) &
+              (db.t_recommendations.recommender_id == recommenderId))
+    query = db((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') |
+           (subquery.count(distinct=True) == 0) & (db.t_articles.report_stage == 'STAGE 2')).select(db.t_articles.ALL, groupby=db.t_articles.id)
+
+    complete_sb_query = db((db.t_articles.id == db.t_recommendations.article_id) &
+                        (db.t_articles.status.belongs('Under consideration', 'Awaiting revision')) &
+                        (db.t_reviews.recommendation_id == db.t_recommendations.id ) &
+                        (db.t_recommendations.recommender_id == recommenderId))
+    count_filter = db((db.t_reviews.acceptation_timestamp != None) & (db.t_reviews.review_state == 'Review completed'))
+    complete_query = complete_sb_query.select(db.t_articles.ALL,
+                            groupby=db.t_articles.id,
+                            having=(count_filter.count() == db.t_reviews.id.count()))
+    print(complete_query)
+
+    queries = {
+        "total_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId)),
+        "total_accepted" : ((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.recommender_id == recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
+        "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Awaiting revision') & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        # "requiring_action" : (  (db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Under consideration')  & (db.t_reviews.recommendation_id==db.t_recommendations.id)\
+        #                        & (db.t_recommendations.recommender_id == recommenderId) ),
+        "requiring_reviewers": ((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') 
+        |
+           (subquery.count(distinct=True) == 0) & (db.t_articles.report_stage == 'STAGE 2')
+           ),
+        "required_reviews_completed": (),
+        "late_reviews": (),
+    }
+    return queries[action]
+
+######################################################################################################################################################################
+def recommender_breakdown():
+    action = request.vars["action"]
+    recommenderId = request.vars["recommenderId"]
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    stats_query = fetch_query(action, recommenderId)
+    resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=stats_query)
+    resu["customText"] = getText(request, auth, db, "#ManagerCompletedArticlesText")
+    resu["titleIcon"] = "ok-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerCompletedArticlesTitle")
+    resu["pageHelp"] = getHelp(request, auth, db, "#ManageCompletedArticles")
+    return resu
+
