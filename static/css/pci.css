@@ -1316,3 +1316,28 @@ header {
 #anonymous-reviewer-confirm #confirm-dialog {
   margin-bottom: 0px;
 }
+
+#info-dialog {
+  position: fixed;
+  width: 40%;
+  height: fit-content;
+  top: 25%;
+  left: 35%;
+  background-color: white;
+  border-radius: 6px;
+}
+
+#info-dialog #confirm-dialog {
+  margin-bottom: 0px;
+}
+
+#info-dialog-title {
+  font-size: large;
+  font-weight: bold;
+}
+
+#hypothesis-annotation {
+  border: solid 1px whitesmoke;
+  border-radius: 5px;
+  padding: 5px;
+}

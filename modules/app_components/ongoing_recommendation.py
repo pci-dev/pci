@@ -15,6 +15,7 @@ from gluon.sqlhtml import *
 
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules import hypothesis
 
 from controller_modules import manager_module
 
@@ -673,6 +674,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             and not pciRRactivated
         )
 
+        info_dialog_text = ''
+        myScript = None
+        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
+            myScript = common_tools.get_script("ongoing_recommendation.js")
+            hypothesis_client = hypothesis.Hypothesis()
+            info_dialog_text = current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>" + hypothesis_client.generate_html_annotation_text(art)
+
         componentVars = dict(
             articleId=art.id,
             recommId=recomm.id,
@@ -704,6 +712,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
+            hypothesisConfirmDialog=common_small_html.infoDialog(current.T("Hypothes.is"), info_dialog_text),
+            myFinalScript=myScript
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
@@ -786,7 +796,7 @@ def validate_stage_button(art):
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
-                    art, send_back_button(art)
+                    art, send_back_button(art), onclick= "showInfoDialogBeforeValidateRecommendation(event);" if not pciRRactivated else "return;"
                 )
             elif art.status == "Pre-revision":
                 return manager_action_button(
@@ -810,7 +820,7 @@ def validate_stage_button(art):
             return None
 
 
-def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions"):
+def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions", onclick="return;"):
     return DIV(
         A(
             SPAN(current.T(text),
@@ -819,6 +829,8 @@ def manager_action_button(action, text, info_text, art, extra_button="", style="
             _href=URL(c=base, f=action, vars=dict(articleId=art.id)),
             _title=current.T(info_text),
             _style="display: inline-block",
+            _id=action,
+            _onclick=onclick
         ),
         extra_button,
         _class="pci-EditButtons-centered",
