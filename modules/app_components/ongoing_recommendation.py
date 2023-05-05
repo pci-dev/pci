@@ -15,6 +15,7 @@ from gluon.sqlhtml import *
 
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules import hypothesis
 
 from controller_modules import manager_module
 
@@ -673,6 +674,12 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             and not pciRRactivated
         )
 
+        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
+            recommendationRounds.append(common_tools.get_script("ongoing_recommendation.js"))
+            hypothesis_client = hypothesis.Hypothesis()
+            info_dialog_text = current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>" + hypothesis_client.generate_html_annotation_text(art)
+            recommendationRounds.append(common_small_html.infoDialog(current.T("Hypothes.is"), info_dialog_text))
+
         componentVars = dict(
             articleId=art.id,
             recommId=recomm.id,
@@ -782,11 +789,16 @@ def validate_stage_button(art):
                     style="default",
                 )
             elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
+                onclick_content = 'return;'
+
+                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
+                    onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
+
                 return manager_action_button(
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
-                    art, send_back_button(art)
+                    art, send_back_button(art), onclick=onclick_content
                 )
             elif art.status == "Pre-revision":
                 return manager_action_button(
@@ -810,7 +822,7 @@ def validate_stage_button(art):
             return None
 
 
-def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions"):
+def manager_action_button(action, text, info_text, art, extra_button="", style="success", base="manager_actions", onclick="return;"):
     return DIV(
         A(
             SPAN(current.T(text),
@@ -819,6 +831,8 @@ def manager_action_button(action, text, info_text, art, extra_button="", style="
             _href=URL(c=base, f=action, vars=dict(articleId=art.id)),
             _title=current.T(info_text),
             _style="display: inline-block",
+            _id=action,
+            _onclick=onclick
         ),
         extra_button,
         _class="pci-EditButtons-centered",

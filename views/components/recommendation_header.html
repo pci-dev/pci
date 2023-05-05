@@ -7,7 +7,7 @@
 
 {{if not printable:}}
   <div class="pci2-justify-center">
-    <div style="max-width: 800px; width: 100%; margin-bottom: 35px;" class="pci2-flex-row">
+    <div style="max-width: 800px; width: 100%;" class="pci2-flex-row">
   	  {{if 'allowEditArticle' in locals() and allowEditArticle is True:}}    
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
         href="{{=URL(c='user', f='edit_my_article', vars=dict(articleId=articleId))}}"

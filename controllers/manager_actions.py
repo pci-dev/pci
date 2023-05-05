@@ -2,8 +2,10 @@
 
 from app_modules.helper import *
 from app_modules import crossref
+from app_modules.hypothesis import Hypothesis
 
 crossref.init_conf(db)
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 
 ######################################################################################################################################################################
@@ -105,6 +107,9 @@ def do_recommend_article():
         art.update_record()
         redirurl = URL(c="articles", f="rec", vars=dict(id=art.id))
 
+    if not pciRRactivated:
+        Hypothesis().post_annotation(art)
+    
     crossref.post_and_forget(recomm)
     redirect(redir_url)
 
