@@ -792,11 +792,16 @@ def validate_stage_button(art):
                     style="default",
                 )
             elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
+                onclick_content = 'return;'
+
+                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
+                    onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
+
                 return manager_action_button(
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
-                    art, send_back_button(art), onclick= "showInfoDialogBeforeValidateRecommendation(event);" if not pciRRactivated else "return;"
+                    art, send_back_button(art), onclick=onclick_content
                 )
             elif art.status == "Pre-revision":
                 return manager_action_button(
