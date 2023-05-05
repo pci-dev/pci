@@ -182,7 +182,7 @@ class COARNotifier:
 
     def _article_as_jsonld(self, article):
         return {
-            "id": article.doi,
+            "id": article_cite_as(article),
             "ietf:cite-as": article_cite_as(article),
             "type": "sorg:AboutPage",
         }
