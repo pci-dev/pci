@@ -675,9 +675,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         )
 
         info_dialog_text = ''
-        myScript = None
         if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
-            myScript = common_tools.get_script("ongoing_recommendation.js")
+            recommendationRounds.append(common_tools.get_script("ongoing_recommendation.js"))
             hypothesis_client = hypothesis.Hypothesis()
             info_dialog_text = current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>" + hypothesis_client.generate_html_annotation_text(art)
 
@@ -713,7 +712,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
             hypothesisConfirmDialog=common_small_html.infoDialog(current.T("Hypothes.is"), info_dialog_text),
-            myFinalScript=myScript
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
