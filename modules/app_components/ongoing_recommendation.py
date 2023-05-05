@@ -674,7 +674,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             and not pciRRactivated
         )
 
-        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
+        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
             recommendationRounds.append(common_tools.get_script("ongoing_recommendation.js"))
             hypothesis_client = hypothesis.Hypothesis()
             info_dialog_text = current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>" + hypothesis_client.generate_html_annotation_text(art)
@@ -791,7 +791,7 @@ def validate_stage_button(art):
             elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
                 onclick_content = 'return;'
 
-                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
+                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
                     onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
 
                 return manager_action_button(

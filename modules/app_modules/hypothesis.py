@@ -21,12 +21,12 @@ class Hypothesis:
 
     
     @staticmethod
-    def may_have_annotation(preprint_server) -> bool:
-        return preprint_server.lower().strip() == 'biorxiv'
+    def may_have_annotation(article_doi) -> bool:
+        return article_doi.lower().strip().startswith('https://doi.org/10.1101/') # doi biorxiv
 
 
     def post_annotation(self, article):
-        if not Hypothesis.may_have_annotation(article.preprint_server):
+        if not Hypothesis.may_have_annotation(article.doi):
             return
 
         article_url = self.__get_url_from_doi(article.doi)

@@ -412,7 +412,7 @@ def recommendations():
         and art.status == "Recommended"
     ):
         recommStatusHeader = TAG(recommStatusHeader)
-        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.preprint_server):
+        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
             recommStatusHeader.append(hypothesis_button(art))
         recommStatusHeader.append(crossref_toolbar(art))
 
