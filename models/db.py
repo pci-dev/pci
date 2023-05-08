@@ -1022,10 +1022,10 @@ def reviewSuggested(s, row):
             emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"], manual_insert=True)
             if isScheduledTrack(article):
                 emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, row)
-            # create reminder
-            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, row["id"])
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, row["id"])
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, row["id"])
+            else:# create reminder
+                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, row["id"])
+                emailing.create_reminder_for_reviewer_review_due(session, auth, db, row["id"])
+                emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, row["id"])
         else:
             if recomm_mail is not None:
                 # renew reminder
