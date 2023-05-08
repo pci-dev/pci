@@ -3143,7 +3143,10 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     if pciRRactivated:
         mail_vars.update(getPCiRRScheduledSubmissionsVars(art))
 
-    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
+    template = "#DefaultReviewCancellation"
+    if review.review_state == "Awaiting review":
+        template = "#DefaultReviewAlreadyAcceptedCancellation"
+    hashtag_template = emailing_tools.getCorrectHashtag(template, art)
     if check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id) is False:
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
