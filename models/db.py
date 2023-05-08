@@ -866,9 +866,13 @@ def deltaStatus(s, f):
 
             elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
                 emailing.send_to_recommender_preprint_validated(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_validated_scheduled_submission(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, o["id"])
 
             elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
                 emailing.send_to_reviewers_preprint_submitted(session, auth, db, o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderPreprintValidatedScheduledSubmission", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate", o["id"])
 
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
