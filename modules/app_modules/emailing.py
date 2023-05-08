@@ -1222,7 +1222,7 @@ def send_new_user(session, auth, db, userId):
 
 ######################################################################################################################################################################
 def send_new_membreship(session, auth, db, membershipId):
-    print("send_new_membreship")
+    print("send_new_membership")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
