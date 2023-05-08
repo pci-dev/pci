@@ -631,7 +631,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 editRecommendationButtonText = current.T("Write your decision / recommendation")
 
         scheduledSubmissionEndingButton = False
-        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Scheduled submission under consideration") and not (printable):
+        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status == "Scheduled submission under consideration") and not (printable):
             scheduledSubmissionEndingButton = True
 
         recommendationPdfLink = None
