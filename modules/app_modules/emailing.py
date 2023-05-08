@@ -1700,12 +1700,9 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             mail_vars.update(getPCiRRinvitationTexts(article))
-
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
-        mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-
         # Insert mail in mail_queue :
         hashtag_template = "#RecommenderPreprintValidatedScheduledSubmission"
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
