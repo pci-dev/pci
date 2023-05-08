@@ -592,4 +592,13 @@ def reject_scheduled_submission():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+        pendingReviews = db(
+            (db.t_reviews.recommendation_id == db.t_recommendations.id)
+            & (db.t_recommendations.article_id == db.t_articles.id)
+            & (db.t_articles.id == articleId)
+            & (db.t_reviews.review_state in ("Awaiting review", "Awaiting response"))
+        ).select()
+        for review in pendingReviews:
+            review.update_record(review_state="Cancelled")
+            emailing.create_cancellation_for_reviewer(session, auth, db, review["t_reviews.id"])
         redirect(URL(c="manager", f="send_submitter_generic_mail", args=["reject_scheduled_submission"], vars=dict(articleId=articleId)))
