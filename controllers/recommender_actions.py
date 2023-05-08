@@ -555,8 +555,10 @@ def do_end_scheduled_submission():
         emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
 
         session.flash = T("Submission now available to reviewers")
-
-    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+    controller = "recommender"
+    if auth.has_membership(role="manager"):
+        controller = "manager"
+    redirect(URL(c=controller, f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
