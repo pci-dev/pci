@@ -87,7 +87,7 @@ def pending_articles():
     if is_recommender(auth, request):
         states = ["Scheduled submission pending"]
     else:
-        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private", "Scheduled submission pending"]
+        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
