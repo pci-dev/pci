@@ -2344,11 +2344,12 @@ def create_reminder_for_recommender_validated_scheduled_submission(session, auth
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             scheduled_review_start_date = mail_vars["scheduledSubmissionLatestReviewStartDate"]
+            review_period = datetime.datetime.strptime(scheduled_review_start_date, DEFAULT_DATE_FORMAT).date()
 
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmission"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(scheduled_review_start_date - datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
 def create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, articleId):
@@ -2365,11 +2366,12 @@ def create_reminder_for_recommender_validated_scheduled_submission_late(session,
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             scheduled_review_start_date = mail_vars["scheduledSubmissionLatestReviewStartDate"]
+            review_period = datetime.datetime.strptime(scheduled_review_start_date, DEFAULT_DATE_FORMAT).date()
 
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(scheduled_review_start_date + datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period + datetime.timedelta(days=1)))
 
 
 def mk_submitter_my_articles_url(mail_vars):
