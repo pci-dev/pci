@@ -1392,7 +1392,7 @@ def article_emails():
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
 
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="recommender"))
 def send_submitter_generic_mail():
     response.view = "default/myLayout.html"
 
@@ -1403,6 +1403,7 @@ def send_submitter_generic_mail():
 
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db.get_last_recomm(art)
     if art is None:
         fail("no article for review")
     author = db.auth_user[art.user_id]
@@ -1416,6 +1417,7 @@ def send_submitter_generic_mail():
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        recommenderName = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
@@ -1458,11 +1460,20 @@ def send_submitter_generic_mail():
             art.update_record()
         request.vars["replyto"] = replyTo
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
+            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, request.vars, template)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
-        redirect(URL(c="manager", f="presubmissions"))
+        if auth.has_membership(role="recommender"):
+            if "Reject" in template:
+                recomm.is_closed = True
+                recomm.recommendation_state = "Rejected"
+                recomm.update_record()
+                art.status = "Pre-rejected"
+                art.update_record()
+            redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
+        else:
+            redirectt(URL(c="manager", f="presubmissions"))
 
     return dict(
         form=form,
