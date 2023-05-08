@@ -557,3 +557,39 @@ def do_end_scheduled_submission():
         session.flash = T("Submission now available to reviewers")
 
     redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def revise_scheduled_submission():
+    articleId = request.vars["articleId"]
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    article = db.t_articles[articleId]
+    recomm = db.get_last_recomm(article)
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if recomm.recommender_id != auth.user_id:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        redirect(URL(c="manager", f="send_submitter_generic_mail", args=["revise_scheduled_submission"], vars=dict(articleId=articleId)))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def reject_scheduled_submission():
+    articleId = request.vars["articleId"]
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    article = db.t_articles[articleId]
+    recomm = db.get_last_recomm(article)
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if recomm.recommender_id != auth.user_id:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        redirect(URL(c="manager", f="send_submitter_generic_mail", args=["reject_scheduled_submission"], vars=dict(articleId=articleId)))
