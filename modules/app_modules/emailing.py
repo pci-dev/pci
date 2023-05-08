@@ -2332,6 +2332,48 @@ def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, d
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
 
+######################################################################################################################################################################
+def create_reminder_for_recommender_validated_scheduled_submission(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    if article:
+        mail_vars["articleDoi"] = article.doi
+        mail_vars["articleAuthors"] = mkAuthors(article)
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+            scheduled_review_start_date = mail_vars["scheduledSubmissionLatestReviewStartDate"]
+
+        # do not use getCorrectHashtag here to avoid fake name
+        hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmission"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(scheduled_review_start_date - datetime.timedelta(days=1)))
+
+######################################################################################################################################################################
+def create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, articleId):
+    mail_vars = emailing_tools.getMailCommonVars()
+    article = db.t_articles[articleId]
+    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    if article:
+        mail_vars["articleDoi"] = article.doi
+        mail_vars["articleAuthors"] = mkAuthors(article)
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+            scheduled_review_start_date = mail_vars["scheduledSubmissionLatestReviewStartDate"]
+
+        # do not use getCorrectHashtag here to avoid fake name
+        hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate"
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(scheduled_review_start_date + datetime.timedelta(days=1)))
+
 
 def mk_submitter_my_articles_url(mail_vars):
     return URL(c="user", f="my_articles",
