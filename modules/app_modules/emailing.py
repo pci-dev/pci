@@ -1986,7 +1986,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(session, auth, db, author_email, articleId, form):
+def send_submitter_generic_mail(session, auth, db, author_email, articleId, form, mail_template):
 
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
@@ -2005,7 +2005,7 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
         mail_content        = mail_content,
 
         article_id          = articleId,
-        mail_template_hashtag = "#SubmitterGenericMail",
+        mail_template_hashtag = mail_template,
     )
 
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
