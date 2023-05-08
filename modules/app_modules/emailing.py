@@ -1684,6 +1684,40 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
+def send_to_recommender_preprint_validated(session, auth, db, articleId):
+    article = db.t_articles[articleId]
+    finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
+
+    if article and finalRecomm:
+        # Get common variables :
+        mail_vars = emailing_tools.getMailCommonVars()
+        reports = []
+
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleDoi"] = article.doi
+        mail_vars["articleAuthors"] = mkAuthors(article)
+
+        if pciRRactivated:
+            mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+            mail_vars.update(getPCiRRinvitationTexts(article))
+
+        # Set custom variables :
+        mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+        mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+        # Insert mail in mail_queue :
+        hashtag_template = "#RecommenderPreprintValidatedScheduledSubmission"
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
+
+        # Create report for session flash alerts :
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+        # Build reports :
+        emailing_tools.getFlashMessage(session, reports)
+
+
+######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
 def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
