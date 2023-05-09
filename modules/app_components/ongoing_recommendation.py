@@ -901,6 +901,10 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
 
     recomm = db.get_last_recomm(art.id)
 
+    if not recomm:
+        recommendationDiv.append("NO RECOMMENDATION")
+        return recommendationDiv
+
     whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
