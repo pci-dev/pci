@@ -882,6 +882,9 @@ def deltaStatus(s, f):
                 if f["status"] == "Not considered":
                     emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
 
+                if f["status"] == "Rejected" and isScheduledTrack(o):
+                    recommender_module.cancel_scheduled_reviews(session, auth, db, o["id"])
+
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
                     emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
