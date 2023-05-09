@@ -475,9 +475,9 @@ db.auth_user._format = "%(last_name)s, %(first_name)s"
 db.auth_group._format = "%(role)s"
 
 def mail_queue_update_pending(sets, fields):
-    old_email = sets.db.auth_user(sets.query).email
+    old_email = db.auth_user(sets.query).email
     new_email = fields.get('email')
-    sets.db((sets.db.mail_queue.dest_mail_address == old_email) & (sets.db.mail_queue.sending_status == 'pending')).update(dest_mail_address=new_email)
+    db((db.mail_queue.dest_mail_address == old_email) & (db.mail_queue.sending_status == 'pending')).update(dest_mail_address=new_email)
 
 db.auth_user._before_update.append(mail_queue_update_pending)
 
