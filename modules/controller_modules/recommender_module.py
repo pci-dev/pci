@@ -103,4 +103,3 @@ def cancel_scheduled_reviews(session, auth, db, articleId):
     for review in pendingReviews:
         review.update_record(review_state="Cancelled")
         db.commit()
-        emailing.create_cancellation_for_reviewer(session, auth, db, review.id)
