@@ -864,6 +864,9 @@ def edit_report_survey():
     form = app_forms.report_survey(auth, session, art, db, survey, "user_edit",
                                     do_validate=not fullSubmissionOpened)
 
+    if fullSubmissionOpened:
+        form.element("#t_report_survey_q10")["_disabled"] = 1
+
     status = db.config[1]
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
