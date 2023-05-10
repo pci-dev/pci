@@ -474,6 +474,13 @@ db.auth_user.registration_key.requires = IS_IN_SET(("", "blocked"))
 db.auth_user._format = "%(last_name)s, %(first_name)s"
 db.auth_group._format = "%(role)s"
 
+def mail_queue_update_pending(sets, fields):
+    old_email = db.auth_user(sets.query).email
+    new_email = fields.get('email')
+    db((db.mail_queue.dest_mail_address == old_email) & (db.mail_queue.sending_status == 'pending')).update(dest_mail_address=new_email)
+
+db.auth_user._before_update.append(mail_queue_update_pending)
+
 # -------------------------------------------------------------------------
 # configure email
 # -------------------------------------------------------------------------
