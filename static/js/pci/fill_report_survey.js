@@ -160,6 +160,8 @@ function disableQuestionOnChange(question_id, answer_id, awaited_answer) {
     });
   }
 }
+// don't install on-change handler for q10 if force disabled
+if (! document.getElementById("t_report_survey_q10").disabled)
 disableQuestionOnChange(
   "#t_report_survey_q10",
   "#t_report_survey_q1",
