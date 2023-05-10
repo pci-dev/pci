@@ -233,7 +233,7 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         form[0].insert(-1, field)
 
 #######################################################################################
-def report_survey(auth, session, art, db, survey=None, controller=None):
+def report_survey(auth, session, art, db, survey=None, controller=None, do_validate=True):
     db.t_report_survey._id.readable = False
     db.t_report_survey._id.writable = False
 
@@ -376,7 +376,7 @@ def report_survey(auth, session, art, db, survey=None, controller=None):
             form.errors.q17 = "Please provide a duration"
 
         error = validate_due_date(form)
-        if error:
+        if error and do_validate:
             form.errors.q10 = error
         
         if form.vars.q10 is not None and form.vars.q4 is None:

@@ -854,7 +854,15 @@ def edit_report_survey():
         session.flash = T("No survey yet, please fill this form.")
         survey = db.t_report_survey.insert(article_id=articleId, temp_art_stage_1_id=art.art_stage_1_id)
 
-    form = app_forms.report_survey(auth, session, art, db, survey, "user_edit")
+    # condition copy/pasted from showFullSubmissionUploadScreen
+    fullSubmissionOpened = (
+            art.scheduled_submission_date and
+            (art.scheduled_submission_date - date.today()).days
+                <= db.full_upload_opening_offset.days
+    )
+
+    form = app_forms.report_survey(auth, session, art, db, survey, "user_edit",
+                                    do_validate=not fullSubmissionOpened)
 
     status = db.config[1]
     if pciRRactivated and status['allow_submissions'] is False:
