@@ -81,12 +81,14 @@ class Hypothesis:
 
 
     def __post_annotation(self, article_url, annotation_text) -> Response:
+        group_id = self.__get_PCI_group_id()
         payload = {
             'uri': article_url,
             'text': annotation_text,
-            'group': self.__get_PCI_group_id(),
-            'permissions': {'read': ['group:__world__']}
+            'group': group_id,
+            'permissions': {'read': [f'group:{group_id}']}
         }
+
         response = self.__http.post(self.API_URL + '/annotations', json=self.__remove_empty(payload))
         return response
 
