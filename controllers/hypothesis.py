@@ -18,7 +18,7 @@ def post_form():
     hypothesis_client = Hypothesis()
     annotation = hypothesis_client.get_annotation(article.doi)
 
-    default_text = f"{current.T('No annotation found')}.\n\n***{current.T('Generated annotation')}***\n\n{hypothesis_client.generate_annotation_text(article)}"
+    default_text = hypothesis_client.generate_annotation_text(article)
     annotation_text = annotation['text'] if annotation else default_text
 
     form = FORM(
@@ -38,8 +38,17 @@ def post_form():
     else:
         response.view = "default/myLayout.html"
 
-        return dict(
+        data = dict(
             form=form,
             titleIcon="book",
             pageTitle="Hypothes.is annotation",
         )
+
+        if not annotation:
+            data['prevContent'] = get_no_annotation_found_warning()
+
+        return data
+
+
+def get_no_annotation_found_warning():
+    return DIV(TAG(f"{current.T('No annotation found')}.<br/>{current.T('There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.')}"), _class="alert alert-warning")

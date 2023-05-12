@@ -958,6 +958,5 @@
     "Hypothes.is": "Hypothes.is",
     "The following annotation is going to be posted on Biorxiv with Hypothes.is:": "The following annotation is going to be posted on Biorxiv with Hypothes.is:",
     "No annotation found": "No annotation found",
-    "Generated annotation": "Generated annotation"
-
+    "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.": "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation."
 }
