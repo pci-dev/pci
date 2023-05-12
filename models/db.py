@@ -1021,13 +1021,7 @@ def setRecommendationDoi(s, _recomm):
         or hasattr(_recomm, "recommendation_doi") and
         not _recomm.recommendation_doi
     ):
-        _recomm.recommendation_doi = generate_recommendation_doi(recomm)
-
-
-def generate_recommendation_doi(recomm):
-    pci_short_name = host.split(".")[0]
-    article_id_filled = str(recomm.article_id).zfill(5)
-    return f"10.24072/pci.{pci_short_name}.1{article_id_filled}"
+        _recomm.recommendation_doi = common_tools.generate_recommendation_doi(recomm.article_id)
 
 
 def get_last_recomms():

@@ -957,6 +957,6 @@
     "anonymousReviewerConfirmDialogMessage": "Please note that your review will be signed.<br/>This means that your identity will be revealed to the authors and will also be published in the event of a positive final recommendation.<br/>To instead remain anonymous, please tick the Anonymous box (if available; where the option to remain anonymous is unavailable, this indicates that the authors chose a submission route in which only signed reviews are solicited).",
     "Hypothes.is": "Hypothes.is",
     "The following annotation is going to be posted on Biorxiv with Hypothes.is:": "The following annotation is going to be posted on Biorxiv with Hypothes.is:",
-    "Not annotation found": "Not annotation found"
-
+    "No annotation found": "No annotation found",
+    "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.": "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation."
 }

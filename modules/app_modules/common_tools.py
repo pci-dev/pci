@@ -92,6 +92,14 @@ def handle_multiple_uploads(review, files):
     filename = current.db.t_reviews.review_pdf.store(data, name)
     review.update_record(review_pdf=filename, review_pdf_data=data)
 
+###################################################################
+
+def generate_recommendation_doi(article_id) -> str:
+    host = myconf.take('alerts.host')
+    pci_short_name = host.split('.')[0]
+    article_id_filled = str(article_id).zfill(5)
+    return f'10.24072/pci.{pci_short_name}.1{article_id_filled}'
 
 ###################################################################
+
 absoluteButtonScript = get_script("web2py_button_absolute.js")

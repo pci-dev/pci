@@ -1,6 +1,7 @@
 from gluon.contrib.appconfig import AppConfig
 from app_modules.helper import *
 from app_modules.httpClient import HttpClient
+from app_modules.common_tools import generate_recommendation_doi
 from requests.models import Response
 import json
 from typing import Dict, Any
@@ -29,13 +30,13 @@ class Hypothesis:
         if not Hypothesis.may_have_annotation(article.doi):
             return
 
-        article_url = self.__get_url_from_doi(article.doi)
-        annotation_text = self.__generate_annotation_text(article)
-        self.__post_annotation(article_url, annotation_text)
+        article_url = self.get_url_from_doi(article.doi)
+        annotation_text = self.generate_annotation_text(article)
+        self.post_annotation_for_article(article_url, annotation_text)
 
 
     def generate_html_annotation_text(self, article) -> str:
-        doi = self.__generate_recommendation_doi(article.id)
+        doi = generate_recommendation_doi(article.id)
 
         line1 = f'Version {article.ms_version} of this preprint has been <strong>peer-reviewed and recommended by <a href="{siteUrl}" target="_blank">{shortname}</a><strong>.<br>'
         line2 = f'See <a href="https://doi.org/{doi}" target="_blank">the peer reviews and the recommendation</a>.'
@@ -46,7 +47,7 @@ class Hypothesis:
     def get_annotation(self, article_doi):
         payload = {
             'limit': 1,
-            'uri': self.__get_url_from_doi(article_doi),
+            'uri': self.get_url_from_doi(article_doi),
             'group': self.__get_PCI_group_id()
         }
 
@@ -64,8 +65,8 @@ class Hypothesis:
         return self.__http.patch(self.API_URL + f"/annotations/{annotation['id']}", json=self.__remove_empty(annotation))
 
 
-    def __generate_annotation_text(self, article) -> str:
-        doi = self.__generate_recommendation_doi(article.id)
+    def generate_annotation_text(self, article) -> str:
+        doi = generate_recommendation_doi(article.id)
 
         line1 = f'Version {article.ms_version} of this preprint has been **peer-reviewed and recommended by [{shortname}]({siteUrl})**.  \n'
         line2 = f'See [the peer reviews and the recommendation](https://doi.org/{doi}).'
@@ -73,25 +74,20 @@ class Hypothesis:
         return line1 + line2
 
 
-    def __generate_recommendation_doi(self, article_id) -> str:
-        host = self.__myconf.take('alerts.host')
-        pci_short_name = host.split('.')[0]
-        article_id_filled = str(article_id).zfill(5)
-        return f'10.24072/pci.{pci_short_name}.1{article_id_filled}'
-
-
-    def __post_annotation(self, article_url, annotation_text) -> Response:
+    def post_annotation_for_article(self, article_url, annotation_text) -> Response:
+        group_id = self.__get_PCI_group_id()
         payload = {
             'uri': article_url,
             'text': annotation_text,
-            'group': self.__get_PCI_group_id(),
-            'permissions': {'read': ['group:__world__']}
+            'group': group_id,
+            'permissions': {'read': [f'group:{group_id}']}
         }
+
         response = self.__http.post(self.API_URL + '/annotations', json=self.__remove_empty(payload))
         return response
 
 
-    def __get_url_from_doi(self, article_doi) -> str:
+    def get_url_from_doi(self, article_doi) -> str:
         response = HttpClient().get(article_doi, None, allow_redirects=True)
         return response.url
 
