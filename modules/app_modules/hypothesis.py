@@ -38,7 +38,7 @@ class Hypothesis:
     def generate_html_annotation_text(self, article) -> str:
         doi = generate_recommendation_doi(article.id)
 
-        line1 = f'Version {article.ms_version} of this preprint has been <strong>peer-reviewed and recommended by <a href="{siteUrl}" target="_blank">{shortname}</a><strong>.<br>'
+        line1 = f'Version {article.ms_version} of this preprint has been <strong>peer-reviewed and recommended by <a href="{siteUrl}" target="_blank">{description}</a><strong>.<br>'
         line2 = f'See <a href="https://doi.org/{doi}" target="_blank">the peer reviews and the recommendation</a>.'
 
         return '<p id="hypothesis-annotation">' + line1 + line2 + '</p>'
@@ -68,7 +68,7 @@ class Hypothesis:
     def generate_annotation_text(self, article) -> str:
         doi = generate_recommendation_doi(article.id)
 
-        line1 = f'Version {article.ms_version} of this preprint has been **peer-reviewed and recommended by [{shortname}]({siteUrl})**.  \n'
+        line1 = f'Version {article.ms_version} of this preprint has been **peer-reviewed and recommended by [{description}]({siteUrl})**.  \n'
         line2 = f'See [the peer reviews and the recommendation](https://doi.org/{doi}).'
 
         return line1 + line2
