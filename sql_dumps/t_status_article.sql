@@ -55,3 +55,8 @@ SELECT pg_catalog.setval('public.t_status_article_id_seq', 50, true);
 INSERT INTO public.t_status_article("status","color_class","explaination","priority_level")
 VALUES
 (E'Pre-submission',E'danger',E'Submission needs changes from author',E'A');
+
+--2023-05-16 updates/new_status.sql
+INSERT INTO public.t_status_article ("status","color_class","explaination","priority_level")
+VALUES
+(E'Scheduled submission revision',E'warning',E'Scheduled submission needs changes from author',E'B');
