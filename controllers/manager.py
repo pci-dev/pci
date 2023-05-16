@@ -315,9 +315,10 @@ def _manage_articles(statuses, whatNext, db=db):
 
     # options to be removed from the search dropdown:
     remove_options = []
+    integer_fields = ["t_articles.id"]
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
 
     return dict(
         customText=getText(request, auth, db, "#ManagerArticlesText"),

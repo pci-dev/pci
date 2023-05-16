@@ -1,7 +1,7 @@
 // if there is an ongoing search, we need to change buttons and 
 // input field visibility
 var search_bar = document.querySelector('#w2p_keywords');
-var user_types_without_any = ['auth_user', 'mail_templates', 't_articles', 'qy_art', 'mail_queue', 'v_article', 'help_texts']
+var user_types_without_any = ['auth_user', 'mail_templates', 't_articles', 'qy_art', 'mail_queue', 'v_article', 'help_texts', 'articles']
 
 if (search_bar != null) {
     var user_type = get_user_type();

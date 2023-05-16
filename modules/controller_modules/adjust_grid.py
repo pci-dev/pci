@@ -90,8 +90,11 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         elif option.attributes['_value'] in remove_options:
             option.attributes.update({'_style':'display:none'})
             grid.elements('div#w2p_field_' + option.attributes['_value'].replace('.', '-'), replace=None)
+        # add integer class to fields that need to be handled like integer
         elif option.attributes['_value'] in integer_fields:
             option.attributes.update({'_class':'integer-field'})
+        if search_name == 'articles' and option.attributes['_value'] == 't_articles.id':
+            print(option)
 
     # set "All Fields" as primary choice
     for option in select_panel:
@@ -112,12 +115,18 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                 option.attributes.update({'_selected':'selected'})
                 hashtag_input_field = grid.element('div#w2p_field_mail_templates-hashtag')
                 hashtag_input_field.attributes.update({'_style':'display:flex'})
-    elif search_name in ['articles', 'articles_temp']:
+    elif search_name in ['articles_temp']:
         for option in select_panel:
             if option.attributes['_value'].endswith('.title'):
                 option.attributes.update({'_selected':'selected'})
                 title_input_field = grid.element('div#w2p_field_t_articles-title')
                 title_input_field.attributes.update({'_style':'display:flex'})
+    elif search_name in ['articles']:
+        for option in select_panel:
+            if option.attributes['_value'].endswith('.id'):
+                option.attributes.update({'_selected':'selected'})
+                title_input_field = grid.element('div#w2p_field_t_articles-id')
+                title_input_field.attributes.update({'_style':'display:flex'})                
     elif search_name == 'articles2':
         for option in select_panel:
             if option.attributes['_value'].endswith('.text'):
