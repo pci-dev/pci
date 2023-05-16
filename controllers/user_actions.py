@@ -108,33 +108,36 @@ def article_revised():
     if art is None:
         raise HTTP(404, "404: " + T("Unavailable"))  # Forbidden access
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and art.status == "Awaiting revision"):
+    if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and art.status in ("Awaiting revision", "Scheduled submission revision")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
+        if art.status == "Scheduled submission revision":
+            art.update_record(status="Scheduled submission pending")
+        else:
         # print('article_revised')
-        art.status = "Under consideration"
-        art.update_record()
-        last_recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
-        last_recomm.is_closed = True
-        last_recomm.update_record()
-        newRecomm = db.t_recommendations.insert(
-            article_id=art.id,
-            recommender_id=last_recomm.recommender_id,
-            no_conflict_of_interest=last_recomm.no_conflict_of_interest,
-            doi=art.doi,
-            ms_version=art.ms_version,
-            is_closed=False,
-            recommendation_state="Ongoing",
-            recommendation_title=None,
-        )
-        # propagate co-recommenders
-        corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
-        if len(corecommenders) > 0:
-            # NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
-            db.t_press_reviews._after_insert = []
-            for corecommender in corecommenders:
-                db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
+            art.status = "Under consideration"
+            art.update_record()
+            last_recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
+            last_recomm.is_closed = True
+            last_recomm.update_record()
+            newRecomm = db.t_recommendations.insert(
+                article_id=art.id,
+                recommender_id=last_recomm.recommender_id,
+                no_conflict_of_interest=last_recomm.no_conflict_of_interest,
+                doi=art.doi,
+                ms_version=art.ms_version,
+                is_closed=False,
+                recommendation_state="Ongoing",
+                recommendation_title=None,
+            )
+            # propagate co-recommenders
+            corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
+            if len(corecommenders) > 0:
+                # NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
+                db.t_press_reviews._after_insert = []
+                for corecommender in corecommenders:
+                    db.t_press_reviews.validate_and_insert(recommendation_id=newRecomm.id, contributor_id=corecommender.contributor_id)
         redirect(URL(c="user", f="my_articles", user_signature=True))
 
 
