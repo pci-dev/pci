@@ -93,8 +93,12 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         # add integer class to fields that need to be handled like integer
         elif option.attributes['_value'] in integer_fields:
             option.attributes.update({'_class':'integer-field'})
+        # these names of search options need to be adjusted to adhere to the fields they represent
+        # (which is differing to the labels in the result table)
         if search_name == 'articles' and option.attributes['_value'] == 't_articles.id':
-            print(option)
+            option.components[0] = 'Article ID'
+        if search_name == 'articles' and option.attributes['_value'] == 't_articles.title':
+            option.components[0] = 'Article Title'
 
     # set "All Fields" as primary choice
     for option in select_panel:
