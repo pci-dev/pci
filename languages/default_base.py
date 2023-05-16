@@ -675,6 +675,7 @@
     "Save": "Save",
     "Scheduled submission date has been reached.": "Scheduled submission date has been reached.",
     "Scheduled submission date": "Scheduled submission date",
+    "Scheduled submission revision" : "Scheduled submission awaiting revision",
     "Score": "Score",
     "%s days ago": "%s days ago",
     "%s day": "%s day",
