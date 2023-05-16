@@ -9,9 +9,14 @@
     <div style="page-break-before: always"></div>
   {{pass}}
 
+  {{if scheduledSubmissionRevision:}}
+  <b class="pci2-flex-center">Edit your report/report survey and then </b>
+  <a style="font-size: 20px; height: 35px" class="buttontext btn btn-success pci2-flex-center pci2-full-width" href="{{=scheduledSubmissionRevision}}"> SEND REVISED SUBMISSION </a>
+  {{else:}}
   <h2 class="pci2-revision-round-title">
     <i>Revision round <b class="pci2-main-color-text">#{{=roundNumber}}</b></i>
   </h2>
+{{pass}}
 
   <!-- Authors Reply -->
   {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None) or (editAuthorsReplyLink is not None):}}
@@ -55,7 +60,7 @@
                 >
                   {{=T('Edit your article data')}}
                 </a>
-              
+              http://localhost:8000/pci/user_actions/article_revised?articleId=176&_signature=2f272377d1e326846026b08e1a5871ff37c11170
                 <a class="buttontext btn btn-info pci2-flex-center"
                   style="flex: 1;"  
                   href="{{=editAuthorsReplyLink}}"

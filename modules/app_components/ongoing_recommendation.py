@@ -51,7 +51,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     # author's button allowing article edition
     allowEditArticle = False
-    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"))) and not (quiet):
+    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Scheduled submission revision", "Pending-survey", "Pre-submission"))) and not (quiet):
         allowEditArticle = True
 
     # manager buttons
@@ -255,7 +255,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommendationStepClass = "step-done"
                 recommStatus = recomm.recommendation_state
 
-            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision", "Scheduled submission revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
                 managerDecisionDoneClass = "step-done"
 
             if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
@@ -432,6 +432,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
+        scheduledSubmissionRevision = None
+        if (art.status == "Scheduled submission revision") and (art.user_id == auth.user_id) and not (printable):
+            scheduledSubmissionRevision = URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True)
+
         authorsReplyTrackChangeFileLink = None
         if recomm.track_change:
             authorsReplyTrackChangeFileLink = A(
@@ -493,7 +497,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             )
             # ... but:
             # ... the author for a closed decision/recommendation ...
-            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
+            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status in ("Awaiting revision", "Scheduled submission revision")):
                 hideOngoingReview = False
             # ...  the reviewer himself once accepted ...
             if (review.reviewer_id == auth.user_id) and (review.review_state in ("Awaiting review", "Review completed")):
@@ -701,6 +705,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewsList=reviewsList,
             showSearchingForReviewersButton=showSearchingForReviewersButton,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
+            scheduledSubmissionRevision=scheduledSubmissionRevision,
             isScheduledSubmission=is_scheduled_submission(art),
             isScheduledReviewOpen=is_scheduled_review_open(art),
             isArticleSubmitter=(art.user_id == auth.user_id),

@@ -537,7 +537,7 @@ def completed_evaluations():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def my_recommendations():
     pressReviews = request.vars["pressReviews"]
-    resu = _my_recomms(["Pre-recommended", "Pre-rejected", "Pre-revision", "Pre-recommended-private", "Awaiting revision", "Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"], pressReviews=pressReviews)
+    resu = _my_recomms(["Pre-recommended", "Pre-rejected", "Pre-revision", "Pre-recommended-private", "Awaiting revision", "Under consideration", "Scheduled submission under consideration", "Scheduled submission pending", "Scheduled submission revision"], pressReviews=pressReviews)
     return resu
 
 ######################################################################################################################################################################
