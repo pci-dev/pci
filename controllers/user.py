@@ -550,7 +550,7 @@ def edit_my_article():
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"):
+    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     # deletable = (art.status == 'Pending')
