@@ -98,7 +98,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
         if search_name == 'articles' and option.attributes['_value'] == 't_articles.id':
             option.components[0] = 'Article ID'
         if search_name == 'articles' and option.attributes['_value'] == 't_articles.title':
-            option.components[0] = 'Article Title'
+            option.components[0] = 'Article title'
 
     # set "All Fields" as primary choice
     for option in select_panel:
