@@ -2543,8 +2543,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
 
 def isScheduledTrack(art):
-    report_survey = art.t_report_survey.select().last()
-    return report_survey and report_survey.q10
+    return ongoing_recommendation.is_scheduled_submission(art)
 
 
 def getScheduledSubmissionDate(article):
