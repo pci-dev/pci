@@ -223,13 +223,13 @@ def _manage_articles(statuses, whatNext, db=db):
     articles.id.readable = True
     articles.id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
 
-    articles.anonymous_submission.represent = lambda txt, row: mkSubmitter(row)
-    articles.anonymous_submission.label = 'Submitter'
+    articles.user_id.represent = lambda txt, row: mkSubmitter(row)
+    articles.user_id.label = 'Submitter'
 
     articles.title.represent = lambda txt, row: mkRecommenders(row)
     articles.title.label = 'Recommenders'
 
-    articles.user_id.readable = False
+    articles.anonymous_submission.readable = False
     articles.report_stage.readable = False
     articles.request_submission_change.readable = False
 
@@ -299,9 +299,9 @@ def _manage_articles(statuses, whatNext, db=db):
             articles.status,
             articles.id,
             articles.upload_timestamp,
-            articles.anonymous_submission,
-            articles.art_stage_1_id,
             articles.user_id,
+            articles.art_stage_1_id,
+            articles.anonymous_submission,
             articles.submitter_details,
             articles.title,
             articles.already_published,
@@ -315,7 +315,7 @@ def _manage_articles(statuses, whatNext, db=db):
 
     # options to be removed from the search dropdown:
     remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission']
-    integer_fields = ["t_articles.id"]
+    integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
