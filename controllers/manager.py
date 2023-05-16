@@ -136,7 +136,7 @@ def ongoing_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerOngoingArticlesTitle")
@@ -1471,6 +1471,8 @@ def send_submitter_generic_mail():
                 recomm.update_record()
                 art.status = "Pre-rejected"
                 art.update_record()
+            elif "Revision" in template:
+                art.update_record(status="Scheduled submission revision")
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:
             redirectt(URL(c="manager", f="presubmissions"))
