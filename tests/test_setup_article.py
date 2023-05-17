@@ -81,6 +81,7 @@ class User_submits:
 
     article_submitted = "Article submitted" \
         if not is_rr else "Survey saved. Report NOT yet submitted"
+    time.sleep(.1)
     select(".w2p_flash", article_submitted).wait_clickable()
 
  def search_and_suggest_recommender(_):
@@ -90,6 +91,7 @@ class User_submits:
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
+    time.sleep(.1)
     select(".w2p_flash").contains("Suggested recommender")
     select("a", "Done".upper()).click()
 
@@ -151,6 +153,7 @@ class Manager_validates:
         select("#code_and_scripts_ok").click()
         select("#scope_ok").click()
     select(".btn-success", "Validate this submission".upper()).click()
+    time.sleep(.1)
     select(".w2p_flash", "Request now available to recommenders").wait_clickable()
 
  def check_article_status_is_requiring_recommender(_):
@@ -188,6 +191,7 @@ class Recommender_handles:
         cb.click()
     select("input[type=submit]").click()
 
+    time.sleep(.1)
     notif = select(".w2p_flash")
     notif.contains("e-mail sent to admin")
     notif.contains("e-mail sent to submitter")
@@ -200,6 +204,7 @@ class Recommender_handles:
     select("a", "Prepare an invitation".upper()).click()
     select("input[type=submit]").click()
 
+    time.sleep(.1)
     select(".w2p_flash", contains="e-mail sent to " + reviewer.name)
     select("a", "Done".upper()).click()
 
@@ -217,6 +222,7 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys("ratalatapouet@toto.com")
 
     select("input[type=submit]").click()
+    time.sleep(.1)
     notif = select(".w2p_flash")
     notif.contains("e-mail sent to Titi Toto")
     # message 'User "ratalatapouet@toto.com" created' shown only first time

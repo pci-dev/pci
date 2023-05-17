@@ -117,11 +117,13 @@ def login(user):
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
+    sleep(.1)
     select(".w2p_flash.alert", "Logged in").wait_clickable().click()
 
 def logout(user):
     select(".dropdown-toggle", user.name).click()
     select(".dropdown-menu li", "Log out").click()
+    sleep(.1)
     select(".w2p_flash.alert", "Logged out").wait_clickable().click()
 
 from configparser import ConfigParser
