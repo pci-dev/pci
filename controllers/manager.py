@@ -376,8 +376,11 @@ def recommendations():
         and art.status == "Recommended"
     ):
         recommStatusHeader = TAG(recommStatusHeader)
-        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
-            recommStatusHeader.append(hypothesis_button(art))
+        if not pciRRactivated:
+            if hypothesis.Hypothesis.may_have_annotation(art.doi):
+                recommStatusHeader.append(hypothesis_button(art))
+            recommStatusHeader.append(twitter_button(art))
+            
         recommStatusHeader.append(crossref_toolbar(art))
 
     if printable:
@@ -425,6 +428,15 @@ def hypothesis_button(article):
         I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
         T("Hypothes.is"),
         _href=URL("hypothesis", f"post_form?article_id={article.id}"),
+        _class="pci2-tool-link pci2-yellow-link",
+        _style="display: inline-block; margin-right: 20px",
+    )
+
+def twitter_button(article):
+    return A(
+        I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
+        T("Twitter"),
+        _href=URL("twitter", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
         _style="display: inline-block; margin-right: 20px",
     )
