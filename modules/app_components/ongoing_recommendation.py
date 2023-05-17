@@ -733,6 +733,7 @@ def is_scheduled_submission(article):
     )
 
 
+# TODO: investigate why this is not is_scheduled_submission()
 def is_scheduled_track(article):
     return article.status == "Scheduled submission pending"
 

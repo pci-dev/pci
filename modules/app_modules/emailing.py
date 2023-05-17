@@ -245,6 +245,7 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"] # i.e. contacts.managers
 
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
@@ -2543,8 +2544,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
 
 def isScheduledTrack(art):
-    report_survey = art.t_report_survey.select().last()
-    return report_survey and report_survey.q10
+    return ongoing_recommendation.is_scheduled_submission(art)
 
 
 def getScheduledSubmissionDate(article):
