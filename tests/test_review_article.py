@@ -2,6 +2,8 @@ from conftest import test, select, login, logout, users
 from conftest import config
 from pytest import mark
 
+import time
+
 
 users = config.users
 reviewer = users.reviewer
@@ -93,6 +95,7 @@ class Reviewer:
             cb.click()
         select("input[type=submit]").click()
 
+        time.sleep(.1)
         notif = select(".w2p_flash")
         notif.contains("e-mail sent to " + reviewer.name)
         notif.contains("e-mail sent to " + recommender.name)
@@ -106,6 +109,7 @@ class Reviewer:
 
         select("#confirm-dialog").wait_clickable().click()
 
+        time.sleep(.1)
         notif = select(".w2p_flash")
         notif.contains("e-mail sent to " + reviewer.name)
         notif.contains("e-mail sent to " + recommender.name)
