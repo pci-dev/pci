@@ -101,6 +101,13 @@ def lookup(css, text="", contains="", _=driver):
             return e
     raise KeyError("no such element: " + text)
 
+def select_notif(text="", contains=""):
+    sleep(.1)
+    return select(".w2p_flash", text=text, contains=contains)
+
+select.notif = select_notif
+
+
 def check_fails(func):
     def fails(*args, **kwargs):
         with pytest.raises(KeyError):
@@ -117,12 +124,12 @@ def login(user):
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
-    select(".w2p_flash.alert", "Logged in").wait_clickable().click()
+    select.notif("Logged in").wait_clickable().click()
 
 def logout(user):
     select(".dropdown-toggle", user.name).click()
     select(".dropdown-menu li", "Log out").click()
-    select(".w2p_flash.alert", "Logged out").wait_clickable().click()
+    select.notif("Logged out").wait_clickable().click()
 
 from configparser import ConfigParser
 

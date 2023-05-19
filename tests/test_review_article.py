@@ -93,7 +93,7 @@ class Reviewer:
             cb.click()
         select("input[type=submit]").click()
 
-        notif = select(".w2p_flash")
+        notif = select.notif()
         notif.contains("e-mail sent to " + reviewer.name)
         notif.contains("e-mail sent to " + recommender.name)
 
@@ -106,7 +106,7 @@ class Reviewer:
 
         select("#confirm-dialog").wait_clickable().click()
 
-        notif = select(".w2p_flash")
+        notif = select.notif()
         notif.contains("e-mail sent to " + reviewer.name)
         notif.contains("e-mail sent to " + recommender.name)
 
