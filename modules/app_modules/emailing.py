@@ -1595,7 +1595,10 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 
 ######################################################################################################################################################################
 # Mail for Scheduled submission
-##########################c############################################################################################################################################
+#
+# The following two send_to are only ever called with pciRRactivated
+#
+######################################################################################################################################################################
 def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
