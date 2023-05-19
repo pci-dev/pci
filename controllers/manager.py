@@ -84,11 +84,7 @@ def pending_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    if is_recommender(auth, request):
-        states = ["Scheduled submission pending"]
-    else:
-        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
-
+    states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
