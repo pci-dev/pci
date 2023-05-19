@@ -1605,6 +1605,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             mail_vars.update(getPCiRRinvitationTexts(article))
+            mail_vars["ccAddresses"] = [db.auth_user[finalRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, finalRecomm.id)
 
         for review in reviews:
             # Get common variables :
