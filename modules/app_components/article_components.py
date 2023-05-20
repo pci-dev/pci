@@ -216,10 +216,6 @@ def getArticleInfosCard(auth, db, response, article, printable,
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
     
-    if article.anonymous_submission and article.status != "Recommended":
-        authors = "[anonymous submission]"
-    else:
-        authors = article.authors
 
     # info visibility policies
     recomm = db(db.t_recommendations.article_id == article.id).select().last()
@@ -231,6 +227,11 @@ def getArticleInfosCard(auth, db, response, article, printable,
             (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count() > 0
     isRecommended = article.status == "Recommended"
+
+    if article.anonymous_submission and article.status != "Recommended" and not isRecommender:
+        authors = "[anonymous submission]"
+    else:
+        authors = article.authors
 
     def policy_1():
         return (
