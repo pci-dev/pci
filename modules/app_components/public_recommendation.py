@@ -51,7 +51,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
     recomm_altmetric = ""
 
-    articleInfosCard = article_components.getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False)
+    articleInfosCard = article_components.getArticleInfosCard(auth, db, response, art, printable, with_cover_letter=False, submittedBy=False, keywords=True)
 
     if not pciRRactivated:
         html = TAG(articleInfosCard)
