@@ -238,7 +238,7 @@ def _manage_articles(statuses, whatNext, db=db):
 
     def mkSubmitter(row):
         return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(None, None, row.anonymous_submission, "")),
+            DIV(common_small_html.mkAnonymousArticleField(auth, _db, row.anonymous_submission, "", row.id)),
             mkUser(row.submitter_details, row.user_id),
         )
 
