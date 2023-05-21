@@ -27,7 +27,7 @@
         <span class="pci2-article-infos">{{=articleSource}}</span>
         <span class="pci2-article-infos">{{=articleDoi}}</span>
         <span class="pci2-article-infos" id="version">{{=articleVersion}}</span>
-        {{if 'articleKeywords' in locals():}}
+        {{if 'articleKeywords' in locals() and not isRecommended:}}
         <span class="pci2-article-infos">{{=articleKeywords}}</span>
         {{pass}}
         <div>
@@ -227,6 +227,41 @@
   {{else:}}
     <div id="menu-5" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=articleAbstract}}
+    </div>
+  {{pass}}
+
+{{pass}}
+
+
+{{if 'articleKeywords' in locals() and isRecommended:}}
+  <div
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+    onclick="checkPanel('#menu-6','#icon-menu-6')"
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Keywords</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+    {{if not printable:}}
+      <i id="icon-menu-6" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+    {{pass}}
+  </div>
+
+  {{if not printable:}}
+    <div id="menu-6" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=articleKeywords}}
+    </div>
+  {{else:}}
+    <div id="menu-6" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=articleKeywords}}
     </div>
   {{pass}}
 

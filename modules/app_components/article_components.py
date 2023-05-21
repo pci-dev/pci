@@ -265,6 +265,7 @@ def getArticleInfosCard(auth, db, response, article, printable,
             ("printableClass", printableClass),
             ("pciRRactivated", pciRRactivated),
             ("articleStage", articleStage),
+            ("isRecommended", isRecommended)
         ]
     )
     if article.data_doi and policy_2():
