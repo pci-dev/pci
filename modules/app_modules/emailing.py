@@ -2552,12 +2552,13 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
                 base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+                sending_date_forced = base_sending_date - datetime.timedelta(days=3)
             else:
-                base_sending_date = None
+                sending_date_forced = None
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 def isScheduledTrack(art):
@@ -2631,12 +2632,13 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
                 base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+                sending_date_forced = base_sending_date + datetime.timedelta(days=2)
             else:
-                base_sending_date = None
+                sending_date_forced = None
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 ######################################################################################################################################################################
