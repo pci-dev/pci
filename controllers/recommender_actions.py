@@ -550,6 +550,7 @@ def do_end_scheduled_submission():
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId)
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, reviewId)
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
 
         session.flash = T("Submission now available to reviewers")
 
