@@ -445,8 +445,10 @@ def mkAnonymousMask(auth, db, anon):
 
 
 ######################################################################################################################################################################
-def mkAnonymousArticleField(auth, db, anon, value):
-    if anon is True:
+def mkAnonymousArticleField(auth, db, anon, value, articleId):
+    recomm = db(db.t_recommendations.article_id == articleId).select().last()
+    isRecommender = recomm and recomm.recommender_id == auth.user_id
+    if anon is True and not isRecommender:
         return IMG(_alt="anonymous", _src=URL(c="static", f="images/mask.png"))
     else:
         return value
@@ -507,7 +509,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
         else:
             anchor = DIV(
                 B(md_to_html(art.title) or ""),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 _class="ellipsis-over-350",
@@ -530,7 +532,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
             anchor = DIV(
                 A(B(md_to_html(art.title) or "", _class="article-title"), _href=urlArticle),
                 BR(),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 BR(),
@@ -539,7 +541,7 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
         else:
             anchor = DIV(
                 B(md_to_html(art.title) or ""),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 _class="ellipsis-over-350",
@@ -560,7 +562,7 @@ def mkRepresentArticleLight(auth, db, article_id):
 
         anchor = DIV(
             B(md_to_html(art.title), _class="article-title"),
-            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
             doi_text,
             BR(),
             SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),            
@@ -588,7 +590,7 @@ def mkArticleCellNoRecomm(auth, db, art0):
 
         anchor = DIV(
             B(md_to_html(art.title) or "", _class="article-title"),
-            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
             doi_text,
             BR(),
             SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),
@@ -634,7 +636,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                 SPAN(current.T("A recommendation of ")),
                 I(md_to_html(art.title) or "", _class="article-title"),
                 SPAN(current.T(" by ")),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)),
+                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
                 (SPAN(current.T(" in ")) + SPAN(art.article_source) if art.article_source else ""),
                 BR(),
                 doi_text,
@@ -901,7 +903,7 @@ def getArticleSubmitter(auth, db, art):
             I(current.T("Submitted by ")),
             I(mkAnonymousArticleField(auth, db, hideSubmitter,
                 B(get_name_from_details(art.submitter_details)
-                if art.submitter_details else mkUser_U(auth, db, submitter, linked=True)),)),
+                if art.submitter_details else mkUser_U(auth, db, submitter, linked=True)), art.id)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:

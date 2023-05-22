@@ -412,7 +412,7 @@ def my_awaiting_articles():
     db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(
             auth, db, row.anonymous_submission,
             common_small_html.get_name_from_details(row.submitter_details)
-            or common_small_html.mkUser(auth, db, userId)
+            or common_small_html.mkUser(auth, db, userId), row.id
     )
     # db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
     db.t_articles.auto_nb_recommendations.readable = False

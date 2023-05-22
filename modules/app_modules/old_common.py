@@ -205,13 +205,13 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         ,
         img,
         H3(art.title or ""),
-        H4(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or ""))),
+        H4(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (art.authors or ""), art.id)),
         common_small_html.mkDOI(art.doi) if (art.doi) else SPAN(""),
         SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
         BR(),
         DIV(
             I(current.T("Submitted by ")),
-            I(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or "") + " " + (submitter.last_name or ""))),
+            I(common_small_html.mkAnonymousArticleField(auth, db, hideSubmitter, (submitter.first_name or "") + " " + (submitter.last_name or ""), art.id)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
         if (art.already_published is False)
