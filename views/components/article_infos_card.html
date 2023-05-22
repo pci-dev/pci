@@ -27,7 +27,7 @@
         <span class="pci2-article-infos">{{=articleSource}}</span>
         <span class="pci2-article-infos">{{=articleDoi}}</span>
         <span class="pci2-article-infos" id="version">{{=articleVersion}}</span>
-        {{if 'articleKeywords' in locals():}}
+        {{if 'articleKeywords' in locals() and not isRecommended:}}
         <span class="pci2-article-infos">{{=articleKeywords}}</span>
         {{pass}}
         <div>
@@ -50,17 +50,7 @@
   <div    
     style="margin:  15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-1' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-1').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-1').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-1').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-1').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-1').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-1').addClass('glyphicon-rotate')
-        }
-      "
+    onclick="checkPanel('#menu-1','#icon-menu-1')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center"   
@@ -97,17 +87,7 @@
   <div    
     style="margin:  15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-2' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-2').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-2').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-2').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-2').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-2').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-2').addClass('glyphicon-rotate')
-        }
-      "
+    onclick="checkPanel('#menu-2','#icon-menu-2')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center"   
@@ -145,17 +125,7 @@
   <div    
     style="margin:  15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-3' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-3').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-3').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-3').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-3').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-3').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-3').addClass('glyphicon-rotate')
-        }
-      "
+    onclick="checkPanel('#menu-3','#icon-menu-3')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center"   
@@ -193,17 +163,7 @@
     <div    
       style="margin:  15px 0 0px;"
       {{if not printable:}}
-        onclick="
-          if( jQuery('#menu-4' ).hasClass('pci2-panel-closed')) { 
-            jQuery('#menu-4').removeClass('pci2-panel-closed') 						
-            jQuery('#icon-menu-4').removeClass('glyphicon-rotate') 
-            jQuery('#icon-menu-4').addClass('glyphicon-rotate-reversed') 
-          } else {
-            jQuery('#menu-4').addClass('pci2-panel-closed') 						
-            jQuery('#icon-menu-4').removeClass('glyphicon-rotate-reversed') 
-            jQuery('#icon-menu-4').addClass('glyphicon-rotate')
-          }
-        "
+      onclick="checkPanel('#menu-4','#icon-menu-4')"
         class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
       {{else:}}
         class="pci2-flex-row pci2-flex-center"   
@@ -242,17 +202,7 @@
   <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-5' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-5').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-5').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-5').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-5').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-5').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-5').addClass('glyphicon-rotate')
-        }
-      "
+    onclick="checkPanel('#menu-5','#icon-menu-5')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center"
@@ -283,21 +233,46 @@
 {{pass}}
 
 
+{{if 'articleKeywords' in locals() and isRecommended:}}
+  <div
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+    onclick="checkPanel('#menu-6','#icon-menu-6')"
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Keywords</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
+    {{if not printable:}}
+      <i id="icon-menu-6" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+    {{pass}}
+  </div>
+
+  {{if not printable:}}
+    <div id="menu-6" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=articleKeywords}}
+    </div>
+  {{else:}}
+    <div id="menu-6" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=articleKeywords}}
+    </div>
+  {{pass}}
+
+{{pass}}
+
+
 {{if 'suggestReviewers' in locals():}}
   <div    
     style="margin:  15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-6' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-6').removeClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-6').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-6').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-6').addClass('pci2-panel-closed') 						
-          jQuery('#icon-menu-6').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-6').addClass('glyphicon-rotate')
-        }
-      "
+    onclick="checkPanel('#menu-7','#icon-menu-7')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center"   
@@ -312,19 +287,19 @@
     />
 
     {{if 'suggestReviewers' in locals() and not printable:}}
-      <i id="icon-menu-6" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+      <i id="icon-menu-7" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
     {{pass}}
   </div>
 
 
   {{if 'suggestReviewers' in locals() and not printable:}}
-    <div id="menu-6" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+    <div id="menu-7" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
       {{=suggestReviewers}}
     </div>
   {{pass}}
 
   {{if 'suggestReviewers' in locals() and printable:}}
-    <div id="menu-6" class="pci2-abstract-div" style="margin-top: 15px;">
+    <div id="menu-7" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=suggestReviewers}}
     </div>
   {{pass}}
@@ -334,17 +309,7 @@
   <div 
     style="margin: 15px 0 0px;"
     {{if not printable:}}
-      onclick="
-        if( jQuery('#menu-7' ).hasClass('pci2-panel-closed')) { 
-          jQuery('#menu-7').removeClass('pci2-panel-closed') 
-          jQuery('#icon-menu-7').removeClass('glyphicon-rotate') 
-          jQuery('#icon-menu-7').addClass('glyphicon-rotate-reversed') 
-        } else {
-          jQuery('#menu-7').addClass('pci2-panel-closed') 
-          jQuery('#icon-menu-7').removeClass('glyphicon-rotate-reversed') 
-          jQuery('#icon-menu-7').addClass('glyphicon-rotate')
-        }
-      "
+      onclick="checkPanel('#menu-8','#icon-menu-8')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
       class="pci2-flex-row pci2-flex-center" 
@@ -359,18 +324,18 @@
     />
   
     {{if 'competitors' in locals() and not printable:}}
-      <i id="icon-menu-7" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+      <i id="icon-menu-8" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
     {{pass}}
   </div>
   
   {{if 'competitors' in locals() and not printable:}}
-    <div id="menu-7" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+    <div id="menu-8" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
       {{=competitors}}
     </div>
   {{pass}}
   
   {{if 'competitors' in locals() and printable:}}
-    <div id="menu-7" class="pci2-abstract-div" style="margin-top: 15px;">
+    <div id="menu-8" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=competitors}}
     </div>
   {{pass}}
@@ -381,3 +346,4 @@
   {{=DIV(submittedBy, _style="margin-bottom: 20px")}}
 {{pass}}
 
+<script src="{{=URL('static', 'js/pci/article_panel.js')}}"></script>
