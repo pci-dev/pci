@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 from re import match
 from zipfile import ZipFile
 import io
@@ -8,7 +7,6 @@ from gluon import current
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.validators import IS_LIST_OF
-import gluon.http
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -94,7 +92,7 @@ def handle_multiple_uploads(review, files):
 
 ###################################################################
 
-def generate_recommendation_doi(article_id) -> str:
+def generate_recommendation_doi(article_id: int):
     host = myconf.take('alerts.host')
     pci_short_name = host.split('.')[0]
     article_id_filled = str(article_id).zfill(5)
