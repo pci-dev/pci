@@ -181,6 +181,7 @@ def _manage_articles(statuses, whatNext, db=db):
         'user_id',
         'status',
         'title',
+        'abstract',
         'authors',
         'art_state_1_id',
         'report_stage',
