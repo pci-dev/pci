@@ -2062,6 +2062,12 @@ db.define_table(
 )
 
 db.define_table(
+    "v_article_id",
+    Field("id", type="id"),
+    Field("id_str", type="string"),
+)
+
+db.define_table(
     "v_last_recommendation",
     Field("id", type="id"),
     Field("last_recommendation", type="datetime", label=T("Last recommendation")),
