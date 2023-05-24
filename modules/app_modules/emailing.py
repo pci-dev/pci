@@ -245,7 +245,9 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
-    mail_vars["ccAddresses"] = mail_vars["appContactMail"] # i.e. contacts.managers
+    mail_vars["ccAddresses"] = [
+            mail_vars["appContactMail"], # i.e. contacts.managers
+    ] + get_recomm_and_co_recomm_emails(db, article)
 
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
@@ -258,6 +260,14 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
 def mk_recommender(auth, db, article):
     recomm = db.get_last_recomm(article.id)
     return common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
+
+
+def get_recomm_and_co_recomm_emails(db, article):
+    recomm = db.get_last_recomm(article.id)
+    return [
+            db.auth_user[recomm.recommender_id]["email"],
+    ] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
