@@ -183,14 +183,13 @@ def _manage_articles(statuses, whatNext, db=db):
         'title',
         'abstract',
         'authors',
-        'art_state_1_id',
+        'art_stage_1_id',
         'report_stage',
         'request_submission_change',
         'last_status_change',
         'keywords',
         'submitter_details',
-        'upload_timestamp',
-        'article_published'
+        'upload_timestamp'
     ]
 
     def mkUser(user_details, user_id):
@@ -233,6 +232,9 @@ def _manage_articles(statuses, whatNext, db=db):
     articles.anonymous_submission.readable = False
     articles.report_stage.readable = False
     articles.request_submission_change.readable = False
+    articles.art_stage_1_id.readable = False
+    articles.upload_timestamp.searchable = False
+    articles.last_status_change.searchable = False
 
     articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
         auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage, submission_change=row.request_submission_change,
