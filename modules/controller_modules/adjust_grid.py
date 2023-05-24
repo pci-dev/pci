@@ -127,7 +127,7 @@ def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = [
                 title_input_field.attributes.update({'_style':'display:flex'})
     elif search_name in ['articles']:
         for option in select_panel:
-            if option.attributes['_value'].endswith('.id'):
+            if option.attributes['_value'].endswith('articles.id'):
                 option.attributes.update({'_selected':'selected'})
                 title_input_field = grid.element('div#w2p_field_t_articles-id')
                 title_input_field.attributes.update({'_style':'display:flex'})                

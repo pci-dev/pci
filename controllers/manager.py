@@ -314,7 +314,8 @@ def _manage_articles(statuses, whatNext, db=db):
     )
 
     # options to be removed from the search dropdown:
-    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission']
+    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
+                      'v_article_id.id', 'v_article_id.id_str']
     integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
