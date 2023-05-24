@@ -1571,7 +1571,10 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
                 else:
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewersArticleStatusChanged", article)
 
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+                recommender_email = [
+                        db.auth_user[recomm.recommender_id]["email"]
+                ] if db.auth_user[recomm.recommender_id] else []
+                mail_vars["ccAddresses"] = recommender_email + emailing_vars.getCoRecommendersMails(db, recomm.id) \
 
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
