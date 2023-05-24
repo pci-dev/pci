@@ -724,7 +724,10 @@ def is_scheduled_submission(article):
     return scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
-        or article.t_report_survey.select().first().q10 is not None
+        or (
+            article.t_report_survey.select().first().q10 is not None
+            and article.t_recommendations.count() == 1
+        )
     )
 
 
