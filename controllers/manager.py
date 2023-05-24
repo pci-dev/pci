@@ -275,10 +275,9 @@ def _manage_articles(statuses, whatNext, db=db):
         ),
     ]
 
+    query = (db.t_articles.id == db.v_article_id.id)
     if statuses:
-        query = db.t_articles.status.belongs(statuses)
-    else:
-        query = db.t_articles
+        query = query & db.t_articles.status.belongs(statuses)
 
     # recommenders only ever get here via menu "Recommender > Pending validation(s)"
     if pciRRactivated and is_recommender(auth, request):
