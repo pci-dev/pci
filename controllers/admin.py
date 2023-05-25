@@ -672,7 +672,7 @@ def mailing_queue():
         db.mail_queue,
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
-        deletable=lambda row: (row.sending_status == "pending"),
+        deletable=True,
         create=False,
         searchable=True,
         paginate=50,
