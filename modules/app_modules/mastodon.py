@@ -10,11 +10,11 @@ from app_modules.httpClient import HttpClient
 
 class Mastodon(SocialNetwork) :
 
-    TOOT_MAX_LENGTH = 500
     TABLE_NAME = 'toots'
+    POST_MAX_LENGTH = 500
 
     def __init__(self, db: DAL):
-        super().__init__(db, self.TOOT_MAX_LENGTH, self.TABLE_NAME)
+        super().__init__(db, self.POST_MAX_LENGTH, self.TABLE_NAME)
 
         self.__access_token = cast(str, self._myconf.take('social_mastodon.access_token'))
         self.__instance_url = self.__get_instance_url()

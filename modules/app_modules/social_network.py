@@ -10,6 +10,9 @@ from app_modules.common_tools import generate_recommendation_doi
 
 
 class SocialNetwork(metaclass=ABCMeta):
+    
+    TABLE_NAME: str
+    POST_MAX_LENGTH: int
 
     def __init__(self, db: DAL, post_max_length: int, table_name: str):
             self._post_max_length = post_max_length

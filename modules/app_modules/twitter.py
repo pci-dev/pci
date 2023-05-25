@@ -8,11 +8,11 @@ from app_modules.social_network import SocialNetwork
 
 class Twitter(SocialNetwork):
 
-    TWEET_MAX_LENGTH = 280
     TABLE_NAME = 'tweets'
+    POST_MAX_LENGTH = 280
 
     def __init__(self, db: DAL):
-        super().__init__(db, self.TWEET_MAX_LENGTH, self.TABLE_NAME)
+        super().__init__(db, self.POST_MAX_LENGTH, self.TABLE_NAME)
 
         self.__api_key = cast(str, self._myconf.take('social_twitter.api_key'))
         self.__api_secret = cast(str, self._myconf.take('social_twitter.api_secret'))
