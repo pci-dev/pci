@@ -276,7 +276,8 @@ def _manage_articles(statuses, whatNext, db=db):
             ),
         ),
     ]
-
+    
+    #recomms.get(article_id)
     query = (db.t_articles.id == db.v_article_id.id)
     if statuses:
         query = query & db.t_articles.status.belongs(statuses)
@@ -311,6 +312,7 @@ def _manage_articles(statuses, whatNext, db=db):
             articles.request_submission_change
         ],
         links=links,
+        left=db.v_article.on(db.t_articles.id == db.v_article.id),
         orderby=~articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
