@@ -3,17 +3,17 @@ from gluon import current
 from gluon.globals import Response, Request, Session
 from gluon.html import DIV, FORM, IMG, INPUT, TAG, TEXTAREA, URL
 from gluon.http import redirect
+from gluon.tools import Auth
 from pydal.objects import Row
 from pydal.base import DAL
 
 from app_modules.twitter import Twitter
 
-
-
-db = cast(DAL, db)
-response = cast(Response, response)
-request = cast(Request, request)
-session = cast(Session, session)
+db = cast(DAL, current.db)
+response = cast(Response, current.response)
+request = cast(Request, current.request)
+session = cast(Session, current.session)
+auth = cast(Auth, current.auth)
 
 is_admin = auth.has_membership(role="administrator")
 

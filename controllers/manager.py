@@ -34,6 +34,8 @@ from app_modules import emailing_tools
 from app_modules import common_small_html
 from app_modules import emailing
 from app_modules import hypothesis
+from app_modules.twitter import Twitter
+from app_modules.mastodon import Mastodon
 
 from app_modules.common_small_html import md_to_html
 
@@ -51,6 +53,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+ACCENT_COLOR = '#fcc24d'
 Field.CC = db.Field.CC
 ######################################################################################################################################################################
 ## Menu Routes
@@ -371,16 +374,17 @@ def recommendations():
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
+    recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
-        and db.get_last_recomm(art)
+        and recommendation
         and art.status == "Recommended"
     ):
         recommStatusHeader = TAG(recommStatusHeader)
         if not pciRRactivated:
             if hypothesis.Hypothesis.may_have_annotation(art.doi):
                 recommStatusHeader.append(hypothesis_button(art))
-            recommStatusHeader.append(twitter_button(art))
-            recommStatusHeader.append(mastodon_button(art))
+            recommStatusHeader.append(twitter_button(art, recommendation))
+            recommStatusHeader.append(mastodon_button(art, recommendation))
             
         recommStatusHeader.append(crossref_toolbar(art))
 
@@ -425,30 +429,57 @@ def crossref_button(article):
     )
 
 def hypothesis_button(article):
+    hypothesis_client = hypothesis.Hypothesis(article)
+    already_send = hypothesis_client.has_already_annotation()
+
+    text_style = 'display: inline-block; margin-right: 20px;'
+    icon_style = 'vertical-align:middle;'
+    if not already_send:
+        text_style += f'color: {ACCENT_COLOR}'
+        icon_style += f'color: {ACCENT_COLOR}'
+
     return A(
-        I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
+        I(_class="glyphicon glyphicon-edit", _style=icon_style),
         T("Hypothes.is"),
         _href=URL("hypothesis", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style="display: inline-block; margin-right: 20px",
+        _style=text_style,
     )
 
-def twitter_button(article):
+def twitter_button(article, recommendation):
+    twitter_client = Twitter(db)
+    already_send = twitter_client.has_already_posted(article.id, recommendation.id)
+
+    text_style = 'display: inline-block; margin-right: 20px;'
+    icon_style = 'vertical-align:middle;'
+    if not already_send:
+        text_style += f'color: {ACCENT_COLOR}'
+        icon_style += f'color: {ACCENT_COLOR}'
+
     return A(
-        I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
+        I(_class="glyphicon glyphicon-edit", _style=icon_style),
         T("Twitter"),
         _href=URL("twitter", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style="display: inline-block; margin-right: 20px",
+        _style=text_style,
     )
 
-def mastodon_button(article):
+def mastodon_button(article, recommendation):
+    mastodon_client = Mastodon(db)
+    already_send = mastodon_client.has_already_posted(article.id, recommendation.id)
+
+    text_style = 'display: inline-block; margin-right: 20px;'
+    icon_style = 'vertical-align:middle;'
+    if not already_send:
+        text_style += f'color: {ACCENT_COLOR}'
+        icon_style += f'color: {ACCENT_COLOR}'
+
     return A(
-        I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
+        I(_class="glyphicon glyphicon-edit", _style=icon_style),
         T("Mastodon"),
         _href=URL("mastodon", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style="display: inline-block; margin-right: 20px",
+        _style=text_style,
     )
 
 def crossref_status(article):

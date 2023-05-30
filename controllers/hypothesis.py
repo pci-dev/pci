@@ -1,6 +1,17 @@
+from typing import Any, Dict, cast
 from app_modules.hypothesis import Hypothesis
 from gluon import current
-from app_modules.common_tools import generate_recommendation_doi
+from gluon.globals import Request, Response, Session
+from gluon.html import DIV, FORM, INPUT, TAG, TEXTAREA, URL
+from gluon.http import redirect
+from gluon.tools import Auth
+from pydal.base import Row, DAL
+
+db = cast(DAL, current.db)
+response = cast(Response, current.response)
+request = cast(Request, current.request)
+session = cast(Session, current.session)
+auth = cast(Auth, current.auth)
 
 is_admin = auth.has_membership(role="administrator")
 
@@ -12,13 +23,13 @@ def index():
 @auth.requires(is_admin)
 def post_form():
 
-    article_id = request.vars.article_id
-    article = db.t_articles[article_id]
+    article_id = cast(int, request.vars.article_id)
+    article = cast(Row, db.t_articles[article_id])
 
-    hypothesis_client = Hypothesis()
-    annotation = hypothesis_client.get_annotation(article.doi)
+    hypothesis_client = Hypothesis(article)
+    annotation = hypothesis_client.get_annotation()
 
-    default_text = hypothesis_client.generate_annotation_text(article)
+    default_text = hypothesis_client.generate_annotation_text()
     annotation_text = annotation['text'] if annotation else default_text
 
     form = FORM(
@@ -29,25 +40,33 @@ def post_form():
     if form.process().accepted:
         if annotation:
             annotation['text'] = request.vars.annotation_text
-            update_response = hypothesis_client.update_annotation(annotation)
+            hypothesis_client.update_annotation(annotation)
+            session.flash = current.T('Annotation updated')
             redirect(URL(c="manager", f="recommendations", vars=dict(articleId=article_id), user_signature=True))
         else:
-            article_url = hypothesis_client.get_url_from_doi(article.doi)
+            article_url = hypothesis_client.get_url_from_doi()
             hypothesis_client.post_annotation_for_article(article_url, request.vars.annotation_text)
+            session.flash = current.T('Annotation created')
             redirect(URL(c="manager", f="recommendations", vars=dict(articleId=article_id), user_signature=True))
     else:
         response.view = "default/myLayout.html"
 
-        data = dict(
+        data: Dict[str, Any] = dict(
             form=form,
             titleIcon="book",
             pageTitle="Hypothes.is annotation",
         )
 
-        if not annotation:
+        if annotation:
+            data['prevContent'] = get_anotation_already_send_information_message()
+        else:
             data['prevContent'] = get_no_annotation_found_warning()
 
         return data
+
+
+def get_anotation_already_send_information_message():
+    return DIV(TAG(current.T('The annotation has already been sent. You can modify it directly from the following form.')), _class="alert alert-info")
 
 
 def get_no_annotation_found_warning():

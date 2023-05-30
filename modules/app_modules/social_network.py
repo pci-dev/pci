@@ -95,6 +95,10 @@ class SocialNetwork(metaclass=ABCMeta):
         return self._db((table.article_id == article_id) & (table.recommendation_id == recommendation_id)).select(orderby=table.thread_position)
     
 
+    def has_already_posted(self, article_id: int, recommendation_id: int) -> bool:
+        return len(self.get_posts_from_db(article_id, recommendation_id)) > 0
+
+
     def _save_posts_in_db(self, post_id: int, text_content: str, position: int, article_id: int, recommendation_id: int, parent_id: int) -> int:
         table = cast(Table, self._db[self._table_name])
         id = cast(int, table.insert(post_id=post_id, # À changer

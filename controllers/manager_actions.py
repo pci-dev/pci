@@ -108,7 +108,7 @@ def do_recommend_article():
         redirurl = URL(c="articles", f="rec", vars=dict(id=art.id))
 
     if not pciRRactivated:
-        Hypothesis().post_annotation(art)
+        Hypothesis(art).post_annotation()
     
     crossref.post_and_forget(recomm)
     redirect(redir_url)
