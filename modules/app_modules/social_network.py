@@ -26,7 +26,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def send_post(self, article: Row, recommendation: Row, posts_text: List[str]) -> Union[str, None]:
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
         ''' Return text error if error, or None if all is ok'''
         pass
 
@@ -99,7 +99,7 @@ class SocialNetwork(metaclass=ABCMeta):
         return len(self.get_posts_from_db(article_id, recommendation_id)) > 0
 
 
-    def _save_posts_in_db(self, post_id: int, text_content: str, position: int, article_id: int, recommendation_id: int, parent_id: int) -> int:
+    def _save_posts_in_db(self, post_id: int, text_content: str, position: int, article_id: int, recommendation_id: int, parent_id: Union[int,None]) -> int:
         table = cast(Table, self._db[self._table_name])
         id = cast(int, table.insert(post_id=post_id, # À changer
                         text_content=text_content, 

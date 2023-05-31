@@ -2,8 +2,10 @@ function showInfoDialogBeforeValidateRecommendation(e) {
     e.preventDefault();
 
     $('#info-dialog').modal('show')
-        .on('click', '#confirm-dialog', function () {
-            $('#info-dialog').submit()
+        
+    $('#confirm-dialog').on('click', function (e) {
+            $('#info-dialog').submit();
+            return false;
         });
 
     $('#cancel-dialog')

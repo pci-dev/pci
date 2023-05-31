@@ -7,6 +7,7 @@ import datetime
 from datetime import timedelta
 import glob
 import os
+from typing import cast
 
 # sudo pip install tweepy
 # import tweepy
@@ -15,7 +16,7 @@ import codecs
 
 # import html2text
 from gluon.contrib.markdown import WIKI
-
+from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig
 
 from app_modules.helper import *
@@ -382,7 +383,7 @@ def recommendations():
         recommStatusHeader = TAG(recommStatusHeader)
         if not pciRRactivated:
             if hypothesis.Hypothesis.may_have_annotation(art.doi):
-                recommStatusHeader.append(hypothesis_button(art))
+                recommStatusHeader.append(basic_hypothesis_button(art.id))
             recommStatusHeader.append(twitter_button(art, recommendation))
             recommStatusHeader.append(mastodon_button(art, recommendation))
             
@@ -419,7 +420,7 @@ def crossref_toolbar(article):
         _style="width: fit-content; display: inline-block",
     )
 
-def crossref_button(article):
+def crossref_button(article: Row):
     return A(
         I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
         T("Crossref"),
@@ -428,14 +429,24 @@ def crossref_button(article):
         _style="margin-right: 25px;",
     )
 
-def hypothesis_button(article):
+def basic_hypothesis_button(article_id: int):
+    return SPAN(
+        I(_class="glyphicon glyphicon-hourglass", _style='vertical-align:middle;'),
+        T("Hypothes.is"),
+        _class="pci2-tool-link",
+        _style='display: inline-block; margin-right: 20px;',
+        _id="hypothesis_button_container")
+
+
+def color_hypothesis_button():
+    article_id = cast(int, request.vars.article_id)
+    article = cast(Row, db.t_articles[article_id])
+
     hypothesis_client = hypothesis.Hypothesis(article)
     already_send = hypothesis_client.has_already_annotation()
 
-    text_style = 'display: inline-block; margin-right: 20px;'
     icon_style = 'vertical-align:middle;'
     if not already_send:
-        text_style += f'color: {ACCENT_COLOR}'
         icon_style += f'color: {ACCENT_COLOR}'
 
     return A(
@@ -443,8 +454,8 @@ def hypothesis_button(article):
         T("Hypothes.is"),
         _href=URL("hypothesis", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style=text_style,
-    )
+    ).xml()
+
 
 def twitter_button(article, recommendation):
     twitter_client = Twitter(db)

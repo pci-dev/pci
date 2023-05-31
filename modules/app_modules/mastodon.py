@@ -1,7 +1,6 @@
 import re
 from typing import Any, List, Union, cast
 
-from pydal.objects import Row
 from pydal import DAL
 
 from app_modules.social_network import SocialNetwork
@@ -36,7 +35,7 @@ class Mastodon(SocialNetwork) :
          return regex.sub('', self.__instance_url).strip().strip('/')
               
 
-    def send_post(self, article: Row, recommendation: Row, posts_text: List[str]) -> Union[str, None]:
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
         url = f'{self.__instance_url}/api/v1/statuses'
 
         parent_id: Union[int, None] = None
@@ -46,13 +45,15 @@ class Mastodon(SocialNetwork) :
             if parent_toot_id:
                     payload['in_reply_to_id'] = parent_toot_id
 
-            response = self.__mastodon.post(url, json=payload)
+            try:
+                response = self.__mastodon.post(url, json=payload)
+            except Exception as e:
+                 return f'{e}'
 
-            status_code = cast(int, response.status_code)
             toot = response.json()
-            if status_code == 200:
+            if response.status_code == 200:
                 text_post = self.remove_html_tag(toot['content'])
-                parent_id = self._save_posts_in_db(toot['id'], text_post, i, article.id, recommendation.id, parent_id)
+                parent_id = self._save_posts_in_db(toot['id'], text_post, i, article_id, recommendation_id, parent_id)
                 parent_toot_id = toot['id']
             else:
                 return toot['error']

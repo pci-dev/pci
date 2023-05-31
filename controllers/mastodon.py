@@ -48,10 +48,10 @@ def post_form():
 
     if not already_send and form.process().accepted:
         toot_texts = get_toots_text_from_form()
-        error = mastodon_client.send_post(article, recommendation, toot_texts)
+        error = mastodon_client.send_post(article_id, recommendation.id, toot_texts)
         if error:
             session.flash = current.T(f'Error sending post to {mastodon_instance_name}: {error}')
-            redirect(URL("mastodon", f"post_form?article_id={article.id}"))
+            redirect(URL("mastodon", f"post_form?article_id={article_id}"))
         else:
             session.flash = current.T(f'Post send to {mastodon_instance_name}')
             redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))

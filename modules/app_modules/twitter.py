@@ -1,7 +1,5 @@
 from typing import Any, List, Union, cast
-from requests import Response
 from pydal.base import DAL
-from pydal.objects import Row
 from requests_oauthlib import OAuth1Session
 
 from app_modules.social_network import SocialNetwork
@@ -25,7 +23,7 @@ class Twitter(SocialNetwork):
                                         resource_owner_secret=self.__access_secret)
         
 
-    def send_post(self, article: Row, recommendation: Row, posts_text: List[str]) -> Union[str, None]:
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
         url = 'https://api.twitter.com/2/tweets'
 
         parent_id: Union[int, None] = None
@@ -36,13 +34,15 @@ class Twitter(SocialNetwork):
                     payload['reply'] = {}
                     payload['reply']['in_reply_to_tweet_id'] = parent_tweet_id
 
-            response = cast(Response, self.__twitter.post(url, json=payload))
-            
-            status_code = cast(int, response.status_code)
+            try:
+                response = self.__twitter.post(url, json=payload)
+            except Exception as e:
+                 return f'{e}'
+
             tweet = response.json()
-            if status_code == 201:
+            if response.status_code == 201:
                 tweet = tweet['data']
-                parent_id = self._save_posts_in_db(tweet['id'], tweet['text'], i, article.id, recommendation.id, parent_id)
+                parent_id = self._save_posts_in_db(tweet['id'], tweet['text'], i, article_id, recommendation_id, parent_id)
                 parent_tweet_id = tweet['id']
             else:
                 return tweet['detail']
