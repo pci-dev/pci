@@ -2952,3 +2952,13 @@ ALTER TABLE "t_report_survey"
 ADD COLUMN IF NOT EXISTS  q30 character varying(512) DEFAULT '';
 
 -- templates updates => sql_dumps/insert_default_mail_templates_pci_RR.sql
+
+
+-- 2023-05-23 updates/add_v_article_id.sql
+CREATE VIEW v_article_id AS
+ SELECT
+	id,
+	concat('#', id) as id_str
+ FROM t_articles;
+
+ALTER TABLE v_article_id OWNER TO pci_admin;
