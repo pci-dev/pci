@@ -10,3 +10,4 @@ dkimpy
 pillow
 rdflib
 requests
+requests-oauthlib

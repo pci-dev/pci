@@ -21,6 +21,7 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 
 from app_modules import common_tools
+from app_modules.hypothesis import Hypothesis
 
 myconf = AppConfig(reload=True)
 
@@ -1015,10 +1016,23 @@ def anonymousReviewerConfirmDialog():
 
 ##################################################################################
 
-def infoDialog(title, body):
-    return DIV( 
-    DIV(H5(TAG(title), _class="modal-title", _id="info-dialog-title"), _class="modal-header"),
-    DIV(TAG(body), _class="modal-body", id="info-modal-body"), 
-    DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
-        SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
-    _class="modal-footer"), _id="info-dialog", _class="modal fade", _role="dialog")
+def hypothesis_dialog(article: Row):
+    hypothesis_client = Hypothesis(article)
+
+    if not hypothesis_client.has_stored_annotation():
+        hypothesis_client.store_annotation(hypothesis_client.generate_annotation_text())
+
+    form = FORM(
+            DIV(H5(TAG(current.T("Hypothes.is")), _class="modal-title", _id="info-dialog-title"), _class="modal-header"),
+            DIV(TAG(current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>"),
+                TEXTAREA(hypothesis_client.get_stored_annotation(), _name=f'hypothesis_annotation_form', _class='form-control'),
+                _class="modal-body", id="info-modal-body"), 
+            DIV(INPUT(_type="submit", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
+                SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
+            _class="modal-footer"), _id="info-dialog", _class="modal fade", _role="dialog")
+    
+    if form.process().accepted:
+        hypothesis_client.store_annotation(form.vars.hypothesis_annotation_form)
+        redirect(URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=article.id), user_signature=True))
+
+    return form
