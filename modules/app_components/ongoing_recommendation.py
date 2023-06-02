@@ -674,10 +674,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             and not pciRRactivated
         )
 
-        if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
-            recommendationRounds.append(common_tools.get_script("ongoing_recommendation.js"))
-            recommendationRounds.append(common_small_html.hypothesis_dialog(art))
-
         componentVars = dict(
             articleId=art.id,
             recommId=recomm.id,

@@ -446,7 +446,9 @@ def color_hypothesis_button():
     already_send = hypothesis_client.has_already_annotation()
 
     icon_style = 'vertical-align:middle;'
+    text_style = ''
     if not already_send:
+        text_style = f'color: {ACCENT_COLOR}'
         icon_style += f'color: {ACCENT_COLOR}'
 
     return A(
@@ -454,6 +456,7 @@ def color_hypothesis_button():
         T("Hypothes.is"),
         _href=URL("hypothesis", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
+        _style=text_style
     ).xml()
 
 
