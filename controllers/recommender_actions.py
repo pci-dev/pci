@@ -552,6 +552,8 @@ def do_end_scheduled_submission():
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
             emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
 
+        emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
+
         session.flash = T("Submission now available to reviewers")
 
     redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
