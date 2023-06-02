@@ -2048,6 +2048,9 @@ def survey_updated(survey):
     if not isScheduledTrack(article): return
     if not recomm: return
 
+    # renew reminders and scheduled_submission_open "future" message
+    # in case submission due date is changed by user
+
     for review in recomm.t_reviews.select():
         if not review.review_state == "Awaiting review": continue
 

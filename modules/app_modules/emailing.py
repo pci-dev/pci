@@ -254,6 +254,9 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     hashtag_template = "#SubmitterScheduledSubmissionOpen"
     sending_date = getScheduledSubmissionDate(article) - db.full_upload_opening_offset
 
+    if sending_date < datetime.date.today():
+        return
+
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 
 
