@@ -505,7 +505,7 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
         if urlArticle:
             anchor = DIV(
-                A(B(md_to_html(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors)), BR(), doi_text, _class="ellipsis-over-350",
+                A(B(md_to_html(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)), BR(), doi_text, _class="ellipsis-over-350",
             )
         else:
             anchor = DIV(
