@@ -2922,6 +2922,10 @@ FROM (
 WHERE r.id in (select max(id) from t_recommendations group by article_id)
 ;
 
+-- 2023-03-01 updates/add_article_year.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS article_year integer;
+
 CREATE OR REPLACE VIEW v_article AS
 SELECT
 	a.*,
@@ -2936,10 +2940,6 @@ FROM
 
 alter view v_article owner to pci_admin;
 alter view v_article_recommender owner to pci_admin;
-
--- 2023-03-01 updates/add_article_year.sql
-ALTER TABLE "t_articles"
-ADD COLUMN IF NOT EXISTS article_year integer;
 
 -- 2023-03-06 updates/tracked_changes.sql
 ALTER TABLE "t_report_survey"
