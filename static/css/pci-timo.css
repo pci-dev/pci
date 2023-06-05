@@ -894,7 +894,8 @@
         max-width: 10rem;
     }
     
-    #main-page-search-grid .web2py_console .w2p_query_row .string.form-control {
+    #main-page-search-grid .web2py_console .w2p_query_row .string.form-control,
+    #main-page-search-grid .web2py_console .w2p_query_row .integer.form-control {
         max-width: unset;
     }
 
