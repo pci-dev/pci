@@ -180,20 +180,15 @@ def recommendations():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders():
-    myVars = request.vars
-    excludeList = []
-    articleId = None
-    for myVar in myVars:
-        if myVar == "exclude":
-            myValue = myVars[myVar]
-            myValue = myValue.split(",") if type(myValue) is str else myValue
-            excludeList = list(map(int, myValue))
-        elif isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "articleId":
-            articleId = myValue
+    articleId = request.vars.articleId
+    excludeList = request.vars.exclude
+
+    if type(excludeList) is str:
+        excludeList = excludeList.split(",")
+    try:
+        excludeList = list(map(int, excludeList))
+    except:
+        return f"invalid parameter: exclude={excludeList}"
 
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
@@ -231,7 +226,7 @@ def search_recommenders():
 
         def mkButton(func):
             return lambda row: "" if row.auth_user.id in excludeList \
-                    else func(auth, db, row, art.id, excludeList, myVars)
+                    else func(auth, db, row, art.id, excludeList, request.vars)
 
         links = [
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
