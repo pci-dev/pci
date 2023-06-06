@@ -384,8 +384,14 @@ def recommendations():
         if not pciRRactivated:
             if hypothesis.Hypothesis.may_have_annotation(art.doi):
                 recommStatusHeader.append(basic_hypothesis_button(art.id))
-            recommStatusHeader.append(twitter_button(art, recommendation))
-            recommStatusHeader.append(mastodon_button(art, recommendation))
+
+            twitter_button_element = twitter_button(art, recommendation)
+            if twitter_button_element:
+                recommStatusHeader.append(twitter_button_element)
+            
+            mastodon_button_element = mastodon_button(art, recommendation)
+            if mastodon_button_element:
+                recommStatusHeader.append(mastodon_button_element)
             
         recommStatusHeader.append(crossref_toolbar(art))
 
@@ -462,7 +468,11 @@ def color_hypothesis_button():
 
 def twitter_button(article, recommendation):
     twitter_client = Twitter(db)
+
     already_send = twitter_client.has_already_posted(article.id, recommendation.id)
+    has_config = twitter_client.has_general_twitter_config() or twitter_client.has_specific_twitter_config()
+    if not already_send and not has_config:
+        return
 
     text_style = 'display: inline-block; margin-right: 20px;'
     icon_style = 'vertical-align:middle;'
@@ -480,7 +490,12 @@ def twitter_button(article, recommendation):
 
 def mastodon_button(article, recommendation):
     mastodon_client = Mastodon(db)
+
     already_send = mastodon_client.has_already_posted(article.id, recommendation.id)
+    has_config = mastodon_client.has_mastodon_general_config() or mastodon_client.has_mastodon_specific_config()
+
+    if not already_send and not has_config:
+        return
 
     text_style = 'display: inline-block; margin-right: 20px;'
     icon_style = 'vertical-align:middle;'

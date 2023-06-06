@@ -32,7 +32,7 @@ def post_form():
     recommendation = cast(Row, db.get_last_recomm(article))
 
     mastodon_client = Mastodon(db)
-    mastodon_instance_name = mastodon_client.get_instance_name()
+    mastodon_instance_name = merge_instance_name(mastodon_client)
 
     toots_text: List[str] = []
     toots_in_db = mastodon_client.get_posts_from_db(article_id, recommendation.id)
@@ -48,13 +48,14 @@ def post_form():
 
     if not already_send and form.process().accepted:
         toot_texts = get_toots_text_from_form()
-        error = mastodon_client.send_post(article_id, recommendation.id, toot_texts)
-        if error:
-            session.flash = current.T(f'Error sending post to {mastodon_instance_name}: {error}')
+        try:
+            mastodon_client.send_post(article_id, recommendation.id, toot_texts)
+        except Exception as e:
+            session.flash = current.T(f'Error sending post to {mastodon_instance_name}: {e}')
             redirect(URL("mastodon", f"post_form?article_id={article_id}"))
-        else:
-            session.flash = current.T(f'Post send to {mastodon_instance_name}')
-            redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))
+        
+        session.flash = current.T(f'Post send to {mastodon_instance_name}')
+        redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))
     else:
         response.view = 'default/myLayout.html'
 
@@ -70,6 +71,18 @@ def post_form():
  
         return data
 
+def merge_instance_name(mastodon_client: Mastodon):
+    instance_name = ''
+
+    if mastodon_client.has_mastodon_general_config():
+        instance_name += mastodon_client.get_instance_name()
+    
+    if mastodon_client.has_mastodon_specific_config() and mastodon_client.get_instance_name(True) != instance_name:
+        if (len(instance_name) > 0):
+            instance_name += ' & '
+        instance_name += mastodon_client.get_instance_name(True)
+    
+    return instance_name
 
 def get_toots_text_from_form() -> List[str]:
     toots_text: List[str] = []

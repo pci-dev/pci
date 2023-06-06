@@ -26,8 +26,8 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
-        ''' Return text error if error, or None if all is ok'''
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
+        ''' Send post to social network with general and specific account. Raise an exception if error to send post. '''
         pass
 
 
@@ -92,7 +92,7 @@ class SocialNetwork(metaclass=ABCMeta):
     
     def get_posts_from_db(self, article_id: int, recommendation_id: int) -> Rows:
         table = cast(Table, self._db[self._table_name])
-        return self._db((table.article_id == article_id) & (table.recommendation_id == recommendation_id)).select(orderby=table.thread_position)
+        return self._db((table.article_id == article_id) & (table.recommendation_id == recommendation_id)).select(orderby=table.thread_position, distinct=table.thread_position)
     
 
     def has_already_posted(self, article_id: int, recommendation_id: int) -> bool:
