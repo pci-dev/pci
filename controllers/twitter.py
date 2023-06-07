@@ -47,14 +47,15 @@ def post_form():
 
     if not already_send and form.process().accepted:
         tweet_texts = get_tweets_text_from_form()
-        error = twitter_client.send_post(article_id, recommendation.id, tweet_texts)
 
-        if error:
-            session.flash = current.T(f'Error sending post to Twitter: {error}')
+        try:
+            twitter_client.send_post(article_id, recommendation.id, tweet_texts)
+        except Exception as e:
+            session.flash = current.T(f'Error sending post to Twitter: {e}')
             redirect(URL("twitter", f"post_form?article_id={article_id}"))
-        else:
-            session.flash = current.T('Post send to Twitter')
-            redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))
+        
+        session.flash = current.T('Post send to Twitter')
+        redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))
     else:
         response.view = 'default/myLayout.html'
 

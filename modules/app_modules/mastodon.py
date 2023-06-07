@@ -15,40 +15,69 @@ class Mastodon(SocialNetwork) :
     def __init__(self, db: DAL):
         super().__init__(db, self.POST_MAX_LENGTH, self.TABLE_NAME)
 
-        self.__access_token = cast(str, self._myconf.take('social_mastodon.access_token'))
-        self.__instance_url = self.__get_instance_url()
-        self.__mastodon = HttpClient(default_headers = {
-                'Authorization': f'Bearer {self.__access_token}',
+        self.__general_access_token = cast(str, self._myconf.take('social_mastodon.general_access_token'))
+        self.__general_instance_url = self.__get_instance_url()
+        self.__general_mastodon = HttpClient(default_headers = {
+                'Authorization': f'Bearer {self.__general_access_token}',
                 'content-type': 'application/json',
             })
+        
+        self.__specific_access_token = cast(str, self._myconf.take('social_mastodon.specific_access_token'))
+        self.__specific_instance_url = self.__get_instance_url(True)
+        self.__specific_mastodon = HttpClient(default_headers = {
+                'Authorization': f'Bearer {self.__specific_access_token}',
+                'content-type': 'application/json',
+            })
+        
+
+    def has_mastodon_specific_config(self) -> bool:
+        return len(self.__specific_access_token) > 0 and len(self.__specific_instance_url) > 0
     
 
-    def __get_instance_url(self):
-         instance_url = cast(str, self._myconf.take('social_mastodon.instance_url'))
-         if instance_url.endswith('/'):
-              return instance_url[:-1]
-         return instance_url
+    def has_mastodon_general_config(self) -> bool:
+        return len(self.__general_access_token) > 0 and len(self.__general_instance_url) > 0
+
+
+    def __get_instance_url(self, specific: bool = False):
+        if specific:
+            instance_url = cast(str, self._myconf.take('social_mastodon.specific_instance_url'))
+        else:
+            instance_url = cast(str, self._myconf.take('social_mastodon.general_instance_url'))
+
+        if instance_url.endswith('/'):
+            return instance_url[:-1]
+        return instance_url
     
 
-    def get_instance_name(self):
-         regex = re.compile(r"https?://(www\.)?")
-         return regex.sub('', self.__instance_url).strip().strip('/')
+    def get_instance_name(self, specific: bool = False):
+        if specific:
+            instance_url = self.__specific_instance_url
+        else:
+            instance_url = self.__general_instance_url
+
+        regex = re.compile(r"https?://(www\.)?")
+        return regex.sub('', instance_url).strip().strip('/')
               
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
-        url = f'{self.__instance_url}/api/v1/statuses'
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
+            if self.has_mastodon_general_config():
+                self.__mastodon_post(self.__general_mastodon, self.__general_instance_url, article_id, recommendation_id, posts_text)
+
+            if self.has_mastodon_specific_config():
+                self.__mastodon_post(self.__specific_mastodon, self.__specific_instance_url, article_id, recommendation_id, posts_text)
+
+
+    def __mastodon_post(self, mastodon: HttpClient, instance_url: str, article_id: int, recommendation_id: int, posts_text: List[str]) -> Union[str, None]:
+        url = f'{instance_url}/api/v1/statuses'
 
         parent_id: Union[int, None] = None
         parent_toot_id: Union[str, None] = None
         for i, post_text in enumerate(posts_text):
             payload: dict[str, Any] = {'status': post_text}
             if parent_toot_id:
-                    payload['in_reply_to_id'] = parent_toot_id
+                payload['in_reply_to_id'] = parent_toot_id
 
-            try:
-                response = self.__mastodon.post(url, json=payload)
-            except Exception as e:
-                 return f'{e}'
+            response = mastodon.post(url, json=payload)
 
             toot = response.json()
             if response.status_code == 200:
@@ -56,7 +85,7 @@ class Mastodon(SocialNetwork) :
                 parent_id = self._save_posts_in_db(toot['id'], text_post, i, article_id, recommendation_id, parent_id)
                 parent_toot_id = toot['id']
             else:
-                return toot['error']
+                raise Exception(toot['error'])
 
 
     def remove_html_tag(self, html_text: str):
