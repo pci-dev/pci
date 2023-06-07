@@ -661,6 +661,10 @@ def search_recommenders():
     excludeList = common_tools.get_exclude_list(request)
     if excludeList is None: return "invalid parameter: exclude"
 
+    for rec in db(
+            db.t_excluded_recommenders.article_id == articleId).select():
+        excludeList.append(rec.excluded_recommender_id)
+
     users = db.auth_user
     full_text_search_fields = [
         'first_name',
