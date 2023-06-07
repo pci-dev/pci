@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
@@ -475,9 +476,11 @@ db.auth_user._format = "%(last_name)s, %(first_name)s"
 db.auth_group._format = "%(role)s"
 
 def mail_queue_update_pending(sets, fields):
-    old_email = db.auth_user(sets.query).email
-    new_email = fields.get('email')
-    db((db.mail_queue.dest_mail_address == old_email) & (db.mail_queue.sending_status == 'pending')).update(dest_mail_address=new_email)
+    old_email = cast(str, db.auth_user(sets.query).email)
+    new_email = cast(str, fields.get('email'))
+
+    if new_email and len(new_email) > 0 and old_email != new_email:
+        db((db.mail_queue.dest_mail_address == old_email) & (db.mail_queue.sending_status == 'pending')).update(dest_mail_address=new_email)
 
 db.auth_user._before_update.append(mail_queue_update_pending)
 
