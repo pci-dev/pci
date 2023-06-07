@@ -181,22 +181,17 @@ def recommendations():
 @auth.requires_login()
 def search_recommenders():
     articleId = request.vars.articleId
-    excludeList = request.vars.exclude
-
-    if type(excludeList) is str:
-        excludeList = excludeList.split(",")
-    try:
-        excludeList = list(map(int, excludeList))
-    except:
-        return f"invalid parameter: exclude={excludeList}"
+    excludeList = common_tools.get_exclude_list(request)
+    if excludeList is None:
+        return "invalid parameter: exclude"
 
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
-    
+
     art = db.t_articles[articleId]
     if art is None:
         raise HTTP(404, "404: " + T("Unavailable"))
-    
+
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     if art.user_id != auth.user_id:
         session.flash = auth.not_authorized()
