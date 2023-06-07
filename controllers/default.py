@@ -125,8 +125,9 @@ def index():
         _class="web2py_grid action-button-absolute",
     )
 
+    integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
 
     tweeterAcc = myconf.get("social.tweeter")
     lastRecommTitle = H3(
