@@ -39,6 +39,10 @@ def getArticleImage(article):
     return article_img
 
 
+def mkAuthors(article):
+    return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
+
+
 def makeArticleWithRecommRow(auth, db, article):
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
@@ -46,13 +50,15 @@ def makeArticleWithRecommRow(auth, db, article):
 
     article_img = getArticleImage(article)
 
+    authors = mkAuthors(article)
+    
     return TABLE(
         TR(
             TD(DIV(common_small_html.mkLastChange(article.last_status_change), DIV(article_img, _style="margin-top: 10px")), _style="vertical-align: top; width: 150px"),
             TD(
                 DIV(
                     H3(article.title, _style="margin: 0 0 5px; font-weight: bold"),
-                    LABEL(article.authors, _style="margin: 0 0 15px; font-weight: normal; color: #888"),
+                    LABEL(authors, _style="margin: 0 0 15px; font-weight: normal; color: #888"),
                     DIV(
                         H4(recomm.recommendation_title, _style="margin: 0 0 5px; font-weight: bold; font-style: italic;"),
                         SPAN(recomm_authors, _style="margin: 0 0 10px; font-style: italic; color: #888"),
@@ -93,13 +99,15 @@ def makeArticleRow(article, linkType):
             _style="font-size: 12px; padding: 4px 15px; background-color: #93c54b; color: #ffffff; border-radius: 5px; font-weight: bold;",
         )
 
+    authors = mkAuthors(article)
+    
     return TABLE(
         TR(
             TD(DIV(common_small_html.mkLastChange(article.last_status_change), DIV(article_img, _style="margin-top: 10px")), _style="vertical-align: top; width: 150px"),
             TD(
                 DIV(
                     H3(article.title, _style="margin: 0 0 5px; font-weight: bold"),
-                    LABEL(article.authors, _style="margin: 0 0 5px; font-weight: normal; color: #888"),
+                    LABEL(authors, _style="margin: 0 0 5px; font-weight: normal; color: #888"),
                     P(common_small_html.mkDOI(article.doi), _style="margin: 0 0 15px;"),
                     target_link,
                     _style="margin-left: 10px; margin-bottom: 15px",
