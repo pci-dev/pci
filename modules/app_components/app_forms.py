@@ -426,12 +426,7 @@ def report_survey(auth, session, art, db, survey=None, controller=None, do_valid
             art.update_record()
 
         if prepareReminders == True:
-            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", art.id)
-            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", art.id)
-            emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", art.id)
-            emailing.create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, art.id)
-            emailing.create_reminder_for_submitter_scheduled_submission_due(session, auth, db, art.id)
-            emailing.create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, art.id)
+            emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, art)
 
         myVars = dict(articleId=art.id)
         session.flash = current.T("Article submitted", lazy=False)

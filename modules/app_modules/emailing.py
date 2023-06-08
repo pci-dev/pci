@@ -2194,6 +2194,18 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
 
 
 ######################################################################################################################################################################
+def create_reminders_for_submitter_scheduled_submission(session, auth, db, article):
+    articleId = article.id
+
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+
+    create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
+
+
 def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId):
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
