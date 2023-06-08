@@ -2201,6 +2201,9 @@ def create_reminders_for_submitter_scheduled_submission(session, auth, db, artic
     delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
     delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
 
+    if article.t_report_survey.select()[0].q1 == "COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW":
+        return # do not schedule reminders when report is already submitted
+
     create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
     create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
     create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
