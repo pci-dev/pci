@@ -245,12 +245,17 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
-    mail_vars["ccAddresses"] = mail_vars["appContactMail"] # i.e. contacts.managers
+    mail_vars["ccAddresses"] = [
+            mail_vars["appContactMail"], # i.e. contacts.managers
+    ] + get_recomm_and_co_recomm_emails(db, article)
 
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
     hashtag_template = "#SubmitterScheduledSubmissionOpen"
     sending_date = getScheduledSubmissionDate(article) - db.full_upload_opening_offset
+
+    if sending_date < datetime.date.today():
+        return
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 
@@ -258,6 +263,14 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
 def mk_recommender(auth, db, article):
     recomm = db.get_last_recomm(article.id)
     return common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
+
+
+def get_recomm_and_co_recomm_emails(db, article):
+    recomm = db.get_last_recomm(article.id)
+    return [
+            db.auth_user[recomm.recommender_id]["email"],
+    ] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
@@ -1585,7 +1598,10 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 
 ######################################################################################################################################################################
 # Mail for Scheduled submission
-##########################c############################################################################################################################################
+#
+# The following two send_to are only ever called with pciRRactivated
+#
+######################################################################################################################################################################
 def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
@@ -1605,6 +1621,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             mail_vars.update(getPCiRRinvitationTexts(article))
+            mail_vars["ccAddresses"] = [db.auth_user[finalRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, finalRecomm.id)
 
         for review in reviews:
             # Get common variables :
@@ -2177,6 +2194,21 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
 
 
 ######################################################################################################################################################################
+def create_reminders_for_submitter_scheduled_submission(session, auth, db, article):
+    articleId = article.id
+
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
+    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+
+    if article.t_report_survey.select()[0].q1 == "COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW":
+        return # do not schedule reminders when report is already submitted
+
+    create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
+
+
 def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId):
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
@@ -2538,12 +2570,13 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
                 base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+                sending_date_forced = base_sending_date - datetime.timedelta(days=3)
             else:
-                base_sending_date = None
+                sending_date_forced = None
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 def isScheduledTrack(art):
@@ -2617,12 +2650,13 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
                 base_sending_date = datetime.datetime.strptime(due_date, DEFAULT_DATE_FORMAT)
+                sending_date_forced = base_sending_date + datetime.timedelta(days=2)
             else:
-                base_sending_date = None
+                sending_date_forced = None
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 ######################################################################################################################################################################

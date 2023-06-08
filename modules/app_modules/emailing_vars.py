@@ -115,9 +115,7 @@ def getPCiRRScheduledSubmissionsVars(article):
     if report_survey and report_survey.q10:
         submission_date = report_survey.q10 # article.scheduled_submission_date
         review_start_date = submission_date + timedelta(days=7)
-        dow = review_start_date.weekday()
-        five_working_days = 7 if dow < 5 else (7 + (7-dow))
-        review_due_date = review_start_date + timedelta(days=five_working_days)
+        review_due_date = review_start_date + timedelta(days=7)
 
         scheduledSubmissionDate = submission_date.strftime(DEFAULT_DATE_FORMAT)
         scheduledSubmissionLatestReviewStartDate = review_start_date.strftime(DEFAULT_DATE_FORMAT)

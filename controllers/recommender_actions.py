@@ -546,9 +546,13 @@ def do_end_scheduled_submission():
             & (db.t_reviews.review_state == "Awaiting review")
         ).select()
         for review in awaitingReviews:
-            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review["t_reviews.id"])
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review["t_reviews.id"])
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review["t_reviews.id"])
+            reviewId = review["t_reviews.id"]
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId)
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, reviewId)
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
+
+        emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
 
         session.flash = T("Submission now available to reviewers")
 

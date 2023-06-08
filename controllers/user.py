@@ -125,6 +125,8 @@ def recommendations():
                 art.status = "Scheduled submission pending"
                 art.update_record()
 
+                emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", art.id)
+
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
 
@@ -1146,12 +1148,13 @@ def my_reviews():
                                 A(
                                     SPAN(current.T("Write, edit or upload your review")),
                                     _href=URL(c="user", f="edit_review", vars=dict(reviewId=row.t_reviews.id)),
-                                    _class="btn btn-default" + (" disabled" if is_scheduled_submission(row.t_articles)
+                                    _class="btn btn-default" + (" disabled"
+                                        if is_scheduled_review_open(db.t_articles[row.t_articles.id])
                                         else ""),
                                     _style="margin: 20px 10px 5px",
                                 ),
                                 I(current.T("You will be able to upload your review as soon as the author submit his preprint."),)
-                                if is_scheduled_submission(row.t_articles)
+                                if is_scheduled_review_open(db.t_articles[row.t_articles.id])
                                 else "",
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
@@ -1222,7 +1225,7 @@ def my_reviews():
     )
 
 
-from app_components.ongoing_recommendation import is_scheduled_submission
+from app_components.ongoing_recommendation import is_scheduled_review_open
 
 
 ######################################################################################################################################################################

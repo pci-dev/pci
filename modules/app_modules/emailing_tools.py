@@ -292,12 +292,6 @@ def insertReminderMailInQueue(
 
     if True:
 
-        if pciRRactivated and not sending_date_forced:
-            if sending_date.weekday() == 5:
-                sending_date = sending_date + timedelta(days=2)
-            if sending_date.weekday() == 6:
-                sending_date = sending_date + timedelta(days=1)
-
         mail = buildMail(
             db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
             article_id=article_id,
