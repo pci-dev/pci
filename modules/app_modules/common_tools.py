@@ -90,6 +90,18 @@ def handle_multiple_uploads(review, files):
     filename = current.db.t_reviews.review_pdf.store(data, name)
     review.update_record(review_pdf=filename, review_pdf_data=data)
 
+
+def get_exclude_list(request):
+    excludeList = request.vars.exclude
+
+    if type(excludeList) is str:
+        excludeList = excludeList.split(",")
+    try:
+        return list(map(int, excludeList))
+    except:
+        return None
+
+
 ###################################################################
 
 def generate_recommendation_doi(article_id: int):

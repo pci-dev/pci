@@ -55,7 +55,7 @@ def suggest_article_to():
     exclude = request.vars["exclude"]
     myVars = request.vars
     user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
-    excludeList = exclude.split(",") if exclude else []
+    excludeList = exclude if type(exclude) is list else exclude.split(",")
     excludeList.append(str(recommenderId))
     myVars["exclude"] = ",".join(excludeList)
     session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
@@ -72,7 +72,7 @@ def exclude_article_from():
     exclude = request.vars["exclude"]
     myVars = request.vars
     user_module.do_exclude_article_from(auth, db, articleId, recommenderId)
-    excludeList = exclude if type(exclude) is list else [ exclude ]
+    excludeList = exclude if type(exclude) is list else exclude.split(",")
     excludeList.append(str(recommenderId))
     myVars["exclude"] = excludeList
     session.flash = T('Recommender "%s" excluded from article.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
@@ -94,8 +94,8 @@ def del_suggested_recommender():
 def del_excluded_recommender():
     exclId = request.vars["exclId"]
     if exclId:
-        if db(db.t_excluded_recommenders.id == exclId).count() > 0:
-            db((db.t_excluded_recommenders.id == exclId)).delete()
+        if db(db.t_excluded_recommenders.excluded_recommender_id == exclId).count() > 0:
+            db((db.t_excluded_recommenders.excluded_recommender_id == exclId)).delete()
     redirect(request.env.http_referer)
 
 ######################################################################################################################################################################

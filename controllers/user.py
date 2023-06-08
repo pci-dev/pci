@@ -180,28 +180,18 @@ def recommendations():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders():
-    myVars = request.vars
-    excludeList = []
-    articleId = None
-    for myVar in myVars:
-        if myVar == "exclude":
-            myValue = myVars[myVar]
-            myValue = myValue.split(",") if type(myValue) is str else myValue
-            excludeList = list(map(int, myValue))
-        elif isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "articleId":
-            articleId = myValue
+    articleId = request.vars.articleId
+    excludeList = common_tools.get_exclude_list(request)
+    if excludeList is None:
+        return "invalid parameter: exclude"
 
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
-    
+
     art = db.t_articles[articleId]
     if art is None:
         raise HTTP(404, "404: " + T("Unavailable"))
-    
+
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     if art.user_id != auth.user_id:
         session.flash = auth.not_authorized()
@@ -231,7 +221,7 @@ def search_recommenders():
 
         def mkButton(func):
             return lambda row: "" if row.auth_user.id in excludeList \
-                    else func(auth, db, row, art.id, excludeList, myVars)
+                    else func(auth, db, row, art.id, excludeList, request.vars)
 
         links = [
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),

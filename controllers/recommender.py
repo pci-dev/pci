@@ -84,7 +84,14 @@ def fields_awaiting_articles():
     links = []
     links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(auth, db, row)))
 
-    query = articles.status == "Awaiting consideration"
+    excluded = db.t_excluded_recommenders
+    excluded_articles = db(
+        excluded.excluded_recommender_id == auth.user_id
+    )._select(excluded.article_id)
+    query = (
+        (articles.status == "Awaiting consideration")
+      & ~articles.id.belongs(excluded_articles)
+    )
     original_grid = SQLFORM.grid(
         query,
         searchable=True,

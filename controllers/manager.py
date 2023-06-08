@@ -650,19 +650,6 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    myVars = request.vars
-    excludeList = []
-    articleId = None
-    for myVar in myVars:
-        if isinstance(myVars[myVar], list):
-            myValue = (myVars[myVar])[1]
-        else:
-            myValue = myVars[myVar]
-        if myVar == "exclude":
-            myValue = myVars[myVar]
-            myValue = myValue.split(",") if type(myValue) is str else myValue
-            excludeList = list(map(int, myValue))
-
     whatNext = request.vars["whatNext"]
     articleId = request.vars["articleId"]
     if articleId is None:
@@ -670,6 +657,13 @@ def search_recommenders():
     else:
         art = db.t_articles[articleId]
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
+
+    excludeList = common_tools.get_exclude_list(request)
+    if excludeList is None: return "invalid parameter: exclude"
+
+    for rec in db(
+            db.t_excluded_recommenders.article_id == articleId).select():
+        excludeList.append(rec.excluded_recommender_id)
 
     users = db.auth_user
     full_text_search_fields = [
@@ -688,7 +682,7 @@ def search_recommenders():
     for f in users.fields:
         if not f in full_text_search_fields:
             users[f].readable = False
-    
+
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
