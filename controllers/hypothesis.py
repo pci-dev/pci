@@ -5,7 +5,8 @@ from gluon.globals import Request, Response, Session
 from gluon.html import DIV, FORM, INPUT, TAG, TEXTAREA, URL
 from gluon.http import redirect
 from gluon.tools import Auth
-from pydal.base import Row, DAL
+from models.article import Article
+from pydal.base import DAL
 
 db = cast(DAL, current.db)
 response = cast(Response, current.response)
@@ -24,7 +25,12 @@ def index():
 def post_form():
 
     article_id = cast(int, request.vars.article_id)
-    article = cast(Row, db.t_articles[article_id])
+    article = Article.get_by_id(db, article_id)
+
+    if not article:
+        session.flash = current.T(f'No article found.')
+        redirect(URL("hypothesis", f"post_form?article_id={article_id}"))
+        return
 
     hypothesis_client = Hypothesis(article)
     annotation = hypothesis_client.get_annotation()

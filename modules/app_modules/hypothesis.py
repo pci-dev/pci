@@ -1,7 +1,7 @@
 from gluon.contrib.appconfig import AppConfig
 from requests.models import Response
 from typing import Dict, Any, Union
-from pydal.objects import Row
+from models.article import Article
 
 from app_modules.helper import *
 from app_modules.httpClient import HttpClient
@@ -11,7 +11,7 @@ class Hypothesis:
 
     API_URL = "https://api.hypothes.is/api"
     
-    def __init__(self, article: Row):
+    def __init__(self, article: Article):
         self.__article = article
         self.__myconf = AppConfig(reload=True)
         self.__http = HttpClient(
@@ -38,7 +38,7 @@ class Hypothesis:
 
 
     def post_annotation(self):
-        if not Hypothesis.may_have_annotation(self.__article.doi):
+        if not self.__article.doi or not Hypothesis.may_have_annotation(self.__article.doi):
             return
 
         article_url = self.get_url_from_doi()
