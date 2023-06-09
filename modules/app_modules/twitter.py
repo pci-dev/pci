@@ -1,16 +1,17 @@
 from typing import Any, List, Union, cast
+from models.post import  Post, PostTable
 from pydal.base import DAL
 from requests_oauthlib import OAuth1Session
 
 from app_modules.social_network import SocialNetwork
 
+
 class Twitter(SocialNetwork):
 
-    TABLE_NAME = 'tweets'
     POST_MAX_LENGTH = 280
 
     def __init__(self, db: DAL):
-        super().__init__(db, self.POST_MAX_LENGTH, self.TABLE_NAME)
+        super().__init__(db, self.POST_MAX_LENGTH, PostTable.TWEETS)
 
         self.__general_api_key = cast(str, self._myconf.take('social_twitter.general_api_key'))
         self.__general_api_secret = cast(str, self._myconf.take('social_twitter.general_api_secret'))
@@ -71,7 +72,8 @@ class Twitter(SocialNetwork):
             tweet = response.json()
             if response.status_code == 201:
                 tweet = tweet['data']
-                parent_id = self._save_posts_in_db(tweet['id'], tweet['text'], i, article_id, recommendation_id, parent_id)
+                tweet_post = Post(tweet['id'], tweet['text'], i, article_id, recommendation_id, parent_id)
+                parent_id = self._save_posts_in_db(tweet_post)
                 parent_tweet_id = tweet['id']
             else:
                 raise Exception(tweet['detail'])
