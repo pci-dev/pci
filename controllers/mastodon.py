@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Union, cast
 from gluon import current
+from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Response, Request, Session
-from gluon.html import DIV, FORM, IMG, INPUT, TAG, TEXTAREA, URL
+from gluon.html import DIV, FORM, IMG, INPUT, P, TAG, TEXTAREA, URL
 from gluon.http import redirect
 from gluon.tools import Auth
 from pydal.objects import Row
@@ -14,6 +15,7 @@ response = cast(Response, current.response)
 request = cast(Request, current.request)
 session = cast(Session, current.session)
 auth = cast(Auth, current.auth)
+config = AppConfig()
 
 is_admin = auth.has_membership(role="administrator")
 
@@ -65,9 +67,9 @@ def post_form():
         )
 
         if not already_send:
-            data['prevContent'] = get_before_send_information_message(mastodon_instance_name)
+            data['prevContent'] = get_before_send_information_message(mastodon_client, mastodon_instance_name)
         else:
-            data['prevContent'] = get_after_send_information_message(mastodon_instance_name)
+            data['prevContent'] = get_after_send_information_message(mastodon_client, mastodon_instance_name)
  
         return data
 
@@ -122,13 +124,34 @@ def generate_form(toots_text: List[str], show_submit: bool, mastodon_instance_na
     return form
     
 
-def get_after_send_information_message(mastodon_instance_name: str):
-    return DIV(TAG(current.T(f"The following post has already been sent and is online on {mastodon_instance_name}")), _class="alert alert-info")
+def get_after_send_information_message(mastodon_client: Mastodon, mastodon_instance_name: str):
+    message: str = current.T(f"The following post has already been sent and is online on {mastodon_instance_name}.")
+    message = add_account_info_at_end(mastodon_client, message)
+    return P(TAG(message), _class="alert alert-info", cr2br="true")
 
 
-def get_before_send_information_message(mastodon_instance_name: str):
-    return DIV(TAG(current.T(f"There are no toots sent for this recommendation yet. The following toots have been automatically generated.<br/>Edit toots and click 'Send to {mastodon_instance_name}'")), _class="alert alert-warning")
+def get_before_send_information_message(mastodon_client: Mastodon, mastodon_instance_name: str):
+    message: str = current.T(f"There are no toots sent for this recommendation yet.\nThe following toots have been automatically generated.\nEdit toots and click 'Send to {mastodon_instance_name}'")
+    message = add_account_info_at_end(mastodon_client, message)
+    return P(TAG(message), _class="alert alert-warning", cr2br="true")
 
 
 def get_mastodon_icon(mastodon_instance_name: str):
     return DIV(IMG(_src=URL(c='static', f='images/mastodon-logo.svg'), _alt='Mastodon logo', _style='height: 50px; width: 50px; margin-right: 10px'), TAG(mastodon_instance_name))
+
+
+def add_account_info_at_end(mastodon_client: Mastodon, message: str):
+    general_mastodon_pseudo: str = f"{current.T('@PeerCommunityIn')} on {mastodon_client.get_instance_name()}"
+    specific_mastodon_pseudo: Union[str, None] = cast(str, config.take('social.tweeter'))
+
+    if mastodon_client.has_mastodon_general_config():
+        message += f'\n\nGeneral account: {general_mastodon_pseudo}'
+
+    if mastodon_client.has_mastodon_specific_config() and specific_mastodon_pseudo:
+        specific_mastodon_pseudo += f' on {mastodon_client.get_instance_name(True)}'
+
+        if not mastodon_client.has_mastodon_general_config():
+            message += '\n'
+        message += f'\nSpecific account: @{specific_mastodon_pseudo}'
+
+    return message
