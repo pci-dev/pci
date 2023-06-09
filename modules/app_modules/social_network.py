@@ -39,7 +39,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     def __cut_post_text(self, text: str) -> List[str]:
-        posts = wrap(text, self._post_max_length - 3)
+        posts = wrap(text, self._post_max_length - 4)
         for i, post in enumerate(posts[:-1]):
             posts[i] = post + '… 🔽'
         
