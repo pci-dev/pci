@@ -689,6 +689,7 @@ db.define_table(
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
     ),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
+    Field("is_scheduled", type="boolean", default=False, label=T("Is this a scheduled submission?"), readable=False, writable=False),
     Field("validation_timestamp", type="datetime", label=T("Validation date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),

@@ -120,6 +120,7 @@ def recommendations():
             # Remove scheduled submission date when doi is updated
               if scheduledSubmissionForm.process().accepted:
                 art.scheduled_submission_date = None
+                art.is_scheduled = True
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
                 art.status = "Scheduled submission pending"
