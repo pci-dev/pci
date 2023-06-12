@@ -58,6 +58,10 @@ def patch_email_subject(subject, articleId):
     return subject.replace(appName, email_subject_header(articleId))
 
 
+def mkAuthors(article):
+    return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
+
+
 ######################################################################################################################################################################
 def getMailer(auth):
     mail = auth.settings.mailer

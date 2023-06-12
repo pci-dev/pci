@@ -1,5 +1,6 @@
 from app_modules import common_small_html
 from app_modules import common_tools
+from app_modules.emailing_tools import mkAuthors
 
 from gluon import current
 from gluon.html import *
@@ -37,10 +38,6 @@ def getArticleImage(article):
     else:
         article_img = IMG(_src=URL("static", "images/small-background.png", scheme=scheme, host=host, port=port), _alt="article picture", _style="width: 150px",)
     return article_img
-
-
-def mkAuthors(article):
-    return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
 
 
 def makeArticleWithRecommRow(auth, db, article):
