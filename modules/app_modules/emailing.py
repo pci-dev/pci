@@ -2042,13 +2042,13 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
-        j = 0
+        #j = 0
         newPreprintSearchingForReviewers = DIV()
         newPreprintSearchingForReviewersCount = len(new_searching_for_reviewers_preprint)
         for article in new_searching_for_reviewers_preprint:
-            j += 1
-            if j <= 5:
-                newPreprintSearchingForReviewers.append(newsletter.makeArticleRow(article, "review"))
+            #j += 1
+            #if j <= 5:
+            newPreprintSearchingForReviewers.append(newsletter.makeArticleRow(article, "review"))
 
         # New preprint requiring recommender
         group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
@@ -2057,18 +2057,18 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         if group > 0:
             new_searching_for_recommender_preprint = db(
                 (
-                    (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-                    & (db.t_articles.status == "Awaiting consideration")
+                    #(db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                    (db.t_articles.status == "Awaiting consideration")
                 )
             ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
-            k = 0
+            #k = 0
             newPreprintRequiringRecommender = DIV()
             newPreprintRequiringRecommenderCount = len(new_searching_for_recommender_preprint)
             for article in new_searching_for_recommender_preprint:
-                k += 1
-                if k <= 5:
-                    newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
+                #k += 1
+                #if k <= 5:
+                newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
         emailing_tools.insertNewsLetterMailInQueue(
