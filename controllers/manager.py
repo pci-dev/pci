@@ -1062,7 +1062,7 @@ def all_recommendations():
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
     )
     if not isPress:
-        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
 
     if isPress:  ## NOTE: POST-PRINTS
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")

@@ -571,7 +571,7 @@ def revise_scheduled_submission():
     if recomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    if recomm.recommender_id != auth.user_id:
+    elif  recomm.recommender_id != auth.user_id and not auth.has_membership(role="manager"):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -588,7 +588,7 @@ def reject_scheduled_submission():
     if recomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    if recomm.recommender_id != auth.user_id:
+    elif recomm.recommender_id != auth.user_id and not auth.has_membership(role="manager"):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
