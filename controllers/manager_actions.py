@@ -180,7 +180,7 @@ def do_validate_scheduled_submission():
             art.status = "Awaiting consideration"
         
         art.update_record()
-        session.flash = T("Request now available to recommenders")
+        session.flash = T("Submission validated")
 
     if is_recommender(auth, request):
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
