@@ -2340,6 +2340,7 @@ def create_reminder_for_recommender_validated_scheduled_submission(session, auth
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["ccAddresses"] = mail_vars["appContactMail"] # contacts.managers
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
@@ -2362,6 +2363,7 @@ def create_reminder_for_recommender_validated_scheduled_submission_late(session,
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["ccAddresses"] = mail_vars["appContactMail"] # contacts.managers
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
