@@ -2036,8 +2036,8 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         # New preprint searching for reviewers
         new_searching_for_reviewers_preprint = db(
             (
-                (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-                & (db.t_articles.is_searching_reviewers == True)
+                #(db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                (db.t_articles.is_searching_reviewers == True)
                 & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
