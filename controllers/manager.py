@@ -1408,10 +1408,9 @@ def send_submitter_generic_mail():
     if author is None:
         fail("no author for article")
 
-    if request.args == []:
-        template = "#SubmitterGenericMail"
-    else: 
-        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" if request.args[0] == "revise_scheduled_submission" else "#SubmitterScheduledSubmissionDeskReject"
+    template = "#SubmitterGenericMail"
+    if "revise_scheduled_submission" in request.args:
+        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" 
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
@@ -1463,13 +1462,7 @@ def send_submitter_generic_mail():
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
         if auth.has_membership(role="recommender"):
-            if "Reject" in template:
-                recomm.is_closed = True
-                recomm.recommendation_state = "Rejected"
-                recomm.update_record()
-                art.status = "Pre-rejected"
-                art.update_record()
-            elif "Revision" in template:
+            if "Revision" in template:
                 art.update_record(status="Scheduled submission revision")
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:

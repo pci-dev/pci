@@ -3,9 +3,15 @@
 from app_modules.helper import *
 from app_modules import crossref
 from app_modules.hypothesis import Hypothesis
+from gluon.contrib.appconfig import AppConfig
+from gluon.storage import Storage
+from app_modules.common_tools import cancel_decided_article_pending_reviews
+
+myconf = AppConfig(reload=True)
 
 crossref.init_conf(db)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+contact = myconf.take("contacts.managers")
 
 
 ######################################################################################################################################################################
@@ -146,7 +152,9 @@ def do_reject_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    author = db.auth_user[art.user_id]
     recomm = get_last_recomm(articleId)
+    recommender = db.auth_user[recomm.recommender_id]
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -155,6 +163,14 @@ def do_reject_article():
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
+        if art.is_scheduled:
+            cancel_decided_article_pending_reviews(db, recomm)
+            cc=  ", ".join([recommender.email, contact])
+            form = Storage(
+                subject=recomm.recommendation_title, message=recomm.recommendation_comments, cc=cc, replyto=cc
+            )
+            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, form, "#SubmitterScheduledSubmissionDeskReject")
+            recomm.update_record(recommendation_title="", recommendation_comments="")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
 
@@ -176,6 +192,7 @@ def do_validate_scheduled_submission():
         )
         if recomm and recomm.recommender_id:
             art.status = "Scheduled submission under consideration"
+            art.is_scheduled = False
         else:
             art.status = "Awaiting consideration"
         
@@ -278,7 +295,7 @@ def do_send_back_decision():
         lastRecomm.is_closed = False
         lastRecomm.recommendation_state = "Ongoing"
         lastRecomm.update_record()
-        art.status = "Under consideration"
+        art.status = "Under consideration" if not art.is_scheduled else "Scheduled submission pending"
         art.update_record()
         session.flash = T('Recommendation sent back to recommender')
 

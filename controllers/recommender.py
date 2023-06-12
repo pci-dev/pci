@@ -1989,6 +1989,7 @@ def edit_recommendation():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
+    scheduled_reject = request.vars["scheduled_reject"]
     isPress = None
         
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
@@ -1996,7 +1997,7 @@ def edit_recommendation():
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled", "Pre-recommended-private"):
+    elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled", "Pre-recommended-private", "Scheduled submission pending"):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -2021,12 +2022,16 @@ def edit_recommendation():
             )
         else:
             recommendPrivateDivPciRR = ""
-
+        reject_radio = SPAN(
+                        INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state == "Rejected")),
+                        B(current.T("I reject this preprint")),
+                        _class="pci-radio pci-reject btn-warning",
+                    )
         triptyque = DIV(
             DIV(
                 H3(current.T("Your decision")),
                 DIV(
-                    DIV(
+                    (DIV(
                         SPAN(
                             INPUT(
                                 _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended")
@@ -2042,11 +2047,8 @@ def edit_recommendation():
                         B(current.T("This preprint merits a revision")),
                         _class="pci-radio pci-review btn-default",
                     ),
-                    SPAN(
-                        INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state == "Rejected")),
-                        B(current.T("I reject this preprint")),
-                        _class="pci-radio pci-reject btn-warning",
-                    ),
+                    reject_radio) if not scheduled_reject else reject_radio,
+
                     _class="pci2-flex-row pci2-justify-center pci2-align-items-start",
                 ),
                 # TEST # SPAN(INPUT(_id='opinion_none', _name='recommender_opinion', _type='radio', _value='none', _checked=(recomm.recommendation_state=='?')), current.T('I still hesitate'), _class='pci-radio btn-default'),
@@ -2078,7 +2080,7 @@ def edit_recommendation():
             pageHelp = getHelp(request, auth, db, "#RecommenderEditDecision")
             pageTitle = getTitle(request, auth, db, "#RecommenderEditDecisionTitle")
 
-        if isPress:
+        if isPress or scheduled_reject:
             fields = ["no_conflict_of_interest", "recommendation_title", "recommendation_comments"]
         else:
             fields = ["no_conflict_of_interest", "recommendation_title", "recommendation_comments", "recommender_file", "recommender_file_data"]
@@ -2086,6 +2088,28 @@ def edit_recommendation():
         db.t_recommendations.recommendation_comments.requires = IS_NOT_EMPTY()
 
         form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
+
+        if scheduled_reject:
+            customText = ""
+            sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+            scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+            scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+            recommenderName = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_template = emailing_tools.getMailTemplateHashtag(db, "#SubmitterScheduledSubmissionDeskReject")
+
+            description = myconf.take("app.description")
+            longname = myconf.take("app.longname")
+            appName = myconf.take("app.name")
+            destPerson = common_small_html.mkUser(auth, db, art.user_id)
+            articleTitle = md_to_html(art.title)
+
+            default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+            default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+            default_subject = emailing.patch_email_subject(default_subject, art.id)
+
+            form.vars.recommendation_title = recomm.recommendation_title or default_subject
+            form.vars.recommendation_comments = recomm.recommendation_comments or default_message
+
         if isPress is False:
             form.insert(0, triptyque)
 
@@ -2154,7 +2178,8 @@ def edit_recommendation():
                     else:
                         recomm.recommendation_state = "Recommended"
                         art.status = "Pre-recommended"
-                    cancel_decided_article_pending_reviews(recomm)
+                    if  scheduled_reject is None:
+                        common_tools.cancel_decided_article_pending_reviews(db, recomm)
                     recomm.update_record()
                     art.update_record()
                     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))

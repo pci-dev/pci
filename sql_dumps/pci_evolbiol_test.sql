@@ -2986,3 +2986,10 @@ CREATE VIEW v_article_id AS
  FROM t_articles;
 
 ALTER TABLE v_article_id OWNER TO pci_admin;
+
+-- 2023-06-12 updates/new_article_field.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS  is_scheduled boolean DEFAULT false;
+
+UPDATE "t_articles"
+SET is_scheduled = true WHERE status LIKE 'Scheduled%';

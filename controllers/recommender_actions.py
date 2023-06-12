@@ -592,4 +592,4 @@ def reject_scheduled_submission():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
-        redirect(URL(c="manager", f="send_submitter_generic_mail", args=["reject_scheduled_submission"], vars=dict(articleId=articleId)))
+        redirect(URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id, scheduled_reject=True)))
