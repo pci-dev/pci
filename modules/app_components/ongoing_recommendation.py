@@ -757,7 +757,7 @@ def getManagerButton(art, auth, isRecommender):
     if art.user_id == auth.user_id:
         return None
 
-    if pciRRactivated and auth.has_membership(role="recommender"):
+    if pciRRactivated and (auth.has_membership(role="recommender") or auth.has_membership(role="manager")):
         if art.status == "Scheduled submission pending":
             return validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
 
