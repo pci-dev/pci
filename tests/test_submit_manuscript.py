@@ -62,7 +62,7 @@ class Recommender_validates:
 
     def validate_submission(_):
         select("a", contains="VALIDATE THIS SCHEDULED SUBMISSION").click()
-        select.notif("Request now available to recommenders")
+        select.notif("Submission validated")
         select(".pci-status-big", "SCHEDULED SUBMISSION UNDER CONSIDERATION")
 
     def open_submission_to_reviewers(_):
