@@ -2011,6 +2011,11 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         hashtag_template = newsletter.template[newsletterType]
         newsletter_interval = newsletter.interval[newsletterType]
 
+    new_articles_qy = (
+            db.t_articles.last_status_change >=
+            (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date()
+    )
+
     newRecommendationsCount = 0
     newPreprintRequiringRecommenderCount = 0
     newPreprintSearchingForReviewersCount = 0
@@ -2018,7 +2023,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         # New recommended articles
         new_recommended_articles = db(
             (
-                (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
+                new_articles_qy
                 & (db.t_recommendations.article_id == db.t_articles.id)
                 & (db.t_recommendations.recommendation_state == "Recommended")
                 & (db.t_articles.status == "Recommended")
@@ -2036,8 +2041,8 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         # New preprint searching for reviewers
         new_searching_for_reviewers_preprint = db(
             (
-                (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-                & (db.t_articles.is_searching_reviewers == True)
+                (db.t_articles.is_searching_reviewers == True)
+                & (new_articles_qy if pciRRactivated else True)
                 & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
             )
         ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
@@ -2046,9 +2051,12 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         newPreprintSearchingForReviewers = DIV()
         newPreprintSearchingForReviewersCount = len(new_searching_for_reviewers_preprint)
         for article in new_searching_for_reviewers_preprint:
+          if pciRRactivated:
             j += 1
             if j <= 5:
                 newPreprintSearchingForReviewers.append(newsletter.makeArticleRow(article, "review"))
+          else:
+            newPreprintSearchingForReviewers.append(newsletter.makeArticleRow(article, "review"))
 
         # New preprint requiring recommender
         group = db((db.auth_user.id == userId) & (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == 2)).count()
@@ -2057,8 +2065,8 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         if group > 0:
             new_searching_for_recommender_preprint = db(
                 (
-                    (db.t_articles.last_status_change >= (datetime.datetime.now() - datetime.timedelta(days=newsletter_interval)).date())
-                    & (db.t_articles.status == "Awaiting consideration")
+                    (db.t_articles.status == "Awaiting consideration")
+                    & (new_articles_qy if pciRRactivated else True)
                 )
             ).select(db.t_articles.ALL, orderby=~db.t_articles.last_status_change)
 
@@ -2066,9 +2074,12 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
             newPreprintRequiringRecommender = DIV()
             newPreprintRequiringRecommenderCount = len(new_searching_for_recommender_preprint)
             for article in new_searching_for_recommender_preprint:
+              if pciRRactivated:
                 k += 1
                 if k <= 5:
                     newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
+              else:
+                newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
         emailing_tools.insertNewsLetterMailInQueue(
