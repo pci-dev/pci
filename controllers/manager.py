@@ -871,6 +871,8 @@ def edit_article():
         db.t_articles.data_doi.readable = False
         db.t_articles.data_doi.writable = False
 
+        db.t_articles.cover_letter.label = "Cover letter"
+
         db.t_articles.scripts_used_for_result.readable = False
         db.t_articles.scripts_used_for_result.writable = False
         db.t_articles.scripts_doi.readable = False

@@ -592,6 +592,8 @@ def edit_my_article():
         db.t_articles.sub_thematics.readable = True
         db.t_articles.sub_thematics.writable = True
 
+        db.t_articles.cover_letter.label = "Cover letter"
+        
         db.t_articles.record_url_version.readable = True
         db.t_articles.record_url_version.writable = True
         db.t_articles.record_id_version.readable = True
