@@ -39,6 +39,7 @@ from app_components import ongoing_recommendation
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
+from app_modules.emailing_tools import mkAuthors
 
 
 myconf = AppConfig(reload=True)
@@ -440,9 +441,6 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
 
     emailing_tools.getFlashMessage(session, reports)
 
-
-def mkAuthors(article):
-    return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
 
 def mkUnanonymizedAuthors(article):
     return SPAN(article.authors, (" [this is an anonymous submission]"))
