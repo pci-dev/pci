@@ -887,8 +887,9 @@ def deltaStatus(s, f):
                     recommender_module.cancel_scheduled_reviews(session, auth, db, o["id"])
 
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
+                    if not o.is_scheduled:
+                        emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
-                    emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
                     for lr in lastRecomm:
                         lr.is_closed = True
