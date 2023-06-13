@@ -113,3 +113,11 @@ def generate_recommendation_doi(article_id: int):
 ###################################################################
 
 absoluteButtonScript = get_script("web2py_button_absolute.js")
+
+####################################################################
+def cancel_decided_article_pending_reviews(db, recomm):
+    reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
+    for review in reviews:
+        if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":
+            review.review_state = "Cancelled"
+            review.update_record()

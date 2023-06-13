@@ -2180,14 +2180,6 @@ def edit_recommendation():
         )
 
 
-def cancel_decided_article_pending_reviews(recomm):
-    reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
-    for review in reviews:
-        if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":
-            review.review_state = "Cancelled"
-            review.update_record()
-
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def my_co_recommendations():
