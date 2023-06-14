@@ -26,7 +26,9 @@ jQuery(document).ready(function() {
 function deactivate_submit_btn() {
   // deactivate submit button on page load
   let submit_btn = document.querySelector('#submit-btn');
+  let save_btn = document.querySelector('#save-btn');
   submit_btn.setAttribute('disabled', '');
+  save_btn.setAttribute('disabled', '');
 
   // check if a review already exists as a saved version
   setTimeout( function() { 
@@ -41,8 +43,9 @@ function activate_conditions_for_submission() {
     // event of review provision in text field
     let text_frame = document.querySelector('#t_reviews_review_ifr');
     let iframe_doc = text_frame.contentDocument || text_frame.contentWindow.document;
-    let ee = iframe_doc.querySelector('body');
-    ee.addEventListener('input', activate_submit_btn);
+    let iframe_body = iframe_doc.querySelector('body');
+    //iframe_body.addEventListener('input', activate_submit_btn);
+    iframe_body.addEventListener('keyup', activate_submit_btn);
 
     // event of review file upload
     let upload_file = document.querySelector('#t_reviews_review_pdf');
@@ -56,13 +59,17 @@ function activate_submit_btn() {
   // activate submit button if review is provided as either text or file
   let tiny_mce = tinymce.get('t_reviews_review');
   let upload_file = document.querySelector('#t_reviews_review_pdf');
+  let file_list = document.querySelector('#t_reviews_review_pdf__row .col-sm-9 > div > span > a');
 
   let submit_btn = document.querySelector('#submit-btn');
-  if (upload_file.value != '' || tiny_mce.getContent() != '') {
+  let save_btn = document.querySelector('#save-btn');
+  if (upload_file.value != '' || tiny_mce.getContent().length >= 8 || file_list) {
     submit_btn.removeAttribute('disabled');
+    save_btn.removeAttribute('disabled');
   }
   else {
     submit_btn.setAttribute('disabled', '');
+    save_btn.setAttribute('disabled', '');
   }
 };
 
