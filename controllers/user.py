@@ -1365,7 +1365,7 @@ def edit_review():
     else:
         buttons = [
             INPUT(_type="Submit", _name="save", _class="btn btn-info", _value="Save"),
-            INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save & Submit Your Review"),
+            INPUT(_type="Submit", _name="terminate", _id="submit-btn", _class="btn btn-success", _value="Save & Submit Your Review"),
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
