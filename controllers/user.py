@@ -1364,8 +1364,8 @@ def edit_review():
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
     else:
         buttons = [
-            INPUT(_type="Submit", _name="save", _class="btn btn-info", _value="Save"),
-            INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save & Submit Your Review"),
+            INPUT(_type="Submit", _name="save", _id="save-btn", _class="btn btn-info", _value="Save"),
+            INPUT(_type="Submit", _name="terminate", _id="submit-btn", _class="btn btn-success", _value="Save & Submit Your Review"),
         ]
         db.t_reviews.no_conflict_of_interest.writable = not (review.no_conflict_of_interest)
         db.t_reviews.review_pdf.comment = T('Upload your PDF with the button or download it from the "file" link.')
@@ -1408,7 +1408,7 @@ def edit_review():
 
             if form.vars.save or form.vars.anonymous_dialog_input == 'save':
                 session.flash = T("Review saved", lazy=False)
-                redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+                redirect(URL(c="user", f="edit_review", vars=dict(reviewId=reviewId), user_signature=True))
             elif form.vars.terminate or form.vars.anonymous_dialog_input == 'terminate':
                 redirect(URL(c="user_actions", f="review_completed", vars=dict(reviewId=review.id), user_signature=True))
         elif form.errors:
