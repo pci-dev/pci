@@ -384,12 +384,13 @@ def report_survey(auth, session, art, db, survey=None, controller=None, do_valid
 
     def validate_due_date(form):
         due_date = form.vars.q10
+        is_snapshot = form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW"
 
-        if not due_date and form.vars.q1 == "RR SNAPSHOT FOR SCHEDULED REVIEW":
-            return "Please provide a date"
+        if not is_snapshot:
+            return
 
         if not due_date:
-            return
+            return "Please provide a date"
 
         if due_date.weekday() >= 5:
             return "selected date must be a week day"
