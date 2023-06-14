@@ -5,7 +5,8 @@ from gluon.globals import Response, Request, Session
 from gluon.html import DIV, FORM, IMG, INPUT, P, TAG, TEXTAREA, URL
 from gluon.http import redirect
 from gluon.tools import Auth
-from pydal.objects import Row
+from models.article import Article
+from models.recommendation import Recommendation
 from pydal.base import DAL
 
 from app_modules.twitter import Twitter
@@ -30,8 +31,13 @@ def index() -> Union[Dict[str, Any], None]:
 def post_form():
 
     article_id = cast(int, request.vars.article_id)
-    article = cast(Row, db.t_articles[article_id])
-    recommendation = cast(Row, db.get_last_recomm(article))
+    article = Article.get_by_id(db, article_id)
+    recommendation = cast(Recommendation, db.get_last_recomm(article))
+
+    if not article:
+        session.flash = current.T(f'No article found.')
+        redirect(URL("twitter", f"post_form?article_id={article_id}"))
+        return
 
     twitter_client = Twitter(db)
 

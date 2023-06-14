@@ -1,5 +1,6 @@
 import re
 from typing import Any, List, Union, cast
+from models.post import Post, PostTable
 
 from pydal import DAL
 
@@ -9,11 +10,10 @@ from app_modules.httpClient import HttpClient
 
 class Mastodon(SocialNetwork) :
 
-    TABLE_NAME = 'toots'
     POST_MAX_LENGTH = 500
 
     def __init__(self, db: DAL):
-        super().__init__(db, self.POST_MAX_LENGTH, self.TABLE_NAME)
+        super().__init__(db, self.POST_MAX_LENGTH, PostTable.TOOTS)
 
         self.__general_access_token = cast(str, self._myconf.take('social_mastodon.general_access_token'))
         self.__general_instance_url = self.__get_instance_url()
@@ -82,7 +82,8 @@ class Mastodon(SocialNetwork) :
             toot = response.json()
             if response.status_code == 200:
                 text_post = self.remove_html_tag(toot['content'])
-                parent_id = self._save_posts_in_db(toot['id'], text_post, i, article_id, recommendation_id, parent_id)
+                toot_post = Post(toot['id'], text_post, i, article_id, recommendation_id, parent_id)
+                parent_id = self._save_posts_in_db(toot_post)
                 parent_toot_id = toot['id']
             else:
                 raise Exception(toot['error'])
