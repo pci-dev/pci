@@ -214,7 +214,11 @@ if (levelRadioItems) {
 document.querySelector("input[type=submit]").onclick = function() {
 	document.querySelectorAll(":disabled")
 	.forEach(function (it) {
-		if (it.value) it.disabled = false;
+    styles = window.getComputedStyle(it);
+    hidden = styles.display === 'none' || styles.visibility === 'hidden'
+		if (it.value && !hidden) {
+      it.disabled = false;
+    }
 	})
 	this.form.submit();
 }
