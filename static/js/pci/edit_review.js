@@ -32,8 +32,8 @@ function deactivate_submit_btn() {
 
   // check if a review already exists as a saved version
   setTimeout( function() { 
-    activate_submit_btn(); 
-  }, 1000);
+    activate_submit_btn();
+  }, 1500);
 };
 
 
@@ -43,9 +43,10 @@ function activate_conditions_for_submission() {
     // event of review provision in text field
     let text_frame = document.querySelector('#t_reviews_review_ifr');
     let iframe_doc = text_frame.contentDocument || text_frame.contentWindow.document;
-    let iframe_body = iframe_doc.querySelector('body');
-    //iframe_body.addEventListener('input', activate_submit_btn);
-    iframe_body.addEventListener('keyup', activate_submit_btn);
+    if (iframe_doc.readyState == 'complete') {
+      let iframe_body = iframe_doc.querySelector('body');
+      iframe_body.addEventListener('keyup', activate_submit_btn);
+    }
 
     // event of review file upload
     let upload_file = document.querySelector('#t_reviews_review_pdf');
