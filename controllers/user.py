@@ -1408,7 +1408,7 @@ def edit_review():
 
             if form.vars.save or form.vars.anonymous_dialog_input == 'save':
                 session.flash = T("Review saved", lazy=False)
-                redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+                redirect(URL(c="user", f="edit_review", vars=dict(reviewId=reviewId), user_signature=True))
             elif form.vars.terminate or form.vars.anonymous_dialog_input == 'terminate':
                 redirect(URL(c="user_actions", f="review_completed", vars=dict(reviewId=review.id), user_signature=True))
         elif form.errors:
