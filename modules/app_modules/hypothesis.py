@@ -106,8 +106,11 @@ class Hypothesis:
 
 
     def get_url_from_doi(self) -> str:
-        response = HttpClient().get(self.__article.doi, None, allow_redirects=True)
-        return response.url
+        try:
+            response = HttpClient().get(self.__article.doi, None, allow_redirects=True)
+            return response.url
+        except:
+            return None
 
 
     def __get_PCI_group_id(self) -> str:
