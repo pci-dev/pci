@@ -689,6 +689,7 @@ db.define_table(
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
     ),
     Field("upload_timestamp", type="datetime", default=request.now, label=T("Submission date")),
+    Field("is_scheduled", type="boolean", default=False, label=T("Is this a scheduled submission?"), readable=False, writable=False),
     Field("validation_timestamp", type="datetime", label=T("Validation date")),
     Field("user_id", type="reference auth_user", ondelete="RESTRICT", label=T("Submitter")),
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
@@ -861,13 +862,18 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+                emailing.send_to_recommender_preprint_submitted(session, auth, db, o["id"])
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
 
             elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
-                emailing.send_to_recommender_preprint_submitted(session, auth, db, o["id"])
+                emailing.send_to_recommender_preprint_validated(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_validated_scheduled_submission(session, auth, db, o["id"])
+                emailing.create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, o["id"])
 
             elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
                 emailing.send_to_reviewers_preprint_submitted(session, auth, db, o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderPreprintValidatedScheduledSubmission", o["id"])
+                emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate", o["id"])
 
             elif o.status != f["status"]:
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
@@ -877,9 +883,13 @@ def deltaStatus(s, f):
                 if f["status"] == "Not considered":
                     emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
 
+                if f["status"] == "Rejected" and isScheduledTrack(o):
+                    recommender_module.cancel_scheduled_reviews(session, auth, db, o["id"])
+
                 if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
+                    if not o.is_scheduled:
+                        emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                     emailing.send_decision_to_reviewers(session, auth, db, o["id"], f["status"])
-                    emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                     lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
                     for lr in lastRecomm:
                         lr.is_closed = True

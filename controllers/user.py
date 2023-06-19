@@ -120,6 +120,7 @@ def recommendations():
             # Remove scheduled submission date when doi is updated
               if scheduledSubmissionForm.process().accepted:
                 art.scheduled_submission_date = None
+                art.is_scheduled = True
                 art.doi = scheduledSubmissionForm.vars.doi
                 art.ms_version = scheduledSubmissionForm.vars.ms_version
                 art.status = "Scheduled submission pending"
@@ -550,7 +551,7 @@ def edit_my_article():
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"):
+    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
     # deletable = (art.status == 'Pending')
@@ -592,6 +593,8 @@ def edit_my_article():
         db.t_articles.sub_thematics.readable = True
         db.t_articles.sub_thematics.writable = True
 
+        db.t_articles.cover_letter.label = "Cover letter"
+        
         db.t_articles.record_url_version.readable = True
         db.t_articles.record_url_version.writable = True
         db.t_articles.record_id_version.readable = True

@@ -46,12 +46,7 @@ class Manager_non_recommender_cannot_validate:
     def login_to_pending_validation(_):
         login(users.manager)
         select(".dropdown-toggle span", "For managers").click()
-        select(".dropdown-menu span", contains="Pending validation(s)").click()
-        select("tr", contains="SCHEDULED SUBMISSION PENDING VALIDATION") \
-                .select("a", "VIEW / EDIT").click()
-
-    def assert_validates_not(_):
-        select.fails("a", "VALIDATE THIS SCHEDULED SUBMISSION")
+        select.fails(".dropdown-menu span", contains="Pending validation(s)")
         logout(users.manager)
 
 
@@ -67,7 +62,7 @@ class Recommender_validates:
 
     def validate_submission(_):
         select("a", contains="VALIDATE THIS SCHEDULED SUBMISSION").click()
-        select.notif("Request now available to recommenders")
+        select.notif("Submission validated")
         select(".pci-status-big", "SCHEDULED SUBMISSION UNDER CONSIDERATION")
 
     def open_submission_to_reviewers(_):
@@ -83,22 +78,22 @@ class Cheat:
 
     def set_report_due_date_this_week():
         login(users.manager)
-        manager_edit_report_survey("Handling process(es) underway")
+        manager_edit_report_survey("For managers", "Handling process(es) underway")
         set_report_due_date(weeks=1)
         save_report_survey()
         logout(users.manager)
 
     def reset_report_due_date():
-        login(users.manager)
-        manager_edit_report_survey("Pending validation(s)")
+        login(users.recommender)
+        manager_edit_report_survey("For recommenders", "Pending validation(s)")
         select("#t_report_survey_q1").send_keys("RR SNAPSHOT")
         set_report_due_date(weeks=7)
         select("#t_report_survey_q1").send_keys("COMPLETE")
         save_report_survey()
-        logout(users.manager)
+        logout(users.recommender)
 
-def manager_edit_report_survey(menu_entry):
-        select(".dropdown-toggle span", "For managers").click()
+def manager_edit_report_survey(user_menu, menu_entry):
+        select(".dropdown-toggle span", contains=user_menu).click()
         select(".dropdown-menu span", contains=menu_entry).click()
         status = "HANDLING PROCESS UNDERWAY" if "underway" in menu_entry \
                     else "PENDING VALIDATION"

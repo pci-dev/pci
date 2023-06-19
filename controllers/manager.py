@@ -34,6 +34,7 @@ from app_modules import common_tools
 from app_modules import emailing_tools
 from app_modules import common_small_html
 from app_modules import emailing
+from app_modules import emailing_vars
 from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
@@ -83,11 +84,7 @@ def pending_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    if is_recommender(auth, request):
-        states = ["Scheduled submission pending"]
-    else:
-        states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private", "Scheduled submission pending"]
-
+    states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
@@ -135,7 +132,7 @@ def ongoing_articles():
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerOngoingArticlesTitle")
@@ -874,6 +871,8 @@ def edit_article():
         db.t_articles.data_doi.readable = False
         db.t_articles.data_doi.writable = False
 
+        db.t_articles.cover_letter.label = "Cover letter"
+
         db.t_articles.scripts_used_for_result.readable = False
         db.t_articles.scripts_used_for_result.writable = False
         db.t_articles.scripts_doi.readable = False
@@ -1065,7 +1064,7 @@ def all_recommendations():
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
     )
     if not isPress:
-        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
 
     if isPress:  ## NOTE: POST-PRINTS
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
@@ -1391,7 +1390,7 @@ def article_emails():
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
 
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="recommender"))
 def send_submitter_generic_mail():
     response.view = "default/myLayout.html"
 
@@ -1402,11 +1401,20 @@ def send_submitter_generic_mail():
 
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    recomm = db.get_last_recomm(art)
     if art is None:
         fail("no article for review")
     author = db.auth_user[art.user_id]
     if author is None:
         fail("no author for article")
+
+    template = "#SubmitterGenericMail"
+    if "revise_scheduled_submission" in request.args:
+        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" 
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
+        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+        recommenderName = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
@@ -1415,7 +1423,7 @@ def send_submitter_generic_mail():
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#SubmitterGenericMail")
+    mail_template = emailing_tools.getMailTemplateHashtag(db, template)
 
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, art.user_id)
@@ -1449,11 +1457,16 @@ def send_submitter_generic_mail():
             art.update_record()
         request.vars["replyto"] = replyTo
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art, request.vars)
+            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, request.vars, template)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
-        redirect(URL(c="manager", f="presubmissions"))
+        if auth.has_membership(role="recommender"):
+            if "Revision" in template:
+                art.update_record(status="Scheduled submission revision")
+            redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
+        else:
+            redirectt(URL(c="manager", f="presubmissions"))
 
     return dict(
         form=form,

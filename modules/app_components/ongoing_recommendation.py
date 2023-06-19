@@ -51,7 +51,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
 
     # author's button allowing article edition
     allowEditArticle = False
-    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission"))) and not (quiet):
+    if ((art.user_id == auth.user_id) and (art.status in ("Pending", "Awaiting revision", "Scheduled submission revision", "Pending-survey", "Pre-submission"))) and not (quiet):
         allowEditArticle = True
 
     # manager buttons
@@ -255,7 +255,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable, sch
                 recommendationStepClass = "step-done"
                 recommStatus = recomm.recommendation_state
 
-            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision", "Scheduled submission revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
                 managerDecisionDoneClass = "step-done"
 
             if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
@@ -432,6 +432,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
+        scheduledSubmissionRevision = None
+        if (art.status == "Scheduled submission revision") and (art.user_id == auth.user_id) and not (printable):
+            scheduledSubmissionRevision = URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True)
+
         authorsReplyTrackChangeFileLink = None
         if recomm.track_change:
             authorsReplyTrackChangeFileLink = A(
@@ -493,7 +497,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             )
             # ... but:
             # ... the author for a closed decision/recommendation ...
-            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status == "Awaiting revision"):
+            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status in ("Awaiting revision", "Scheduled submission revision")):
                 hideOngoingReview = False
             # ...  the reviewer himself once accepted ...
             if (review.reviewer_id == auth.user_id) and (review.review_state in ("Awaiting review", "Review completed")):
@@ -631,7 +635,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 editRecommendationButtonText = current.T("Write your decision / recommendation")
 
         scheduledSubmissionEndingButton = False
-        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Scheduled submission under consideration") and not (printable):
+        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status == "Scheduled submission under consideration") and not (printable):
             scheduledSubmissionEndingButton = True
 
         recommendationPdfLink = None
@@ -701,6 +705,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewsList=reviewsList,
             showSearchingForReviewersButton=showSearchingForReviewersButton,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
+            scheduledSubmissionRevision=scheduledSubmissionRevision,
             isScheduledSubmission=is_scheduled_submission(art),
             isScheduledReviewOpen=is_scheduled_review_open(art),
             isArticleSubmitter=(art.user_id == auth.user_id),
@@ -752,7 +757,7 @@ def getManagerButton(art, auth, isRecommender):
     if art.user_id == auth.user_id:
         return None
 
-    if pciRRactivated and auth.has_membership(role="recommender"):
+    if pciRRactivated and (auth.has_membership(role="recommender") or auth.has_membership(role="manager")):
         if art.status == "Scheduled submission pending":
             return validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
 
@@ -870,6 +875,16 @@ def validate_scheduled_submission_button(articleId, **extra_vars):
                 SPAN(current.T("Validate this scheduled submission"), _class="buttontext btn btn-success pci-manager"),
                 _href=URL(c="manager_actions", f="do_validate_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
                 _title=current.T("Click here to validate the full manuscript of this scheduled submission"),
+            ),
+            A(
+                SPAN(current.T("Revise prior to review"), _class="buttontext btn btn-warning pci-manager"),
+                _href=URL(c="recommender_actions", f="revise_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to revise the full manuscript of this scheduled submission"),
+            ),
+            A(
+                SPAN(current.T("Reject without review"), _class="buttontext btn btn-danger pci-manager"),
+                _href=URL(c="recommender_actions", f="reject_scheduled_submission", vars=dict(articleId=articleId, **extra_vars)),
+                _title=current.T("Click here to reject the full manuscript of this scheduled submission"),
             ),
             _class="pci-EditButtons-centered",
     )

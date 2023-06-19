@@ -555,5 +555,41 @@ def do_end_scheduled_submission():
         emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
 
         session.flash = T("Submission now available to reviewers")
+    controller = "recommender"
+    if auth.has_membership(role="manager"):
+        controller = "manager"
+    redirect(URL(c=controller, f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
-    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def revise_scheduled_submission():
+    articleId = request.vars["articleId"]
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    recomm = db.get_last_recomm(articleId)
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    elif  recomm.recommender_id != auth.user_id and not auth.has_membership(role="manager"):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        redirect(URL(c="manager", f="send_submitter_generic_mail", args=["revise_scheduled_submission"], vars=dict(articleId=articleId)))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def reject_scheduled_submission():
+    articleId = request.vars["articleId"]
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    recomm = db.get_last_recomm(articleId)
+    if recomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    elif recomm.recommender_id != auth.user_id and not auth.has_membership(role="manager"):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    else:
+        redirect(URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id, scheduled_reject=True)))

@@ -13,6 +13,7 @@ from gluon.contrib.appconfig import AppConfig
 from app_modules.helper import *
 
 from app_modules import common_small_html
+from app_modules import emailing
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -95,3 +96,10 @@ def mkRecommendationFormat(auth, db, row):
     art = db.t_articles[row.article_id]
     anchor = SPAN(row.recommendation_title, BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi),)
     return anchor
+
+def cancel_scheduled_reviews(session, auth, db, articleId):
+    recomm = db.get_last_recomm(articleId)
+    pendingReviews =  db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state in ("Awaiting review", "Awaiting response"))).select(orderby=db.t_reviews.id)
+    for review in pendingReviews:
+        review.update_record(review_state="Cancelled")
+        db.commit()
