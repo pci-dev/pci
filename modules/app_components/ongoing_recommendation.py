@@ -559,12 +559,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not (hideOngoingReview):
                 # display the review
                 if review.anonymously:
+                    reviewer_number = common_tools.find_reviewer_number(db, review)
                     reviewVars.update(
                         [
                             (
                                 "authors",
                                 SPAN(
-                                    current.T("anonymous reviewer"),
+                                    current.T("anonymous reviewer " + reviewer_number),
                                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                                 ),
                             )

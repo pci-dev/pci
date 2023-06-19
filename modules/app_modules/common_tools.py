@@ -121,3 +121,23 @@ def cancel_decided_article_pending_reviews(db, recomm):
         if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":
             review.review_state = "Cancelled"
             review.update_record()
+
+###################################################################
+
+def find_reviewer_number(db, review):
+    '''
+    function finds a number for the reviewer in order to differentiate between anonymous reviewers;
+    it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.
+    '''
+    reviewer_number = 0
+    current_reviewer = review.reviewer_id
+    print(current_reviewer)
+
+    recommendations = db((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.id == review.recommendation_id)).select()
+    first_recommendation = recommendations[0]
+    article_id = first_recommendation.t_articles.id
+
+    print(article_id)
+
+
+    return str(reviewer_number)
