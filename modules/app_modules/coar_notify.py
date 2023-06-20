@@ -103,7 +103,7 @@ class COARNotifier:
             return False
 
     def send_notification(self, notification, article):
-        """Send a notification to the pre-configured external inbox.
+        """Send a notification to the target inbox (article.doi HTTP header).
 
         This method handles adding the generic bits of the notification (i.e. the
         @context, id, origin and target.
