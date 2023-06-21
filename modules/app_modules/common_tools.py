@@ -133,15 +133,12 @@ def find_reviewer_number(db, review, count_anon):
     article_id = recommendations[0].t_articles.id
     recomms = db(db.t_recommendations.article_id == article_id).select()
 
-    if len(recomms) == 1: # only 1 round of evaluation
+    if len(recomms) == 1:           # there is only 1 round of evaluation
         return str(count_anon)
-    else:                 # 2 or more evaluations try to determine anon numbers from round 1
+    else:                           # 2 or more evaluations, try to determine anon numbers from round 1
         current_reviewer = review.reviewer_id
-        reviews_from_first_recommendation = db(db.t_reviews.recommendation_id == recomms[0].id).select()
+        reviews_from_first_recommendation = db((db.t_reviews.recommendation_id == recomms[0].id) & (db.t_reviews.anonymously == True)).select()
         for i, review_a in enumerate(reviews_from_first_recommendation):
             if review_a.reviewer_id == current_reviewer:
-                #print(review_a)
-                #print('current and bad: ', count_anon)
-                #print('from first: ', i+1)
-                #print('\n')
                 return str(i+1)
+        return str(count_anon+i)
