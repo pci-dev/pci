@@ -69,13 +69,18 @@ class SocialNetwork(metaclass=ABCMeta):
         reviews = Review.get_by_article_id_and_state(self._db, article_id, ReviewState.REVIEW_COMPLETED)
         nb_anonymous = 0
         names: List[str] = []
+        user_id: List[int] = []
         for review in reviews:
-            if review.anonymously:
+            if not review.anonymously and review.reviewer_id not in user_id:
+                names.append(self.__get_user_name(review.reviewer_id))
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        for review in reviews:
+            if review.anonymously and review.reviewer_id not in user_id:
                 nb_anonymous += 1
-            else:
-                name = self.__get_user_name(review.reviewer_id)
-                if name not in names:
-                    names.append(name)
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
         
         if (nb_anonymous > 0):
             anonymous = str(nb_anonymous) + ' anonymous reviewer'
