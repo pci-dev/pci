@@ -5,7 +5,7 @@ from gluon.contrib.appconfig import AppConfig
 from models.article import Article
 from models.post import Post, PostTable
 from models.recommendation import Recommendation
-from models.review import Review
+from models.review import Review, ReviewState
 from models.user import User
 from pydal.base import DAL
 
@@ -65,15 +65,17 @@ class SocialNetwork(metaclass=ABCMeta):
         return name
 
 
-    def __get_reviewers_name(self, recommendation_id: int) -> str:
-        reviews = Review.get_by_recommendation_id(self._db, recommendation_id)
+    def __get_reviewers_name(self, article_id: int) -> str:
+        reviews = Review.get_by_article_id_and_state(self._db, article_id, ReviewState.REVIEW_COMPLETED)
         nb_anonymous = 0
         names: List[str] = []
         for review in reviews:
-            if review.anonymous_agreement:
+            if review.anonymously:
                 nb_anonymous += 1
             else:
-                names.append(self.__get_user_name(review.reviewer_id))
+                name = self.__get_user_name(review.reviewer_id)
+                if name not in names:
+                    names.append(name)
         
         if (nb_anonymous > 0):
             anonymous = str(nb_anonymous) + ' anonymous reviewer'
@@ -88,7 +90,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
     def __generate_post_text(self, article: Article, recommendation: Recommendation) -> str:
         line1 = f'A new #preprint #OpenScience #PeerReview by @{self._tweethash}: {article.authors} ({article.article_year}) {article.title}. {article.preprint_server}, ver. {article.ms_version} peer-reviewed and recommended by {self._description}. {article.doi} '
-        line2 = f'recommended by {self.__get_user_name(recommendation.recommender_id)} for @{self._tweethash} based on published reviews by {self.__get_reviewers_name(recommendation.id)} #OpenScience https://doi.org/{generate_recommendation_doi(article.id)}'
+        line2 = f'recommended by {self.__get_user_name(recommendation.recommender_id)} for @{self._tweethash} based on published reviews by {self.__get_reviewers_name(article.id)} #OpenScience https://doi.org/{generate_recommendation_doi(article.id)}'
         return line1 + line2
 
 
