@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, cast
+from models.typing import _cast, _
 from pydal.objects import Row
 from pydal import DAL
 
@@ -7,31 +7,31 @@ from pydal import DAL
 class Recommendation(Row):
     id: int
     article_id: int
-    recommendation_comments: Union[str, None]
-    recommendation_timestamp: Union[datetime, None]
-    doi: Union[str, None]
+    recommendation_comments: _(str)
+    recommendation_timestamp: _(datetime)
+    doi: _(str)
     recommender_id: int
-    last_change: Union[datetime, None]
-    reply: Union[str, None]
-    is_closed: Union[bool, None]
-    is_press_review: Union[bool, None]
-    auto_nb_agreements: Union[int, None]
-    no_conflict_of_interest: Union[bool, None]
-    recommendation_title: Union[str, None]
-    recommendation_doi: Union[str, None]
-    recommendation_state: Union[str, None]
-    reply_pdf: Union[str, None]
-    reply_pdf_data: Union[bytes, None]
-    track_change: Union[str, None]
-    track_change_data: Union[bytes, None]
-    ms_version: Union[str, None]
-    recommender_file: Union[str, None]
-    recommender_file_data: Union[bytes, None]
-    recommender_details: Union[str, None]
-    author_last_change: Union[datetime, None]
-    validation_timestamp: Union[datetime, None]
+    last_change: _(datetime)
+    reply: _(str)
+    is_closed: _(bool)
+    is_press_review: _(bool)
+    auto_nb_agreements: _(int)
+    no_conflict_of_interest: _(bool)
+    recommendation_title: _(str)
+    recommendation_doi: _(str)
+    recommendation_state: _(str)
+    reply_pdf: _(str)
+    reply_pdf_data: _(bytes)
+    track_change: _(str)
+    track_change_data: _(bytes)
+    ms_version: _(str)
+    recommender_file: _(str)
+    recommender_file_data: _(bytes)
+    recommender_details: _(str)
+    author_last_change: _(datetime)
+    validation_timestamp: _(datetime)
 
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
-        return cast(Union[Recommendation, None], db.t_recommendations[id])
+        return _cast(Recommendation, db.t_recommendations[id])

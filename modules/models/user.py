@@ -1,37 +1,37 @@
 from datetime import datetime
-from typing import cast, Union
+from models.typing import _cast, _
 from pydal.objects import Row
 from pydal import DAL
 
 
 class User(Row):
     id: int
-    first_name: Union[str, None]
-    last_name: Union[str, None]
-    email: Union[str, None]
-    password: Union[str, None]
-    registration_key: Union[str, None]
-    reset_password_key: Union[str, None]
-    registration_id: Union[str, None]
-    picture_data: Union[bytes, None]
-    uploaded_picture: Union[str, None]
-    user_title: Union[str, None]
-    city: Union[str, None]
-    country: Union[str, None]
-    laboratory: Union[str, None]
-    institution: Union[str, None]
-    alerts: Union[str, None]
-    thematics: Union[str, None]
-    cv: Union[str, None]
-    last_alert: Union[datetime, None]
-    registration_datetime: Union[datetime, None]
+    first_name: _(str)
+    last_name: _(str)
+    email: _(str)
+    password: _(str)
+    registration_key: _(str)
+    reset_password_key: _(str)
+    registration_id: _(str)
+    picture_data: _(bytes)
+    uploaded_picture: _(str)
+    user_title: _(str)
+    city: _(str)
+    country: _(str)
+    laboratory: _(str)
+    institution: _(str)
+    alerts: _(str)
+    thematics: _(str)
+    cv: _(str)
+    last_alert: _(datetime)
+    registration_datetime: _(datetime)
     ethical_code_approved: bool
-    recover_email: Union[str, None]
-    recover_email_key: Union[str, None]
-    website: Union[str, None]
-    keywords: Union[str, None]
+    recover_email: _(str)
+    recover_email_key: _(str)
+    website: _(str)
+    keywords: _(str)
 
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
-        return cast(Union[User, None], db.auth_user[id])
+        return _cast(User, db.auth_user[id])

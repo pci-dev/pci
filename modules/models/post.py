@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from typing import List, Union, cast
 from pydal import DAL
 from pydal.objects import Row
