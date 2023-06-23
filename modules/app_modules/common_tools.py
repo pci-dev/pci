@@ -124,7 +124,7 @@ def cancel_decided_article_pending_reviews(db, recomm):
 
 ###################################################################
 
-def find_reviewer_number(db, review, count_anon):
+def find_reviewer_number(db, review, count_anon, iRecomm):
     '''
     function finds a number for the reviewer in order to differentiate between anonymous reviewers;
     it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.
@@ -132,13 +132,16 @@ def find_reviewer_number(db, review, count_anon):
     recommendations = db((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.id == review.recommendation_id)).select()
     article_id = recommendations[0].t_articles.id
     recomms = db(db.t_recommendations.article_id == article_id).select()
-
-    if len(recomms) == 1:           # there is only 1 round of evaluation
-        return str(count_anon)
-    else:                           # 2 or more evaluations, try to determine anon numbers from round 1
+    if iRecomm == len(recomms): return str(count_anon)
+    else:
         current_reviewer = review.reviewer_id
-        reviews_from_first_recommendation = db((db.t_reviews.recommendation_id == recomms[0].id) & (db.t_reviews.anonymously == True)).select()
-        for i, review_a in enumerate(reviews_from_first_recommendation):
-            if review_a.reviewer_id == current_reviewer:
-                return str(i+1)
-        return str(count_anon+i)
+        anon_reviewers = []
+        for recomm in recomms[:-1]:
+            reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
+            for i,review in enumerate(reviews):
+                if review.anonymously == True:
+                    if review.reviewer_id not in anon_reviewers:
+                        anon_reviewers.append(review.reviewer_id)
+                    if review.reviewer_id == current_reviewer:
+                        return str(len(anon_reviewers))
+        return str(len(anon_reviewers) + 1)
