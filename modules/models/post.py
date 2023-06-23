@@ -1,5 +1,5 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
-from typing import List, Union, cast
+from typing import List, Optional, cast
 from pydal import DAL
 from pydal.objects import Row
 from enum import Enum
@@ -18,7 +18,7 @@ class Post(Row):
     thread_position: int
     article_id: int
     recommendation_id: int
-    parent_id: Union[int, None]
+    parent_id: Optional[int]
 
 
     def __init__(self, post_id: int, text_content: str, thread_position: int, article_id: int, recommendation_id: int, parent_id: Union[int, None]):
