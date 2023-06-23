@@ -1,9 +1,20 @@
 from datetime import datetime
-from typing import Iterable, Union, cast
-from pydal.objects import Row
+from enum import Enum
+from typing import Iterable, List, Union, cast
+from pydal.objects import Row, Rows
 from pydal import DAL
 
-
+class ReviewState(Enum):
+    CANCELLED = 'Cancelled'
+    ASK_FOR_REVIEW = 'Ask for review'
+    DECLINED_BY_RECOMMENDER = 'Declined by recommender'
+    AWAITING_REVIEW = 'Awaiting review'
+    AWAITING_RESPONSE = 'Awaiting response'
+    DECLINED_MANUALLY = 'Declined manually'
+    WILLING_TO_REVIEW = 'Willing to review'
+    DECLINED = 'Declined'
+    REVIEW_COMPLETED = 'Review completed'
+    
 class Review(Row):
     id: int
     recommendation_id: int
@@ -32,3 +43,12 @@ class Review(Row):
     @staticmethod
     def get_by_recommendation_id(db: DAL, id: int):
         return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
+    
+
+    @staticmethod
+    def get_by_article_id_and_state(db: DAL, article_id: int, state: ReviewState):
+        recommendations_id = cast(Rows, db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id))
+        reviews = cast(List[Review],db((db.t_reviews.review_state == state.value) & (db.t_reviews.recommendation_id).belongs(recommendations_id)).select())
+        return reviews
+
+
