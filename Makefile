@@ -122,6 +122,9 @@ test.review.no-upload:
 	cd tests; RR_SCHEDULED_TRACK=1 \
 	pytest -v -k "review_article and Reviewer"
 
+test_%:
+	(cd tests; pytest -xv $@)
+
 delete.external.user:
 	$(psql) main -c "delete from auth_user where first_name='Titi';"
 

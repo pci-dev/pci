@@ -42,6 +42,8 @@ class Hypothesis:
             return
 
         article_url = self.get_url_from_doi()
+        if not article_url:
+            return
         
         if not self.has_stored_annotation():
             annotation_text = self.generate_annotation_text()
@@ -106,8 +108,11 @@ class Hypothesis:
 
 
     def get_url_from_doi(self) -> str:
-        response = HttpClient().get(self.__article.doi, None, allow_redirects=True)
-        return response.url
+        try:
+            response = HttpClient().get(self.__article.doi, None, allow_redirects=True)
+            return response.url
+        except:
+            return ""
 
 
     def __get_PCI_group_id(self) -> str:
