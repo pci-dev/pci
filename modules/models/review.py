@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Iterable, List, Optional, cast
+from typing import Iterable, List, Optional as _, cast
 from pydal.objects import Row, Rows
 from pydal import DAL
 
@@ -20,25 +20,25 @@ class Review(Row):
     id: int
     recommendation_id: int
     reviewer_id: int
-    review: Optional[str]
-    last_change: Optional[datetime]
-    is_closed: Optional[bool]
-    anonymously: Optional[bool]
-    review_state: Optional[str]
-    no_conflict_of_interest: Optional[bool]
-    review_pdf: Optional[str]
-    review_pdf_data: Optional[bytes]
-    acceptation_timestamp: Optional[datetime]
-    emailing: Optional[str]
-    quick_decline_key: Optional[str]
-    reviewer_details: Optional[str]
-    review_duration: Optional[datetime]
-    anonymous_agreement: Optional[bool]
+    review: _[str]
+    last_change: _[datetime]
+    is_closed: _[bool]
+    anonymously: _[bool]
+    review_state: _[str]
+    no_conflict_of_interest: _[bool]
+    review_pdf: _[str]
+    review_pdf_data: _[bytes]
+    acceptation_timestamp: _[datetime]
+    emailing: _[str]
+    quick_decline_key: _[str]
+    reviewer_details: _[str]
+    review_duration: _[datetime]
+    anonymous_agreement: _[bool]
 
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
-        return cast(Optional[Review], db.t_reviews[id])
+        return cast(_[Review], db.t_reviews[id])
 
 
     @staticmethod
