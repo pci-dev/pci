@@ -21,7 +21,7 @@ class Post(Row):
     parent_id: _[int]
 
 
-    def __init__(self, post_id: int, text_content: str, thread_position: int, article_id: int, recommendation_id: int, parent_id: Union[int, None]):
+    def __init__(self, post_id: int, text_content: str, thread_position: int, article_id: int, recommendation_id: int, parent_id: _[int]):
         self.post_id = post_id
         self.text_content = text_content
         self.thread_position = thread_position
