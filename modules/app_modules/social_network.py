@@ -76,6 +76,8 @@ class SocialNetwork(metaclass=ABCMeta):
                 if review.reviewer_id:
                     user_id.append(review.reviewer_id)
         
+        user_id.clear()
+
         for review in reviews:
             if review.anonymously and review.reviewer_id not in user_id:
                 nb_anonymous += 1
