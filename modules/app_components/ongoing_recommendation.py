@@ -560,7 +560,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 # display the review
                 if review.anonymously:
                     count_anon += 1
-                    reviewer_number = common_tools.find_reviewer_number(db, review, count_anon, iRecomm)
+                    reviewer_number = common_tools.find_reviewer_number(db, review, count_anon)
                     reviewVars.update(
                         [
                             (
