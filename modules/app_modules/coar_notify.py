@@ -103,7 +103,7 @@ class COARNotifier:
             return False
 
     def send_notification(self, notification, article):
-        """Send a notification to the pre-configured external inbox.
+        """Send a notification to the target inbox (article.doi HTTP header).
 
         This method handles adding the generic bits of the notification (i.e. the
         @context, id, origin and target.
@@ -307,6 +307,15 @@ class COARNotifier:
 
 
 def get_target_inbox(article):
+    for _ in range(5):
+        inbox = _get_target_inbox(article)
+
+        if inbox: break
+
+    return inbox
+
+
+def _get_target_inbox(article):
     """Grab the inbox url from the Link entry (if any) provided by the repo
     We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
     """
