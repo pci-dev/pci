@@ -474,7 +474,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
             orderby=db.t_reviews.id
         )
-
+        count_anon = 0
         for review in reviews:
             if review.review_state == "Awaiting review":
                 existOngoingReview = True
@@ -559,12 +559,14 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not (hideOngoingReview):
                 # display the review
                 if review.anonymously:
+                    count_anon += 1
+                    reviewer_number = common_tools.find_reviewer_number(db, review, count_anon)
                     reviewVars.update(
                         [
                             (
                                 "authors",
                                 SPAN(
-                                    current.T("anonymous reviewer"),
+                                    current.T("anonymous reviewer " + reviewer_number),
                                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                                 ),
                             )
