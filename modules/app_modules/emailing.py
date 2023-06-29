@@ -2207,7 +2207,7 @@ def create_reminder_for_submitter_revised_version_warning(session, auth, db, art
     if article and recomm:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
-
+        mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionWarning", article)
@@ -2225,7 +2225,7 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
     if article and recomm:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
-
+        mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionNeeded", article)
