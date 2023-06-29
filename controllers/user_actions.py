@@ -194,11 +194,8 @@ def decline_new_review():
         session.flash = T("Review state has been changed")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
-    # db(db.t_reviews.id==reviewId).delete()
-    rev.review_state = "Declined"
-    rev.update_record()
     # email to recommender sent at database level
-    redirect(URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), user_signature=True))
+    redirect(URL(c="user_actions", f="decline_review_confirmed", vars=dict(pendingOnly=True,key=rev.quick_decline_key,reviewId=rev.id), user_signature=True))
 
 
 ######################################################################################################################################################################
@@ -217,6 +214,7 @@ def decline_review(): # no auth required
 
 def _check_decline_review_request():
     reviewId = request.vars["id"]
+    if reviewId == None: reviewId = request.vars["reviewId"]
     quickDeclineKey = request.vars["key"]
 
     review = db.t_reviews[reviewId]
