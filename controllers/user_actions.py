@@ -255,7 +255,7 @@ def _decline_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            H4(message, _class="decline-review-title"),
+            P(message),
             form if form else DIV(_style="height: 20em;"),
         )
     )
@@ -285,7 +285,7 @@ def _accept_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            H4(message, _class="decline-review-title"),
+            P(message),
             form if form else DIV(_style="height: 20em;"),
         )
     )
