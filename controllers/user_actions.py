@@ -246,7 +246,7 @@ def decline_review_confirmed(): # no auth required
             db(db.auth_user.id == review.reviewer_id).delete()
 
         message = T("Thank you for taking the time to decline this invitation!")
-        form = app_forms.getSendMessageForm(review.quick_decline_key)
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'decline')
 
     return _decline_review_page(message, form)
 
@@ -273,7 +273,7 @@ def accept_review_confirmed(): # no auth required
         db(db.auth_user.id == review.reviewer_id).delete()
 
     message = T("Thank you for accepting to review this article!")
-    form = app_forms.getSendMessageForm(review.quick_decline_key)
+    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept')
 
     return _accept_review_page(message, form)
 

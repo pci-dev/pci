@@ -104,10 +104,13 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
 
 
 ######################################################################################################################################################################
-def getSendMessageForm(declineKey):
+def getSendMessageForm(declineKey, response):
+    if response == 'accept': text = ' also '
+    else: text = ' '
+
     return FORM(
         DIV(
-            H4("We welcome your suggestions on who might also be a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):", _class="decline-review-title")
+            H4("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title")
         ),
         DIV(
             TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _style="resize: none")
