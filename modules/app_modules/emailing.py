@@ -1892,7 +1892,9 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
         if article:
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+            reviewerPerson = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+            if list(reviewerPerson) == ['?']: mail_vars["reviewerPerson"] = '<span>%s</span>'%review.reviewer_details
+            else: mail_vars["reviewerPerson"] = reviewerPerson
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["linkTarget"] = URL(
                 c="recommender",
@@ -1904,12 +1906,15 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
             )
     
             mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
-    
-            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
+
+            if review.review_state in ["Awaiting response", "Awaiting review", "Willing to review", "Review completed"]:
+                hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewersaccepted", article)
+            else:
+                hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
     
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    
+
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################

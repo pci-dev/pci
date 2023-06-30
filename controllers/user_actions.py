@@ -171,10 +171,9 @@ def do_accept_new_review():
     rev.acceptation_timestamp = datetime.datetime.now()
     rev.anonymous_agreement=request.vars["anonymous_agreement"] or False
     rev.update_record()
-    # email to recommender sent at database level
-    recomm = db.t_recommendations[rev.recommendation_id]
-    redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm.article_id)))
-    # redirect(URL(c='user', f='my_reviews', vars=dict(pendingOnly=False), user_signature=True))
+
+    redirect(URL(c="user_actions", f="accept_review_confirmed", vars=request.vars))
+
 
 
 ######################################################################################################################################################################
@@ -195,11 +194,8 @@ def decline_new_review():
         session.flash = T("Review state has been changed")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
 
-    # db(db.t_reviews.id==reviewId).delete()
-    rev.review_state = "Declined"
-    rev.update_record()
     # email to recommender sent at database level
-    redirect(URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), user_signature=True))
+    redirect(URL(c="user_actions", f="decline_review_confirmed", vars=dict(pendingOnly=True,key=rev.quick_decline_key,reviewId=rev.id), user_signature=True))
 
 
 ######################################################################################################################################################################
@@ -218,6 +214,7 @@ def decline_review(): # no auth required
 
 def _check_decline_review_request():
     reviewId = request.vars["id"]
+    if reviewId == None: reviewId = request.vars["reviewId"]
     quickDeclineKey = request.vars["key"]
 
     review = db.t_reviews[reviewId]
@@ -249,7 +246,7 @@ def decline_review_confirmed(): # no auth required
             db(db.auth_user.id == review.reviewer_id).delete()
 
         message = T("Thank you for taking the time to decline this invitation!")
-        form = app_forms.getSendMessageForm(review.quick_decline_key)
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'decline')
 
     return _decline_review_page(message, form)
 
@@ -258,10 +255,41 @@ def _decline_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            H4(message, _class="decline-review-title"),
+            P(message),
             form if form else DIV(_style="height: 20em;"),
         )
     )
+
+
+def accept_review_confirmed(): # no auth required
+    '''
+    if reviewer accepts invitation, also ask them for more reviewer suggestions
+    '''
+    reviewId = request.vars["reviewId"]
+    review = db.t_reviews[reviewId[0]]
+
+    user = db.auth_user[review.reviewer_id]
+    if user and user.reset_password_key:
+        db(db.auth_user.id == review.reviewer_id).delete()
+
+    message = T("Thank you for accepting to review this article!")
+    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept')
+
+    return _accept_review_page(message, form)
+
+
+def _accept_review_page(message, form):
+    '''
+    if reviewer accepts invitation, also ask them for more reviewer suggestions
+    '''
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(message),
+            form if form else DIV(_style="height: 20em;"),
+        )
+    )
+
 
 def send_suggested_reviewers():
     text = request.post_vars.suggested_reviewers_text
