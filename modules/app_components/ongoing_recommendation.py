@@ -948,6 +948,9 @@ def validation_checklist(validation_type):
 
             "recommendation_cites":
             "The recommendation text cites at least the recommended preprint",
+
+            "format_ok":
+            "The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)",
         }
     elif validation_type in ['do_revise_article', 'do_reject_article']:
         checkboxes = {
