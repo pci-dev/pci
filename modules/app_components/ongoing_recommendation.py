@@ -904,6 +904,15 @@ def validation_checklist():
 
         "scope_ok":
         "Scope is ok",
+
+        "information_consistent":
+        "The information about the data/scripts/codes on the submission page and in the manuscript are consistent",
+
+        "no_plagiarism":
+        "No plagiarism has been detected ",
+        
+        "no_conflicts":
+        "There are no conflicts of interest between suggested recommenders and the authors",
     }
     fields = [
         DIV(INPUT(
@@ -911,7 +920,7 @@ def validation_checklist():
             _type="checkbox",
             _id=name,
             requires=IS_NOT_EMPTY(),
-        ), LABEL(H5(label), _for=name))
+        ), LABEL(H5(label), _for=name), _id='chckbxs_mandatory')
         for name, label in checkboxes.items()
     ]
     script = common_tools.get_script("validate_submission.js")
