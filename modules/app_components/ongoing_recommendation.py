@@ -808,12 +808,17 @@ def validate_stage_button(art):
                 if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
                     onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
 
-                return manager_action_button(
+                button = manager_action_button(
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
                     art, send_back_button(art), onclick=onclick_content
                 )
+
+                return SPAN(
+                    validation_checklist() if not pciRRactivated else "",
+                    button)
+            
             elif art.status == "Pre-revision":
                 return manager_action_button(
                     "do_revise_article",
@@ -910,9 +915,6 @@ def validation_checklist():
 
         "no_plagiarism":
         "No plagiarism has been detected ",
-        
-        "no_conflicts":
-        "There are no conflicts of interest between suggested recommenders and the authors",
     }
     fields = [
         DIV(INPUT(
