@@ -792,7 +792,7 @@ def validate_stage_button(art):
                     put_in_presubmission_button(art) if pciRRactivated else "",
                 )
                 return SPAN(
-                    validation_checklist() if not pciRRactivated else "",
+                    validation_checklist('do_validate_article') if not pciRRactivated else "",
                     button)
             elif art.status == "Pre-submission":
                 return manager_action_button(
@@ -808,28 +808,54 @@ def validate_stage_button(art):
                 if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
                     onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
 
-                return manager_action_button(
+                button = manager_action_button(
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
                     art, send_back_button(art), onclick=onclick_content
                 )
+
+                return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
+                    "To be checked",
+                    _style="margin-top:40px", 
+                    _id="title-recomm-process", 
+                    _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
+                    validation_checklist('do_recommend_article') if not pciRRactivated else "",
+                    button)
+            
             elif art.status == "Pre-revision":
-                return manager_action_button(
+                button = manager_action_button(
                     "do_revise_article",
                     "Validate this decision",
                     "Click here to validate revision of this article",
                     art, send_back_button(art),
                     style="info",
                 )
+
+                return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
+                    "To be checked",
+                    _style="margin-top:40px", 
+                    _id="title-recomm-process", 
+                    _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
+                    validation_checklist('do_revise_article') if not pciRRactivated else "",
+                    button)
             elif art.status == "Pre-rejected":
-                return manager_action_button(
+                button = manager_action_button(
                     "do_reject_article",
                     "Validate this rejection",
                     "Click here to validate the rejection of this article",
                     art, send_back_button(art),
                     style="info",
                 )
+
+                return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
+                    "To be checked",
+                    _style="margin-top:40px", 
+                    _id="title-recomm-process", 
+                    _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
+                    validation_checklist('do_reject_article') if not pciRRactivated else "",
+                    button)
+            
             elif art.status == "Scheduled submission pending":
                 managerButton = validate_scheduled_submission_button(articleId=art.id)
 
@@ -891,27 +917,60 @@ def validate_scheduled_submission_button(articleId, **extra_vars):
             _class="pci-EditButtons-centered",
     )
 
-def validation_checklist():
-    checkboxes = {
-        "article_doi_correct":
-        "DOI/URL of article is correct",
+def validation_checklist(validation_type):
+    if validation_type == 'do_validate_article':
+        checkboxes = {
+            "article_doi_correct":
+            "DOI/URL of article is correct",
 
-        "data_ok":
-        "Link for data is ok",
+            "data_ok":
+            "Link for data is ok",
 
-        "code_and_scripts_ok":
-        "Link for code and scripts is ok",
+            "code_and_scripts_ok":
+            "Link for code and scripts is ok",
 
-        "scope_ok":
-        "Scope is ok",
-    }
+            "scope_ok":
+            "Scope is ok",
+
+            "information_consistent":
+            "The information about the data/scripts/codes on the submission page and in the manuscript are consistent",
+
+            "no_plagiarism":
+            "No plagiarism has been detected ",
+        }
+    elif validation_type == 'do_recommend_article':
+        checkboxes = {
+            "title_present":
+            "The recommendation has a title",
+
+            "recommendation_explains":
+            "The recommendation explains why the article is recommended",
+
+            "recommendation_cites":
+            "The recommendation text cites at least the recommended preprint",
+
+            "format_ok":
+            "The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)",
+        }
+    elif validation_type in ['do_revise_article', 'do_reject_article']:
+        checkboxes = {
+            "reviews_ok":
+            "Reviews are not too short, are comprehensive and look fine in their tone",
+
+            "reviews_not_copied":
+            "Reviews have not been copied by the recommender in their editorial decision box",
+
+            "decision_ok":
+            "The editorial decision looks fine on the tone and is overall in agreement with the reviews",
+        }
+
     fields = [
         DIV(INPUT(
             _name=name,
             _type="checkbox",
             _id=name,
             requires=IS_NOT_EMPTY(),
-        ), LABEL(H5(label), _for=name))
+        ), LABEL(H5(label), _for=name), _id='chckbxs_mandatory')
         for name, label in checkboxes.items()
     ]
     script = common_tools.get_script("validate_submission.js")

@@ -19,4 +19,18 @@ jQuery(document).ready(function() {
   jQuery(list).find("input").change(function() {
     checkAllTrue()
   });
+
+  createLinkFromText();
 });
+
+
+function createLinkFromText() {
+  var plagiarism_label = document.querySelector('[for=no_plagiarism] h5');
+  var a = document.createElement('a');
+  var link = document.createTextNode('(ithenticate)');
+  a.appendChild(link);
+  a.title = 'ithenticate';
+  a.href = 'https://crosscheck.ithenticate.com/en_us/folder';
+  a.target = '_blank';
+  plagiarism_label.append(a)
+}

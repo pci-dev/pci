@@ -150,6 +150,8 @@ class Manager_validates:
         select("#data_ok").click()
         select("#code_and_scripts_ok").click()
         select("#scope_ok").click()
+        select("#information_consistent").click()
+        select("#no_plagiarism").click()
     select(".btn-success", "Validate this submission".upper()).click()
     select.notif("Request now available to recommenders").wait_clickable()
 
