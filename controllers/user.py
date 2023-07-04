@@ -102,7 +102,9 @@ def recommendations():
         scheduledSubmissionRemaningDays = None
         scheduledSubmissionForm = None
         if scheduledSubmissionActivated and art.status != "Cancelled" and art.user_id == auth.user_id:
-            db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
+            db.t_articles.doi.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],
+                    prepend_scheme='https',
+                    error_message=T("Cannot be empty"))
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
             # Show form and get remaining days
