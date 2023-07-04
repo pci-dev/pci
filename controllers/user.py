@@ -102,7 +102,9 @@ def recommendations():
         scheduledSubmissionRemaningDays = None
         scheduledSubmissionForm = None
         if scheduledSubmissionActivated and art.status != "Cancelled" and art.user_id == auth.user_id:
-            db.t_articles.doi.requires = IS_NOT_EMPTY(error_message=T("Cannot be empty"))
+            db.t_articles.doi.requires = IS_URL(mode='generic',allowed_schemes=['http', 'https'],
+                    prepend_scheme='https',
+                    error_message=T("Cannot be empty"))
             scheduledSubmissionForm = SQLFORM(db.t_articles, articleId, fields=["doi", "ms_version"], keepvalues=True, showid=False)
 
             # Show form and get remaining days
@@ -400,7 +402,6 @@ def fill_new_article():
 
         db.t_articles.report_stage.requires = IS_IN_SET(("STAGE 1", "STAGE 2"))
         db.t_articles.ms_version.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
-        db.t_articles.doi.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
@@ -602,7 +603,6 @@ def edit_my_article():
 
         db.t_articles.report_stage.requires = IS_IN_SET(("STAGE 1", "STAGE 2"))
         db.t_articles.ms_version.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
-        db.t_articles.doi.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
