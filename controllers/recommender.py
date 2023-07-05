@@ -1182,13 +1182,20 @@ def reviewers():
                 if len(suggested_by_author) > 0:
                     suggested_reviewers_by_author = DIV(
                         BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                        DIV(P(UL(suggested_by_author)), _class="content2"),
-                        H5(B("You may invite them by clicking on one of the buttons below")))
+                        DIV(P(UL(suggested_by_author),
+                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            _class="content2"),
+                        )
                 if len(suggested_by_reviewers) > 0:
-                    suggested_reviewers_by_reviewers = DIV(
-                        BUTTON(H4(B("Alternative reviewers suggested by invited authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                        DIV(P(UL(suggested_by_reviewers)), _class="content2"),
-                        H5(B("You may invite them by clicking on one of the buttons below")))
+                    suggested_reviewers_by_reviewers = DIV()
+                    suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
+                    reviewer_box = DIV(_class="content2")
+                    for reviewer in suggested_by_reviewers:
+                        reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
+                        reviewer_box.append(reviewer_ul)
+                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    suggested_reviewers_by_reviewers.append(reviewer_box)
+                        
             if article.competitors:
                 oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
@@ -2566,9 +2573,18 @@ def mail_form_processing(form):
 def separate_suggestions(suggested_reviewers):
     suggested_by_author = []
     suggested_by_reviewers = []
-
+    suggestor_2_suggestions = {}
     for reviewer in suggested_reviewers:
-        if ' suggested:' in reviewer: suggested_by_reviewers.append(reviewer)
+        if ' suggested:' in reviewer:
+            suggestor_re = re.match('(.*) suggested:(.*)', reviewer)
+            suggestor = suggestor_re.group(1)
+            suggestion = suggestor_re.group(2)
+            if suggestor in suggestor_2_suggestions.keys():
+                suggestions = suggestor_2_suggestions[suggestor]
+                suggestions.append(suggestion)
+                suggestor_2_suggestions[suggestor] = suggestions
+            else:
+                suggestor_2_suggestions[suggestor] = [suggestion]
         else: suggested_by_author.append(reviewer)
 
-    return suggested_by_author, suggested_by_reviewers
+    return suggested_by_author, suggestor_2_suggestions
