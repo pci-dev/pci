@@ -314,17 +314,13 @@ def add_suggest_reviewers_to_article(article, review, text):
     '''
     suggested_reviewers = article[0].t_articles.suggest_reviewers
     reviewer = db(db.auth_user.id == review.reviewer_id).select()
-    reviewer_name = common_small_html.mkUserWithMailNoSpan(auth, db, reviewer[0].id)
-
+    reviewer_name = common_small_html.mkUserNoSpan(auth, db, reviewer[0].id)
+    
     for suggestion in text.split('\n'):
         if len(suggestion.strip()) > 0:
-            suggested_reviewers.append('%s suggested: '%reviewer_name + suggestion)
+            suggested_reviewers.append('%s suggested: %s'%(reviewer_name, suggestion))
     article[0].t_articles.suggest_reviewers = suggested_reviewers
     article[0].t_articles.update_record()
-
-    #print(review)
-
-
 
 
 ######################################################################################################################################################################
