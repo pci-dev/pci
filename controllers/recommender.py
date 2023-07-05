@@ -1173,11 +1173,16 @@ def reviewers():
         if recomm_round > 1:
             prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
-        suggested_reviewers = ""
+        suggested_reviewers_by_author = ""
+        suggested_reviewers_by_reviewers = ""
         oppossed_reviewers = ""
         if not pciRRactivated:
             if article.suggest_reviewers:
-                suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(article.suggest_reviewers), H5(B("You may invite them by clicking on one of the buttons below")))
+                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                if len(suggested_by_author) > 0:
+                    suggested_reviewers_by_author = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(suggested_by_author), H5(B("You may invite them by clicking on one of the buttons below")))
+                if len(suggested_by_reviewers) > 0:
+                    suggested_reviewers_by_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by invited reviewers)")), UL(suggested_by_reviewers), H5(B("You may invite them by clicking on one of the buttons below")))
             if article.competitors:
                 oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
@@ -1210,6 +1215,7 @@ def reviewers():
             )
         else:
             myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="manager", f="all_recommendations")), _style="margin-top:16px; text-align:center;")
+
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderAddReviewers"),
             customText=customText,
@@ -1218,7 +1224,8 @@ def reviewers():
             myAcceptBtn=myAcceptBtn,
             content=myContents,
             prevContent=prevRoundHeader,
-            suggested_reviewers=suggested_reviewers,
+            suggested_reviewers_by_author=suggested_reviewers_by_author,
+            suggested_reviewers_by_reviewers=suggested_reviewers_by_reviewers,
             oppossed_reviewers=oppossed_reviewers,
             form="",
             myUpperBtn=myUpperBtn,
@@ -2545,3 +2552,14 @@ def article_reviews_emails():
 
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+
+
+def separate_suggestions(suggested_reviewers):
+    suggested_by_author = []
+    suggested_by_reviewers = []
+
+    for reviewer in suggested_reviewers:
+        if ' suggested:' in reviewer: suggested_by_reviewers.append(reviewer)
+        else: suggested_by_author.append(reviewer)
+
+    return suggested_by_author, suggested_by_reviewers
