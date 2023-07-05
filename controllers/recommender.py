@@ -2115,8 +2115,8 @@ def edit_recommendation():
 
         if pciRRactivated and art.report_stage == "STAGE 2" and art.art_stage_1_id is not None:
             stage1_recomm = db((db.t_recommendations.article_id == art.art_stage_1_id)).select(orderby=db.t_recommendations.id).last()
-            form.vars.recommendation_title = stage1_recomm.recommendation_title
-            form.vars.recommendation_comments = stage1_recomm.recommendation_comments
+            form.vars.recommendation_title = recomm.recommendation_title or stage1_recomm.recommendation_title
+            form.vars.recommendation_comments = recomm.recommendation_comments or stage1_recomm.recommendation_comments
 
         if form.process().accepted:
             if form.vars.save:
