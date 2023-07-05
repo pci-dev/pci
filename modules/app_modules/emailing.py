@@ -2814,9 +2814,15 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
         mail_vars["reviewDuration"] = default_review_duration.lower()
 
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
+    if pciRRactivated:
+        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(article)
+        mail_vars["scheduledSubmissionLatestReviewStartDate"] = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        mail_vars["scheduledReviewDueDate"] = sched_sub_vars["scheduledReviewDueDate"]
+        mail_vars["scheduledSubmissionDate"] = sched_sub_vars["scheduledSubmissionDate"]
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+    hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -2862,6 +2868,8 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
     if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleAuthors"] = article.authors
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionSoonDue", article)
 
@@ -2885,6 +2893,8 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
     if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleAuthors"] = article.authors
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionDue", article)
 
@@ -2906,6 +2916,8 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleAuthors"] = article.authors
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
