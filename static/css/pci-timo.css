@@ -1103,6 +1103,7 @@
         padding: 0;
         margin: 0;
         box-shadow: none;
+        text-transform: none;
     }
 
     .collapsible2:hover,
