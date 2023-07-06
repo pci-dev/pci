@@ -1135,9 +1135,16 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
         prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
             db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
         )
-        text = "Choose a reviewer from the previous round of review"
+        text = "Reviewers from the previous round of review"
     prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
-    prevRoundHeader = DIV(H4(B(text)), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+    prevRoundHeader = DIV(
+        BUTTON(H4(B(text, SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+        DIV(P(UL(prevReviewersList)),
+        _class="content2",              
+        _style="width:100%; max-width: 1200px"))
+    
+
+
     customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
     return prevRoundHeader, customText
@@ -1197,7 +1204,10 @@ def reviewers():
                     suggested_reviewers_by_reviewers.append(reviewer_box)
                         
             if article.competitors:
-                oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
+                oppossed_reviewers = DIV(
+                    BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
+                    DIV(P(UL(article.competitors)),
+                          __class="content2"),)
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
@@ -1206,7 +1216,11 @@ def reviewers():
         reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
         excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
-            myContents = DIV(H4(B("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
+            myContents = DIV(
+                BUTTON(H4(B("Reviewers already invited:", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                DIV(P(UL(reviewersList)),
+                _class="content2",
+                _style="width:100%; max-width: 1200px"))
         else:
             myContents = ""
         longname = myconf.take("app.longname")
