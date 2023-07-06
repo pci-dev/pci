@@ -314,7 +314,8 @@ def add_suggest_reviewers_to_article(article, review, text):
     '''
     suggested_reviewers = article[0].t_articles.suggest_reviewers
     reviewer = db(db.auth_user.id == review.reviewer_id).select()
-    reviewer_name = common_small_html.mkUserNoSpan(auth, db, reviewer[0].id)
+    try: reviewer_name = common_small_html.mkUserNoSpan(auth, db, reviewer[0].id)
+    except: reviewer_name = review.reviewer_details
     
     for suggestion in text.split('\n'):
         if len(suggestion.strip()) > 0:
