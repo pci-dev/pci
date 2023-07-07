@@ -312,7 +312,7 @@ def add_suggest_reviewers_to_article(article, review, text):
     '''
     Adds suggested reviewers to article
     '''
-    suggested_reviewers = article[0].t_articles.suggest_reviewers
+    suggested_reviewers = article[0].t_articles.suggest_reviewers or []
     reviewer = db(db.auth_user.id == review.reviewer_id).select()
     try: reviewer_name = common_small_html.mkUserNoSpan(auth, db, reviewer[0].id)
     except: reviewer_name = review.reviewer_details
