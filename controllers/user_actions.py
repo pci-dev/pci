@@ -319,7 +319,10 @@ def add_suggest_reviewers_to_article(article, review, text):
     
     for suggestion in text.split('\n'):
         if len(suggestion.strip()) > 0:
-            suggested_reviewers.append('%s suggested: %s'%(reviewer_name, suggestion))
+            if suggested_reviewers != None:
+                suggested_reviewers.append('%s suggested: %s'%(reviewer_name, suggestion))
+            else:
+                suggested_reviewers = '%s suggested: %s'%(reviewer_name, suggestion)
     article[0].t_articles.suggest_reviewers = suggested_reviewers
     article[0].t_articles.update_record()
 
