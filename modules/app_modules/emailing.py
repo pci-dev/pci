@@ -1908,7 +1908,7 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
             mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
 
             if review.review_state in ["Awaiting response", "Awaiting review", "Willing to review", "Review completed"]:
-                hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewersaccepted", article)
+                hashtag_template = "#RecommenderSuggestedReviewersAccepted"
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
