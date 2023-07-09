@@ -1250,6 +1250,8 @@ def reviewDone(s, f):
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
 
         elif o["review_state"] == "Willing to review" and f["review_state"] == "Awaiting review":
@@ -1289,6 +1291,8 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
 
         # remove reminders if review declined or canceled
         # irrespective of previous state
@@ -1327,6 +1331,8 @@ def reviewDone(s, f):
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
         
         if no_of_completed_reviews >= 2 and o["review_state"] in ["Willing to review", "Awaiting response"] and f["review_state"] == "Awaiting review":
