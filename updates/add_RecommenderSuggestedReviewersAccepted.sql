@@ -1,4 +1,0 @@
-INSERT INTO "mail_templates"("hashtag","lang","subject","description","contents")
-VALUES
-(E'#RecommenderSuggestedReviewersAccepted',E'default',E'{{appName}}: suggested reviewer',E'Mail to recommender to notify reviewer declined invitation and suggests alternative reviewers',E'<p>Dear {{destPerson}},</p>\n<p>The reviewer {{reviewerPerson}} who just accepted your invitation to review the preprint entitled <strong>{{articleTitle}}</strong> suggests the following reviewers:</p>\n<p>{{suggestedReviewersText}}</p>\n<p>You can invite these reviewers by following this link <a href="{{linkTarget}}">{{linkTarget}}</a> or by logging onto the {{appName}} website and going to \'For recommenders —&gt; Preprint(s) you are handling’ in the top menu.</p>\n<p>We thank you again for managing this evaluation.</p>\n<p>All the best,<br>The Managing Board of {{appName}}</p>')
-;
