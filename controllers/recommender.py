@@ -1212,19 +1212,20 @@ def reviewers():
                           __class="content2"),)
         else:
             report = db.t_report_survey[recomm.article_id]
-            if report.q8:
-                suggested_reviewers_by_author = DIV(
-                    BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                    DIV(P(UL(report.q8),
-                        H5(B("You may invite them by clicking on one of the buttons below"))),
-                        _class="content2"),
-                    )
-            if report.q9:
-                oppossed_reviewers = DIV(
-                    BUTTON(H4(B("Opposed reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                    DIV(P(UL(report.q9),),
-                        _class="content2"),
-                    )
+            if report:
+                if report.q8:
+                    suggested_reviewers_by_author = DIV(
+                        BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                        DIV(P(UL(report.q8),
+                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            _class="content2"),
+                        )
+                if report.q9:
+                    oppossed_reviewers = DIV(
+                        BUTTON(H4(B("Opposed reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                        DIV(P(UL(report.q9),),
+                            _class="content2"),
+                        )
             if article.suggest_reviewers:
                 suggested_reviewers_by_reviewers = DIV(
                     BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
