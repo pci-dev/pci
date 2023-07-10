@@ -1225,6 +1225,13 @@ def reviewers():
                     DIV(P(UL(report.q9),),
                         _class="content2"),
                     )
+            if article.suggest_reviewers:
+                suggested_reviewers_by_reviewers = DIV(
+                    BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                    DIV(P(UL(article.suggest_reviewers),
+                        H5(B("You may invite them by clicking on one of the buttons below"))),
+                        _class="content2"),
+                    )
         
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
