@@ -1210,6 +1210,22 @@ def reviewers():
                     BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
                     DIV(P(UL(article.competitors)),
                           __class="content2"),)
+        else:
+            report = db.t_report_survey[recomm.article_id]
+            if report.q8:
+                suggested_reviewers_by_author = DIV(
+                    BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                    DIV(P(UL(report.q8),
+                        H5(B("You may invite them by clicking on one of the buttons below"))),
+                        _class="content2"),
+                    )
+            if report.q9:
+                oppossed_reviewers = DIV(
+                    BUTTON(H4(B("Opposed reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                    DIV(P(UL(report.q9),),
+                        _class="content2"),
+                    )
+        
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
