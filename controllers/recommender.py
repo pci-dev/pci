@@ -1211,19 +1211,19 @@ def reviewers():
                     DIV(P(UL(article.competitors)),
                           __class="content2"),)
         else:
-            report = db.t_report_survey[recomm.article_id]
+            report = db(db.t_report_survey.article_id == recomm.article_id).select()
             if report:
-                if report.q8:
+                if report[0].q8:
                     suggested_reviewers_by_author = DIV(
                         BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                        DIV(P(UL(report.q8),
+                        DIV(P(UL(report[0].q8),
                             H5(B("You may invite them by clicking on one of the buttons below"))),
                             _class="content2"),
                         )
-                if report.q9:
+                if report[0].q9:
                     oppossed_reviewers = DIV(
                         BUTTON(H4(B("Opposed reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                        DIV(P(UL(report.q9),),
+                        DIV(P(UL(report[0].q9),),
                             _class="content2"),
                         )
             if article.suggest_reviewers:
