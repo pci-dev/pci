@@ -1642,11 +1642,12 @@ def email_for_registered_reviewer():
         session.flash = T("Recommender for the article doesn't exist", lazy=False)
         redirect(request.env.http_referer)
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
+    default_cc = '%s, %s'%(replyto.email, myconf.take("contacts.managers"))
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
+        Field.CC(default_cc),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1669,7 +1670,6 @@ def email_for_registered_reviewer():
         reviewer = db.auth_user[review.reviewer_id]
         destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
 
-
         if not review.quick_decline_key:
             review.quick_decline_key = web2py_uuid()
             review.update_record()
@@ -1680,8 +1680,12 @@ def email_for_registered_reviewer():
             key=review.quick_decline_key,
         ))
 
-        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
-        replyto_addresses = emailing_tools.list_addresses(replyto_address)
+        clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
+
+        clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
+        replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
+        
         review.review_duration = form.vars.review_duration
         review.update_record()
         try:
