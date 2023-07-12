@@ -1222,17 +1222,21 @@ def reviewers():
                         )
                 if report[0].q9:
                     oppossed_reviewers = DIV(
-                        BUTTON(H4(B("Opposed reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                        BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
                         DIV(P(UL(report[0].q9),),
                             _class="content2"),
                         )
             if article.suggest_reviewers:
-                suggested_reviewers_by_reviewers = DIV(
-                    BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
-                    DIV(P(UL(article.suggest_reviewers),
-                        H5(B("You may invite them by clicking on one of the buttons below"))),
-                        _class="content2"),
-                    )
+                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                if len(suggested_by_reviewers) > 0:
+                    suggested_reviewers_by_reviewers = DIV()
+                    suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
+                    reviewer_box = DIV(_class="content2")
+                    for reviewer in suggested_by_reviewers:
+                        reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
+                        reviewer_box.append(reviewer_ul)
+                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    suggested_reviewers_by_reviewers.append(reviewer_box)
         
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
