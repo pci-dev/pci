@@ -271,43 +271,58 @@ class COARNotifier:
         except Exception as e:
             raise COARNotifyParseException from e
 
-        subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
-        if len(subjects) != 1:
-            raise COARNotifyNoUniqueSubjectException
-        subject = subjects[0]
+        body = (
+            body if body_format == "json-ld" and isinstance(body, dict)
+            else json.loads(graph.serialize(
+                    format="json-ld", auto_compact=True))["@graph"]
+        )
 
-        origin = graph.value(subject, ACTIVITYSTREAMS.origin)
-        target = graph.value(subject, ACTIVITYSTREAMS.target)
+        if direction == "Outbound":
+            validate_outbound_notification(graph)
 
-        if not origin:
-            raise COARNotifyMissingOrigin
-        if not target:
-            raise COARNotifyMissingTarget
-
-        origin_inbox = graph.value(origin, LDP.inbox)
-        target_inbox = graph.value(target, LDP.inbox)
-
-        if not isinstance(origin_inbox, rdflib.URIRef):
-            raise COARNotifyMissingOriginInbox
-        if not isinstance(target_inbox, rdflib.URIRef):
-            raise COARNotifyMissingTargetInbox
+        inbox_url = list(graph.objects(predicate=
+            ACTIVITYSTREAMS.target if direction == "Outbound"
+            else ACTIVITYSTREAMS.origin
+        ))[0]
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=" ".join(
-                str(type)
-                for type in graph.objects(subject, rdflib.RDF.type)
-                if type != ACTIVITYSTREAMS.Announce
-            ),
-            body=(
-                json.dumps(body)
-                if body_format == "json-ld" and isinstance(body, dict)
-                else graph.serialize(format="json-ld")
-            ),
+            rdf_type=get_notification_type(graph),
+            body=json.dumps(body),
             direction=direction,
-            inbox_url=str(origin_inbox if direction == "Inbound" else target_inbox),
+            inbox_url=inbox_url,
             http_status=http_status,
         )
+
+
+def validate_outbound_notification(graph):
+    subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
+    if len(subjects) != 1:
+        raise COARNotifyNoUniqueSubjectException
+    subject = subjects[0]
+
+    origin = graph.value(subject, ACTIVITYSTREAMS.origin)
+    target = graph.value(subject, ACTIVITYSTREAMS.target)
+
+    if not origin:
+        raise COARNotifyMissingOrigin
+    if not target:
+        raise COARNotifyMissingTarget
+
+    origin_inbox = graph.value(origin, LDP.inbox)
+    target_inbox = graph.value(target, LDP.inbox)
+
+    if not isinstance(origin_inbox, rdflib.URIRef):
+        raise COARNotifyMissingOriginInbox
+    if not isinstance(target_inbox, rdflib.URIRef):
+        raise COARNotifyMissingTargetInbox
+
+
+def get_notification_type(graph):
+    return " ".join(typ.fragment
+            for typ in graph.objects(predicate=rdflib.RDF.type)
+            if typ not in (ACTIVITYSTREAMS.Service)
+    )
 
 
 def get_target_inbox(article):
