@@ -1250,7 +1250,7 @@ def reviewDone(s, f):
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
-                emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
 
@@ -1291,7 +1291,7 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
-            emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
 
         # remove reminders if review declined or canceled
@@ -1331,7 +1331,7 @@ def reviewDone(s, f):
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o["id"])
-                emailing.delete_reminder_for_reviewer(db, ["ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
+                emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserReturningReviewer"], o["id"])
                 emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewInvitationRegisteredUserNewReviewer"], o["id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o["recommendation_id"])
         
