@@ -65,3 +65,35 @@ if (header != null) {
 else {
     main_content.style.paddingTop = parseInt(nav_height) + 10 + 'px';
 }
+
+
+let submit_btn = document.querySelector('#suggestion-submission');
+if (submit_btn) {
+    // control enabling of submit button
+    deactivate_submit_btn();
+    setInterval(activate_submit_btn, 500);
+}
+
+
+function deactivate_submit_btn() {
+    // deactivate submit button on page load
+    let submit_btn = document.querySelector('#suggestion-submission');
+    submit_btn.setAttribute('disabled', '');
+};
+
+
+function activate_submit_btn() {
+    // activate submit button if text-box has content
+    try {
+        let textbox = document.querySelector('#suggestion-textbox');
+        let submit_btn = document.querySelector('#suggestion-submission');
+
+        if (textbox.value != '') {
+            submit_btn.removeAttribute('disabled');
+        }
+        else {
+            submit_btn.setAttribute('disabled', '');
+        }
+    }
+    catch { }
+  };

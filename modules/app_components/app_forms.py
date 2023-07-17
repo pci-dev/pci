@@ -117,11 +117,11 @@ def getSendMessageForm(declineKey, response):
             H4("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title")
         ),
         DIV(
-            TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _style="resize: none")
+            TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _id="suggestion-textbox", _style="resize: none")
         ),
         DIV(
-            BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _class="btn btn-success"),
-            BUTTON(current.T("Sorry I have no suggestions"), _type="submit", _name="noluck", _value="1", _class="btn btn-default"),
+            BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _id="suggestion-submission", _class="btn btn-success"),
+            BUTTON(current.T("I have no suggestions"), _type="submit", _name="noluck", _value="1", _class="btn btn-default"),
             _class="pci2-flex-center",
         ),
         hidden={"declineKey":declineKey},
