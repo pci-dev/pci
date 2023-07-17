@@ -1385,10 +1385,11 @@ def send_review_cancellation():
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
+    default_cc = '%s, %s'%(replyto.email, contact)
 
     form = SQLFORM.factory(
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field.CC(default=(replyto.email, contact)),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
+        Field.CC(default=default_cc),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1405,8 +1406,12 @@ def send_review_cancellation():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
-        replyto_addresses = emailing_tools.list_addresses(replyto_address)
+        clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
+
+        clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
+        replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
+        
         try:
             emailing.send_reviewer_invitation(
                 session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
@@ -1485,10 +1490,11 @@ def send_reviewer_generic_mail():
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
     replyTo = ", ".join([replyto.email, contact])
+    default_cc = '%s, %s'%(sender_email, contact)
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=(sender_email, contact)),
+        Field.CC(default=default_cc),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1497,7 +1503,8 @@ def send_reviewer_generic_mail():
     form.element("textarea[name=message]")["_style"] = "height:500px;"
 
     if form.process().accepted:
-        request.vars["replyto"] = replyTo
+        clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyTo)
+        request.vars["replyto"] = clean_replyto_adresses
         try:
             emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
         except Exception as e:
@@ -1646,7 +1653,7 @@ def email_for_registered_reviewer():
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
         Field.CC(default_cc),
         Field(
             "reviewer_email",
@@ -1800,14 +1807,15 @@ def email_for_new_reviewer():
 
     replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
+    default_cc = '%s, %s'%(replyto.email, myconf.take('contacts.managers'))
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
-        Field("replyto", label=T("Reply-to"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!")), default=replyto_address, writable=False),
-        Field.CC(default=(replyto.email, myconf.take("contacts.managers"))),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
+        Field.CC(default=default_cc),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
-        Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_EMAIL(error_message=T("invalid e-mail!"))),
+        Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
@@ -1815,10 +1823,15 @@ def email_for_new_reviewer():
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
     if form.process().accepted:
-        cc_addresses = emailing_tools.list_addresses(form.vars.cc)
-        replyto_addresses = emailing_tools.list_addresses(replyto_address)
+        clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc)
+        cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
+
+        clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
+        replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
+        
         new_user_id = None
-        request.vars.reviewer_email = request.vars.reviewer_email.lower()
+        clean_reviewer_email = emailing_tools.clean_addresses(request.vars.reviewer_email.lower())
+        request.vars.reviewer_email = clean_reviewer_email
 
         # NOTE adapt long-delay key for invitation
         reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
