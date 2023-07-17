@@ -1830,7 +1830,7 @@ def email_for_new_reviewer():
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
         
         new_user_id = None
-        clean_reviewer_email = emailing_tools.clean_addresses(request.vars.reviewer_email.lower())
+        clean_reviewer_email, clean_reviewer_errors = emailing_tools.clean_addresses(request.vars.reviewer_email.lower())
         request.vars.reviewer_email = clean_reviewer_email
 
         # NOTE adapt long-delay key for invitation
