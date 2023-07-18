@@ -2819,6 +2819,7 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["scheduledSubmissionLatestReviewStartDate"] = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         mail_vars["scheduledReviewDueDate"] = sched_sub_vars["scheduledReviewDueDate"]
         mail_vars["scheduledSubmissionDate"] = sched_sub_vars["scheduledSubmissionDate"]
+        mail_vars["snapshotUrl"] = sched_sub_vars["snapshotUrl"]
 
     hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
 
