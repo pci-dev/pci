@@ -1123,6 +1123,9 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     for i in recommList:
         total_count.append(i.id)
     total_count.sort()
+    prevRoundreviewersList = []
+    latestRoundRecommId = None
+    text = ""
     if new_stage:
         latestRoundRecommId = recomm.id
         prevRoundreviewersList = db((db.t_reviews.recommendation_id.belongs(total_count)) & (db.t_reviews.review_state == "Review completed")).select(
@@ -1146,6 +1149,8 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
 
 
     customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
+
+    if not text: prevRoundHeader = ""
 
     return prevRoundHeader, customText
 
