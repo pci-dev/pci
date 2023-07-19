@@ -139,6 +139,12 @@ coar.refresh:
 reload.web2py:
 	touch ../../wsgihandler.py
 
+recreate.v_article:
+	~/all-pci-db.sh | while read db; do \
+	psql -h mydb1 -p 33648 -U peercom $$db \
+		< utils/re-create_v_article.sql; \
+	done
+
 setup.new-pci: dirs = errors/ uploads/ sessions/
 setup.new-pci:
 	mkdir -p $(dirs)
