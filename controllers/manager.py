@@ -1556,9 +1556,9 @@ def recommender_statistics():
 
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
-        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        pageTitle=getTitle(request, auth, db, "#RecommenderStatisticsTitle"),
+        customText=getText(request, auth, db, "#RecommenderStatisticsText"),
+        pageHelp=getHelp(request, auth, db, "#RecommenderStatistics"),
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
@@ -1604,14 +1604,26 @@ def fetch_query(action, recommenderId):
 def recommender_breakdown():
     action = request.vars["action"]
     recommenderId = request.vars["recommenderId"]
+    page_help_dict = {
+        "total_invitations" : "#TotalInvitationStats",
+        "total_accepted" : "#TotalAcceptedStats",
+        "total_completed" : "#TotalCompletedStats",
+        "current_invitations" : "#CurrentInvitationStats",
+        "current_assignments" : "#CurrentAssignmentStats",
+        "awaiting_revision" : "#AwaitingRevisionStats",
+        "requiring_action" : "#RequiringActionStats",
+        "requiring_reviewers" : "#RequiringReviewerStats",
+        "required_reviews_completed" : "#RequiredReviewsCompletedStats",
+        "late_reviews" : "#LateReviewStat"
+    }
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     stats_query = fetch_query(action, recommenderId)
     resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=stats_query)
-    resu["customText"] = getText(request, auth, db, "#ManagerCompletedArticlesText")
+    resu["customText"] = getText(request, auth, db, f"{page_help_dict[action]}Text")
     resu["titleIcon"] = "ok-sign"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerCompletedArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManageCompletedArticles")
+    resu["pageTitle"] = getTitle(request, auth, db, f"{page_help_dict[action]}Title")
+    resu["pageHelp"] = getHelp(request, auth, db, page_help_dict[action])
     return resu
 
