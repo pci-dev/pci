@@ -1141,7 +1141,7 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
         BUTTON(H4(B(text, SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
         DIV(P(UL(prevReviewersList)),
         _class="content2",              
-        _style="width:100%; max-width: 1200px"))
+        _style="width:100%; max-width: 1200px")) if prevRoundreviewersList else ""
     
 
 
