@@ -23,8 +23,12 @@
 {{pass}}
 
 
-{{if 'suggested_reviewers' in locals():}}
-	<div class="pci2-flex-center content-btn-left">{{=suggested_reviewers}}</div>
+{{if 'suggested_reviewers_by_author' in locals():}}
+	<div class="pci2-flex-center content-btn-left">{{=suggested_reviewers_by_author}}</div>
+{{pass}}
+
+{{if 'suggested_reviewers_by_reviewers' in locals():}}
+	<div class="pci2-flex-center content-btn-left">{{=suggested_reviewers_by_reviewers}}</div>
 {{pass}}
 
 {{if 'oppossed_reviewers' in locals():}}

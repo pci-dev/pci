@@ -1093,6 +1093,41 @@
         padding-top: 0;
     }
 
+    .collapsible2 {
+        cursor: pointer;
+        border: none;
+        text-align: left;
+        font-size: 15px;
+        background-color: white;
+        color: rgb(62, 63, 58);
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        text-transform: none;
+    }
+
+    .collapsible2:hover,
+    .collapsible2.active,
+    .collapsible2:focus, 
+    .collapsible2:active, 
+    .collapsible2:active:focus, 
+    .collapsible2.active:focus, 
+    .collapsible2.focus, 
+    .collapsible2:active.focus, 
+    .collapsible2.active.focus {
+        background-color: white;
+        color: rgb(62, 63, 58);
+        box-shadow: none;
+    }
+            
+    .content2 {
+        display: block;
+    }
+
+    .collapsible2 .caret {
+        margin-left: 1rem;
+    }
+
     .navbar {
         padding-bottom: 0;
     }

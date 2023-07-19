@@ -232,6 +232,16 @@ def _mkUser(theUser, linked=False):
         return resu
 
 
+def mkUserNoSpan(auth, db, userId):
+    if userId is not None:
+        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    else:
+        theUser = None
+
+    resu = "%s %s" % (theUser.first_name, theUser.last_name)
+
+    return resu
+
 ######################################################################################################################################################################
 # Article status
 ######################################################################################################################################################################

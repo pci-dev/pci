@@ -299,10 +299,33 @@ def send_suggested_reviewers():
     if not text.strip() or not review or no_suggestions_clicked:
         redirect(URL(c="default", f="index"))
 
+    article = db((db.t_recommendations.id == review.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select()
+    add_suggest_reviewers_to_article(article, review, text)
+
     emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
 
     response.view = "default/info.html"
     return dict(message=H4(T("Thank you for your suggestion!")), _class="decline-review-title")
+
+
+def add_suggest_reviewers_to_article(article, review, text):
+    '''
+    Adds suggested reviewers to article
+    '''
+    reviewer = db(db.auth_user.id == review.reviewer_id).select()
+    try: reviewer_name = common_small_html.mkUserNoSpan(auth, db, reviewer[0].id)
+    except: reviewer_name = review.reviewer_details
+    
+    suggested_reviewers = article[0].t_articles.suggest_reviewers or []
+    if type(suggested_reviewers) is str:
+        suggested_reviewers = [suggested_reviewers] \
+                                if suggested_reviewers else []
+
+    for suggestion in text.split('\n'):
+        if len(suggestion.strip()) > 0:
+            suggested_reviewers.append('%s suggested: %s'%(reviewer_name, suggestion))
+    article[0].t_articles.suggest_reviewers = suggested_reviewers
+    article[0].t_articles.update_record()
 
 
 ######################################################################################################################################################################

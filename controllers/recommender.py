@@ -1135,9 +1135,16 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
         prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
             db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
         )
-        text = "Choose a reviewer from the previous round of review"
+        text = "Reviewers from the previous round of review"
     prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
-    prevRoundHeader = DIV(H3(B(text)), UL(prevReviewersList), _style="width:100%; max-width: 1200px")
+    prevRoundHeader = DIV(
+        BUTTON(H4(B(text, SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+        DIV(P(UL(prevReviewersList)),
+        _class="content2",              
+        _style="width:100%; max-width: 1200px"))
+    
+
+
     customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
 
     return prevRoundHeader, customText
@@ -1175,13 +1182,62 @@ def reviewers():
         elif recomm_round > 1:
             prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
-        suggested_reviewers = ""
+        suggested_reviewers_by_author = ""
+        suggested_reviewers_by_reviewers = ""
         oppossed_reviewers = ""
         if not pciRRactivated:
             if article.suggest_reviewers:
-                suggested_reviewers = DIV(H4(B("Suggested reviewers"), T(" (reviewers suggested by the authors in their cover letter)")), UL(article.suggest_reviewers), H5(B("You may invite them by clicking on one of the buttons below")))
+                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                if len(suggested_by_author) > 0:
+                    suggested_reviewers_by_author = DIV(
+                        BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                        DIV(P(UL(suggested_by_author),
+                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            _class="content2"),
+                        )
+                if len(suggested_by_reviewers) > 0:
+                    suggested_reviewers_by_reviewers = DIV()
+                    suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
+                    reviewer_box = DIV(_class="content2")
+                    for reviewer in suggested_by_reviewers:
+                        reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
+                        reviewer_box.append(reviewer_ul)
+                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    suggested_reviewers_by_reviewers.append(reviewer_box)
+                        
             if article.competitors:
-                oppossed_reviewers = DIV(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)")), UL(article.competitors))
+                oppossed_reviewers = DIV(
+                    BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
+                    DIV(P(UL(article.competitors)),
+                          __class="content2"),)
+        else:
+            report = db(db.t_report_survey.article_id == recomm.article_id).select()
+            if report:
+                if report[0].q8:
+                    suggested_reviewers_by_author = DIV(
+                        BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                        DIV(P(UL(report[0].q8),
+                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            _class="content2"),
+                        )
+                if report[0].q9:
+                    oppossed_reviewers = DIV(
+                        BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
+                        DIV(P(UL(report[0].q9),),
+                            _class="content2"),
+                        )
+            if article.suggest_reviewers:
+                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                if len(suggested_by_reviewers) > 0:
+                    suggested_reviewers_by_reviewers = DIV()
+                    suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
+                    reviewer_box = DIV(_class="content2")
+                    for reviewer in suggested_by_reviewers:
+                        reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
+                        reviewer_box.append(reviewer_ul)
+                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    suggested_reviewers_by_reviewers.append(reviewer_box)
+        
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
             db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
         )
@@ -1190,7 +1246,11 @@ def reviewers():
         reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
         excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
         if len(reviewersList) > 0:
-            myContents = DIV(H3(B("Reviewers already invited:")), UL(reviewersList), _style="width:100%; max-width: 1200px")
+            myContents = DIV(
+                BUTTON(H4(B("Reviewers already invited:", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
+                DIV(P(UL(reviewersList)),
+                _class="content2",
+                _style="width:100%; max-width: 1200px"))
         else:
             myContents = ""
         longname = myconf.take("app.longname")
@@ -1212,6 +1272,9 @@ def reviewers():
             )
         else:
             myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="manager", f="all_recommendations")), _style="margin-top:16px; text-align:center;")
+
+        myScript = common_tools.get_script("collapsibles.js")
+
         return dict(
             pageHelp=getHelp(request, auth, db, "#RecommenderAddReviewers"),
             customText=customText,
@@ -1220,10 +1283,12 @@ def reviewers():
             myAcceptBtn=myAcceptBtn,
             content=myContents,
             prevContent=prevRoundHeader,
-            suggested_reviewers=suggested_reviewers,
+            suggested_reviewers_by_author=suggested_reviewers_by_author,
+            suggested_reviewers_by_reviewers=suggested_reviewers_by_reviewers,
             oppossed_reviewers=oppossed_reviewers,
             form="",
             myUpperBtn=myUpperBtn,
+            myFinalScript=myScript,
         )
 
 
@@ -2547,3 +2612,23 @@ def article_reviews_emails():
 
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+
+
+def separate_suggestions(suggested_reviewers):
+    suggested_by_author = []
+    suggested_by_reviewers = []
+    suggestor_2_suggestions = {}
+    for reviewer in suggested_reviewers:
+        if ' suggested:' in reviewer:
+            suggestor_re = re.match('(.*) suggested:(.*)', reviewer)
+            suggestor = suggestor_re.group(1)
+            suggestion = suggestor_re.group(2)
+            if suggestor in suggestor_2_suggestions.keys():
+                suggestions = suggestor_2_suggestions[suggestor]
+                suggestions.append(suggestion)
+                suggestor_2_suggestions[suggestor] = suggestions
+            else:
+                suggestor_2_suggestions[suggestor] = [suggestion]
+        else: suggested_by_author.append(reviewer)
+
+    return suggested_by_author, suggestor_2_suggestions
