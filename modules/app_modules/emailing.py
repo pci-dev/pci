@@ -1962,12 +1962,11 @@ def send_recover_mail(session, auth, db, userId, dest_mail, key):
 
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
+    clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
+    cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
-
-    cc_addresses = emailing_tools.list_addresses(form.cc)
-    replyto_addresses = emailing_tools.list_addresses(form.replyto)
-    form.subject
-    form.message
+    clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.replyto)
+    replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
 
     mail_content = mk_mail(form.subject, form.message)
 

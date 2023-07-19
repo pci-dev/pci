@@ -19,6 +19,7 @@ from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
+from gluon.validators import IS_EMAIL
 
 from gluon.custom_import import track_changes
 
@@ -108,6 +109,27 @@ def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
 def list_addresses(addresses):
     return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []
+
+#######################################################################################################################################################################
+def clean_addresses(dirty_string_adresses):
+    '''
+    creates a string of clean mail addresses, divided by comma
+    '''
+    list_of_contacts = [contact.strip() for contact in list(re.split("[,;]", dirty_string_adresses))]
+    contacts = []
+    errors = []
+    validator = IS_EMAIL()
+    for contact in list_of_contacts:
+        if len(contact.split(' ')) > 1:
+            for word in contact.split(' '):
+                if '@' in word:
+                    contact = word
+        contact = contact.strip('<>')
+        value, error = validator(contact)
+        if error is None: contacts.append(contact)
+        else: errors.append(contact)
+
+    return ', '.join(contacts), ', '.join(errors)
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
