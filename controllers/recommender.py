@@ -1166,11 +1166,13 @@ def reviewers():
         redirect(request.env.http_referer)
     else:  
         recomm_round = db((db.t_recommendations.article_id == article.id)).count()
+        first_round_id = db((db.t_recommendations.article_id == article.id)).select(orderby=db.t_recommendations.id).first()
+        no_of_first_round_reviews = db((db.t_reviews.recommendation_id == first_round_id)).count()
         prevRoundHeader = ""
         customText=getText(request, auth, db, "#RecommenderAddReviewersText")
-        if pciRRactivated and article.art_stage_1_id is not None and recomm_round == 1:
+        if (pciRRactivated and article.art_stage_1_id is not None) and ((recomm_round == 2 and no_of_first_round_reviews == 0) or (recomm_round == 1)):
             prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=new_stage)
-        if recomm_round > 1:
+        elif recomm_round > 1:
             prevRoundHeader, customText = get_prev_reviewers(article.id, recomm, new_round=True)
 
         suggested_reviewers = ""
@@ -2115,8 +2117,8 @@ def edit_recommendation():
 
         if pciRRactivated and art.report_stage == "STAGE 2" and art.art_stage_1_id is not None:
             stage1_recomm = db((db.t_recommendations.article_id == art.art_stage_1_id)).select(orderby=db.t_recommendations.id).last()
-            form.vars.recommendation_title = stage1_recomm.recommendation_title
-            form.vars.recommendation_comments = stage1_recomm.recommendation_comments
+            form.vars.recommendation_title = recomm.recommendation_title or stage1_recomm.recommendation_title
+            form.vars.recommendation_comments = recomm.recommendation_comments or stage1_recomm.recommendation_comments
 
         if form.process().accepted:
             if form.vars.save:

@@ -35,3 +35,9 @@ class User(Row):
     @staticmethod
     def get_by_id(db: DAL, id: int):
         return cast(_[User], db.auth_user[id])
+    
+    
+    @staticmethod
+    def get_by_reset_password_key(db: DAL, reset_password_key: str):
+        user = db(db.auth_user.reset_password_key == reset_password_key).select().first()
+        return cast(_[User], user)

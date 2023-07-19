@@ -4,6 +4,7 @@ import os
 import re
 import copy
 from datetime import date
+from typing import Optional
 
 from gluon.contrib.markdown import WIKI
 
@@ -21,6 +22,11 @@ from app_components import ongoing_recommendation
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
+
+from models.review import Review
+from models.article import Article
+from models.report_survey import ReportSurvey
+from models.recommendation import Recommendation
 
 
 # frequently used constants
@@ -1341,22 +1347,28 @@ def ask_to_review():
 @auth.requires_login()
 def edit_review():
     response.view = "default/myLayout.html"
+
     if "reviewId" not in request.vars:
-        raise HTTP(404, "404: " + T("ID Unavailable"))
-    reviewId = request.vars["reviewId"]
+        session.flash = "404: " + T("ID Unavailable")
+        redirect(URL('default','index'))
+    reviewId = int(request.vars["reviewId"])
 
-    review = db.t_reviews[reviewId]
+    review = Review.get_by_id(db, reviewId)
     if review is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
+        session.flash = "404: " + T("Unavailable")
+        redirect(URL('default','index'))
 
-    recomm = db.t_recommendations[review.recommendation_id]
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
     if recomm is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
+        session.flash = "404: " + T("Unavailable")
+        redirect(URL('default','index'))
 
-    art = db.t_articles[recomm.article_id]
-    if pciRRactivated: \
-    survey = db(db.t_report_survey.article_id == recomm.article_id).select().last()
-    # survey.article_id = articleId
+    art = Article.get_by_id(db, recomm.article_id)
+
+    survey: Optional[ReportSurvey] = None
+    if pciRRactivated:
+        survey = ReportSurvey.get_merged_report_survey(db, recomm.article_id)
+
     # Check if article have correct status
     if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
         session.flash = T("Unauthorized", lazy=False)
@@ -1380,7 +1392,7 @@ def edit_review():
             review.anonymously = False
             db.t_reviews.anonymously.writable = False
             db.t_reviews.anonymously.label = T("You cannot be anonymous because there is a manager in the authors")
-        elif pciRRactivated and survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
+        elif pciRRactivated and survey and survey.q22 == "YES - ACCEPT SIGNED REVIEWS ONLY":
             db.t_reviews.anonymously.widget = widget(_type="hidden")
             db.t_reviews.anonymously.label = T("Please note that reviews of this submission must be signed")
         else:
