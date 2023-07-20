@@ -127,7 +127,8 @@ def index():
 
     integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
+    except: grid = original_grid
 
     tweeterAcc = myconf.get("social.tweeter")
     lastRecommTitle = H3(
@@ -148,7 +149,8 @@ def index():
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
     )
-    grid.element(".web2py_table").insert(0, lastRecommTitle)
+    grid.element(".web2py_table").insert(0, lastRecommTitle) \
+            if grid != original_grid else None
 
     return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
