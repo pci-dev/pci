@@ -51,5 +51,13 @@ class Review(Row):
         recommendations_id = cast(Rows, db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id))
         reviews = cast(List[Review],db((db.t_reviews.review_state == state.value) & (db.t_reviews.recommendation_id).belongs(recommendations_id)).select())
         return reviews
+    
+    
+    @staticmethod
+    def get_all_active_reviews(db: DAL, recommendation_id: int, user_id: int):
+        reviews = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == user_id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            orderby=db.t_reviews.id
+        )
+        return cast(List[Review], reviews)
 
 
