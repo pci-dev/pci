@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from typing import Optional, cast
+from app_modules.common_tools import get_next, get_reset_password_key, get_review_id
 
 from app_modules.helper import *
 
@@ -8,8 +10,13 @@ from controller_modules import user_module
 from app_modules import common_small_html
 from app_components import app_forms
 from app_modules import emailing
+from gluon.globals import Request
+from gluon.http import redirect
+from models.review import Review
+from models.user import User
+from pydal import DAL
 
-
+db = cast(DAL, db)
 
 ######################################################################################################################################################################
 @auth.requires_login()
@@ -144,33 +151,37 @@ def article_revised():
 ######################################################################################################################################################################
 @auth.requires_login()
 def do_accept_new_review():
-    if "reviewId" not in request.vars:
+    review_id = get_review_id(request)
+    if not review_id:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    reviewId = request.vars["reviewId"]
-    if isinstance(reviewId, list):
-        reviewId = reviewId[1]
-    theUser = db.auth_user[auth.user_id]
-    if "ethics_approved" in request.vars and theUser.ethical_code_approved is False:
-        theUser.ethical_code_approved = True
-        theUser.update_record()
-    if not (theUser.ethical_code_approved):
+        return
+
+    user = User.get_by_id(db, auth.user_id)
+    if not user:
+        reset_password_key = get_reset_password_key(request)
+        if reset_password_key:
+            user = User.get_by_reset_password_key(db, reset_password_key)
+    
+    if "ethics_approved" in request.vars and user.ethical_code_approved is False:
+        user.ethical_code_approved = True
+        user.update_record()
+    if not (user.ethical_code_approved):
         raise HTTP(403, "403: " + T("ERROR: Ethical code not approved"))
+    
     if "no_conflict_of_interest" not in request.vars:
         raise HTTP(403, "403: " + T('ERROR: Value "no conflict of interest" missing'))
-    noConflict = request.vars["no_conflict_of_interest"]
-    if noConflict != "yes":
+    no_conflict = request.vars["no_conflict_of_interest"]
+    if no_conflict != "yes":
         raise HTTP(403, "403: " + T("ERROR: No conflict of interest not checked"))
-    rev = db.t_reviews[reviewId]
-    if rev is None:
+    
+    review = Review.get_by_id(db, review_id)
+    if review is None:
         raise HTTP(404, "404: " + T("ERROR: Review unavailable"))
-    if rev.reviewer_id != auth.user_id:
+    if review.reviewer_id != auth.user_id:
         raise HTTP(403, "403: " + T("ERROR: Forbidden access"))
-    rev.review_state = "Awaiting review"
-    rev.no_conflict_of_interest = True
-    rev.acceptation_timestamp = datetime.datetime.now()
-    rev.anonymous_agreement=request.vars["anonymous_agreement"] or False
-    rev.update_record()
+
+    Review.accept_review(review, request.vars["anonymous_agreement"])
 
     redirect(URL(c="user_actions", f="accept_review_confirmed", vars=request.vars))
 
