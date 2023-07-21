@@ -6,6 +6,7 @@ from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
+from gluon.storage import Storage # for db.get_last_recomms()
 
 from gluon.custom_import import track_changes
 
