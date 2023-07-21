@@ -276,15 +276,25 @@ def accept_review_confirmed(): # no auth required
     '''
     if reviewer accepts invitation, also ask them for more reviewer suggestions
     '''
-    reviewId = request.vars["reviewId"]
-    review = db.t_reviews[reviewId[0]]
+    review_id = get_review_id(request)
+    if not review_id:
+        session.flash = current.T('No review id found')
+        redirect(URL('default','index'))
+        return
+    
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = current.T('No review found')
+        redirect(URL('default','index'))
+        return
 
-    user = db.auth_user[review.reviewer_id]
+    user = User.get_by_id(db, review.reviewer_id)
     if user and user.reset_password_key:
         db(db.auth_user.id == review.reviewer_id).delete()
 
     message = T("Thank you for accepting to review this article!")
-    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept')
+    next = get_next(request)
+    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
 
     return _accept_review_page(message, form)
 
