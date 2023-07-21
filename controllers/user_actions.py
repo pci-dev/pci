@@ -381,7 +381,9 @@ def do_ask_to_review():
     amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
 
     if amIReviewer:
-        raise HTTP(403, "403: " + T("ERROR: Already reviewer on this article"))
+        session.flash = T("Already reviewer on this article")
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm.article_id)))
+        return
     
     if recomm.recommender_id == auth.user_id:
         raise HTTP(403, "403: " + T("ERROR: You are the recommender this article"))
