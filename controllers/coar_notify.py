@@ -69,9 +69,10 @@ def inbox():
                 f"Content-Type must be one of {', '.join(sorted(_rdflib_parser_media_types))})",
             )
 
+        request.body.seek(0)
         body = request.body.read()
-        validate_request(body, content_type, coar_notifier)
 
+        validate_request(body, content_type, coar_notifier)
         process_request(json.loads(body))
 
         return HTTP(status=http.HTTPStatus.ACCEPTED.value)
