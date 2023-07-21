@@ -22,6 +22,7 @@ from app_components import ongoing_recommendation
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
+from models.review import Review, ReviewState
 
 from models.review import Review
 from models.article import Article
@@ -154,6 +155,11 @@ def recommendations():
 
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+
+        reviews = Review.get_all_active_reviews(db, db.get_last_recomm(art.id), auth.user_id)
+        for review in reviews:
+            if review.review_state == ReviewState.AWAITING_REVIEW.value:
+                response.flash = common_small_html.write_edit_upload_review_button(review.id)
 
         if printable:
             printableClass = "printable"

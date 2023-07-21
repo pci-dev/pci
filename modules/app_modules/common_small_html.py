@@ -1046,3 +1046,12 @@ def hypothesis_dialog(article: Row):
         redirect(URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=article.id), user_signature=True))
 
     return form
+
+#############################################################################
+
+def write_edit_upload_review_button(review_id: int):
+    return A(current.T('Write, edit or upload your review'),
+            _href=URL(c='user', f='edit_review', vars=dict(reviewId=review_id)),
+            _class="buttontext btn btn-default",
+            _style="color: #3e3f3a; background-color: white;"
+        )
