@@ -363,6 +363,122 @@ def change_email():
 
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
 
+######################################################################################################################################################################
+
+def invitation_to_review_preprint():
+    if not 'reviewId' in request.vars:
+        session.flash = current.T('No review id found')
+        redirect(URL('default','index'))
+        return
+    
+    reviewId = int(request.vars['reviewId'])
+    review = Review.get_by_id(db, reviewId)
+    if not review or not review.recommendation_id:
+        session.flash = current.T('No review found')
+        redirect(URL('default','index'))
+        return
+    
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation or not recommendation.article_id:
+        session.flash = current.T('No recommendation found')
+        redirect(URL('default','index'))
+        return
+    
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        session.flash = current.T('No article found')
+        redirect(URL('default','index'))
+        return
+    
+    recommender = User.get_by_id(db, recommendation.recommender_id)
+    if not recommender:
+        session.flash = current.T('No recommender found')
+        redirect(URL('default','index'))
+        return
+
+    reset_password_key = get_reset_password_key(request)
+    user: Optional[User] = None
+    action_form_url: Optional[str] = None
+    url_vars: dict[Any, Any] = dict()
+
+    if reset_password_key and not auth.user_id:
+        user = User.get_by_reset_password_key(db, reset_password_key)
+    elif auth.user_id:
+        user = User.get_by_id(db, auth.user_id)
+    
+    if not user:
+        session.flash = current.T('No user found')
+        redirect(cast(str, URL('default','index')))
+        return
+    
+    if user.id != review.reviewer_id:
+        session.flash = current.T('Bad user')
+        redirect(cast(str, URL('default','index')))
+        return
+
+    url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
+    action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+
+    if user.ethical_code_approved and review.no_conflict_of_interest:
+            redirect(action_form_url)
+
+    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
+    recommHeaderHtml = cast(XML, article_components.getArticleInfosCard(auth, db, response, article, printable=False))
+    response.view = "default/invitation_to_review_preprint.html"
+    
+    return dict(recommHeaderHtml=recommHeaderHtml,
+                isRecommender=False,
+                isSubmitter=False,
+                actionFormUrl=action_form_url,
+                disclaimerText=disclaimerText,
+                dueTime=dueTime,
+                isAlreadyReviewer=False,
+                review=review,
+                recommender=recommender)
+    
+
+def invitation_to_review_preprint_acceptation():
+    article_id = get_article_id(request)
+    review_id = get_review_id(request)
+    if article_id and review_id:
+        url_vars = dict(reviewId=review_id, _next=URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
+        session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
+
+        review = Review.get_by_id(db, review_id)
+        if review and not review.acceptation_timestamp:
+            Review.accept_review(review, anonymous_agreement=True)
+
+    reset_password_key = get_reset_password_key(request)
+    user: Optional[User] = None
+    if reset_password_key and not auth.user_id:
+        user = User.get_by_reset_password_key(db, reset_password_key)
+    elif auth.user_id:
+        user = User.get_by_id(db, auth.user_id)
+    
+    if user and not user.ethical_code_approved:
+        user.ethical_code_approved = True
+        user.update_record()
+
+    if user and auth.user_id:
+        redirect(session._reset_password_redirect)
+
+    form = auth.reset_password(session._reset_password_redirect)
+    
+    titleIcon = "user"
+    pageTitle = "Create account"
+    customText = "Thanks for accepting to review this preprint. An email has been sent to your email address. You now need to define a password to login to “My Review” page and upload your review OR you can close this window and define your login (and upload) and post your review latter."
+    form.element(_type="submit")["_class"] = "btn btn-success"
+    form.element(_type="submit")["_value"] = "Create account"
+    form.element(_id="no_table_new_password__label").components[0] = 'Define password'
+
+    response.view = "default/myLayoutBot.html"
+
+
+    return dict(titleIcon=titleIcon,
+                pageTitle=pageTitle,
+                customText=customText,
+                form=form)
 
 ######################################################################################################################################################################
 def recover_mail():
