@@ -1,3 +1,4 @@
+from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from enum import Enum
 from typing import Iterable, List, Optional as _, cast
@@ -61,3 +62,10 @@ class Review(Row):
         return cast(List[Review], reviews)
 
 
+    @staticmethod
+    def accept_review(review: Review, anonymous_agreement: _[bool] = False):
+        review.review_state = "Awaiting review"
+        review.no_conflict_of_interest = True
+        review.acceptation_timestamp = datetime.now()
+        review.anonymous_agreement = anonymous_agreement or False
+        return review.update_record()
