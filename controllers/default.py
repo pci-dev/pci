@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
-import time
-import re
-import copy
 import os
-import io
-import calendar
-
-from gluon.contrib.markdown import WIKI
-
-from app_modules.helper import *
-from gluon.utils import web2py_uuid
-from gluon.storage import Storage # for db.get_last_recomms()
+import re
+import time
+from typing import Any, Optional, cast
 
 from app_components import article_components
-from app_components import app_forms
-from app_modules import common_tools
+from app_modules.common_tools import get_article_id, get_reset_password_key, get_review_id
+from app_modules.helper import *
 from controller_modules import adjust_grid
+from gluon import DAL
+# -------------------------------------------------------------------------
+# app configuration made easy. Look inside private/appconfig.ini
+# once in production, remove reload=True to gain full speed
+# -------------------------------------------------------------------------
+from gluon.contrib.appconfig import AppConfig
+from gluon.globals import Request
+from gluon.http import HTTP, redirect
+from gluon.utils import web2py_uuid
 
+from models.article import Article
+from models.recommendation import Recommendation
+from models.review import Review
+from models.user import User
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -26,13 +31,9 @@ from controller_modules import adjust_grid
 # - download is for downloading files uploaded in the db (does streaming)
 # -------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------
-# app configuration made easy. Look inside private/appconfig.ini
-# once in production, remove reload=True to gain full speed
-# -------------------------------------------------------------------------
-from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
+db = cast(DAL, db)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
@@ -186,7 +187,7 @@ def user():
     # """
 
     if "_next" in request.vars:
-        suite = request.vars["_next"]
+        suite = cast(str, request.vars["_next"])
         if len(suite) < 4:
             suite = None
     else:
@@ -194,17 +195,8 @@ def user():
     if isinstance(suite, list):
         suite = suite[1]
 
-    if "key" in request.vars:
-        vkey = request.vars["key"]
-    else:
-        vkey = None
-    if isinstance(vkey, list):
-        vkey = vkey[1]
-    if vkey == "":
-        vkey = None
-
     if "_formkey" in request.vars:
-        fkey = request.vars["_formkey"]
+        fkey = cast(str, request.vars["_formkey"])
     else:
         fkey = None
     if isinstance(fkey, list):
@@ -217,7 +209,6 @@ def user():
     pageHelp = ""
     customText = ""
     myBottomText = ""
-    myScript = ""
 
     form = auth()
     db.auth_user.registration_key.writable = False
@@ -283,7 +274,8 @@ def user():
             pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
             pageHelp = getHelp(request, auth, db, "#ResetPassword")
             customText = getText(request, auth, db, "#ResetPasswordText")
-            user = db(db.auth_user.reset_password_key == vkey).select().last()
+            vkey = get_reset_password_key(request)
+            user = User.get_by_reset_password_key(db, vkey)
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (vkey is not None) and (suite is not None) and (user is None):
                 redirect(suite)
