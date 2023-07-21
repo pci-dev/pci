@@ -1,5 +1,5 @@
 from re import match
-from typing import Optional
+from typing import Optional, cast
 from gluon import *
 from gluon.globals import Session
 from gluon.html import *
@@ -108,9 +108,13 @@ def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=Fal
 
 
 ######################################################################################################################################################################
-def getSendMessageForm(declineKey, response):
+def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = None):
     if response == 'accept': text = ' also '
     else: text = ' '
+
+    action_url = cast(str, URL("send_suggested_reviewers"))
+    if next:
+        action_url = next
 
     return FORM(
         DIV(
@@ -125,7 +129,7 @@ def getSendMessageForm(declineKey, response):
             _class="pci2-flex-center",
         ),
         hidden={"declineKey":declineKey},
-        _action=URL("send_suggested_reviewers"),
+        _action=action_url,
         _style="max-width: 800px; display: inline-block",
     )
 
