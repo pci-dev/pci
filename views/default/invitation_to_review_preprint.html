@@ -1,0 +1,125 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
+{{extend 'layout.html'}} 
+
+{{if 'pageHelp#TODO' in locals():}} 
+  {{=pageHelp}}
+{{pass}} 
+
+{{if 'myBackButton' in locals():}}
+  <div class="pci-backButtonDiv">{{=myBackButton}}</div>
+{{pass}} 
+
+{{if 'customText' in locals():}} 
+  {{=customText}} 
+{{pass}}
+
+<div class="pci2-justify-center">
+  <div class="pci2-content-900px">
+    {{=recommHeaderHtml}}
+
+    {{if isAlreadyReviewer == False and isRecommender == False and isSubmitter == False:}}
+    <p class="alert alert-info"><a style="font-weight: bold;" target="_blank" href="{{=URL(c='public', f='user_public_page', vars=dict(userId=recommender.id))}}">{{=recommender.first_name}} {{=recommender.last_name}}</a>, handling the evaluation of the preprint, is inviting you to review this preprint.</p>
+    <div class="pci2-full-width pci2-flex-center" style="margin: 40px 0">
+      <div class="pci-embeddedEthic" style="padding-top: 10px">
+        <form action="{{=actionFormUrl}}" enctype="multipart/form-data" method="POST">
+          <!-- hidden values -->
+          <input value="{{=articleId}}" type="hidden" name="articleId" />
+          <input value="true" type="hidden" name="ethics_approved" />
+
+          <div class="checkbox">
+            <label>
+              <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
+              <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the article")}}</b>
+            </label>
+          </div>
+        
+          <span>
+            {{=disclaimerText}}
+          </span>      
+
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="due_time" id="due_time" value="yes"> 
+              <b>{{=T('I agree to post my review within %s') % dueTime}}</b>
+            </label>
+          </div>
+
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="anonymous_agreement" id="anonymous_agreement" value="yes"> 
+              <b>{{=T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')}}</b>
+            </label>
+          </div>
+          
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="cgu-checkbox" id="cgu-checkbox" value="yes">
+              <b>{{=T("I agree to comply with the ")}} <a target="_blank", href="{{=URL('about', 'gtu')}}">{{=T("General Terms of Use")}}</a> and the <a target="_blank" href="{{=URL('about', 'ethics')}}">{{=T("code of conduct")}}</a>
+            </label>
+          </div>
+        
+          <div class="pci2-flex-center">
+            <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I would like to review this preprint')}}">          
+
+            <a class="buttontext btn btn-warning" 
+            href="{{=URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id))}}">
+            {{=T('No thanks, I\'d rather not')}}
+          </a>
+          </div>
+        </form>
+      </div>
+    </div>
+    {{else:}}
+    <div class="pci2-full-width pci2-flex-center" style="margin: 40px 0">
+      <div class="pci-embeddedEthic" style="padding-top: 30px; text-align: center;">
+        {{if isAlreadyReviewer or isSubmitter:}}
+          {{if isAlreadyReviewer:}}
+            <p><b>{{=T('You are already a reviewer or have asked to review this preprint.')}}</b></p>
+          {{pass}}
+          {{if isSubmitter:}}
+            <p><b>{{=T('You are the submitter of this preprint.')}}</b></p>
+          {{pass}}
+        {{elif isRecommender:}}
+          <p><b>{{=T('You are the recommender of this preprint.')}}</b></p>         
+        {{pass}}
+      </div>
+    </div>
+    {{pass}}
+  </div>
+</div>
+
+<!-- disable submit button if checkboxes are not checked -->
+<script>
+  function checkAllTrue(){
+    if (
+      jQuery("#no_conflict_of_interest").prop("checked") &&
+      jQuery("#due_time").prop("checked") &&
+     (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
+      jQuery("#cgu-checkbox").prop("checked")
+    ) {
+      jQuery(":submit").prop("disabled", false);
+    } else {
+      jQuery(":submit").prop("disabled", true);
+    }
+  }
+
+  jQuery(document).ready(function() {
+    checkAllTrue()
+
+    jQuery("#no_conflict_of_interest").change(function() {
+      checkAllTrue()
+    });
+
+    jQuery("#due_time").change(function() {
+      checkAllTrue()
+    });
+
+    jQuery("#anonymous_agreement").change(function() {
+      checkAllTrue()
+    });
+
+    jQuery("#cgu-checkbox").change(function() {
+      checkAllTrue()
+    });
+  });
+</script>
