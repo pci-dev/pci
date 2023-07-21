@@ -40,7 +40,10 @@ from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
 from app_modules.emailing_tools import mkAuthors
-
+from models.review import Review
+from models.article import Article
+from models.recommendation import Recommendation
+from models.user import User
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -1004,37 +1007,46 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    rev = db.t_reviews[reviewId]
-    if rev:
-        recomm = db.t_recommendations[rev.recommendation_id]
-        if recomm:
-            article = db.t_articles[recomm["article_id"]]
-            if article:
-                mail_vars["articleTitle"] = md_to_html(article.title)
-                mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
-                mail_vars["articleAuthors"] = mkAuthors(article)
-                mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    review = Review.get_by_id(db, reviewId)
+    if not review:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
 
-                if pciRRactivated:
-                    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+    if pciRRactivated:
+        mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
-                reviewer = db.auth_user[rev.reviewer_id]
-                if reviewer:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
-                    mail_vars["destAddress"] = reviewer["email"]
+    reviewer = User.get_by_id(db, review.reviewer_id)
+    if reviewer:
+        mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review_preprint", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+        mail_vars["destAddress"] = reviewer["email"]
 
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
-                    mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
-                    mail_vars["reviewDuration"] = (rev.review_duration).lower()
+        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recommendation.recommender_id) or ""
+        mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+        mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
+        mail_vars["reviewDuration"] = (review.review_duration).lower()
 
-                    mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = [db.auth_user[recommendation.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recommendation.id)
 
-                    hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
+        hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id)
 
-                    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
