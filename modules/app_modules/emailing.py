@@ -1768,10 +1768,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
             linkVars = dict(key=reset_password_key, reviewId=review.id)
 
         link = URL(
-                a=None,
                 c="default",
                 f="invitation_to_review_preprint",
-                args="reset_password",
                 vars=linkVars,
                 scheme=mail_vars["scheme"],
                 host=mail_vars["host"],
