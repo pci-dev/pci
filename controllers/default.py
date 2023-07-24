@@ -466,11 +466,11 @@ def invitation_to_review_preprint_acceptation():
     form = auth.reset_password(session._reset_password_redirect)
     
     titleIcon = "user"
-    pageTitle = "Create account"
-    customText = "Thanks for accepting to review this preprint. An email has been sent to your email address. You now need to define a password to login to “My Review” page and upload your review OR you can close this window and define your login (and upload) and post your review latter."
+    pageTitle = cast(str, T("Create account"))
+    customText = cast(str, T("Thanks for accepting to review this preprint. An email has been sent to your email address. You now need to define a password to login to “My Review” page and upload your review OR you can close this window and define your login (and upload) and post your review latter."))
     form.element(_type="submit")["_class"] = "btn btn-success"
-    form.element(_type="submit")["_value"] = "Create account"
-    form.element(_id="no_table_new_password__label").components[0] = 'Define password'
+    form.element(_type="submit")["_value"] = T("Create account")
+    form.element(_id="no_table_new_password__label").components[0] = T('Define password')
 
     response.view = "default/myLayoutBot.html"
 
