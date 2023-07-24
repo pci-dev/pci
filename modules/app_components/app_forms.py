@@ -112,10 +112,6 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
     if response == 'accept': text = ' also '
     else: text = ' '
 
-    action_url = cast(str, URL("send_suggested_reviewers"))
-    if next:
-        action_url = next
-
     return FORM(
         DIV(
             H4("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title")
@@ -129,7 +125,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
             _class="pci2-flex-center",
         ),
         hidden={"declineKey":declineKey},
-        _action=action_url,
+        _action=URL("send_suggested_reviewers", vars=dict(_next=next)),
         _style="max-width: 800px; display: inline-block",
     )
 

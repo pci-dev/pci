@@ -292,8 +292,11 @@ def accept_review_confirmed(): # no auth required
     if user and user.reset_password_key:
         db(db.auth_user.id == review.reviewer_id).delete()
 
-    message = T("Thank you for accepting to review this article!")
     next = get_next(request)
+    if next and review.suggested_reviewers_send:
+        redirect(next)
+
+    message = T("Thank you for accepting to review this article!")
     form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
 
     return _accept_review_page(message, form)
@@ -316,16 +319,27 @@ def send_suggested_reviewers():
     text = request.post_vars.suggested_reviewers_text
     review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
     no_suggestions_clicked = request.post_vars.noluck
+    next = get_next(request)
 
-    if not text.strip() or not review or no_suggestions_clicked:
-        redirect(URL(c="default", f="index"))
+    if not text.strip() or not review or no_suggestions_clicked or review.suggested_reviewers_send:
+        Review.set_suggested_reviewers_send(review)
+        if next:
+            redirect(next)
+        else:
+            redirect(URL(c="default", f="index"))
 
     article = db((db.t_recommendations.id == review.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select()
     add_suggest_reviewers_to_article(article, review, text)
 
     emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
+    Review.set_suggested_reviewers_send(review)
 
     response.view = "default/info.html"
+
+    if next:
+        session.flash = T('Thank you for your suggestion!')
+        redirect(next)
+
     return dict(message=H4(T("Thank you for your suggestion!")), _class="decline-review-title")
 
 
