@@ -57,7 +57,7 @@ class Review(Row):
     
     @staticmethod
     def get_all_active_reviews(db: DAL, recommendation_id: int, user_id: int):
-        reviews = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == user_id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+        reviews = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == user_id) & (db.t_reviews.review_state != ReviewState.DECLINED_MANUALLY.value) & (db.t_reviews.review_state != ReviewState.DECLINED.value) & (db.t_reviews.review_state != ReviewState.CANCELLED.value)).select(
             orderby=db.t_reviews.id
         )
         return cast(List[Review], reviews)
@@ -65,7 +65,7 @@ class Review(Row):
 
     @staticmethod
     def accept_review(review: Review, anonymous_agreement: _[bool] = False):
-        review.review_state = "Awaiting review"
+        review.review_state = ReviewState.AWAITING_REVIEW.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
