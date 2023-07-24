@@ -62,7 +62,7 @@
             <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I would like to review this preprint')}}">          
 
             <a class="buttontext btn btn-warning" 
-            href="{{=URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id))}}">
+            href="{{=URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key))}}">
             {{=T('No thanks, I\'d rather not')}}
           </a>
           </div>
