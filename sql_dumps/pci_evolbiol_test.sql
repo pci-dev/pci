@@ -2993,3 +2993,6 @@ ADD COLUMN IF NOT EXISTS  is_scheduled boolean DEFAULT false;
 
 UPDATE "t_articles"
 SET is_scheduled = true WHERE status LIKE 'Scheduled%';
+
+ALTER TABLE "t_reviews"
+ADD COLUMN IF NOT EXISTS suggested_reviewers_send boolean;
