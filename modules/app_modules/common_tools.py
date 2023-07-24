@@ -190,7 +190,7 @@ def get_next(request: Request):
         next = cast(str, request.vars['_next'])
         if isinstance(next, list):
             return next[0]
-        if next == "":
+        if next == "" or next == 'None':
             return None
         return next
     else:
