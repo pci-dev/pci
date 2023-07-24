@@ -70,3 +70,8 @@ class Review(Row):
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
         return review.update_record()
+    
+    @staticmethod
+    def set_suggested_reviewers_send(review: Review):
+        review.suggested_reviewers_send = True
+        return review.update_record()
