@@ -1584,11 +1584,11 @@ def fetch_query(action, recommenderId):
 
     queries = {
         "total_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId)),
-        "total_accepted" : ((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.recommender_id == recommenderId)),
+        "total_accepted" : ((db.t_articles.id == db.v_article_recommender.id) & (db.v_article_recommender.recommender_id==recommenderId)),
         "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)),
         "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
-        "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)),
-        "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Awaiting revision') & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)),
+        "current_assignments": ((db.t_articles.id==db.v_article_recommender.id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.v_article_recommender.recommender_id==recommenderId)),
+        "awaiting_revision" : ((db.t_articles.id==db.v_article_recommender.id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.v_article_recommender.recommender_id==recommenderId)),
         # "requiring_action" : (  (db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Under consideration')  & (db.t_reviews.recommendation_id==db.t_recommendations.id)\
         #                        & (db.t_recommendations.recommender_id == recommenderId) ),
         "requiring_reviewers": ((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') 
