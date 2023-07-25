@@ -2093,9 +2093,10 @@ def edit_recommendation():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
+    survey = db(db.t_report_survey.article_id == art.id).select().last()
+    publish_now = "IPA" in survey.q21
     scheduled_reject = request.vars["scheduled_reject"]
     isPress = None
-        
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
@@ -2116,7 +2117,8 @@ def edit_recommendation():
                     _name="recommender_opinion",
                     _type="radio",
                     _value="do_recommend_private",
-                    _checked=(recomm.recommendation_state == "Recommended"),
+                    _checked=(recomm.recommendation_state == "Recommended"), 
+                    _disabled=True if publish_now else False,
                 ),
                 B(current.T("I recommend this preprint")),
                 BR(),
@@ -2138,7 +2140,8 @@ def edit_recommendation():
                     (DIV(
                         SPAN(
                             INPUT(
-                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended")
+                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended"), 
+                                _disabled=False if publish_now else True
                             ),
                             B(current.T("I recommend this preprint")),
                             _class="pci-radio pci-recommend btn-success",
