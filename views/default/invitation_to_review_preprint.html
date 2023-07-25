@@ -51,12 +51,14 @@
             </label>
           </div>
           
+          {{if not user.ethical_code_approved:}}
           <div class="checkbox">
             <label>
               <input type="checkbox" name="cgu-checkbox" id="cgu-checkbox" value="yes">
               <b>{{=T("I agree to comply with the ")}} <a target="_blank", href="{{=URL('about', 'gtu')}}">{{=T("General Terms of Use")}}</a> and the <a target="_blank" href="{{=URL('about', 'ethics')}}">{{=T("code of conduct")}}</a>
             </label>
           </div>
+          {{pass}}
         
           <div class="pci2-flex-center">
             <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I would like to review this preprint')}}">          
@@ -95,7 +97,7 @@
       jQuery("#no_conflict_of_interest").prop("checked") &&
       jQuery("#due_time").prop("checked") &&
      (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
-      jQuery("#cgu-checkbox").prop("checked")
+      (jQuery("#cgu-checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True')
     ) {
       jQuery(":submit").prop("disabled", false);
     } else {

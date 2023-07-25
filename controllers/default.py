@@ -435,6 +435,7 @@ def invitation_to_review_preprint():
                 dueTime=dueTime,
                 isAlreadyReviewer=False,
                 review=review,
+                user=user,
                 recommender=recommender)
     
 
