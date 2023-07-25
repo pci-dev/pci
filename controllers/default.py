@@ -407,8 +407,7 @@ def invitation_to_review_preprint():
         user = User.get_by_id(db, auth.user_id)
     
     if not user:
-        session.flash = current.T('No user found')
-        redirect(cast(str, URL('default','index')))
+        redirect(URL(a='default', c='user', args='login', vars=dict(_next=URL(args=request.args, vars=request.vars))))
         return
     
     if user.id != review.reviewer_id:
