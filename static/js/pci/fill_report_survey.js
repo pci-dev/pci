@@ -234,7 +234,19 @@ function checkEmbargo(){
 
 jQuery(document).ready(function() {
   checkEmbargo()
+  hideCheckbox()
+  jQuery("#t_report_survey_q1").change(function() {
+    hideCheckbox()
+  })
   jQuery("#t_report_survey_q16").change(function() {
     checkEmbargo()
   })
 });
+
+function hideCheckbox(){
+  if (jQuery("#t_report_survey_q1").val() === "RR SNAPSHOT FOR SCHEDULED REVIEW") {
+    jQuery("#t_report_survey_q32__label").hide();
+  } else {
+    jQuery("#t_report_survey_q32__label").show();
+  }
+}
