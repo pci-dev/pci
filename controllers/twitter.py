@@ -46,7 +46,7 @@ def post_form():
     already_send = len(tweets_in_db) > 0
 
     if not already_send:
-        tweets_text = twitter_client.generate_post(article, recommendation)
+        tweets_text = twitter_client.generate_post(db, article)
     else:
         for tweet in tweets_in_db:
             tweets_text.append(tweet.text_content)

@@ -47,7 +47,7 @@ def post_form():
     already_send = len(toots_in_db) > 0
 
     if not already_send:
-        toots_text = mastodon_client.generate_post(article, recommendation)
+        toots_text = mastodon_client.generate_post(db, article)
     else:
         for toot in toots_in_db:
             toots_text.append(toot.text_content)

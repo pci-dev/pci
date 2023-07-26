@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional as _, cast
+from typing import List, Optional as _, cast
 from pydal.objects import Row
 from pydal import DAL
 
@@ -35,3 +35,7 @@ class Recommendation(Row):
     @staticmethod
     def get_by_id(db: DAL, id: int):
         return cast(_[Recommendation], db.t_recommendations[id])
+    
+    @staticmethod
+    def get_by_article_id(db: DAL, article_id: int):
+        return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
