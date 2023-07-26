@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional as _, cast
+from models.press_reviews import PressReview
 from pydal.objects import Row
 from pydal import DAL
 
@@ -39,3 +40,9 @@ class Recommendation(Row):
     @staticmethod
     def get_by_article_id(db: DAL, article_id: int):
         return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
+
+
+    @staticmethod
+    def get_co_recommenders(db: DAL, recommendation_id: int):
+        return cast(List[PressReview], db((db.t_recommendations.id == recommendation_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
+            .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))

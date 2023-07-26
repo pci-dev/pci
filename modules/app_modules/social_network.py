@@ -33,8 +33,8 @@ class SocialNetwork(metaclass=ABCMeta):
         pass
 
 
-    def generate_post(self, db: DAL, article: Article):
-        text = self.__generate_post_text(db, article)
+    def generate_post(self, db: DAL, article: Article, recommendation: Recommendation):
+        text = self.__generate_post_text(db, article, recommendation)
         posts = self.__cut_post_text(text.strip())
 
         return posts
@@ -65,11 +65,13 @@ class SocialNetwork(metaclass=ABCMeta):
         return name
 
 
-    def __get_recommenders_names(self, db: DAL, article_id: int):
-        recommendations = Recommendation.get_by_article_id(db, article_id)
-        names: List[str] = []
-        for recommendation in recommendations:
-            recommender_name = self.__get_user_name(recommendation.recommender_id)
+    def __get_recommenders_names(self, db: DAL, recommendation: Recommendation):
+        press_reviews = Recommendation.get_co_recommenders(db, recommendation.id)
+        names: List[str] = [self.__get_user_name(recommendation.recommender_id)]
+        for press_review in press_reviews:
+            if not press_review.contributor_id:
+                continue
+            recommender_name = self.__get_user_name(press_review.contributor_id)
             if recommender_name not in names:
                 names.append(recommender_name)
         formatted_names = ', '.join(names)
@@ -106,9 +108,9 @@ class SocialNetwork(metaclass=ABCMeta):
         return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
     
 
-    def __generate_post_text(self, db: DAL, article: Article) -> str:
+    def __generate_post_text(self, db: DAL, article: Article, recommendation: Recommendation) -> str:
         line1 = f'A new #preprint #OpenScience #PeerReview by @{self._tweethash}: {article.authors} ({article.article_year}) {article.title}. {article.preprint_server}, ver. {article.ms_version} peer-reviewed and recommended by {self._description}. {article.doi} '
-        line2 = f'recommended by {self.__get_recommenders_names(db, article.id)} for @{self._tweethash} based on published reviews by {self.__get_reviewers_name(article.id)} #OpenScience https://doi.org/{generate_recommendation_doi(article.id)}'
+        line2 = f'recommended by {self.__get_recommenders_names(db, recommendation)} for @{self._tweethash} based on published reviews by {self.__get_reviewers_name(article.id)} #OpenScience https://doi.org/{generate_recommendation_doi(article.id)}'
         return line1 + line2
 
 
