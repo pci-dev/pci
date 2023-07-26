@@ -2093,14 +2093,14 @@ def edit_recommendation():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
+    scheduled_reject = request.vars["scheduled_reject"]
+    isStage1 = art.art_stage_1_id is None
+    isPress = None
     publish_now = True
-    if pciRRactivated:
+    amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+    if pciRRactivated and isStage1:
         survey = db(db.t_report_survey.article_id == art.id).select().last()
         publish_now = "IPA" in survey.q21
-    scheduled_reject = request.vars["scheduled_reject"]
-    isPress = None
-    amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
-
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -2111,7 +2111,6 @@ def edit_recommendation():
         nbCoRecomm = db(db.t_press_reviews.recommendation_id == recommId).count()
         isPress = art.already_published
 
-        isStage1 = art.art_stage_1_id is None
         if pciRRactivated and isStage1:
             recommendPrivateDivPciRR = SPAN(
                 INPUT(
