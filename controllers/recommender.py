@@ -2093,8 +2093,10 @@ def edit_recommendation():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
-    survey = db(db.t_report_survey.article_id == art.id).select().last()
-    publish_now = "IPA" in survey.q21
+    publish_now = True
+    if pciRRactivated:
+        survey = db(db.t_report_survey.article_id == art.id).select().last()
+        publish_now = "IPA" in survey.q21
     scheduled_reject = request.vars["scheduled_reject"]
     isPress = None
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
