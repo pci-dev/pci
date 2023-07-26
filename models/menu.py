@@ -2,6 +2,7 @@
 # this file is released under public domain and you can use without limitations
 
 from gluon.custom_import import track_changes
+from gluon.html import SPAN, URL
 
 track_changes(True)
 
@@ -516,26 +517,36 @@ def _AccountMenu():
         isActive = True
 
     if auth.is_logged_in():
-        txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), B(auth.user.first_name))
+        if auth.user.city:
+            txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), B(auth.user.first_name))
+        else:
+            txtMenu = SPAN(I(_class="glyphicon glyphicon-user"), B(auth.user.first_name), _class="pci-enhancedMenuItem")
     else:
         txtMenu = SPAN(I(_class="glyphicon glyphicon-log-in"), T("Log in"), _class="pci-enhancedMenuItem")
 
     auth_menu = []
 
-    if auth.is_logged_in(): auth_menu += [
-        menu_entry("Public page", "glyphicon-briefcase", URL(c="public", f="user_public_page", vars=dict(userId=auth.user.id))),
-        divider(),
-        menu_entry("Profile", "glyphicon-user", URL("default", "user/profile", user_signature=True)),
-        menu_entry("Change password", "glyphicon-lock", URL("default", "user/change_password", user_signature=True)),
-        menu_entry("Change e-mail address", "glyphicon-envelope", URL("default", "change_email", user_signature=True)),
-        divider(),
-        menu_entry("Log out", "glyphicon-off", URL("default", "user/logout", user_signature=True)),
-    ]
-    else: auth_menu += [
-        menu_entry("Log in", "glyphicon-log-in", URL("default", "user/login", user_signature=True)),
-        menu_entry("Sign up", "glyphicon-edit", URL("default", "user/register", user_signature=True)),
-    ]
+    if auth.is_logged_in():
+        auth_menu += [
+            menu_entry("Public page", "glyphicon-briefcase", URL(c="public", f="user_public_page", vars=dict(userId=auth.user.id))),
+            divider()]
+        
+        if auth.user.city:
+            auth_menu += menu_entry("Profile", "glyphicon-user", URL("default", "user/profile", user_signature=True)),
+        else:
+            auth_menu += menu_entry("Profile", "glyphicon-user", URL("default", "user/profile", user_signature=True), _class="pci-enhancedMenuItem"),
 
+        auth_menu += [menu_entry("Change password", "glyphicon-lock", URL("default", "user/change_password", user_signature=True)),
+            menu_entry("Change e-mail address", "glyphicon-envelope", URL("default", "change_email", user_signature=True)),
+            divider(),
+            menu_entry("Log out", "glyphicon-off", URL("default", "user/logout", user_signature=True)),
+        ]
+    else:
+        auth_menu += [
+            menu_entry("Log in", "glyphicon-log-in", URL("default", "user/login", user_signature=True)),
+            menu_entry("Sign up", "glyphicon-edit", URL("default", "user/register", user_signature=True)),
+        ]
+        
     return [(SPAN(txtMenu, _class="pci-manager"), isActive, "#", auth_menu)]
 
 
