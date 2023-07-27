@@ -399,6 +399,7 @@ def recommendations():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
+    myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
     return dict(
         viewToRender=viewToRender,
@@ -410,9 +411,11 @@ def recommendations():
         myContents=myContents,
         myBackButton=common_small_html.mkBackButton(),
         pciRRactivated=pciRRactivated,
+        managerConfirmationDialog=common_small_html.confirmationDialog("Set not considered"),
         isStage2=isStage2,
         stage1Link=stage1Link,
         stage2List=stage2List,
+        myFinalScript=myScript,
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
     )
 
