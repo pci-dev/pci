@@ -65,7 +65,7 @@ function anonymousReviewerFunction(e) {
 
   e.preventDefault();
 
-  $('#anonymous-reviewer-confirm').modal('show')
+  $('#confirmation-modal').modal('show')
   .on('click', '#confirm-dialog', function(){ 
     const anonymousDialogInput = document.getElementById('anonymous-dialog-input');
     anonymousDialogInput.value = buttonName;

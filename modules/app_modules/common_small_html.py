@@ -1017,12 +1017,12 @@ def mkSearchWidget(chars):
 
 #################################################################################
 
-def anonymousReviewerConfirmDialog():
+def confirmationDialog(text):
     return DIV( 
-    DIV(TAG(current.T("anonymousReviewerConfirmDialogMessage")), _class="modal-body"), 
+    DIV(TAG(current.T(text)), _class="modal-body"), 
     DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
         SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
-    _class="modal-footer"), _id="anonymous-reviewer-confirm", _class="modal fade", _role="dialog")
+    _class="modal-footer"), _id="confirmation-modal", _class="modal fade", _role="dialog")
 
 ##################################################################################
 
