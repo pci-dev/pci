@@ -417,6 +417,9 @@ def stream_pdf():
 
     row = db(db[table_name][table_file_field] == filename).select().first()
 
+    if not row:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
     table_file_data_field = table_file_field + "_data"
 
     file_data_bytes = row[table_file_data_field]
