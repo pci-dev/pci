@@ -412,6 +412,10 @@ def stream_pdf():
     filename = request.args[0]
 
     match_regex = re.match("(.*?)\.(.*?)\.", filename)
+
+    if not match_regex:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
     table_name = match_regex.group(1)
     table_file_field = match_regex.group(2)
 
