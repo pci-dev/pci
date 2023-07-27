@@ -719,6 +719,7 @@
     "Services": "Services",
     "Set in my profile": "Set in my profile",
     'Set "Not': 'Set "Not',
+    "Set not considered": 'Are you sure you want to set the submission to "not considered" ?',
     'Set this preprint as "Not considered"': 'Set this preprint as "Not considered"',
     "Show / Hide Abstract": "Show / Hide Abstract",
     "Show / Hide Cover letter": "Show / Hide Cover letter",
