@@ -151,7 +151,7 @@ def index():
         _style="margin-top: 15px; margin-bottom: 20px",
     )
     grid.element(".web2py_table").insert(0, lastRecommTitle) \
-            if grid != original_grid else None
+            if grid.element(".web2py_table") else None
 
     return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
