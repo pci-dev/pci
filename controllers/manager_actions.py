@@ -226,7 +226,7 @@ def set_not_considered():
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    if art.status == "Awaiting consideration":
+    if art.status in ("Awaiting consideration", "Pending"):
         session.flash = T('Article set "Not considered"')
         art.status = "Not considered"
         art.update_record()

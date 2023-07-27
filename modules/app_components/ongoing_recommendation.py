@@ -789,7 +789,7 @@ def validate_stage_button(art):
                     "Validate this submission",
                     "Click here to validate this request and start recommendation process",
                     art,
-                    put_in_presubmission_button(art) if pciRRactivated else "",
+                    extra_button=[put_in_presubmission_button(art) if pciRRactivated else "", set_to_not_considered(art)],
                 )
                 return SPAN(
                     validation_checklist('do_validate_article') if not pciRRactivated else "",
@@ -874,8 +874,8 @@ def manager_action_button(action, text, info_text, art, extra_button="", style="
             _id=action,
             _onclick=onclick
         ),
-        extra_button,
-        _class="pci-EditButtons-centered",
+       LI(extra_button,_style="display: inline-block"),
+        _class="pci-EditButtons-centered  nav",
     )
 
 
@@ -888,6 +888,14 @@ def put_in_presubmission_button(art):
             style="default",
     )[0]
 
+def set_to_not_considered(art):
+    return manager_action_button(
+            "set_not_considered",
+            "Set to not considered",
+            "Click here to set this article to not considered",
+            art,
+            style="danger",
+    )[0]
 
 def send_back_button(art):
     return A(
