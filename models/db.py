@@ -807,7 +807,6 @@ def deltaStatus(s, f):
                 
 
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
 
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
