@@ -19,9 +19,11 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
+from pydal import DAL
 
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
+from app_modules.emailing_tools import getMailTemplateHashtag
 
 myconf = AppConfig(reload=True)
 
@@ -1055,3 +1057,19 @@ def write_edit_upload_review_button(review_id: int):
             _class="buttontext btn btn-default",
             _style="color: #3e3f3a; background-color: white;"
         )
+###################################################################################
+
+def custom_mail_dialog(db: DAL, article_id: int, template_hashtag: str, submit_url: str):
+    template = getMailTemplateHashtag(db, template_hashtag)
+
+    form = DIV(
+            DIV(H5(TAG(template['subject'].replace('{{appName}}: ', '')), _value=template['subject'], _class="modal-title", _id="mail-dialog-title"), _class="modal-header"),
+            DIV(P(TAG(current.T('Do not modify the text between {{}} if you want to keep the integrity of the title of the article and the name of the PCI')), _class="alert alert-danger"),
+                TEXTAREA(XML(template['content']), _name='mail-dialog-form', _class='form-control', _id='mail-dialog-form'),
+                _class="modal-body", id="mail-dialog-form"),
+                P('', _id='text-preview'),
+            DIV(A(current.T("send"), _type="button", **{'_data-dismiss': 'modal'}, _href=submit_url, _class="btn btn-info", _id="confirm-mail-dialog"),
+                SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-mail-dialog"),
+            _class="modal-footer"), _id="mail-dialog", _class="modal fade", _role="dialog")
+
+    return form

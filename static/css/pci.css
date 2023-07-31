@@ -1341,3 +1341,26 @@ header {
   border-radius: 5px;
   padding: 5px;
 }
+
+#mail-dialog {
+  position: fixed;
+  width: 40%;
+  height: fit-content;
+  top: 5%;
+  left: 30%;
+  background-color: white;
+  border-radius: 6px;
+}
+
+#mail-dialog-title {
+  font-size: large;
+  font-weight: bold;
+}
+
+#mail-dialog #confirm-mail-dialog {
+  margin-bottom: 0px;
+}
+
+#mail-dialog #text-preview {
+  margin-left: 20px
+}
