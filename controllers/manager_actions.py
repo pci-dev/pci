@@ -263,6 +263,16 @@ def set_not_considered():
     redirect(request.env.http_referer)
 
 
+@auth.requires(auth.has_membership(role="manager"))
+def get_not_considered_dialog():
+    article_id = int(request.vars["articleId"])
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        session.flash = auth.not_authorized()
+
+    submit_url: str = URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True)
+    return custom_mail_dialog(db, article_id, '#SubmitterNotConsideredSubmission', submit_url)
+
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def delete_recommendation_file():

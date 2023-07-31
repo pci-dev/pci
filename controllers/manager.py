@@ -7,7 +7,7 @@ import datetime
 from datetime import timedelta
 import glob
 import os
-from typing import cast
+from typing import List, cast
 
 # sudo pip install tweepy
 # import tweepy
@@ -39,9 +39,11 @@ from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 
-from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import custom_mail_dialog, md_to_html
 
 from controller_modules import admin_module
+from gluon.sqlhtml import SQLFORM
+from models.article import ArticleStatus
 
 
 myconf = AppConfig(reload=True)
@@ -264,8 +266,9 @@ def _manage_articles(statuses, whatNext, db=db):
                     SPAN(current.T('Set "Not')),
                     BR(),
                     SPAN(current.T('considered"')),
-                    _href=URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=row.id), user_signature=True),
+                    _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
                     _class="buttontext btn btn-danger pci-button pci-manager",
+                    _id=f"button-set-not-considered-{row.id}",
                     _title=current.T('Set this preprint as "Not considered"'),
                 )
                 if (
@@ -333,6 +336,7 @@ def _manage_articles(statuses, whatNext, db=db):
         pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        script=common_tools.get_script("manager.js")
     )
 
 
