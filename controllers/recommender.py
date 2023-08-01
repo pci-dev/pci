@@ -1686,7 +1686,14 @@ def email_for_registered_reviewer():
             review.quick_decline_key = web2py_uuid()
             review.update_record()
 
-        linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
+        linkTarget = URL(
+                c="default",
+                f="invitation_to_review_preprint",
+                vars=dict(reviewId=review.id),
+                scheme=scheme,
+                host=host,
+                port=port,
+            )
         declineLinkTarget = URL(c="user_actions", f="decline_review", scheme=scheme, host=host, port=port, vars=dict(
             id=review.id,
             key=review.quick_decline_key,
@@ -1885,7 +1892,6 @@ def email_for_new_reviewer():
                     review_duration=form.vars.review_duration,
             )
 
-            linkTarget = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=scheme, host=host, port=port)
             declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
                     scheme=scheme, host=host, port=port)
 
@@ -1907,7 +1913,7 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         reset_password_key,
-                        linkTarget,
+                        None,
                         declineLinkTarget,
                         new_stage=new_stage,
                     )

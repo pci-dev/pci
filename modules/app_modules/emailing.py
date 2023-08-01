@@ -40,7 +40,10 @@ from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
 from app_modules.emailing_tools import mkAuthors
-
+from models.review import Review
+from models.article import Article
+from models.recommendation import Recommendation
+from models.user import User
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -1004,37 +1007,46 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    rev = db.t_reviews[reviewId]
-    if rev:
-        recomm = db.t_recommendations[rev.recommendation_id]
-        if recomm:
-            article = db.t_articles[recomm["article_id"]]
-            if article:
-                mail_vars["articleTitle"] = md_to_html(article.title)
-                mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
-                mail_vars["articleAuthors"] = mkAuthors(article)
-                mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    review = Review.get_by_id(db, reviewId)
+    if not review:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
 
-                if pciRRactivated:
-                    mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
+    if pciRRactivated:
+        mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
-                reviewer = db.auth_user[rev.reviewer_id]
-                if reviewer:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
-                    mail_vars["destAddress"] = reviewer["email"]
+    reviewer = User.get_by_id(db, review.reviewer_id)
+    if reviewer:
+        mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review_preprint", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+        mail_vars["destAddress"] = reviewer["email"]
 
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
-                    mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
-                    mail_vars["reviewDuration"] = (rev.review_duration).lower()
+        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recommendation.recommender_id) or ""
+        mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+        mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
+        mail_vars["reviewDuration"] = (review.review_duration).lower()
 
-                    mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = [db.auth_user[recommendation.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recommendation.id)
 
-                    hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
+        hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id)
 
-                    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+        reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
@@ -1725,161 +1737,166 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     reports = []
 
     review = db.t_reviews[reviewId]
-    if review:
-        recomm = db.t_recommendations[review.recommendation_id]
-        article = db.t_articles[recomm.article_id]
-        if recomm:
-            rev = db.auth_user[review["reviewer_id"]]
-            if rev:
-                mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
-                mail_vars["destAddress"] = rev["email"]
-                mail_vars["reviewDuration"] = (review.review_duration).lower()
+    if not review:
+        emailing_tools.getFlashMessage(session, reports)
+        return
 
-                message = emailing_tools.replaceMailVars(message, mail_vars)
-                content = DIV(WIKI(message, safe_mode=False))
+    recommendation = db.t_recommendations[review.recommendation_id]
+    if not recommendation:
+        emailing_tools.getFlashMessage(session, reports)
+        return
 
-                reviewer_invitation_buttons = None
-                button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block;"
+    article = db.t_articles[recommendation.article_id]
 
-                if reset_password_key:
-                    if linkTarget:
-                        link = URL(
-                            a=None,
-                            c="default",
-                            f="user",
-                            args="reset_password",
-                            vars=dict(key=reset_password_key, _next=linkTarget),
-                            scheme=mail_vars["scheme"],
-                            host=mail_vars["host"],
-                            port=mail_vars["port"],
-                        )
-                    else:
-                        link = URL(
-                            a=None,
-                            c="default",
-                            f="user",
-                            args="reset_password",
-                            vars=dict(key=reset_password_key),
-                            scheme=mail_vars["scheme"],
-                            host=mail_vars["host"],
-                            port=mail_vars["port"],
-                        )
+    reviewer = db.auth_user[review["reviewer_id"]]
+    if not reviewer:
+        emailing_tools.getFlashMessage(session, reports)
+        return
+    
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destAddress"] = reviewer["email"]
+    mail_vars["reviewDuration"] = (review.review_duration).lower()
+    message = emailing_tools.replaceMailVars(message, mail_vars)
 
-                    reviewer_invitation_buttons = DIV(
-                        P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
-                        DIV(
-                            A(
-                                SPAN(
-                                    current.T("ACCEPT"),
-                                    _style=button_style + "background: #93c54b",
-                                ),
-                                _href=link,
-                                _style="text-decoration: none; display: block",
-                            ),
-                            _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                        ),
-                        P(B(current.T('THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU'))),
-                        P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
-                        DIV(
-                            A(
-                                SPAN(
-                                    current.T("DECLINE"),
-                                    _style=button_style + "background: #c54b4b",
-                                ),
-                                _href=declineLinkTarget,
-                                _style="text-decoration: none; display: block",
-                            ),
-                            _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                        ),
-                    )
-                    if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
-                        new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
+    content = DIV(WIKI(message, safe_mode=False))
+    reviewer_invitation_buttons = None
 
-                    create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
+    if reset_password_key:
+        if linkTarget:
+            linkVars = dict(key=reset_password_key, _next=linkTarget, reviewId=review.id)
+        else:
+            linkVars = dict(key=reset_password_key, reviewId=review.id)
 
-                elif linkTarget:
+        link = URL(
+                c="default",
+                f="invitation_to_review_preprint",
+                vars=linkVars,
+                scheme=mail_vars["scheme"],
+                host=mail_vars["host"],
+                port=mail_vars["port"],
+            )
 
-                    if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
+        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(True, link, declineLinkTarget)
+        if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
+            new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-                        if declineLinkTarget:
-                            reviewer_invitation_buttons = DIV(
-                                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
-                                DIV(
-                                    A(
-                                        SPAN(
-                                            current.T("Yes, I would like to review this preprint"),
-                                            _style=button_style + "background: #93c54b",
-                                        ),
-                                        _href=linkTarget,
-                                        _style="text-decoration: none; display: block",
-                                    ),
-                                    B(current.T("OR")),
-                                    A(
-                                        SPAN(
-                                            current.T("No thanks, I would rather not"),
-                                            _style=button_style + "background: #f47c3c",
-                                        ),
-                                        _href=declineLinkTarget,
-                                        _style="text-decoration: none; display: block",
-                                    ),
-                                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                                ),
-                            )
+        create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
 
-                    elif review.review_state == "Awaiting review":
-                        reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
-                    
-                    if hashtag_template == "#DefaultReviewInvitationRegisteredUserNewReviewerStage2":
-                        reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserNewReviewer", article)
-                    if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
-                        reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
+    elif linkTarget:
+        if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
+            if declineLinkTarget:
+                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(False, linkTarget, declineLinkTarget)
 
-                    create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
+        elif review.review_state == "Awaiting review":
+            reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
+        
+        if hashtag_template == "#DefaultReviewInvitationRegisteredUserNewReviewerStage2":
+            reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserNewReviewer", article)
+        if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
+            reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
 
-                subject_header = email_subject_header(recomm.article_id)
-                subject_without_appname = subject.replace("%s: " % subject_header, "")
-                applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                authors_reply = None
-                if new_round:
-                    prev_recomm = common_tools.get_prev_recomm(db, recomm)
-                    authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
+        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
 
-                message = render(
-                    filename=MAIL_HTML_LAYOUT,
-                    context=dict(
-                        subject=subject_without_appname,
-                        applogo=applogo,
-                        appname=mail_vars["appName"],
-                        content=XML(content),
-                        footer=emailing_tools.mkFooter(db),
-                        reviewer_invitation_buttons=reviewer_invitation_buttons,
-                        authors_reply=authors_reply,
-                    ),
-                )
+    subject_header = email_subject_header(recommendation.article_id)
+    subject_without_appname = subject.replace("%s: " % subject_header, "")
+    applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    authors_reply = None
+    if new_round:
+        prev_recomm = common_tools.get_prev_recomm(db, recommendation)
+        authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
-                mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recomm.id)
-                mail_vars["replytoAddresses"] = replyto_addresses
+    message = render(
+        filename=MAIL_HTML_LAYOUT,
+        context=dict(
+            subject=subject_without_appname,
+            applogo=applogo,
+            appname=mail_vars["appName"],
+            content=XML(content),
+            footer=emailing_tools.mkFooter(db),
+            reviewer_invitation_buttons=reviewer_invitation_buttons,
+            authors_reply=authors_reply,
+        ),
+    )
 
-                db.mail_queue.insert(
-                    dest_mail_address=mail_vars["destAddress"],
-                    cc_mail_addresses=mail_vars["ccAddresses"],
-                    replyto_addresses=mail_vars["replytoAddresses"],
-                    mail_subject=subject,
-                    mail_content=message,
-                    user_id=auth.user_id,
-                    recommendation_id=recomm.id,
-                    mail_template_hashtag=hashtag_template,
-                    article_id=recomm.article_id,
-                )
+    mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recommendation.id)
+    mail_vars["replytoAddresses"] = replyto_addresses
 
-                if review.review_state is None:
-                    review.review_state = "Awaiting response"
-                    review.update_record()
+    db.mail_queue.insert(
+        dest_mail_address=mail_vars["destAddress"],
+        cc_mail_addresses=mail_vars["ccAddresses"],
+        replyto_addresses=mail_vars["replytoAddresses"],
+        mail_subject=subject,
+        mail_content=message,
+        user_id=auth.user_id,
+        recommendation_id=recommendation.id,
+        mail_template_hashtag=hashtag_template,
+        article_id=recommendation.article_id,
+    )
 
-                reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    if review.review_state is None:
+        review.review_state = "Awaiting response"
+        review.update_record()
+
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
+
+def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, declineLinkTarget: str):
+    button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block;"
+
+    if has_reset_password:
+        return DIV(
+                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
+                DIV(
+                    A(
+                        SPAN(
+                            current.T("ACCEPT"),
+                            _style=button_style + "background: #93c54b",
+                        ),
+                        _href=link,
+                        _style="text-decoration: none; display: block",
+                    ),
+                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                ),
+                P(B(current.T('THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU'))),
+                P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
+                DIV(
+                    A(
+                        SPAN(
+                            current.T("DECLINE"),
+                            _style=button_style + "background: #c54b4b",
+                        ),
+                        _href=declineLinkTarget,
+                        _style="text-decoration: none; display: block",
+                    ),
+                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                ),
+            )
+    else:
+        return DIV(
+                    P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
+                    DIV(
+                        A(
+                            SPAN(
+                                current.T("Yes, I would like to review this preprint"),
+                                _style=button_style + "background: #93c54b",
+                            ),
+                            _href=link,
+                            _style="text-decoration: none; display: block",
+                        ),
+                        B(current.T("OR")),
+                        A(
+                            SPAN(
+                                current.T("No thanks, I would rather not"),
+                                _style=button_style + "background: #f47c3c",
+                            ),
+                            _href=declineLinkTarget,
+                            _style="text-decoration: none; display: block",
+                        ),
+                        _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                    ),
+                )
 
 ######################################################################################################################################################################
 def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):

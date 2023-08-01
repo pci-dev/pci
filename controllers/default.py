@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
-import time
-import re
-import copy
 import os
-import io
-import calendar
-
-from gluon.contrib.markdown import WIKI
-
-from app_modules.helper import *
-from gluon.utils import web2py_uuid
-from gluon.storage import Storage # for db.get_last_recomms()
+import re
+import time
+from typing import Any, Optional, cast
 
 from app_components import article_components
-from app_components import app_forms
-from app_modules import common_tools
+from app_modules.common_tools import get_article_id, get_reset_password_key, get_review_id
+from app_modules.helper import *
 from controller_modules import adjust_grid
+from gluon import DAL
+# -------------------------------------------------------------------------
+# app configuration made easy. Look inside private/appconfig.ini
+# once in production, remove reload=True to gain full speed
+# -------------------------------------------------------------------------
+from gluon.contrib.appconfig import AppConfig
+from gluon.globals import Request
+from gluon.http import HTTP, redirect
+from gluon.utils import web2py_uuid
 
+from models.article import Article
+from models.recommendation import Recommendation
+from models.review import Review
+from models.user import User
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -26,13 +31,9 @@ from controller_modules import adjust_grid
 # - download is for downloading files uploaded in the db (does streaming)
 # -------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------
-# app configuration made easy. Look inside private/appconfig.ini
-# once in production, remove reload=True to gain full speed
-# -------------------------------------------------------------------------
-from gluon.contrib.appconfig import AppConfig
 
 myconf = AppConfig(reload=True)
+db = cast(DAL, db)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
@@ -186,7 +187,7 @@ def user():
     # """
 
     if "_next" in request.vars:
-        suite = request.vars["_next"]
+        suite = cast(str, request.vars["_next"])
         if len(suite) < 4:
             suite = None
     else:
@@ -194,17 +195,8 @@ def user():
     if isinstance(suite, list):
         suite = suite[1]
 
-    if "key" in request.vars:
-        vkey = request.vars["key"]
-    else:
-        vkey = None
-    if isinstance(vkey, list):
-        vkey = vkey[1]
-    if vkey == "":
-        vkey = None
-
     if "_formkey" in request.vars:
-        fkey = request.vars["_formkey"]
+        fkey = cast(str, request.vars["_formkey"])
     else:
         fkey = None
     if isinstance(fkey, list):
@@ -217,7 +209,6 @@ def user():
     pageHelp = ""
     customText = ""
     myBottomText = ""
-    myScript = ""
 
     form = auth()
     db.auth_user.registration_key.writable = False
@@ -283,7 +274,8 @@ def user():
             pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
             pageHelp = getHelp(request, auth, db, "#ResetPassword")
             customText = getText(request, auth, db, "#ResetPasswordText")
-            user = db(db.auth_user.reset_password_key == vkey).select().last()
+            vkey = get_reset_password_key(request)
+            user = User.get_by_reset_password_key(db, vkey)
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (vkey is not None) and (suite is not None) and (user is None):
                 redirect(suite)
@@ -371,6 +363,122 @@ def change_email():
 
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
 
+######################################################################################################################################################################
+
+def invitation_to_review_preprint():
+    if not 'reviewId' in request.vars:
+        session.flash = current.T('No review id found')
+        redirect(URL('default','index'))
+        return
+    
+    reviewId = int(request.vars['reviewId'])
+    review = Review.get_by_id(db, reviewId)
+    if not review or not review.recommendation_id:
+        session.flash = current.T('No review found')
+        redirect(URL('default','index'))
+        return
+    
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation or not recommendation.article_id:
+        session.flash = current.T('No recommendation found')
+        redirect(URL('default','index'))
+        return
+    
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        session.flash = current.T('No article found')
+        redirect(URL('default','index'))
+        return
+    
+    recommender = User.get_by_id(db, recommendation.recommender_id)
+    if not recommender:
+        session.flash = current.T('No recommender found')
+        redirect(URL('default','index'))
+        return
+
+    reset_password_key = get_reset_password_key(request)
+    user: Optional[User] = None
+    action_form_url: Optional[str] = None
+    url_vars: dict[Any, Any] = dict()
+
+    if reset_password_key and not auth.user_id:
+        user = User.get_by_reset_password_key(db, reset_password_key)
+    elif auth.user_id:
+        user = User.get_by_id(db, auth.user_id)
+    
+    if not user:
+        redirect(URL(a='default', c='user', args='login', vars=dict(_next=URL(args=request.args, vars=request.vars))))
+        return
+    
+    if user.id != review.reviewer_id:
+        session.flash = current.T('Bad user')
+        redirect(cast(str, URL('default','index')))
+        return
+
+    url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
+    action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+
+    if user.ethical_code_approved and review.no_conflict_of_interest:
+            redirect(action_form_url)
+
+    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
+    recommHeaderHtml = cast(XML, article_components.getArticleInfosCard(auth, db, response, article, printable=False))
+    response.view = "default/invitation_to_review_preprint.html"
+    
+    return dict(recommHeaderHtml=recommHeaderHtml,
+                isRecommender=False,
+                isSubmitter=False,
+                actionFormUrl=action_form_url,
+                disclaimerText=disclaimerText,
+                dueTime=dueTime,
+                isAlreadyReviewer=False,
+                review=review,
+                user=user,
+                recommender=recommender)
+    
+
+def invitation_to_review_preprint_acceptation():
+    article_id = get_article_id(request)
+    review_id = get_review_id(request)
+    if article_id and review_id:
+        url_vars = dict(reviewId=review_id, _next=URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
+        session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
+
+        review = Review.get_by_id(db, review_id)
+        if review and not review.acceptation_timestamp:
+            Review.accept_review(review, anonymous_agreement=True)
+
+    reset_password_key = get_reset_password_key(request)
+    user: Optional[User] = None
+    if reset_password_key and not auth.user_id:
+        user = User.get_by_reset_password_key(db, reset_password_key)
+    elif auth.user_id:
+        user = User.get_by_id(db, auth.user_id)
+    
+    if user and not user.ethical_code_approved:
+        user.ethical_code_approved = True
+        user.update_record()
+
+    if user and auth.user_id:
+        redirect(session._reset_password_redirect)
+
+    form = auth.reset_password(session._reset_password_redirect)
+    
+    titleIcon = "user"
+    pageTitle = cast(str, T("Create account"))
+    customText = cast(str, T("Thanks for accepting to review this preprint. An email has been sent to your email address. You now need to define a password to login to “My Review” page and upload your review OR you can close this window and define your login (and upload) and post your review latter."))
+    form.element(_type="submit")["_class"] = "btn btn-success"
+    form.element(_type="submit")["_value"] = T("Create account")
+    form.element(_id="no_table_new_password__label").components[0] = T('Define password')
+
+    response.view = "default/myLayoutBot.html"
+
+
+    return dict(titleIcon=titleIcon,
+                pageTitle=pageTitle,
+                customText=customText,
+                form=form)
 
 ######################################################################################################################################################################
 def recover_mail():

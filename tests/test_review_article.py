@@ -1,4 +1,4 @@
-from conftest import test, select, login, logout, users
+from conftest import test, select, login, logout, users, visit
 from conftest import config
 from pytest import mark
 
@@ -47,20 +47,24 @@ class External_user_reviews:
         select("a", "View e-mails").click()
         select("tr", contains="#DefaultReviewInvitationNewUser") \
                 .select("a", "VIEW").click()
-        select("a", "ACCEPT").click()
+        accept_link = select("a", "ACCEPT").get_attribute("href")
+        logout(users.manager)
+        visit(accept_link)
+
+
+    def accept_invitation_to_review(_):
+        select('#no_conflict_of_interest').click()
+        select('#due_time').click()
+        select('#anonymous_agreement').click()
+        select('#cgu-checkbox').click()
+        select("input[type=submit]").click()
 
     def first_time_login(_):
         password = _.user.password
         select("input[name=new_password]").send_keys(password)
         select("input[name=new_password2]").send_keys(password)
         select("input[type=submit]").click()
-
-    def accept_to_review(_, article):
-        Reviewer.accept_to_review(article)
-        User.agree_to_comply()
-
-    def confirm_requirements(_):
-        Reviewer.confirm_requirements(_.user)
+        Reviewer.send_suggestion()
 
     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
             reason="scheduled track")
@@ -113,6 +117,10 @@ class Reviewer:
         row = select("tr", contains=article.title)
         row.select(".pci-status", "REVIEW COMPLETED")
         row.select("a", "VIEW / EDIT")
+
+    def send_suggestion():
+        select(css="#suggestion-textbox").send_keys(users.test.email)
+        select(css="#suggestion-submission").click()
 
 
 class User:

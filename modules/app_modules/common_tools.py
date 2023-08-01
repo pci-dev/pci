@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from re import match
+from typing import cast
 from zipfile import ZipFile
 import io
 from gluon import current
+from gluon.globals import Request
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.validators import IS_LIST_OF
@@ -147,3 +149,49 @@ def find_reviewer_number(db, review, count_anon):
                         return str(len(anon_reviewers))
 
     return str(count_anon)
+
+###########################################""""
+
+def get_reset_password_key(request: Request):
+    if 'key' in request.vars:
+        vkey = cast(str, request.vars['key'])
+        if isinstance(vkey, list):
+            return vkey[1]
+        if vkey == "":
+            return None
+        return vkey
+    else:
+        return None
+    
+def get_article_id(request: Request):
+    if 'articleId' in request.vars:
+        articleId = cast(str, request.vars['articleId'])
+        if isinstance(articleId, list):
+            return articleId[1]
+        if articleId == "":
+            return None
+        return articleId
+    else:
+        return None
+    
+def get_review_id(request: Request):
+    if 'reviewId' in request.vars:
+        review_id = cast(str, request.vars['reviewId'])
+        if isinstance(review_id, list):
+            return int(review_id[0])
+        if review_id == "":
+            return None
+        return int(review_id)
+    else:
+        return None
+    
+def get_next(request: Request):
+    if '_next' in request.vars:
+        next = cast(str, request.vars['_next'])
+        if isinstance(next, list):
+            return next[0]
+        if next == "" or next == 'None':
+            return None
+        return next
+    else:
+        return None
