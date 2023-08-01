@@ -2,6 +2,7 @@
 
 from app_modules.helper import *
 from app_modules import emailing
+from app_components import app_forms
 
 
 
@@ -182,6 +183,18 @@ def revise_article():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def decline_new_article_to_recommend():
+    if "articleId" not in request.vars:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    articleId = request.vars["articleId"]
+    article = db.t_articles[articleId]
+    if article is None:
+        raise HTTP(404, "404: " + T("Unavailable"))
+    
+    redirect(URL(c="recommender_actions", f="decline_article_confirmed", vars=dict(articleId=articleId), user_signature=True))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender"))
+def decline_article_confirmed():
     articleId = request.vars["articleId"]
     if articleId is not None:
         # NOTE: No security hole as only logged user can be deleted
@@ -192,9 +205,24 @@ def decline_new_article_to_recommend():
             db.commit()
             
             emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", articleId, auth.user_id)
-
             session.flash = T("Suggestion declined")
-    redirect(URL(c="recommender", f="my_awaiting_articles"))
+        else: 
+            raise HTTP(404, "404: " + T("Unavailable"))
+        message = T("Thank you for taking the time to decline this invitation!")
+        form = app_forms.recommender_decline_invitation_form(request, session, db, auth, articleId)
+
+    return _decline_article_page(message, form)
+
+######################################################################################################################################################################
+
+def _decline_article_page(message, form):
+    response.view = "default/myLayout.html"
+    return dict(
+        form=CENTER(
+            P(message),
+            form if form else DIV(_style="height: 20em;"),
+        )
+    )
 
 
 ######################################################################################################################################################################
