@@ -6,7 +6,7 @@ from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
-from app_modules import emailing
+from app_modules import emailing, common_small_html
 from gluon.validators import *
 from app_modules.helper import *
 from datetime import date
@@ -477,3 +477,51 @@ def checklist_validation(form):
     if form.vars.codes_used_in_study == "Codes have been used in this study" and form.vars.codes_doi == []:
         form.errors.codes_doi = "Provide the web address(es) to the code used"
         
+
+########################################################
+def recommender_decline_invitation_form(request, session, db, auth, articleId):
+    Field.CC = db.Field.CC
+    art = db.t_articles[articleId]
+    contact = myconf.take("contacts.managers")
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+    mail_template = emailing_tools.getMailTemplateHashtag(db, "#RecommenderRejectMail")
+
+    # template variables, along with all other locals()+
+    recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
+    articleTitle = common_small_html.md_to_html(art.title)
+    articleAuthors = emailing.mkAuthors(art)
+    appName = myconf.take("app.name")
+
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+
+    default_subject = emailing.patch_email_subject(default_subject, articleId)
+
+    form = SQLFORM.factory(
+        Field("message", label=current.T("Recommender decline message"), type="text", default=default_message, required=True),
+        Field("exit", type="string", default=current.T("Exit"), widget=widget_submit_button, label=""),
+    )
+    form.element("input[value=Submit]")["_style"] = "display: none;"
+    form.element("input[value=Submit]")["_type"] = "button"
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
+    if form.process().accepted:
+        form = request.vars
+        form['cc'] = sender_email
+        form['replyto'] = sender_email
+        form['subject'] = default_subject
+        try:
+            emailing.send_submitter_generic_mail(session, auth, db, contact, articleId, form, "#RecommenderRejectMail")
+        except Exception as e:
+            session.flash = (session.flash or "") + current.T("Email failed.")
+            raise e 
+        redirect(URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
+    
+    return form
+
+def widget_submit_button(field,value):
+    # widget for additional form button
+    item = LI(INPUT(_type='submit', _name="Submit", _value="Send Message", value="Send Message", _class="btn btn-primary"),
+            A("Done", _class="btn btn-default", _href=URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True)),
+            _style="display: inline-block")
+    return (SPAN(item))
