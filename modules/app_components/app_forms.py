@@ -6,7 +6,7 @@ from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
-from app_modules import emailing, common_small_html
+from app_modules import emailing, common_small_html, emailing_vars
 from gluon.validators import *
 from app_modules.helper import *
 from datetime import date
@@ -491,6 +491,7 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
     articleTitle = common_small_html.md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
     appName = myconf.take("app.name")
+    managers_mails = ",".join(emailing_vars.getManagersMails(db))
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -511,7 +512,7 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
         form['replyto'] = sender_email
         form['subject'] = default_subject
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, contact, articleId, form, "#RecommenderRejectMail")
+            emailing.send_submitter_generic_mail(session, auth, db, managers_mails, articleId, form, "#RecommenderRejectMail")
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
             raise e 
