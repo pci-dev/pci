@@ -1344,12 +1344,12 @@ header {
 
 #mail-dialog {
   position: fixed;
-  width: 40%;
-  height: fit-content;
+  width: 70%;
   top: 5%;
-  left: 30%;
+  left: 15%;
   background-color: white;
   border-radius: 6px;
+  height: fit-content;
 }
 
 #mail-dialog-title {
