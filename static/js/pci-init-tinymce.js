@@ -1,6 +1,6 @@
 initTinyMCE();
 
-function initTinyMCE() {
+function initTinyMCE(elementSelector, idTextarea) {
 
   const ids_array = [
     "#help_texts_contents",
@@ -15,7 +15,13 @@ function initTinyMCE() {
   ];
 
   for (const id_textarea of ids_array) {
-    let elem = document.querySelector(id_textarea);
+    let elem;
+    if (elementSelector && idTextarea && id_textarea == idTextarea) {
+      elem = document.querySelector(elementSelector);
+    } else {
+      elem = document.querySelector(id_textarea);
+    }
+   
     if (elem) {
       // let editor_elem = `<div id="${id_textarea + '_editor'}"></div>`
       let invalid_styles;
@@ -47,7 +53,7 @@ function initTinyMCE() {
       let tinymce_options = {
         external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
         invalid_styles: invalid_styles,
-        selector: id_textarea,
+        selector: elementSelector ? elementSelector : id_textarea,
         // Remove auto conversion to relative url
         convert_urls: false,
         branding: false,

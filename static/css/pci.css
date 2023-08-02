@@ -1342,7 +1342,7 @@ header {
   padding: 5px;
 }
 
-#mail-dialog {
+.mail-dialog {
   position: fixed;
   width: 70%;
   top: 5%;
@@ -1352,15 +1352,11 @@ header {
   height: fit-content;
 }
 
-#mail-dialog-title {
+.mail-dialog-title {
   font-size: large;
   font-weight: bold;
 }
 
-#mail-dialog #confirm-mail-dialog {
+.mail-dialog .confirm-mail-dialog {
   margin-bottom: 0px;
-}
-
-#mail-dialog #text-preview {
-  margin-left: 20px
 }
