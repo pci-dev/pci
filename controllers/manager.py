@@ -58,6 +58,10 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+scheme = myconf.take("alerts.scheme")
+host = myconf.take("alerts.host")
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ACCENT_COLOR = '#fcc24d'
 Field.CC = db.Field.CC
@@ -70,9 +74,6 @@ def index():
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(None, URL("manager", "all_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerAllArticlesText")
     resu["titleIcon"] = "book"
@@ -85,9 +86,6 @@ def all_articles():
 # Display pending articles and allow management
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def pending_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
@@ -101,9 +99,6 @@ def pending_articles():
 # Display articles in presubmission and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def pending_surveys():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(
         ["Pending-survey"], URL("manager", "pending_surveys", host=host, scheme=scheme, port=port)
     )
@@ -116,9 +111,6 @@ def pending_surveys():
 
 @auth.requires(auth.has_membership(role="manager"))
 def presubmissions():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(
         ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
     )
@@ -133,9 +125,6 @@ def presubmissions():
 # Display ongoing articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def ongoing_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
@@ -148,9 +137,6 @@ def ongoing_articles():
 # Display completed articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def completed_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     db.t_articles.status.label = T("Outcome")
     resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], URL("manager", "completed_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerCompletedArticlesText")
@@ -1057,9 +1043,6 @@ def manage_comments():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def all_recommendations():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
     query = (
@@ -1617,9 +1600,6 @@ def recommender_breakdown():
         "required_reviews_completed" : "#RequiredReviewsCompletedStats",
         "late_reviews" : "#LateReviewStat"
     }
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     stats_query = fetch_query(action, recommenderId)
     resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=stats_query)
     resu["customText"] = getText(request, auth, db, f"{page_help_dict[action]}Text")
