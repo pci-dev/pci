@@ -895,6 +895,7 @@ def set_to_not_considered(art):
             "Click here to set this article to not considered",
             art,
             style="danger",
+            onclick=f'callNotConsideredDialog(event, {art.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=art.id), user_signature=True)}");'
     )[0]
 
 def send_back_button(art):
