@@ -419,6 +419,7 @@ def recommendations():
         stage1Link=stage1Link,
         stage2List=stage2List,
         myFinalScript=myScript,
+        script=common_tools.get_script("manager.js"),
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
     )
 
