@@ -415,7 +415,6 @@ def recommendations():
         myContents=myContents,
         myBackButton=common_small_html.mkBackButton(),
         pciRRactivated=pciRRactivated,
-        managerConfirmationDialog=common_small_html.confirmationDialog("Set not considered"),
         isStage2=isStage2,
         stage1Link=stage1Link,
         stage2List=stage2List,
