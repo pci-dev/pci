@@ -278,7 +278,6 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None):
         query = (db.t_articles.id == db.v_article_id.id)
         if statuses:
             query = query & db.t_articles.status.belongs(statuses)
-        
         # recommenders only ever get here via menu "Recommender > Pending validation(s)"
         if pciRRactivated and is_recommender(auth, request):
             query = db.pending_scheduled_submissions_query
@@ -1568,11 +1567,11 @@ def fetch_query(action, recommenderId):
 
     queries = {
         "total_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId)),
-        "total_accepted" : ((db.t_articles.id == db.v_article_recommender.id) & (db.v_article_recommender.recommender_id==recommenderId)),
-        "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)),
+        "total_accepted" : ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
-        "current_assignments": ((db.t_articles.id==db.v_article_recommender.id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.v_article_recommender.recommender_id==recommenderId)),
-        "awaiting_revision" : ((db.t_articles.id==db.v_article_recommender.id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.v_article_recommender.recommender_id==recommenderId)),
+        "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         # "requiring_action" : (  (db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Under consideration')  & (db.t_reviews.recommendation_id==db.t_recommendations.id)\
         #                        & (db.t_recommendations.recommender_id == recommenderId) ),
         "requiring_reviewers": ((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') 
@@ -1600,8 +1599,12 @@ def recommender_breakdown():
         "required_reviews_completed" : "#RequiredReviewsCompletedStats",
         "late_reviews" : "#LateReviewStat"
     }
-    stats_query = fetch_query(action, recommenderId)
-    resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=stats_query)
+    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
+    query = fetch_query(action, recommenderId)
+    if action == "total_invitations" or action == "current_invitations":
+        resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=query)
+    else:
+        resu = _all_recommendations(goBack, query, False)
     resu["customText"] = getText(request, auth, db, f"{page_help_dict[action]}Text")
     resu["titleIcon"] = "ok-sign"
     resu["pageTitle"] = getTitle(request, auth, db, f"{page_help_dict[action]}Title")
