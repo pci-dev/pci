@@ -27,17 +27,17 @@ request_endorsement = """
     "https://purl.org/coar/notify"
   ],
   "actor": {
-    "id": "https://orcid.org/0000-0002-1825-0097",
-    "name": "Josiah Carberry",
+    "id": "mailto:denis.bourguet@inrae.fr",
+    "name": "Denis Bourguet",
     "type": "Person"
   },
   "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
   "object": {
-    "id": "https://research-organisation.org/repository/preprint/201203/421/",
-    "ietf:cite-as": "https://doi.org/10.5555/12345680",
+    "id": "https://hal.inrae.fr/hal-02630042",
+    "ietf:cite-as": "https://hal.inrae.fr/hal-02630042v1",
     "type": "sorg:AboutPage",
     "url": {
-      "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
+      "id": "https://hal.inrae.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
       "mediaType": "application/pdf",
       "type": [
         "Article",
