@@ -229,39 +229,39 @@ def suggest_article_to():
 def set_not_considered():
     if not 'articleId' in request.vars:
         session.flash = 'Article id missing'
-        redirect(request.env.http_referer)
+        redirect(request.env.http_referer, client_side=True)
     article_id = int(request.vars['articleId'])
 
     if not 'subject' in request.vars:
         session.flash = 'Subject missing'
-        redirect(request.env.http_referer)
+        redirect(request.env.http_referer, client_side=True)
     subject = cast(str, request.vars['subject'])
 
     if not 'message' in request.vars:
         session.flash = 'Message missing'
-        redirect(request.env.http_referer)
+        redirect(request.env.http_referer, client_side=True)
     message = cast(str, request.vars['message'])
 
     article = Article.get_by_id(db, article_id)
     if not article:
         session.flash = auth.not_authorized()
-        return redirect(request.env.http_referer)
+        return redirect(request.env.http_referer, client_side=True)
     
     if not article.user_id:
         session.flash = T('No author for this article')
-        return redirect(request.env.http_referer)
+        return redirect(request.env.http_referer, client_side=True)
 
     author = User.get_by_id(db, article.user_id)
     if not author:
         session.flash = T('No author for this article')
-        return redirect(request.env.http_referer)
+        return redirect(request.env.http_referer, client_side=True)
 
     if article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value):
         session.flash = T('Article set "Not considered"')
         article.status = ArticleStatus.NOT_CONSIDERED.value
         article.update_record()
         emailing.send_set_not_considered_mail(session, auth, db, subject, message, article, author)
-    redirect(request.env.http_referer)
+    return redirect(request.env.http_referer, client_side=True)
 
 
 @auth.requires(auth.has_membership(role="manager"))
