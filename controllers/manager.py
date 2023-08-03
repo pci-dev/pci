@@ -1054,20 +1054,14 @@ def manage_comments():
         grid=grid,
     )
 
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def all_recommendations():
-    response.view = "default/myLayout.html"
-
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
-    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
-
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
-
+    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
     query = (
           (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == isPress)
@@ -1077,6 +1071,13 @@ def all_recommendations():
     )
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
+    resu = _all_recommendations(goBack, query, isPress)
+    return resu
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
+def _all_recommendations(goBack, query, isPress):
+    response.view = "default/myLayout.html"
 
     if isPress:  ## NOTE: POST-PRINTS
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
