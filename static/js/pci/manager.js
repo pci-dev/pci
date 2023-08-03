@@ -22,7 +22,10 @@ function showSetNotConsideredDialog(articleId, url) {
                 url: submitUrl,
                 data: { subject: subject, message: textareaValue }
             }).done(function () {
-                document.getElementById(`button-set-not-considered-${articleId}`).style.display = 'none';
+                button = document.getElementById(`button-set-not-considered-${articleId}`);
+                if (button != null) {
+                    button.style.display = 'none';
+                }
             })
         });
     });
