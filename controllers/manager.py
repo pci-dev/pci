@@ -39,7 +39,7 @@ from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 
-from app_modules.common_small_html import custom_mail_dialog, md_to_html
+from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
