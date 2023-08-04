@@ -23,7 +23,6 @@ from pydal import DAL
 
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
-from app_modules.emailing_tools import getMailTemplateHashtag
 
 myconf = AppConfig(reload=True)
 
@@ -1059,13 +1058,10 @@ def write_edit_upload_review_button(review_id: int):
         )
 ###################################################################################
 
-def custom_mail_dialog(db: DAL, article_id: int, template_hashtag: str, submit_url: str):
-    template = getMailTemplateHashtag(db, template_hashtag)
-
+def custom_mail_dialog(article_id: int, subject: str, message: str, submit_url: str):
     form = DIV(
-            DIV(H5(TAG(template['subject'].replace('{{appName}}: ', '')), _value=template['subject'], _class="modal-title mail-dialog-title", _id=f"mail-dialog-title-{article_id}"), _class="modal-header"),
-            DIV(P(TAG(current.T('Do not modify the text between {{}} if you want to keep the integrity of the title of the article and the name of the PCI')), _class="alert alert-danger"),
-                TEXTAREA(template['content'], _name='mail_templates_contents', _class='form-control', _id=f'mail_templates_contents_{article_id}'),
+            DIV(H5(TAG(subject), _value=subject, _class="modal-title mail-dialog-title", _id=f"mail-dialog-title-{article_id}"), _class="modal-header"),
+            DIV(TEXTAREA(message, _name='mail_templates_contents', _class='form-control', _id=f'mail_templates_contents_{article_id}'),
                 _class="modal-body"),
             DIV(A(current.T("send"), _type="button", **{'_data-dismiss': 'modal'}, _href=submit_url, _class="btn btn-info confirm-mail-dialog", _id=f"confirm-mail-dialog-{article_id}"),
                 SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default cancel-mail-dialog", _id=f"cancel-mail-dialog-{article_id}"),
