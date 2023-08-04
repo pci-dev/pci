@@ -42,12 +42,13 @@ from app_components import ongoing_recommendation
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
-from models.review import Review
-from models.article import Article
-from models.recommendation import Recommendation
-from models.user import User
 from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
+from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
+from models.article import Article
+from models.review import Review
+from models.recommendation import Recommendation
+from models.user import User
 
 
 myconf = AppConfig(reload=True)
@@ -3216,14 +3217,6 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
 ########################################################
 
 def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject: str, message: str, article: Article, author: User):
-    form = Storage(subject=subject, message=message)
-
-    mail_vars = getMailCommonVars()
-    mail_vars['destPerson'] = common_small_html.mkUser(auth, db, author.id)
-    mail_vars['articleTitle'] = md_to_html(article.title)
-    mail_vars['unconsider_limit_days'] = myconf.get("config.unconsider_limit_days", default=20)
-    
-    form.subject = replaceMailVars(form.subject, mail_vars)
-    form.message = replaceMailVars(form.message, mail_vars)
-
+    form = replace_mail_vars_set_not_considered_mail(auth, db, article, subject, message)
     send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
+
