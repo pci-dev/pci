@@ -2,7 +2,6 @@
 
 from typing import cast
 from app_modules.common_small_html import custom_mail_dialog
-from app_modules.emailing_tools import getCorrectHashtag
 from app_modules.helper import *
 from app_modules import crossref
 from app_modules.hypothesis import Hypothesis
@@ -271,8 +270,8 @@ def get_not_considered_dialog():
     if not article:
         session.flash = auth.not_authorized()
 
-    submit_url: str = URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True)
-    return custom_mail_dialog(db, article_id, getCorrectHashtag("#SubmitterNotConsideredSubmission", article), submit_url)
+    submit_url = cast(str, URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True))
+    return custom_mail_dialog(db, article_id, "#SubmitterNotConsideredSubmission", submit_url)
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))

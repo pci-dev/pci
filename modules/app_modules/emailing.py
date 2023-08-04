@@ -3226,4 +3226,4 @@ def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject:
     form.subject = replaceMailVars(form.subject, mail_vars)
     form.message = replaceMailVars(form.message, mail_vars)
 
-    send_submitter_generic_mail(session, auth, db, author.email, article.id, form, emailing_tools.getCorrectHashtag("#SubmitterNotConsideredSubmission", article))
+    send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
