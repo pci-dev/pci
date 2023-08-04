@@ -1482,7 +1482,7 @@ db.define_table(
     Field("sending_status", type="string", length=128, label=T("Sending status"), default="in queue"),
     Field("sending_attempts", type="integer", label=T("Sending attempts"), default=0),
     Field("sending_date", type="datetime", label=T("Sending date"), default=request.now),
-    Field("dest_mail_address", type="string", length=256, label=T("Dest e-mail")),
+    Field("dest_mail_address", type="string", label=T("Dest e-mail")),
     Field("cc_mail_addresses", type="list:string", label=T("CC e-mails")),
     Field("bcc_mail_addresses", type="list:string", label=T("BCC e-mails")),
     Field("replyto_addresses", type="list:string", label=T("Reply-to")),

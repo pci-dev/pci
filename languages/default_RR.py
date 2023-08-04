@@ -598,6 +598,7 @@
     "Recommended (n=1)": "Recommended (n=1)",
     "Recommended": "Recommended",
     "Recommender": "Recommender",
+    "Recommender decline message" : 'If you declined because of serious scientific or ethical issues, please indicate your concerns below. They will be sent to the managing board. In case you declined because you are in conflict of interest, you have no time or because the preprint is outside your field of competence, there is no need to fill this form (in this case, you can just click on the button “Done”). Thanks!',
     "Recommender:": "Recommender:",
     "Recommender's annotations (PDF)": "Recommender's annotations (PDF, docx or odt file)",
     "recommenders": "recommenders",

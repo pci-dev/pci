@@ -2996,3 +2996,7 @@ SET is_scheduled = true WHERE status LIKE 'Scheduled%';
 
 ALTER TABLE "t_reviews"
 ADD COLUMN IF NOT EXISTS suggested_reviewers_send boolean;
+
+-- 2023-08-01 updates/new_mail_temp.sql
+ALTER TABLE "mail_queue"
+ALTER COLUMN  dest_mail_address TYPE text;
