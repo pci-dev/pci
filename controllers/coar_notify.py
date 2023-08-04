@@ -85,7 +85,31 @@ def inbox():
 
 
 def process_request(req):
-    print("origin:", req["origin"])
+    request_handlers = {
+        "Offer coar-notify:EndorsementAction": request_endorsement,
+    }
+    req_type = req["type"] if "type" in req.keys() else None
+
+    if type(req_type) is list: req_type = " ".join(req_type)
+
+    if req_type in request_handlers:
+        request_handlers[req_type](req)
+    else:
+        raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body=f"request.type: unsupported type '{req_type}'")
+
+
+def request_endorsement(req):
+    user_email = req["actor"]["id"]
+
+    if not user_email.startswith("mailto:"):
+        raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body="actor.id must be a 'mailto:' url")
+
+    user_email = user_email.replace("mailto:", "")
+    user = db(db.auth_user.email == user_email).select().first()
 
 
 def validate_request(body, content_type, coar_notifier):
