@@ -27,6 +27,8 @@ def post_form():
         try:
             data = json.loads(form.vars.json_ld)
             post(data)
+        except requests.HTTPError as e:
+            status = f"{e.response.text}"
         except Exception as e:
             status = f"{e.__class__.__name__}: {e}"
 
