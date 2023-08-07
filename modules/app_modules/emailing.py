@@ -1863,9 +1863,8 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                         _href=link,
                         _style="text-decoration: none; display: block",
                     ),
-                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
+                    _style="width: 100%; text-align: center;",
                 ),
-                P(B(current.T('THEN GO TO "For contributors —> Invitation(s) to review a preprint" IN THE TOP MENU'))),
                 P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
                 DIV(
                     A(
