@@ -274,7 +274,6 @@ def _manage_articles(statuses, whatNext, db=db):
                 if (
                     row.status == "Awaiting consideration"
                     and row.already_published is False
-                    and datetime.datetime.now() - row.upload_timestamp > timedelta(days=not_considered_delay_in_days)
                 )
                 else "",
             ),
