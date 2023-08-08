@@ -15,6 +15,10 @@ class ArticleStatus(Enum):
     CANCELLED = 'Cancelled'
     AWAITING_CONSIDERATION = 'Awaiting consideration'
     PENDING = 'Pending'
+    PRE_SUBMISSION = 'Pre-submission'
+    PRE_RECOMMENDED_PRIVATE = 'Pre-recommended-private'
+    PRE_REVISION = 'Pre-revision'
+    SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending'
 
 
 class Article(Row):
