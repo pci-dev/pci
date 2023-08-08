@@ -1898,8 +1898,17 @@ def email_for_new_reviewer():
             if existingUser:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", art)
                     reset_password_key = None
+                    linkTarget = URL(
+                        c="default",
+                        f="invitation_to_review_preprint",
+                        vars=dict(reviewId=reviewId),
+                        scheme=scheme,
+                        host=host,
+                        port=port,
+                    )
             else:
                     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", art)
+                    linkTarget = None
 
             try:
                     emailing.send_reviewer_invitation(
@@ -1913,7 +1922,7 @@ def email_for_new_reviewer():
                         request.vars["subject"],
                         request.vars["message"],
                         reset_password_key,
-                        None,
+                        linkTarget,
                         declineLinkTarget,
                         new_stage=new_stage,
                     )

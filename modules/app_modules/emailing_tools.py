@@ -157,21 +157,23 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
     baseHashtag = baseHashtag.replace("ScheduledSubmission", "")
 
     # Create stage 1 template
-    result1 = insertNewTeamplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
+    result1 = insertNewTemplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    # result2 = insertNewTeamplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    result2 = insertNewTemplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
     elif "Stage2" in hashTag:
+        if 'error' in result2 and result2['error']:
+            return result1
         return result2
     else:
         return dict(error=True, message="hashtag not found")
 
 
 ######################################################################################################################################################################
-def insertNewTeamplateInDB(db, newHashTag, baseHashtag, myLanguage):
+def insertNewTemplateInDB(db, newHashTag, baseHashtag, myLanguage):
     query = (db.mail_templates.hashtag == baseHashtag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
