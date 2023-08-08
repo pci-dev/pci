@@ -263,13 +263,12 @@ def _manage_articles(statuses, whatNext, db=db):
                     _title=current.T("View and/or edit"),
                 ),
                 A(
-                    SPAN(current.T('Set "Not')),
-                    BR(),
-                    SPAN(current.T('considered"')),
+                    TAG(current.T('Prepare email informing authors that preprint not considered')),
                     _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
                     _class="buttontext btn btn-danger pci-button pci-manager",
                     _id=f"button-set-not-considered-{row.id}",
-                    _title=current.T('Set this preprint as "Not considered"'),
+                    _title=current.T('Prepare email informing authors that preprint not considered'),
+                    _style="width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px"
                 )
                 if (
                     (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)

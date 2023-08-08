@@ -893,7 +893,7 @@ def put_in_presubmission_button(art):
 def set_to_not_considered(art):
     return manager_action_button(
             "set_not_considered",
-            "Set to not considered",
+            current.T('Prepare email informing authors that preprint not considered'),
             "Click here to set this article to not considered",
             art,
             style="danger",
