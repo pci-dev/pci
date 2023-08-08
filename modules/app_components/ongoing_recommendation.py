@@ -16,6 +16,7 @@ from gluon.sqlhtml import *
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import hypothesis
+from models.article import ArticleStatus, Article
 
 from controller_modules import manager_module
 
@@ -117,6 +118,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
                 _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True),
                 _class="button",
             ),
+
         ]
         amISugg = db(
             (db.t_suggested_recommenders.article_id == art.id)
@@ -782,37 +784,37 @@ def sorry_you_are_recommender_note():
             )
 
 
-def validate_stage_button(art):
-            if art.status == "Pending":
+def validate_stage_button(article: Article):
+            if article.status == ArticleStatus.PENDING.value:
                 button = manager_action_button(
                     "do_validate_article",
                     "Validate this submission",
                     "Click here to validate this request and start recommendation process",
-                    art,
-                    extra_button=[put_in_presubmission_button(art) if pciRRactivated else "", set_to_not_considered(art)],
+                    article,
+                    extra_button=[put_in_presubmission_button(article) if pciRRactivated else "", set_to_not_considered(article)],
                 )
                 return SPAN(
                     validation_checklist('do_validate_article') if not pciRRactivated else "",
                     button)
-            elif art.status == "Pre-submission":
+            elif article.status == ArticleStatus.PRE_SUBMISSION.value:
                 return manager_action_button(
                     "send_submitter_generic_mail",
                     "Request Changes from Author",
                     "Click here to validate recommendation of this article",
-                    art, base="manager",
+                    article, base="manager",
                     style="default",
                 )
-            elif art.status == "Pre-recommended" or art.status == "Pre-recommended-private":
+            elif article.status == ArticleStatus.PRE_RECOMMENDED.value or article.status == ArticleStatus.PRE_RECOMMENDED_PRIVATE.value:
                 onclick_content = 'return;'
 
-                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(art.doi):
+                if not pciRRactivated and hypothesis.Hypothesis.may_have_annotation(article.doi):
                     onclick_content = 'showInfoDialogBeforeValidateRecommendation(event);'
 
                 button = manager_action_button(
                     "do_recommend_article",
                     "Validate this recommendation",
                     "Click here to validate recommendation of this article",
-                    art, send_back_button(art), onclick=onclick_content
+                    article, send_back_button(article), onclick=onclick_content
                 )
 
                 return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
@@ -823,12 +825,12 @@ def validate_stage_button(art):
                     validation_checklist('do_recommend_article') if not pciRRactivated else "",
                     button)
             
-            elif art.status == "Pre-revision":
+            elif article.status == ArticleStatus.PRE_REVISION.value:
                 button = manager_action_button(
                     "do_revise_article",
                     "Validate this decision",
                     "Click here to validate revision of this article",
-                    art, send_back_button(art),
+                    article, send_back_button(article),
                     style="info",
                 )
 
@@ -839,12 +841,12 @@ def validate_stage_button(art):
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
                     validation_checklist('do_revise_article') if not pciRRactivated else "",
                     button)
-            elif art.status == "Pre-rejected":
+            elif article.status == ArticleStatus.PRE_REJECTED.value:
                 button = manager_action_button(
                     "do_reject_article",
                     "Validate this rejection",
                     "Click here to validate the rejection of this article",
-                    art, send_back_button(art),
+                    article, send_back_button(article),
                     style="info",
                 )
 
@@ -856,8 +858,8 @@ def validate_stage_button(art):
                     validation_checklist('do_reject_article') if not pciRRactivated else "",
                     button)
             
-            elif art.status == "Scheduled submission pending":
-                managerButton = validate_scheduled_submission_button(articleId=art.id)
+            elif article.status == ArticleStatus.SCHEDULED_SUBMISSION_PENDING.value:
+                managerButton = validate_scheduled_submission_button(articleId=article.id)
 
             return None
 
