@@ -435,7 +435,8 @@ def invitation_to_review_preprint():
                 isAlreadyReviewer=False,
                 review=review,
                 user=user,
-                recommender=recommender)
+                recommender=recommender,
+                pciRRactivated=pciRRactivated)
     
 
 def invitation_to_review_preprint_acceptation():
