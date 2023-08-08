@@ -14,6 +14,7 @@ class ArticleStatus(Enum):
     PRE_REJECTED = 'Pre-rejected'
     CANCELLED = 'Cancelled'
     AWAITING_CONSIDERATION = 'Awaiting consideration'
+    PENDING = 'Pending'
 
 
 class Article(Row):
