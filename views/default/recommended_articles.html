@@ -167,11 +167,24 @@
 </div>
 {{pass}}
 
-{{if 'recommTopButtons' in locals():}}
-<div class="pci2-flex-column pci2-align-items-center">
-	<div style="max-width: 800px; width: 100%; margin-top: 20px;">
+{{if 'recommTopButtons' or 'setNotConsideredButton' in locals():}}
+<div class="pci-EditButtons-centered  nav">
+	{{if 'recommTopButtons' in locals():}}
+	<div style="max-width: 800px; margin-top: 20px; display: inline-block;">
 		{{=recommTopButtons}}
 	</div>
+	{{pass}}
+	{{if 'setNotConsideredButton' in locals():}}
+	<div style="max-width: 800px; margin-top: 20px; display: inline-block; top: 2px">
+		{{=setNotConsideredButton}}
+	</div>
+	{{pass}}
+</div>
+{{pass}}
+
+{{if 'setNotConsideredButton' in locals():}}
+<div class="pci2-flex-column pci2-align-items-center">
+	
 </div>
 {{pass}}
 

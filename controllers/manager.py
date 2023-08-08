@@ -374,6 +374,7 @@ def recommendations():
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+    set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
 
     recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
@@ -420,6 +421,7 @@ def recommendations():
         myFinalScript=myScript,
         script=common_tools.get_script("manager.js"),
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
+        setNotConsideredButton=set_not_considered_button or ""
     )
 
 def crossref_toolbar(article):
