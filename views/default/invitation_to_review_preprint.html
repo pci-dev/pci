@@ -19,7 +19,7 @@
 
     {{if isAlreadyReviewer == False and isRecommender == False and isSubmitter == False:}}
     {{if pciRRactivated: }}
-      <p class="alert alert-info"><a style="font-weight: bold;" target="_blank" href="{{=URL(c='public', f='user_public_page', vars=dict(userId=recommender.id))}}">{{=recommender.first_name}} {{=recommender.last_name}}</a>, handling the evaluation of the preprint, is inviting you to review this report.</p>
+      <p class="alert alert-info"><a style="font-weight: bold;" target="_blank" href="{{=URL(c='public', f='user_public_page', vars=dict(userId=recommender.id))}}">{{=recommender.first_name}} {{=recommender.last_name}}</a>, handling the evaluation of the report, is inviting you to review this report.</p>
     {{else:}}
       <p class="alert alert-info"><a style="font-weight: bold;" target="_blank" href="{{=URL(c='public', f='user_public_page', vars=dict(userId=recommender.id))}}">{{=recommender.first_name}} {{=recommender.last_name}}</a>, handling the evaluation of the preprint, is inviting you to review this preprint.</p>
     {{pass}}
