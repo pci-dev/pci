@@ -272,7 +272,7 @@ def _manage_articles(statuses, whatNext, db=db):
                     _title=current.T('Set this preprint as "Not considered"'),
                 )
                 if (
-                    row.status == "Awaiting consideration"
+                    (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)
                     and row.already_published is False
                 )
                 else "",
