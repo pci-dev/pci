@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 
+from typing import cast
+from app_modules.common_small_html import custom_mail_dialog
+from app_modules.emailing_tools import getMailTemplateHashtag, replace_mail_vars_set_not_considered_mail
 from app_modules.helper import *
 from app_modules import crossref
 from app_modules.hypothesis import Hypothesis
 from gluon.contrib.appconfig import AppConfig
+from gluon.http import redirect
 from gluon.storage import Storage
 from app_modules.common_tools import cancel_decided_article_pending_reviews
+from app_modules import emailing
+from models.article import Article, ArticleStatus
+from models.user import User
+from pydal import DAL
 
 myconf = AppConfig(reload=True)
+db = cast(DAL, db)
 
 crossref.init_conf(db)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
@@ -218,20 +227,55 @@ def suggest_article_to():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def set_not_considered():
-    if not ("articleId" in request.vars):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
-    if art is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    if art.status == "Awaiting consideration":
-        session.flash = T('Article set "Not considered"')
-        art.status = "Not considered"
-        art.update_record()
-    redirect(request.env.http_referer)
+    if not 'articleId' in request.vars:
+        session.flash = 'Article id missing'
+        redirect(request.env.http_referer, client_side=True)
+    article_id = int(request.vars['articleId'])
 
+    if not 'subject' in request.vars:
+        session.flash = 'Subject missing'
+        redirect(request.env.http_referer, client_side=True)
+    subject = cast(str, request.vars['subject'])
+
+    if not 'message' in request.vars:
+        session.flash = 'Message missing'
+        redirect(request.env.http_referer, client_side=True)
+    message = cast(str, request.vars['message'])
+
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        session.flash = auth.not_authorized()
+        return redirect(request.env.http_referer, client_side=True)
+    
+    if not article.user_id:
+        session.flash = T('No author for this article')
+        return redirect(request.env.http_referer, client_side=True)
+
+    author = User.get_by_id(db, article.user_id)
+    if not author:
+        session.flash = T('No author for this article')
+        return redirect(request.env.http_referer, client_side=True)
+
+    if article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value):
+        session.flash = T('Article set "Not considered"')
+        article.status = ArticleStatus.NOT_CONSIDERED.value
+        article.update_record()
+        emailing.send_set_not_considered_mail(session, auth, db, subject, message, article, author)
+    return redirect(request.env.http_referer, client_side=True)
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def get_not_considered_dialog():
+    article_id = int(request.vars["articleId"])
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        session.flash = auth.not_authorized()
+        return redirect(request.env.http_referer, client_side=True)
+
+    template = getMailTemplateHashtag(db, "#SubmitterNotConsideredSubmission")
+    content = replace_mail_vars_set_not_considered_mail(auth, db, article, template['subject'], template['content'])
+    submit_url = cast(str, URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True))
+    return custom_mail_dialog(article.id, content.subject, content.message, submit_url)
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))

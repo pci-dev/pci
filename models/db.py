@@ -804,10 +804,10 @@ def deltaStatus(s, f):
                 # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
             
-                
+            elif o.status == "Pending" and f["status"] == "Not considered":
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
 
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"])
 
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":

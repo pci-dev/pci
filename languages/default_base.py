@@ -720,6 +720,7 @@
     "Services": "Services",
     "Set in my profile": "Set in my profile",
     'Set "Not': 'Set "Not',
+    "Set not considered": 'Are you sure you want to set the submission to "not considered" ?',
     'Set this preprint as "Not considered"': 'Set this preprint as "Not considered"',
     "Show / Hide Abstract": "Show / Hide Abstract",
     "Show / Hide Cover letter": "Show / Hide Cover letter",
@@ -953,5 +954,6 @@
     "Hypothes.is": "Hypothes.is",
     "The following annotation is going to be posted on Biorxiv with Hypothes.is:": "The following annotation is going to be posted on Biorxiv with Hypothes.is:",
     "No annotation found": "No annotation found",
-    "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.": "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation."
+    "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.": "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.",
+    "Prepare email informing authors that preprint not considered": "Prepare email informing authors that preprint not considered",
 }

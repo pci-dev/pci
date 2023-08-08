@@ -1302,7 +1302,7 @@ header {
   width: 100px;
 }
 
-#anonymous-reviewer-confirm {
+#confirmation-modal {
   position: fixed;
   width: 30%;
   height: fit-content;
@@ -1313,7 +1313,7 @@ header {
   
 }
 
-#anonymous-reviewer-confirm #confirm-dialog {
+#confirmation-modal #confirm-dialog {
   margin-bottom: 0px;
 }
 
@@ -1340,4 +1340,23 @@ header {
   border: solid 1px whitesmoke;
   border-radius: 5px;
   padding: 5px;
+}
+
+.mail-dialog {
+  position: fixed;
+  width: 70%;
+  top: 5%;
+  left: 15%;
+  background-color: white;
+  border-radius: 6px;
+  height: fit-content;
+}
+
+.mail-dialog-title {
+  font-size: large;
+  font-weight: bold;
+}
+
+.mail-dialog .confirm-mail-dialog {
+  margin-bottom: 0px;
 }

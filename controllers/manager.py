@@ -7,7 +7,7 @@ import datetime
 from datetime import timedelta
 import glob
 import os
-from typing import cast
+from typing import List, cast
 
 # sudo pip install tweepy
 # import tweepy
@@ -42,6 +42,8 @@ from app_modules.mastodon import Mastodon
 from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
+from gluon.sqlhtml import SQLFORM
+from models.article import ArticleStatus
 
 
 myconf = AppConfig(reload=True)
@@ -261,17 +263,16 @@ def _manage_articles(statuses, whatNext, db=db):
                     _title=current.T("View and/or edit"),
                 ),
                 A(
-                    SPAN(current.T('Set "Not')),
-                    BR(),
-                    SPAN(current.T('considered"')),
-                    _href=URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=row.id), user_signature=True),
+                    TAG(current.T('Prepare email informing authors that preprint not considered')),
+                    _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
                     _class="buttontext btn btn-danger pci-button pci-manager",
-                    _title=current.T('Set this preprint as "Not considered"'),
+                    _id=f"button-set-not-considered-{row.id}",
+                    _title=current.T('Prepare email informing authors that preprint not considered'),
+                    _style="width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px"
                 )
                 if (
-                    row.status == "Awaiting consideration"
+                    (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)
                     and row.already_published is False
-                    and datetime.datetime.now() - row.upload_timestamp > timedelta(days=not_considered_delay_in_days)
                 )
                 else "",
             ),
@@ -333,6 +334,7 @@ def _manage_articles(statuses, whatNext, db=db):
         pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        script=common_tools.get_script("manager.js")
     )
 
 
@@ -371,6 +373,7 @@ def recommendations():
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+    set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
 
     recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
@@ -399,6 +402,7 @@ def recommendations():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
+    myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
     return dict(
         viewToRender=viewToRender,
@@ -413,7 +417,10 @@ def recommendations():
         isStage2=isStage2,
         stage1Link=stage1Link,
         stage2List=stage2List,
+        myFinalScript=myScript,
+        script=common_tools.get_script("manager.js"),
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
+        setNotConsideredButton=set_not_considered_button or ""
     )
 
 def crossref_toolbar(article):

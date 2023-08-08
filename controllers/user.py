@@ -1436,11 +1436,12 @@ def edit_review():
             response.flash = T("Form has errors", lazy=False)
 
     myScript = common_tools.get_script("edit_review.js")
+    anonymousDialog = common_small_html.confirmationDialog("anonymousReviewerConfirmDialogMessage")
 
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReview"),
         myBackButton=common_small_html.mkBackButton(),
-        anonymousReviewerConfirmDialog=common_small_html.anonymousReviewerConfirmDialog(),
+        anonymousReviewerConfirmDialog=anonymousDialog,
         customText=getText(request, auth, db, "#UserEditReviewText"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),

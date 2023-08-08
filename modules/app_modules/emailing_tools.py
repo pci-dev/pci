@@ -13,6 +13,7 @@ import traceback
 from pprint import pprint
 
 from gluon import current
+from gluon.storage import Storage
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
@@ -20,6 +21,8 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.validators import IS_EMAIL
+from models.article import Article
+from pydal import DAL
 
 from gluon.custom_import import track_changes
 
@@ -479,3 +482,18 @@ def replaceMailVars(text, mail_vars):
             text = text.replace("{{" + var + "}}", replacement_var)
 
     return text
+
+############################################
+
+def replace_mail_vars_set_not_considered_mail(auth: Auth, db: DAL, article: Article, subject: str, message: str):
+    form = Storage(subject=subject, message=message)
+
+    mail_vars = getMailCommonVars()
+    mail_vars['destPerson'] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars['articleTitle'] = common_small_html.md_to_html(article.title)
+    mail_vars['unconsider_limit_days'] = myconf.get("config.unconsider_limit_days", default=20)
+    
+    form.subject = replaceMailVars(form.subject, mail_vars)
+    form.message = replaceMailVars(form.message, mail_vars)
+
+    return form

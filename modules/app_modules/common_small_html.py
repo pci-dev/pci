@@ -19,6 +19,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
+from pydal import DAL
 
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
@@ -1017,12 +1018,12 @@ def mkSearchWidget(chars):
 
 #################################################################################
 
-def anonymousReviewerConfirmDialog():
+def confirmationDialog(text):
     return DIV( 
-    DIV(TAG(current.T("anonymousReviewerConfirmDialogMessage")), _class="modal-body"), 
+    DIV(TAG(current.T(text)), _class="modal-body"), 
     DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
         SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
-    _class="modal-footer"), _id="anonymous-reviewer-confirm", _class="modal fade", _role="dialog")
+    _class="modal-footer"), _id="confirmation-modal", _class="modal fade", _role="dialog")
 
 ##################################################################################
 
@@ -1055,3 +1056,15 @@ def write_edit_upload_review_button(review_id: int):
             _class="buttontext btn btn-default",
             _style="color: #3e3f3a; background-color: white;"
         )
+###################################################################################
+
+def custom_mail_dialog(article_id: int, subject: str, message: str, submit_url: str):
+    form = DIV(
+            DIV(H5(TAG(subject), _value=subject, _class="modal-title mail-dialog-title", _id=f"mail-dialog-title-{article_id}"), _class="modal-header"),
+            DIV(TEXTAREA(message, _name='mail_templates_contents', _class='form-control', _id=f'mail_templates_contents_{article_id}'),
+                _class="modal-body"),
+            DIV(A(current.T("send"), _type="button", **{'_data-dismiss': 'modal'}, _href=submit_url, _class="btn btn-info confirm-mail-dialog", _id=f"confirm-mail-dialog-{article_id}"),
+                SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default cancel-mail-dialog", _id=f"cancel-mail-dialog-{article_id}"),
+            _class="modal-footer"), _id=f"mail-dialog-{article_id}", _class="modal fade mail-dialog", _role="dialog")
+
+    return form

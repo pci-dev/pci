@@ -1,7 +1,24 @@
 from datetime import datetime
+from enum import Enum
 from typing import Optional as _, cast
 from pydal.objects import Row
 from pydal import DAL
+
+class ArticleStatus(Enum):
+    NOT_CONSIDERED = 'Not considered'
+    PRE_RECOMMENDED = 'Pre-recommended'
+    AWAITING_REVISION = 'Awaiting revision'
+    RECOMMENDED = 'Recommended'
+    UNDER_CONSIDERATION = 'Under consideration'
+    REJECTED = 'Rejected'
+    PRE_REJECTED = 'Pre-rejected'
+    CANCELLED = 'Cancelled'
+    AWAITING_CONSIDERATION = 'Awaiting consideration'
+    PENDING = 'Pending'
+    PRE_SUBMISSION = 'Pre-submission'
+    PRE_RECOMMENDED_PRIVATE = 'Pre-recommended-private'
+    PRE_REVISION = 'Pre-revision'
+    SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending'
 
 
 class Article(Row):

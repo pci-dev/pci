@@ -11,12 +11,15 @@ import traceback
 from pprint import pprint
 
 from gluon import current
+from gluon.globals import Session
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
+from gluon.storage import Storage
+from pydal import DAL
 
 from gluon.custom_import import track_changes
 
@@ -39,11 +42,14 @@ from app_components import ongoing_recommendation
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
-from app_modules.emailing_tools import mkAuthors
-from models.review import Review
+from app_modules.emailing_tools import mkAuthors, replaceMailVars
+from app_modules.emailing_tools import getMailCommonVars
+from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
 from models.article import Article
+from models.review import Review
 from models.recommendation import Recommendation
 from models.user import User
+
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -3207,3 +3213,10 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
     hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+
+########################################################
+
+def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject: str, message: str, article: Article, author: User):
+    form = replace_mail_vars_set_not_considered_mail(auth, db, article, subject, message)
+    send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
+
