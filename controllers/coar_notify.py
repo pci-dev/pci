@@ -5,6 +5,8 @@ import json
 
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifyException, COARNotifier
+from app_modules import emailing
+
 
 from gluon import current
 
@@ -102,6 +104,7 @@ def process_request(req):
 
 def request_endorsement(req):
     user_email = req["actor"]["id"]
+    user_name = req["actor"]["name"]
 
     if not user_email.startswith("mailto:"):
         raise HTTP(
@@ -109,7 +112,28 @@ def request_endorsement(req):
                 body="actor.id must be a 'mailto:' url")
 
     user_email = user_email.replace("mailto:", "")
-    user = db(db.auth_user.email == user_email).select().first()
+    user = db(db.auth_user.email.lower() == user_email.lower()).select().first()
+
+    if not user:
+        user = create_new_user(user_email, user_name)
+        emailing.send_to_reset_password(session, auth, db, user)
+
+
+def create_new_user(user_email, user_name):
+    my_crypt = CRYPT(key=auth.settings.hmac_key)
+    crypt_pass = my_crypt(auth.random_password())[0]
+    import time
+    from gluon.utils import web2py_uuid
+    reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+    new_user_id = db.auth_user.insert(
+        email=user_email,
+        password=crypt_pass,
+        reset_password_key=reset_password_key,
+        first_name=user_name.split()[0],
+        last_name=user_name.split()[-1],
+    )
+    new_user = db.auth_user(new_user_id)
+    return new_user
 
 
 def validate_request(body, content_type, coar_notifier):
