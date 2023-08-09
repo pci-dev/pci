@@ -39,6 +39,7 @@ from app_modules import old_common
 from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
+contact = myconf.take("contacts.managers")
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
@@ -488,7 +489,7 @@ def replaceMailVars(text, mail_vars):
 ############################################
 
 def replace_mail_vars_set_not_considered_mail(auth: Auth, db: DAL, article: Article, subject: str, message: str):
-    form = Storage(subject=subject, message=message)
+    form = Storage(subject=subject, message=message, cc=contact)
 
     mail_vars = getMailCommonVars()
     mail_vars['destPerson'] = common_small_html.mkUser(auth, db, article.user_id)
