@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from re import match
-from typing import cast
+from typing import Optional, cast
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -16,7 +16,7 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def takePort(p):
+def takePort(p: Optional[str]):
     # print('port="%s"' % p)
     if p is None:
         return False
