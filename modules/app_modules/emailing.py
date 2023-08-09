@@ -4,6 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
+from typing import cast
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -1742,25 +1743,29 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     reports = []
 
-    review = db.t_reviews[reviewId]
+    review = Review.get_by_id(db, reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    recommendation = db.t_recommendations[review.recommendation_id]
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    article = db.t_articles[recommendation.article_id]
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        emailing_tools.getFlashMessage(session, reports)
+        return
 
-    reviewer = db.auth_user[review["reviewer_id"]]
+    reviewer = User.get_by_id(db, review.reviewer_id)
     if not reviewer:
         emailing_tools.getFlashMessage(session, reports)
         return
     
+    mail_vars["LastName"] = reviewer.last_name
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
-    mail_vars["destAddress"] = reviewer["email"]
+    mail_vars["destAddress"] = reviewer.email
     mail_vars["reviewDuration"] = (review.review_duration).lower()
     message = emailing_tools.replaceMailVars(message, mail_vars)
 
