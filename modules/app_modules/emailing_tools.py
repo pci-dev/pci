@@ -109,6 +109,7 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
 
     mail_vars["Institution"] = sender.institution
     mail_vars["Department"] = sender.laboratory
+    mail_vars["country"] = sender.country
     mail_vars["description"] = myconf.take("app.description")
     mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
     mail_vars["appLongName"] = myconf.take("app.longname")
