@@ -236,6 +236,7 @@ def user():
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
+            form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
             if suite:
                 auth.settings.register_next = suite
                 check_already_registered(form)
