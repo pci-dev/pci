@@ -6,6 +6,7 @@ import re
 from re import sub, match
 
 from datetime import datetime, timedelta
+from typing import Optional
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -25,6 +26,9 @@ from models.article import Article
 from pydal import DAL
 
 from gluon.custom_import import track_changes
+from models.article import Article
+from models.recommendation import Recommendation
+from models.user import User
 
 track_changes(True)
 import socket
@@ -93,6 +97,49 @@ def getMailCommonVars():
         appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers")),
         siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port")),
     )
+
+######################################################################################################################################################################
+
+def getMailForReviewerCommonVars(sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str]):
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
+    mail_vars = getMailCommonVars()
+
+    mail_vars["Institution"] = sender.institution
+    mail_vars["Department"] = sender.laboratory
+    mail_vars["description"] = myconf.take("app.description")
+    mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
+    mail_vars["appLongName"] = myconf.take("app.longname")
+    mail_vars["appName"] = myconf.take("app.name")
+    mail_vars["thematics"] = myconf.take("app.thematics")
+    mail_vars["scheme"] = scheme
+    mail_vars["host"] = host
+    mail_vars["port"] = port
+    mail_vars["site_url"] = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    mail_vars["art_authors"] = mkAuthors(article)
+    mail_vars["authors"] = mail_vars["art_authors"]
+    mail_vars["articleAuthors"] = mail_vars["art_authors"]
+
+    if reviewer_last_name:
+        mail_vars["LastName"] = reviewer_last_name
+    
+    if recommendation.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+    elif article.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(article.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+
+    if article.title:
+        mail_vars["art_title"] = common_small_html.md_to_html(article.title)
+        mail_vars["articleTitle"] = mail_vars["art_title"]
+
+    if sender.first_name and sender.last_name:
+        mail_vars["sender"] = sender.first_name + ' ' + sender.last_name
+
+    return mail_vars
 
 
 ######################################################################################################################################################################
