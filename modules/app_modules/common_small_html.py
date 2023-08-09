@@ -90,7 +90,7 @@ def mkSimpleDOI(doi):
     return A(doi, _href=doi_url) if doi_url else ""
 
 
-def mkLinkDOI(doi):
+def mkLinkDOI(doi: str):
     if doi:
         if match("^http", doi):
             return doi
@@ -997,7 +997,7 @@ def fetch_url(data):
     return result
 
 ################################################################################
-def md_to_html(text):
+def md_to_html(text: str):
     return SPAN(
             TAG(WIKI(text))[0].components
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
