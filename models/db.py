@@ -422,9 +422,9 @@ auth.settings.extra_fields["auth_user"] = [
         requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
-    Field("cv", type="text", length=2097152, label=T("Areas of expertise")),
-    Field("keywords", type="string", length=1024, label=T("Keywords")),
-    Field("website", type="string", length=4096, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
+    Field("cv", type="text", length=2097152, label=SPAN(T("Areas of expertise")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    Field("keywords", type="string", length=1024, label=SPAN(T("Keywords")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    Field("website", type="string", length=4096, label=SPAN(T("Link to your website, profile page, google scholar profile or any other professional website")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field(
         "alerts",
         type="string",
@@ -475,6 +475,7 @@ db.auth_user.registration_key.writable = db.auth_user.registration_key.readable 
 db.auth_user.registration_key.requires = IS_IN_SET(("", "blocked"))
 db.auth_user._format = "%(last_name)s, %(first_name)s"
 db.auth_group._format = "%(role)s"
+db.auth_user.password.label = SPAN(T("Password")) + SPAN(" * ", _style="color:red;")
 
 def mail_queue_update_pending(sets, fields):
     old_email = cast(str, db.auth_user(sets.query).email)
