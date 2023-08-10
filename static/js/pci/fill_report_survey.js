@@ -245,6 +245,7 @@ jQuery(document).ready(function() {
 
 function hideCheckbox(){
   if (jQuery("#t_report_survey_q1").val() === "RR SNAPSHOT FOR SCHEDULED REVIEW") {
+    $('#t_report_survey_q32').prop('checked', false);
     jQuery("#t_report_survey_q32__label").hide();
   } else {
     jQuery("#t_report_survey_q32__label").show();
