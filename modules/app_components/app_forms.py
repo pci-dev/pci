@@ -281,6 +281,10 @@ def report_survey(auth: Auth, session: Session, article: Article, db: DAL, surve
             article.status = "Pending"
             doUpdateArticle = True
 
+        if form.vars.q32 == True:
+            article.is_searching_reviewers = True
+            doUpdateArticle = True
+
         if doUpdateArticle == True:
             article.update_record()
 
