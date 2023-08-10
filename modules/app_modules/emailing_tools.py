@@ -55,6 +55,8 @@ MAIL_DELAY = 1.5  # in seconds
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
 
+CLEANR = re.compile('<.*?>')
+
 ######################################################################################################################################################################
 # Mailing tools
 ######################################################################################################################################################################
@@ -182,6 +184,27 @@ def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
             hashtag += "ScheduledSubmission"
 
     return hashtag
+
+#######################################################################################################################################################################
+def to_string_addresses(address_list):
+    return str(address_list).replace('[','').replace(']','').replace("'",'').replace('"','')
+
+
+#######################################################################################################################################################################
+def remove_html(html_string):
+    from lxml import html
+
+    #cleaner_content = re.sub(CLEANR, '', html_string)
+    print(html_string)
+
+    print('\n\n\n\n\n\n\n\n\n\n\n\n\n')
+
+    new_html_string = html.fromstring(html_string).text_content().replace('\n\n','').replace('  ','').replace('\t','')
+
+
+
+    return new_html_string
+
 
 #######################################################################################################################################################################
 def list_addresses(addresses):
