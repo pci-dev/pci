@@ -1495,6 +1495,7 @@ db.define_table(
     Field("review_id", type="reference t_reviews", ondelete="CASCADE", label=T("Review")),
     Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
+    Field("sender_name", type="string", label=T("Sender name")),
     migrate=False,
 )
 
