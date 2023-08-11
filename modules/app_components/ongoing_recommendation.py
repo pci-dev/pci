@@ -35,7 +35,8 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     lastRecomm = db.get_last_recomm(art.id)
-    co_recommender = is_co_recommender(auth, db, lastRecomm.id)
+    if lastRecomm:
+        co_recommender = is_co_recommender(auth, db, lastRecomm.id)
 
     if userDiv:
         statusDiv = DIV(
