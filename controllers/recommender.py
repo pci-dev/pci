@@ -2178,7 +2178,7 @@ def edit_recommendation():
             # buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
             db.t_recommendations.no_conflict_of_interest.writable = False
         else:
-            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager"):
+            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or (amICoRecommender and pciRRactivated):
                 buttons += [INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save and submit your decision")]
         db.t_recommendations.recommendation_state.readable = False
         db.t_recommendations.recommendation_state.writable = False
@@ -2261,7 +2261,7 @@ def edit_recommendation():
                 session.flash = T("Recommendation saved", lazy=False)
                 redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
             elif form.vars.terminate:
-                if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager"):
+                if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or (amICoRecommender and pciRRactivated):
                     session.flash = T("Recommendation saved and completed", lazy=False)
                     recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
                     recomm.recommendation_title = form.vars.recommendation_title
