@@ -245,7 +245,7 @@ def suggest_review_to():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if recomm.recommender_id != auth.user_id and not (auth.has_membership(role="manager")):
+    if recomm.recommender_id != auth.user_id and not is_co_recommender(auth, db, recomm.id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:

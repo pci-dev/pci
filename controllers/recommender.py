@@ -167,7 +167,7 @@ def search_reviewers():
 
     if not recomm or (
             (recomm.recommender_id != auth.user_id)
-            and not auth.has_membership(role="manager")
+            and not is_co_recommender(auth, db, recomm.id) and not auth.has_membership(role="manager")
         ):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1173,7 +1173,8 @@ def reviewers():
         reg_user, new_stage = True, True
     if not recomm:
         return my_recommendations()
-    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+    co_recommender = is_co_recommender(auth, db, recomm.id)
+    if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:  
@@ -1270,14 +1271,14 @@ def reviewers():
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
-        if auth.user_id == recomm.recommender_id:
-            myAcceptBtn = DIV(
-                A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False))),
-                _style="margin-top:16px; text-align:center;",
-            )
-        else:
-            myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=URL(c="manager", f="all_recommendations")), _style="margin-top:16px; text-align:center;")
 
+        url = URL(c="manager", f="all_recommendations")
+        if auth.user_id == recomm.recommender_id:
+            url = URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False))
+        elif co_recommender:
+            url = URL(c="recommender", f="recommendations", vars=dict(articleId=recomm.article_id))
+
+        myAcceptBtn = DIV(A(SPAN(T("Done"), _class="btn btn-info"), _href=url), _style="margin-top:16px; text-align:center;")
         myScript = common_tools.get_script("collapsibles.js")
 
         return dict(
@@ -1575,9 +1576,12 @@ def email_for_registered_reviewer():
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
+    co_recommender = is_co_recommender(auth, db, recomm.id)
     sender = None
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif co_recommender:
+        sender = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
     elif auth.has_membership(role="manager"):
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
 
@@ -1746,10 +1750,11 @@ def email_for_new_reviewer():
     recommId = request.vars["recommId"]
     new_stage = convert_string(request.vars["new_stage"])
     recomm = db.t_recommendations[recommId]
+    co_recommender = is_co_recommender(auth, db, recomm.id)
     if recomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+    if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     art = db.t_articles[recomm.article_id]
@@ -1760,6 +1765,8 @@ def email_for_new_reviewer():
     sender = None
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+    elif co_recommender:
+        sender = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
     elif auth.has_membership(role="manager"):
         sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
 
@@ -2540,7 +2547,7 @@ def article_reviews_emails():
 
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
-    recommendation = db(db.t_recommendations.article_id == articleId).select().last()
+    recommendation = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
     if (recommendation.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
