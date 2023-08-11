@@ -2550,7 +2550,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     if review and recomm and article and reviewer:
         sender = cast(User, auth.user)
 
-        mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -2601,7 +2601,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
     if review and recomm and article and reviewer:
         sender = cast(User, auth.user)
 
-        mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)

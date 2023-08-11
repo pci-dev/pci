@@ -100,7 +100,7 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
-def getMailForReviewerCommonVars(sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None):
+def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -123,6 +123,12 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
     mail_vars["authors"] = mail_vars["art_authors"]
     mail_vars["articleAuthors"] = mail_vars["art_authors"]
 
+    if auth.user_id == recommendation.recommender_id:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+    elif auth.has_membership(role="manager"):
+        mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+
+
     if reviewer_last_name:
         mail_vars["LastName"] = reviewer_last_name
     
@@ -138,7 +144,7 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
         mail_vars["articleTitle"] = mail_vars["art_title"]
 
     if sender.first_name and sender.last_name:
-        mail_vars["sender"] = sender.first_name + ' ' + sender.last_name
+        mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
 
     return mail_vars
 

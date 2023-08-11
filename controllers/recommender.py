@@ -1595,7 +1595,7 @@ def email_for_registered_reviewer():
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     sender = cast(User, auth.user)
-    mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, reviewer.last_name)
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
 
     _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
@@ -1761,7 +1761,7 @@ def email_for_new_reviewer():
         redirect(request.env.http_referer)
 
     sender = cast(User, auth.user)
-    mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, request.vars["reviewer_last_name"])
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, request.vars["reviewer_last_name"])
 
     # NOTE: 4 parallel submission
     parallelText = ""
