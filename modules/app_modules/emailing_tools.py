@@ -100,7 +100,7 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
-def getMailForReviewerCommonVars(sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str]):
+def getMailForReviewerCommonVars(sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
