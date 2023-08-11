@@ -12,6 +12,7 @@ from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.sqlhtml import *
+from app_modules.helper import *
 
 from app_modules import common_tools
 from app_modules import common_small_html
@@ -34,6 +35,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     lastRecomm = db.get_last_recomm(art.id)
+    co_recommender = is_co_recommender(auth, db, lastRecomm.id)
 
     if userDiv:
         statusDiv = DIV(
@@ -68,7 +70,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         allowManageRequest = True
         manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
     
-    if pciRRactivated and lastRecomm and (lastRecomm.recommender_id == auth.user_id and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
+    if pciRRactivated and lastRecomm and ((lastRecomm.recommender_id == auth.user_id or co_recommender) and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
        allowManageRequest = True
 
     printableUrl = None
@@ -76,7 +78,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
     recommenderSurveyButton = None
-    if lastRecomm and auth.user_id == lastRecomm.recommender_id:
+    if lastRecomm and (auth.user_id == lastRecomm.recommender_id or co_recommender):
         printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True)
         recommenderSurveyButton = True
 
