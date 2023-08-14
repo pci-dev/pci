@@ -609,7 +609,7 @@ def testRedir():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
-def mailing_queue():
+def mailing_queue(): # xxx
     response.view = "default/myLayout.html"
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
@@ -658,7 +658,7 @@ def mailing_queue():
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "sent" else "")
+    ) if row.sending_status == "sent" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "pending" else "")
     
     links = [
         dict(
@@ -755,7 +755,7 @@ def edit_and_resend_email(): #xxx
 
     default_replyto = emailing_tools.to_string_addresses(mail.replyto_addresses)
     default_cc = emailing_tools.to_string_addresses(mail.cc_mail_addresses)
-    default_content = emailing_tools.remove_html(mail.mail_content)
+    #default_content = emailing_tools.remove_html(mail.mail_content)
 
     form = SQLFORM.factory(
         Field("sending_date", label=T("Previous Sending Date"), type="string", length=250, default=mail.sending_date, writable=False),
@@ -763,10 +763,13 @@ def edit_and_resend_email(): #xxx
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto, writable=False),
         Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
         Field("subject", label=T("Subject"), type="string", length=250, default=mail.mail_subject, required=True),
-        Field("content", label=T("Content"), type="text", default=default_content, required=True),
+        #Field("content", label=T("Content"), type="text", default=mail.mail_content, required=True),
+        Field("content", label=T("Content"), type="text", required=True),
     )
     form.element(_type="submit")["_value"] = T("Send e-mail")
     form.element("textarea[name=content]")["_style"] = "height:500px;"
+
+    hidden_html = str(mail.mail_content)
 
     #recommId = request.vars["recommId"]
     #new_round = convert_string(request.vars["new_round"])
@@ -951,6 +954,7 @@ def edit_and_resend_email(): #xxx
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
         titleIcon="envelope",
+        hidden_html=hidden_html,
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
     )

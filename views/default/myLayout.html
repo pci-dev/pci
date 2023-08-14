@@ -105,6 +105,11 @@
 {{=anonymousReviewerConfirmDialog}}
 {{pass}}
 
+{{if 'hidden_html' in locals():}}
+<div id="hidden-html">{{=hidden_html}}</div>
+<script src="{{=URL('static', 'js/hidden_html.js')}}"></script>
+{{pass}}
+
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>

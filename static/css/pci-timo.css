@@ -14,6 +14,15 @@
         max-width: 95%;
     }
 
+    #hidden-html {
+        display: none;
+    }
+
+    #rendered-html {
+        border: 1px solid #dfd7ca;
+        border-radius: 4px;
+    }
+
     #main-page-search-grid .web2py_table table thead {
         display: none;
     }
