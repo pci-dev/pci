@@ -653,14 +653,13 @@ def mailing_queue():
         db.mail_queue.mail_template_hashtag.readable = False
     myScript = common_tools.get_script("replace_mail_content.js")
 
-    """bodyx=lambda row: A(
+    bodyx=lambda row: A(
         (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else "" """
-    bodyx=lambda row: admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "pending" else ""   # CHANGE PENDING TO SENT IN THE END!!
-                                                                                                                  # AND UNCOMMENT UPPER PART!! xxx
+    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "sent" else "")
+    
     links = [
         dict(
             header="",

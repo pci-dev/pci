@@ -4,7 +4,7 @@ import os
 import time
 import re
 from re import sub, match
-
+from lxml import html
 from datetime import datetime, timedelta
 from typing import Optional, cast
 
@@ -192,14 +192,26 @@ def to_string_addresses(address_list):
 
 #######################################################################################################################################################################
 def remove_html(html_string):
-    from lxml import html
-
     #cleaner_content = re.sub(CLEANR, '', html_string)
-    print(html_string)
+    #print(html_string)
 
-    print('\n\n\n\n\n\n\n\n\n\n\n\n\n')
+    #print('\n\n\n\n\n\n\n\n\n\n\n\n\n')
+    new_html_string = ''
+    white_counter = 0
+    no_html = html.fromstring(html_string).text_content()
+    for row in no_html.split('\n'):
+        print('R', row, white_counter)
+        if row.strip() == '\n' or row.strip() == '':
+            white_counter += 1
+            continue
+        else:
+            if white_counter > 1:
+                new_html_string += '\n'
+                new_html_string += row.strip() + '\n'
+                white_counter = 0
+            else:
+                new_html_string += row.strip() + '\n'
 
-    new_html_string = html.fromstring(html_string).text_content().replace('\n\n','').replace('  ','').replace('\t','')
 
 
 
