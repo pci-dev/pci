@@ -3287,7 +3287,24 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
-######################################################################################################################################################################
+################################################################################################
+def alert_managers_recommender_decision_needed(session, auth, db, recommId):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    recomm = db.t_recommendations[recommId]
+    article = db.t_articles[recomm.article_id]
+
+    if recomm and article:
+        mail_vars["destAddress"] = mail_vars["appContactMail"]
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
+        mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+
+        hashtag_template = "#ManagersRecommenderNeedsToMakeDecision"
+
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+
+########################################################
 
 def send_warning_to_submitters(session, auth, db, article_id):
     mail_vars = emailing_tools.getMailCommonVars()
