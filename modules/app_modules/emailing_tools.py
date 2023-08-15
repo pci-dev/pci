@@ -191,48 +191,6 @@ def to_string_addresses(address_list):
 
 
 #######################################################################################################################################################################
-def remove_html(html_string):
-    #no_html = re.sub(CLEANR, ' ', html_string)
-    print(html_string)
-
-    links_replaced = a_tags_to_brackets(html_string)
-
-    #print('\n\n\n\n\n\n\n\n\n\n\n\n\n')
-    new_html_string = ''
-    white_counter = 0
-    no_html = html.fromstring(links_replaced).text_content()
-    for row in no_html.split('\n'):
-        #print('R', row, white_counter)
-        if row.strip() == '\n' or row.strip() == '':
-            white_counter += 1
-            continue
-        else:
-            if white_counter > 1:
-                new_html_string += '\n'
-                new_html_string += row.strip() + '\n'
-                white_counter = 0
-            else:
-                new_html_string += row.strip() + '\n'
-
-    return new_html_string
-
-#######################################################################################################################################################################
-def a_tags_to_brackets(html_string):
-    # Extract all <a> tags and their URLs
-    links = re.findall(r'<a [^>]*?href=["\'](.*?)["\'][^>]*?>(.*?)</a>', html_string)
-
-    # Replace each <a> tag with its text followed by its URL in brackets
-    for url, text in links:
-        pattern = re.compile(r'<a [^>]*?href=["\']' + re.escape(url) + r'["\'][^>]*?>' + re.escape(text) + r'</a>')
-        html_string = pattern.sub(f'{text} ({url}) ', html_string)
-
-    # Remove any remaining HTML tags
-    clean_str = re.sub(r'<[^>]+>', '', html_string)
-
-    return clean_str
-
-
-#######################################################################################################################################################################
 def list_addresses(addresses):
     return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []

@@ -18,26 +18,28 @@
     ">
 
       {{if 'subject' in locals():}}
-      <table>
-        <tr>
-          <td style="vertical-align: center; text-align: left;">
-            <img style="width: 150px; border-radius: 4px;" src="{{=applogo}}" alt="PCI">
-          </td>
-          <td style="vertical-align: center; text-align: left;">
-            {{if 'appname' in locals() and appname is not None:}}
-            <label style="margin: 0 15px; font-size: 14px; font-weight: bold; font-style: italic; color: #598398; text-align: left;">
-              {{=appname}}
-            </label>
-            {{pass}}
-            {{if subject is not None:}}
-            <h1 style="margin: 0 15px; color: #555555; font-size: 20px; text-align: left;">
-              {{=subject}}
-            </h1>
-            {{pass}}
-          </td>
-        </tr>
-      </table>
-      <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{if 'resent' in locals() and resent is not "None":}}
+        <table>
+          <tr>
+            <td style="vertical-align: center; text-align: left;">
+              <img style="width: 150px; border-radius: 4px;" src="{{=applogo}}" alt="PCI">
+            </td>
+            <td style="vertical-align: center; text-align: left;">
+              {{if 'appname' in locals() and appname is not None:}}
+              <label style="margin: 0 15px; font-size: 14px; font-weight: bold; font-style: italic; color: #598398; text-align: left;">
+                {{=appname}}
+              </label>
+              {{pass}}
+              {{if subject is not None:}}
+              <h1 style="margin: 0 15px; color: #555555; font-size: 20px; text-align: left;">
+                {{=subject}}
+              </h1>
+              {{pass}}
+            </td>
+          </tr>
+        </table>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{pass}}
       {{pass}}
       
       {{if 'content' in globals() and content is not None:}}

@@ -653,7 +653,7 @@ def mailing_queue(): # xxx
         db.mail_queue.mail_template_hashtag.readable = False
     myScript = common_tools.get_script("replace_mail_content.js")
 
-    bodyx=lambda row: A(
+    link_body=lambda row: A(
         (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
@@ -663,7 +663,7 @@ def mailing_queue(): # xxx
     links = [
         dict(
             header="",
-            body = bodyx,
+            body = link_body,
         )
     ]
 
@@ -755,15 +755,13 @@ def edit_and_resend_email(): #xxx
 
     default_replyto = emailing_tools.to_string_addresses(mail.replyto_addresses)
     default_cc = emailing_tools.to_string_addresses(mail.cc_mail_addresses)
-    #default_content = emailing_tools.remove_html(mail.mail_content)
 
     form = SQLFORM.factory(
         Field("sending_date", label=T("Previous Sending Date"), type="string", length=250, default=mail.sending_date, writable=False),
-        Field("dest_mail_address", label=T("Destination Email"), type="string", length=250, default=mail.dest_mail_address, writable=False),
-        Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto, writable=False),
+        Field("dest_mail_address", label=T("Destination Email"), type="string", length=250, default=mail.dest_mail_address),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto),
         Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
         Field("subject", label=T("Subject"), type="string", length=250, default=mail.mail_subject, required=True),
-        #Field("content", label=T("Content"), type="text", default=mail.mail_content, required=True),
         Field("content", label=T("Content"), type="text", required=True),
     )
     form.element(_type="submit")["_value"] = T("Send e-mail")
@@ -867,94 +865,26 @@ def edit_and_resend_email(): #xxx
     #default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     #default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
-    #default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
-
-    # replyto = db(db.auth_user.id==auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-    #replyto = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-    #if replyto is None:
-    #    session.flash = T("Recommender for the article doesn't exist", lazy=False)
-    #    redirect(request.env.http_referer)
-    #replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
-    #default_cc = '%s, %s'%(replyto.email, myconf.take("contacts.managers"))
-
-    #form = SQLFORM.factory(
-    #    Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(art)),
-    #    Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-    #    Field.CC(default_cc),
-    #    Field(
-    #        "reviewer_email",
-    #        label=T("Reviewer e-mail address"),
-    #        type="string",
-    #        length=250,
-    #        default=db.auth_user[reviewerId].email,
-    #        writable=False,
-    #        requires=IS_EMAIL(error_message=T("invalid e-mail!")),
-    #    ),
-    #    Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
-    #    Field("message", label=T("Message"), type="text", default=default_message, required=True),
-    #)
-    #form.element(_type="submit")["_value"] = T("Send e-mail")
-    #form.element("textarea[name=message]")["_style"] = "height:500px;"
-
+    resent = False
     if form.process().accepted:
-
-        reviewId = db.t_reviews.update_or_insert(recommendation_id=recommId, reviewer_id=reviewerId)
-        review = db.t_reviews[reviewId]
-        reviewer = db.auth_user[review.reviewer_id]
-        destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
-
-        if not review.quick_decline_key:
-            review.quick_decline_key = web2py_uuid()
-            review.update_record()
-
-        linkTarget = URL(
-                c="default",
-                f="invitation_to_review_preprint",
-                vars=dict(reviewId=review.id),
-                scheme=scheme,
-                host=host,
-                port=port,
-            )
-        declineLinkTarget = URL(c="user_actions", f="decline_review", scheme=scheme, host=host, port=port, vars=dict(
-            id=review.id,
-            key=review.quick_decline_key,
-        ))
-
-        clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc)
-        cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
-
-        clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
-        replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
-        
-        review.review_duration = form.vars.review_duration
-        review.update_record()
         try:
-                emailing.send_reviewer_invitation(
-                    session,
-                    auth,
-                    db,
-                    reviewId,
-                    replyto_addresses,
-                    cc_addresses,
-                    hashtag_template,
-                    request.vars["subject"],
-                    request.vars["message"],
-                    None,
-                    linkTarget,
-                    declineLinkTarget,
-                    new_round,
-                    True if new_stage or reg_user else False,
-                )
+            emailing.resend_mail(
+                session, 
+                auth, 
+                db, 
+                form)
+            resent = True
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
-        redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id)))
+        redirect(URL(c="admin", f="mailing_queue"))
 
     return dict(
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
         titleIcon="envelope",
         hidden_html=hidden_html,
+        resent=resent,
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
     )
