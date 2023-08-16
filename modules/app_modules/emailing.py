@@ -1833,6 +1833,9 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     mail_vars["replytoAddresses"] = replyto_addresses
 
     sender = cast(User, auth.user)
+    sender_name = None
+    if not pciRRactivated:
+        sender_name = f'{sender.first_name} {sender.last_name}'
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
@@ -1844,7 +1847,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         recommendation_id=recommendation.id,
         mail_template_hashtag=hashtag_template,
         article_id=recommendation.article_id,
-        sender_name=f'{sender.first_name} {sender.last_name}'
+        sender_name=sender_name
     )
 
     if review.review_state is None:
