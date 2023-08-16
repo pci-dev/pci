@@ -775,10 +775,6 @@ def edit_and_resend_email(): #xxx
     #reg_user = convert_string(request.vars["regUser"])
     #reviewerId = request.vars["reviewerId"]
     
-    #if recommId is None:
-    #    session.flash = auth.not_authorized()
-    #    redirect(request.env.http_referer)
-    
     #recomm = db.t_recommendations[recommId]
     #if recomm is None:
     #    session.flash = auth.not_authorized()
