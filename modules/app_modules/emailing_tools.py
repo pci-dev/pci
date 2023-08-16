@@ -107,9 +107,6 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
 
     mail_vars = getMailCommonVars()
 
-    mail_vars["Institution"] = sender.institution
-    mail_vars["Department"] = sender.laboratory
-    mail_vars["country"] = sender.country
     mail_vars["description"] = myconf.take("app.description")
     mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
     mail_vars["appLongName"] = myconf.take("app.longname")
@@ -122,12 +119,6 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
     mail_vars["art_authors"] = mkAuthors(article)
     mail_vars["authors"] = mail_vars["art_authors"]
     mail_vars["articleAuthors"] = mail_vars["art_authors"]
-
-    if auth.user_id == recommendation.recommender_id:
-        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
-    elif auth.has_membership(role="manager"):
-        mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
-
 
     if reviewer_last_name:
         mail_vars["LastName"] = reviewer_last_name
@@ -143,8 +134,22 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
         mail_vars["art_title"] = common_small_html.md_to_html(article.title)
         mail_vars["articleTitle"] = mail_vars["art_title"]
 
-    if sender.first_name and sender.last_name:
-        mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+    if auth.user_id == recommendation.recommender_id:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+    
+    elif auth.has_membership(role="manager"):
+        recommender = User.get_by_id(db, recommendation.recommender_id)
+        if recommender:
+            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+            mail_vars["Institution"] = recommender.institution
+            mail_vars["Department"] = recommender.laboratory
+            mail_vars["country"] = recommender.country
 
     return mail_vars
 
