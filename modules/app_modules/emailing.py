@@ -1832,10 +1832,11 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recommendation.id)
     mail_vars["replytoAddresses"] = replyto_addresses
 
-    sender = cast(User, auth.user)
     sender_name = None
     if not pciRRactivated:
-        sender_name = f'{sender.first_name} {sender.last_name}'
+        sender = User.get_by_id(db, recommendation.recommender_id)
+        if sender:
+            sender_name = f'{sender.first_name} {sender.last_name}'
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
@@ -2591,7 +2592,13 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         if hashtag_template is None:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
+        sender_name = None
+        if not pciRRactivated:
+            sender = User.get_by_id(db, recomm.recommender_id)
+            if sender:
+                sender_name = f'{sender.first_name} {sender.last_name}'
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
@@ -2656,7 +2663,13 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             prev_recomm = common_tools.get_prev_recomm(db, recomm)
             authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply)
+        sender_name = None
+        if not pciRRactivated:
+            sender = User.get_by_id(db, recomm.recommender_id)
+            if sender:
+                sender_name = f'{sender.first_name} {sender.last_name}'
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
 
 
 ######################################################################################################################################################################

@@ -361,6 +361,7 @@ def insertReminderMailInQueue(
     sending_date_forced=None,
     base_sending_date=None,
     reviewer_invitation_buttons=None,
+    sender_name: Optional[str]=None
 ):
 
     reminder = getReminder(db, hashtag_template, review_id)
@@ -401,7 +402,8 @@ def insertReminderMailInQueue(
             recommendation_id=recommendation_id,
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
-            review_id=review_id
+            review_id=review_id,
+            sender_name=sender_name
         )
 
 
