@@ -1737,7 +1737,6 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
 # Mail with templates
 ######################################################################################################################################################################
 def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
-    mail_vars = emailing_tools.getMailCommonVars()
     reg_user_reminder_template = None
     new_user_reminder_template = None
 
@@ -1763,6 +1762,9 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         emailing_tools.getFlashMessage(session, reports)
         return
     
+    sender = cast(User, auth.user)
+    
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
     mail_vars["LastName"] = reviewer.last_name
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
