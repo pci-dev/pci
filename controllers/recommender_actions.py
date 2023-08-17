@@ -220,6 +220,13 @@ def _decline_article_page(message, form):
     return dict(
         form=CENTER(
             P(message),
+            DIV(
+                LABEL(TAG(current.T("Recommender decline message 1")), _class="control-label col-sm-3"),
+                DIV(
+                    A("Done", _class="btn btn-default", _style="float: left", _href=URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True)),
+                _class="col-sm-3"),
+                LABEL(TAG(current.T("Recommender decline message 2")), _class="control-label col-sm-3", _style="margin-top: 30px"),
+            _class="form-group"),
             form if form else DIV(_style="height: 20em;"),
         )
     )
