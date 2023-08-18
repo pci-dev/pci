@@ -3,6 +3,7 @@
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
+from app_components.ongoing_recommendation import is_scheduled_submission
 
 
 
@@ -78,6 +79,8 @@ def do_accept_new_article_to_recommend():
         article = db.t_articles[articleId]  # reload due to trigger!
         article.status = "Under consideration"
         article.update_record()
+        if is_scheduled_submission(article):
+            emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
     else:
         if article.status == "Under consideration":
