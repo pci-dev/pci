@@ -628,3 +628,10 @@ def reject_scheduled_submission():
         redirect(request.env.http_referer)
     else:
         redirect(URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id, scheduled_reject=True)))
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def edit_resend_auth():
+    mailId = request.vars['mailId']
+    redirect(URL(c="recommender", f="edit_and_resend_email", vars=dict(mailId=mailId)))

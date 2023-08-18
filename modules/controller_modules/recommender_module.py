@@ -103,3 +103,14 @@ def cancel_scheduled_reviews(session, auth, db, articleId):
     for review in pendingReviews:
         review.update_record(review_state="Cancelled")
         db.commit()
+
+
+######################################################################################################################################################################
+def mkEditResendButton(auth, db, row):
+    anchor = A(
+        SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
+        _href=URL(c="recommender_actions", f="edit_resend_auth", vars=dict(mailId=row["id"]), user_signature=True),
+        _class="button",
+    )
+    return anchor
+
