@@ -658,7 +658,7 @@ def mailing_queue(): # xxx
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "sent" else "")
+    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "sent" else "") #xxx
     
     links = [
         dict(

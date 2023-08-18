@@ -192,6 +192,8 @@ def to_string_addresses(address_list):
 
 #######################################################################################################################################################################
 def list_addresses(addresses):
+    print(addresses)
+    print([x.strip(' ') for x in list(re.split("[,; ]", addresses))])
     return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []
 
@@ -200,11 +202,14 @@ def clean_addresses(dirty_string_adresses):
     '''
     creates a string of clean mail addresses, divided by comma
     '''
+    #print(dirty_string_adresses)
     list_of_contacts = [contact.strip() for contact in list(re.split("[,;]", dirty_string_adresses))]
+    #print(list_of_contacts)
     contacts = []
     errors = []
     validator = IS_EMAIL()
     for contact in list_of_contacts:
+        #print(contact)
         if len(contact.split(' ')) > 1:
             for word in contact.split(' '):
                 if '@' in word:
@@ -214,7 +219,11 @@ def clean_addresses(dirty_string_adresses):
         if error is None: contacts.append(contact)
         else: errors.append(contact)
 
-    return ', '.join(contacts), ', '.join(errors)
+    #print(contacts)
+    #print(', '.join(contacts))
+    #print('\n\n\n')
+
+    return ','.join(contacts), ', '.join(errors)
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):

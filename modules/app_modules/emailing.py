@@ -2075,12 +2075,12 @@ def resend_mail(session, auth, db, form):
     mail_content = mk_mail(form.vars.subject, form.vars.content)
 
     db.mail_queue.insert(
-        user_id             = auth.user_id,
-        dest_mail_address   = form.vars.dest_mail_address,
-        replyto_addresses   = replyto_addresses,
-        cc_mail_addresses   = cc_addresses,
-        mail_subject        = form.vars.subject,
-        mail_content        = mail_content,
+        user_id = auth.user_id,
+        dest_mail_address = form.vars.dest_mail_address,
+        replyto_addresses = replyto_addresses,
+        cc_mail_addresses = cc_addresses,
+        mail_subject = form.vars.subject,
+        mail_content = mail_content,
     )
 
     reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
