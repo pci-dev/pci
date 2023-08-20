@@ -712,7 +712,7 @@ db.define_table(
         "cover_letter",
         type="text",
         length=2097152,
-        label=T("Cover letter (for the initial submission only, not for resubmissions)"),
+        label=T("Cover letter (for the initial submission only, not for resubmissions)") if not pciRRactivated else T("Cover letter"),
         writable=False,
         readable=False,
         comment=T("You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter."),
@@ -1567,12 +1567,11 @@ db.define_table(
         "q1_2",
         type="string",
         label=T(
-            "3. Please indicate here if you previously submitted a Stage 1 snapshot and the full manuscript is now ready for review"
+            "3. Please indicate the status of your scheduled submission"
         ),
         requires=IS_EMPTY_OR(IS_IN_SET((
-            "N/A – I DID NOT PREVIOUSLY SUBMIT A STAGE 1 SNAPSHOT",
-            "N/A – I AM SUBMITTING A STAGE 1 SNAPSHOT BUT THE FULL MANUSCRIPT IS NOT YET READY FOR REVIEW",
-            "YES – I PREVIOUSLY SUBMITTED A STAGE 1 SNAPSHOT AND THE FULL MANUSCRIPT IS NOW READY FOR REVIEW"
+            "I AM SUBMITTING A STAGE 1 SNAPSHOT AND THE FULL MANUSCRIPT IS NOT YET READY FOR REVIEW",
+            "I PREVIOUSLY SUBMITTED A STAGE 1 SNAPSHOT AND THE FULL MANUSCRIPT IS NOW READY FOR REVIEW"
         ))),
     ),
     Field(
