@@ -503,7 +503,7 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
     default_subject = emailing.patch_email_subject(default_subject, articleId)
 
     form = SQLFORM.factory(
-        Field("message", label=current.T("Recommender decline message"), type="text", default=default_message, required=True),
+        Field("message", type="text", default=default_message, required=True, label=''),
         Field("exit", type="string", default=current.T("Exit"), widget=widget_submit_button, label=""),
     )
     form.element("input[value=Submit]")["_style"] = "display: none;"
@@ -527,6 +527,5 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
 def widget_submit_button(field,value):
     # widget for additional form button
     item = LI(INPUT(_type='submit', _name="Submit", _value="Send Message", value="Send Message", _class="btn btn-primary"),
-            A("Done", _class="btn btn-default", _href=URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True)),
             _style="display: inline-block")
     return (SPAN(item))
