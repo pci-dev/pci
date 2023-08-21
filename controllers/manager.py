@@ -1504,10 +1504,10 @@ def recommender_statistics():
     db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_invitations"))) if text != 0 else "0"
     db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_assignments"))) if text != 0 else "0"
     db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="awaiting_revision"))) if text != 0 else "0"
-    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_action"))) if text == "h" else "0"
-    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_reviewers"))) if text == "h" else "0"
-    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="required_reviews_completed"))) if text == "h" else "0"
-    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="late_reviews"))) if text == "h" else "0"
+    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_action"))) if text != 0 else "0"
+    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_reviewers"))) if text != 0 else "0"
+    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="required_reviews_completed"))) if text != 0 else "0"
+    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="late_reviews"))) if text != 0 else "0"
 
     grid = SQLFORM.grid(
         query = db.v_recommender_stats,
@@ -1572,16 +1572,28 @@ def fetch_query(action, recommenderId):
         "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
         "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
-        # "requiring_action" : (  (db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status == 'Under consideration')  & (db.t_reviews.recommendation_id==db.t_recommendations.id)\
-        #                        & (db.t_recommendations.recommender_id == recommenderId) ),
-        "requiring_reviewers": ((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') 
-        |
-           (subquery.count(distinct=True) == 0) & (db.t_articles.report_stage == 'STAGE 2')
-           ),
-        "required_reviews_completed": (),
-        "late_reviews": (),
+        "requiring_action" : get_recommendation_DAL_query(f"SELECT DISTINCT * FROM (\
+                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, t_suggested_recommenders ts WHERE ts.article_id = a.id and trev.recommendation_id = recomm.id and recomm.article_id = a.id and a.status = 'Under consideration' and ts.suggested_recommender_id={recommenderId} GROUP BY recomm.id, a.id, ts.suggested_recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')\
+                                                                   UNION ALL\
+                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, t_suggested_recommenders ts WHERE ts.article_id = a.id and trev.recommendation_id = recomm.id and recomm.article_id = a.id and ts.suggested_recommender_id={recommenderId} GROUP BY recomm.id, a.id, ts.suggested_recommender_id HAVING COUNT(trev.id) filter (WHERE trev.acceptation_timestamp is not null) = COUNT(trev.id) filter (WHERE trev.review_state = 'Review completed')) AS requiring_action;"),
+        "requiring_reviewers": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, t_suggested_recommenders ts WHERE ts.article_id = a.id and trev.recommendation_id = recomm.id and recomm.article_id = a.id and a.status in ('Under consideration', 'Awaiting revision') and ts.suggested_recommender_id={recommenderId} GROUP BY recomm.id, a.id, ts.suggested_recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')"),
+        "required_reviews_completed": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, t_suggested_recommenders ts WHERE ts.article_id = a.id and trev.recommendation_id = recomm.id and recomm.article_id = a.id and  a.status in ('Under consideration', 'Awaiting revision') and ts.suggested_recommender_id={recommenderId} GROUP BY recomm.id, a.id, ts.suggested_recommender_id HAVING COUNT(trev.id) filter (WHERE trev.acceptation_timestamp is not null) = COUNT(trev.id) filter (WHERE trev.review_state = 'Review completed')"),
+        "late_reviews": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, t_suggested_recommenders ts WHERE ts.article_id = a.id and trev.recommendation_id = recomm.id and recomm.article_id = a.id and ts.suggested_recommender_id={recommenderId} and trev.acceptation_timestamp + convert_duration_to_sql_interval(trev.review_duration) < NOW()"),
     }
     return queries[action]
+
+
+def get_recommendation_DAL_query(raw_sql_query_returning_recommendation_id: str):
+    result = db.executesql(raw_sql_query_returning_recommendation_id)
+    ids = []
+    query = ()
+
+    for line in result:
+        id = line[0]
+        if id not in ids:
+            ids.append(line[0])
+
+    return ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.id.belongs(ids)))
 
 ######################################################################################################################################################################
 def recommender_breakdown():
