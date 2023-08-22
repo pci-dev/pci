@@ -278,6 +278,31 @@
         }
       });    
     </script>
+
+    <script type="text/javascript">
+      showProfileDialog();
+      function showProfileDialog() {
+
+        if (!document.referrer.includes('{{=URL(c="default", f="user", args=["login"])}}')) {
+          return;
+        }
+        
+        $.ajax({
+          type: 'GET',
+          url: '{{=URL("default", "show_account_menu_dialog")}}',
+          success: function(response) {
+            const dialogHtml = response;
+            if (dialogHtml == null) {
+              return;
+            }
+
+            $('body').append(dialogHtml);
+            $('#complete-profile-modal').modal('show');
+          }
+	      });
+      }
+    </script>
+
     <script type="text/javascript" src="{{=URL('static','js/scripts_base.js')}}"></script>
     <script type="text/javascript" src="{{=URL('static','js/search_bar_control.js')}}"></script>
 <!--     <script>$('.btn').tooltip({show: {effect:"none", delay:0}});</script> -->
