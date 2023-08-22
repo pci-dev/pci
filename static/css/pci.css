@@ -1310,7 +1310,6 @@ header {
   left: 35%;
   background-color: white;
   border-radius: 6px;
-  
 }
 
 #confirmation-modal #confirm-dialog {
@@ -1358,5 +1357,19 @@ header {
 }
 
 .mail-dialog .confirm-mail-dialog {
+  margin-bottom: 0px;
+}
+
+#complete-profile-modal {
+  position: fixed;
+  width: 30%;
+  height: fit-content;
+  top: 25%;
+  left: 35%;
+  background-color: white;
+  border-radius: 6px;
+}
+
+#complete-profile-modal #complete-profile-confirm-dialog {
   margin-bottom: 0px;
 }
