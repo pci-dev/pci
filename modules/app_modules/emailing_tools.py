@@ -40,6 +40,7 @@ import shutil
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
+from app_modules import helper
 from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
