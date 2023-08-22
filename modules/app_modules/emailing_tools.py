@@ -104,6 +104,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
 
     mail_vars = getMailCommonVars()
 
@@ -142,6 +143,15 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
 
         if sender.first_name and sender.last_name:
             mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+
+    elif is_co_recommender:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
     
     elif auth.has_membership(role="manager"):
         recommender = User.get_by_id(db, recommendation.recommender_id)
@@ -150,6 +160,9 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
             mail_vars["Institution"] = recommender.institution
             mail_vars["Department"] = recommender.laboratory
             mail_vars["country"] = recommender.country
+
+            if recommender.first_name and recommender.last_name:
+                mail_vars["senderName"] = recommender.first_name + ' ' + recommender.last_name
 
     return mail_vars
 
