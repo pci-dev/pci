@@ -124,6 +124,7 @@ def login(user):
     select("#auth_user_email").send_keys(user.email)
     select("#auth_user_password").send_keys(user.password)
     select("input.btn").click()
+    select("#complete-profile-cancel-dialog").wait_clickable().click()
     select.notif("Logged in").wait_clickable().click()
 
 def logout(user):
