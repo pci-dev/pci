@@ -307,10 +307,6 @@ def show_account_menu_dialog():
     if session.show_account_menu_dialog:
         return
     
-    login_url = cast(str, URL("default", "show_account_menu_dialog"))
-    if not login_url == request.env.path_info:
-        return
-    
     current_user = cast(User, auth.user)
     if not current_user:
         return
