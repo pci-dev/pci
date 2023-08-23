@@ -192,8 +192,6 @@ def to_string_addresses(address_list):
 
 #######################################################################################################################################################################
 def list_addresses(addresses):
-    print(addresses)
-    print([x.strip(' ') for x in list(re.split("[,; ]", addresses))])
     return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []
 

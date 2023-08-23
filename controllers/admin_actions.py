@@ -155,27 +155,8 @@ def toggle_shedule_mail_from_queue():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="manager"))
 def edit_resend_auth():
     mailId = request.vars['mailId']
+    if mailId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
     redirect(URL(c="admin", f="edit_and_resend_email", vars=dict(mailId=mailId)))
-
-    '''reviewerId = request.vars["reviewerId"]
-    new_round = request.vars["new_round"]
-    new_stage = request.vars["new_stage"]
-    reg_user = request.vars["regUser"]
-
-    if reviewerId is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    recommId = request.vars["recommId"]
-    if recommId is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    recomm = db.t_recommendations[recommId]
-    if recomm is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if recomm.recommender_id != auth.user_id and not (auth.has_membership(role="manager")):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    else:
-        redirect(URL(c="recommender", f="email_for_registered_reviewer", vars=dict(recommId=recommId, reviewerId=reviewerId, new_round=new_round, new_stage=new_stage, regUser=reg_user)))'''
