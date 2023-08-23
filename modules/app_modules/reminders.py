@@ -25,12 +25,12 @@ _reminders = {
     "ReminderRecommenderRevisedDecisionDue": [10],
     "ReminderRecommenderRevisedDecisionOverDue": [14, 18, 22],
 
-    "ReminderReviewerReviewInvitationNewUser": [5, 8],
-    "ReminderReviewerReviewInvitationRegisteredUser": [5, 8],
-    "ReminderReviewerInvitationNewRoundRegisteredUser": [5, 8],
+    "ReminderReviewerReviewInvitationNewUser": [2, 7],
+    "ReminderReviewerReviewInvitationRegisteredUser": [2, 7],
+    "ReminderReviewerInvitationNewRoundRegisteredUser": [2, 7],
 
-    "ReminderReviewInvitationRegisteredUserNewReviewer": [5, 8],
-    "ReminderReviewInvitationRegisteredUserReturningReviewer": [5, 8],
+    "ReminderReviewInvitationRegisteredUserNewReviewer": [2, 7],
+    "ReminderReviewInvitationRegisteredUserReturningReviewer": [2, 7],
 
     "ReminderSubmitterCancelSubmission": [20],
     "ReminderSubmitterSuggestedRecommenderNeeded": daily(1, 9),
