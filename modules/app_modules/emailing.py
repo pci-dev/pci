@@ -4,6 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
+from typing import cast
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -1736,31 +1737,37 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
 # Mail with templates
 ######################################################################################################################################################################
 def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
-    mail_vars = emailing_tools.getMailCommonVars()
     reg_user_reminder_template = None
     new_user_reminder_template = None
 
     reports = []
 
-    review = db.t_reviews[reviewId]
+    review = Review.get_by_id(db, reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    recommendation = db.t_recommendations[review.recommendation_id]
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    article = db.t_articles[recommendation.article_id]
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        emailing_tools.getFlashMessage(session, reports)
+        return
 
-    reviewer = db.auth_user[review["reviewer_id"]]
+    reviewer = User.get_by_id(db, review.reviewer_id)
     if not reviewer:
         emailing_tools.getFlashMessage(session, reports)
         return
     
+    sender = cast(User, auth.user)
+    
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
+    mail_vars["LastName"] = reviewer.last_name
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
-    mail_vars["destAddress"] = reviewer["email"]
+    mail_vars["destAddress"] = reviewer.email
     mail_vars["reviewDuration"] = (review.review_duration).lower()
     message = emailing_tools.replaceMailVars(message, mail_vars)
 
@@ -1786,7 +1793,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
 
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
@@ -1801,7 +1808,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
             reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
 
-        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
 
     subject_header = email_subject_header(recommendation.article_id)
     subject_without_appname = subject.replace("%s: " % subject_header, "")
@@ -1827,6 +1834,12 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recommendation.id)
     mail_vars["replytoAddresses"] = replyto_addresses
 
+    sender_name = None
+    if not pciRRactivated:
+        sender = User.get_by_id(db, recommendation.recommender_id)
+        if sender:
+            sender_name = f'{sender.first_name} {sender.last_name}'
+
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=mail_vars["ccAddresses"],
@@ -1837,6 +1850,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         recommendation_id=recommendation.id,
         mail_template_hashtag=hashtag_template,
         article_id=recommendation.article_id,
+        sender_name=sender_name
     )
 
     if review.review_state is None:
@@ -2533,25 +2547,21 @@ def reviewLink(**kwargs):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
-    mail_vars = emailing_tools.getMailCommonVars()
+def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+    review = Review.get_by_id(db, reviewId)
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    article = Article.get_by_id(db, recomm.article_id)
+    reviewer = User.get_by_id(db, review.reviewer_id)
 
-    review = db.t_reviews[reviewId]
-    recomm = db.t_recommendations[review.recommendation_id]
-    article = db.t_articles[recomm.article_id]
+    if review and recomm and article and reviewer:
+        sender = cast(User, auth.user)
 
-    if review and recomm and article:
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
+        mail_vars["message"] = message
+
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
-        mail_vars["description"] = myconf.take("app.description")
-        mail_vars["sender"] = mkSender(auth, db, recomm)
-
-        mail_vars["art_doi"] = article.doi
-        mail_vars["art_title"] = md_to_html(article.title)
         
-        mail_vars["articleDoi"] = article.doi
-        mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         
@@ -2584,29 +2594,32 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         if hashtag_template is None:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons)
+        sender_name = None
+        if not pciRRactivated:
+            sender = User.get_by_id(db, recomm.recommender_id)
+            if sender:
+                sender_name = f'{sender.first_name} {sender.last_name}'
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
-    mail_vars = emailing_tools.getMailCommonVars()
+def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+    review = Review.get_by_id(db, reviewId)
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    article = Article.get_by_id(db, recomm.article_id)
+    reviewer = User.get_by_id(db, review.reviewer_id)
 
-    review = db.t_reviews[reviewId]
-    recomm = db.t_recommendations[review.recommendation_id]
-    article = db.t_articles[recomm.article_id]
+    if review and recomm and article and reviewer:
+        sender = cast(User, auth.user)
 
-    if review and recomm and article:
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
+        mail_vars["message"] = message
+
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
         mail_vars["sender"] = mkSender(auth, db, recomm)
         
-        mail_vars["art_doi"] = article.doi
-        mail_vars["art_title"] = md_to_html(article.title)
-        mail_vars["description"] = myconf.take("app.description")
-
-        mail_vars["articleDoi"] = article.doi
-        mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["reviewDuration"] = (review.review_duration).lower()
@@ -2652,7 +2665,13 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             prev_recomm = common_tools.get_prev_recomm(db, recomm)
             authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply)
+        sender_name = None
+        if not pciRRactivated:
+            sender = User.get_by_id(db, recomm.recommender_id)
+            if sender:
+                sender_name = f'{sender.first_name} {sender.last_name}'
+
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
 
 
 ######################################################################################################################################################################

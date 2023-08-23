@@ -6,6 +6,7 @@ import re
 from re import sub, match
 
 from datetime import datetime, timedelta
+from typing import Optional
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -25,6 +26,9 @@ from models.article import Article
 from pydal import DAL
 
 from gluon.custom_import import track_changes
+from models.article import Article
+from models.recommendation import Recommendation
+from models.user import User
 
 track_changes(True)
 import socket
@@ -36,6 +40,7 @@ import shutil
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
+from app_modules import helper
 from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
@@ -93,6 +98,74 @@ def getMailCommonVars():
         appContactLink=A(myconf.take("contacts.managers"), _href="mailto:" + myconf.take("contacts.managers")),
         siteUrl=URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port")),
     )
+
+######################################################################################################################################################################
+
+def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None):
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
+
+    mail_vars = getMailCommonVars()
+
+    mail_vars["description"] = myconf.take("app.description")
+    mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
+    mail_vars["appLongName"] = myconf.take("app.longname")
+    mail_vars["appName"] = myconf.take("app.name")
+    mail_vars["thematics"] = myconf.take("app.thematics")
+    mail_vars["scheme"] = scheme
+    mail_vars["host"] = host
+    mail_vars["port"] = port
+    mail_vars["site_url"] = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    mail_vars["art_authors"] = mkAuthors(article)
+    mail_vars["authors"] = mail_vars["art_authors"]
+    mail_vars["articleAuthors"] = mail_vars["art_authors"]
+
+    if reviewer_last_name:
+        mail_vars["LastName"] = reviewer_last_name
+    
+    if recommendation.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+    elif article.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(article.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+
+    if article.title:
+        mail_vars["art_title"] = common_small_html.md_to_html(article.title)
+        mail_vars["articleTitle"] = mail_vars["art_title"]
+
+    if auth.user_id == recommendation.recommender_id:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+
+    elif is_co_recommender:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+    
+    elif auth.has_membership(role="manager"):
+        recommender = User.get_by_id(db, recommendation.recommender_id)
+        if recommender:
+            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+            mail_vars["Institution"] = recommender.institution
+            mail_vars["Department"] = recommender.laboratory
+            mail_vars["country"] = recommender.country
+
+            if recommender.first_name and recommender.last_name:
+                mail_vars["senderName"] = recommender.first_name + ' ' + recommender.last_name
+
+    return mail_vars
 
 
 ######################################################################################################################################################################
@@ -302,6 +375,7 @@ def insertReminderMailInQueue(
     sending_date_forced=None,
     base_sending_date=None,
     reviewer_invitation_buttons=None,
+    sender_name: Optional[str]=None
 ):
 
     reminder = getReminder(db, hashtag_template, review_id)
@@ -342,7 +416,8 @@ def insertReminderMailInQueue(
             recommendation_id=recommendation_id,
             article_id=article_id,
             mail_template_hashtag=hashtag_template,
-            review_id=review_id
+            review_id=review_id,
+            sender_name=sender_name
         )
 
 

@@ -42,6 +42,11 @@ def getMailsInQueue():
 def tryToSendMail(mail_item):
     if not isTimeToTrySending(mail_item):
         return
+    
+    sender = None
+    sender_mail = myconf.get("contacts.contact")
+    if mail_item.sender_name and sender_mail:
+        sender = f'"{mail_item.sender_name}" <{sender_mail}>'
 
     try:
         isSent = mail.send(
@@ -51,6 +56,7 @@ def tryToSendMail(mail_item):
                 reply_to=mail_item.replyto_addresses,
                 subject=mail_item.mail_subject,
                 message=mail_item.mail_content,
+                sender=sender
         )
         #isSent = True
         if isSent is False:
