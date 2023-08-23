@@ -20,11 +20,13 @@ copy_templates() {
 	ssh $TARGET $DB << EOT
 	select hashtag, contents
 	from mail_templates
-	order by hashtag;
 	where hashtag in (
-		'#NewUserParallelSubmissionAllowed',
-		'#RecommenderThankForPreprintParallelSubmission'
-	);
+		'#DefaultReviewInvitationNewUser',
+		'#DefaultReviewInvitationRegisteredUser',
+		'#ReminderReviewerReviewInvitationNewUser',
+		'#ReminderReviewerReviewInvitationRegisteredUser'
+	)
+	order by hashtag;
 EOT
 }
 
