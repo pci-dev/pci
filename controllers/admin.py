@@ -747,6 +747,7 @@ def edit_config():
 def edit_and_resend_email():
     response.view = "default/myLayout.html"
     mailId = request.vars["mailId"]
+   
     if mailId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -767,7 +768,7 @@ def edit_and_resend_email():
     form.element(_type="submit")["_value"] = T("Send e-mail")
     form.element("textarea[name=content]")["_style"] = "height:500px;"
     html_string = str(mail.mail_content)
-
+    
     resent = False
     if form.process().accepted:
         try:
@@ -775,7 +776,8 @@ def edit_and_resend_email():
                 session, 
                 auth, 
                 db, 
-                form)
+                form,
+                )
             resent = True
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")

@@ -2065,7 +2065,7 @@ def mk_mail(subject, message):
         )
     )
 ######################################################################################################################################################################
-def resend_mail(session, auth, db, form):
+def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None):
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -2074,14 +2074,36 @@ def resend_mail(session, auth, db, form):
 
     mail_content = mk_mail(form.vars.subject, form.vars.content)
 
-    db.mail_queue.insert(
-        user_id = auth.user_id,
-        dest_mail_address = form.vars.dest_mail_address,
-        replyto_addresses = replyto_addresses,
-        cc_mail_addresses = cc_addresses,
-        mail_subject = form.vars.subject,
-        mail_content = mail_content,
-    )
+    if recommId != 'None' and reviewId != 'None':
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+            review_id = reviewId,
+            recommendation_id = recommId,
+        )
+    elif articleId != 'None':
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+            article_id = articleId,
+        )
+    else:
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+        )             
 
     reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
     emailing_tools.getFlashMessage(session, reports)
