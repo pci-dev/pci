@@ -1566,7 +1566,10 @@ def fetch_query(action, recommenderId):
                             having=(count_filter.count() == db.t_reviews.id.count()))
 
     queries = {
-        "total_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId)),
+        "total_invitations": get_recommendation_DAL_query(f"SELECT DISTINCT id FROM ( \
+                                                                    SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id \
+                                                                    UNION ALL \
+                                                                    SELECT DISTINCT art.id FROM t_articles art, t_suggested_recommenders ts WHERE ts.suggested_recommender_id={recommenderId} and ts.article_id = art.id ) AS total_invitations;",  False),
         "total_accepted" : ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
@@ -1583,17 +1586,17 @@ def fetch_query(action, recommenderId):
     return queries[action]
 
 
-def get_recommendation_DAL_query(raw_sql_query_returning_recommendation_id: str):
+def get_recommendation_DAL_query(raw_sql_query_returning_recommendation_id: str, recommendation: bool=True):
     result = db.executesql(raw_sql_query_returning_recommendation_id)
     ids = []
-    query = ()
 
     for line in result:
         id = line[0]
         if id not in ids:
             ids.append(line[0])
-
-    return ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.id.belongs(ids)))
+    if recommendation:
+        return ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.id.belongs(ids)))
+    return (db.t_articles.id.belongs(ids))
 
 ######################################################################################################################################################################
 def recommender_breakdown():
