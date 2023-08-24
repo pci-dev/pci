@@ -8,6 +8,7 @@ from typing import Any, Optional, cast
 from app_components import article_components
 from app_modules.common_tools import get_article_id, get_reset_password_key, get_review_id
 from app_modules.helper import *
+from app_modules.common_small_html import complete_profile_dialog
 from controller_modules import adjust_grid
 from gluon import DAL
 # -------------------------------------------------------------------------
@@ -301,6 +302,22 @@ def check_already_registered(form):
                 A(T("reset your password"), _href=URL("user/request_reset_password", vars={"email":form.vars.email})),
         )
 
+
+def show_account_menu_dialog():
+    if session.show_account_menu_dialog:
+        return
+    
+    current_user = cast(User, auth.user)
+    if not current_user:
+        return
+    
+    is_profile_completed = User.is_profile_completed(current_user)
+    if is_profile_completed:
+        return
+
+    session.show_account_menu_dialog = True
+    dialog = complete_profile_dialog()
+    return dialog
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
