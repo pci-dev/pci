@@ -228,6 +228,8 @@ def get_type(body):
     for t in coar_types:
         if body.find("://purl.org/coar/notify_vocabulary/" + t) > 0:
             return t
+        if body.find(f'"coar-notify:{t}Action"') > 0:
+            return t
 
 
 def get_request_type(body):
@@ -239,14 +241,22 @@ def get_request_type(body):
 import re
 
 def get_person_name(body):
-    name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
+    name = re.match(r'.*"@type": "as:Person", "as:name": "([^"]*)".*', body)
+    if name: return name[1]
 
-    return name[1] if name else "(anonymous)"
+    name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
+    if name: return name[1]
+
+    return "(anonymous)"
 
 def get_object_ref(body):
-    obj_ref = re.match(r'.*/activitystreams#object": *\[ *{ *"@id": *"([^"]+)".*', body.replace('\n', ''))
+    obj_ref = re.match(r'.*"as:object": {"@id": "([^"]+)".*', body)
+    if obj_ref: return obj_ref[1]
 
-    return obj_ref[1] if obj_ref else "(no object ref)"
+    obj_ref = re.match(r'.*/activitystreams#object": *\[ *{ *"@id": *"([^"]+)".*', body.replace('\n', ''))
+    if obj_ref: return obj_ref[1]
+
+    return "(no object ref)"
 
 errors = {
     418: "no inbox provided by article server",
