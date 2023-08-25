@@ -1,4 +1,5 @@
 from gluon.contrib.appconfig import AppConfig
+import datetime
 
 from gluon.custom_import import track_changes
 track_changes(True)
@@ -14,6 +15,19 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 def daily(start, end): return every(1, start, end)
 def weekly(start, end): return every(7, start, end)
 def every(days, start, end): return [days*x for x in range(start, end+1)]
+
+def avoid_weekend(nb_day: int):
+    current_day =  datetime.datetime.now().weekday()
+    if current_day == 3 and current_day + nb_day == 5:
+        return nb_day + 2
+    elif current_day == 4 and current_day + nb_day == 6:
+        return nb_day + 2
+    elif current_day == 5 and current_day + nb_day == 0:
+        return nb_day + 2
+    elif current_day == 6 and current_day + nb_day == 1:
+        return nb_day + 1
+    else:
+        return nb_day
 
 _reminders = {
     "ReminderRecommenderReviewersNeeded": [1, 3, 5],
@@ -50,6 +64,14 @@ _review_reminders = {
     "ReminderReviewerReviewDue":        "reminder_due",
     "ReminderReviewerReviewOverDue":    "reminder_over_due",
 }
+
+_avoid_weekend_reminders = [
+    'ReminderReviewerReviewInvitationNewUser',
+    'ReminderReviewerReviewInvitationRegisteredUser',
+    'ReminderReviewerInvitationNewRoundRegisteredUser',
+    'ReminderReviewInvitationRegisteredUserNewReviewer',
+    'ReminderReviewInvitationRegisteredUserReturningReviewer'
+]
 
 
 def getDefaultReviewDuration():
@@ -130,6 +152,9 @@ def getReminder(db, hashtag_template, review_id):
 
     elif hash_temp in _reminders:
         days = _reminders[hash_temp]
+
+        if hash_temp in _avoid_weekend_reminders:
+            days[0] = avoid_weekend(days[0])
     else:
         return None
 
