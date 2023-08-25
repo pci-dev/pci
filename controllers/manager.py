@@ -1517,7 +1517,7 @@ def recommender_statistics():
         create=False,
         searchable=False,
         csv=False,
-        paginate=50,
+        paginate=20,
         maxtextlength=256,
         orderby=~db.v_recommender_stats.id,
         fields=[
@@ -1534,7 +1534,7 @@ def recommender_statistics():
             db.v_recommender_stats.required_reviews_completed,
             db.v_recommender_stats.late_reviews
         ],
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid  statistics",
     )
 
     return dict(
