@@ -3138,6 +3138,25 @@ def delete_all_reminders_from_recommendation_id(db, recommendationId):
 
 
 ######################################################################################################################################################################
+def send_to_coar_requester(session, auth, db, user):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destAddress"] = user.email
+    mail_vars["linkTarget"] = URL(
+        c="default", f="user", args=["reset_password"],
+        vars=dict(key=user.reset_password_key),
+        scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
+    )
+
+    hashtag_template = "#UserCompleteSubmission"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
+
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
+    emailing_tools.getFlashMessage(session, reports)
+
+######################################################################################################################################################################
 def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
     hashtag = hashtag + "%"
     return db(

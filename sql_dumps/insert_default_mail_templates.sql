@@ -249,6 +249,21 @@ INSERT INTO "mail_templates"("hashtag","lang","subject","description","contents"
 VALUES
 (E'#ManagersPreprintResubmission',E'default',E'{{appName}}: Pre-submitted preprint now completed and ready for validation',E'Mail sent to managers on preprint resubmission',E'<div class="p-rich_text_section">Dear members of the Managing Board,</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section">This preprint submission by {{submitterPerson}} entitled <strong data-stringify-type="bold">{{articleTitle}}</strong> that was previously in a Pre-submission stage is now ready for validation.</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section">To check this submission, please follow this link <a href="{{linkTarget}}">{{linkTarget}}</a>.</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section"><strong data-stringify-type="bold">WARNING:</strong>&nbsp;<strong data-stringify-type="bold">do not validate it unless you (or someone else on the managing board) have checked the following points:</strong></div><ul class="p-rich_text_list p-rich_text_list__bullet" data-stringify-type="unordered-list" data-indent="0" data-border="0"><li data-stringify-indent="0" data-stringify-border="0">Files are readable, lines are numbered</li><li data-stringify-indent="0" data-stringify-border="0">DOI of (or permanent link to) the article, data, and script are correct,</li><li data-stringify-indent="0" data-stringify-border="0">Data, scripts/code, and supplementary information are available</li><li data-stringify-indent="0" data-stringify-border="0">A readme file is present with the data and script</li><li data-stringify-indent="0" data-stringify-border="0">Mandatory sections are there ("funding", "Conflict of Interest disclosure", "Data, script, code, and supplementary information availability")</li><li data-stringify-indent="0" data-stringify-border="0">No obvious financial conflicts of interest appear</li></ul><div class="p-rich_text_section">Have a nice day!</div><p><br></p>');
 
+-- 2023-09-25 updates/add_user_complete_submission.sql
+delete from mail_templates where hashtag in (
+	'#UserResetPassword',
+	'#UserCompleteSubmission'
+);
+INSERT INTO mail_templates (hashtag, lang, subject, description, contents)
+VALUES
+(
+E'#UserCompleteSubmission',
+E'default',
+E'{{appName}}: Please complete your submission made from a preprint server',
+E'Mail to submitter when submission made from a preprint server',
+E'<p>Dear {{destPerson}}</p><p>Thank you for your submission made via a preprint server and sent to {{appName}}.</p><p>We have just created an account for you, so you can proceed with the submission.</p><p>Welcome on board!</p><p>Please click on the following link to complete your submission:&nbsp;<a href="{{linkTarget}}">Complete your submission</a></p><p>Thanks.</p><p>The managing board of {{appName}}</p>'
+);
+
 -- 2023-10-11 updates/alert_reviewer_due_date_change_template.sql
 INSERT INTO mail_templates (hashtag, lang, subject, description, contents)
 VALUES (

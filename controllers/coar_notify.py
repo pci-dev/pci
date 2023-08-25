@@ -116,7 +116,8 @@ def request_endorsement(req):
 
     if not user:
         user = create_new_user(user_email, user_name)
-        emailing.send_to_reset_password(session, auth, db, user)
+
+    emailing.send_to_coar_requester(session, auth, db, user)
 
 
 def create_new_user(user_email, user_name):
