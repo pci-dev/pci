@@ -18,7 +18,6 @@
     ">
 
       {{if 'subject' in locals():}}
-        {{if 'resent' in locals() and resent != "None":}}
         <table>
           <tr>
             <td style="vertical-align: center; text-align: left;">
@@ -39,7 +38,6 @@
           </tr>
         </table>
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
-        {{pass}}
       {{pass}}
       
       {{if 'content' in globals() and content is not None:}}
