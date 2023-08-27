@@ -237,7 +237,7 @@
         </h3>
         <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
           <a class="buttontext btn btn-success" 
-            href="{{=URL(c='user', f='accept_new_review',  vars=dict(reviewId=review['id']))}}"
+            href="{{=URL(c='default', f='invitation_to_review_preprint',  vars=dict(reviewId=review['id']))}}"
           >
             {{=T('Yes, I would like to review this preprint')}}
           </a>
