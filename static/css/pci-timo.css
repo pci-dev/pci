@@ -22,6 +22,10 @@
         border: 1px solid #dfd7ca;
         border-radius: 4px;
     }
+    .statistics thead {
+        z-index: 1;
+    }
+
     .statistics tbody tr {
         min-height: 5rem;
     }
