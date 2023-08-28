@@ -13,6 +13,7 @@ _items = [
     "status",
     "update",
     "force",
+    "reload_w2p",
     "uploads",
     "pcis",
     "db",
@@ -46,6 +47,11 @@ def force():
     reset = _shell("git reset --hard origin/" + _curr_branch())
 
     return fetch + reset
+
+
+def reload_w2p():
+    _run("touch ../../wsgihandler.py")
+    return index()
 
 
 def db():
