@@ -1,0 +1,161 @@
+<html style="font-size:12pt;">
+  <body style="
+  	background: #a5c5d5;
+  	text-align: center;
+    padding: 25px;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  ">
+  	<div style="
+  	  background:#ffffff !important;
+  	  color:#333333 !important;
+      margin: 0 auto;
+      padding: 10px 15px;
+  	  max-width: 600px;
+  	  border-radius: 4px;
+  	  text-align: left;
+    ">
+      
+      {{if 'content' in globals() and content is not None:}}
+        <!-- CONTENT START -->
+          {{=content}}
+        <!-- CONTENT END -->
+      {{pass}}
+      
+      {{if 'sugg_recommender_buttons' in globals() and sugg_recommender_buttons is not None:}}
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=sugg_recommender_buttons}}
+      {{pass}}
+
+      {{if 'reviewer_invitation_buttons' in globals() and reviewer_invitation_buttons is not None:}}
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=reviewer_invitation_buttons}}
+      {{pass}}
+  	</div>
+
+    {{if 'recommendation' in locals() and recommendation is not None:}}
+      <div style="
+  	    background:#f0f0f0 !important;
+  	    color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+  	    max-width: 600px;
+  	    border-radius: 4px;
+  	    text-align: left;
+  	  ">
+        {{=recommendation}}
+      </div>
+    {{pass}}
+
+    {{if 'review' in locals() and review is not None:}}
+      <div style="
+        background:#f0f0f0 !important;
+        color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        {{=review}}
+      </div>
+    {{pass}}
+
+    {{if 'authors_reply' in locals() and authors_reply is not None:}}
+    <div style="
+        background:#f0f0f0 !important;
+        color:#555555 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        {{=authors_reply}}
+      </div>
+    {{pass}}
+
+    {{if 'newRecommendations' in locals() and newRecommendations is not None and newRecommendationsCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newRecommendationsCount}}</b> new recommendation{{if newRecommendationsCount > 1:}}s{{pass}} 
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newRecommendations}}
+
+        <div style="width: 100%; text-align: center; margin-top: 20px; margin-bottom: 10px;">
+          {{=allRecommendationsLink}}
+        </div>
+      </div>
+    {{pass}}
+
+    {{if 'newPreprintSearchingForReviewers' in locals() and newPreprintSearchingForReviewers is not None and newPreprintSearchingForReviewersCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newPreprintSearchingForReviewersCount}}</b>
+	  {{if pciRRactivated:}}new report{{else:}}preprint{{pass}}{{if newPreprintSearchingForReviewersCount > 1:}}s{{pass}}
+	  in need of reviewers
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newPreprintSearchingForReviewers}}
+      </div>
+    {{pass}}
+
+    {{if 'newPreprintRequiringRecommender' in locals() and newPreprintRequiringRecommender is not None and newPreprintRequiringRecommenderCount > 0:}}
+      <div style="
+        background:#ffffff !important;
+        color:#333333 !important;
+        margin: 0 auto;
+        margin-top: 25px;
+        padding: 10px 15px;
+        max-width: 600px;
+        border-radius: 4px;
+        text-align: left;
+      ">
+        <h2 style="margin: 0; margin-top: 10px; color: #555555; font-size: 20px; text-align: left; font-weight: normal;">
+          <b style="color: #ffbf00">{{=newPreprintRequiringRecommenderCount}}</b>
+	  {{if pciRRactivated:}}new report{{else:}}preprint{{pass}}{{if newPreprintRequiringRecommenderCount > 1:}}s{{pass}}
+	  requiring recommender
+        </h2>
+        <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        {{=newPreprintRequiringRecommender}}
+      </div>
+    {{pass}}
+
+    <div style="
+  	  color: #555555;
+      margin: 0 auto;
+      margin-top: 25px;
+  	  max-width: 600px;
+      text-align: left;
+      padding: 0 15px;
+    ">
+      {{if 'footer' in locals() and footer is not None:}}
+        {{=footer}}
+      {{pass}}
+    </div>
+  </body>
+</html>
+
