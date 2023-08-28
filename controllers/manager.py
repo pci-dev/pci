@@ -1539,7 +1539,7 @@ def recommender_statistics():
     myScript = common_tools.get_script("statistics_table.js")
 
     return dict(
-        titleIcon="send",
+        titleIcon="stats",
         pageTitle=getTitle(request, auth, db, "#RecommenderStatisticsTitle"),
         customText=getText(request, auth, db, "#RecommenderStatisticsText"),
         pageHelp=getHelp(request, auth, db, "#RecommenderStatistics"),
