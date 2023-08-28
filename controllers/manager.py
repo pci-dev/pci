@@ -1070,6 +1070,7 @@ def all_recommendations():
         & (db.t_articles.already_published == isPress)
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
         & (db.t_recommendations.id == db.v_reviewers.id)
+        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
     )
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
@@ -1195,7 +1196,8 @@ def all_recommendations():
                       't_articles.funding', 't_articles.already_published', 't_articles.doi_of_published_article', 
                       't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics', 
                       't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
-                      't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version']
+                      't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version',
+                      'v_recommendation_contributors.id']
     integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
