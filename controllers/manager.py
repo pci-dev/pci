@@ -1536,6 +1536,7 @@ def recommender_statistics():
         ],
         _class="web2py_grid  statistics",
     )
+    myScript = common_tools.get_script("statistics_table.js")
 
     return dict(
         titleIcon="send",
@@ -1544,6 +1545,7 @@ def recommender_statistics():
         pageHelp=getHelp(request, auth, db, "#RecommenderStatistics"),
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
+        myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
