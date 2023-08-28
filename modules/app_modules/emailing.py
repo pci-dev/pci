@@ -4,7 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import cast
+from typing import Optional, cast
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -1762,7 +1762,11 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         emailing_tools.getFlashMessage(session, reports)
         return
     
-    sender = cast(User, auth.user)
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"):
+        sender = User.get_by_id(db, recommendation.recommender_id)
+    else:
+        sender = cast(User, auth.user)
     
     mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
     mail_vars["LastName"] = reviewer.last_name
@@ -1835,10 +1839,8 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     mail_vars["replytoAddresses"] = replyto_addresses
 
     sender_name = None
-    if not pciRRactivated:
-        sender = User.get_by_id(db, recommendation.recommender_id)
-        if sender:
-            sender_name = f'{sender.first_name} {sender.last_name}'
+    if not pciRRactivated and sender:
+        sender_name = f'{sender.first_name} {sender.last_name}'
 
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
@@ -2554,7 +2556,11 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     reviewer = User.get_by_id(db, review.reviewer_id)
 
     if review and recomm and article and reviewer:
-        sender = cast(User, auth.user)
+        sender: Optional[User] = None
+        if auth.has_membership(role="manager"):
+            sender = User.get_by_id(db, recomm.id)
+        else:
+            sender = cast(User, auth.user)
 
         mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
@@ -2595,10 +2601,8 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
         sender_name = None
-        if not pciRRactivated:
-            sender = User.get_by_id(db, recomm.recommender_id)
-            if sender:
-                sender_name = f'{sender.first_name} {sender.last_name}'
+        if not pciRRactivated and sender:
+            sender_name = f'{sender.first_name} {sender.last_name}'
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
 
@@ -2611,7 +2615,11 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
     reviewer = User.get_by_id(db, review.reviewer_id)
 
     if review and recomm and article and reviewer:
-        sender = cast(User, auth.user)
+        sender: Optional[User] = None
+        if auth.has_membership(role="manager"):
+            sender = User.get_by_id(db, recomm.recommender_id)
+        else:
+            sender = cast(User, auth.user)
 
         mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
@@ -2666,10 +2674,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
 
         sender_name = None
-        if not pciRRactivated:
-            sender = User.get_by_id(db, recomm.recommender_id)
-            if sender:
-                sender_name = f'{sender.first_name} {sender.last_name}'
+        if not pciRRactivated and sender:
+            sender_name = f'{sender.first_name} {sender.last_name}'
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
 

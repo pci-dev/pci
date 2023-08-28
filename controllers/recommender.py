@@ -5,7 +5,7 @@ import re
 import copy
 import datetime
 from dateutil.relativedelta import *
-from typing import cast
+from typing import cast, Optional
 
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
@@ -1594,7 +1594,12 @@ def email_for_registered_reviewer():
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-    sender = cast(User, auth.user)
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"):
+        sender = User.get_by_id(db, recommendation.recommender_id)
+    else:
+        sender = cast(User, auth.user)
+
     mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
 
     _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
@@ -1760,7 +1765,12 @@ def email_for_new_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    sender = cast(User, auth.user)
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"):
+        sender = User.get_by_id(db, recommendation.recommender_id)
+    else:
+        sender = cast(User, auth.user)
+    
     mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, request.vars["reviewer_last_name"])
 
     # NOTE: 4 parallel submission

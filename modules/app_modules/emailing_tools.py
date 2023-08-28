@@ -6,7 +6,7 @@ import re
 from re import sub, match
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, cast
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -146,6 +146,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
             mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
 
     elif is_co_recommender:
+        sender = cast(User, auth.user)
         mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
         mail_vars["Institution"] = sender.institution
         mail_vars["Department"] = sender.laboratory
