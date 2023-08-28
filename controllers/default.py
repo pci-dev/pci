@@ -134,6 +134,7 @@ def index():
     except: grid = original_grid
 
     tweeterAcc = myconf.get("social.tweeter")
+    mastodonAcc = myconf.get("social.mastodon")
     lastRecommTitle = H3(
         T("Latest recommendations"),
         A(
@@ -142,6 +143,12 @@ def index():
             _class="btn pci-rss-btn",
             _style="float:right;",
         ),
+        A(
+            SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
+            _href="https://spore.social/%(mastodonAcc)s"%locals(),
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+        ) if pciRRactivated else
         A(
             SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
             _href="https://twitter.com/%(tweeterAcc)s"%locals(),
