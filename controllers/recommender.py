@@ -2467,20 +2467,19 @@ def review_emails():
     else:
         db.mail_queue.mail_template_hashtag.readable = False
 
-    links = [
-        dict(
-            header="",
-            body=lambda row: A(
+    link_body = lambda row: A(
                 (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            )
-            if row.sending_status == "pending"
-            else "",
+            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, reviewId, recommendation.id) if row.sending_status == "sent" else "")
+    
+    links = [
+        dict(
+            header="",
+            body = link_body,
         )
     ]
-
 
     reviewer = db.auth_user[review.reviewer_id]
     reviewerEmail = reviewer.email if reviewer else None
@@ -2584,17 +2583,17 @@ def article_reviews_emails():
     else:
         db.mail_queue.mail_template_hashtag.readable = False
 
-    links = [
-        dict(
-            header="",
-            body=lambda row: A(
+    link_body = lambda row: A(
                 (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            )
-            if row.sending_status == "pending"
-            else "",
+            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, articleId=articleId) if row.sending_status == "sent" else "")
+    
+    links = [
+        dict(
+            header="",
+            body = link_body,
         )
     ]
 
@@ -2666,3 +2665,59 @@ def separate_suggestions(suggested_reviewers):
         else: suggested_by_author.append(reviewer)
 
     return suggested_by_author, suggestor_2_suggestions
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def edit_and_resend_email():
+    response.view = "default/myLayout.html"
+    mailId = request.vars["mailId"]
+    articleId = request.vars['articleId']
+    reviewId = request.vars['reviewId']
+    recommId = request.vars['recommId']
+
+    mail = db(db.mail_queue.id == mailId).select()[0]
+
+    default_replyto = emailing_tools.to_string_addresses(mail.replyto_addresses)
+    default_cc = emailing_tools.to_string_addresses(mail.cc_mail_addresses)
+
+    form = SQLFORM.factory(
+        Field("sending_date", label=T("Previous Sending Date"), type="string", length=250, default=mail.sending_date, writable=False),
+        Field("dest_mail_address", label=T("Destination Email"), type="string", length=250, default=mail.dest_mail_address),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto),
+        Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
+        Field("subject", label=T("Subject"), type="string", length=250, default=mail.mail_subject, required=True),
+        Field("content", label=T("Content"), type="text", required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Send e-mail")
+    form.element("textarea[name=content]")["_style"] = "height:500px;"
+
+    html_string = str(mail.mail_content)
+
+    resent = False
+    if form.process().accepted:
+        try:
+            emailing.resend_mail(
+                session,
+                auth, 
+                db, 
+                form,
+                reviewId=reviewId,
+                recommId=recommId,
+                articleId=articleId)
+            resent = True
+        except Exception as e:
+            session.flash = (session.flash or "") + T("E-mail failed.")
+            raise e
+        if reviewId != 'None': redirect(URL(c="recommender", f="review_emails", vars=dict(reviewId=reviewId)))
+        else: redirect(URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=articleId)))
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        titleIcon="envelope",
+        html_string=html_string,
+        resent=resent,
+        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+    )

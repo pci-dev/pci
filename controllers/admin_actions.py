@@ -149,3 +149,14 @@ def toggle_shedule_mail_from_queue():
     email.removed_from_queue = not email.removed_from_queue
     email.update_record()
     redirect(request.env.http_referer)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="manager"))
+def edit_resend_auth():
+    mailId = request.vars['mailId']
+    if mailId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    redirect(URL(c="admin", f="edit_and_resend_email", vars=dict(mailId=mailId)))

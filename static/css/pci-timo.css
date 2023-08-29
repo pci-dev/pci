@@ -14,6 +14,15 @@
         max-width: 95%;
     }
 
+    #hidden-html {
+        display: none;
+    }
+
+    #no_table_content_fake {
+        border: 1px solid #dfd7ca;
+        border-radius: 4px;
+    }
+
     #main-page-search-grid .web2py_table table thead {
         display: none;
     }
@@ -884,6 +893,10 @@
     .navbar {
         width: 100%;
         padding-bottom: 2rem;
+    }
+
+    #no_table_content_fake {
+        height: unset;
     }
 
     .form-control {

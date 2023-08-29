@@ -64,6 +64,7 @@ MAIL_DELAY = 1.5  # in seconds
 
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
+RESEND_MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "resend_mail.html")
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
@@ -2050,13 +2051,17 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
     emailing_tools.getFlashMessage(session, reports)
 
-def mk_mail(subject, message):
+def mk_mail(subject, message, resend=False):
     mail_vars = emailing_tools.getMailCommonVars()
     applogo = URL("static", "images/small-background.png",
                     scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
+    
+    if not resend: mail_template = MAIL_HTML_LAYOUT
+    else: mail_template = RESEND_MAIL_HTML_LAYOUT
+
     return render(
-        filename=MAIL_HTML_LAYOUT,
+        filename=mail_template,
         context=dict(
             applogo=applogo,
             appname=mail_vars["appName"],
@@ -2064,6 +2069,49 @@ def mk_mail(subject, message):
             content=XML(message),
         )
     )
+######################################################################################################################################################################
+def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None):
+    clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
+    cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
+
+    clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.vars.replyto)
+    replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
+
+    mail_content = mk_mail(form.vars.subject, form.vars.content, resend=True)
+
+    if recommId != 'None' and reviewId != 'None':
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+            review_id = reviewId,
+            recommendation_id = recommId,
+        )
+    elif articleId != 'None':
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+            article_id = articleId,
+        )
+    else:
+        db.mail_queue.insert(
+            user_id = auth.user_id,
+            dest_mail_address = form.vars.dest_mail_address,
+            replyto_addresses = replyto_addresses,
+            cc_mail_addresses = cc_addresses,
+            mail_subject = form.vars.subject,
+            mail_content = mail_content,
+        )             
+
+    reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
+    emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################

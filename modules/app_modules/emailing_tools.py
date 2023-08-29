@@ -4,7 +4,7 @@ import os
 import time
 import re
 from re import sub, match
-
+from lxml import html
 from datetime import datetime, timedelta
 from typing import Optional, cast
 
@@ -54,6 +54,8 @@ MAIL_DELAY = 1.5  # in seconds
 
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
+
+CLEANR = re.compile('<.*?>')
 
 ######################################################################################################################################################################
 # Mailing tools
@@ -184,6 +186,11 @@ def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
     return hashtag
 
 #######################################################################################################################################################################
+def to_string_addresses(address_list):
+    return str(address_list).replace('[','').replace(']','').replace("'",'').replace('"','')
+
+
+#######################################################################################################################################################################
 def list_addresses(addresses):
     return [x.strip(' ') for x in list(re.split("[,; ]", addresses))] \
                 if addresses else []
@@ -193,6 +200,8 @@ def clean_addresses(dirty_string_adresses):
     '''
     creates a string of clean mail addresses, divided by comma
     '''
+    if dirty_string_adresses == None: return '', ''
+    
     list_of_contacts = [contact.strip() for contact in list(re.split("[,;]", dirty_string_adresses))]
     contacts = []
     errors = []
@@ -207,7 +216,7 @@ def clean_addresses(dirty_string_adresses):
         if error is None: contacts.append(contact)
         else: errors.append(contact)
 
-    return ', '.join(contacts), ', '.join(errors)
+    return ','.join(contacts), ', '.join(errors)
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
