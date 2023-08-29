@@ -391,7 +391,7 @@ def change_email():
 
 ######################################################################################################################################################################
 
-def invitation_to_review_preprint():
+def invitation_to_review():
     if not 'reviewId' in request.vars:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -442,7 +442,7 @@ def invitation_to_review_preprint():
         return
 
     url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
-    action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+    action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
 
     if user.ethical_code_approved and review.no_conflict_of_interest:
             redirect(action_form_url)
@@ -465,7 +465,7 @@ def invitation_to_review_preprint():
                 pciRRactivated=pciRRactivated)
     
 
-def invitation_to_review_preprint_acceptation():
+def invitation_to_review_acceptation():
     article_id = get_article_id(request)
     review_id = get_review_id(request)
     if article_id and review_id:

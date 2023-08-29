@@ -1644,7 +1644,7 @@ def email_for_registered_reviewer():
 
         linkTarget = URL(
                 c="default",
-                f="invitation_to_review_preprint",
+                f="invitation_to_review",
                 vars=dict(reviewId=review.id),
                 scheme=scheme,
                 host=host,
@@ -1830,7 +1830,7 @@ def email_for_new_reviewer():
                     reset_password_key = None
                     linkTarget = URL(
                         c="default",
-                        f="invitation_to_review_preprint",
+                        f="invitation_to_review",
                         vars=dict(reviewId=reviewId),
                         scheme=scheme,
                         host=host,
