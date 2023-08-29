@@ -1069,6 +1069,8 @@ def all_recommendations():
           (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == isPress)
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+        & (db.t_recommendations.id == db.v_reviewers.id)
+        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
     )
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
@@ -1164,9 +1166,9 @@ def all_recommendations():
     db.t_articles.scheduled_submission_date.readable = False
     db.t_articles.scheduled_submission_date.writable = False
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid(
         query,
-        searchable=False,
+        searchable=True,
         create=False,
         deletable=False,
         editable=False,
@@ -1181,6 +1183,26 @@ def all_recommendations():
         _class="web2py_grid action-button-absolute",
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['t_recommendations.article_id', 'v_reviewers.id',
+                      't_recommendations.ms_version', 't_recommendations.recommender_id', 't_recommendations.recommendation_title',
+                      't_recommendations.recommendation_comments', 't_recommendations.recommendation_doi', 't_recommendations.recommendation_doi',
+                      't_recommendations.recommendation_timestamp', 't_recommendations.validation_timestamp', 't_recommendations.last_change',
+                      't_recommendations.no_conflict_of_interest', 't_recommendations.reply', 'v_article_recommender.recommendation_id',
+                      't_articles.anonymous_submission', 't_articles.has_manager_in_authors', 't_articles.article_year',
+                      't_articles.article_source', 't_articles.doi', 't_articles.preprint_server',
+                      't_articles.ms_version', 't_articles.picture_rights_ok', 't_articles.upload_timestamp', 
+                      't_articles.validation_timestamp', 't_articles.last_status_change', 't_articles.request_submission_change',
+                      't_articles.funding', 't_articles.already_published', 't_articles.doi_of_published_article', 
+                      't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics', 
+                      't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
+                      't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version',
+                      'v_recommendation_contributors.id']
+    integer_fields = ['t_articles.id', 't_articles.user_id']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
+    
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
