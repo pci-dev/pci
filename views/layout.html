@@ -289,7 +289,7 @@
         
         $.ajax({
           type: 'GET',
-          url: '{{=URL("default", "show_account_menu_dialog")}}',
+          url: '{{=URL("default", "show_account_menu_dialog")}}' + '?_next=' + window.location.href,
           success: function(response) {
             const dialogHtml = response;
             if (dialogHtml == null) {

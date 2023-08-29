@@ -6,7 +6,7 @@ import time
 from typing import Any, Optional, cast
 
 from app_components import article_components
-from app_modules.common_tools import get_article_id, get_reset_password_key, get_review_id
+from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
 from app_modules.common_small_html import complete_profile_dialog
 from controller_modules import adjust_grid
@@ -316,7 +316,8 @@ def show_account_menu_dialog():
         return
 
     session.show_account_menu_dialog = True
-    dialog = complete_profile_dialog()
+    next = get_next(request)
+    dialog = complete_profile_dialog(next)
     return dialog
 
 ######################################################################################################################################################################
