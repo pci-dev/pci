@@ -1071,9 +1071,9 @@ def custom_mail_dialog(article_id: int, subject: str, message: str, submit_url: 
 
 ###################################################################################
 
-def complete_profile_dialog():
+def complete_profile_dialog(next: str):
     return DIV( 
     DIV(TAG('Some information from your profile is missing. Do you want to complete your profile now?'), _class="modal-body"), 
-    DIV(A(current.T("Complete my profile"), _href=URL("default", "user/profile", user_signature=True), _class="btn btn-info", _id="complete-profile-confirm-dialog"),
+    DIV(A(current.T("Complete my profile"), _href=URL("default", "user/profile", user_signature=True, vars=dict(_next=next)), _class="btn btn-info", _id="complete-profile-confirm-dialog"),
         SPAN(current.T("Later"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="complete-profile-cancel-dialog"),
     _class="modal-footer"), _id="complete-profile-modal", _class="modal fade", _role="dialog")
