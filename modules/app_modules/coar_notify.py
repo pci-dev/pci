@@ -219,7 +219,8 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:ReviewAction"],
             "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
-            "actor": {} if review.anonymously else self._user_as_jsonld(reviewer),
+            "actor": {} if review.anonymously else \
+                    self._user_as_jsonld(reviewer, review.reviewer_details),
         }
         self.send_notification(notification, article)
 
@@ -238,7 +239,7 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:EndorsementAction"],
             "context": self._article_as_jsonld(article),
             "object": self._recommendation_as_jsonld(recommendation),
-            "actor": self._user_as_jsonld(recommender),
+            "actor": self._user_as_jsonld(recommender, recommendation.recommender_details),
         }
         self.send_notification(notification, article)
 
