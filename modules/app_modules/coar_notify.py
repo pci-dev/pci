@@ -194,11 +194,13 @@ class COARNotifier:
             "type": "sorg:AboutPage",
         }
 
-    def _user_as_jsonld(self, user):
+    def _user_as_jsonld(self, user, user_email=None):
         return {
-            "id": f"{self.base_url}public/user_public_page?userId={user.id}",
+            "id": f"{self.base_url}public/user_public_page?userId={user.id}" \
+                    if user else user_email,
             "type": ["Person"],
-            "name": f"{user.first_name} {user.last_name}",
+            "name": f"{user.first_name} {user.last_name}" \
+                    if user else user_email,
         }
 
     def review_completed(self, review):
@@ -217,7 +219,8 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:ReviewAction"],
             "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
-            "actor": {} if review.anonymously else self._user_as_jsonld(reviewer),
+            "actor": {} if review.anonymously else \
+                    self._user_as_jsonld(reviewer, review.reviewer_details),
         }
         self.send_notification(notification, article)
 
@@ -236,7 +239,7 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:EndorsementAction"],
             "context": self._article_as_jsonld(article),
             "object": self._recommendation_as_jsonld(recommendation),
-            "actor": self._user_as_jsonld(recommender),
+            "actor": self._user_as_jsonld(recommender, recommendation.recommender_details),
         }
         self.send_notification(notification, article)
 
