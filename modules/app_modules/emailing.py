@@ -1795,7 +1795,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                 port=mail_vars["port"],
             )
 
-        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(True, link, declineLinkTarget)
+        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(True, link, declineLinkTarget, review.review_duration)
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
@@ -1804,7 +1804,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
             if declineLinkTarget:
-                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(False, linkTarget, declineLinkTarget)
+                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(False, linkTarget, declineLinkTarget, review.review_duration)
 
         elif review.review_state == "Awaiting review":
             reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
@@ -1866,7 +1866,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     emailing_tools.getFlashMessage(session, reports)
 
 
-def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, declineLinkTarget: str):
+def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, declineLinkTarget: str, review_duration: str):
     button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block;"
 
     if has_reset_password:
@@ -1875,10 +1875,22 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                 DIV(
                     A(
                         SPAN(
-                            current.T("ACCEPT"),
+                            current.T(f"ACCEPT TO REVIEW WITHIN {review_duration.upper()}"),
                             _style=button_style + "background: #93c54b",
                         ),
                         _href=link,
+                        _style="text-decoration: none; display: block",
+                    ),
+                    _style="width: 100%; text-align: center;",
+                ),
+                P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
+                DIV(
+                    A(
+                        SPAN(
+                            current.T("ACCEPT BUT WITH ANTOHER DELAY"),
+                            _style=button_style + "background: #93c54b",
+                        ),
+                        _href=link + "&more_delay=true",
                         _style="text-decoration: none; display: block",
                     ),
                     _style="width: 100%; text-align: center;",
@@ -1902,10 +1914,19 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                     DIV(
                         A(
                             SPAN(
-                                current.T("Yes, I would like to review this preprint"),
+                                current.T(f"Yes, I would like to review this preprint within {review_duration.lower()}"),
                                 _style=button_style + "background: #93c54b",
                             ),
                             _href=link,
+                            _style="text-decoration: none; display: block",
+                        ),
+                        B(current.T("OR")),
+                        A(
+                            SPAN(
+                                current.T("Yes, I would like to review this preprint but with another delay"),
+                                _style=button_style + "background: #93c54b",
+                            ),
+                            _href=link + "&more_delay=true",
                             _style="text-decoration: none; display: block",
                         ),
                         B(current.T("OR")),
