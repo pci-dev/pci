@@ -74,13 +74,14 @@ class Review(Row):
 
 
     @staticmethod
-    def accept_review(review: Review, anonymous_agreement: _[bool] = False):
-        review.review_state = ReviewState.AWAITING_REVIEW.value
+    def accept_review(review: Review, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
+        review.review_state = state.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
         return review.update_record()
     
+
     @staticmethod
     def set_suggested_reviewers_send(review: Review):
         review.suggested_reviewers_send = True
