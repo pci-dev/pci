@@ -48,3 +48,8 @@
 {{if 'absoluteButtonScript' in locals():}}
 	{{=absoluteButtonScript}}
 {{pass}}
+
+
+{{if 'grid' in locals():}}
+<script src="{{=URL('static', 'js/pci/remove_head_sort.js')}}"></script>
+{{pass}}

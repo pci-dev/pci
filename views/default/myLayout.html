@@ -110,6 +110,10 @@
 <script src="{{=URL('static', 'js/hidden_html.js')}}"></script>
 {{pass}}
 
+{{if 'grid' in locals():}}
+<script src="{{=URL('static', 'js/pci/remove_head_sort.js')}}"></script>
+{{pass}}
+
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>

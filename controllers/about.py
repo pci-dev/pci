@@ -274,11 +274,11 @@ def recommenders():
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-    users.first_name.label = 'Name'
-    users.first_name.represent = lambda txt, row: mkName(row)
+    users.last_name.label = 'Name'
+    users.last_name.represent = lambda txt, row: mkName(row)
 
-    users.institution.label = 'Affiliation'
-    users.institution.represent = lambda txt, row: mkAffiliation(row)
+    users.laboratory.label = 'Affiliation'
+    users.laboratory.represent = lambda txt, row: mkAffiliation(row)
 
     def mkName(row):
         user = users[row.auth_user.id]
@@ -312,8 +312,8 @@ def recommenders():
                     exportclasses=expClass,
                     fields=[
                         users.id,
-                        users.first_name,
-                        users.institution,
+                        users.last_name,
+                        users.laboratory,
                     ],
                     links=None,
                     orderby=users.last_name,

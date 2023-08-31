@@ -202,7 +202,7 @@ def search_reviewers():
         if not f in full_text_search_fields:
             users[f].readable = False
 
-    users.id.label = "Who?"
+    users.id.label = "Name"
     users.id.readable = True
     users.id.represent = lambda uid, row: DIV(
             common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
