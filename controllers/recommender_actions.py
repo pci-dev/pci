@@ -5,6 +5,8 @@ from app_modules import emailing
 from app_components import app_forms
 from app_components.ongoing_recommendation import is_scheduled_submission
 
+from models.review import Review, ReviewState
+
 
 
 ######################################################################################################################################################################
@@ -663,3 +665,66 @@ def edit_resend_auth():
         redirect(request.env.http_referer)
 
     redirect(URL(c="recommender", f="edit_and_resend_email", vars=dict(mailId=mailId, reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController)))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def accept_new_delay_to_reviewing():
+    review_id = request.vars["reviewId"]
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+
+    if review.acceptation_timestamp and review.review_state == ReviewState.AWAITING_RESPONSE.value:
+        Review.set_review_status(review, ReviewState.AWAITING_REVIEW)
+        emailing.send_decision_new_delay_review_mail(session, auth, db, True, review)
+        return _new_delay_to_reviewing_redirection(True)
+    else:
+        session.flash = T("Unable to validate")
+        redirect(URL('default','index'))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def decline_new_delay_to_reviewing():
+    review_id = request.vars["reviewId"]
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+
+    if review.acceptation_timestamp and review.review_state == ReviewState.AWAITING_RESPONSE.value:
+        Review.set_review_status(review, ReviewState.DECLINED_BY_RECOMMENDER)
+        emailing.send_decision_new_delay_review_mail(session, auth, db, False, review)
+        return _new_delay_to_reviewing_redirection(False)
+    else:
+        session.flash = T("Unable to decline")
+        redirect(URL('default','index'))
+
+######################################################################################################################################################################
+
+def _new_delay_to_reviewing_redirection(accept: bool):
+    response.view = "default/myLayout.html"
+
+    message = ""
+    if accept:
+        message = T("The review has been accepted. Email was send to user to alert he about the decision.")
+    else:
+        message = T("The review has been declined. Email was send to user to alert he about the decision.")
+
+    return dict(
+        form=CENTER(
+            P(message),
+        )
+    )
