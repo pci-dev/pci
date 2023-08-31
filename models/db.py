@@ -19,6 +19,8 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.reminders import getDefaultReviewDuration
 
+from models.review import ReviewDuration
+
 from controller_modules import recommender_module
 
 
@@ -1075,7 +1077,7 @@ db.define_table(
     migrate=False,
 )
 
-db.review_duration_choices = ("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks")
+db.review_duration_choices = (ReviewDuration.TWO_WEEK.value, ReviewDuration.THREE_WEEK.value, ReviewDuration.FOUR_WEEK.value, ReviewDuration.FIVE_WEEK.value, ReviewDuration.SIX_WEEK.value, ReviewDuration.SEVEN_WEEK.value, ReviewDuration.EIGHT_WEEK.value)
 db.review_duration_scheduled_track = "Five working days"
 db.review_duration_requires = IS_IN_SET(db.review_duration_choices
         + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
