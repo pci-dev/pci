@@ -86,3 +86,15 @@ class Review(Row):
     def set_suggested_reviewers_send(review: Review):
         review.suggested_reviewers_send = True
         return review.update_record()
+    
+    
+    @staticmethod
+    def set_review_duration(review: Review, review_duration: str):
+        review.review_duration = review_duration
+        return review.update_record()
+    
+
+    @staticmethod
+    def set_review_status(review: Review, state: ReviewState):
+        review.review_state = state.value
+        return review.update_record()
