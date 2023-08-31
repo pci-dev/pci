@@ -7,6 +7,8 @@ from app_components.ongoing_recommendation import is_scheduled_submission
 
 from models.review import Review, ReviewState
 
+from models.review import Review, ReviewState
+
 
 
 ######################################################################################################################################################################
