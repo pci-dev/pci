@@ -8,8 +8,9 @@ from typing import Any, Optional, cast
 from app_components import article_components
 from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
-from app_modules.common_small_html import complete_profile_dialog
+from app_modules.common_small_html import complete_profile_dialog, invitation_to_review_form
 from controller_modules import adjust_grid
+from app_modules.emailing import send_conditional_acceptation_review_mail
 from gluon import DAL
 # -------------------------------------------------------------------------
 # app configuration made easy. Look inside private/appconfig.ini
@@ -18,11 +19,12 @@ from gluon import DAL
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Request
 from gluon.http import HTTP, redirect
+from gluon.sqlhtml import SQLFORM
 from gluon.utils import web2py_uuid
 
 from models.article import Article
 from models.recommendation import Recommendation
-from models.review import Review
+from models.review import Review, ReviewState
 from models.user import User
 
 # -------------------------------------------------------------------------
@@ -396,6 +398,8 @@ def change_email():
 ######################################################################################################################################################################
 
 def invitation_to_review():
+    more_delay = cast(bool, request.vars['more_delay'] == 'true')
+    
     if not 'reviewId' in request.vars:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -428,8 +432,6 @@ def invitation_to_review():
 
     reset_password_key = get_reset_password_key(request)
     user: Optional[User] = None
-    action_form_url: Optional[str] = None
-    url_vars: dict[Any, Any] = dict()
 
     if reset_password_key and not auth.user_id:
         user = User.get_by_reset_password_key(db, reset_password_key)
@@ -444,45 +446,67 @@ def invitation_to_review():
         session.flash = current.T('Bad user')
         redirect(cast(str, URL('default','index')))
         return
-
-    url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
-    action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
-
-    if user.ethical_code_approved and review.no_conflict_of_interest:
-            redirect(action_form_url)
-
-    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
-    dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
+    
+    if review.review_state == ReviewState.DECLINED.value:
+        redirect(URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key)))
+        return
+    
     recommHeaderHtml = cast(XML, article_components.getArticleInfosCard(auth, db, response, article, printable=False))
     response.view = "default/invitation_to_review_preprint.html"
+
+    form = invitation_to_review_form(request, auth, db, article, user, review, more_delay)
+
+    if form.process().accepted:
+        if request.vars.no_conflict_of_interest == 'yes' and request.vars.anonymous_agreement == 'yes' and request.vars.ethics_approved == 'true' and (request.vars.cgu_checkbox == 'yes' or user.ethical_code_approved):
+            url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
+            
+            if more_delay and request.vars.review_duration and review.review_duration != request.vars.review_duration:
+                Review.set_review_duration(review, request.vars.review_duration)
+                url_vars['more_delay'] = 'true'
+            
+            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            redirect(action_form_url)
+
+    if review.acceptation_timestamp:
+        url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
+        
+        if review.review_state == ReviewState.AWAITING_REVIEW.value:
+            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            redirect(action_form_url)
+        elif review.review_state == ReviewState.AWAITING_RESPONSE.value or more_delay:
+            url_vars['more_delay'] = 'true'
+            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            redirect(action_form_url)
+        elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+            redirect(URL(c="user_actions", f="accept_review_confirmed", vars=dict(reviewId=review.id)))
     
     return dict(recommHeaderHtml=recommHeaderHtml,
                 isRecommender=False,
                 isSubmitter=False,
-                actionFormUrl=action_form_url,
-                disclaimerText=disclaimerText,
-                dueTime=dueTime,
                 isAlreadyReviewer=False,
                 review=review,
                 user=user,
                 recommender=recommender,
-                pciRRactivated=pciRRactivated)
-
-
-def invitation_to_review_preprint(): # legacy
-    return invitation_to_review()
-
+                pciRRactivated=pciRRactivated,
+                form=form)
+    
 
 def invitation_to_review_acceptation():
     article_id = get_article_id(request)
     review_id = get_review_id(request)
+    more_delay = cast(bool, request.vars['more_delay'] == 'true')
+
     if article_id and review_id:
         url_vars = dict(reviewId=review_id, _next=URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
         review = Review.get_by_id(db, review_id)
         if review and not review.acceptation_timestamp:
-            Review.accept_review(review, anonymous_agreement=True)
+            if more_delay:
+                Review.accept_review(review, True, ReviewState.AWAITING_RESPONSE)
+                send_conditional_acceptation_review_mail(session, auth, db, review)
+            else:
+                Review.accept_review(review, True)
 
     reset_password_key = get_reset_password_key(request)
     user: Optional[User] = None
@@ -508,7 +532,6 @@ def invitation_to_review_acceptation():
     form.element(_id="no_table_new_password__label").components[0] = T('Define password')
 
     response.view = "default/myLayoutBot.html"
-
 
     return dict(titleIcon=titleIcon,
                 pageTitle=pageTitle,

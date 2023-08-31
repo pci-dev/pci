@@ -25,54 +25,7 @@
     {{pass}}
     <div class="pci2-full-width pci2-flex-center" style="margin: 40px 0">
       <div class="pci-embeddedEthic" style="padding-top: 10px">
-        <form action="{{=actionFormUrl}}" enctype="multipart/form-data" method="POST">
-          <!-- hidden values -->
-          <input value="{{=articleId}}" type="hidden" name="articleId" />
-          <input value="true" type="hidden" name="ethics_approved" />
-
-          <div class="checkbox">
-            <label>
-              <input type="checkbox"  name="no_conflict_of_interest" id="no_conflict_of_interest" value="yes"> 
-              <b>{{=T("I declare that I have no conflict of interest with the authors or the content of the article")}}</b>
-            </label>
-          </div>
-        
-          <span>
-            {{=disclaimerText}}
-          </span>      
-
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" name="due_time" id="due_time" value="yes"> 
-              <b>{{=T('I agree to post my review within %s') % dueTime}}</b>
-            </label>
-          </div>
-
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" name="anonymous_agreement" id="anonymous_agreement" value="yes"> 
-              <b>{{=T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')}}</b>
-            </label>
-          </div>
-          
-          {{if not user.ethical_code_approved:}}
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" name="cgu-checkbox" id="cgu-checkbox" value="yes">
-              <b>{{=T("I agree to comply with the ")}} <a target="_blank", href="{{=URL('about', 'gtu')}}">{{=T("General Terms of Use")}}</a> and the <a target="_blank" href="{{=URL('about', 'ethics')}}">{{=T("code of conduct")}}</a>
-            </label>
-          </div>
-          {{pass}}
-        
-          <div class="pci2-flex-center">
-            <input type="submit" class="btn btn-success pci-panelButton" value="{{=T('Yes, I would like to review this preprint')}}">          
-
-            <a class="buttontext btn btn-warning" 
-            href="{{=URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key))}}">
-            {{=T('No thanks, I\'d rather not')}}
-          </a>
-          </div>
-        </form>
+        {{=form}}
       </div>
     </div>
     {{else:}}
@@ -101,7 +54,7 @@
       jQuery("#no_conflict_of_interest").prop("checked") &&
       jQuery("#due_time").prop("checked") &&
      (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
-      (jQuery("#cgu-checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True')
+      (jQuery("#cgu_checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True')
     ) {
       jQuery(":submit").prop("disabled", false);
     } else {
@@ -124,7 +77,7 @@
       checkAllTrue()
     });
 
-    jQuery("#cgu-checkbox").change(function() {
+    jQuery("#cgu_checkbox").change(function() {
       checkAllTrue()
     });
   });
