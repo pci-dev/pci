@@ -12,7 +12,7 @@ from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
 from gluon.http import redirect
-from models.review import Review
+from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
 
@@ -258,10 +258,31 @@ def accept_review_confirmed(): # no auth required
         redirect(next)
 
     message = T("Thank you for accepting to review this article!")
-    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
 
-    return _accept_review_page(message, form)
+    if review.review_state == ReviewState.AWAITING_REVIEW.value:
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _accept_review_page(message, form)
+    elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+        return _declined_by_recommender_page()
+    elif review.acceptation_timestamp:
+        return _awaiting_recommender_response_page(message)
 
+def _declined_by_recommender_page():
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(T("Following your request for a delay, the recommender decline your reviewing of the article."))
+        )
+    )
+
+def _awaiting_recommender_response_page(message: str):
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(message),
+            P(T("Your request for a delay must be accepted by recommender before reviewing this article. An email will be send to you after recommender's decision."))
+        )
+    )
 
 def _accept_review_page(message, form):
     '''
