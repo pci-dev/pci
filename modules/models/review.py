@@ -5,6 +5,16 @@ from typing import Iterable, List, Optional as _, cast
 from pydal.objects import Row, Rows
 from pydal import DAL
 
+class ReviewDuration(Enum):
+    TWO_WEEK = 'Two weeks'
+    THREE_WEEK = 'Three weeks'
+    FOUR_WEEK = 'Four weeks'
+    FIVE_WEEK = 'Five weeks'
+    SIX_WEEK = 'Six weeks'
+    SEVEN_WEEK = 'Seven weeks'
+    EIGHT_WEEK = 'Eight weeks'
+
+
 class ReviewState(Enum):
     CANCELLED = 'Cancelled'
     ASK_FOR_REVIEW = 'Ask for review'
@@ -33,7 +43,7 @@ class Review(Row):
     emailing: _[str]
     quick_decline_key: _[str]
     reviewer_details: _[str]
-    review_duration: _[datetime]
+    review_duration: _[str]
     anonymous_agreement: _[bool]
     suggested_reviewers_send: _[bool]
 
