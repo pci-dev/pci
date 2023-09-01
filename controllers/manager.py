@@ -39,6 +39,8 @@ from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 
+from models.suggested_recommender import SuggestedRecommender
+
 from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
@@ -662,12 +664,7 @@ def search_recommenders():
         art = db.t_articles[articleId]
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
 
-    excludeList = common_tools.get_exclude_list(request)
-    if excludeList is None: return "invalid parameter: exclude"
-
-    for rec in db(
-            db.t_excluded_recommenders.article_id == articleId).select():
-        excludeList.append(rec.excluded_recommender_id)
+    excludeList = common_tools.get_exclude_suggested_recommender(auth, db, articleId)
 
     users = db.auth_user
     full_text_search_fields = [
