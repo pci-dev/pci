@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from re import match
-from typing import Optional, cast
+from typing import List, Optional, cast
 from zipfile import ZipFile
 import io
 from gluon import current
 from gluon.globals import Request
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
+from gluon.tools import Auth
 from gluon.validators import IS_LIST_OF
+from models.article import Article
+from models.suggested_recommender import SuggestedRecommender
+from pydal import DAL
 
 from gluon.contrib.appconfig import AppConfig
 
@@ -102,6 +106,29 @@ def get_exclude_list(request):
         return list(map(int, excludeList))
     except:
         return None
+    
+
+def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        return []
+    
+    suggested_recommenders_id: List[int] = []
+
+    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(db, article_id)
+
+    if suggested_recommenders and len(suggested_recommenders) > 0:
+        for suggested_recommender in suggested_recommenders:
+            suggested_recommenders_id.append(suggested_recommender.suggested_recommender_id)
+    
+    current_user_id = cast(int, auth.user_id)
+    suggested_recommenders_id.append(current_user_id)
+
+    submitter_id = article.user_id
+    if submitter_id:
+        suggested_recommenders_id.append(submitter_id)
+
+    return suggested_recommenders_id
 
 
 ###################################################################
