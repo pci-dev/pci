@@ -1888,7 +1888,7 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                     A(
                         SPAN(
                             current.T("ACCEPT BUT WITH ANTOHER DELAY"),
-                            _style=button_style + "background: #93c54b",
+                            _style=button_style + "background: #29abe0",
                         ),
                         _href=link + "&more_delay=true",
                         _style="text-decoration: none; display: block",
@@ -1924,7 +1924,7 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                         A(
                             SPAN(
                                 current.T("Yes, I would like to review this preprint but with another delay"),
-                                _style=button_style + "background: #93c54b",
+                                _style=button_style + "background: #29abe0",
                             ),
                             _href=link + "&more_delay=true",
                             _style="text-decoration: none; display: block",
