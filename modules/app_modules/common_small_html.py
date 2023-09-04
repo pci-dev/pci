@@ -1131,22 +1131,25 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
             _class="checkbox"
         ),
         SPAN(disclaimerText),
-        DIV(
+        _id="invitation-to-review-form", _enctype="multipart/form-data", _method="POST"
+    )
+
+    if not more_delay:
+        form.append(DIV(
             LABEL(
                 INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes"),
                 B(TAG(current.T('I agree to post my review within %s (or I agree to review the preprint, but I need more time. I will contact the recommender soon to ask if it is possible)') % dueTime))
             ),
-            _class="checkbox"
+            _class="checkbox")
+        )
+    
+    form.append(DIV(
+        LABEL(
+            INPUT(_type="checkbox", _name="anonymous_agreement", _id="anonymous_agreement", _value="yes"),
+            B(TAG(current.T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')))
         ),
-        DIV(
-            LABEL(
-                INPUT(_type="checkbox", _name="anonymous_agreement", _id="anonymous_agreement", _value="yes"),
-                B(TAG(current.T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')))
-            ),
-            _class="checkbox"
-        ),
-        _id="invitation-to-review-form", _enctype="multipart/form-data", _method="POST"
-    )
+        _class="checkbox"
+    ))
 
     if not user.ethical_code_approved:
         form.append(
@@ -1165,6 +1168,16 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
         )
 
     if more_delay:
+        form.append(
+            DIV(
+                LABEL(
+                    INPUT(_type="checkbox", _name="new_delay_agreement", _id="new_delay_agreement", _value="yes"),
+                    B(TAG(current.T('I agree to post my review within the following duration.')))
+                ),
+            _class="checkbox"
+            )
+        )
+
         delay_form = SQLFORM.factory(
             Field("review_duration", type="text", label=current.T("Choose the duration before post my review"), default=dueTime.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
             buttons=[]

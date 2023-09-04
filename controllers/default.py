@@ -488,7 +488,8 @@ def invitation_to_review():
                 user=user,
                 recommender=recommender,
                 pciRRactivated=pciRRactivated,
-                form=form)
+                form=form,
+                more_delay=more_delay)
     
 
 def invitation_to_review_acceptation():

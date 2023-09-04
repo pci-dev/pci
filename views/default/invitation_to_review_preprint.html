@@ -49,12 +49,14 @@
 
 <!-- disable submit button if checkboxes are not checked -->
 <script>
+
   function checkAllTrue(){
     if (
       jQuery("#no_conflict_of_interest").prop("checked") &&
-      jQuery("#due_time").prop("checked") &&
-     (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
-      (jQuery("#cgu_checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True')
+      (jQuery("#due_time").prop("checked") || '{{=more_delay}}' === 'True') &&
+      (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
+      (jQuery("#cgu_checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True') &&
+      (jQuery("#new_delay_agreement").prop("checked") || '{{=more_delay}}' === 'False')
     ) {
       jQuery(":submit").prop("disabled", false);
     } else {
@@ -78,6 +80,10 @@
     });
 
     jQuery("#cgu_checkbox").change(function() {
+      checkAllTrue()
+    });
+
+    jQuery("#new_delay_agreement").change(function() {
       checkAllTrue()
     });
   });
