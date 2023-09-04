@@ -491,6 +491,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             hideOngoingReview = True
             reviewVars = dict(
                 id=review.id,
+                review_duration=review.review_duration,
                 showInvitationButtons=False,
                 showReviewRequest=False,
                 showPendingAskForReview=False,

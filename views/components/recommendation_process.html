@@ -235,17 +235,28 @@
           <i class="glyphicon glyphicon-envelope" style="margin-right: 10px;"></i>
           {{= T('Review invitation')}}
         </h3>
-        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
-          <a class="buttontext btn btn-success" 
+        <div class="pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <div>
+            <a class="buttontext btn btn-success" 
             href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('Yes, I would like to review this preprint')}}
+            {{=T('Yes, I would like to review this preprint') + ' within ' + review['review_duration'].lower()}}
           </a>
-          <a class="buttontext btn btn-warning" 
+        </div>
+          <div>
+            <a class="buttontext btn btn-info" 
+              href="{{=URL(c='default', f='invitation_to_review_preprint',  vars=dict(reviewId=review['id'], more_delay='true'))}}"
+            >
+              {{=T('Yes, I would like to review this preprint but with another delay')}}
+            </a>
+          </div>
+          <div>
+            <a class="buttontext btn btn-warning""
             href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"
           >
             {{=T('No thanks, I\'d rather not')}}
           </a>
+          </div>
         </div>
       {{pass}}
 
