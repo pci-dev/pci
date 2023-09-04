@@ -18,13 +18,14 @@ def every(days, start, end): return [days*x for x in range(start, end+1)]
 
 def avoid_weekend(nb_day: int):
     current_day =  datetime.datetime.now().weekday()
-    if current_day == 3 and current_day + nb_day == 5:
+
+    if current_day == 3 and (current_day + nb_day) % 7 == 5:
         return nb_day + 2
-    elif current_day == 4 and current_day + nb_day == 6:
+    elif current_day == 4 and (current_day + nb_day) % 7 == 6:
         return nb_day + 2
-    elif current_day == 5 and current_day + nb_day == 0:
+    elif current_day == 5 and (current_day + nb_day) % 7 == 0:
         return nb_day + 2
-    elif current_day == 6 and current_day + nb_day == 1:
+    elif current_day == 6 and (current_day + nb_day) % 7 == 1:
         return nb_day + 1
     else:
         return nb_day
