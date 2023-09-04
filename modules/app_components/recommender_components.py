@@ -1,69 +1,74 @@
 # -*- coding: utf-8 -*-
-from gluon import current, IS_IN_DB
+from typing import Any, Dict, List, cast
+from gluon import current
+from gluon.globals import Request, Response
 from gluon.tools import Auth
 from gluon.html import *
-from gluon.template import render
-from gluon.tools import Mail
 from gluon.sqlhtml import *
 from gluon.contrib.appconfig import AppConfig
+from models.article import Article, ArticleStatus
+from models.recommendation import Recommendation
+from pydal import DAL
 
 from app_modules import common_small_html
+from models.review import Review, ReviewState
 
 myconf = AppConfig(reload=True)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def getReviewsSubTable(auth, db, response, request, recomm):
-    art = db.t_articles[recomm.article_id]
-    recomm_round = db((db.t_recommendations.article_id == recomm.article_id) & (db.t_recommendations.id <= recomm.id)).count()
-    reviews = db(db.t_reviews.recommendation_id == recomm.id).select(
-        db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.acceptation_timestamp, db.t_reviews.last_change, db.t_reviews._id, db.t_reviews.reviewer_details, orderby=~db.t_reviews.last_change
-    )
-    nbUnfinishedReviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting response", "Awaiting review"))).count()
-    isRecommenderAlsoReviewer = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).count()
+def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request, recommendation: Recommendation):
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        return None
+
+    recommendation_round = Recommendation.get_current_round_number(db, recommendation)
+    reviews = Review.get_by_recommendation_id(db, recommendation.id, order_by=~db.t_reviews.last_change)
+    nb_unfinished_reviews = Review.get_unfinished_reviews(db, recommendation)
+    is_recommender_also_reviewer = Review.is_reviewer_also_recommender(db, recommendation)
 
     allowed_to_see_reviews = True
-    if (nbUnfinishedReviews > 0) and (isRecommenderAlsoReviewer == 1):
+    if (nb_unfinished_reviews > 0) and is_recommender_also_reviewer:
         allowed_to_see_reviews = False
 
-    nbCompleted = 0
-    nbOnGoing = 0
+    nb_completed = 0
+    nb_on_going = 0
 
-    reviewList = []
+    review_list: List[Dict[str, Any]] = []
     for review in reviews:
-            reviewVars = dict(
+            review_vars: Dict[str, Any] = dict(
                 reviewer=TAG(review.reviewer_details) if review.reviewer_details else \
                          common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
                 status=common_small_html.mkReviewStateDiv(auth, db, review.review_state),
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )
-            reviewVars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
-            reviewVars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
+            review_vars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
+            review_vars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
 
-            if allowed_to_see_reviews and review.review_state == "Review completed":
-                reviewVars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
+            if allowed_to_see_reviews and review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                review_vars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
 
-            if review.review_state == "Willing to review":
-                reviewVars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_review_request", vars=dict(reviewId=review.id))))
-                reviewVars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_review_request", vars=dict(reviewId=review.id))))
+            if review.review_state == ReviewState.WILLING_TO_REVIEW.value:
+                review_vars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_review_request", vars=dict(reviewId=review.id))))
+                review_vars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_review_request", vars=dict(reviewId=review.id))))
 
-            if review.review_state == "Awaiting review" and not (recomm.is_closed):
-                reviewVars["actions"].append(
+            if review.review_state == ReviewState.AWAITING_REVIEW.value and not (recommendation.is_closed):
+                review_vars["actions"].append(
                         dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                     )   
 
-            if art.status in ("Under consideration", "Scheduled submission under consideration") and not (recomm.is_closed):
-                if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review"):
-                    reviewVars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
+            if article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value) and not (recommendation.is_closed):
+                if (review.reviewer_id == auth.user_id) and (review.review_state == ReviewState.AWAITING_REVIEW.value):
+                    review_vars["actions"].append(dict(text=current.T("Write, edit or upload your review"), link=URL(c="user", f="edit_review", vars=dict(reviewId=review.id))))
 
-                if (review.reviewer_id != auth.user_id) and ((review.review_state or "Awaiting response") == "Awaiting response"):
-                    reviewVars["actions"].append(
+                if (review.reviewer_id != auth.user_id) and ((review.review_state or ReviewState.AWAITING_RESPONSE.value) == ReviewState.AWAITING_RESPONSE.value):
+                    review_vars["actions"].append(
                         dict(text=current.T("Prepare a cancellation"), link=URL(c="recommender", f="send_review_cancellation", vars=dict(reviewId=review.id)))
                     )
-            if review.review_state == "Awaiting response" and art.status != "Recommended":
-                reviewVars["actions"].append(
+            if review.review_state == ReviewState.AWAITING_RESPONSE.value and article.status != ArticleStatus.RECOMMENDED.value:
+                review_vars["actions"].append(
                     dict(
                         text=current.T("Decline invitation manually"), 
                         link=URL(c="recommender_actions", f="del_reviewer_with_confirmation", vars=dict(
@@ -73,42 +78,42 @@ def getReviewsSubTable(auth, db, response, request, recomm):
                     )
                 )
 
-            reviewList.append(reviewVars)
-            if review.review_state == "Review completed":
-                nbCompleted += 1
-            if review.review_state == "Awaiting review":
-                nbOnGoing += 1
+            review_list.append(review_vars)
+            if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                nb_completed += 1
+            if review.review_state == ReviewState.AWAITING_REVIEW.value:
+                nb_on_going += 1
 
-    showDecisionLink = False
-    writeDecisionLink = None
-    inviteReviewerLink = None
-    showSearchingForReviewersButton = None
-    showRemoveSearchingForReviewersButton = None
+    show_decision_link = False
+    write_decision_link = None
+    invite_reviewer_link = None
+    show_searching_for_reviewers_button = None
+    show_remove_searching_for_reviewers_button = None
     if (
-        not (recomm.is_closed)
-        and ((recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
-        and (art.status in ("Under consideration", "Scheduled submission under consideration"))
+        not (recommendation.is_closed)
+        and ((recommendation.recommender_id == auth.user_id) or auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
+        and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value))
     ):
-        inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id))
+        invite_reviewer_link = cast(str, URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id)))
 
-        showSearchingForReviewersButton = not art.is_searching_reviewers
-        showRemoveSearchingForReviewersButton = art.is_searching_reviewers
+        show_searching_for_reviewers_button = not article.is_searching_reviewers
+        show_remove_searching_for_reviewers_button = article.is_searching_reviewers
 
-        showDecisionLink = True
-        if (nbCompleted >= 2 and nbOnGoing == 0) or recomm_round > 1 or (pciRRactivated):
-            writeDecisionLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
+        show_decision_link = True
+        if (nb_completed >= 2 and nb_on_going == 0) or recommendation_round > 1 or (pciRRactivated):
+            write_decision_link = cast(str, URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id)))
 
-    roundNumber = recomm_round
-    componentVars = dict(
-        recommId=recomm.id,
-        roundNumber=roundNumber,
-        reviewList=reviewList,
-        showDecisionLink=showDecisionLink,
-        inviteReviewerLink=inviteReviewerLink,
-        writeDecisionLink=writeDecisionLink,
-        showSearchingForReviewersButton=showSearchingForReviewersButton,
-        showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
-        isArticleSubmitter=(art.user_id == auth.user_id),
+    round_number = recommendation_round
+    component_vars = dict(
+        recommId=recommendation.id,
+        roundNumber=round_number,
+        reviewList=review_list,
+        showDecisionLink=show_decision_link,
+        inviteReviewerLink=invite_reviewer_link,
+        writeDecisionLink=write_decision_link,
+        showSearchingForReviewersButton=show_searching_for_reviewers_button,
+        showRemoveSearchingForReviewersButton=show_remove_searching_for_reviewers_button,
+        isArticleSubmitter=(article.user_id == auth.user_id),
     )
 
-    return XML(response.render("components/review_sub_table.html", componentVars))
+    return XML(response.render("components/review_sub_table.html", component_vars))
