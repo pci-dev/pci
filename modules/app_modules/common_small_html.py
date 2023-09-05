@@ -22,7 +22,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 from models.article import Article
-from models.review import Review
+from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
 
@@ -406,16 +406,16 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 ######################################################################################################################################################################
 # Other status
 ######################################################################################################################################################################
-def mkReviewStateDiv(auth, db, state):
+def mkReviewStateDiv(auth: Auth, db: DAL, state: str):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
-    if state == "Awaiting response" or state == "Willing to review":
+    if state == ReviewState.AWAITING_RESPONSE.value or state == ReviewState.WILLING_TO_REVIEW.value:
         color_class = "warning"
-    elif state == "Declined by recommender":
+    elif state == ReviewState.DECLINED_BY_RECOMMENDER.value:
         color_class = "danger"
-    elif state == "Awaiting review":
+    elif state == ReviewState.AWAITING_REVIEW.value:
         color_class = "info"
-    elif state == "Review completed":
+    elif state == ReviewState.REVIEW_COMPLETED.value:
         color_class = "success"
     else:
         color_class = "default"
