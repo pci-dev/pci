@@ -240,21 +240,21 @@
             <a class="buttontext btn btn-success" 
             href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('Yes, I would like to review this preprint') + ' within ' + review['review_duration'].lower()}}
+            {{=T('I accept to review this preprint within ') + review['review_duration'].lower()}}
           </a>
         </div>
           <div>
             <a class="buttontext btn btn-info" 
               href="{{=URL(c='default', f='invitation_to_review_preprint',  vars=dict(reviewId=review['id'], more_delay='true'))}}"
             >
-              {{=T('Yes, I would like to review this preprint but with another delay')}}
+              {{=T("I accept to review this preprint, but I'll need more time to perform my review")}}
             </a>
           </div>
           <div>
             <a class="buttontext btn btn-warning""
             href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('No thanks, I\'d rather not')}}
+            {{=T('Decline')}}
           </a>
           </div>
         </div>
