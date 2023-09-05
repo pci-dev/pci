@@ -1,7 +1,8 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from enum import Enum
-from typing import Iterable, List, Optional as _, cast
+from typing import Any, Iterable, List, Optional as _, cast
+from models.recommendation import Recommendation
 from pydal.objects import Row, Rows
 from pydal import DAL
 
@@ -55,8 +56,11 @@ class Review(Row):
 
 
     @staticmethod
-    def get_by_recommendation_id(db: DAL, id: int):
-        return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
+    def get_by_recommendation_id(db: DAL, id: int, order_by: _[Any] = None):
+        if order_by:
+            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select(orderby=order_by))
+        else:
+            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
     
 
     @staticmethod
@@ -99,3 +103,13 @@ class Review(Row):
     def set_review_status(review: Review, state: ReviewState):
         review.review_state = state.value
         return review.update_record()
+
+
+    @staticmethod
+    def get_unfinished_reviews(db: DAL, recommendation: Recommendation):
+        return cast(int, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs(ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value))).count())
+
+
+    @staticmethod
+    def is_reviewer_also_recommender(db: DAL, recommendation: Recommendation):
+        return cast(bool, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).count() == 1)
