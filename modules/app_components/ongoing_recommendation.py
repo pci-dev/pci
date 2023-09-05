@@ -158,7 +158,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True, sche
     if (
         (art.user_id == auth.user_id)
         and not (art.already_published)
-        and (art.status not in ("Cancelled", "Rejected", "Pre-recommended", "Recommended"))
+        and (art.status not in ("Cancelled", "Rejected", "Pre-recommended", "Recommended", "Not considered"))
         and not (printable)
         and not (quiet)
     ):
