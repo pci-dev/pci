@@ -19,6 +19,7 @@ class ArticleStatus(Enum):
     PRE_RECOMMENDED_PRIVATE = 'Pre-recommended-private'
     PRE_REVISION = 'Pre-revision'
     SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending'
+    SCHEDULED_SUBMISSION_UNDER_CONSIDERATION = 'Scheduled submission under consideration'
 
 
 class Article(Row):
