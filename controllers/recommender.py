@@ -1818,9 +1818,9 @@ def email_for_new_reviewer():
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
         Field.CC(default=default_cc),
-        Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, required=True),
-        Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, required=True),
-        Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250),
+        Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, requires=IS_NOT_EMPTY()),
+        Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, requires=IS_NOT_EMPTY()),
+        Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
     )
