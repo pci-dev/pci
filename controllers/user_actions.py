@@ -257,7 +257,7 @@ def accept_review_confirmed(): # no auth required
     if next and review.suggested_reviewers_send:
         redirect(next)
 
-    message = T("Thank you for accepting to review this article!")
+    message = T("Thank you for agreeing to review this article!")
 
     if review.review_state == ReviewState.AWAITING_REVIEW.value:
         form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
@@ -279,8 +279,8 @@ def _awaiting_recommender_response_page(message: str):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(message),
-            P(T("Your request for a delay must be accepted by recommender before reviewing this article. An email will be send to you after recommender's decision."))
+            P(message, _style="font-size: initial; font-weight: bold"),
+            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: initial; font-weight: bold; width: 800px")
         )
     )
 
