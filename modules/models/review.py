@@ -25,6 +25,7 @@ class ReviewState(Enum):
     WILLING_TO_REVIEW = 'Willing to review'
     DECLINED = 'Declined'
     REVIEW_COMPLETED = 'Review completed'
+    NEED_EXTRA_REVIEW_TIME = 'Need extra review time'
     
 
 class Review(Row):

@@ -473,7 +473,7 @@ def invitation_to_review():
         if review.review_state == ReviewState.AWAITING_REVIEW.value:
             action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
             redirect(action_form_url)
-        elif review.review_state == ReviewState.AWAITING_RESPONSE.value or more_delay:
+        elif review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value or more_delay:
             url_vars['more_delay'] = 'true'
             action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
             redirect(action_form_url)
@@ -504,7 +504,7 @@ def invitation_to_review_acceptation():
         review = Review.get_by_id(db, review_id)
         if review and not review.acceptation_timestamp:
             if more_delay:
-                Review.accept_review(review, True, ReviewState.AWAITING_RESPONSE)
+                Review.accept_review(review, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
                 send_conditional_acceptation_review_mail(session, auth, db, review)
             else:
                 Review.accept_review(review, True)

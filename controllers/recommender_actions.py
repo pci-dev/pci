@@ -681,7 +681,7 @@ def accept_new_delay_to_reviewing():
         redirect(URL('default','index'))
         return
 
-    if review.acceptation_timestamp and review.review_state == ReviewState.AWAITING_RESPONSE.value:
+    if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.AWAITING_REVIEW)
         emailing.send_decision_new_delay_review_mail(session, auth, db, True, review)
         return _new_delay_to_reviewing_redirection(True)
@@ -704,7 +704,7 @@ def decline_new_delay_to_reviewing():
         redirect(URL('default','index'))
         return
 
-    if review.acceptation_timestamp and review.review_state == ReviewState.AWAITING_RESPONSE.value:
+    if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.DECLINED_BY_RECOMMENDER)
         emailing.send_decision_new_delay_review_mail(session, auth, db, False, review)
         return _new_delay_to_reviewing_redirection(False)
