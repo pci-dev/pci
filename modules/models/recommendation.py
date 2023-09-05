@@ -1,3 +1,4 @@
+from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
@@ -46,3 +47,8 @@ class Recommendation(Row):
     def get_co_recommenders(db: DAL, recommendation_id: int):
         return cast(List[PressReview], db((db.t_recommendations.id == recommendation_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
             .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
+
+
+    @staticmethod
+    def get_current_round_number(db: DAL, recommendation: Recommendation):
+        return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
