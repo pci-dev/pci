@@ -415,7 +415,7 @@ def mkReviewStateDiv(auth: Auth, db: DAL, state: str):
         color_class = "danger"
     elif state == ReviewState.AWAITING_REVIEW.value:
         color_class = "info"
-    elif state == ReviewState.REVIEW_COMPLETED.value:
+    elif state == ReviewState.REVIEW_COMPLETED.value or state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         color_class = "success"
     else:
         color_class = "default"

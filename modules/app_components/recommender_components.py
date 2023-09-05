@@ -78,6 +78,10 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
                     )
                 )
 
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                review_vars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review.id), user_signature=True)))
+                review_vars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review.id), user_signature=True)))
+
             review_list.append(review_vars)
             if review.review_state == ReviewState.REVIEW_COMPLETED.value:
                 nb_completed += 1
