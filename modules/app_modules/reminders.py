@@ -47,6 +47,8 @@ _reminders = {
     "ReminderReviewInvitationRegisteredUserNewReviewer": [2, 9],
     "ReminderReviewInvitationRegisteredUserReturningReviewer": [2, 9],
 
+    "ReminderRecommenderAcceptationReview": [2, 9],
+
     "ReminderSubmitterCancelSubmission": [20],
     "ReminderSubmitterSuggestedRecommenderNeeded": daily(1, 9),
     "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
@@ -76,7 +78,8 @@ _avoid_weekend_reminders = [
     'ReminderReviewerReviewInvitationRegisteredUser',
     'ReminderReviewerInvitationNewRoundRegisteredUser',
     'ReminderReviewInvitationRegisteredUserNewReviewer',
-    'ReminderReviewInvitationRegisteredUserReturningReviewer'
+    'ReminderReviewInvitationRegisteredUserReturningReviewer',
+    'ReminderRecommenderAcceptationReview'
 ]
 
 
