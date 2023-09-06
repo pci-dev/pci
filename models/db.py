@@ -19,7 +19,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.reminders import getDefaultReviewDuration
 
-from models.review import ReviewDuration
+from models.review import ReviewDuration, ReviewState, Review
 
 from controller_modules import recommender_module
 
@@ -1224,7 +1224,7 @@ def reviewSuggested(s, row):
 def reviewDone(s, f):
     if not hasattr(f, "review_state"): return
 
-    o = s.select().first()
+    o = cast(Review, s.select().first())
     reviewId = o["id"]
     rev = db.t_reviews[reviewId]
     recomm = db.t_recommendations[rev.recommendation_id]
@@ -1255,6 +1255,9 @@ def reviewDone(s, f):
             emailing.create_reminder_recommender_could_make_decision(session, auth, db, recomm.id)
         if o["review_state"] == "Awaiting review" and f['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
+        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id)
 
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
