@@ -4,7 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import Optional, cast
+from typing import Optional, cast, Any
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -3337,11 +3337,14 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
     mail_vars["destAddress"] = recommender.email
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#ConditionalRecommenderAcceptationReview", article)
 
     buttons = conditional_acceptation_review_mail_button(review.id)
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
+
+    create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
@@ -3397,6 +3400,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
     if accept:
         hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderAcceptReviewNewDelay", article)
@@ -3424,3 +3428,24 @@ def get_go_to_review_button(review_id: int, article_id: int, user: User):
             )
 
 ########################################################
+
+def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any):
+    if not review or not recommendation or not article or not recommender or not buttons:
+        return None
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["delay"] = review.review_duration
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
+    mail_vars["linkTarget"] = URL(
+        c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
+    )
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["destAddress"] = recommender.email
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    
+    hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderAcceptationReview", article)
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, reviewer_invitation_buttons=buttons)
