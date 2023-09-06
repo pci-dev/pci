@@ -194,7 +194,8 @@ def _manage_articles(statuses, whatNext, db=db):
         'last_status_change',
         'keywords',
         'submitter_details',
-        'upload_timestamp'
+        'upload_timestamp',
+        'thematics'
     ]
 
     def mkUser(user_details, user_id):
@@ -227,7 +228,11 @@ def _manage_articles(statuses, whatNext, db=db):
     
     articles.id.readable = True
     articles.id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
-
+    
+    articles.thematics.label = "Thematics fields"
+    articles.thematics.type = "string"
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    
     articles.user_id.represent = lambda txt, row: mkSubmitter(row)
     articles.user_id.label = 'Submitter'
 
@@ -313,7 +318,7 @@ def _manage_articles(statuses, whatNext, db=db):
             articles.title,
             articles.already_published,
             articles.report_stage,
-            articles.request_submission_change
+            articles.request_submission_change,
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
@@ -325,7 +330,7 @@ def _manage_articles(statuses, whatNext, db=db):
     remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
                       'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
                       'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
-                      'v_article.reviewers']
+                      'v_article.reviewers', 'v_article.thematics']
     integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
