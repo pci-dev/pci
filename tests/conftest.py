@@ -31,6 +31,7 @@ config = get_config()
 users = config.users
 
 driver.set_window_size(1500, 1000)
+driver.implicitly_wait(5)
 
 
 # Test class decorator
