@@ -50,7 +50,7 @@ class External_user_reviews:
         select("a", "View e-mails").click()
         select("tr", contains="#DefaultReviewInvitationNewUser") \
                 .select("a", "VIEW").click()
-        accept_link = select("a", "ACCEPT").get_attribute("href")
+        accept_link = select("a", contains="I accept to review this").get_attribute("href")
         logout(users.manager)
         visit(accept_link)
 
@@ -90,7 +90,7 @@ class Reviewer:
         row.select(".pci-status", awaiting_cue)
         row.select("a", "ACCEPT OR DECLINE").click()
 
-        select("a", contains="YES, I WOULD LIKE TO REVIEW").click()
+        select("a", contains="I ACCEPT TO REVIEW THIS").click()
 
     def confirm_requirements(reviewer=reviewer):
         assert select("input[type=submit]").get_attribute("disabled")
