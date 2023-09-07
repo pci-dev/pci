@@ -57,11 +57,7 @@ class External_user_reviews:
 
     def accept_invitation_to_review(_, article):
         article.title = select('.pci2-article-row-short h3').text
-        select('#no_conflict_of_interest').click()
-        select('#due_time').click()
-        select('#anonymous_agreement').click()
-        select('#cgu-checkbox').click()
-        select("input[type=submit]").click()
+        Reviewer.confirm_requirements(reviewer=_.user)
 
     def first_time_login(_):
         password = _.user.password
@@ -103,9 +99,7 @@ class Reviewer:
             cb.click()
         select("input[type=submit]").click()
 
-        notif = select.notif()
-        notif.contains("e-mail sent to " + reviewer.name)
-        notif.contains("e-mail sent to " + recommender.name)
+        Reviewer.check_notification(reviewer)
 
     def upload_review(article, reviewer=reviewer):
         select("a", contains="WRITE, EDIT OR UPLOAD YOUR REVIEW").click()
@@ -116,9 +110,7 @@ class Reviewer:
 
         select("#confirm-dialog").wait_clickable().click()
 
-        notif = select.notif()
-        notif.contains("e-mail sent to " + reviewer.name)
-        notif.contains("e-mail sent to " + recommender.name)
+        Reviewer.check_notification(reviewer)
 
         row = select("tr", contains=article.title)
         row.select(".pci-status", "REVIEW COMPLETED")
@@ -127,6 +119,11 @@ class Reviewer:
     def send_suggestion():
         select(css="#suggestion-textbox").send_keys(users.test.email)
         select(css="#suggestion-submission").wait_clickable().click()
+
+    def check_notification(reviewer=reviewer):
+        notif = select.notif()
+        notif.contains("e-mail sent to " + reviewer.name)
+        notif.contains("e-mail sent to " + recommender.name)
 
 
 class User:
