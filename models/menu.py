@@ -465,6 +465,11 @@ def _AboutMenu():
         menu_entry("Apply to become a Journal Adopter", "glyphicon-pencil", URL("about", "become_journal_adopter")),
         menu_entry("Journal Adopter FAQ", "glyphicon-question-sign", URL("about", "journal_adopter_faq")),
     ]
+    else:
+        aboutMenu += [
+           menu_entry("List of PCI-friendly Journals", "glyphicon-file", URL("about", "pci_friendly_journals")),
+        ]
+
 
     aboutMenu += [
         divider(),
