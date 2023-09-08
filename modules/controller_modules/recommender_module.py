@@ -94,7 +94,7 @@ def mkRecommendationFormat(auth, db, row):
     else:
         recommFmt = ""
     art = db.t_articles[row.article_id]
-    anchor = SPAN(row.recommendation_title, BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi),)
+    anchor = SPAN(common_small_html.md_to_html(row.recommendation_title), BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi),)
     return anchor
 
 def cancel_scheduled_reviews(session, auth, db, articleId):

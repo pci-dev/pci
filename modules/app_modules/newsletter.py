@@ -57,7 +57,7 @@ def makeArticleWithRecommRow(auth, db, article):
                     H3(article.title, _style="margin: 0 0 5px; font-weight: bold"),
                     LABEL(authors, _style="margin: 0 0 15px; font-weight: normal; color: #888"),
                     DIV(
-                        H4(recomm.recommendation_title, _style="margin: 0 0 5px; font-weight: bold; font-style: italic;"),
+                        H4(common_small_html.md_to_html(recomm.recommendation_title), _style="margin: 0 0 5px; font-weight: bold; font-style: italic;"),
                         SPAN(recomm_authors, _style="margin: 0 0 10px; font-style: italic; color: #888"),
                         P(
                             A(

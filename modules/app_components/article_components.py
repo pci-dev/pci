@@ -95,7 +95,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
         articleAuthor=authors,
         articleDoi=doi_text,
         recommendationAuthors=SPAN(recommAuthors),
-        recommendationTitle=recomm.recommendation_title,
+        recommendationTitle=md_to_html(recomm.recommendation_title),
         recommendationShortText=WIKI(recommShortText, safe_mode=False),
         pciRRactivated=pciRRactivated,
         isStage2=isStage2,
