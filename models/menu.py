@@ -467,7 +467,7 @@ def _AboutMenu():
     ]
     else:
         aboutMenu += [
-           menu_entry("List of PCI-friendly Journals", "glyphicon-file", "https://peercommunityin.org/pci-friendly-journals/"),
+           menu_entry("List of PCI-friendly Journals", "glyphicon-file", URL("about", "pci_friendly_journals")),
         ]
 
 

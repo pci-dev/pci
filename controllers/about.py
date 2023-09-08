@@ -240,6 +240,12 @@ def pci_rr_friendly_journals():
 
 
 ######################################################################################################################################################################
+def pci_friendly_journals():
+    response.view = "default/info.html"
+    return dict(pageTitle=getTitle(request, auth, db, "#PciFriendlyJournalsTitle"), customText=getText(request, auth, db, "#PciFriendlyJournalsInfo"))
+
+
+######################################################################################################################################################################
 def pci_rr_interested_journals():
     response.view = "default/info.html"
     return dict(pageTitle=getTitle(request, auth, db, "#PciRRInterestedJournalsTitle"), customText=getText(request, auth, db, "#PciRRInterestedJournalsInfo"),)
