@@ -1613,9 +1613,10 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % mail_vars
             )
-    rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
-    mail_vars = dict(mail_vars, **rr_vars)
 
+    if pciRRactivated:
+        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        mail_vars = dict(mail_vars, **rr_vars)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
     if new_round:
@@ -1761,8 +1762,10 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % mail_vars
             )
-    rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
-    mail_vars = dict(mail_vars, **rr_vars)
+
+    if pciRRactivated:
+        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        mail_vars = dict(mail_vars, **rr_vars)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)

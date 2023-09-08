@@ -33,7 +33,6 @@ from app_modules import common_small_html
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
-pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -173,22 +172,21 @@ def getRRInvitiationVars(db, article, new_stage):
         rr_vars["Stage2vsStage1_trackedchangesURL"] = Stage2vsStage1_trackedchangesURL
 
 
-    if pciRRactivated:
-        pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
-        programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
-        signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+    pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
+    programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
+    signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
-        sched_sub_vars = getPCiRRScheduledSubmissionsVars(article)
-        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
-        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
-        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
-        snapshotUrl = sched_sub_vars["snapshotUrl"]
+    sched_sub_vars = getPCiRRScheduledSubmissionsVars(article)
+    scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+    scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+    scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+    snapshotUrl = sched_sub_vars["snapshotUrl"]
 
-        rr_vars["programmaticRR_invitation_text"] = programmaticRR_invitation_text
-        rr_vars["signedreview_invitation_text"] = signedreview_invitation_text
-        rr_vars["scheduledSubmissionDate"] = scheduledSubmissionDate
-        rr_vars["scheduledSubmissionLatestReviewStartDate"] = scheduledSubmissionLatestReviewStartDate
-        rr_vars["scheduledReviewDueDate"] = scheduledReviewDueDate
-        rr_vars["snapshotUrl"] = snapshotUrl
+    rr_vars["programmaticRR_invitation_text"] = programmaticRR_invitation_text
+    rr_vars["signedreview_invitation_text"] = signedreview_invitation_text
+    rr_vars["scheduledSubmissionDate"] = scheduledSubmissionDate
+    rr_vars["scheduledSubmissionLatestReviewStartDate"] = scheduledSubmissionLatestReviewStartDate
+    rr_vars["scheduledReviewDueDate"] = scheduledReviewDueDate
+    rr_vars["snapshotUrl"] = snapshotUrl
 
     return rr_vars
