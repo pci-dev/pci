@@ -66,7 +66,7 @@ def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
 def mkLastRecommendation(auth, db, articleId):
     lastRecomm = db.get_last_recomm(articleId)
     if lastRecomm:
-        return DIV(lastRecomm.recommendation_title or "", _class="pci-w200Cell")
+        return DIV(common_small_html.md_to_html(lastRecomm.recommendation_title) or "", _class="pci-w200Cell")
     else:
         return ""
 

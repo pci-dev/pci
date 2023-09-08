@@ -108,7 +108,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             " ",
             finalRecomm.last_change.strftime("(%Y)"),
             " ",
-            finalRecomm.recommendation_title,
+            md_to_html(finalRecomm.recommendation_title),
             ". ",
             I(myconf.take("app.description") + ", " + (citeNum or "") + ". "),
             citeRef,
@@ -171,7 +171,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
     headerContent.update(
         [
-            ("recommTitle", finalRecomm.recommendation_title if ((finalRecomm.recommendation_title or "") != "") else current.T("Recommendation"),),
+            ("recommTitle", md_to_html(finalRecomm.recommendation_title) if ((finalRecomm.recommendation_title or "") != "") else current.T("Recommendation"),),
             ("recommAuthor", whoDidRecomm),
             (
                 "recommDateinfos",

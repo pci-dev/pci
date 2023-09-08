@@ -640,7 +640,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                 doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
 
             anchor = DIV(
-                B(recomm.recommendation_title),
+                B(md_to_html(recomm.recommendation_title)),
                 SPAN(current.T(" by ")),
                 recommenders,
                 mkDOI(recomm.recommendation_doi),
@@ -674,7 +674,7 @@ def mkRecommCitation(auth, db, myRecomm):
         if citeNumSearch:
             citeNum = ", " + citeNumSearch.group(1)
         doi = SPAN("DOI: ", mkDOI(myRecomm.recommendation_doi))
-    citeRecomm = SPAN(SPAN(whoDidItCite), " ", myRecomm.last_change.strftime("(%Y)"), " ", (myRecomm.recommendation_title or ""), ". ", I(applongname) + citeNum, SPAN(" "), doi)
+    citeRecomm = SPAN(SPAN(whoDidItCite), " ", myRecomm.last_change.strftime("(%Y)"), " ", (md_to_html(myRecomm.recommendation_title) or ""), ". ", I(applongname) + citeNum, SPAN(" "), doi)
     return citeRecomm or ""
 
 

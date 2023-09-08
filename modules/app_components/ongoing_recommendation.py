@@ -700,7 +700,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version:") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),
-            recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hideOngoingRecomm is False) else "",
+            recommendationTitle=H4(common_small_html.md_to_html(recomm.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hideOngoingRecomm is False) else "",
             recommendationLabel=recommendationLabel,
             recommendationText=recommendationText,
             recommendationStatus=recomm.recommendation_state,
@@ -1056,7 +1056,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
         recommendationDoi=SPAN(current.T("Recommendation: "), common_small_html.mkDOI(recomm.recommendation_doi)) if (recomm.recommendation_doi) else "",
         manuscriptDoi=SPAN(current.T("Manuscript: "), common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else "",
-        recommendationTitle=H4(recomm.recommendation_title or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px")
+        recommendationTitle=H4(common_small_html.md_to_html(recomm.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px")
         if (recomm.recommendation_title or "") != ""
         else "",
         recommendationText=recommendationText,

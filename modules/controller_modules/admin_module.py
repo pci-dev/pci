@@ -615,7 +615,7 @@ def mkRecommendationFormat2(auth, db, row):
     art = db.t_articles[row.article_id]
     artRep = common_small_html.mkRepresentArticleLight(auth, db, art.id)
     anchor = DIV(
-        artRep, BR(), row.recommendation_title, BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi), _class="pci-RecommendationFormat2"
+        artRep, BR(), common_small_html.md_to_html(row.recommendation_title), BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi), _class="pci-RecommendationFormat2"
     )
     return anchor
 
