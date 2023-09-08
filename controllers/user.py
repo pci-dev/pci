@@ -368,7 +368,27 @@ def new_submission():
         form=form
     )
 
+######################################################################################################################################################################
+@auth.requires_login()
+def check_title():
+    form = SQLFORM.factory(
+        Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_IN_SET(("STAGE 1", "STAGE 2"))),
+        Field("title", label=T("Title"), type="string", length=250, required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Continue")
 
+    def onvalidation(form):
+        form.vars.title = form.vars.title.lower()
+        title_already_submitted = db((db.auth_user._id == db.t_articles.user_id) & (db.t_articles.title.lower() == form.vars.title)).select().last()
+        if title_already_submitted:
+            form.errors.title = "E-mail already used"
+
+    if form.process(onvalidation=onvalidation).accepted:
+        myVars = dict(title=form.vars.title, report_stage=form.vars.report_stage)
+        redirect(URL(c="user", f="fill_new_article", vars=myVars, user_signature=True))
+
+
+    
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
