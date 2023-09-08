@@ -930,7 +930,7 @@ db.define_table(
     Field("doi", type="string", length=512, label=T("Manuscript DOI (or URL) for the round"), represent=lambda text, row: common_small_html.mkDOI(text)),
     Field("ms_version", type="string", length=1024, label=T("Manuscript version for the round"), default=""),
     Field("recommender_id", type="reference auth_user", ondelete="RESTRICT", label=T("Recommender")),
-    Field("recommendation_title", type="string", length=1024, label=T("Recommendation title")),
+    Field("recommendation_title", type="string", length=1024, label=T("Recommendation title"), comment="use asterix (*) to get italics"),
     Field("recommendation_comments", type="text", length=2097152, label=T("Recommendation"), default=""),
     Field("recommendation_doi", type="string", length=512, label=T("Recommendation DOI"), represent=lambda text, row: common_small_html.mkDOI(text)),
     Field(
