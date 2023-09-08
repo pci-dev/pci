@@ -183,6 +183,9 @@ def do_accept_new_review():
 
     Review.accept_review(review, request.vars["anonymous_agreement"])
 
+    article_id = db.t_recommendations[review.recommendation_id].article_id
+    request.vars._next = "../user/recommendations?articleId=" + str(article_id)
+
     redirect(URL(c="user_actions", f="accept_review_confirmed", vars=request.vars))
 
 

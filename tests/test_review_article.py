@@ -22,6 +22,9 @@ class Reviewer_reviews:
     def confirm_requirements(_):
         Reviewer.confirm_requirements()
 
+    def send_suggestions(_):
+        Reviewer.send_suggestion()
+
     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
             reason="scheduled track")
     def upload_review(_, article):
@@ -52,18 +55,17 @@ class External_user_reviews:
         visit(accept_link)
 
 
-    def accept_invitation_to_review(_):
-        select('#no_conflict_of_interest').click()
-        select('#due_time').click()
-        select('#anonymous_agreement').click()
-        select('#cgu-checkbox').click()
-        select("input[type=submit]").click()
+    def accept_invitation_to_review(_, article):
+        article.title = select('.pci2-article-row-short h3').text
+        Reviewer.confirm_requirements(reviewer=_.user)
 
     def first_time_login(_):
         password = _.user.password
         select("input[name=new_password]").send_keys(password)
         select("input[name=new_password2]").send_keys(password)
         select("input[type=submit]").click()
+
+    def send_suggestions(_):
         Reviewer.send_suggestion()
 
     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
@@ -97,9 +99,7 @@ class Reviewer:
             cb.click()
         select("input[type=submit]").click()
 
-        notif = select.notif()
-        notif.contains("e-mail sent to " + reviewer.name)
-        notif.contains("e-mail sent to " + recommender.name)
+        Reviewer.check_notification(reviewer)
 
     def upload_review(article, reviewer=reviewer):
         select("a", contains="WRITE, EDIT OR UPLOAD YOUR REVIEW").click()
@@ -110,17 +110,20 @@ class Reviewer:
 
         select("#confirm-dialog").wait_clickable().click()
 
-        notif = select.notif()
-        notif.contains("e-mail sent to " + reviewer.name)
-        notif.contains("e-mail sent to " + recommender.name)
+        Reviewer.check_notification(reviewer)
 
         row = select("tr", contains=article.title)
         row.select(".pci-status", "REVIEW COMPLETED")
-        row.select("a", "VIEW / EDIT")
+        row.select("a", "VIEW")
 
     def send_suggestion():
         select(css="#suggestion-textbox").send_keys(users.test.email)
-        select(css="#suggestion-submission").click()
+        select(css="#suggestion-submission").wait_clickable().click()
+
+    def check_notification(reviewer=reviewer):
+        notif = select.notif()
+        notif.contains("e-mail sent to " + reviewer.name)
+        notif.contains("e-mail sent to " + recommender.name)
 
 
 class User:
