@@ -1600,16 +1600,7 @@ def email_for_registered_reviewer():
     else:
         sender = cast(User, auth.user)
 
-    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
-
-    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
-    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
-
-    r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
-    trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
-    # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
-    # to pass only the url value to the template instead of the full link html;
-    # doing this yields invalid url for the link in the template when no doc exists.
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name, new_round)
 
     parallelText = ""
     if parallelSubmissionAllowed:

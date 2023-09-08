@@ -41,6 +41,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import old_common
 from app_modules import helper
+from app_modules import emailing_parts
 from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
@@ -103,13 +104,20 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
-def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None):
+def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None, new_round: Optional[bool] = False) :
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
 
     mail_vars = getMailCommonVars()
+    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+    r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+    trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+    # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
+    # to pass only the url value to the template instead of the full link html;
+    # doing this yields invalid url for the link in the template when no doc exists.
 
     mail_vars["description"] = myconf.take("app.description")
     mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
@@ -123,6 +131,8 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
     mail_vars["art_authors"] = mkAuthors(article)
     mail_vars["authors"] = mail_vars["art_authors"]
     mail_vars["articleAuthors"] = mail_vars["art_authors"]
+    mail_vars["r2r_url"] = r2r_url
+    mail_vars["trackchanges_url"] = trackchanges_url
 
     if reviewer_last_name:
         mail_vars["LastName"] = reviewer_last_name
