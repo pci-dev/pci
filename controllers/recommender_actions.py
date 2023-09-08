@@ -193,44 +193,57 @@ def decline_new_article_to_recommend():
     redirect(URL(c="recommender_actions", f="decline_article_confirmed", vars=dict(articleId=articleId), user_signature=True))
 
 ######################################################################################################################################################################
+
 @auth.requires(auth.has_membership(role="recommender"))
 def decline_article_confirmed():
-    articleId = request.vars["articleId"]
-    if articleId is not None:
+    article_id = request.vars["articleId"]
+    if article_id:
         # NOTE: No security hole as only logged user can be deleted
-        sug_rec = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).select().first()
+        sug_rec = db((db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).select().first()
         if sug_rec is not None:
             sug_rec.declined = True
             sug_rec.update_record()
             db.commit()
             
-            emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", articleId, auth.user_id)
+            emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
             session.flash = T("Suggestion declined")
         else: 
             raise HTTP(404, "404: " + T("Unavailable"))
         message = T("Thank you for taking the time to decline this invitation!")
-        form = app_forms.recommender_decline_invitation_form(request, session, db, auth, articleId)
 
-    return _decline_article_page(message, form)
+    return _decline_article_page(message, article_id)
 
-######################################################################################################################################################################
 
-def _decline_article_page(message, form):
+@auth.requires(auth.has_membership(role="recommender"))
+def _decline_article_page(message: str, article_id: int):
     response.view = "default/myLayout.html"
     return dict(
         form=CENTER(
-            P(message),
-            DIV(
-                LABEL(TAG(current.T("Recommender decline message 1")), _class="control-label col-sm-3"),
-                DIV(
-                    A("Done", _class="btn btn-default", _style="float: left", _href=URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True)),
-                _class="col-sm-3"),
-                LABEL(TAG(current.T("Recommender decline message 2")), _class="control-label col-sm-3", _style="margin-top: 30px"),
+            H2(message, _style="font-weight: bold"),
+            H4(T('There is nothing else to do.'), _style="font-weight: bold"),
+            P(T('But if you want to send a message to the managing board to indicate the reason(s) why you prefer to decline this invitation to act as a recommender for this preprint, please click here to prepare (and then send) a message.'), _style="width: 800px"),
+            A(T('Prepare a message to the managing board'), _href=URL(c="recommender_actions", f="decline_article_confirmed_send_message", vars=dict(articleId=article_id), user_signature=True), _class="btn btn-info")
+        )
+    )
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender"))
+def decline_article_confirmed_send_message():
+    article_id = request.vars["articleId"]
+    if article_id:
+        form = app_forms.recommender_decline_invitation_form(request, session, db, auth, article_id)
+        return _decline_article_send_message_page(form)
+
+
+def _decline_article_send_message_page(form):
+    response.view = "default/myLayout.html"
+    return dict(
+        form=CENTER(
+            DIV(LABEL(TAG(current.T("Recommender decline message 2")), _class="control-label col-sm-3", _style="margin-top: 30px"),
             _class="form-group"),
             form if form else DIV(_style="height: 20em;"),
         )
     )
-
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
