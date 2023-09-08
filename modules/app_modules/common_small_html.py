@@ -1,5 +1,6 @@
 import gc
 import os
+from typing import Optional
 import pytz
 from re import sub, match
 from copy import deepcopy
@@ -997,7 +998,10 @@ def fetch_url(data):
     return result
 
 ################################################################################
-def md_to_html(text: str):
+def md_to_html(text: Optional[str]):
+    if not text:
+        return None
+    
     return SPAN(
             TAG(WIKI(text))[0].components
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
