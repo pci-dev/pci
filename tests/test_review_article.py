@@ -56,7 +56,7 @@ class External_user_reviews:
 
 
     def accept_invitation_to_review(_, article):
-        article.title = select('.pci2-article-row-short h3').text
+        article.title = select('.pci2-article-row-short h3').wait_clickable().text
         Reviewer.confirm_requirements(reviewer=_.user)
 
     def first_time_login(_):
