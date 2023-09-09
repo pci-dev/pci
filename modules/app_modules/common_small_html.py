@@ -999,11 +999,8 @@ def fetch_url(data):
 
 ################################################################################
 def md_to_html(text: Optional[str]):
-    if not text:
-        return None
-    
     return SPAN(
-            TAG(WIKI(text))[0].components
+            TAG(WIKI(text or ""))[0].components
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
 
 ################################################################################
