@@ -150,48 +150,6 @@ def article_revised():
 
 ######################################################################################################################################################################
 @auth.requires_login()
-def do_accept_new_review():
-    review_id = get_review_id(request)
-    if not review_id:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-        return
-
-    user = User.get_by_id(db, auth.user_id)
-    if not user:
-        reset_password_key = get_reset_password_key(request)
-        if reset_password_key:
-            user = User.get_by_reset_password_key(db, reset_password_key)
-    
-    if "ethics_approved" in request.vars and user.ethical_code_approved is False:
-        user.ethical_code_approved = True
-        user.update_record()
-    if not (user.ethical_code_approved):
-        raise HTTP(403, "403: " + T("ERROR: Ethical code not approved"))
-    
-    if "no_conflict_of_interest" not in request.vars:
-        raise HTTP(403, "403: " + T('ERROR: Value "no conflict of interest" missing'))
-    no_conflict = request.vars["no_conflict_of_interest"]
-    if no_conflict != "yes":
-        raise HTTP(403, "403: " + T("ERROR: No conflict of interest not checked"))
-    
-    review = Review.get_by_id(db, review_id)
-    if review is None:
-        raise HTTP(404, "404: " + T("ERROR: Review unavailable"))
-    if review.reviewer_id != auth.user_id:
-        raise HTTP(403, "403: " + T("ERROR: Forbidden access"))
-
-    Review.accept_review(review, request.vars["anonymous_agreement"])
-
-    article_id = db.t_recommendations[review.recommendation_id].article_id
-    request.vars._next = "../user/recommendations?articleId=" + str(article_id)
-
-    redirect(URL(c="user_actions", f="accept_review_confirmed", vars=request.vars))
-
-
-
-######################################################################################################################################################################
-@auth.requires_login()
 def decline_new_review():
     if "reviewId" not in request.vars:
         raise HTTP(404, "404: " + T("Unavailable"))

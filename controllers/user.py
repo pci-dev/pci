@@ -1245,51 +1245,6 @@ from app_components.ongoing_recommendation import is_scheduled_review_open
 
 ######################################################################################################################################################################
 @auth.requires_login()
-def accept_new_review():
-
-    if not ("reviewId" in request.vars):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    reviewId = request.vars["reviewId"]
-    if reviewId is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    rev = db.t_reviews[reviewId]
-    if rev is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    if rev["reviewer_id"] != auth.user_id:
-        raise HTTP(403, "403: " + T("Forbidden"))
-
-    if rev["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
-        recomm = db((db.t_recommendations.id == rev["recommendation_id"])).select(db.t_recommendations.ALL).last()
-        session.flash = T("Review state has been changed")
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm["article_id"])))
-
-    isParallel = db((db.t_recommendations.id == rev["recommendation_id"]) & (db.t_recommendations.article_id == db.t_articles.id)).select(db.t_articles.parallel_submission).last()
-
-    _next = None
-    if "_next" in request.vars:
-        _next = request.vars["_next"]
-
-    disclaimerText = None
-    actionFormUrl = None
-    dueTime = None
-    ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
-    if ethics_not_signed:
-        redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "accept_new_review", vars=dict(reviewId=reviewId) if reviewId else ""))))
-    else:
-        disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
-        actionFormUrl = URL("user_actions", "do_accept_new_review", vars=dict(reviewId=reviewId) if reviewId else "")
-        dueTime = rev.review_duration.lower()
-
-    pageTitle = getTitle(request, auth, db, "#AcceptReviewInfoTitle")
-    customText = getText(request, auth, db, "#AcceptReviewInfoText")
-
-    response.view = "controller/user/accept_new_review.html"
-    return dict(titleIcon="eye-open", pageTitle=pageTitle, disclaimerText=disclaimerText, actionFormUrl=actionFormUrl, dueTime=dueTime, customText=customText, reviewId=reviewId)
-
-
-######################################################################################################################################################################
-@auth.requires_login()
 def ask_to_review():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
