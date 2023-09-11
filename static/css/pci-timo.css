@@ -93,8 +93,8 @@
 
     .recommender-preprints-table .cyp-review-state.pci-status,
     .manager-preprints-table .cyp-review-state.pci-status {
-        width: 6rem;
-        max-width: 6rem;
+        width: 7rem;
+        max-width: 7rem;
     }
 
     .recommender-preprints-table .pci-status {
