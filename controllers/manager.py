@@ -255,6 +255,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None):
                     _class="buttontext btn btn-default pci-button pci-manager",
                     _title=current.T("View and/or edit"),
                 ),
+                ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if "Pre-submission" in statuses else "",
                 A(
                     TAG(current.T('Prepare email informing authors that preprint not considered')),
                     _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
