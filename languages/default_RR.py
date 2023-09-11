@@ -964,4 +964,6 @@
     "No annotation found": "No annotation found",
     "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.": "There is no Hypotes.is annotation for this article yet. The content below was automatically generated. You can edit it and send the annotation.",
     "Prepare email informing authors that preprint not considered": "Prepare email informing authors that report not considered",
+    "But if you want to send a message to the managing board to indicate the reason(s) why you prefer to decline this invitation to act as a recommender for this preprint, please click here to prepare (and then send) a message.": "But if you want to send a message to the managing board to indicate the reason(s) why you prefer to decline this invitation to act as a recommender for this report, please click here to prepare (and then send) a message."
+
 }
