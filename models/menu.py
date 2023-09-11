@@ -435,11 +435,8 @@ def _ManagerMenu():
         (txtPendingSurvey, False, URL("manager", "pending_surveys", user_signature=True)),
     ]
 
-    if pciRRactivated: managerMenu += [
-        (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
-    ]
-
     managerMenu += [
+        (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
         menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
         menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
         menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
