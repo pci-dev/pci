@@ -157,3 +157,36 @@ def getPCiRRrecommendationText(db, article):
         )
     return recommendation_text
 
+
+def getRRInvitiationVars(db, article, new_stage):
+    rr_vars = dict()
+    if article.art_stage_1_id is not None:
+        stage1_art = db.t_articles[article.art_stage_1_id]
+        report_survey = article.t_report_survey.select().last()
+        Stage2_Stage1recommendationtext = getPCiRRrecommendationText(db, stage1_art)
+        Stage1_registeredURL = report_survey.q30
+        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
+
+        rr_vars["Stage2_Stage1recommendationtext"] = Stage2_Stage1recommendationtext
+        rr_vars["Stage1_registeredURL"] = Stage1_registeredURL
+        rr_vars["Stage2vsStage1_trackedchangesURL"] = Stage2vsStage1_trackedchangesURL
+
+
+    pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
+    programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
+    signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
+
+    sched_sub_vars = getPCiRRScheduledSubmissionsVars(article)
+    scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
+    scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+    scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
+    snapshotUrl = sched_sub_vars["snapshotUrl"]
+
+    rr_vars["programmaticRR_invitation_text"] = programmaticRR_invitation_text
+    rr_vars["signedreview_invitation_text"] = signedreview_invitation_text
+    rr_vars["scheduledSubmissionDate"] = scheduledSubmissionDate
+    rr_vars["scheduledSubmissionLatestReviewStartDate"] = scheduledSubmissionLatestReviewStartDate
+    rr_vars["scheduledReviewDueDate"] = scheduledReviewDueDate
+    rr_vars["snapshotUrl"] = snapshotUrl
+
+    return rr_vars

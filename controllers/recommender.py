@@ -1613,24 +1613,10 @@ def email_for_registered_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % mail_vars
             )
-    if article.art_stage_1_id is not None:
-        stage1_art = db.t_articles[article.art_stage_1_id]
-        report_survey = article.t_report_survey.select().last()
-        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
-        Stage1_registeredURL = report_survey.q30
-        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(stage1_art if new_stage or reg_user else article, new_stage)
-        programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
-        signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
-
-        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(article)
-        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
-        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
-        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
-        snapshotUrl = sched_sub_vars["snapshotUrl"]
-
+        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        mail_vars = dict(mail_vars, **rr_vars)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
     if new_round:
@@ -1776,24 +1762,10 @@ def email_for_new_reviewer():
                 """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
                 % mail_vars
             )
-    if article.art_stage_1_id is not None:
-        stage1_art = db.t_articles[article.art_stage_1_id]
-        report_survey = article.t_report_survey.select().last()
-        Stage2_Stage1recommendationtext = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
-        Stage1_registeredURL = report_survey.q30
-        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
 
     if pciRRactivated:
-        pci_rr_vars = emailing_vars.getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
-        programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
-        signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
-
-        sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(article)
-        scheduledSubmissionDate = sched_sub_vars["scheduledSubmissionDate"]
-        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
-        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
-        snapshotUrl = sched_sub_vars["snapshotUrl"]
-
+        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        mail_vars = dict(mail_vars, **rr_vars)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
