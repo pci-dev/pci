@@ -352,7 +352,7 @@ def new_submission():
         customText=getText(request, auth, db, "#NewRecommendationRequestInfo")
         
         if auth.user:
-            submitPreprintLink = URL("user", "fill_new_article", user_signature=True)
+            submitPreprintLink = URL("user", "check_title" if pciRRactivated else "fill_new_article", user_signature=True)
         else:
             loginLink = URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission")))
             registerLink = URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission")))
@@ -376,16 +376,22 @@ def check_title():
         Field("title", label=T("Title"), type="string", length=250, required=True),
     )
     form.element(_type="submit")["_value"] = T("Continue")
-
     def onvalidation(form):
-        form.vars.title = form.vars.title.lower()
-        title_already_submitted = db((db.auth_user._id == db.t_articles.user_id) & (db.t_articles.title.lower() == form.vars.title)).select().last()
+        title_already_submitted = db((db.t_articles.user_id == db.auth_user.id) & (db.t_articles.title.lower() == form.vars.title.lower()) & (db.t_articles.report_stage == "STAGE 1")).select().last()
         if title_already_submitted:
-            form.errors.title = "E-mail already used"
+            form.errors.title = T("Title error message")
 
     if form.process(onvalidation=onvalidation).accepted:
         myVars = dict(title=form.vars.title, report_stage=form.vars.report_stage)
         redirect(URL(c="user", f="fill_new_article", vars=myVars, user_signature=True))
+    response.view = "default/myLayout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
+        customText=getText(request, auth, db, "#UserEditArticleText"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        form=form
+    )
 
 
     
@@ -422,6 +428,10 @@ def fill_new_article():
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
 
     if pciRRactivated:
+        if request.vars["title"] and request.vars["report_stage"] == None:
+            redirect(URL(c="user", f="check_title",user_signature=True))
+        title = request.vars["title"]
+        report_stage = request.vars["report_stage"]
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
@@ -522,6 +532,8 @@ def fill_new_article():
         fixup_radio_group("codes_used_in_study")
 
     if pciRRactivated:
+        form.vars.title = title
+        form.vars.report_stage = report_stage
         form.element(_type="submit")["_value"] = T("Continue your submission")
     else:
         form.element(_type="submit")["_value"] = T("Complete your submission")
