@@ -36,6 +36,10 @@ class User_submits:
     select(".btn-success", f"Submit your {preprint}".upper()).click()
 
  def submit_submission_form(_):
+    if is_rr:
+      select("#no_table_report_stage").send_keys("STAGE 1")
+      select("#no_table_title").send_keys(article.title)
+      select("input[type=submit]").click()
     select("#t_articles_title").send_keys(article.title)
     select("#t_articles_authors").send_keys(article.authors)
     select("#t_articles_article_year").send_keys(article.year)
