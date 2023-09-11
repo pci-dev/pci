@@ -3421,7 +3421,7 @@ def get_go_to_review_button(review_id: int, article_id: int, user: User):
                         current.T(f"Go to the recommendation"),
                         _style="margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; background: #93c54b",
                     ),
-                    _href=URL(c='default', f='invitation_to_review_preprint',  vars=url_vars),
+                    _href=URL(c='default', f='invitation_to_review',  vars=url_vars),
                     _style="text-decoration: none; display: block",
                 ), 
                 _style="width: 100%; text-align: center; margin-bottom: 25px;"

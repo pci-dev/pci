@@ -452,7 +452,7 @@ def invitation_to_review():
         return
     
     recommHeaderHtml = cast(XML, article_components.getArticleInfosCard(auth, db, response, article, printable=False))
-    response.view = "default/invitation_to_review_preprint.html"
+    response.view = "default/invitation_to_review.html"
 
     form = invitation_to_review_form(request, auth, db, article, user, review, more_delay)
 
@@ -464,18 +464,18 @@ def invitation_to_review():
                 Review.set_review_duration(review, request.vars.review_duration)
                 url_vars['more_delay'] = 'true'
             
-            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
             redirect(action_form_url)
 
     if review.acceptation_timestamp:
         url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
         
         if review.review_state == ReviewState.AWAITING_REVIEW.value:
-            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
             redirect(action_form_url)
         elif review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value or more_delay:
             url_vars['more_delay'] = 'true'
-            action_form_url = cast(str, URL("default", "invitation_to_review_preprint_acceptation", vars=url_vars))
+            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
             redirect(action_form_url)
         elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
             redirect(URL(c="user_actions", f="accept_review_confirmed", vars=dict(reviewId=review.id)))
