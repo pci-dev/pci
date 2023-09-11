@@ -1094,7 +1094,6 @@ def all_recommendations():
             db.t_recommendations.recommender_details,
         ]
         links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
             dict(
                 header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
             ),
@@ -1120,7 +1119,6 @@ def all_recommendations():
             db.t_recommendations.recommender_details,
         ]
         links = [
-            dict(header=T("Co-recommenders"), body=lambda row: common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)),
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
             # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
             dict(
@@ -1136,7 +1134,7 @@ def all_recommendations():
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
     db.t_recommendations.recommender_id.readable = True
-    db.t_recommendations.recommender_id.represent =  lambda id, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+    db.t_recommendations.recommender_id.represent =  lambda id, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, id) + HR(_class="column-merge-hr") + SPAN("Co-Recommenders") + common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack)
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
     db.t_recommendations.is_closed.writable = False

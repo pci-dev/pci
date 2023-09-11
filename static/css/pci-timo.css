@@ -87,6 +87,10 @@
         hyphens: auto;
     }
 
+    .column-merge-hr {
+        border-top: 1px solid grey;
+    }
+
     #wrapper-home-articles .web2py_breadcrumbs,
     .action-button-absolute .web2py_breadcrumbs {
         display: none;
