@@ -259,14 +259,12 @@ def report_survey(auth: Auth, session: Session, article: Article, db: DAL, surve
 
     if form.process(onvalidation=report_survey_on_validation(form, article, do_validate)).accepted:
         doUpdateArticle = False
-        prepareReminders = False
         if form.vars.q10 is not None:
             if article.scheduled_submission_date or controller == "user_fill":
                 # /!\ used as a _flag_ and reset to None in user.py
                 #     do not set it back to non-None accidently
                 article.scheduled_submission_date = form.vars.q10
                 doUpdateArticle = True
-            prepareReminders = True
 
         if form.vars.temp_art_stage_1_id is not None:
             article.art_stage_1_id = form.vars.temp_art_stage_1_id
@@ -288,8 +286,6 @@ def report_survey(auth: Auth, session: Session, article: Article, db: DAL, surve
         if doUpdateArticle == True:
             article.update_record()
 
-        if prepareReminders == True:
-            emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
 
         myVars = dict(articleId=article.id)
         session.flash = current.T("Article submitted", lazy=False)
