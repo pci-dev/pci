@@ -646,7 +646,7 @@ def _my_recomms(statuses, pressReviews=None):
         fields=fields,
         links=links,
         orderby=~db.t_recommendations.last_change,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid action-button-absolute recommender-preprints-table",
     )
 
     if isPress:  ## NOTE: POST-PRINTS

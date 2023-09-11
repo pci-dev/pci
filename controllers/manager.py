@@ -1180,7 +1180,7 @@ def all_recommendations():
         fields=fields,
         links=links,
         orderby=~db.t_recommendations.last_change,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid action-button-absolute manager-preprints-table",
     )
 
     # options to be removed from the search dropdown:
