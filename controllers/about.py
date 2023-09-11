@@ -128,12 +128,25 @@ def _rss_url():
 def social():
     frames = []
     tweeterAcc = myconf.get("social.tweeter")
-    if tweeterAcc:
+    mastodonAcc = myconf.get("social.mastodon")
+    if tweeterAcc :
         frames.append(H2("Twitter"))
         frames.append(
             DIV(
                 XML(
                     '<a class="twitter-timeline" href="https://twitter.com/%(tweeterAcc)s">Tweets by %(tweeterAcc)s</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'
+                    % (locals())
+                ),
+                _class="tweeterPanel",
+            )
+        )
+    if mastodonAcc and pciRRactivated:
+        frames =[]
+        frames.append(H2("Mastodon"))
+        frames.append(
+            DIV(
+                XML(
+                    '<a class="twitter-timeline" href="https://spore.social/%(mastodonAcc)s">Posts by %(mastodonAcc)s</a>'
                     % (locals())
                 ),
                 _class="tweeterPanel",

@@ -8,7 +8,7 @@ from app_components import public_recommendation
 from app_modules import old_common
 from app_modules import common_tools
 
-
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
 def index():
     redirect(request.home)
@@ -95,6 +95,7 @@ def rec():
         currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId), host=host, scheme=scheme, port=port),
         shareButtons=True,
         nbReviews=nbReviews,
+        pciRRactivated=pciRRactivated,
         recommHeaderHtml=recommHeaderHtml,
         reviewRounds=reviewRounds,
         commentsTreeAndForm=commentsTreeAndForm,
