@@ -295,14 +295,14 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="S
         if reportStage is not None:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _style="text-align: center;"),
+                DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
+                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
             )
         else:
             result = DIV(
                 DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage not set")), stage1Link, _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _style="text-align: center;"),
+                DIV(B(current.T("Stage not set")), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
+                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
             )
 
     else:

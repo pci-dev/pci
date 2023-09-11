@@ -98,8 +98,13 @@
     }
 
     .recommender-preprints-table .pci-status {
-        width: 7rem;
-        max-width: 7rem;
+        width: 12em;
+        max-width: 12rem;
+    }
+
+    .recommender-preprints-table .pci-status-addition {
+        width: 13em;
+        max-width: 13rem;
     }
 
     #wrapper-home-articles .web2py_breadcrumbs,
