@@ -420,7 +420,7 @@ def _ManagerMenu():
 
     nbPreSubmitted = db((db.t_articles.status == "Pre-submission")).count()
     txtPreSubmitted = str(nbPreSubmitted) + " " + (T("Article(s) in Pre-submission stage"))
-    if nbPreSubmitted > 0 and pciRRactivated:
+    if nbPreSubmitted > 0:
         txtPreSubmitted = SPAN(menu_entry_item(txtPreSubmitted, "glyphicon-warning-sign", _class="pci-enhancedMenuItem"), _class="pci-manager")
         txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
         notificationCount += nbPreSubmitted
