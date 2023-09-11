@@ -539,6 +539,7 @@
     "Preprint submission deleted": "Preprint submission deleted",
     "Preprint(s) you are co-handling": "Preprint(s) you are co-handling",
     "Preprint(s) you are handling": "Preprint(s) you are handling",
+    "Presubmitted Articles needing changes": "Presubmitted Articles needing changes",
     "Pre-recommended": "Recommendation pending validation",
     "Pre-rejected": "Rejection pending validation",
     "Pre-revision": "Request for revision pending validation",
