@@ -1454,10 +1454,11 @@ def send_submitter_generic_mail():
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
     replyTo = ", ".join([replyto.email, contact])
+    default_cc = '%s, %s'%(sender_email, contact)
 
     form = SQLFORM.factory(
         Field("author_email", label=T("Author email address"), type="string", length=250, requires=req_is_email, default=author.email, writable=False),
-        Field.CC(default=(sender_email, contact)),
+        Field.CC(default_cc), 
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
