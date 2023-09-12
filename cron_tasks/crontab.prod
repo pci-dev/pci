@@ -104,6 +104,7 @@ SITE=PCIRegisteredReports
 */5 * * * * $BASE/$SITE/$RUN newsletter.py
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
+0 1   * * * $BASE/$SITE/$RUN warn_submitters.py
 
 SITE=PCIInfections
 

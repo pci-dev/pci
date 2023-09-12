@@ -3286,8 +3286,22 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
-########################################################
+######################################################################################################################################################################
 
+def send_warning_to_submitters(session, auth, db, article_id):
+    mail_vars = emailing_tools.getMailCommonVars()
+    article = db.t_articles[article_id]
+
+    if article:
+        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
+        mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
+        mail_vars["articleTitle"] = md_to_html(article.title)
+
+        hashtag_template = "#SubmitterPendingSurveyWarning"
+
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+
+######################################################################################################################################################################
 def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject: str, message: str, article: Article, author: User):
     form = replace_mail_vars_set_not_considered_mail(auth, db, article, subject, message)
     send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
