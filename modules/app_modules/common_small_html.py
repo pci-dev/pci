@@ -1138,7 +1138,7 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
         form.append(DIV(
             LABEL(
                 INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes"),
-                B(TAG(current.T('I agree to post my review within %s (or I agree to review the preprint, but I need more time. I will contact the recommender soon to ask if it is possible)') % dueTime))
+                B(TAG(current.T('I agree to post my review within %s.') % dueTime))
             ),
             _class="checkbox")
         )
@@ -1179,7 +1179,7 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
         )
 
         delay_form = SQLFORM.factory(
-            Field("review_duration", type="text", label=current.T("Choose the duration before post my review"), default=dueTime.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
+            Field("review_duration", type="text", label=current.T("Choose the duration before posting my review"), default=dueTime.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
             buttons=[]
         )
         form.append(delay_form.components[0])
