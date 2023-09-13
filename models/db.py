@@ -21,7 +21,6 @@ from app_modules import common_small_html
 from app_modules.reminders import getDefaultReviewDuration
 
 from models.review import ReviewDuration, ReviewState, Review
-from models.mail_queue import MailQueue, MailQueueStatus
 
 from controller_modules import recommender_module
 
