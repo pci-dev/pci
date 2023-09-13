@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from typing import cast
+from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
 from gluon.storage import Storage # for db.get_last_recomms()
+from pydal.objects import OpRow
 
 from gluon.custom_import import track_changes
 
@@ -20,6 +21,7 @@ from app_modules import common_small_html
 from app_modules.reminders import getDefaultReviewDuration
 
 from models.review import ReviewDuration, ReviewState, Review
+from models.mail_queue import MailQueue, MailQueueStatus
 
 from controller_modules import recommender_module
 
@@ -1127,6 +1129,7 @@ db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
+db.t_reviews._after_update.append(lambda s, f: reviewChangeDueDate(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
 db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
@@ -1173,6 +1176,21 @@ def notify_submitter(review):
         nb_reviews = recomm.t_reviews.count()
         if nb_reviews == 1:
             pass
+
+
+def reviewChangeDueDate(s: Set, f: OpRow):
+    review = cast(Review, s.select().first())
+    if not review.review_duration:
+        return
+    
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id):
+        emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id):
+        emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+    
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id):
+        emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
 
 def reviewSuggested(s, row):
