@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from typing import cast
+
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
@@ -738,3 +740,41 @@ def _new_delay_to_reviewing_redirection(accept: bool):
             A(T("Back to your dashboard"), _href=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True), _class="btn btn-success")
         )
     )
+
+######################################################################################################################################################################
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def change_review_due_date():
+    response.view = "default/myLayout.html"
+
+    review_id = int(request.vars['reviewId'])
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+    
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+    
+    form = SQLFORM.factory(
+            Field("review_duration", type="text", label=current.T("Choose the new duration:"), default=review.review_duration.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
+        )
+    
+    if form.process().accepted:
+        new_duration = cast(str, form.vars['review_duration'])
+        Review.set_review_duration(review, new_duration)
+
+        session.flash = f'Review date changed to {new_duration.lower()}'
+        
+        if session.change_review_due_date_previous_page:
+            redirect(session.change_review_due_date_previous_page)
+
+    elif request.env.http_referer:
+            session.change_review_due_date_previous_page = request.env.http_referer
+    
+    content = H3(T('Select the new duration whithin which the reviewer must post their review.'), _class="col-sm-12", _style="text-align: center")
+
+    return dict(content=content, form=form)
