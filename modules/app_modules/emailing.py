@@ -2726,6 +2726,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            mail_vars["delay"] = delay or review.review_duration.lower()
             mail_vars["articleDoi"] = article.doi
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2775,6 +2776,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
             
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2808,6 +2810,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
@@ -3331,7 +3334,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     if not recommender:
         return
 
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
@@ -3406,7 +3409,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     if not reviewer:
         return
 
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
@@ -3437,7 +3440,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
         return None
 
     mail_vars = emailing_tools.getMailCommonVars()
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
