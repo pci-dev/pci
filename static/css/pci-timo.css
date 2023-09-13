@@ -22,6 +22,13 @@
         border: 1px solid #dfd7ca;
         border-radius: 4px;
     }
+    .statistics thead {
+        z-index: 1;
+    }
+
+    .statistics tbody tr {
+        min-height: 5rem;
+    }
 
     #main-page-search-grid .web2py_table table thead {
         display: none;

@@ -58,6 +58,10 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+scheme = myconf.take("alerts.scheme")
+host = myconf.take("alerts.host")
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ACCENT_COLOR = '#fcc24d'
 Field.CC = db.Field.CC
@@ -70,9 +74,6 @@ def index():
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(None, URL("manager", "all_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerAllArticlesText")
     resu["titleIcon"] = "book"
@@ -85,9 +86,6 @@ def all_articles():
 # Display pending articles and allow management
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def pending_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
@@ -101,9 +99,6 @@ def pending_articles():
 # Display articles in presubmission and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def pending_surveys():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(
         ["Pending-survey"], URL("manager", "pending_surveys", host=host, scheme=scheme, port=port)
     )
@@ -116,9 +111,6 @@ def pending_surveys():
 
 @auth.requires(auth.has_membership(role="manager"))
 def presubmissions():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(
         ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
     )
@@ -133,9 +125,6 @@ def presubmissions():
 # Display ongoing articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def ongoing_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
@@ -148,9 +137,6 @@ def ongoing_articles():
 # Display completed articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def completed_articles():
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     db.t_articles.status.label = T("Outcome")
     resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], URL("manager", "completed_articles", host=host, scheme=scheme, port=port))
     resu["customText"] = getText(request, auth, db, "#ManagerCompletedArticlesText")
@@ -163,7 +149,7 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
-def _manage_articles(statuses, whatNext, db=db):
+def _manage_articles(statuses, whatNext, db=db, stats_query=None):
     response.view = "default/myLayout.html"
 
     # users
@@ -285,16 +271,16 @@ def _manage_articles(statuses, whatNext, db=db):
             ),
         ),
     ]
-    
-    #recomms.get(article_id)
-    query = (db.t_articles.id == db.v_article_id.id)
-    if statuses:
-        query = query & db.t_articles.status.belongs(statuses)
-
-    # recommenders only ever get here via menu "Recommender > Pending validation(s)"
-    if pciRRactivated and is_recommender(auth, request):
-        query = db.pending_scheduled_submissions_query
-    
+    if stats_query:
+        query = stats_query
+    else:
+        #recomms.get(article_id)
+        query = (db.t_articles.id == db.v_article_id.id)
+        if statuses:
+            query = query & db.t_articles.status.belongs(statuses)
+        # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+        if pciRRactivated and is_recommender(auth, request):
+            query = db.pending_scheduled_submissions_query
     original_grid = SQLFORM.grid(
         query,
         searchable=True,
@@ -1053,20 +1039,11 @@ def manage_comments():
         grid=grid,
     )
 
-
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def all_recommendations():
-    response.view = "default/myLayout.html"
-
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    # goBack='%s://%s%s' % (request.env.wsgi_url_scheme, request.env.http_host, request.env.request_uri)
-    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
-
     isPress = ("pressReviews" in request.vars) and (request.vars["pressReviews"] == "True")
-
+    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
     query = (
           (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == isPress)
@@ -1076,6 +1053,13 @@ def all_recommendations():
     )
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
+    resu = _all_recommendations(goBack, query, isPress)
+    return resu
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
+def _all_recommendations(goBack, query, isPress):
+    response.view = "default/myLayout.html"
 
     if isPress:  ## NOTE: POST-PRINTS
         pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
@@ -1505,3 +1489,142 @@ def send_submitter_generic_mail():
         customText=getText(request, auth, db, "#EmailForSubmitterInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
+def recommender_statistics():
+    response.view = "default/myLayout.html"
+
+    db.v_recommender_stats.recommender_details.readable = False
+
+    db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+    db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_invitations"))) if text != 0 else "0"
+    db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_accepted"))) if text != 0 else "0"
+    db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_completed"))) if text != 0 else "0"
+    db.v_recommender_stats.current_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_invitations"))) if text != 0 else "0"
+    db.v_recommender_stats.current_assignments.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="current_assignments"))) if text != 0 else "0"
+    db.v_recommender_stats.awaiting_revision.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="awaiting_revision"))) if text != 0 else "0"
+    db.v_recommender_stats.requiring_action.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_action"))) if text != 0 else "0"
+    db.v_recommender_stats.requiring_reviewers.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="requiring_reviewers"))) if text != 0 else "0"
+    db.v_recommender_stats.required_reviews_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="required_reviews_completed"))) if text != 0 else "0"
+    db.v_recommender_stats.late_reviews.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="late_reviews"))) if text != 0 else "0"
+
+    grid = SQLFORM.grid(
+        query = db.v_recommender_stats,
+        details=True,
+        editable=False,
+        deletable=False,
+        create=False,
+        searchable=False,
+        csv=False,
+        paginate=20,
+        maxtextlength=256,
+        orderby=~db.v_recommender_stats.id,
+        fields=[
+            db.v_recommender_stats.id,
+            db.v_recommender_stats.total_invitations,
+            db.v_recommender_stats.total_accepted,
+            db.v_recommender_stats.total_completed,
+            db.v_recommender_stats.current_invitations,
+            db.v_recommender_stats.current_assignments,
+            db.v_recommender_stats.awaiting_revision,
+            db.v_recommender_stats.recommender_details,
+            db.v_recommender_stats.requiring_action,
+            db.v_recommender_stats.requiring_reviewers,
+            db.v_recommender_stats.required_reviews_completed,
+            db.v_recommender_stats.late_reviews
+        ],
+        _class="web2py_grid  statistics",
+    )
+    myScript = common_tools.get_script("statistics_table.js")
+
+    return dict(
+        titleIcon="stats",
+        pageTitle=getTitle(request, auth, db, "#RecommenderStatisticsTitle"),
+        customText=getText(request, auth, db, "#RecommenderStatisticsText"),
+        pageHelp=getHelp(request, auth, db, "#RecommenderStatistics"),
+        myBackButton=common_small_html.mkBackButton(),
+        grid=grid,
+        myFinalScript=myScript,
+        absoluteButtonScript=common_tools.absoluteButtonScript,
+    )
+
+######################################################################################################################################################################
+def fetch_query(action, recommenderId):
+    subquery = db((db.t_articles.id == db.t_recommendations.article_id) &
+              (db.t_articles.status == 'Under consideration') &
+              (db.t_reviews.recommendation_id == db.t_recommendations.id ) &
+              (db.t_recommendations.recommender_id == recommenderId))
+    query = db((subquery.count(distinct=True) < 2) & (db.t_articles.report_stage == 'STAGE 1') |
+           (subquery.count(distinct=True) == 0) & (db.t_articles.report_stage == 'STAGE 2')).select(db.t_articles.ALL, groupby=db.t_articles.id)
+
+    complete_sb_query = db((db.t_articles.id == db.t_recommendations.article_id) &
+                        (db.t_articles.status.belongs('Under consideration', 'Awaiting revision')) &
+                        (db.t_reviews.recommendation_id == db.t_recommendations.id ) &
+                        (db.t_recommendations.recommender_id == recommenderId))
+    count_filter = db((db.t_reviews.acceptation_timestamp != None) & (db.t_reviews.review_state == 'Review completed'))
+    complete_query = complete_sb_query.select(db.t_articles.ALL,
+                            groupby=db.t_articles.id,
+                            having=(count_filter.count() == db.t_reviews.id.count()))
+
+    queries = {
+        "total_invitations": get_recommendation_DAL_query(f"SELECT DISTINCT id FROM ( \
+                                                                    SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id \
+                                                                    UNION ALL \
+                                                                    SELECT DISTINCT art.id FROM t_articles art, t_suggested_recommenders ts WHERE ts.suggested_recommender_id={recommenderId} and ts.article_id = art.id ) AS total_invitations;",  False),
+        "total_accepted" : ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "total_completed": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Recommended', 'Recommended-private', 'Rejected', 'Cancelled')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId) & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "current_invitations" : ((db.t_articles.id == db.t_suggested_recommenders.article_id) & (db.t_suggested_recommenders.suggested_recommender_id == recommenderId) & (db.t_articles.status == 'Awaiting consideration') & (db.t_suggested_recommenders.declined == False)),
+        "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
+        "requiring_action" : get_recommendation_DAL_query(f"SELECT DISTINCT * FROM (\
+                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id  and a.status = 'Under consideration' and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id GROUP BY recomm.id, a.id, recomm.recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')\
+                                                                   UNION ALL\
+                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and  a.status in ('Under consideration', 'Awaiting revision') and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and trev.review_state = 'Review completed' GROUP BY recomm.id, a.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2) AS requiring_action;"),
+        "requiring_reviewers": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and a.status='Under consideration' and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id GROUP BY recomm.id, a.id, recomm.recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')"),
+        "required_reviews_completed": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and  a.status in ('Under consideration', 'Awaiting revision') and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and trev.review_state = 'Review completed' GROUP BY recomm.id, a.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2"),
+        "late_reviews": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles art, t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and trev.recommendation_id = recomm.id and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and recomm.recommendation_state = 'Ongoing' and trev.review_state = 'Awaiting review' and trev.acceptation_timestamp + convert_duration_to_sql_interval(trev.review_duration) < NOW()"),
+    }
+    return queries[action]
+
+
+def get_recommendation_DAL_query(raw_sql_query_returning_recommendation_id: str, recommendation: bool=True):
+    result = db.executesql(raw_sql_query_returning_recommendation_id)
+    ids = []
+
+    for line in result:
+        id = line[0]
+        if id not in ids:
+            ids.append(line[0])
+    if recommendation:
+        return ((db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.id.belongs(ids)))
+    return (db.t_articles.id.belongs(ids))
+
+######################################################################################################################################################################
+def recommender_breakdown():
+    action = request.vars["action"]
+    recommenderId = request.vars["recommenderId"]
+    page_help_dict = {
+        "total_invitations" : "#TotalInvitationStats",
+        "total_accepted" : "#TotalAcceptedStats",
+        "total_completed" : "#TotalCompletedStats",
+        "current_invitations" : "#CurrentInvitationStats",
+        "current_assignments" : "#CurrentAssignmentStats",
+        "awaiting_revision" : "#AwaitingRevisionStats",
+        "requiring_action" : "#RequiringActionStats",
+        "requiring_reviewers" : "#RequiringReviewerStats",
+        "required_reviews_completed" : "#RequiredReviewsCompletedStats",
+        "late_reviews" : "#LateReviewStat"
+    }
+    goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
+    query = fetch_query(action, recommenderId)
+    if action == "total_invitations" or action == "current_invitations":
+        resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=query)
+    else:
+        resu = _all_recommendations(goBack, query, False)
+    resu["customText"] = getText(request, auth, db, f"{page_help_dict[action]}Text")
+    resu["titleIcon"] = "ok-sign"
+    resu["pageTitle"] = getTitle(request, auth, db, f"{page_help_dict[action]}Title")
+    resu["pageHelp"] = getHelp(request, auth, db, page_help_dict[action])
+    return resu
+

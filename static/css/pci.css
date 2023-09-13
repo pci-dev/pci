@@ -1373,3 +1373,21 @@ header {
 #complete-profile-modal #complete-profile-confirm-dialog {
   margin-bottom: 0px;
 }
+
+
+.statistics > .web2py_table > .web2py_htmltable {
+  overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+  max-height: 900px; /* gives a maximum of 900px to the table */
+}
+.statistics > .web2py_table > .web2py_htmltable,
+.statistics > .web2py_table > .web2py_htmltable > table > thead,
+.statistics > .web2py_table > .web2py_htmltable > table > thead > tr > th {
+  position: sticky; /* make the table heads sticky */
+  top: 0px; /* table head will be placed from the top of the table and sticks to it */
+}
+
+.web2py_htmltable > table > thead > tr > th {
+  background: #e5eef4;
+}
+
+
