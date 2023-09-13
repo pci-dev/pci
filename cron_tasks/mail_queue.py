@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta
 import time
+import email
 from gluon.contrib.appconfig import AppConfig
 
 from app_modules.reminders import getReminder
@@ -46,7 +47,10 @@ def tryToSendMail(mail_item):
     sender = None
     sender_mail = myconf.get("contacts.contact")
     if mail_item.sender_name and sender_mail:
-        sender = f'"{mail_item.sender_name}" <{sender_mail}>'
+        sender = email.utils.formataddr((
+            mail_item.sender_name,
+            sender_mail,
+        ))
 
     try:
         isSent = mail.send(
