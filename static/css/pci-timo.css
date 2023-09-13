@@ -87,6 +87,26 @@
         hyphens: auto;
     }
 
+    .column-merge-hr {
+        border-top: 1px solid grey;
+    }
+
+    .recommender-preprints-table .cyp-review-state.pci-status,
+    .manager-preprints-table .cyp-review-state.pci-status {
+        width: 7rem;
+        max-width: 7rem;
+    }
+
+    .recommender-preprints-table .pci-status {
+        width: 12em;
+        max-width: 12rem;
+    }
+
+    .recommender-preprints-table .pci-status-addition {
+        width: 13em;
+        max-width: 13rem;
+    }
+
     #wrapper-home-articles .web2py_breadcrumbs,
     .action-button-absolute .web2py_breadcrumbs {
         display: none;
@@ -96,6 +116,13 @@
         flex-direction: row;
         align-items: center;
         max-width: 10rem;
+    }
+
+    .manager-preprints-table .web2py_htmltable > table > tbody > tr > td:last-child,
+    .recommender-preprints-table .web2py_htmltable > table > tbody > tr > td:last-child {
+        width: 12rem;
+        max-width: 12rem;
+        min-width: unset;
     }
 
     .about-recommender .web2py_table .web2py_htmltable > table > tbody > tr > td:last-child {
