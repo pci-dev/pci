@@ -426,6 +426,10 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     Field("cv", type="text", length=2097152, label=SPAN(T("Areas of expertise")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field("keywords", type="string", length=1024, label=SPAN(T("Keywords")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    Field("email_options", type="list:string", label=SPAN(T("Opt in/out of being cc'ed")), 
+          requires=[IS_EMPTY_OR(IS_IN_SET(("Email to authors", "Email to reviewers"), multiple=True))], 
+          widget=SQLFORM.widgets.checkboxes.widget,
+    ),
     Field("website", type="string", length=4096, label=SPAN(T("Link to your website, profile page, google scholar profile or any other professional website")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
     Field(
         "alerts",
