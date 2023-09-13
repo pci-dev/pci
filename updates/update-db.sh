@@ -44,6 +44,12 @@ apply_db() {
 			echo "skipping non-RR update '$sql'"
 			continue
 		}
+		grep -q "RR-only" <<< "$sql" && \
+		[ $DB != "pci_registered_reports" ] && \
+		{
+			echo "skipping RR-only update '$sql'"
+			continue
+		}
 		echo "applying $sql"
 		$PSQL $DB < $sql || exit 3
 	done
