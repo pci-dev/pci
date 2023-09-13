@@ -45,11 +45,10 @@ def tryToSendMail(mail_item):
         return
     
     sender = None
-    sender_mail = myconf.get("contacts.contact")
-    if mail_item.sender_name and sender_mail:
+    if mail_item.sender_name:
         sender = email.utils.formataddr((
             mail_item.sender_name,
-            sender_mail,
+            email.utils.parseaddr(mail.settings.sender)[1],
         ))
 
     try:
