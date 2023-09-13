@@ -2726,7 +2726,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
-            mail_vars["delay"] = delay or review.review_duration.lower()
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["articleDoi"] = article.doi
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)

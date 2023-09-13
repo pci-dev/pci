@@ -1183,13 +1183,13 @@ def reviewChangeDueDate(s: Set, f: OpRow):
     if not review.review_duration:
         return
     
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id):
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) > 0:
         emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
 
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id):
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) > 0:
         emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
     
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id):
+    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) > 0:
         emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
 
