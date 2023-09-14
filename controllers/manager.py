@@ -1481,7 +1481,7 @@ def send_submitter_generic_mail():
                 art.update_record(status="Scheduled submission revision")
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:
-            redirectt(URL(c="manager", f="presubmissions"))
+            redirect(URL(c="manager", f="presubmissions"))
 
     return dict(
         form=form,
