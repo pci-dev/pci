@@ -1476,9 +1476,8 @@ def send_submitter_generic_mail():
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
-        if auth.has_membership(role="recommender"):
-            if "Revision" in template:
-                art.update_record(status="Scheduled submission revision")
+        if "Revision" in template:
+            art.update_record(status="Scheduled submission revision")
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:
             redirect(URL(c="manager", f="presubmissions"))
