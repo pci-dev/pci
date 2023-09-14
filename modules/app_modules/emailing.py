@@ -2606,7 +2606,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     if review and recomm and article and reviewer:
         sender: Optional[User] = None
         if auth.has_membership(role="manager"):
-            sender = User.get_by_id(db, recomm.id)
+            sender = User.get_by_id(db, recomm.recommender_id)
         else:
             sender = cast(User, auth.user)
 
