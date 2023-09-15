@@ -255,6 +255,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None):
                     _class="buttontext btn btn-default pci-button pci-manager",
                     _title=current.T("View and/or edit"),
                 ),
+                ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
                 A(
                     TAG(current.T('Prepare email informing authors that preprint not considered')),
                     _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
@@ -1453,10 +1454,11 @@ def send_submitter_generic_mail():
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
 
     replyTo = ", ".join([replyto.email, contact])
+    default_cc = '%s, %s'%(sender_email, contact)
 
     form = SQLFORM.factory(
         Field("author_email", label=T("Author email address"), type="string", length=250, requires=req_is_email, default=author.email, writable=False),
-        Field.CC(default=(sender_email, contact)),
+        Field.CC(default_cc), 
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1474,12 +1476,11 @@ def send_submitter_generic_mail():
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
-        if auth.has_membership(role="recommender"):
-            if "Revision" in template:
-                art.update_record(status="Scheduled submission revision")
+        if "Revision" in template:
+            art.update_record(status="Scheduled submission revision")
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:
-            redirectt(URL(c="manager", f="presubmissions"))
+            redirect(URL(c="manager", f="presubmissions"))
 
     return dict(
         form=form,

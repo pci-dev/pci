@@ -794,7 +794,7 @@ def validate_stage_button(article: Article):
                     "Validate this submission",
                     "Click here to validate this request and start recommendation process",
                     article,
-                    extra_button=[put_in_presubmission_button(article) if pciRRactivated else "", set_to_not_considered(article)],
+                    extra_button=[put_in_presubmission_button(article), set_to_not_considered(article)],
                 )
                 return SPAN(
                     validation_checklist('do_validate_article') if not pciRRactivated else "",
