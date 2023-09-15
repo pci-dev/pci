@@ -82,7 +82,7 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
                 review_vars["actions"].append(dict(text=current.T("Accept"), link=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review.id), user_signature=True)))
                 review_vars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review.id), user_signature=True)))
 
-            if review.review_state not in (ReviewState.DECLINED.value, ReviewState.DECLINED_BY_RECOMMENDER.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.CANCELLED.value):
+            if not pciRRactivated and review.review_state == ReviewState.AWAITING_REVIEW.value:
                 review_vars["actions"].append(dict(
                     text=current.T("Change date of the review due"),
                     link=URL(c="recommender_actions", f="change_review_due_date", vars=dict(reviewId=review.id))
