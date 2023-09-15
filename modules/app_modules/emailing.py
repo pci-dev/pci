@@ -3339,7 +3339,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
-    hashtag_template = emailing_tools.getCorrectHashtag("#ConditionalRecommenderAcceptationReview", article)
+    hashtag_template = "#ConditionalRecommenderAcceptationReview"
 
     buttons = conditional_acceptation_review_mail_button(review.id)
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
@@ -3403,11 +3403,11 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
     if accept:
-        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderAcceptReviewNewDelay", article)
+        hashtag_template = "#RecommenderAcceptReviewNewDelay"
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, reviewer_invitation_buttons=get_go_to_review_button(review.id, article.id, reviewer))
 
     else:
-        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDeclineReviewNewDelay", article)
+        hashtag_template = "#RecommenderDeclineReviewNewDelay"
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
@@ -3446,6 +3446,6 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
     
-    hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderAcceptationReview", article)
+    hashtag_template = "#ReminderRecommenderAcceptationReview"
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, reviewer_invitation_buttons=buttons)
