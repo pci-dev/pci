@@ -4,7 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import Optional, cast, Any
+from typing import Optional, cast, Any, Dict
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -3341,7 +3341,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
 
     hashtag_template = "#ConditionalRecommenderAcceptationReview"
 
-    buttons = conditional_acceptation_review_mail_button(review.id)
+    buttons = conditional_acceptation_review_mail_button(review.id, mail_vars)
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
 
     create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons)
@@ -3350,14 +3350,20 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     emailing_tools.getFlashMessage(session, reports)
 
 
-def conditional_acceptation_review_mail_button(review_id: int):
+def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[str, Any]):
     return DIV(
             A(
                 SPAN(
                     current.T("Yes, I accept delay"),
                     _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                 ),
-                _href=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review_id), user_signature=True),
+                _href=URL(c="recommender_actions",
+                          f="accept_new_delay_to_reviewing",
+                          vars=dict(reviewId=review_id),
+                          user_signature=True,
+                          scheme=mail_vars["scheme"],
+                          host=mail_vars["host"],
+                          port=mail_vars["port"]),
                 _style="text-decoration: none; display: block",
             ),
             B(current.T("OR")),
@@ -3366,7 +3372,13 @@ def conditional_acceptation_review_mail_button(review_id: int):
                     current.T("No, I don't accept"),
                     _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                 ),
-                _href=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review_id), user_signature=True),
+                _href=URL(c="recommender_actions",
+                          f="decline_new_delay_to_reviewing",
+                          vars=dict(reviewId=review_id),
+                          user_signature=True,
+                          scheme=mail_vars["scheme"],
+                          host=mail_vars["host"],
+                          port=mail_vars["port"]),
                 _style="text-decoration: none; display: block",
             ),
             _style="width: 100%; text-align: center; margin-bottom: 25px;",
@@ -3404,7 +3416,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
 
     if accept:
         hashtag_template = "#RecommenderAcceptReviewNewDelay"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, reviewer_invitation_buttons=get_go_to_review_button(review.id, article.id, reviewer))
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, reviewer_invitation_buttons=get_go_to_review_button(review.id, article.id, reviewer, mail_vars))
 
     else:
         hashtag_template = "#RecommenderDeclineReviewNewDelay"
@@ -3413,7 +3425,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
 
-def get_go_to_review_button(review_id: int, article_id: int, user: User):
+def get_go_to_review_button(review_id: int, article_id: int, user: User, mail_vars: Dict[str, Any]):
     url_vars = dict(articleId=article_id, key=user.reset_password_key, reviewId=review_id)
     return DIV(
                 A(
@@ -3421,7 +3433,12 @@ def get_go_to_review_button(review_id: int, article_id: int, user: User):
                         current.T(f"Go to the recommendation"),
                         _style="margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; background: #93c54b",
                     ),
-                    _href=URL(c='default', f='invitation_to_review',  vars=url_vars),
+                    _href=URL(c='default',
+                              f='invitation_to_review',
+                              vars=url_vars,
+                              scheme=mail_vars["scheme"],
+                              host=mail_vars["host"],
+                              port=mail_vars["port"]),
                     _style="text-decoration: none; display: block",
                 ), 
                 _style="width: 100%; text-align: center; margin-bottom: 25px;"
