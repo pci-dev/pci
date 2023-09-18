@@ -114,6 +114,9 @@
 <script src="{{=URL('static', 'js/pci/remove_head_sort.js')}}"></script>
 {{pass}}
 
+{{if 'confirmationScript' in locals():}}
+{{=confirmationScript}}
+{{pass}}
 
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>

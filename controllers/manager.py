@@ -970,6 +970,7 @@ def edit_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+    confirmationScript = common_tools.get_script("confirmation.js")
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -978,6 +979,7 @@ def edit_article():
         pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
         form=form,
         myFinalScript=myFinalScript,
+        confirmationScript=confirmationScript,
     )
 
 
