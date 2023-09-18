@@ -48,6 +48,7 @@ class Review(Row):
     review_duration: _[str]
     anonymous_agreement: _[bool]
     suggested_reviewers_send: _[bool]
+    due_date: _[datetime]
 
 
     @staticmethod

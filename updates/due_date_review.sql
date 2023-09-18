@@ -1,0 +1,2 @@
+ALTER TABLE t_reviews 
+ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;

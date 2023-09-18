@@ -1120,6 +1120,7 @@ db.define_table(
     Field("quick_decline_key", type="text", length=512, label=T("Quick decline key"), readable=False, writable=False),
     Field("reviewer_details", type="text", length=512, label=T("Reviewer details"), readable=False, writable=False),
     Field("suggested_reviewers_send", type="boolean", label=T("Suggested reviewers send")),
+    Field("due_date", type="datetime", label=("Due date")),
     singular=T("Review"),
     plural=T("Reviews"),
     migrate=False,
