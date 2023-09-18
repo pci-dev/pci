@@ -18,7 +18,6 @@ from app_modules.helper import *
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules.reminders import getDefaultReviewDuration
 
 from models.review import ReviewDuration, ReviewState, Review
 
@@ -1083,7 +1082,7 @@ db.review_duration_scheduled_track = "Five working days"
 db.review_duration_requires = IS_IN_SET(db.review_duration_choices
         + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
 )
-db.review_duration_default = getDefaultReviewDuration()
+db.review_duration_default = Review.get_default_review_duration()
 
 db.define_table(
     "t_reviews",

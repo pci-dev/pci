@@ -33,6 +33,7 @@ from app_modules import emailing
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
+from models.review import Review
 
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing import isScheduledTrack
@@ -1671,8 +1672,8 @@ def email_for_registered_reviewer():
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
         
-        review.review_duration = form.vars.review_duration
-        review.update_record()
+        Review.set_review_duration(review, form.vars.review_duration)
+
         try:
                 emailing.send_reviewer_invitation(
                     session,

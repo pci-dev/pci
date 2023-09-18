@@ -1,10 +1,14 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, cast
+from gluon.contrib.appconfig import AppConfig
 from models.recommendation import Recommendation
 from pydal.objects import Row, Rows
 from pydal import DAL
+
+myconf = AppConfig(reload=True)
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 class ReviewDuration(Enum):
     TWO_WEEK = 'Two weeks'
@@ -85,6 +89,8 @@ class Review(Row):
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
+        if review.review_duration:
+            review.due_date = Review.get_due_date_from_review_duration(review)
         return review.update_record()
     
 
@@ -97,6 +103,9 @@ class Review(Row):
     @staticmethod
     def set_review_duration(review: Review, review_duration: str):
         review.review_duration = review_duration
+        due_date = Review.get_due_date_from_review_duration(review)
+        if due_date:
+            review.due_date = due_date
         return review.update_record()
     
 
@@ -114,3 +123,67 @@ class Review(Row):
     @staticmethod
     def is_reviewer_also_recommender(db: DAL, recommendation: Recommendation):
         return cast(bool, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).count() == 1)
+
+
+    @staticmethod
+    def set_due_date(review: Review, due_date: datetime):
+        if review.acceptation_timestamp and due_date <= review.acceptation_timestamp:
+            raise ValueError(f"Date must be after acceptation date. ({datetime.strftime(review.acceptation_timestamp, '%Y-%m-%d')})")
+        review.due_date = due_date
+        review.update_record()
+    
+
+    @staticmethod
+    def get_due_date_from_review_duration(review: Review):
+            nb_days_from_duration = Review.get_review_days_from_duration(review)
+            if review.acceptation_timestamp:
+                return review.acceptation_timestamp + timedelta(nb_days_from_duration)
+            else:
+                return datetime.today() + timedelta(nb_days_from_duration)
+    
+
+    @staticmethod
+    def get_review_days_from_duration(review: _[Review]):
+        dow = datetime.today().weekday()
+        duration: str = ''
+
+        if review and review.review_duration:
+            duration = review.review_duration
+        else:
+            duration = Review.get_default_review_duration()
+
+        days_dict = {
+                ReviewDuration.TWO_WEEK.value: 14,
+                ReviewDuration.THREE_WEEK.value: 21,
+                ReviewDuration.FOUR_WEEK.value: 28,
+                ReviewDuration.FIVE_WEEK.value: 35,
+                ReviewDuration.SIX_WEEK.value: 42,
+                ReviewDuration.SEVEN_WEEK.value: 49,
+                ReviewDuration.EIGHT_WEEK.value: 56,
+                "Five working days": 7 if dow < 5 else (7 + (7-dow))
+        }
+
+        for key, value in days_dict.items():
+            if key in duration:
+                return value
+
+        return 21
+    
+
+    @staticmethod
+    def get_review_days_from_due_date(review: _[Review]):
+        if review and review.due_date:
+            if review.acceptation_timestamp:
+                diff = review.acceptation_timestamp - review.due_date
+            else:
+                diff = datetime.today() - review.due_date
+            return diff.days
+        else:
+            return Review.get_review_days_from_duration(review)
+
+
+    @staticmethod
+    def get_default_review_duration():
+        return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
+
+        
