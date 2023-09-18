@@ -1128,7 +1128,6 @@ db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
-db.t_reviews._after_update.append(lambda s, f: reviewChangeDueDate(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
 db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
@@ -1176,20 +1175,6 @@ def notify_submitter(review):
         if nb_reviews == 1:
             pass
 
-
-def reviewChangeDueDate(s: Set, f: OpRow):
-    review = cast(Review, s.select().first())
-    if not review.review_duration:
-        return
-    
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) > 0:
-        emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
-
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) > 0:
-        emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
-    
-    if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) > 0:
-        emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
 
 def reviewSuggested(s, row):

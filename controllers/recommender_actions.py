@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from typing import cast
+from datetime import datetime
 
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
 from app_components.ongoing_recommendation import is_scheduled_submission
-
-from models.review import Review, ReviewState
 
 from models.review import Review, ReviewState
 
@@ -759,22 +758,45 @@ def change_review_due_date():
         redirect(URL('default','index'))
         return
     
-    form = SQLFORM.factory(
-            Field("review_duration", type="text", label=current.T("Choose the new duration:"), default=review.review_duration.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
-        )
+    default_value: str
+    if review.due_date:
+        default_value = review.due_date
+    else:
+        default_value = Review.get_due_date_from_review_duration(review)
+    default_value = default_value.strftime('%Y-%m-%d')
+    
+    form = FORM(INPUT(_name="review_duration", type="date", _class="date", _value=default_value),
+                INPUT(_type="submit", _value=T("Change due date"), _style="display: block; margin-left: auto; margin-right: auto; margin-top: 10px;"),
+                _class="col-sm-12", _style="text-align: center")
     
     if form.process().accepted:
-        new_duration = cast(str, form.vars['review_duration'])
-        Review.set_review_duration(review, new_duration)
+        try:
+            new_duration = datetime.strptime(form.vars['review_duration'], '%Y-%m-%d')
+            if new_duration == review.due_date:
+                session.flash = T('This date is already configured. No change.')
+                redirect(session.change_review_due_date_previous_page)
+            Review.set_due_date(review, new_duration)
+        except ValueError as error:
+            session.flash =  T('Wrong date: ') + error.args[0]
+            redirect(request.env.http_referer)
 
-        session.flash = f'Review date changed to {new_duration.lower()}'
+        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) > 0:
+                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+
+        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) > 0:
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+            
+        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) > 0:
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+
+        session.flash = f"Review date changed to {form.vars['review_duration']}"
         
         if session.change_review_due_date_previous_page:
             redirect(session.change_review_due_date_previous_page)
 
-    elif request.env.http_referer:
+    elif request.env.http_referer and 'change_review_due_date' not in request.env.http_referer:
             session.change_review_due_date_previous_page = request.env.http_referer
     
-    content = H3(T('Select the new duration whithin which the reviewer must post their review.'), _class="col-sm-12", _style="text-align: center")
+    content = H3(T('Select the new duration whithin which the reviewer must post their review.'), _class="col-sm-12", _style="text-align: center; margin-bottom: 10px")
 
     return dict(content=content, form=form)
