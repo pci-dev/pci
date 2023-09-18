@@ -499,6 +499,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 authors=None,
                 text=None,
                 pdfLink=None,
+                state=None,
             )
             # ... but:
             # ... the author for a closed decision/recommendation ...
@@ -602,7 +603,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                         _style="font-weight: bold; margin-bottom: 5px; display:block",
                     )
                     reviewVars.update([("pdfLink", pdfLink)])
-
+            reviewVars.update([("state", review.review_state)])
             reviewsList.append(reviewVars)
 
         # Reommendation label

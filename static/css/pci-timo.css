@@ -104,6 +104,11 @@
         max-width: 7rem;
     }
 
+    .unfinished-label {
+        color: red;
+        font-style: italic;
+    }
+
     .recommender-preprints-table .pci-status {
         width: 12em;
         max-width: 12rem;
