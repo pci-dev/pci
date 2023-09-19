@@ -1381,10 +1381,11 @@ def send_review_cancellation():
     replyto_address = "%s, %s" % (replyto.email, myconf.take("contacts.managers"))
     default_subject = emailing.patch_email_subject(default_subject, recomm.article_id)
     default_cc = '%s, %s'%(replyto.email, contact)
+    ccAddresses = ",".join(emailing_tools.exempt_addresses(db, default_cc.split(","), hashtag_template))
 
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=default_cc),
+        Field.CC(default=ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1466,8 +1467,8 @@ def send_reviewer_generic_mail():
     contact = myconf.take("contacts.managers")
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
-
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#ReviewerGenericMail")
+    hashtag_template = "#ReviewerGenericMail"
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
 
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -1486,10 +1487,11 @@ def send_reviewer_generic_mail():
 
     replyTo = ", ".join([replyto.email, contact])
     default_cc = '%s, %s'%(sender_email, contact)
+    ccAddresses = ",".join(emailing_tools.exempt_addresses(db, default_cc.split(","), hashtag_template))
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=default_cc),
+        Field.CC(default=ccAddresses),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1631,11 +1633,12 @@ def email_for_registered_reviewer():
     
     replyto_address = "%s, %s" % (sender.email, myconf.take("contacts.managers"))
     default_cc = '%s, %s'%(sender.email, myconf.take("contacts.managers"))
+    ccAddresses = ",".join(emailing_tools.exempt_addresses(db, default_cc.split(","), hashtag_template))
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default_cc),
+        Field.CC(ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1776,11 +1779,12 @@ def email_for_new_reviewer():
 
     replyto_address = "%s, %s" % (sender.email, myconf.take("contacts.managers"))
     default_cc = '%s, %s'%(sender.email, myconf.take('contacts.managers'))
+    ccAddresses = ",".join(emailing_tools.exempt_addresses(db, default_cc.split(","), hashtag_template))
 
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=default_cc),
+        Field.CC(default=ccAddresses),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_NOT_EMPTY()),
