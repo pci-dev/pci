@@ -284,6 +284,21 @@ def list_addresses(addresses):
                 if addresses else []
 
 #######################################################################################################################################################################
+def exempt_addresses(db, addresses, hashtag_template):
+    for address in addresses:
+        user_id = db(db.auth_user.email == address).select(db.auth_user.id).last()
+        if user_id:
+            user = db.auth_user[user_id.id]
+            email_options = ",".join(user.email_options)
+            if user.email_options == []:
+                addresses.remove(address)
+            elif "authors" not in email_options and "Submitter" in hashtag_template:
+                addresses.remove(address)
+            elif "reviewers"  not in  email_options and ("Reviewer" in hashtag_template or "Review" in hashtag_template):
+                addresses.remove(address)
+    return addresses
+
+#######################################################################################################################################################################
 def clean_addresses(dirty_string_adresses):
     '''
     creates a string of clean mail addresses, divided by comma
