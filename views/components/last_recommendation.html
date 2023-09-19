@@ -30,7 +30,7 @@
 {{if 'recommText' in locals():}}
   {{=DIV(recommDateinfos)}} 
 {{pass}}
-
+{{=DIV(cite)}}
 
 <!-- PCI RR related preprint (stages) -->
 {{if ('isStage2' in locals() and 'pciRRactivated' in locals()):}}
@@ -85,7 +85,6 @@
   </div>
 
   <div>
-    {{=DIV(cite)}}
     {{=DIV(info)}}
     {{=DIV(funding)}}
   </div>
