@@ -65,7 +65,9 @@ def list_users():
     if len(request.args) == 1: # list/search view (i.e. not edit form)
         db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)
         db.auth_user.thematics.type = "string" # for advanced search dd, vs "list:string" in edit form
-
+    if not pciRRactivated:
+        db.auth_user.email_options.readable = False
+        db.auth_user.email_options.writable = False
     fields = [
         db.auth_user.id,
         db.auth_user.registration_key,
