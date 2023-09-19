@@ -3416,33 +3416,12 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
 
     if accept:
         hashtag_template = "#RecommenderAcceptReviewNewDelay"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, reviewer_invitation_buttons=get_go_to_review_button(review.id, article.id, reviewer, mail_vars))
-
     else:
         hashtag_template = "#RecommenderDeclineReviewNewDelay"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
 
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
-
-def get_go_to_review_button(review_id: int, article_id: int, user: User, mail_vars: Dict[str, Any]):
-    url_vars = dict(articleId=article_id, key=user.reset_password_key, reviewId=review_id)
-    return DIV(
-                A(
-                    SPAN(
-                        current.T(f"Go to the recommendation"),
-                        _style="margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; background: #93c54b",
-                    ),
-                    _href=URL(c='default',
-                              f='invitation_to_review',
-                              vars=url_vars,
-                              scheme=mail_vars["scheme"],
-                              host=mail_vars["host"],
-                              port=mail_vars["port"]),
-                    _style="text-decoration: none; display: block",
-                ), 
-                _style="width: 100%; text-align: center; margin-bottom: 25px;"
-            )
 
 ########################################################
 
