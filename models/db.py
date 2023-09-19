@@ -1259,6 +1259,9 @@ def reviewDone(s, f):
         if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id)
 
+        if o.review_state == ReviewState.AWAITING_RESPONSE.value and f["review_state"] == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o.id)
+
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"])
