@@ -3097,4 +3097,4 @@ ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;
 
 --2023-09-13 updates/email_options.sql
 ALTER TABLE "auth_user" 
-ADD COLUMN "email_options" character varying(1024) DEFAULT '||'::character varying;
+ADD COLUMN "email_options" character varying(1024) DEFAULT '|Email to reviewers|Email to authors|'::character varying;
