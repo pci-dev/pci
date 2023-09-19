@@ -1262,6 +1262,11 @@ def reviewDone(s, f):
         if o.review_state == ReviewState.AWAITING_RESPONSE.value and f["review_state"] == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o.id)
 
+        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and f["review_state"] == ReviewState.AWAITING_REVIEW.value:
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
+
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, o["id"])
