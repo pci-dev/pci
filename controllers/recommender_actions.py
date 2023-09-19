@@ -717,14 +717,18 @@ def decline_new_delay_to_reviewing():
 def _new_delay_to_reviewing_redirection(accept: bool):
     response.view = "default/myLayout.html"
 
-    message = ""
+    message1 = ""
+    message2 = ""
     if accept:
-        message = T("The review has been accepted. Email was send to user to alert he about the decision.")
+        message1 = T("Thank you for accepting this review with an extra delay.")
+        message2 = T("An email has been sent to the reviewer to inform them, and they will receive reminders to complete their review on time.")
     else:
-        message = T("The review has been declined. Email was send to user to alert he about the decision.")
+        message1 = T("The review has been declined.")
+        message2 = T("Email was send to user to alert he about the decision.")
 
     return dict(
         form=CENTER(
-            P(message),
+            P(message1, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
         )
     )
