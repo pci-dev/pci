@@ -271,7 +271,8 @@ def _declined_by_recommender_page():
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(T("Following your request for a delay, the recommender decline your reviewing of the article."))
+            P(T("Following your request for a delay, the recommender decline your reviewing of the article."),
+              _style="font-size: initial; font-weight: bold; width: 800px")
         )
     )
 
