@@ -1,3 +1,4 @@
+delete from mail_templates where hashtag = '#SubmitterGenericMail';
 INSERT INTO "mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
 (
