@@ -723,12 +723,12 @@ def _new_delay_to_reviewing_redirection(accept: bool):
         message1 = T("Thank you for accepting this review with an extra delay.")
         message2 = T("An email has been sent to the reviewer to inform them, and they will receive reminders to complete their review on time.")
     else:
-        message1 = T("The review has been declined.")
-        message2 = T("Email was send to user to alert he about the decision.")
+        message1 = T("You have declined this offer to review. Thank you for managing this request.")
+        message2 = T("An email has been sent to the reviewer to convey your decision and, as a result, they will not be reviewing this manuscript.")
 
     return dict(
         form=CENTER(
-            P(message1, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message1, _style="font-size: initial; font-weight: bold;"),
             P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
         )
     )
