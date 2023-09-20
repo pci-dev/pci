@@ -719,9 +719,11 @@ def _new_delay_to_reviewing_redirection(accept: bool):
 
     message1 = ""
     message2 = ""
+    message3 = ""
     if accept:
-        message1 = T("Thank you for accepting this review with an extra delay.")
-        message2 = T("An email has been sent to the reviewer to inform them, and they will receive reminders to complete their review on time.")
+        message1 = T("Thanks for accepting the extra delay requested to perform this review.")
+        message2 = T("An email has been sent to this reviewer to tell them that they can start their review. Automatic reminders will be sent, if necessary, to remind this reviewer to post their review in due time.")
+        message3 = T("Thanks again for managing this evaluation process!")
     else:
         message1 = T("You have declined this offer to review. Thank you for managing this request.")
         message2 = T("An email has been sent to the reviewer to convey your decision and, as a result, they will not be reviewing this manuscript.")
@@ -730,5 +732,6 @@ def _new_delay_to_reviewing_redirection(accept: bool):
         form=CENTER(
             P(message1, _style="font-size: initial; font-weight: bold;"),
             P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message3, _style="font-size: initial; font-weight: bold;")
         )
     )
