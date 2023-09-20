@@ -581,7 +581,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                             DIV(
                                 A(
                                     SPAN(current.T("Yes, I would like to review this preprint"), _class="buttontext btn btn-main-action pci-reviewer"),
-                                    _href=URL(c="default", f="invitation_to_review_preprint", vars=dict(reviewId=review.id)),
+                                    _href=URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id)),
                                     _class="button",
                                 ),
                                 A(

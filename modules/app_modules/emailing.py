@@ -1039,7 +1039,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
     reviewer = User.get_by_id(db, review.reviewer_id)
     if reviewer:
-        mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review_preprint", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
         mail_vars["destAddress"] = reviewer["email"]
 
@@ -1787,7 +1787,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
         link = URL(
                 c="default",
-                f="invitation_to_review_preprint",
+                f="invitation_to_review",
                 vars=linkVars,
                 scheme=mail_vars["scheme"],
                 host=mail_vars["host"],
