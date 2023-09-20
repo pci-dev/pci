@@ -177,7 +177,7 @@ class Review(Row):
                 diff = review.acceptation_timestamp - review.due_date
             else:
                 diff = datetime.today() - review.due_date
-            return diff.days
+            return abs(diff.days)
         else:
             return Review.get_review_days_from_duration(review)
 
