@@ -781,7 +781,7 @@ def change_review_due_date():
             redirect(request.env.http_referer)
 
         if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) > 0:
-                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
 
         if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) > 0:
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
