@@ -904,7 +904,7 @@ def set_to_not_considered(art):
             onclick=f'callNotConsideredDialog(event, {art.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=art.id), user_signature=True)}");'
     )[0]
 
-def send_back_button(art):
+def send_back_button(art): #xxx
     return A(
         SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
         _href=URL(c="manager_actions", f="prepare_send_back", vars=dict(articleId=art.id), user_signature=True),
