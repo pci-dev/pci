@@ -502,12 +502,17 @@ def invitation_to_review_acceptation():
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
         review = Review.get_by_id(db, review_id)
-        if review and not review.acceptation_timestamp:
-            if more_delay:
-                Review.accept_review(review, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
-                send_conditional_acceptation_review_mail(session, auth, db, review)
-            else:
-                Review.accept_review(review, True)
+        if review:
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                url_vars = dict(reviewId=review_id, _next=URL(c="user_actions", f="suggestion_sent_page"))
+                session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
+
+            if not review.acceptation_timestamp:
+                if more_delay:
+                    Review.accept_review(review, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
+                    send_conditional_acceptation_review_mail(session, auth, db, review)
+                else:
+                    Review.accept_review(review, True)
 
     reset_password_key = get_reset_password_key(request)
     user: Optional[User] = None

@@ -258,6 +258,7 @@ def accept_review_confirmed(): # no auth required
         redirect(next)
 
     message = T("Thank you for agreeing to review this article!")
+    form: FORM
 
     if review.review_state == ReviewState.AWAITING_REVIEW.value:
         form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
@@ -265,7 +266,11 @@ def accept_review_confirmed(): # no auth required
     elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
         return _declined_by_recommender_page()
     elif review.acceptation_timestamp:
-        return _awaiting_recommender_response_page(message)
+        if not review.suggested_reviewers_send:
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                next = URL(c="user_actions", f="suggestion_sent_page")
+            form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _awaiting_recommender_response_page(message, form)
 
 def _declined_by_recommender_page():
     response.view = "default/info.html"
@@ -276,12 +281,13 @@ def _declined_by_recommender_page():
         )
     )
 
-def _awaiting_recommender_response_page(message: str):
+def _awaiting_recommender_response_page(message: str, form: FORM):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
             P(message, _style="font-size: initial; font-weight: bold"),
-            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: initial; font-weight: bold; width: 800px")
+            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: initial; font-weight: bold; width: 800px"),
+            form if form else DIV(_style="height: 20em;")
         )
     )
 
@@ -292,8 +298,19 @@ def _accept_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(message),
+            P(message, _style="font-size: initial; font-weight: bold; width: 800px"),
             form if form else DIV(_style="height: 20em;"),
+        )
+    )
+
+def suggestion_sent_page():
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(T("Thank you for these suggestions and thanks for agreeing to review this article!"),
+              _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(T("As a reminder your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."),
+              _style="font-size: initial; font-weight: bold; width: 800px")
         )
     )
 
