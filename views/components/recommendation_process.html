@@ -287,6 +287,12 @@
             {{=review['text']}}
           {{pass}}
 
+          {{if review['state'] == 'Awaiting review':}}
+            <div class="unfinished-label">
+              In progress, not completed yet.
+            </div>
+          {{pass}}
+
           {{if review['pdfLink'] is not None:}}
             {{=review['pdfLink']}}
           {{pass}}
