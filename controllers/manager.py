@@ -7,7 +7,8 @@ import datetime
 from datetime import timedelta
 import glob
 import os
-from typing import List, cast
+from typing import List, cast, Optional
+
 
 # sudo pip install tweepy
 # import tweepy
@@ -46,6 +47,7 @@ from app_modules.common_small_html import md_to_html
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
 from models.article import ArticleStatus
+from models.user import User
 
 
 myconf = AppConfig(reload=True)
@@ -1661,3 +1663,55 @@ def recommender_breakdown():
     resu["pageHelp"] = getHelp(request, auth, db, page_help_dict[action])
     return resu
 
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def email_for_recommender():
+    response.view = "default/myLayout.html"
+    articleId = request.vars["articleId"]
+    lastRecomm = request.vars["lastRecomm"]
+
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    if lastRecomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    article = db.t_articles[articleId]
+    if not article:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    recomm = db.get_last_recomm(articleId)
+    if not recomm:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"):
+        sender = User.get_by_id(db, recommendation.recommender_id)
+    else:
+        sender = cast(User, auth.user)
+
+    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, sender, article, recomm, recommender.last_name)
+
+    form=''
+
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+    )

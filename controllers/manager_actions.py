@@ -319,7 +319,7 @@ def delete_recommendation_file():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
-def prepare_send_back():
+def prepare_send_back(): #xxx
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -340,7 +340,7 @@ def prepare_send_back():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
-def do_send_back_decision(): #xxx
+def do_send_back_decision():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)

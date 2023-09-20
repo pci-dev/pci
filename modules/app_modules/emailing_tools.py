@@ -104,6 +104,85 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
+def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, recommender_last_name: Optional[str] = None):
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
+
+    mail_vars = getMailCommonVars()
+    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+    r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
+    trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
+    # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
+    # to pass only the url value to the template instead of the full link html;
+    # doing this yields invalid url for the link in the template when no doc exists.
+
+    mail_vars["description"] = myconf.take("app.description")
+    mail_vars["longname"] = myconf.take("app.longname") # DEPRECATED
+    mail_vars["appLongName"] = myconf.take("app.longname")
+    mail_vars["appName"] = myconf.take("app.name")
+    mail_vars["thematics"] = myconf.take("app.thematics")
+    mail_vars["scheme"] = scheme
+    mail_vars["host"] = host
+    mail_vars["port"] = port
+    mail_vars["site_url"] = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    mail_vars["art_authors"] = mkAuthors(article)
+    mail_vars["authors"] = mail_vars["art_authors"]
+    mail_vars["articleAuthors"] = mail_vars["art_authors"]
+    mail_vars["r2r_url"] = r2r_url
+    mail_vars["trackchanges_url"] = trackchanges_url
+
+    if reviewer_last_name:
+        mail_vars["LastName"] = reviewer_last_name
+    
+    if recommendation.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+    elif article.doi:
+        mail_vars["art_doi"] = common_small_html.mkLinkDOI(article.doi)
+        mail_vars["articleDoi"] = mail_vars["art_doi"]
+
+    if article.title:
+        mail_vars["art_title"] = common_small_html.md_to_html(article.title)
+        mail_vars["articleTitle"] = mail_vars["art_title"]
+
+    if auth.user_id == recommendation.recommender_id:
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+
+    elif is_co_recommender:
+        sender = cast(User, auth.user)
+        mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
+        mail_vars["Institution"] = sender.institution
+        mail_vars["Department"] = sender.laboratory
+        mail_vars["country"] = sender.country
+
+        if sender.first_name and sender.last_name:
+            mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
+    
+    elif auth.has_membership(role="manager"):
+        recommender = User.get_by_id(db, recommendation.recommender_id)
+        if recommender:
+            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+            mail_vars["Institution"] = recommender.institution
+            mail_vars["Department"] = recommender.laboratory
+            mail_vars["country"] = recommender.country
+
+            if recommender.first_name and recommender.last_name:
+                mail_vars["senderName"] = recommender.first_name + ' ' + recommender.last_name
+
+    return mail_vars
+
+
+######################################################################################################################################################################
+
 def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None, new_round: Optional[bool] = False) :
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
