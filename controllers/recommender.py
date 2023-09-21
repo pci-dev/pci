@@ -1550,6 +1550,8 @@ def email_for_registered_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
+
+    recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
     
     article = Article.get_by_id(db, recommendation.article_id)
     if not article:
@@ -1595,6 +1597,9 @@ def email_for_registered_reviewer():
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", article)
+
+    if recomm_round > 1:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
 
     destPerson = common_small_html.mkUser(auth, db, reviewer_id).flatten()
 
@@ -1744,7 +1749,7 @@ def email_for_new_reviewer():
 
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
     if recomm_round > 1:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewReviewerNewUserNextRound", article)
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
     else:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
@@ -1830,7 +1835,10 @@ def email_for_new_reviewer():
             declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
                     scheme=scheme, host=host, port=port)
             if existingUser:
-                    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
+                    if recomm_round > 1:
+                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
+                    else:
+                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
                     reset_password_key = None
                     linkTarget = URL(
                         c="default",
@@ -1842,7 +1850,7 @@ def email_for_new_reviewer():
                     )
             else:
                     if recomm_round > 1:
-                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewReviewerNewUserNextRound", article)
+                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
                     else:
                         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
                     linkTarget = None
