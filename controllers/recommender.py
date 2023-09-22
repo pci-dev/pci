@@ -2537,7 +2537,7 @@ def article_reviews_emails():
     user_mail = db.auth_user[auth.user_id].email
     query = (db.mail_queue.article_id == articleId) & (db.mail_queue.cc_mail_addresses.ilike("%" + user_mail + "%") | db.mail_queue.dest_mail_address.ilike(user_mail) | db.mail_queue.replyto_addresses.ilike("%" + user_mail + "%"))
 
-    grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid(
         db(query),
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
@@ -2555,8 +2555,8 @@ def article_reviews_emails():
             db.mail_queue.sending_date,
             db.mail_queue.sending_attempts,
             db.mail_queue.dest_mail_address,
-            db.mail_queue.cc_mail_addresses,
-            db.mail_queue.replyto_addresses,
+            #db.mail_queue.cc_mail_addresses,
+            #db.mail_queue.replyto_addresses,
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
@@ -2567,6 +2567,19 @@ def article_reviews_emails():
         _class="web2py_grid action-button-absolute",
     )
 
+    # options to be removed from the search dropdown:
+    remove_options = ['mail_queue.sending_date', 'mail_queue.user_id', 'mail_queue.recommendation_id',
+                      'mail_queue.article_id', 'mail_queue.review_id', 'mail_queue.reminder_count',
+                      'mail_queue.sender_name']
+
+    # options that must be handled as integers
+    integer_fields = []
+
+    # the grid is adjusted after creation to adhere to our requirements
+    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options, integer_fields)
+    except: grid = original_grid
+
+
     myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
         titleIcon="send",
@@ -2574,7 +2587,7 @@ def article_reviews_emails():
         customText=getText(request, auth, db, "#ArticleReviewsEmailsText"),
         pageHelp=getHelp(request, auth, db, "#ArticleReviewsEmails"),
         myBackButton=common_small_html.mkBackButton(),
-        grid=grid,
+        grid=original_grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
