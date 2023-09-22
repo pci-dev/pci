@@ -117,6 +117,7 @@ def request_endorsement(req):
     if not user:
         user = create_new_user(user_email, user_name)
 
+    article = create_prefilled_submission(req, user)
     emailing.send_to_coar_requester(session, auth, db, user)
 
 
@@ -135,6 +136,19 @@ def create_new_user(user_email, user_name):
     )
     new_user = db.auth_user(new_user_id)
     return new_user
+
+
+def create_prefilled_submission(req, user):
+    article_data = req["object"]
+    author_data = req["actor"]
+    coar_req_id = req["id"] # store in db for cancel, or lookup article by url?
+
+    return \
+    db.t_articles.insert(
+        user_id=user.id,
+        doi=article_data["url"]["id"],
+        authors=author_data["name"],
+    )
 
 
 def validate_request(body, content_type, coar_notifier):
