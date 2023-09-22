@@ -99,7 +99,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
                         with_reviewers=False, linked=False,
                         host=host, port=port, scheme=scheme,
                         recomm=finalRecomm, this_recomm_only=True,
-                        )
+                        citation=True)
     cite = DIV(
         SPAN(
             B("Cite this recommendation as:", _class="pci2-main-color-text"),

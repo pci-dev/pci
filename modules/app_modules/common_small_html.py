@@ -169,16 +169,19 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 
 ######################################################################################################################################################################
-def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
+def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False):
     if theUser:
         if linked:
+            if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
+            else: b_tag = B("%s %s" % (theUser.first_name, theUser.last_name))
             resu = A(
-                B("%s, %s." % (theUser.last_name, theUser.first_name[0])),
+                b_tag,
                 _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)),
                 _class="cyp-user-profile-link",
             )
         else:
-            resu = SPAN("%s, %s." % (theUser.last_name, theUser.first_name[0]))
+            if reverse: resu = SPAN("%s, %s." % (theUser.last_name, theUser.first_name[0]))
+            else: resu = SPAN("%s %s" % (theUser.first_name, theUser.last_name))
     else:
         resu = SPAN("?")
     return resu
@@ -771,7 +774,7 @@ def mkReviewersString(auth, db, articleId):
 # builds names list (recommender, co-recommenders, reviewers)
 def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False,
                               host=False, port=False, scheme=False,
-                              this_recomm_only=False,
+                              this_recomm_only=False, citation=False,
                              ):
     whoDidIt = []
 
@@ -800,12 +803,18 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 ir += 1
                 if as_list:
                     whoDidIt.append(mk_user_name(theUser))
+                elif citation:
+                    if theUser['id']:
+                        theUser = db.auth_user[theUser['id']]
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True))
+                    else:
+                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
+                        whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -838,6 +847,16 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 ir += 1
                 if as_list:
                     whoDidIt.append(mk_user_name(theUser))
+                elif citation:
+                    if theUser['id']:
+                        theUser = db.auth_user[theUser['id']]
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True))
+                    else:
+                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))                  
+                    if ir == nr - 1 and ir >= 1:
+                        whoDidIt.append(current.T(" and "))
+                    elif ir < nr:
+                        whoDidIt.append(", ")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
