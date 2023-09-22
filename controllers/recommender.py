@@ -1598,7 +1598,7 @@ def email_for_registered_reviewer():
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", article)
 
-    if recomm_round > 1:
+    if recomm_round > 1 and not pciRRactivated:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
 
     destPerson = common_small_html.mkUser(auth, db, reviewer_id).flatten()
@@ -1748,7 +1748,7 @@ def email_for_new_reviewer():
 
 
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
-    if recomm_round > 1:
+    if recomm_round > 1 and not pciRRactivated:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
     else:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
@@ -1835,7 +1835,7 @@ def email_for_new_reviewer():
             declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
                     scheme=scheme, host=host, port=port)
             if existingUser:
-                    if recomm_round > 1:
+                    if recomm_round > 1 and not pciRRactivated:
                         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
                     else:
                         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
@@ -1849,7 +1849,7 @@ def email_for_new_reviewer():
                         port=port,
                     )
             else:
-                    if recomm_round > 1:
+                    if recomm_round > 1 and not pciRRactivated:
                         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
                     else:
                         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
