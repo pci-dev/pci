@@ -68,7 +68,7 @@ def mail_templates():
         redirect_url = URL()
 
     db.mail_templates.lang.writable = False
-    db.mail_templates.hashtag.writable = auth.has_membership(role="developer")
+    db.mail_templates.hashtag.writable = auth.has_membership(role="developer") or auth.has_membership(role="administrator")
 
     db.mail_templates.subject.readable = False
     db.mail_templates.subject.writable = True
