@@ -1598,7 +1598,7 @@ def email_for_registered_reviewer():
     if new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", article)
 
-    if recomm_round > 1 and not pciRRactivated:
+    if recomm_round > 1 and not pciRRactivated and not new_round:
         hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
 
     destPerson = common_small_html.mkUser(auth, db, reviewer_id).flatten()
