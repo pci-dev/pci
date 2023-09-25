@@ -780,14 +780,20 @@ def change_review_due_date():
             session.flash =  T('Wrong date: ') + error.args[0]
             redirect(request.env.http_referer)
 
-        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) or 0 > 0:
-            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+        soon_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
+        review_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) or 0) == 0
+        over_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
 
-        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) or 0 > 0:
+        if soon_due_sent and review_due_sent:
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
-            
-        if emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) or 0 > 0:
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+        else:
+            if not soon_due_sent:
+                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+            if not review_due_sent:
+                emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+            if not over_due_sent:
+                emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
         session.flash = f"Review date changed to {form.vars['review_duration']}"
         
