@@ -148,6 +148,7 @@ def create_prefilled_submission(req, user):
         user_id=user.id,
         doi=article_data["url"]["id"],
         authors=author_data["name"],
+        status="Pre-submission",
     )
 
 
