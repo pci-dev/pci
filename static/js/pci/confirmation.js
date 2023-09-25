@@ -1,11 +1,20 @@
-let status_field = document.querySelector('#t_articles_status');
-let status_field_value = status_field.value;
+let confirmation_change_fields = ['#t_articles_status', '#t_recommendations_recommendation_state'];
+let field_to_message = {'#t_articles_status': 'Are you sure you want to change the article status?',
+                        '#t_recommendations_recommendation_state': 'Are you sure you want the change the recommendation state?'}
 
-status_field.addEventListener("focus", function(event) {
-    status_field_value = event.target.value;
-  });
+let status_field = false;
+let message = false;
+for (let i=0; i<confirmation_change_fields.length; i++) {
+    status_field = document.querySelector(confirmation_change_fields[i]);
+    message = field_to_message[confirmation_change_fields[i]];
+}
 
 if (status_field) {
+    let status_field_value = status_field.value;
+    status_field.addEventListener("focus", function(event) {
+        status_field_value = event.target.value;
+    });
+    
     // create confirmation modal
     let modal = document.createElement('div');
     modal.id = "confirm-change-modal";
@@ -17,7 +26,7 @@ if (status_field) {
 
     let modal_body = document.createElement('div');
     modal_body.classList.add('modal-body');
-    modal_body.innerHTML = 'Are you sure you want to change the article status?';
+    modal_body.innerHTML = message;
 
     let modal_footer = document.createElement('div');
     modal_footer.classList.add('modal-footer');

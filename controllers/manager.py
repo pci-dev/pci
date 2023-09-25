@@ -631,6 +631,8 @@ def manage_recommendations():
         grid.element(_title="Add record to database")["_title"] = T("Manually add new round of recommendation. Expert use!!")
     myContents = DIV(DIV(article_components.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
 
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManageRecommendations"),
@@ -641,6 +643,7 @@ def manage_recommendations():
         grid=grid,
         deleteFileButtonsScript=common_tools.get_script("add_delete_file_buttons_manager.js"),
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        confirmationScript=confirmationScript,
     )
 
 
