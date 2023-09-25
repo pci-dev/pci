@@ -224,6 +224,8 @@ def user():
     if request.args and len(request.args) > 0:
 
         if request.args[0] == "login":
+            if auth.user_id:
+                redirect(URL('default','index'))
             titleIcon = "log-in"
             pageTitle = getTitle(request, auth, db, "#LogInTitle")
             pageHelp = getHelp(request, auth, db, "#LogIn")
@@ -237,6 +239,8 @@ def user():
                 auth.settings.login_next = suite
 
         elif request.args[0] == "register":
+            if auth.user_id:
+                redirect(URL('default','index'))
             titleIcon = "edit"
             pageTitle = getTitle(request, auth, db, "#CreateAccountTitle")
             pageHelp = getHelp(request, auth, db, "#CreateAccount")
