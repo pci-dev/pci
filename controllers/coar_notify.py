@@ -118,7 +118,7 @@ def request_endorsement(req):
         user = create_new_user(user_email, user_name)
 
     article = create_prefilled_submission(req, user)
-    emailing.send_to_coar_requester(session, auth, db, user)
+    emailing.send_to_coar_requester(session, auth, db, user, article)
 
 
 def create_new_user(user_email, user_name):

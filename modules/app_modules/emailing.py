@@ -3138,14 +3138,14 @@ def delete_all_reminders_from_recommendation_id(db, recommendationId):
 
 
 ######################################################################################################################################################################
-def send_to_coar_requester(session, auth, db, user):
+def send_to_coar_requester(session, auth, db, user, article):
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["linkTarget"] = URL(
-        c="default", f="user", args=["reset_password"],
-        vars=dict(key=user.reset_password_key),
+        c="user", f="edit_my_article",
+        vars=dict(articleId=article.id, key=user.reset_password_key),
         scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
     )
 
