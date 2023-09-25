@@ -173,10 +173,7 @@ class Review(Row):
     @staticmethod
     def get_review_days_from_due_date(review: _[Review]):
         if review and review.due_date:
-            if review.acceptation_timestamp:
-                diff = review.acceptation_timestamp - review.due_date
-            else:
-                diff = datetime.today() - review.due_date
+            diff = datetime.today() - review.due_date
             return abs(diff.days)
         else:
             return Review.get_review_days_from_duration(review)
