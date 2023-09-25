@@ -809,6 +809,10 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
+                    if ir == nr - 1 and ir >= 1:
+                        whoDidIt.append(current.T(" and "))
+                    elif ir < nr:
+                        whoDidIt.append(", ")
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -902,6 +906,7 @@ def mk_user_name(user, _type=""):
         get_name_from_details(user[_type+"details"])
         or mkUser_U(None, None, user[_type+"id"]).flatten()
     )
+
 
 def get_name_from_details(user_details, reverse=False):
     user_details = user_details[:user_details.rfind(' [')] \
