@@ -444,7 +444,7 @@ def insertMailInQueue(
         reviewer_invitation_buttons=reviewer_invitation_buttons,
     )
 
-    db.mail_queue.insert(
+    return db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=mail_vars.get("ccAddresses"),
         replyto_addresses=mail_vars.get("replytoAddresses"),
