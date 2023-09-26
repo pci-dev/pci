@@ -89,6 +89,7 @@ def inbox():
 def process_request(req):
     request_handlers = {
         "Offer coar-notify:EndorsementAction": request_endorsement,
+        "Undo": cancel_endorsement,
     }
     req_type = req["type"] if "type" in req.keys() else None
 
@@ -119,6 +120,20 @@ def request_endorsement(req):
 
     article = create_prefilled_submission(req, user)
     emailing.send_to_coar_requester(session, auth, db, user, article)
+
+
+def cancel_endorsement(req):
+    coar_req_id = req["object"]["id"]
+
+    article = db(db.t_articles.coar_notification_id == coar_req_id) \
+                .select().first()
+    if not article:
+        raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body=f"no such offer: object.id='{coar_req_id}'")
+
+    article.status = "Cancelled"
+    article.update_record()
 
 
 def create_new_user(user_email, user_name):
