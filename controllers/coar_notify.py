@@ -141,7 +141,7 @@ def create_new_user(user_email, user_name):
 def create_prefilled_submission(req, user):
     article_data = req["object"]
     author_data = req["actor"]
-    coar_req_id = req["id"] # store in db for cancel, or lookup article by url?
+    coar_req_id = req["id"]
 
     return \
     db.t_articles.insert(
@@ -149,6 +149,7 @@ def create_prefilled_submission(req, user):
         doi=article_data["url"]["id"],
         authors=author_data["name"],
         status="Pre-submission",
+        coar_notification_id=coar_req_id,
     )
 
 
