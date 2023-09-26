@@ -106,11 +106,17 @@ def process_request(req):
 def request_endorsement(req):
     user_email = req["actor"]["id"]
     user_name = req["actor"]["name"]
+    coar_req_id = req["id"]
 
     if not user_email.startswith("mailto:"):
         raise HTTP(
                 status=http.HTTPStatus.BAD_REQUEST.value,
                 body="actor.id must be a 'mailto:' url")
+
+    if get_article_by_coar_req_id(coar_req_id):
+        raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body=f"already exists: request .id='{coar_req_id}'")
 
     user_email = user_email.replace("mailto:", "")
     user = db(db.auth_user.email.lower() == user_email.lower()).select().first()
@@ -125,8 +131,7 @@ def request_endorsement(req):
 def cancel_endorsement(req):
     coar_req_id = req["object"]["id"]
 
-    article = db(db.t_articles.coar_notification_id == coar_req_id) \
-                .select().first()
+    article = get_article_by_coar_req_id(coar_req_id)
     if not article:
         raise HTTP(
                 status=http.HTTPStatus.BAD_REQUEST.value,
@@ -178,6 +183,11 @@ def validate_request(body, content_type, coar_notifier):
             )
         except COARNotifyException as e:
             raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value, body=e.message) from e
+
+
+def get_article_by_coar_req_id(coar_req_id):
+    return db(db.t_articles.coar_notification_id == coar_req_id) \
+                .select().first()
 
 
 def show_coar_status():
