@@ -452,8 +452,11 @@ def _AboutMenu():
     ]
 
     if not pciRRactivated: aboutMenu += [
-        menu_entry("PCI and journals", "glyphicon-file", "https://peercommunityin.org/pci-and-journals/", new_window=True),
+        divider(),
+        menu_entry("PCI and journals", "glyphicon-link", "https://peercommunityin.org/pci-and-journals/", new_window=True),
     ]
+
+    aboutMenu += [menu_entry("Peer Community Journal", "glyphicon-link", "https://peercommunityin.org/pc-journal/", True)]
 
     if pciRRactivated: aboutMenu += [
         menu_entry("Full Policies and Procedures", "glyphicon-list-alt", URL("about", "full_policies")),
@@ -465,7 +468,7 @@ def _AboutMenu():
     ]
     else:
         aboutMenu += [
-           menu_entry("List of PCI-friendly Journals", "glyphicon-file", URL("about", "pci_friendly_journals")),
+           menu_entry("PCI-friendly Journals", "glyphicon-file", URL("about", "pci_friendly_journals")),
         ]
 
 
