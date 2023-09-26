@@ -3088,6 +3088,10 @@ GRANT SELECT ON v_recommender_stats TO pci_admin;
 ALTER TABLE "mail_queue"
 ALTER COLUMN  dest_mail_address TYPE text;
 
+-- 2023-09-26 updates/add_coar_notification_id.sql
+ALTER table t_articles
+ADD COLUMN if not exists coar_notification_id text;
+
 ALTER TABLE "mail_queue" 
 ADD COLUMN IF NOT EXISTS sender_name varchar(256);
 

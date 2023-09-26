@@ -573,6 +573,7 @@ db.define_table(
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     Field("manager_authors", type="string", length=50, default=""),
+    Field("coar_notification_id", type="text", readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
