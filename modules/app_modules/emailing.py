@@ -50,6 +50,7 @@ from models.article import Article
 from models.review import Review
 from models.recommendation import Recommendation
 from models.user import User
+from models.mail_queue import MailQueue
 
 
 myconf = AppConfig(reload=True)
@@ -3342,9 +3343,9 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     hashtag_template = "#ConditionalRecommenderAcceptationReview"
 
     buttons = conditional_acceptation_review_mail_button(review.id, mail_vars)
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
+    conditional_recommender_acceptation_review_mail_id = emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
 
-    create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons)
+    create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
@@ -3428,7 +3429,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
 
 ########################################################
 
-def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any):
+def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
     if not review or not recommendation or not article or not recommender or not buttons:
         return None
 
@@ -3444,6 +3445,11 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     mail_vars["destAddress"] = recommender.email
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+
+    mail_vars["message"] = ''
+    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(db, conditional_recommender_acceptation_review_mail_id)
+    if conditional_recommender_acceptation_review_mail:
+        mail_vars["message"] = MailQueue.get_mail_content(conditional_recommender_acceptation_review_mail)
     
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
