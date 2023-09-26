@@ -611,6 +611,8 @@ def testRedir():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def mailing_queue():
     response.view = "default/myLayout.html"
+    urlFunction = request.function
+    urlController = request.controller
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
@@ -658,7 +660,7 @@ def mailing_queue():
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row) if row.sending_status == "sent" else "")
+    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
     
     links = [
         dict(
@@ -747,7 +749,9 @@ def edit_config():
 def edit_and_resend_email():
     response.view = "default/myLayout.html"
     mailId = request.vars["mailId"]
-   
+    urlFunction = request.vars['urlFunction']
+    urlController = request.vars['urlController']
+
     if mailId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -782,7 +786,7 @@ def edit_and_resend_email():
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
-        redirect(URL(c="admin", f="mailing_queue"))
+        redirect(URL(c=urlController, f=urlFunction))
 
     return dict(
         form=form,

@@ -655,8 +655,10 @@ def edit_resend_auth():
     reviewId = request.vars['reviewId']
     recommId = request.vars['recommId']
     articleId = request.vars['articleId']
+    urlFunction = request.vars['urlFunction']
+    urlController = request.vars['urlController']
     if mailId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    redirect(URL(c="recommender", f="edit_and_resend_email", vars=dict(mailId=mailId, reviewId=reviewId, recommId=recommId, articleId=articleId)))
+    redirect(URL(c="recommender", f="edit_and_resend_email", vars=dict(mailId=mailId, reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController)))

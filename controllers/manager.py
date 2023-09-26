@@ -1306,6 +1306,8 @@ def article_emails():
 
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
+    urlFunction = request.function
+    urlController = request.controller
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
@@ -1343,17 +1345,17 @@ def article_emails():
     else:
         db.mail_queue.mail_template_hashtag.readable = False
 
-    links = [
-        dict(
-            header="",
-            body=lambda row: A(
+    link_body = lambda row: A(
                 (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            )
-            if row.sending_status == "pending"
-            else "",
+            ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
+
+    links = [
+        dict(
+            header="",
+            body = link_body,
         )
     ]
 
@@ -1367,7 +1369,7 @@ def article_emails():
         create=False,
         searchable=False,
         csv=False,
-        paginate=50,
+        paginate=None,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
         onvalidation=mail_form_processing,
