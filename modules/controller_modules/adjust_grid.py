@@ -226,6 +226,7 @@ def alphabetical_search_widget(result_table, web2py_grid):
         for c in columns_a:
             name = c.flatten(markdown)
             name_parts = name.split(' ')
+            first_char = ''
             for part in name_parts:
                 if part.isupper() and '.' not in part and len(part) > 1:
                     first_char = part[0]
