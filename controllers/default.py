@@ -490,7 +490,11 @@ def invitation_to_review():
                 pciRRactivated=pciRRactivated,
                 form=form,
                 more_delay=more_delay)
-    
+
+
+def invitation_to_review_preprint(): # legacy
+    return invitation_to_review()
+
 
 def invitation_to_review_acceptation():
     article_id = get_article_id(request)
