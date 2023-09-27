@@ -3421,7 +3421,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
     mail_vars["reviewDuration"] = review.review_duration.lower() if review.review_duration else ''
-    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
     if accept:
