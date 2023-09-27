@@ -233,6 +233,9 @@ def user():
         if request.args[0] == "login":
             if auth.user_id:
                 redirect(URL('default','index'))
+
+            intercept_reset_password_login()
+
             titleIcon = "log-in"
             pageTitle = getTitle(request, auth, db, "#LogInTitle")
             pageHelp = getHelp(request, auth, db, "#LogIn")
@@ -317,6 +320,41 @@ def user():
                 pageHelp=pageHelp,
                 form=form,
                 myFinalScript=OrcidTools.get_orcid_formatter_script())
+
+
+def intercept_reset_password_login(_next=request.vars._next):
+    from urllib.parse import parse_qs
+    key = parse_qs(_next).get("key")
+    key = key[0] if key else None
+
+    if not key: return
+    if not db.auth_user(reset_password_key=key): return
+
+    redirect(URL("reset_password", vars=dict(_key=key, _next=_next)))
+
+
+def reset_password():
+    _key = request.vars._key
+    _next = request.vars._next or request.home
+
+    if not db.auth_user(reset_password_key=_key):
+        session.flash = "reset_password: invalid _key"
+        redirect(request.home)
+
+    if type(_next) is list: _next = _next.pop()
+
+    session._reset_password_key = _key
+    form = auth.reset_password(_next)
+
+    form.element(_type="submit")["_class"] = "btn btn-success"
+
+    response.view = "default/myLayoutBot.html"
+    return dict(
+            titleIcon="lock",
+            pageTitle=getTitle(request, auth, db, "#ResetPasswordTitle"),
+            customText=getText(request, auth, db, "#ResetPasswordText"),
+            pageHelp=getHelp(request, auth, db, "#ResetPassword"),
+            form=form)
 
 
 def check_already_registered(form):
