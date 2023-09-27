@@ -467,7 +467,11 @@ def invitation_to_review():
                 user=user,
                 recommender=recommender,
                 pciRRactivated=pciRRactivated)
-    
+
+
+def invitation_to_review_preprint(): # legacy
+    return invitation_to_review()
+
 
 def invitation_to_review_acceptation():
     article_id = get_article_id(request)
