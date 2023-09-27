@@ -1256,11 +1256,14 @@ def reviewDone(s, f):
         if o["review_state"] == "Awaiting review" and f['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
-        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and o.review_state != f["review_state"]:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id)
 
         if o.review_state == ReviewState.AWAITING_RESPONSE.value and f["review_state"] == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o.id)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o.id)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o.id)
+            
 
         if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and f["review_state"] == ReviewState.AWAITING_REVIEW.value:
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
