@@ -286,7 +286,7 @@ def _awaiting_recommender_response_page(message: str, form: FORM):
     return dict(
         message=CENTER(
             P(message, _style="font-size: initial; font-weight: bold"),
-            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: large; font-weight: bold; width: 800px"),
             form if form else DIV(_style="height: 20em;")
         )
     )

@@ -114,7 +114,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
 
     return FORM(
         DIV(
-            H4("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title")
+            H5("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title", _style="font-size: initial")
         ),
         DIV(
             TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _id="suggestion-textbox", _style="resize: none")
