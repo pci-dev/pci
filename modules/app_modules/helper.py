@@ -14,7 +14,7 @@ longname = myconf.take("app.longname")
 contact = myconf.take("contacts.managers")
 siteUrl = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
 issn = "set in models/db.py"
-pciRRactivated = myconf.get("config.registered_reports", default=False)
+
 ######################################################################################################################################################################
 def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     r0 = []
@@ -141,6 +141,6 @@ def is_recommender(auth, request):
     )
 
 def is_co_recommender(auth, db, recommId):
-    return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0 and pciRRactivated
+    return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
 
