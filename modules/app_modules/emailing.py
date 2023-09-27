@@ -47,7 +47,7 @@ from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
 from models.article import Article
-from models.review import Review
+from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
 from models.mail_queue import MailQueue
@@ -1929,7 +1929,7 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
     
             mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
 
-            if review.review_state in ["Awaiting response", "Awaiting review", "Willing to review", "Review completed"]:
+            if review.review_state in [ReviewState.NEED_EXTRA_REVIEW_TIME.value, ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value, ReviewState.WILLING_TO_REVIEW.value, ReviewState.REVIEW_COMPLETED.value]:
                 hashtag_template = "#RecommenderSuggestedReviewersAccepted"
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
