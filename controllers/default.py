@@ -532,7 +532,11 @@ def invitation_to_review_acceptation():
     
     titleIcon = "user"
     pageTitle = cast(str, T("Create account"))
-    customText = cast(str, T("Thanks for accepting to review this preprint. An email has been sent to your email address. You now need to define a password to login to “My Review” page and upload your review OR you can close this window and define your login (and upload) and post your review latter."))
+    customText = CENTER(
+        P(T("Thanks for accepting to review this preprint."), _style="font-weight: bold; width: 800px"),
+        P(T("An email has been sent to your email address."), _style="font-size: initial; font-weight: bold; width: 800px"),
+        P(T("You now need to define a password to login to “My Review” page and upload your review."), BR(), T("OR"), BR(), T("You can close this window and define your login (and upload) and post your review latter."), _style="font-size: initial; font-weight: bold; width: 800px"),
+    )
     form.element(_type="submit")["_class"] = "btn btn-success"
     form.element(_type="submit")["_value"] = T("Create account")
     form.element(_id="no_table_new_password__label").components[0] = T('Define password')
