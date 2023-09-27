@@ -208,28 +208,30 @@ def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False,
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False):
+def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False):
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     else:
         theUser = None
 
-    return _mkUser(theUser, linked)
+    return _mkUser(theUser, linked, reverse)
 
 
-def _mkUser(theUser, linked=False):
+def _mkUser(theUser, linked=False, reverse=False):
         if theUser:
+            if reverse: name = "%s, %s" % (theUser.last_name, theUser.first_name)
+            else: name = "%s %s" % (theUser.first_name, theUser.last_name)
             if linked:
                 resu = SPAN(
                     A(
-                        "%s %s" % (theUser.first_name, theUser.last_name),
+                        name,
                         _href=URL(c="public", f="user_public_page",
                             scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
                     ),
                     SPAN(" [%s]" % theUser.email))
             else:
                 resu = SPAN(
-                    SPAN("%s %s" % (theUser.first_name, theUser.last_name)),
+                    SPAN(name),
                     SPAN(" [%s]" % theUser.email))
         else:
             resu = SPAN("?")
