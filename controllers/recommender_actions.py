@@ -490,7 +490,8 @@ def make_preprint_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or auth.has_membership(role="manager")):
+    co_recommender = is_co_recommender(auth, db, recomm.id)
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -515,7 +516,8 @@ def make_preprint_not_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or auth.has_membership(role="manager")):
+    co_recommender = is_co_recommender(auth, db, recomm.id)
+    if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
