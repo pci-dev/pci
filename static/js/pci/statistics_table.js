@@ -23,7 +23,10 @@ if (table) {
         $(rows[i]).height(highest);
     }
 
-    sortTable(0);
+    let params = new URLSearchParams(window.location.search);
+    if (!params.has('order')) {
+        sortTable(0);
+    }
 }
 
 
