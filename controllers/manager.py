@@ -1520,7 +1520,7 @@ def recommender_statistics():
         create=False,
         searchable=False,
         csv=False,
-        paginate=1000,
+        paginate=None,
         maxtextlength=256,
         orderby=~db.v_recommender_stats.id,
         fields=[

@@ -31,30 +31,49 @@ if (table) {
 
 
 function sortTable(columnIndex) {
-    let rows = Array.from(table.rows).slice(1); // Get all rows except the header
+    let rows = Array.from(table.rows).slice(1);
     let sortedRows;
 
     if (lastSortedColumn === columnIndex) {
-        // If the same column was clicked again, reverse the sort direction
         sortAscending = !sortAscending;
     } else {
-        // If a new column was clicked, sort in ascending order
         sortAscending = true;
         lastSortedColumn = columnIndex;
     }
 
-    // Sort the rows based on the clicked header (column)
-    if (columnIndex === 0) { // If sorting by name
+    if (columnIndex === 0) { 
         sortedRows = rows.sort((a, b) => a.cells[columnIndex].innerText.localeCompare(b.cells[columnIndex].innerText));
-    } else { // If sorting by other columns like age (assuming they are numbers)
+    } else { 
         sortedRows = rows.sort((a, b) => a.cells[columnIndex].innerText - b.cells[columnIndex].innerText);
     }
 
-    // If sorting in descending order, reverse the sorted rows
     if (!sortAscending) {
         sortedRows.reverse();
     }
 
-    // Append sorted rows back to the table
     sortedRows.forEach(row => table.tBodies[0].appendChild(row));
+    reapply_row_colours();
+}
+
+
+function reapply_row_colours() {
+    let rows = Array.from(table.rows).slice(1);
+    rows.forEach((row, index) => {
+        if (index % 2 !== 0) {
+          row.classList.add('w2p_even');
+          row.classList.add('even');
+          if (row.classList.contains('w2p_odd')) {
+            row.classList.remove('w2p_odd');
+            row.classList.remove('odd');
+          }
+        }
+        else {
+            row.classList.add('w2p_odd');
+            row.classList.add('odd');            
+            if (row.classList.contains('w2p_even')) {
+                row.classList.remove('w2p_even');
+                row.classList.remove('even');
+            }
+        }
+    });
 }
