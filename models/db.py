@@ -1257,18 +1257,20 @@ def reviewDone(s, f):
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and o.review_state != f["review_state"]:
-            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id)
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id, review=o)
 
         if o.review_state == ReviewState.AWAITING_RESPONSE.value and f["review_state"] == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o.id)
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o.id)
             emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o.id)
             
-
         if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and f["review_state"] == ReviewState.AWAITING_REVIEW.value:
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
+
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o.recommendation_id)
+            emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o.id)
 
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])

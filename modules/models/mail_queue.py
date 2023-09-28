@@ -1,7 +1,8 @@
 from __future__ import annotations # for self-ref param type
 from datetime import datetime
 import re
-from typing import Optional as _, cast
+from typing import List, Optional as _, cast
+from models.review import Review
 from pydal.objects import Row
 from pydal import DAL
 
@@ -42,3 +43,13 @@ class MailQueue(Row):
             return content.group(1)
         else:
             return ''
+        
+    
+    @staticmethod
+    def get_by_review_for_recommender(db: DAL, hastag_template: str, recommender_mail: str, review: Review):
+        mails = db(
+            (db.mail_queue.dest_mail_address == recommender_mail) &
+            (db.mail_queue.mail_template_hashtag == hastag_template) &
+            (db.mail_queue.recommendation_id == review.recommendation_id) &
+            (db.mail_queue.review_id == review.id))
+        return cast(List[MailQueue], mails)

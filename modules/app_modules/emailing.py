@@ -3071,7 +3071,7 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False):
+def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
     recomm = db.t_recommendations[recommendationId]
 
     if recomm:
@@ -3127,9 +3127,12 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
                 ).delete()
 
         else:
-            db(
-                (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
-            ).delete()
+            if review:
+                MailQueue.get_by_review_for_recommender(db, hashtag_template, recomm_mail, review).delete()
+            else:
+                db(
+                    (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
+                ).delete()
 
             if pciRRactivated:
                 hashtag_template_rr = hashtag_template + "Stage"
@@ -3355,7 +3358,7 @@ def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[s
     return DIV(
             A(
                 SPAN(
-                    current.T("Yes, I accept delay"),
+                    current.T("I accept"),
                     _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                 ),
                 _href=URL(c="recommender_actions",
@@ -3370,7 +3373,7 @@ def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[s
             B(current.T("OR")),
             A(
                 SPAN(
-                    current.T("No, I don't accept"),
+                    current.T("I decline"),
                     _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                 ),
                 _href=URL(c="recommender_actions",
@@ -3453,4 +3456,4 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, reviewer_invitation_buttons=buttons)
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
