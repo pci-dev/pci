@@ -497,6 +497,17 @@ def invitation_to_review_acceptation():
     review_id = get_review_id(request)
     more_delay = cast(bool, request.vars['more_delay'] == 'true')
 
+    reset_password_key = get_reset_password_key(request)
+    user: Optional[User] = None
+    if reset_password_key and not auth.user_id:
+        user = User.get_by_reset_password_key(db, reset_password_key)
+    elif auth.user_id:
+        user = User.get_by_id(db, auth.user_id)
+
+    if user and not user.ethical_code_approved:
+        user.ethical_code_approved = True
+        user.update_record()
+
     if article_id and review_id:
         url_vars = dict(reviewId=review_id, _next=URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
@@ -514,16 +525,9 @@ def invitation_to_review_acceptation():
                 else:
                     Review.accept_review(review, True)
 
-    reset_password_key = get_reset_password_key(request)
-    user: Optional[User] = None
-    if reset_password_key and not auth.user_id:
-        user = User.get_by_reset_password_key(db, reset_password_key)
-    elif auth.user_id:
-        user = User.get_by_id(db, auth.user_id)
-    
-    if user and not user.ethical_code_approved:
-        user.ethical_code_approved = True
-        user.update_record()
+            if user and not review.suggested_reviewers_send and not auth.user_id:
+                url_vars = dict(_next=URL("default", "invitation_to_review_acceptation", vars=request.vars), reviewId=review_id)
+                redirect(URL(c="user_actions", f="send_suggestion_page", vars=url_vars))
 
     if user and auth.user_id:
         redirect(session._reset_password_redirect)

@@ -249,9 +249,10 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
 
-    user = User.get_by_id(db, review.reviewer_id)
-    if user and user.reset_password_key:
-        db(db.auth_user.id == review.reviewer_id).delete()
+    if auth.user_id:
+        user = User.get_by_id(db, review.reviewer_id)
+        if user and user.reset_password_key:
+            db(db.auth_user.id == review.reviewer_id).delete()
 
     next = get_next(request)
     if next and review.suggested_reviewers_send:
@@ -272,6 +273,48 @@ def accept_review_confirmed(): # no auth required
             form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
         return _awaiting_recommender_response_page(message, form)
 
+
+def send_suggestion_page():
+    default_next =cast(str, URL(c="user_actions", f="suggestion_sent_page"))
+    review_id = get_review_id(request)
+    if not review_id:
+        session.flash = current.T('No review id found')
+        redirect(URL('default','index'))
+        return
+    
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = current.T('No review found')
+        redirect(URL('default','index'))
+        return
+    
+    next = get_next(request)
+    if review.suggested_reviewers_send:
+        if next:
+            redirect(next)
+        else:
+            redirect(default_next)
+
+    if not next:
+        next = default_next
+
+    message = T("Thank you for agreeing to review this article!")
+    form: FORM
+
+    if review.review_state == ReviewState.AWAITING_REVIEW.value:
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _accept_review_page(message, form)
+    elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+        return _declined_by_recommender_page()
+    elif review.acceptation_timestamp:
+        if not review.suggested_reviewers_send:
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                if auth.user_id:
+                    next = cast(str, URL(c="user_actions", f="suggestion_sent_page"))
+            form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _awaiting_recommender_response_page(message, form)
+
+    
 def _declined_by_recommender_page():
     response.view = "default/info.html"
     return dict(
