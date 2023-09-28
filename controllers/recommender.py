@@ -2377,6 +2377,9 @@ def review_emails():
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
+    urlFunction = request.function
+    urlController = request.controller
+
     review = db.t_reviews[reviewId]
     if not review:
         redirect(URL(c="recommender", f="my_recommendations"))
@@ -2430,7 +2433,7 @@ def review_emails():
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, reviewId, recommendation.id) if row.sending_status == "sent" else "")
+            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, reviewId, recommendation.id, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
     
     links = [
         dict(
@@ -2489,6 +2492,9 @@ def article_reviews_emails():
     response.view = "default/myLayout.html"
 
     articleId = request.vars["articleId"]
+    urlFunction = request.function
+    urlController = request.controller
+
     article = db.t_articles[articleId]
     recommendation = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
@@ -2546,7 +2552,7 @@ def article_reviews_emails():
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, articleId=articleId) if row.sending_status == "sent" else "")
+            ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(auth, db, row, articleId=articleId, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
     
     links = [
         dict(
@@ -2646,8 +2652,10 @@ def edit_and_resend_email():
     articleId = request.vars['articleId']
     reviewId = request.vars['reviewId']
     recommId = request.vars['recommId']
+    urlFunction = request.vars['urlFunction']
+    urlController = request.vars['urlController']
 
-    mail = db(db.mail_queue.id == mailId).select()[0]
+    mail = db(db.mail_queue.id == mailId).select().last()
 
     default_replyto = emailing_tools.to_string_addresses(mail.replyto_addresses)
     default_cc = emailing_tools.to_string_addresses(mail.cc_mail_addresses)
@@ -2681,7 +2689,8 @@ def edit_and_resend_email():
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
         if reviewId != 'None': redirect(URL(c="recommender", f="review_emails", vars=dict(reviewId=reviewId)))
-        else: redirect(URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=articleId)))
+        else:
+            redirect(URL(c=urlController, f=urlFunction, vars=dict(articleId=articleId)))
 
     return dict(
         form=form,
