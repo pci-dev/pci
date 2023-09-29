@@ -1500,7 +1500,7 @@ def recommender_statistics():
 
     db.v_recommender_stats.recommender_details.readable = False
 
-    db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+    db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id, reverse=True)
     db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_invitations"))) if text != 0 else "0"
     db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_accepted"))) if text != 0 else "0"
     db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_completed"))) if text != 0 else "0"
@@ -1520,7 +1520,7 @@ def recommender_statistics():
         create=False,
         searchable=False,
         csv=False,
-        paginate=20,
+        paginate=None,
         maxtextlength=256,
         orderby=~db.v_recommender_stats.id,
         fields=[
@@ -1581,11 +1581,31 @@ def fetch_query(action, recommenderId):
         "current_assignments": ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "awaiting_revision" : ((db.t_articles.id==db.t_recommendations.article_id) & (db.t_articles.status.belongs('Awaiting revision', 'Scheduled submission revision')) & (db.t_articles.report_stage.belongs('STAGE 1', 'STAGE 2')) &  (db.t_recommendations.recommender_id==recommenderId)  & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)),
         "requiring_action" : get_recommendation_DAL_query(f"SELECT DISTINCT * FROM (\
-                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id  and a.status = 'Under consideration' and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id GROUP BY recomm.id, a.id, recomm.recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')\
-                                                                   UNION ALL\
-                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and  a.status in ('Under consideration', 'Awaiting revision') and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and trev.review_state = 'Review completed' GROUP BY recomm.id, a.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2) AS requiring_action;"),
-        "requiring_reviewers": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and a.status='Under consideration' and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id GROUP BY recomm.id, a.id, recomm.recommender_id HAVING (COUNT(trev.id) < 2 and a.report_stage = 'STAGE 1') or (COUNT(trev.id) = 0 and a.report_stage = 'STAGE 2')"),
-        "required_reviews_completed": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles a , t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = a.id and trev.recommendation_id = recomm.id and  a.status in ('Under consideration', 'Awaiting revision') and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and trev.review_state = 'Review completed' GROUP BY recomm.id, a.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2"),
+                                                                   SELECT DISTINCT recomm.* AS nb  FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id \
+                                                                    LEFT JOIN ( \
+                                                                            SELECT recommendation_id, \
+                                                                                COUNT(CASE WHEN review_state = 'Awaiting review' THEN 1 ELSE NULL END) AS num_awaiting_reviews, \
+                                                                                MAX(CASE WHEN review_state = 'Review completed' THEN 1 ELSE 0 END) AS has_completed_review \
+                                                                            FROM t_reviews \
+                                                                            GROUP BY recommendation_id \
+                                                                    ) rev ON recomm.id = rev.recommendation_id \
+                                                                    WHERE art.status = 'Under consideration' AND recomm.recommender_id = {recommenderId} AND COALESCE(rev.has_completed_review, 0) = 0 GROUP BY recomm.id, art.report_stage, rev.num_awaiting_reviews \
+                                                                    HAVING ((art.report_stage = 'STAGE 1' AND COALESCE(rev.num_awaiting_reviews, 0) < 2) OR (art.report_stage = 'STAGE 2' AND COALESCE(rev.num_awaiting_reviews, 0) = 0)) \
+                                                            UNION ALL\
+                                                                   SELECT DISTINCT recomm.* AS nb FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id = {recommenderId} AND trev.review_state = 'Review completed' \
+                                                                   GROUP BY recomm.id, art.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2 AND SUM(CASE WHEN trew.id IS NULL THEN 0 ELSE 1 END) = 0) AS requiring_action"),
+        "requiring_reviewers": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id \
+                                                            LEFT JOIN ( \
+                                                                    SELECT recommendation_id, \
+                                                                        COUNT(CASE WHEN review_state = 'Awaiting review' THEN 1 ELSE NULL END) AS num_awaiting_reviews, \
+                                                                        MAX(CASE WHEN review_state = 'Review completed' THEN 1 ELSE 0 END) AS has_completed_review \
+                                                                    FROM t_reviews \
+                                                                    GROUP BY recommendation_id \
+                                                            ) rev ON recomm.id = rev.recommendation_id \
+                                                            WHERE art.status = 'Under consideration' AND recomm.recommender_id = {recommenderId} AND COALESCE(rev.has_completed_review, 0) = 0 GROUP BY recomm.id, art.report_stage, rev.num_awaiting_reviews \
+                                                            HAVING ((art.report_stage = 'STAGE 1' AND COALESCE(rev.num_awaiting_reviews, 0) < 2) OR (art.report_stage = 'STAGE 2' AND COALESCE(rev.num_awaiting_reviews, 0) = 0))"),
+        "required_reviews_completed": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id ={recommenderId} AND trev.review_state = 'Review completed' \
+                                                                        GROUP BY recomm.id, art.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2 AND SUM(CASE WHEN trew.id IS NULL THEN 0 ELSE 1 END) = 0"),
         "late_reviews": get_recommendation_DAL_query(f"SELECT DISTINCT recomm.id FROM t_articles art, t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and trev.recommendation_id = recomm.id and recomm.recommender_id={recommenderId} and recomm.id=v_art.recommendation_id and recomm.recommendation_state = 'Ongoing' and trev.review_state = 'Awaiting review' and trev.acceptation_timestamp + convert_duration_to_sql_interval(trev.review_duration) < NOW()"),
     }
     return queries[action]
