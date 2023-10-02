@@ -59,14 +59,15 @@ class External_user_reviews:
         article.title = select('.pci2-article-row-short h3').wait_clickable().text
         Reviewer.confirm_requirements(reviewer=_.user)
 
+    def send_suggestions(_):
+        Reviewer.send_suggestion()
+
     def first_time_login(_):
         password = _.user.password
         select("input[name=new_password]").send_keys(password)
         select("input[name=new_password2]").send_keys(password)
         select("input[type=submit]").click()
 
-    def send_suggestions(_):
-        Reviewer.send_suggestion()
 
     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
             reason="scheduled track")
