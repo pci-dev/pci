@@ -398,6 +398,8 @@ def recommendations():
 
     myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         viewToRender=viewToRender,
         recommHeaderHtml=recommHeaderHtml,
@@ -414,7 +416,8 @@ def recommendations():
         myFinalScript=myScript,
         script=common_tools.get_script("manager.js"),
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
-        setNotConsideredButton=set_not_considered_button or ""
+        setNotConsideredButton=set_not_considered_button or "",
+        confirmationScript=confirmationScript,
     )
 
 def crossref_toolbar(article):
@@ -1192,7 +1195,8 @@ def _all_recommendations(goBack, query, isPress):
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
-    
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
@@ -1201,6 +1205,7 @@ def _all_recommendations(goBack, query, isPress):
         customText=customText,
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        confirmationScript=confirmationScript,
     )
 
 

@@ -2,26 +2,41 @@ let confirmation_change_fields = ['#t_articles_status', '#t_recommendations_reco
 let field_to_message = {'#t_articles_status': 'Are you sure you want to change the article status?',
                         '#t_recommendations_recommendation_state': 'Are you sure you want the change the recommendation state?'}
 
-let status_field = false;
-let message_field = false;
+let status_fields = [];
+let message_fields = [];
 
 for (let i=0; i<confirmation_change_fields.length; i++) {
-    status_field = document.querySelector(confirmation_change_fields[i]);
-    message_field = field_to_message[confirmation_change_fields[i]];
+    one_button = document.querySelectorAll(confirmation_change_fields[i]);
+    if (one_button.length > 0) {
+        status_fields.push(one_button);
+        message_fields.push(field_to_message[confirmation_change_fields[i]]);
+    }
 }
 
-let confirmation_change_buttons = ['#submit_record__row .btn-success']
-let button_to_message = {'#submit_record__row .btn-success': 'fork'}
+let confirmation_change_buttons = ['#submit_record__row .btn-success', '#do_recommend_article .btn-success',
+                                   '.pci-EditButtons-centered > li > a > .btn-danger', '#do_validate_article .btn-success',
+                                   '#preprint-btn', '#remove-preprint-btn', '.modal-footer .confirm-mail-dialog', '#pre_submission_list']
+let button_to_message = {'#submit_record__row .btn-success': 'fork',
+                        '#do_recommend_article .btn-success': 'Are you sure you want to validate the decision?', 
+                        '.pci-EditButtons-centered > li > a > .btn-danger': 'Are you sure you want to send back this decision to the recommender?', 
+                        '#do_validate_article .btn-success': 'Are you sure you want to validate this submission?', 
+                        '#preprint-btn': 'Are you sure you want to put the preprint in the "In need of reviewers" list"?',
+                        '#remove-preprint-btn': 'Are you sure you want to remove the preprint from the "In need of reviewers" list"?',
+                        '.modal-footer .confirm-mail-dialog': 'Are you sure you want to send this message and set the article as "not considered"?',
+                        '#pre_submission_list': 'Are you sure you want to put the article in the presubmission list?'}
 
-let status_button = false;
-let message_button = false;
+let status_buttons = [];
+let message_buttons = [];
 for (let i=0; i<confirmation_change_buttons.length; i++) {
-    status_button = document.querySelector(confirmation_change_buttons[i]);
-    message_button = button_to_message[confirmation_change_buttons[i]];
+    one_button = document.querySelectorAll(confirmation_change_buttons[i]);
+    if (one_button.length > 0) {
+        status_buttons.push(one_button);
+        message_buttons.push(button_to_message[confirmation_change_buttons[i]]);
+    }
 }
 
-
-if (status_field || status_button) {
+console.log(status_buttons)
+if (status_fields.length > 0 || status_buttons.length > 0) {
     var modal = document.createElement('div');
     var modal_backdrop = document.createElement('div');
     var button_yes = document.createElement('span');
@@ -31,82 +46,90 @@ if (status_field || status_button) {
 }
 
 
+if (status_fields.length > 0) {
+    for (let i=0; i<status_fields.length; i++) {
+        let status_field = status_fields[i];
+        for (let j=0; j<status_field.length; j++) {
+            let status_field_value = status_field[j].value;
+            status_field[j].addEventListener("focus", function(event) {
+                status_field_value = event.target.value;
+            });
+            
+            create_modal('field', status_field[j]);
+            modal_body.innerHTML = message_fields[i];
 
-if (status_field) {
-    let status_field_value = status_field.value;
-    status_field.addEventListener("focus", function(event) {
-        status_field_value = event.target.value;
-    });
-    
-    create_modal('field', status_field);
-    modal_body.innerHTML = message_field;
+            status_field[j].addEventListener('change', function(event) {
+                // if status field is changed, show modal and hook listeners to the buttons
+                let body = document.querySelector('body');
+                body.style.overflow = 'hidden';
 
-    status_field.addEventListener('change', function(event) {
-        // if status field is changed, show modal and hook listeners to the buttons
-        let body = document.querySelector('body');
-        body.style.overflow = 'hidden';
+                modal.style.display = 'block';
+                document.body.appendChild(modal_backdrop);
+                modal_backdrop.style.display = 'block';
 
-        modal.style.display = 'block';
-        document.body.appendChild(modal_backdrop);
-        modal_backdrop.style.display = 'block';
+                button_yes.addEventListener('click', function() {
+                    // allow change and remove modal
+                    modal.style.display = 'none';
+                    modal_backdrop.style.display = 'none';
+                    body.style.overflow = 'scroll';
+                    status_field_value = event.target.value;
+                })
 
-        button_yes.addEventListener('click', function() {
-            // allow change and remove modal
-            modal.style.display = 'none';
-            modal_backdrop.style.display = 'none';
-            body.style.overflow = 'scroll';
-            status_field_value = event.target.value;
-        })
-
-        button_nope.addEventListener('click', function() {
-            // reject change and remove modal
-            modal.style.display = 'none';
-            modal_backdrop.style.display = 'none';
-            body.style.overflow = 'scroll';
-            event.target.value = status_field_value;
-        })
-    })
+                button_nope.addEventListener('click', function() {
+                    // reject change and remove modal
+                    modal.style.display = 'none';
+                    modal_backdrop.style.display = 'none';
+                    body.style.overflow = 'scroll';
+                    event.target.value = status_field_value;
+                })
+            })
+        }
+    }
 }
 
 
-if (status_button) {
-    create_modal('button', status_button);
+if (status_buttons.length > 0) {
+    for (let i=0; i<status_buttons.length; i++) {
+        let status_button = status_buttons[i];
+        for (let j=0; j<status_button.length; j++) {
+            create_modal('button', status_button[j]);
 
-    status_button.addEventListener('click', function(event) {
-        console.log('in the click')
-        console.log(prevent_or_fire)
-        if (prevent_or_fire == 'prevent') {
-            event.preventDefault(); 
-        
-            message = message_button;
-            if (message == 'fork') { multiple_choice_button(); }
+            status_button[j].addEventListener('click', function(event) {
+                if (prevent_or_fire == 'prevent') {
+                    event.preventDefault();
 
-            // if status field is changed, show modal and hook listeners to the buttons
-            let body = document.querySelector('body');
-            body.style.overflow = 'hidden';
+                    message = message_buttons[i];
+                    if (message == 'fork') { multiple_choice_button(); }
+                    else { modal_body.innerHTML = message; }
 
-            modal.style.display = 'block';
-            document.body.appendChild(modal_backdrop);
-            modal_backdrop.style.display = 'block';
+                    // if status field is changed, show modal and hook listeners to the buttons
+                    let body = document.querySelector('body');
+                    body.style.overflow = 'hidden';
 
-            button_yes.addEventListener('click', function() {
-                // allow change and remove modal
-                modal.style.display = 'none';
-                modal_backdrop.style.display = 'none';
-                body.style.overflow = 'scroll';
-                prevent_or_fire = 'fire';
-                status_button.click();
-            })
+                    modal.style.display = 'block';
+                    document.body.appendChild(modal_backdrop);
+                    modal_backdrop.style.display = 'block';
 
-            button_nope.addEventListener('click', function() {
-                // reject change and remove modal
-                modal.style.display = 'none';
-                modal_backdrop.style.display = 'none';
-                body.style.overflow = 'scroll';
+                    button_yes.addEventListener('click', function() {
+                        // allow change and remove modal
+                        modal.style.display = 'none';
+                        modal_backdrop.style.display = 'none';
+                        body.style.overflow = 'scroll';
+                        prevent_or_fire = 'fire';
+                        status_button[j].click();
+                    })
+
+                    button_nope.addEventListener('click', function() {
+                        // reject change and remove modal
+                        modal.style.display = 'none';
+                        modal_backdrop.style.display = 'none';
+                        body.style.overflow = 'scroll';
+                    })
+                }
+                else { prevent_or_fire == 'prevent'; }
             })
         }
-        else { prevent_or_fire == 'prevent'; }
-    })
+    }
 }
 
 

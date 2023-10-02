@@ -1,5 +1,4 @@
 <!-- ALtimetrics badge -->
-<script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
 
 {{if 'pageHelp#TODO' in locals():}}
   {{=pageHelp}}
@@ -197,5 +196,8 @@
 	{{=myFinalScript}}
 {{pass}}
 
+{{if 'confirmationScript' in locals():}}
+	{{=confirmationScript}}
+{{pass}}
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>
