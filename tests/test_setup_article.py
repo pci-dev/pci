@@ -153,6 +153,7 @@ class Manager_validates:
         select("#information_consistent").click()
         select("#no_plagiarism").click()
     select(".btn-success", "Validate this submission".upper()).click()
+    select('#confirm-change-modal .btn-info', 'Yes'.upper()).click()
     select.notif("Request now available to recommenders").wait_clickable()
 
  def check_article_status_is_requiring_recommender(_):
