@@ -1391,4 +1391,15 @@ header {
   background: #e5eef4;
 }
 
+.review-card {
+  border: solid #c9d8df 1px;
+  margin-top: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 5px;
+  border-radius: 5px;
+}
 
+.review-card .pci2-round-review-sub-title {
+  margin-top: 10px;
+}

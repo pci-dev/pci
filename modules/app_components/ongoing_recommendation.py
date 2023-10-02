@@ -20,6 +20,7 @@ from app_modules import hypothesis
 from models.article import ArticleStatus, Article
 
 from controller_modules import manager_module
+from models.review import ReviewState
 
 myconf = AppConfig(reload=True)
 
@@ -497,6 +498,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 showPendingAskForReview=False,
                 declinedByRecommender=False,
                 showEditButtons=False,
+                showReviewExtraTimeButtons=False,
                 authors=None,
                 text=None,
                 pdfLink=None,
@@ -558,6 +560,9 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if (review.reviewer_id == auth.user_id) and review.review_state == "Willing to review":
                 reviewVars.update([("showReviewRequest", False)])
                 hideOngoingReview = False
+
+            if auth.has_membership(role="manager") and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                reviewVars.update([("showReviewExtraTimeButtons", True)])
 
             # reviewer's buttons in order to edit/complete pending review
             if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (printable):

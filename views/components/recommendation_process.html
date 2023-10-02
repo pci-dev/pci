@@ -220,7 +220,7 @@
 
   <!-- Round reviews -->
   {{for review in reviewsList:}}
-    <div>  
+    {{if review['showReviewExtraTimeButtons']:}}<div class="review-card">{{else:}}<div>{{pass}}  
       {{if review['authors'] and not review['showReviewRequest']:}}
         <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}
@@ -289,6 +289,16 @@
             <b style="margin:15px">{{=T('Waiting for recommender acceptation...')}}</b>
           {{pass}}
         </div>
+      {{pass}}
+
+      {{if review['showReviewExtraTimeButtons']:}}
+        <p class="unfinished-label">{{=T("This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.")}}</p>
+          <a class="buttontext btn btn-success" href={{=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review["id"]), user_signature=True)}}>
+          {{=T('I accept')}}
+        </a>
+        <a class="buttontext btn btn-warning" href={{=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review["id"]), user_signature=True)}}>
+          {{=T('I decline')}}
+        </a>
       {{pass}}
 
       <!-- Review text -->  
