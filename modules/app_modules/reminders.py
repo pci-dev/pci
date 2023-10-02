@@ -55,6 +55,11 @@ _reminders = {
 
     "ReminderSuggestedRecommenderInvitation": [5, 9],
     "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),
+
+    "ManagersRecommenderAgreedAndNeedsToTakeAction": weekly(1, 15),
+    "ManagersRecommenderReceivedAllReviewsNeedsToTakeAction": weekly(1, 15),
+    "ManagersRecommenderReceivedRevisionNeedsToTakeAction": weekly(1, 15),
+    "ManagersRecommenderNotEnoughReviewersNeedsToTakeAction": weekly(1, 15),
 }
 
 if pciRRactivated:
