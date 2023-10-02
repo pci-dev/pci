@@ -220,7 +220,7 @@
 
   <!-- Round reviews -->
   {{for review in reviewsList:}}
-    {{if review['showReviewExtraTimeButtons']:}}<div class="review-card">{{else:}}<div>{{pass}}  
+    {{if review['showReviewExtraTimeButtons'] or review['showReviewRequest']:}}<div class="review-card">{{else:}}<div>{{pass}}  
       {{if review['authors'] and not review['showReviewRequest']:}}
         <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}
@@ -262,18 +262,17 @@
 
       <!-- Accept request to review article invitation buttons -->  
       {{if review['showReviewRequest']:}}
-        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <p class="unfinished-label">{{=T("This user is willing to review this preprint.")}}</p>
           <a class="buttontext btn btn-success" 
             href="{{=review["acceptReviewRequestLink"]}}"
           >
-            {{=T('Yes, I accept this review request')}}
+            {{=T('I accept')}}
           </a>
           <a class="buttontext btn btn-warning" 
             href="{{=review["rejectReviewRequestLink"]}}"
           >
-            {{=T('No thanks, I\'d rather not')}}
+            {{=T('I decline')}}
           </a>
-        </div>
       {{pass}}
 
       <!-- Review invitation buttons -->  
@@ -308,12 +307,6 @@
             {{=review['text']}}
           {{pass}}
 
-          {{if review['state'] == 'Awaiting review':}}
-            <div class="unfinished-label">
-              In progress, not completed yet.
-            </div>
-          {{pass}}
-
           {{if review['pdfLink'] is not None:}}
             {{=review['pdfLink']}}
           {{pass}}
@@ -334,6 +327,11 @@
               {{pass}}
             </div>
           {{pass}}
+        </div>
+      {{pass}}
+      {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review':}}
+        <div class="unfinished-label">
+          In progress, not completed yet.
         </div>
       {{pass}}
     </div>

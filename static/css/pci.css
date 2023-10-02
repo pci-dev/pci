@@ -1392,8 +1392,8 @@ header {
 }
 
 .review-card {
-  border: solid #c9d8df 1px;
-  margin-top: 5px;
+  border: solid #c9d8df 2px;
+  margin-top: 10px;
   padding-left: 10px;
   padding-right: 10px;
   padding-bottom: 5px;

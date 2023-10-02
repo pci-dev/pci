@@ -965,4 +965,5 @@
     "I accept to review this preprint within ": "I accept to review this preprint within ",
     "Thanks for accepting to review this preprint.": "Thanks for accepting to review this preprint.",
     "This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.": "This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.",
+    "This user is willing to review this preprint.": "This user is willing to review this preprint.",
 }
