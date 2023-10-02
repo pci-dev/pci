@@ -42,6 +42,7 @@ if (status_fields.length > 0 || status_buttons.length > 0) {
     var button_yes = document.createElement('span');
     var button_nope = document.createElement('span');
     var modal_body = document.createElement('div');
+    var modal_footer = document.createElement('div');
     var prevent_or_fire = 'prevent';
 }
 
@@ -134,42 +135,41 @@ if (status_buttons.length > 0) {
 
 
 function create_modal() {
-        // create confirmation modal
-        modal.id = "confirm-change-modal";
-        modal.classList.add('modal');
-        modal.classList.add('fade');
-        modal.classList.add('in');
-        modal.setAttribute('role', 'dialog');
-        modal.style.paddingRight = '0px';
-    
-        modal_body.classList.add('modal-body');
-    
-        let modal_footer = document.createElement('div');
-        modal_footer.classList.add('modal-footer');
-    
-        button_yes.classList.add('btn');
-        button_yes.classList.add('btn-info');
-        button_yes.setAttribute('data-dismiss', 'modal');
-        button_yes.setAttribute('type', 'button');
-        button_yes.innerHTML = 'Yes'
+    // create confirmation modal
+    modal.id = "confirm-change-modal";
+    modal.classList.add('modal');
+    modal.classList.add('fade');
+    modal.classList.add('in');
+    modal.setAttribute('role', 'dialog');
+    modal.style.paddingRight = '0px';
 
-        button_nope.classList.add('btn');
-        button_nope.classList.add('btn-default');
-        button_nope.setAttribute('data-dismiss', 'modal');
-        button_nope.setAttribute('type', 'button');
-        button_nope.innerHTML = 'No';
-    
-        modal_footer.appendChild(button_yes);
-        modal_footer.appendChild(button_nope);
-    
-        modal.appendChild(modal_body);
-        modal.appendChild(modal_footer);
-    
-        modal_backdrop.classList.add('modal-backdrop');
-        modal_backdrop.classList.add('fade');
-        modal_backdrop.classList.add('in');
-    
-        document.body.appendChild(modal);
+    modal_body.classList.add('modal-body');
+
+    modal_footer.classList.add('modal-footer');
+
+    button_yes.classList.add('btn');
+    button_yes.classList.add('btn-info');
+    button_yes.setAttribute('data-dismiss', 'modal');
+    button_yes.setAttribute('type', 'button');
+    button_yes.innerHTML = 'Yes'
+
+    button_nope.classList.add('btn');
+    button_nope.classList.add('btn-default');
+    button_nope.setAttribute('data-dismiss', 'modal');
+    button_nope.setAttribute('type', 'button');
+    button_nope.innerHTML = 'No';
+
+    modal_footer.appendChild(button_yes);
+    modal_footer.appendChild(button_nope);
+
+    modal.appendChild(modal_body);
+    modal.appendChild(modal_footer);
+
+    modal_backdrop.classList.add('modal-backdrop');
+    modal_backdrop.classList.add('fade');
+    modal_backdrop.classList.add('in');
+
+    document.body.appendChild(modal);
 }
 
 
