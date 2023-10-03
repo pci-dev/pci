@@ -3480,13 +3480,19 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     reviewer = User.get_by_id(db, review.reviewer_id)
     if not reviewer:
         return
+    
+    recommender = User.get_by_id(db, recommendation.recommender_id)
+    if not recommender:
+        return
 
     mail_vars["myReviewsLink"] = reviewLink()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["dueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT)
+
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["dueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT)
+    mail_vars["ccAddresses"] = [recommender.email] + emailing_vars.getCoRecommendersMails(db, recommendation.id)
 
     hashtag_template = "#RecommenderChangeReviewDueDate"
 
