@@ -587,7 +587,7 @@ db.t_articles.auto_nb_recommendations.writable = False
 db.t_articles.auto_nb_recommendations.readable = False
 db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(last_name)s, %(first_name)s"))
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
-db.t_articles._after_insert.append(lambda s, i: newArticle(s, i))
+db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
 
@@ -739,6 +739,9 @@ def deltaStatus(s, f):
 
 def newArticle(s, articleId):
     if s.status == "Pending-survey": # pciRRactivated only
+        return
+
+    if s.coar_notification_id:
         return
 
     if s.already_published is False:
