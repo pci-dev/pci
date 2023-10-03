@@ -795,6 +795,8 @@ def change_review_due_date():
             if not over_due_sent:
                 emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
+        emailing.send_alert_reviewer_due_date_change(session, auth, db, review)
+
         session.flash = f"Review date changed to {form.vars['review_duration']}"
         
         if session.change_review_due_date_previous_page:

@@ -3462,3 +3462,34 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
     emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
+
+#########################################################
+
+def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, review: Review):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation:
+        return
+
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        return
+    
+    reviewer = User.get_by_id(db, review.reviewer_id)
+    if not reviewer:
+        return
+
+    mail_vars["myReviewsLink"] = reviewLink()
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destAddress"] = reviewer.email
+    mail_vars["dueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT)
+
+    hashtag_template = "#RecommenderChangeReviewDueDate"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    emailing_tools.getFlashMessage(session, reports)
