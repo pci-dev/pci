@@ -58,7 +58,7 @@ six==1.16.0
     #   python-dateutil
 treepoem==3.17.0
     # via -r requirements.in
-urllib3==1.26.13
+urllib3==1.26.17
     # via requests
 yatl==20220907.1
     # via -r requirements.in
