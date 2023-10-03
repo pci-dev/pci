@@ -3143,6 +3143,8 @@ def send_to_coar_requester(session, auth, db, user, article):
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
     mail_vars["destAddress"] = user.email
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"]
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
     mail_vars["linkTarget"] = URL(
         c="user", f="edit_my_article",
         vars=dict(articleId=article.id, key=user.reset_password_key),
