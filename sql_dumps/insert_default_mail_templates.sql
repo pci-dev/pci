@@ -253,3 +253,21 @@ E'Dear Dr. {{LastName}}, This is an invitation to review for <a href="https://pe
 INSERT INTO "mail_templates"("hashtag","lang","subject","description","contents")
 VALUES
 (E'#ManagersPreprintResubmission',E'default',E'{{appName}}: Pre-submitted preprint now completed and ready for validation',E'Mail sent to managers on preprint resubmission',E'<div class="p-rich_text_section">Dear members of the Managing Board,</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section">This preprint submission by {{submitterPerson}} entitled <strong data-stringify-type="bold">{{articleTitle}}</strong> that was previously in a Pre-submission stage is now ready for validation.</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section">To check this submission, please follow this link <a href="{{linkTarget}}">{{linkTarget}}</a>.</div><div class="p-rich_text_section"><br></div><div class="p-rich_text_section"><strong data-stringify-type="bold">WARNING:</strong>&nbsp;<strong data-stringify-type="bold">do not validate it unless you (or someone else on the managing board) have checked the following points:</strong></div><ul class="p-rich_text_list p-rich_text_list__bullet" data-stringify-type="unordered-list" data-indent="0" data-border="0"><li data-stringify-indent="0" data-stringify-border="0">Files are readable, lines are numbered</li><li data-stringify-indent="0" data-stringify-border="0">DOI of (or permanent link to) the article, data, and script are correct,</li><li data-stringify-indent="0" data-stringify-border="0">Data, scripts/code, and supplementary information are available</li><li data-stringify-indent="0" data-stringify-border="0">A readme file is present with the data and script</li><li data-stringify-indent="0" data-stringify-border="0">Mandatory sections are there ("funding", "Conflict of Interest disclosure", "Data, script, code, and supplementary information availability")</li><li data-stringify-indent="0" data-stringify-border="0">No obvious financial conflicts of interest appear</li></ul><div class="p-rich_text_section">Have a nice day!</div><p><br></p>');
+
+-- 2023-10-11 updates/alert_reviewer_due_date_change_template.sql
+INSERT INTO mail_templates (hashtag, lang, subject, description, contents)
+VALUES (
+                '#RecommenderChangeReviewDueDate',
+                'default',
+                'Recommender change due date',
+                'RecommenderChangeReviewDueDate',
+                '<p>Dear {{destPerson}},</p>
+<p>You have agreed to review the preprint entitled "<strong>{{articleTitle}}"</strong>&nbsp;(<a href="{{articleDoi}}">{{articleDoi}}</a>), submitted to {{appName}}, and we thank you for this contribution and for your support of PCI.</p>
+<p>The deadline for the review has been changed by the recommender. <strong>Your review is now expected by {{dueDate}}</strong>.&nbsp;</p>
+<p>To view, write, upload and manage your review, please follow this link <a href="{{myReviewsLink}}">{{myReviewsLink}}</a> or log onto the {{appName}} website and go to ‘For contributors —&gt; Your reviews’ in the top menu.</p>
+<p>Guidelines for PCI reviewers can be found <a title="guideline for reviewers" href="https://peercommunityin.org/2020/10/22/pci-reviewer-guide/" target="_blank" rel="noopener">here</a>&nbsp;and a series of questions to help you conduct your review can be found <a href="https://peercommunityin.org/2022/05/20/questionnaire-for-reviewers/">here</a>.</p>
+<p>Please note that for reasons of transparency, your review will be sent to the authors in its entirety, and no part of the review will be sent privately to the recommender, as is common practice in journals.</p>
+<p>Thanks in advance for the time and energy spent evaluating this preprint! We look forward to reading your review.</p>
+<p>Yours sincerely,</p>
+<p>The managing board of {{appName}}</p>'
+        );
