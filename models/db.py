@@ -797,7 +797,7 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
 
             if o.status == "Pre-submission" and f["status"] == "Pending":
-                emailing.send_to_managers(session, auth, db, o["id"], "Pending")
+                emailing.send_to_managers(session, auth, db, o["id"], "Resubmission")
                 # create reminders
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
 
