@@ -776,7 +776,7 @@ def edit_my_article():
             article.art_stage_1_id = None
         article.request_submission_change = False
         article.update_record()
-        if art.status == "Pending":
+        if art.status in ["Pending", "Pre-submission"] :
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
         else:
             redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
