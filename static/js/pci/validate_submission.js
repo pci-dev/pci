@@ -26,6 +26,8 @@ jQuery(document).ready(function() {
 
 function createLinkFromText() {
   var plagiarism_label = document.querySelector('[for=no_plagiarism] h5');
+  if (!plagiarism_label) return
+
   var a = document.createElement('a');
   var link = document.createTextNode('(ithenticate)');
   a.appendChild(link);

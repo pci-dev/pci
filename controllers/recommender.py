@@ -2251,6 +2251,7 @@ def edit_recommendation():
             myScript = common_tools.get_script("edit_recommendation.js")
         else:
             myScript = common_tools.get_script("edit_recommendation_is_press.js")
+        confirmationScript = common_tools.get_script("confirmation.js")
 
         return dict(
             form=form,
@@ -2261,6 +2262,7 @@ def edit_recommendation():
             myFinalScript=myScript,
             myBackButton=common_small_html.mkBackButton(),
             deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_recommender.js"),
+            confirmationScript=confirmationScript,
         )
 
 

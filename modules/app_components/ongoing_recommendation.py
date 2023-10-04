@@ -907,8 +907,9 @@ def set_to_not_considered(art):
 def send_back_button(art):
     return A(
         SPAN(current.T("Send back this decision to the recommender"), _class="buttontext btn btn-danger pci-manager"),
-        _href=URL(c="manager_actions", f="do_send_back_decision", vars=dict(articleId=art.id), user_signature=True),
+        _href=URL(c="manager_actions", f="prepare_send_back", vars=dict(articleId=art.id), user_signature=True),
         _title=current.T("Click here to send back this decision to the recommender"),
+        _id="btn-send-back-decision",
     )
 
 

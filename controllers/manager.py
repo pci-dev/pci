@@ -398,6 +398,8 @@ def recommendations():
 
     myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         viewToRender=viewToRender,
         recommHeaderHtml=recommHeaderHtml,
@@ -414,7 +416,8 @@ def recommendations():
         myFinalScript=myScript,
         script=common_tools.get_script("manager.js"),
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
-        setNotConsideredButton=set_not_considered_button or ""
+        setNotConsideredButton=set_not_considered_button or "",
+        confirmationScript=confirmationScript,
     )
 
 def crossref_toolbar(article):
@@ -631,6 +634,8 @@ def manage_recommendations():
         grid.element(_title="Add record to database")["_title"] = T("Manually add new round of recommendation. Expert use!!")
     myContents = DIV(DIV(article_components.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
 
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManageRecommendations"),
@@ -641,6 +646,7 @@ def manage_recommendations():
         grid=grid,
         deleteFileButtonsScript=common_tools.get_script("add_delete_file_buttons_manager.js"),
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        confirmationScript=confirmationScript,
     )
 
 
@@ -970,6 +976,7 @@ def edit_article():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
+    confirmationScript = common_tools.get_script("confirmation.js")
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -978,6 +985,7 @@ def edit_article():
         pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
         form=form,
         myFinalScript=myFinalScript,
+        confirmationScript=confirmationScript,
     )
 
 
@@ -1187,7 +1195,8 @@ def _all_recommendations(goBack, query, isPress):
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
-    
+    confirmationScript = common_tools.get_script("confirmation.js")
+
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
@@ -1196,6 +1205,7 @@ def _all_recommendations(goBack, query, isPress):
         customText=customText,
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        confirmationScript=confirmationScript,
     )
 
 
