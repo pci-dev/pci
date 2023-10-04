@@ -14,11 +14,14 @@ for (let i=0; i<confirmation_change_fields.length; i++) {
 }
 
 let confirmation_change_buttons = ['#submit_record__row .btn-success', '#do_recommend_article .btn-success',
-                                   '.pci-EditButtons-centered > li > a > .btn-danger', '#do_validate_article .btn-success',
+                                   '#do_revise_article .btn-info', '#do_reject_article .btn-info',
+                                   '#btn-send-back-decision', '#do_validate_article .btn-success',
                                    '#preprint-btn', '#remove-preprint-btn', '.modal-footer .confirm-mail-dialog', '#pre_submission_list']
 let button_to_message = {'#submit_record__row .btn-success': 'fork',
-                        '#do_recommend_article .btn-success': 'Are you sure you want to validate the decision?', 
-                        '.pci-EditButtons-centered > li > a > .btn-danger': 'Are you sure you want to send back this decision to the recommender?', 
+                        '#do_recommend_article .btn-success': 'Are you sure you want to validate this recommendation?',
+                        '#do_revise_article .btn-info': 'Are you sure you want to validate this request for revision?',
+                        '#do_reject_article .btn-info': 'Are you sure you want to validate to reject this preprint?',
+                        '#btn-send-back-decision': 'Are you sure you want to send back this decision to the recommender?', 
                         '#do_validate_article .btn-success': 'Are you sure you want to validate this submission?', 
                         '#preprint-btn': 'Are you sure you want to put the preprint in the "In need of reviewers" list"?',
                         '#remove-preprint-btn': 'Are you sure you want to remove the preprint from the "In need of reviewers" list"?',
