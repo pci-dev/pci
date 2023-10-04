@@ -856,9 +856,6 @@ def deltaStatus(s, f):
                 emailing.send_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
 
-            elif o["status"].startswith("Pre-") and f["status"] == "Under consideration":
-                emailing.send_to_recommender_decision_sent_back(session, auth, db, o["id"], f["status"])
-
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
                 articleId = o.id
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)

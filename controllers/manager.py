@@ -1699,19 +1699,63 @@ def email_for_recommender():
 
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
-        sender = User.get_by_id(db, recommendation.recommender_id)
+        sender = User.get_by_id(db, recomm.recommender_id)
     else:
         sender = cast(User, auth.user)
 
-    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, sender, article, recomm, recommender.last_name)
+    hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
+    subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
+    message = emailing_tools.replaceMailVars(mail_template["content"], locals())
 
-    form=''
+    recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
+     
+    replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    replyTo = ", ".join([replyto.email, contact])
+    default_replyto = emailing_tools.to_string_addresses(replyTo)
 
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+    cc = '%s, %s'%(sender_email, contact)
+    default_cc = emailing_tools.to_string_addresses(cc)
+
+    form = SQLFORM.factory(
+        Field("dest_mail_address", label=T("Destination Email"), type="string", length=250, default=recommender.email),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto),
+        Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
+        Field("subject", label=T("Subject"), type="string", length=250, default=subject, required=True),
+        Field("content", label=T("Content"), type="text", default=message, required=True),
+    )
+    form.element(_type="submit")["_value"] = T("Send e-mail")
+    form.element("textarea[name=content]")["_style"] = "height:500px;"
+
+    html_string = str(message)
+    
+    resent = False
+    if form.process().accepted:
+        try:
+            emailing.resend_mail(
+                session,
+                auth,
+                db,
+                form,
+                )
+            if article.status.startswith("Pre-"): #xxx
+                recomm.is_closed = False
+                recomm.recommendation_state = "Ongoing"
+                recomm.update_record()
+                article.status = "Under consideration" if not article.is_scheduled else "Scheduled submission pending"
+                article.update_record()
+            resent = True
+        except Exception as e:
+            session.flash = (session.flash or "") + T("E-mail failed.")
+            raise e
+        redirect(URL(c="admin", f="mailing_queue"))
 
     return dict(
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
         titleIcon="envelope",
+        html_string=html_string,
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
     )
