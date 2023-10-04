@@ -1,3 +1,4 @@
+from typing import List, Optional
 from gluon.contrib.appconfig import AppConfig
 import datetime
 
@@ -17,19 +18,48 @@ def daily(start, end): return every(1, start, end)
 def weekly(start, end): return every(7, start, end)
 def every(days, start, end): return [days*x for x in range(start, end+1)]
 
-def avoid_weekend(nb_day: int):
-    current_day =  datetime.datetime.now().weekday()
+def avoid_weekend(nb_day: int, simple_avoid: bool):
+    current_week_day =  datetime.datetime.now().weekday()
+    planned_week_day = (current_week_day + nb_day) % 7
 
-    if current_day == 3 and (current_day + nb_day) % 7 == 5:
-        return nb_day + 2
-    elif current_day == 4 and (current_day + nb_day) % 7 == 6:
-        return nb_day + 2
-    elif current_day == 5 and (current_day + nb_day) % 7 == 0:
-        return nb_day + 2
-    elif current_day == 6 and (current_day + nb_day) % 7 == 1:
-        return nb_day + 1
+    if planned_week_day == 5:
+            return nb_day + 2
+
+    if simple_avoid:
+        if planned_week_day == 6:
+            return nb_day + 1
     else:
-        return nb_day
+        if planned_week_day == 6:
+            return nb_day + 2
+        elif planned_week_day == 0:
+            return nb_day + 2
+        elif planned_week_day == 1:
+            return nb_day + 1
+        
+    return nb_day
+
+
+def avoid_weekend_for_reminder(days: List[int]):
+    simple_avoid = True
+    days_avoid_weekend: List[int] = []
+
+    for i in range(len(days)):
+        day = days[i]
+        before_day: Optional[int] = None
+
+        if i > 0:
+            before_day = days[i - 1]
+
+        if not before_day:
+            simple_avoid = day >= 5
+        else:
+            simple_avoid = day - before_day >= 5
+        
+        day_avoid_weekend = avoid_weekend(day, simple_avoid)
+        days_avoid_weekend.append(day_avoid_weekend)
+    
+    return days_avoid_weekend
+
 
 _reminders = {
     "ReminderRecommenderReviewersNeeded": [1, 3, 5],
@@ -74,15 +104,6 @@ _review_reminders = {
     "ReminderReviewerReviewOverDue":    "reminder_over_due",
 }
 
-_avoid_weekend_reminders = [
-    'ReminderReviewerReviewInvitationNewUser',
-    'ReminderReviewerReviewInvitationRegisteredUser',
-    'ReminderReviewerInvitationNewRoundRegisteredUser',
-    'ReminderReviewInvitationRegisteredUserNewReviewer',
-    'ReminderReviewInvitationRegisteredUserReturningReviewer',
-    'ReminderRecommenderAcceptationReview'
-]
-
 
 def getReviewReminders(days):
     reminder_due = [ days ]
@@ -126,10 +147,7 @@ def getReminder(db, hashtag_template, review_id):
         days = reminder_values[_review_reminders[hash_temp]]
 
     elif hash_temp in _reminders:
-        days = _reminders[hash_temp]
-
-        if hash_temp in _avoid_weekend_reminders:
-            days[0] = avoid_weekend(days[0])
+        days = avoid_weekend_for_reminder(_reminders[hash_temp])
     else:
         return None
 
