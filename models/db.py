@@ -48,7 +48,7 @@ appName = myconf.take("app.name")
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
 port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-pdf_max_size = int(myconf.take("config.pdf_max_size") or 5)
+pdf_max_size = int(myconf.take("config.pdf_max_size") or 10)
 
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
