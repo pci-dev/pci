@@ -88,7 +88,7 @@ def all_articles():
 def pending_articles():
     states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
-    resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port), show_not_considered_button=False)
     resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingArticlesTitle")
@@ -149,7 +149,7 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
-def _manage_articles(statuses, whatNext, db=db, stats_query=None):
+def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_considered_button: bool = True):
     response.view = "default/myLayout.html"
 
     # users
@@ -266,7 +266,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None):
                 )
                 if (
                     (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)
-                    and row.already_published is False
+                    and row.already_published is False and show_not_considered_button
                 )
                 else "",
             ),
