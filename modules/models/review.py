@@ -12,6 +12,7 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 class ReviewDuration(Enum):
+    FIVE_WORKING_DAY = 'Five working days'
     TWO_WEEK = 'Two weeks'
     THREE_WEEK = 'Three weeks'
     FOUR_WEEK = 'Four weeks'

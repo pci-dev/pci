@@ -1,5 +1,7 @@
 from typing import List, Optional
 from gluon.contrib.appconfig import AppConfig
+from models.review import Review, ReviewDuration
+from pydal import DAL
 import datetime
 
 from gluon.custom_import import track_changes
@@ -14,9 +16,9 @@ case_sensitive_config()
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
-def daily(start, end): return every(1, start, end)
-def weekly(start, end): return every(7, start, end)
-def every(days, start, end): return [days*x for x in range(start, end+1)]
+def daily(start: int, end: int): return every(1, start, end)
+def weekly(start: int, end: int): return every(7, start, end)
+def every(days: int, start: int, end: int): return [days*x for x in range(start, end+1)]
 
 def avoid_weekend(nb_day: int, simple_avoid: bool):
     current_week_day =  datetime.datetime.now().weekday()
@@ -105,7 +107,39 @@ _review_reminders = {
 }
 
 
-def getReviewReminders(days):
+def getDefaultReviewDuration():
+    return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
+
+
+def getReviewDays(review: Review):
+    if review and review.review_duration:
+        duration = review.review_duration
+    else:
+        duration = getDefaultReviewDuration()
+
+    return getReviewDaysFromDuration(duration)
+
+
+def getReviewDaysFromDuration(duration: str):
+    dow = datetime.datetime.today().weekday()
+    days_dict = {
+            ReviewDuration.TWO_WEEK.value: 14,
+            ReviewDuration.THREE_WEEK.value: 21,
+            ReviewDuration.FOUR_WEEK.value: 28,
+            ReviewDuration.FIVE_WEEK.value: 35,
+            ReviewDuration.SIX_WEEK.value: 42,
+            ReviewDuration.SEVEN_WEEK.value: 49,
+            ReviewDuration.EIGHT_WEEK.value: 56,
+            ReviewDuration.FIVE_WORKING_DAY.value: 7 if dow < 5 else (7 + (7-dow))
+    }
+    for key, value in days_dict.items():
+        if key in duration:
+            return value
+
+    return 21
+
+
+def getReviewReminders(days: int):
     reminder_due = [ days ]
     reminder_soon_due = [ days - 7 ]
     reminder_over_due = [ days + 5*x for x in range(1, 6) ]
@@ -114,7 +148,7 @@ def getReviewReminders(days):
 
 
 def getReminderValues(review: Review):
-    days=Review.get_review_days_from_due_date(review)
+    days=getReviewDays(review)
     reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
     reminder_values = {
         "reminder_soon_due" : reminder_soon_due,
@@ -125,7 +159,7 @@ def getReminderValues(review: Review):
 
 
 def get_reminders_from_config():
-    for hashtag, days_default in _reminders.items():
+    for hashtag in _reminders.keys():
         days = myconf.get("reminders." + hashtag)
         if not days:
             continue
@@ -134,7 +168,7 @@ def get_reminders_from_config():
         _reminders[hashtag] = days
 
 
-def getReminder(db, hashtag_template, review_id):
+def getReminder(db: DAL, hashtag_template: str, review_id: int):
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("#", "")
     hash_temp = hash_temp.replace("Stage1", "")
@@ -142,10 +176,12 @@ def getReminder(db, hashtag_template, review_id):
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
 
     if hash_temp in _review_reminders:
-        rev = db.t_reviews[review_id]
-        reminder_values = getReminderValues(rev)
-        days = reminder_values[_review_reminders[hash_temp]]
-
+        review = Review.get_by_id(db, review_id)
+        if review:
+            reminder_values = getReminderValues(review)
+            days = reminder_values[_review_reminders[hash_temp]]
+        else:
+            return None
     elif hash_temp in _reminders:
         days = avoid_weekend_for_reminder(_reminders[hash_temp])
     else:
