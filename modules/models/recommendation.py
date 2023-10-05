@@ -1,9 +1,17 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
 from pydal.objects import Row
 from pydal import DAL
+
+class RecommendationState(Enum):
+    REJECTED = 'Rejected'
+    AWAITING_REVISION = 'Awaiting revision'
+    ONGOING = 'Ongoing'
+    RECOMMENDED = 'Recommended'
+    REVISION = 'Revision'
 
 
 class Recommendation(Row):
