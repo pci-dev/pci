@@ -833,8 +833,6 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, o["id"])
                 emailing.create_reminder_for_recommender_revised_decision_due(session, auth, db, o["id"])
                 emailing.create_reminder_for_recommender_revised_decision_over_due(session, auth, db, o["id"])
-                if pciRRactivated:
-                    emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderReceivedRevisionNeedsToTakeAction", recomm.id)
                 # delete reminders
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionWarning", o["id"])
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionNeeded", o["id"])
@@ -1032,8 +1030,7 @@ def setRecommendationDoi(s, _recomm):
     if not recomm: return # on delete user
 
     if pciRRactivated:
-        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderReceivedRevisionNeedsToTakeAction", 
-                                                   "#ManagersRecommenderAgreedAndNeedsToTakeAction", 
+        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction", 
                                                    "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction"], recomm.id)
         if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
             return
@@ -1218,7 +1215,7 @@ def reviewSuggested(s, row):
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue", row["recommendation_id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue", row["recommendation_id"])
                 if pciRRactivated:
-                    emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderReceivedRevisionNeedsToTakeAction", "#ManagersRecommenderAgreedAndNeedsToTakeAction"], row["recommendation_id"])
+                    emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction"], row["recommendation_id"])
     return None
 
 
