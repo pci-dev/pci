@@ -214,7 +214,7 @@ def _UserMenu():
 
     nRevTot = db((db.t_reviews.reviewer_id == auth.user_id)).count()
     nRevOngoing = db((db.t_reviews.reviewer_id == auth.user_id) & (db.t_reviews.review_state == "Awaiting review")).count()
-    nRevisions = db((db.t_articles.user_id == auth.user_id) & (db.t_articles.status == "Awaiting revision")).count()
+    nRevisions = db((db.t_articles.user_id == auth.user_id) & (db.t_articles.status.belongs("Awaiting revision", "Pre-submission"))).count()
     if nRevOngoing > 0:
         revClass = "pci-enhancedMenuItem"
         contribMenuClass = "pci-enhancedMenuItem"
