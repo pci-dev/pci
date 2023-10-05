@@ -244,6 +244,16 @@ class COARNotifier:
         }
         self.send_notification(notification, article)
 
+    def send_acknowledge_and_tentative_accept(self, article):
+        if not article.coar_notification_id: return
+
+        print(f"send_acknowledge_and_tentative_accept: {article.coar_notification_id}")
+
+    def send_acknowledge_and_reject(self, article):
+        if not article.coar_notification_id: return
+
+        print(f"send_acknowledge_reject: {article.coar_notification_id}")
+
     def record_notification(
         self,
         *,
