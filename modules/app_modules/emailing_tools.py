@@ -290,7 +290,9 @@ def exempt_addresses(db, addresses, hashtag_template):
         if user_id:
             user = db.auth_user[user_id.id]
             email_options = ",".join(user.email_options)
-            if user.email_options == []:
+            if hashtag_template == "#ReminderSubmitterScheduledSubmissionDue":
+                continue
+            elif user.email_options == []:
                 addresses.remove(address)
             elif "authors" not in email_options and "Submitter" in hashtag_template:
                 addresses.remove(address)
