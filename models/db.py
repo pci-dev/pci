@@ -195,6 +195,7 @@ from gluon import current
 current.auth = auth
 current.db = db
 current.isRR = pciRRactivated
+current.coar = COARNotifier(db)
 
 # -------------------------------------------------------------------------
 db.define_table(
@@ -813,7 +814,7 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
 db.t_recommendations._before_update.append(lambda s, i: setRecommendationDoi(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
-        if COARNotifier(db).enabled else None
+        if current.coar.enabled else None
 
 def get_last_recomm(articleId):
     return db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
@@ -844,7 +845,7 @@ def recommendationUpdated(s, updated_recommendation):
         and updated_recommendation.get('recommendation_state') == "Recommended"
     ):
         # COAR notification
-        coar_notifier = COARNotifier(db)
+        coar_notifier = current.coar
         for review in db(
                 (db.t_recommendations.article_id == original_recommendation.article_id)
               & (db.t_reviews.recommendation_id == db.t_recommendations.id)

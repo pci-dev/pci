@@ -6,6 +6,7 @@ import json
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifyException, COARNotifier
 from app_modules import emailing
+from gluon import current
 
 
 from gluon import current
@@ -28,7 +29,7 @@ except:
 
 
 def index():
-    if not COARNotifier(db).enabled or not rdflib:
+    if not current.coar.enabled or not rdflib:
         return "COAR notifications for PCI (disabled: %s)" % (
                 "inbox_url not configured" if rdflib else "rdflib not installed")
 
@@ -42,7 +43,7 @@ def index():
 
 
 def inbox():
-    coar_notifier = COARNotifier(db)
+    coar_notifier = current.coar
 
     if not coar_notifier.enabled:
         raise HTTP(status=http.HTTPStatus.NOT_FOUND.value)
@@ -191,7 +192,7 @@ def get_article_by_coar_req_id(coar_req_id):
 
 
 def show_coar_status():
-    coar_notifier = COARNotifier(db)
+    coar_notifier = current.coar
 
     text = """
     coar notifications for pci (%s)
