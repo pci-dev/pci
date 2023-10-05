@@ -688,6 +688,12 @@ def search_recommenders():
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
+    users.id.label = "Name"
+    users.id.readable = True
+    users.id.represent = lambda uid, row: DIV(
+            common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+            _class="pci-w300Cell")
+
     links = []
     if articleId:
         links += [
@@ -716,15 +722,9 @@ def search_recommenders():
         csv=csv,
         exportclasses=expClass,
         fields=[
-            users._id,
-            users.uploaded_picture,
-            users.first_name,
-            users.last_name,
-            users.laboratory,
-            users.institution,
-            users.city,
-            users.country,
+            users.id,
             users.thematics,
+            users.keywords,
         ],
         links=links,
         orderby=users._id,
