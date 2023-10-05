@@ -109,12 +109,13 @@ class COARNotifier:
         This method handles adding the generic bits of the notification (i.e. the
         @context, id, origin and target.
         """
-        session = _get_requests_session()
-
         target_inbox = get_target_inbox(article)
 
-        # Add the base properties for the notification, including the JSON-LD context.
-        notification = {
+        notification = self.add_base_notification_properties(notification, target_inbox)
+        self._send_notification(notification, target_inbox)
+
+    def add_base_notification_properties(self, notification, target_inbox):
+        return {
             "@context": [
                 "https://www.w3.org/ns/activitystreams",
                 "https://purl.org/coar/notify",
@@ -132,7 +133,9 @@ class COARNotifier:
             **notification,
         }
 
+    def _send_notification(self, notification, target_inbox):
         serialized_notification = json.dumps(notification, indent=2)
+        session = _get_requests_session()
 
         try:
             response = session.post(
@@ -247,12 +250,13 @@ class COARNotifier:
     def send_acknowledge_and_tentative_accept(self, article):
         if not article.coar_notification_id: return
 
-        print(f"send_acknowledge_and_tentative_accept: {article.coar_notification_id}")
+        send_ack(self, "Accept", article)
 
     def send_acknowledge_and_reject(self, article):
         if not article.coar_notification_id: return
 
-        print(f"send_acknowledge_reject: {article.coar_notification_id}")
+        send_ack(self, "Reject", article)
+
 
     def record_notification(
         self,
@@ -303,6 +307,39 @@ class COARNotifier:
             inbox_url=inbox_url,
             http_status=http_status,
         )
+
+#
+
+def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
+    target_inbox = get_origin_inbox(article)
+    notification = {
+          "type": f"Tentative{typ}",
+          "object": {
+            "id": article.coar_notification_id,
+            "object": get_origin_object(article),
+            "type": "Offer"
+          },
+          "inReplyTo": article.coar_notification_id,
+          "actor": {
+            "id": self.base_url,
+            "type": "Service",
+            #"name": "PCI coar Service",
+          },
+          #"context": {
+          #  "id": "https://some-organisation.org/resource/0021",
+          #  "ietf:cite-as": "https://doi.org/10.4598/12123487",
+          #  "type": "Document"
+          #},
+        }
+
+    notification = self.add_base_notification_properties(notification, target_inbox)
+    self._send_notification(notification, target_inbox)
+
+def get_origin_inbox(article):
+    pass
+
+def get_origin_object(article):
+    pass
 
 
 def validate_outbound_notification(graph):
