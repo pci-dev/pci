@@ -147,6 +147,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterParallelPreprintUnderConsideration", article)
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterPreprintUnderConsideration", article)
+                current.coar.send_acknowledge_and_tentative_accept(article)
 
             if pciRRactivated:
                 mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
@@ -158,6 +159,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                     "parallelText"
                 ] += """If your manuscript was sent to reviewers and evaluated, we will add a link to the reports on our progress log page. This is because you chose the parallel submission option and we do not wish to waste the effort that went into evaluating your work. This provides reviewers a possibility to claim credit for their evaluation work and, in addition to being useful to your team, we hope the reports are useful discussion points for other researchers in the field."""
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterCancelledSubmission", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Rejected":
             mail_vars["recommTarget"] = URL(
@@ -169,6 +171,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRejectedSubmission", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Not considered":
             mail_vars["recommTarget"] = URL(
@@ -176,6 +179,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             )
 
             hashtag_template = "#SubmitterNotConsideredSubmission"
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
             mail_vars["recommTarget"] = URL(
@@ -187,6 +191,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Pre-recommended":
             return  # patience!
