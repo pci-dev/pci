@@ -60,3 +60,15 @@ class Recommendation(Row):
     @staticmethod
     def get_current_round_number(db: DAL, recommendation: Recommendation):
         return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
+    
+
+    @staticmethod
+    def get_all(db: DAL, recommendation_states: List[RecommendationState] = []):
+        if len(recommendation_states) == 0:
+            return cast(List[Recommendation], db().select(db.t_recommendations.ALL))
+        else:
+            states_values: List[str] = []
+            for recommendation_state in recommendation_states:
+                states_values.append(recommendation_state.value)
+            reco = cast(List[Recommendation], db((db.t_recommendations.recommendation_state.belongs(states_values))).select())
+            return reco
