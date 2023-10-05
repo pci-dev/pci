@@ -733,8 +733,8 @@ def _new_delay_to_reviewing_redirection(accept: bool):
 
     return dict(
         form=CENTER(
-            P(message1, _style="font-size: initial; font-weight: bold;"),
-            P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message1, _class="info-sub-text"),
+            P(message2, _class="info-sub-text", _style="width: 800px"),
             P(message3, _style="font-size: initial; font-weight: bold;"),
             A(T("Back to your dashboard"), _href=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True), _class="btn btn-success")
         )

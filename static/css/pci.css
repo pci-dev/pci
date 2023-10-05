@@ -1403,3 +1403,8 @@ header {
 .review-card .pci2-round-review-sub-title {
   margin-top: 10px;
 }
+
+.info-sub-text {
+  font-size: initial;
+  font-weight: bold;
+}
