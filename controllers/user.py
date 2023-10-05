@@ -373,23 +373,30 @@ def new_submission():
 def check_title():
     form = SQLFORM.factory(
         Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_IN_SET(("STAGE 1", "STAGE 2"))),
-        Field("title", label=T("Title"), type="string", length=250, required=True),
+        Field("title", label=T("Title"), type="string", length=250),
     )
     form.element(_type="submit")["_value"] = T("Continue")
     def onvalidation(form):
-        title_already_submitted = db((db.t_articles.user_id == db.auth_user.id) & (db.t_articles.title.lower() == form.vars.title.lower()) & (db.t_articles.report_stage == "STAGE 1")).select().last()
-        if title_already_submitted:
-            form.errors.title = T("Title error message")
+        if form.vars.report_stage == "STAGE 1":
+            if form.vars.title is None:
+                form.errors.title = T("Title cannot be empty, please provide a title")
+            else:
+                title_already_submitted = db((db.t_articles.user_id == db.auth_user.id) & (db.t_articles.title.lower() == form.vars.title.lower()) & (db.t_articles.report_stage == "STAGE 1") & (db.t_articles.is_scheduled == True)).select().last()
+                if title_already_submitted:
+                    form.errors.title = T("Title error message")
 
     if form.process(onvalidation=onvalidation).accepted:
         myVars = dict(title=form.vars.title, report_stage=form.vars.report_stage)
         redirect(URL(c="user", f="fill_new_article", vars=myVars, user_signature=True))
+
+    myScript = common_tools.get_script("check_title.js")
     response.view = "default/myLayout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
         customText=getText(request, auth, db, "#UserEditArticleText"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        myFinalScript=myScript,
         form=form
     )
 
