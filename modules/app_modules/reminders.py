@@ -106,6 +106,14 @@ _review_reminders = {
     "ReminderReviewerReviewOverDue":    "reminder_over_due",
 }
 
+_avoid_weekend_reminders_RR = [
+    'ReminderReviewerReviewInvitationNewUser',
+    'ReminderReviewerReviewInvitationRegisteredUser',
+    'ReminderReviewerInvitationNewRoundRegisteredUser',
+    'ReminderReviewInvitationRegisteredUserNewReviewer',
+    'ReminderReviewInvitationRegisteredUserReturningReviewer'
+]
+
 
 def getDefaultReviewDuration():
     return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
@@ -183,7 +191,13 @@ def getReminder(db: DAL, hashtag_template: str, review_id: int):
         else:
             return None
     elif hash_temp in _reminders:
-        days = avoid_weekend_for_reminder(_reminders[hash_temp])
+        days = _reminders[hash_temp]
+
+        if pciRRactivated:
+            if hash_temp in _avoid_weekend_reminders_RR:
+                days[0] = avoid_weekend(days[0], False)
+        else:
+            days = avoid_weekend_for_reminder(days)
     else:
         return None
 
