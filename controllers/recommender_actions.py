@@ -765,9 +765,9 @@ def change_review_due_date():
         default_value = Review.get_due_date_from_review_duration(review)
     default_value = default_value.strftime('%Y-%m-%d')
     
-    form = FORM(INPUT(_name="review_duration", type="date", _class="date", _value=default_value),
-                INPUT(_type="submit", _value=T("Change due date"), _style="display: block; margin-left: auto; margin-right: auto; margin-top: 10px;"),
-                _class="col-sm-12", _style="text-align: center")
+    form = FORM(CENTER(INPUT(_name="review_duration", type="date", _class="date", _value=default_value)),
+                CENTER(INPUT(_type="submit", _value=T("Change due date"), _class="btn btn-success"),
+                    A("Cancel", _class="btn btn-default", _href=request.env.http_referer), _style="margin-top: 10px;"))
     
     if form.process().accepted:
         try:
@@ -803,6 +803,8 @@ def change_review_due_date():
     elif request.env.http_referer and 'change_review_due_date' not in request.env.http_referer:
             session.change_review_due_date_previous_page = request.env.http_referer
     
-    content = H3(T('Select the new duration whithin which the reviewer must post their review.'), _class="col-sm-12", _style="text-align: center; margin-bottom: 10px")
+    content = CENTER(H3(f'The current review deadline is {default_value}.'),
+                     P('Please select the updated deadline or click Cancel.', _class="info-sub-text"),
+                     _class="col-sm-12", _style="text-align: center; margin-bottom: 10px")
 
     return dict(content=content, form=form)
