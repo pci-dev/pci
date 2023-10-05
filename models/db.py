@@ -1231,6 +1231,9 @@ def reviewDone(s, f):
     last_recomm_reminder_mail = db((db.mail_queue.sending_status == "pending") & (db.mail_queue.recommendation_id == recomm.id)
     & (db.mail_queue.mail_template_hashtag == "#ReminderRecommender2ReviewsReceivedCouldMakeDecision")
     & (db.mail_queue.sending_date >= (request.now + timedelta(days=7)))).select().first()
+    not_enough_reviewer_mail = db((db.mail_queue.sending_status == "pending") & (db.mail_queue.recommendation_id == recomm.id)
+                                    & (db.mail_queue.mail_template_hashtag == "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction")).count()
+
     if f["review_state"] == "Review completed":
         no_of_completed_reviews += 1
     try:
@@ -1239,15 +1242,14 @@ def reviewDone(s, f):
         recomm_mail = None
     if recomm_mail is not None:
         if pciRRactivated:
-            if no_of_accepted_invites > 0 and no_of_accepted_invites < 2 and db(db.t_recommendations.recommendation_state == "Ongoing"):
+            if no_of_accepted_invites < 2 and recomm.recommendation_state == "Ongoing" and not_enough_reviewer_mail == 0:
                 emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recomm.id)
-            if no_of_accepted_invites >= 2:
+            elif no_of_accepted_invites >= 2:
                 emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recomm.id)
-            if no_of_completed_reviews >= 2 and no_of_completed_reviews == no_of_accepted_invites and db(db.t_recommendations.recommendation_state == "Ongoing"):
+            elif no_of_completed_reviews >= 2 and no_of_completed_reviews == no_of_accepted_invites and recomm.recommendation_state == "Ongoing":
                 emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction", recomm.id)
- 
-        if no_of_completed_reviews >= 2 and no_of_completed_reviews < no_of_accepted_invites and db((db.t_reviews.recommendation_id == recomm.id)
-        & (db.t_recommendations.recommendation_state == "Ongoing")) and last_recomm_reminder_mail is None:
+                   
+        if no_of_completed_reviews >= 2 and no_of_completed_reviews < no_of_accepted_invites and recomm.recommendation_state == "Ongoing" and last_recomm_reminder_mail is None:
             emailing.create_reminder_recommender_could_make_decision(session, auth, db, recomm.id)
         if o["review_state"] == "Awaiting review" and f['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
