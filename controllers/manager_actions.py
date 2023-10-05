@@ -327,7 +327,7 @@ def prepare_send_back():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
     lastRecomm = get_last_recomm(articleId)
-    
+
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -335,7 +335,7 @@ def prepare_send_back():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    redirect(URL(c="manager", f="email_for_recommender", vars=dict(articleId=articleId, lastRecomm=lastRecomm)))
+    redirect(URL(c="manager", f="email_for_recommender", vars=dict(articleId=articleId, lastRecomm=lastRecomm.id)))
 
 
 ######################################################################################################################################################################

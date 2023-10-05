@@ -1703,13 +1703,14 @@ def email_for_recommender():
     else:
         sender = cast(User, auth.user)
 
+    recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
     hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-    subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-    message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, auth.user, article, recomm, recommender)
+    mail_dict = emailing_tools.buildMail(db, hashtag_template, mail_vars, article_id=articleId)
+    subject = mail_dict["subject"]
+    message = mail_dict["content"]
 
-    recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
-     
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyTo = ", ".join([replyto.email, contact])
     default_replyto = emailing_tools.to_string_addresses(replyTo)
@@ -1733,13 +1734,14 @@ def email_for_recommender():
     resent = False
     if form.process().accepted:
         try:
-            emailing.resend_mail(
-                session,
-                auth,
-                db,
-                form,
-                )
-            if article.status.startswith("Pre-"): #xxx
+            emailing.send_to_recommender_decision_sent_back(session,
+                                                            auth,
+                                                            db,
+                                                            form,
+                                                            articleId,
+                                                            lastRecomm,
+                                                            hashtag_template)
+            if article.status.startswith("Pre-"):
                 recomm.is_closed = False
                 recomm.recommendation_state = "Ongoing"
                 recomm.update_record()
@@ -1749,7 +1751,7 @@ def email_for_recommender():
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
-        redirect(URL(c="admin", f="mailing_queue"))
+        redirect(URL(c="manager", f="pending_articles"))
 
     return dict(
         form=form,

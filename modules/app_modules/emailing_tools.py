@@ -104,7 +104,7 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
-def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, recommender_last_name: Optional[str] = None):
+def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, recommender: str, new_round: Optional[str] = None):
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -133,9 +133,8 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
     mail_vars["articleAuthors"] = mail_vars["art_authors"]
     mail_vars["r2r_url"] = r2r_url
     mail_vars["trackchanges_url"] = trackchanges_url
-
-    if reviewer_last_name:
-        mail_vars["LastName"] = reviewer_last_name
+    mail_vars["destPerson"] = '%s %s'%(recommender.first_name, recommender.last_name)
+    mail_vars["LastName"] = recommender.last_name
     
     if recommendation.doi:
         mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi)
