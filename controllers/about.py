@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import os
 from subprocess import Popen, PIPE, STDOUT
 
 # import os.path
 import re
+from typing import Dict, List, Optional, Tuple
 from gluon.custom_import import track_changes
 from gluon.storage import Storage
+from models.recommendation import Recommendation, RecommendationState
+from models.review import Review, ReviewState
+from models.user import User
 
 track_changes(True)  # reimport module if changed; disable in production
 # from app_modules.common import mkPanel
@@ -15,6 +20,7 @@ from app_modules import common_tools
 from controller_modules import adjust_grid
 
 from gluon.contrib.appconfig import AppConfig
+from pydal import DAL
 
 myconf = AppConfig(reload=True)
 
@@ -228,12 +234,91 @@ def buzz():
 def thanks_to_reviewers():
     tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
+        
+    years_reviews = _get_review_with_reviewer_by_year(db)
+
+    html = DIV()
+    for year in sorted(years_reviews.keys(), reverse=True):
+        html.append(H2(year, _style="font-weight: bold; font-size: xx-large"))
+        html_list_user = UL(_style="list-style: none; padding: 10px")
+
+        nb_anonymous = 0
+        user_ids: List[int] = []
+        for review_user in years_reviews[year]:
+            review = review_user[0]
+            user = review_user[1]
+
+            if user.id in user_ids:
+                continue
+            
+            if (user.first_name and user.first_name.startswith('[Anon]')) or (user.last_name and user.last_name.startswith('[Anon]')):
+                nb_anonymous += 1
+                user_ids.append(user.id)
+            elif not review.anonymously:
+                user_ids.append(user.id)
+                if user.first_name and user.last_name:
+                    html_list_user.append(LI(user.last_name + ' ' + user.first_name))
+                elif user.first_name:
+                    html_list_user.append(LI(user.first_name))
+                elif user.last_name:
+                    html_list_user.append(LI(user.last_name))
+
+        for review_user in years_reviews[year]:
+            if review_user[1].id not in user_ids and review_user[0].anonymously:
+                nb_anonymous += 1
+                user_ids.append(review_user[1].id)
+        
+        if nb_anonymous > 0:
+            html_list_user.append(BR())
+            if nb_anonymous == 1:
+                html_list_user.append(f'and 1 anonymous reviewer')
+            else:
+                html_list_user.append(f'and {nb_anonymous} anonymous reviewers')
+        
+        if len(user_ids) == 1:
+            html.append(P('1 reviewers:', _style="font-weight: bold;"))
+        else:
+            html.append(P(f'{len(user_ids)} reviewers:', _style="font-weight: bold;"))
+        
+        html.append(html_list_user)
+
     return dict(
         pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"),
-        customText=getText(request, auth, db, "#ThanksToReviewersInfo"),
+        customText=html,
         tweeterAcc=tweeterAcc,
     )
 
+def _get_recommendation_dict(db: DAL):
+    dict_id_recommendations: Dict[int, Recommendation] = {}
+    recommendations = Recommendation.get_all(db, [RecommendationState.RECOMMENDED])
+    for recommendation in recommendations:
+        if recommendation.validation_timestamp:
+            dict_id_recommendations[recommendation.id] = recommendation
+    return dict_id_recommendations
+
+def _get_review_with_reviewer_by_year(db: DAL):
+    years_reviews: Dict[int, List[Tuple[Review, User]]] = {}
+    dict_id_recommendations = _get_recommendation_dict(db)
+
+    reviews_users = Review.get_all_with_reviewer(db, [ReviewState.REVIEW_COMPLETED])
+    for review_user in reviews_users:
+        review = review_user[0]
+        review_date: Optional[datetime]
+        if review.due_date:
+            review_date = review.due_date
+        else:
+            review_date = Review.get_due_date_from_review_duration(review)
+        
+        recommendation = dict_id_recommendations.get(review.recommendation_id)
+        if recommendation and recommendation.validation_timestamp and review_date < recommendation.validation_timestamp:
+            review_date = recommendation.validation_timestamp
+
+        year = review_date.year
+        if year not in years_reviews:
+            years_reviews[year] = []
+        years_reviews[year].append(review_user)
+    
+    return years_reviews
 
 ######################################################################################################################################################################
 def full_policies():
