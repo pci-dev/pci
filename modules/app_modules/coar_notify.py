@@ -351,6 +351,8 @@ def get_origin_request(article):
 
 def validate_outbound_notification(graph):
     subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
+    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeAccept))
+    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeReject))
     if len(subjects) != 1:
         raise COARNotifyNoUniqueSubjectException
     subject = subjects[0]
