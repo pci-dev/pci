@@ -1961,6 +1961,7 @@ db.define_table(
     Field("direction", type="string", label="Inbound or Outbound"),
     Field("http_status", type="integer", label="HTTP Status for outboard messages"),
     Field("inbox_url", type="string", label="Remote inbox for notification"),
+    Field("coar_id", type="string", label="Notification id"),
 )
 
 
