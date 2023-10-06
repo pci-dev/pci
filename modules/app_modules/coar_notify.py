@@ -10,6 +10,7 @@ import uuid
 
 import requests
 
+from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
 
@@ -312,12 +313,14 @@ class COARNotifier:
 #
 
 def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
-    target_inbox = get_origin_inbox(article)
+    origin_req = get_origin_request(article)
+    target_inbox = origin_req["origin"]["inbox"]
+    origin_object = origin_req["object"]["id"]
     notification = {
           "type": f"Tentative{typ}",
           "object": {
             "id": article.coar_notification_id,
-            "object": get_origin_object(article),
+            "object": origin_object,
             "type": "Offer"
           },
           "inReplyTo": article.coar_notification_id,
@@ -336,11 +339,14 @@ def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
     notification = self.add_base_notification_properties(notification, target_inbox)
     self._send_notification(notification, target_inbox)
 
-def get_origin_inbox(article):
-    pass
 
-def get_origin_object(article):
-    pass
+def get_origin_request(article):
+    db = current.db
+    return json.loads(
+        db(db.t_coar_notification.coar_id == article.coar_notification_id)
+        .select().first()
+        .body
+    )
 
 
 def validate_outbound_notification(graph):
