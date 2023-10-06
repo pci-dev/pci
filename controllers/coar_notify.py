@@ -183,8 +183,9 @@ def create_prefilled_submission(req, user):
 def validate_request(body, content_type, coar_notifier):
         try:
             coar_notifier.record_notification(
-                body=body,
-                body_format=_rdflib_parser_media_types[content_type],
+                body=json.loads(body),
+                #body=body,
+                #body_format=_rdflib_parser_media_types[content_type],
                 direction="Inbound",
                 base=coar_notifier.base_url + 'coar_notify/inbox/',
             )
