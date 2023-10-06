@@ -306,6 +306,7 @@ class COARNotifier:
             direction=direction,
             inbox_url=inbox_url,
             http_status=http_status,
+            coar_id=body["id"],
         )
 
 #
