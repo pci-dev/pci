@@ -96,12 +96,18 @@ def process_request(req):
 
     if type(req_type) is list: req_type = " ".join(req_type)
 
-    if req_type in request_handlers:
-        request_handlers[req_type](req)
-    else:
+    if req_type not in request_handlers:
         raise HTTP(
                 status=http.HTTPStatus.BAD_REQUEST.value,
                 body=f"request.type: unsupported type '{req_type}'")
+    try:
+        request_handlers[req_type](req)
+    except HTTP as e:
+        raise e
+    except Exception as e:
+        raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body=f"exception: {e}")
 
 
 def request_endorsement(req):
