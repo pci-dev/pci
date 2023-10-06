@@ -279,15 +279,24 @@ class COARNotifier:
         body can either be a JSON-LD-style dictionary, or a BytesIO.
         base, if specified, provides the base URL for resolving absolute URLs
         """
+        if isinstance(body, dict):
+            bb = json.dumps(body)
+            b = bytes(bb, "utf8")
+        else:
+            bb = body.read()
+            body.seek(0)
+            b = body
+
         graph = rdflib.Graph()
 
         try:
-            graph.parse(body, format=body_format, base=base or "https://invalid/")
+            graph.parse(b, format=body_format, base=base or "https://invalid/")
         except Exception as e:
             raise COARNotifyParseException from e
 
         body = (
             body if body_format == "json-ld" and isinstance(body, dict)
+            else json.loads(bb) if body_format == "json-ld"
             else json.loads(graph.serialize(
                     format="json-ld", auto_compact=True))["@graph"]
         )
