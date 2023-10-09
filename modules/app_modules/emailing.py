@@ -391,7 +391,7 @@ def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, l
     clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.vars.replyto)
     replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
 
-    mail_content = mk_mail(form.vars.subject, form.vars.content, resend=True)
+    mail_content = mk_mail(form.vars.subject, form.vars.message, resend=True)
 
     db.mail_queue.insert(
         user_id = auth.user_id,

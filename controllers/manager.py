@@ -1707,9 +1707,9 @@ def email_for_recommender():
     hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
     mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
     mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, auth.user, article, recomm, recommender)
-    mail_dict = emailing_tools.buildMail(db, hashtag_template, mail_vars, article_id=articleId)
-    subject = mail_dict["subject"]
-    message = mail_dict["content"]
+
+    subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
+    message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
 
     replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
     replyTo = ", ".join([replyto.email, contact])
@@ -1724,13 +1724,12 @@ def email_for_recommender():
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto),
         Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
         Field("subject", label=T("Subject"), type="string", length=250, default=subject, required=True),
-        Field("content", label=T("Content"), type="text", default=message, required=True),
+        Field("message", label=T("Message"), type="text", default=message, required=True),
     )
-    form.element(_type="submit")["_value"] = T("Send e-mail")
-    form.element("textarea[name=content]")["_style"] = "height:500px;"
 
-    html_string = str(message)
-    
+    form.element(_type="submit")["_value"] = T("Send e-mail")
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
     resent = False
     if form.process().accepted:
         try:
@@ -1757,7 +1756,6 @@ def email_for_recommender():
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
         titleIcon="envelope",
-        html_string=html_string,
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
     )
