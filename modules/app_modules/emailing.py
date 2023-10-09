@@ -1307,6 +1307,11 @@ def send_to_managers(session, auth, db, articleId, newStatus):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ManagersPreprintSubmission", article)
 
+        elif newStatus == "Resubmission":
+            mail_vars["linkTarget"] = URL(c="manager", f="recommendations", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+            hashtag_template = emailing_tools.getCorrectHashtag("#ManagersPreprintResubmission", article)
+
         elif newStatus.startswith("Pre-"):
             if recomm is not None:
                 mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id) or ""  # recommender
