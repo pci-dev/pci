@@ -2862,19 +2862,21 @@ def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
     reviewer = db.auth_user[review.reviewer_id]
+    nb_deleted = 0
 
     for hashtag in hashtag_template:
         if reviewer and recomm:
-            return db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
+            nb_deleted += db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
             if pciRRactivated:
                 hashtag_template_rr = hashtag + "Stage"
-                return db(
+                nb_deleted += db(
                     (db.mail_queue.dest_mail_address == reviewer.email)
                     & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
                     & (db.mail_queue.recommendation_id == recomm.id)
                 ).delete()
-
+            
+    return nb_deleted
 
 ######################################################################################################################################################################
 def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleId):
