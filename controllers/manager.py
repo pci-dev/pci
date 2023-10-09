@@ -697,13 +697,14 @@ def search_recommenders():
     links = []
     if articleId:
         links += [
-        dict(header="", body=lambda row: "" if row.auth_user.id in excludeList else A(
+        dict(header="", body=lambda row: "" if row.auth_user.id in excludeList else DIV(A(
                 SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
                 _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
                 _class="button",
+                ),
+                INPUT(_type="checkbox", _id=row.auth_user.id, _class="multiple-choice-checks"))
             ),
-        ),
-    ]
+        ]
 
     query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
