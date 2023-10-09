@@ -274,11 +274,16 @@ def ensure_trailing_slash():
 
 
 def get_type(body):
-    coar_types = [ "Endorsement", "Review" ]
+    coar_types = [
+            "Endorsement", "Review",
+            "Reject", "Accept",
+    ]
     for t in coar_types:
         if body.find("://purl.org/coar/notify_vocabulary/" + t) > 0:
             return t
         if body.find(f'"coar-notify:{t}Action"') > 0:
+            return t
+        if body.find(f'"type": "Tentative{t}"') > 0:
             return t
 
 
@@ -291,6 +296,9 @@ def get_request_type(body):
 import re
 
 def get_person_name(body):
+    name = re.match(r'.*"type": "Person", "name": "([^"]*)".*', body)
+    if name: return name[1]
+
     name = re.match(r'.*"@type": "as:Person", "as:name": "([^"]*)".*', body)
     if name: return name[1]
 
@@ -300,6 +308,9 @@ def get_person_name(body):
     return "(anonymous)"
 
 def get_object_ref(body):
+    obj_ref = re.match(r'.*"object": {.* "object": "([^"]+)".*', body)
+    if obj_ref: return obj_ref[1]
+
     obj_ref = re.match(r'.*"as:object": {"@id": "([^"]+)".*', body)
     if obj_ref: return obj_ref[1]
 
