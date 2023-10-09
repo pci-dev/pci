@@ -1791,3 +1791,45 @@ def email_for_recommender():
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
     )
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def verify_co_authorship():
+
+    response.view = "default/myLayout.html"
+    articleId = request.vars["articleId"]
+    article = db.t_articles[articleId]
+    authors = (article.authors).replace("and", "").split(",")
+    authors = [x.strip() for x in authors]
+
+    is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
+                            (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
+    has_recommender = db(db.t_recommendations.article_id == article.id).select(db.t_recommendations.recommender_id)
+    no_reviewers = db((db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count() == 0
+    has_reviewers = db((db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).select(db.t_reviews.reviewer_id)
+
+    grid = []
+    recommenders = []
+
+    # List of suggested recommenders
+    if has_recommender:
+        recommender_name = [mkUserNoSpan(None, db, user.recommender_id) for user in has_recommender]
+    if is_suggested and not has_recommender:
+        recommenders = [mkUserNoSpan(None, db, user.suggested_recommender_id) for user in is_suggested]
+        grid = query_semantic_api(authors, recommenders)
+    elif has_recommender and no_reviewers:
+        recommenders = [mkUserNoSpan(None, db, user.recommender_id) for user in has_recommender]
+        grid = query_semantic_api(authors, recommenders)
+    elif has_reviewers:
+        recommenders = [mkUserNoSpan(None, db, user.reviewer_id) for user in has_reviewers]
+        grid = query_semantic_api(authors, recommenders)
+        grid += query_semantic_api(authors, recommender_name)
+
+    return dict(
+        myBackButton = common_small_html.mkBackButton(),
+        customText=getText(request, auth, db, "#ManageCommentsText"),
+        titleIcon="ok-sign",
+        pageTitle="Verify Co-authorship",
+        pageHelp=getHelp(request, auth, db, "#ManageComments"),
+        grid=DIV(grid),
+    )
