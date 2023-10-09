@@ -319,6 +319,27 @@ def delete_recommendation_file():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
+def prepare_send_back():
+    if not ("articleId" in request.vars):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    articleId = request.vars["articleId"]
+    art = db.t_articles[articleId]
+    lastRecomm = get_last_recomm(articleId)
+
+    if art is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if lastRecomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    redirect(URL(c="manager", f="email_for_recommender", vars=dict(articleId=articleId, lastRecomm=lastRecomm.id)))
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
 def do_send_back_decision():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()

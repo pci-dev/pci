@@ -7,7 +7,8 @@ import datetime
 from datetime import timedelta
 import glob
 import os
-from typing import List, cast
+from typing import List, cast, Optional
+
 
 # sudo pip install tweepy
 # import tweepy
@@ -46,6 +47,7 @@ from app_modules.common_small_html import md_to_html
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
 from models.article import ArticleStatus
+from models.user import User
 
 
 myconf = AppConfig(reload=True)
@@ -1661,3 +1663,99 @@ def recommender_breakdown():
     resu["pageHelp"] = getHelp(request, auth, db, page_help_dict[action])
     return resu
 
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
+def email_for_recommender():
+    response.view = "default/myLayout.html"
+    articleId = request.vars["articleId"]
+    lastRecomm = request.vars["lastRecomm"]
+
+    if articleId is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    if lastRecomm is None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    article = db.t_articles[articleId]
+    if not article:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+    
+    recomm = db.get_last_recomm(articleId)
+    if not recomm:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+        return
+
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"):
+        sender = User.get_by_id(db, recomm.recommender_id)
+    else:
+        sender = cast(User, auth.user)
+
+    recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
+    hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
+    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, auth.user, article, recomm, recommender)
+
+    subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
+    message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
+
+    replyto = db(db.auth_user.id == auth.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+    replyTo = ", ".join([replyto.email, contact])
+    default_replyto = emailing_tools.to_string_addresses(replyTo)
+
+    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+    cc = '%s, %s'%(sender_email, contact)
+    default_cc = emailing_tools.to_string_addresses(cc)
+
+    form = SQLFORM.factory(
+        Field("dest_mail_address", label=T("Destination Email"), type="string", length=250, default=recommender.email),
+        Field("replyto", label=T("Reply-to"), type="string", length=250, default=default_replyto),
+        Field("cc_mail_addresses", type="string", label=T("CC"), default=default_cc),
+        Field("subject", label=T("Subject"), type="string", length=250, default=subject, required=True),
+        Field("message", label=T("Message"), type="text", default=message, required=True),
+    )
+
+    form.element(_type="submit")["_value"] = T("Send e-mail")
+    form.element("textarea[name=message]")["_style"] = "height:500px;"
+
+    resent = False
+    if form.process().accepted:
+        try:
+            emailing.send_to_recommender_decision_sent_back(session,
+                                                            auth,
+                                                            db,
+                                                            form,
+                                                            articleId,
+                                                            lastRecomm,
+                                                            hashtag_template)
+            if article.status.startswith("Pre-"):
+                recomm.is_closed = False
+                recomm.recommendation_state = "Ongoing"
+                recomm.update_record()
+                article.status = "Under consideration" if not article.is_scheduled else "Scheduled submission pending"
+                article.update_record()
+            resent = True
+        except Exception as e:
+            session.flash = (session.flash or "") + T("E-mail failed.")
+            raise e
+        redirect(URL(c="manager", f="pending_articles"))
+
+    return dict(
+        form=form,
+        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        titleIcon="envelope",
+        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+    )
