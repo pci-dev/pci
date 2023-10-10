@@ -4,7 +4,7 @@ from io import BytesIO
 
 def resizeImage(data, size, format="PNG"):
     im = Image.open(BytesIO(data))
-    im.thumbnail(size, Image.ANTIALIAS)
+    im.thumbnail(size, Image.LANCZOS) # ANTIALIAS
     ba = BytesIO()
     im.save(ba, format=format)
     return ba.getvalue()

@@ -442,7 +442,7 @@ def makeUserThumbnail(auth, db, userId, size=(150, 150)):
             im = Image.open(io.BytesIO(user.picture_data))
             width, height = im.size
             if width > 200 or height > 200:
-                im.thumbnail(size, Image.ANTIALIAS)
+                im.thumbnail(size, Image.LANCZOS) # ANTIALIAS
                 imgByteArr = io.BytesIO()
                 im.save(imgByteArr, format="PNG")
                 imgByteArr = imgByteArr.getvalue()
