@@ -193,13 +193,13 @@ def getReminder(db: DAL, hashtag_template: str, review_id: int):
     elif hash_temp in _reminders:
         days = _reminders[hash_temp]
 
-        if pciRRactivated:
-            if hash_temp in _avoid_weekend_reminders_RR:
-                days[0] = avoid_weekend(days[0], False)
-        else:
-            days = avoid_weekend_for_reminder(days)
+        if pciRRactivated and hash_temp in _avoid_weekend_reminders_RR:
+            days[0] = avoid_weekend(days[0], False)
     else:
         return None
+
+    if not pciRRactivated:
+        days = avoid_weekend_for_reminder(days)
 
     return dict(hashtag="#"+hash_temp, elapsed_days=days)
 
