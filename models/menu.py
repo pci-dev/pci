@@ -441,7 +441,10 @@ def _ManagerMenu():
         menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
         menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
         menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
-        menu_entry("Recommender Statistics", "glyphicon-stats", URL("manager", "recommender_statistics", user_signature=True), _class="pci-manager"),
+    ]
+
+    if pciRRactivated: managerMenu += [
+        menu_entry("Recommender Statistics", "glyphicon-stats", URL("manager", "recommender_statistics", user_signature=True), _class="pci-manager")
     ]
     return [(SPAN(txtMenu, notificationPin, _class="pci-manager"), isActive, "#", managerMenu)]
 
