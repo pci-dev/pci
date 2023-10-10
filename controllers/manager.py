@@ -702,9 +702,16 @@ def search_recommenders():
                 _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
                 _class="button",
                 ),
-                INPUT(_type="checkbox", _id=row.auth_user.id, _class="multiple-choice-checks"))
+                INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'))
             ),
         ]
+
+    select_all_btn = DIV(A(
+                         SPAN(current.T("Suggest all selected"), _class="btn btn-default"),
+                         _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds=''), user_signature=True),
+                         _class="button select-all-btn",
+                         )
+                        )
 
     query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
@@ -741,6 +748,9 @@ def search_recommenders():
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
+    select_all_script = common_tools.get_script("select_all.js")
+
+
 
     response.view = "default/gab_list_layout.html"
     return dict(
@@ -751,6 +761,8 @@ def search_recommenders():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         articleHeaderHtml=articleHeaderHtml,
+        selectAllBtn = select_all_btn,
+        selectAllScript = select_all_script,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
