@@ -500,6 +500,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
+        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction"], recomm.id)
         session.flash = 'Preprint now appear in the "In need of reviewers" list'
         redirect(request.env.http_referer)
 
