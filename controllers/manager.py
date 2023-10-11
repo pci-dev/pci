@@ -1800,7 +1800,7 @@ def verify_co_authorship():
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
     authors = (article.authors).replace("and", "").split(",")
-    authors = [x.strip() for x in authors]
+    authors = [{"group" : "author", "name" : x.strip()} for x in authors]
 
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
                             (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
@@ -1812,18 +1812,14 @@ def verify_co_authorship():
     recommenders = []
 
     # List of suggested recommenders
-    if has_recommender:
-        recommender_name = [mkUserNoSpan(None, db, user.recommender_id) for user in has_recommender]
     if is_suggested and not has_recommender:
-        recommenders = [mkUserNoSpan(None, db, user.suggested_recommender_id) for user in is_suggested]
-        grid = query_semantic_api(authors, recommenders)
+        recommenders = [{"group" : "suggested recommender", "name" : mkUserNoSpan(None, db, user.suggested_recommender_id)} for user in is_suggested]
     elif has_recommender and no_reviewers:
-        recommenders = [mkUserNoSpan(None, db, user.recommender_id) for user in has_recommender]
-        grid = query_semantic_api(authors, recommenders)
+        recommenders = [{"group" : "recommender", "name" : mkUserNoSpan(None, db, user.recommender_id)} for user in has_recommender]
     elif has_reviewers:
-        recommenders = [mkUserNoSpan(None, db, user.reviewer_id) for user in has_reviewers]
-        grid = query_semantic_api(authors, recommenders)
-        grid += query_semantic_api(authors, recommender_name)
+        recommenders = [{"group" : "recommender", "name" : mkUserNoSpan(None, db, user.recommender_id)} for user in has_recommender]
+        recommenders += [{"group" : "reviewer", "name" : mkUserNoSpan(None, db, user.reviewer_id)} for user in has_reviewers]
+    grid = query_semantic_api(authors, recommenders)
 
     return dict(
         myBackButton = common_small_html.mkBackButton(),

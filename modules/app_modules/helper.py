@@ -148,63 +148,51 @@ def is_co_recommender(auth, db, recommId):
 
 def query_semantic_api(authors: list, recommenders: list):
     grid = []
+    all_data = {
+        "author" : [], "reviewer": [], "recommender" : [], "suggested recommender" : []
+    }
     
-
-    def get_author_ids(name):
+    def get_author_ids(data):
         """Function to get author IDs from Semantic Scholar API"""
-        url = f'https://api.semanticscholar.org/graph/v1/author/search?query={name.replace(" ", "+")}'
+        name = data["name"]
+        url = f'https://api.semanticscholar.org/graph/v1/author/search?query={name.replace(" ", "+")}&fields=name,papers.authors,papers.year'
         response = requests.get(url)
+        current_year = datetime.datetime.now().year
         if response.ok:
             result = response.json()
             if result.get("data"):
-                return [{"authorId": author["authorId"], "name": author["name"]} for author in result["data"]]
+                return [{"authorId": author["authorId"], "group": data["group"], "name": author["name"], "papers": [paper for paper in author["papers"] \
+                        if paper.get("year") is not None and current_year - paper["year"] <= 4] } for author in result['data']]
         return []
 
-    def get_author_papers(author_id):
-        """Function to get papers of an author from Semantic Scholar API"""
-        url = f'https://api.semanticscholar.org/graph/v1/author/{author_id}?fields=papers.year,papers.authors'
-        response = requests.get(url)
-        if response.ok:
-            result = response.json()
-            papers = result.get("papers")
-            if papers:
-                current_year = datetime.datetime.now().year
-                return [paper for paper in papers if paper.get("year") is not None and current_year - paper["year"] <= 4]
-        return []
+    # Get  datas of authors and recommenders
+    for user in recommenders+authors:
+        user_data = get_author_ids(user)
+        if len(user_data) > 0:
+            all_data[user["group"]] += user_data
+        else:
+            grid.append(DIV(SPAN(f'Data not found for {user["group"]} {user["name"]}')))
 
-# Get author IDs of suggested recommenders
-    recommender_ids = []
-    for recommender in recommenders:
-        ids = get_author_ids(recommender)
-        recommender_ids.extend(ids)
-
-    # Get papers of suggested recommenders published in the last 4 years
-    recommender_papers = {}
-    for recommender_id in recommender_ids:
-        papers = get_author_papers(recommender_id["authorId"])
-        if papers:
-            recommender_papers[recommender_id["authorId"]] = papers
-
+    recommender_data = all_data["reviewer"] + all_data["recommender"] + all_data["suggested recommender"]
     # Check if any of the authors have co-published with the suggested recommenders
-    for author in authors:
-        nome = f'Author {author}'
-        author_ids = []
-        ids = get_author_ids(author)
-        author_ids.extend(ids)
+    for author in all_data["author"]:
+        nome = f'Author {author["name"]}'
         found = False
-        for recommender_id in recommender_ids:
-            for paper in recommender_papers.get(recommender_id["authorId"], []):
-                co_authors = [co_author["authorId"] for co_author in paper["authors"]]
-                for author_id in author_ids:
-                    for co_author_id in co_authors:
-                        if author_id["authorId"] == co_author_id:
-                            found = True
-                            paper_url = f'https://api.semanticscholar.org/{paper["paperId"]}'
-                            grid.append(DIV(SPAN(f'{author_id["name"]} has co-published with suggested recommender {recommender_id["name"]} on this ', A('paper', _href=paper_url), f' published in {paper["year"]}')))
-                            grid.append(BR())
-                            break
+        if len(all_data["author"]) == 0 or len(recommender_data) == 0:
+            break
+
+        for data in recommender_data:
+            co_authors = [(co_author["authorId"], paper) for paper in data["papers"] for co_author in paper["authors"]]
+            for co_author_id, paper in co_authors:
+                if author ["authorId"] == co_author_id:
+                    found = True
+                    matched_paper = paper
+                    paper_url = f'https://api.semanticscholar.org/{matched_paper["paperId"]}'
+                    grid.append(DIV(SPAN(f'{author["name"]} has co-published with {data["group"]} {data["name"]} on this ', A('paper', _href=paper_url), f' published in {matched_paper["year"]}')))
+                    grid.append(BR())
+                    break
         if not found:
-            grid.append(DIV(SPAN(nome, BR(), f'{author_id["name"]} has not co-published with any suggested recommenders')))
+            grid.append(DIV(SPAN(nome, BR(), f'{author["name"]} has not co-published with any suggested recommenders')))
             grid.append(BR())
     return grid
 
