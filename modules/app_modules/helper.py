@@ -188,7 +188,7 @@ def query_semantic_api(authors: list, recommenders: list):
                     found = True
                     matched_paper = paper
                     paper_url = f'https://api.semanticscholar.org/{matched_paper["paperId"]}'
-                    grid.append(DIV(SPAN(f'{author["name"]} has co-published with {data["group"]} {data["name"]} on this ', A('paper', _href=paper_url), f' published in {matched_paper["year"]}')))
+                    grid.append(DIV(SPAN(f'{author["name"]} has co-published with {data["group"]} {data["name"]} on this ', A('paper', _href=paper_url, _target="_blank"), f' published in {matched_paper["year"]}')))
                     grid.append(BR())
                     break
         if not found:
