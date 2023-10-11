@@ -320,7 +320,7 @@ def _declined_by_recommender_page():
     return dict(
         message=CENTER(
             P(T("Following your request for a delay, the recommender decline your reviewing of the article."),
-              _style="font-size: initial; font-weight: bold; width: 800px")
+              _class="info-sub-text", _style="width: 800px")
         )
     )
 
@@ -341,7 +341,7 @@ def _accept_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(message, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message, _class="info-sub-text", _style="width: 800px"),
             form if form else DIV(_style="height: 20em;"),
         )
     )
@@ -351,9 +351,9 @@ def suggestion_sent_page():
     return dict(
         message=CENTER(
             P(T("Thank you for these suggestions and thanks for agreeing to review this article!"),
-              _style="font-size: initial; font-weight: bold; width: 800px"),
+              _class="info-sub-text", _style="width: 800px"),
             P(T("As a reminder your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."),
-              _style="font-size: initial; font-weight: bold; width: 800px")
+              _class="info-sub-text", _style="width: 800px")
         )
     )
 

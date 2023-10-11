@@ -3091,3 +3091,5 @@ ALTER COLUMN  dest_mail_address TYPE text;
 ALTER TABLE "mail_queue" 
 ADD COLUMN IF NOT EXISTS sender_name varchar(256);
 
+ALTER TABLE "t_reviews"
+ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;

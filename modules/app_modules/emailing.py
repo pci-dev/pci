@@ -75,7 +75,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 email_subject_header = emailing_tools.email_subject_header
 patch_email_subject = emailing_tools.patch_email_subject
-get_review_days = reminders.getReviewDaysFromDuration
+get_review_days = Review.get_review_days_from_due_date
 
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")
@@ -786,7 +786,7 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
             mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
-            mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
+            mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
             mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
             if pciRRactivated:
@@ -959,7 +959,7 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
                     mail_vars["destAddress"] = reviewer["email"]
 
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
+                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
                     
                     mail_vars["reviewDuration"] = (rev.review_duration).lower()
@@ -995,7 +995,7 @@ def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newFor
                     mail_vars["destAddress"] = reviewer["email"]
 
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev.review_duration))
+                    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewRequestDeclined", article)
@@ -1041,7 +1041,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
         mail_vars["destAddress"] = reviewer["email"]
 
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recommendation.recommender_id) or ""
-        mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+        mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
         mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
@@ -2715,7 +2715,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = db.t_reviews[reviewId]
+    review = Review.get_by_id(db, reviewId)
     recomm = db.t_recommendations[review.recommendation_id]
     article = db.t_articles[recomm.article_id]
 
@@ -2726,11 +2726,12 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["articleDoi"] = article.doi
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["myReviewsLink"] = reviewLink()
-            mail_vars["reviewDueDate"] = str((datetime.datetime.now() + datetime.timedelta(days=get_review_days(review.review_duration))).strftime(DEFAULT_DATE_FORMAT))
+            mail_vars["reviewDueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT) if review.due_date else str((datetime.datetime.now() + datetime.timedelta(days=get_review_days(review))).strftime(DEFAULT_DATE_FORMAT))
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
@@ -2775,6 +2776,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
             
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2808,6 +2810,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
+            mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2859,19 +2862,21 @@ def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
     reviewer = db.auth_user[review.reviewer_id]
+    nb_deleted = 0
 
     for hashtag in hashtag_template:
         if reviewer and recomm:
-            db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
+            nb_deleted += db((db.mail_queue.dest_mail_address == reviewer.email) & (db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
             if pciRRactivated:
                 hashtag_template_rr = hashtag + "Stage"
-                db(
+                nb_deleted += db(
                     (db.mail_queue.dest_mail_address == reviewer.email)
                     & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
                     & (db.mail_queue.recommendation_id == recomm.id)
                 ).delete()
-
+            
+    return nb_deleted
 
 ######################################################################################################################################################################
 def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleId):
@@ -3331,7 +3336,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     if not recommender:
         return
 
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
@@ -3406,7 +3411,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     if not reviewer:
         return
 
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
@@ -3418,7 +3423,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
     mail_vars["reviewDuration"] = review.review_duration.lower() if review.review_duration else ''
-    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
     if accept:
@@ -3437,7 +3442,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
         return None
 
     mail_vars = emailing_tools.getMailCommonVars()
-    mail_vars["delay"] = review.review_duration
+    mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)

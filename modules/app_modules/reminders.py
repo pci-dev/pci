@@ -2,6 +2,7 @@ from gluon.contrib.appconfig import AppConfig
 import datetime
 
 from gluon.custom_import import track_changes
+from models.review import Review
 track_changes(True)
 
 def case_sensitive_config():
@@ -83,41 +84,6 @@ _avoid_weekend_reminders = [
 ]
 
 
-def getDefaultReviewDuration():
-    return "Two weeks" if pciRRactivated else "Three weeks"
-
-
-def getReviewDays(review):
-    if review:
-        duration = review.review_duration
-    else:
-        duration = getDefaultReviewDuration()
-
-    return getReviewDaysFromDuration(duration)
-
-
-import datetime
-
-def getReviewDaysFromDuration(duration):
-    dow = datetime.datetime.today().weekday()
-    duration = duration.lower()
-    days_dict = {
-            "two weeks": 14,
-            "three weeks": 21,
-            "four weeks": 28,
-            "five weeks": 35,
-            "six weeks": 42,
-            "seven weeks": 49,
-            "eight weeks": 56,
-            "five working days": 7 if dow < 5 else (7 + (7-dow))
-    }
-    for key, value in days_dict.items():
-        if key in duration:
-            return value
-
-    return 21
-
-
 def getReviewReminders(days):
     reminder_due = [ days ]
     reminder_soon_due = [ days - 7 ]
@@ -126,8 +92,8 @@ def getReviewReminders(days):
     return reminder_soon_due, reminder_due, reminder_over_due
 
 
-def getReminderValues(review):
-    days=getReviewDays(review)
+def getReminderValues(review: Review):
+    days=Review.get_review_days_from_due_date(review)
     reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
     reminder_values = {
         "reminder_soon_due" : reminder_soon_due,

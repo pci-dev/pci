@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from typing import cast
+from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
 from gluon.storage import Storage # for db.get_last_recomms()
+from pydal.objects import OpRow
 
 from gluon.custom_import import track_changes
 
@@ -17,7 +18,6 @@ from app_modules.helper import *
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules.reminders import getDefaultReviewDuration
 
 from models.review import ReviewDuration, ReviewState, Review
 
@@ -1082,7 +1082,7 @@ db.review_duration_scheduled_track = "Five working days"
 db.review_duration_requires = IS_IN_SET(db.review_duration_choices
         + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
 )
-db.review_duration_default = getDefaultReviewDuration()
+db.review_duration_default = Review.get_default_review_duration()
 
 db.define_table(
     "t_reviews",
@@ -1119,6 +1119,7 @@ db.define_table(
     Field("quick_decline_key", type="text", length=512, label=T("Quick decline key"), readable=False, writable=False),
     Field("reviewer_details", type="text", length=512, label=T("Reviewer details"), readable=False, writable=False),
     Field("suggested_reviewers_send", type="boolean", label=T("Suggested reviewers send")),
+    Field("due_date", type="datetime", label=("Due date")),
     singular=T("Review"),
     plural=T("Reviews"),
     migrate=False,
@@ -1173,6 +1174,7 @@ def notify_submitter(review):
         nb_reviews = recomm.t_reviews.count()
         if nb_reviews == 1:
             pass
+
 
 
 def reviewSuggested(s, row):

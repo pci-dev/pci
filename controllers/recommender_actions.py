@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from typing import cast
+from datetime import datetime
+
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
@@ -730,9 +733,78 @@ def _new_delay_to_reviewing_redirection(accept: bool):
 
     return dict(
         form=CENTER(
-            P(message1, _style="font-size: initial; font-weight: bold;"),
-            P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message1, _class="info-sub-text"),
+            P(message2, _class="info-sub-text", _style="width: 800px"),
             P(message3, _style="font-size: initial; font-weight: bold;"),
             A(T("Back to your dashboard"), _href=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True), _class="btn btn-success")
         )
     )
+
+######################################################################################################################################################################
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def change_review_due_date():
+    response.view = "default/myLayout.html"
+
+    review_id = int(request.vars['reviewId'])
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+    
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+    
+    default_value: str
+    if review.due_date:
+        default_value = review.due_date
+    else:
+        default_value = Review.get_due_date_from_review_duration(review)
+    default_value = default_value.strftime('%Y-%m-%d')
+    
+    form = FORM(CENTER(INPUT(_name="review_duration", type="date", _class="date", _value=default_value)),
+                CENTER(INPUT(_type="submit", _value=T("Change due date"), _class="btn btn-success"),
+                    A("Cancel", _class="btn btn-default", _href=request.env.http_referer), _style="margin-top: 10px;"))
+    
+    if form.process().accepted:
+        try:
+            new_duration = datetime.strptime(form.vars['review_duration'], '%Y-%m-%d')
+            if new_duration == review.due_date:
+                session.flash = T('This date is already configured. No change.')
+                redirect(session.change_review_due_date_previous_page)
+            Review.set_due_date(review, new_duration)
+        except ValueError as error:
+            session.flash =  T('Wrong date: ') + error.args[0]
+            redirect(request.env.http_referer)
+
+        soon_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
+        review_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) or 0) == 0
+        over_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
+
+        if soon_due_sent and review_due_sent:
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+        else:
+            if not soon_due_sent:
+                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+            if not review_due_sent:
+                emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+            if not over_due_sent:
+                emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+
+        session.flash = f"Review date changed to {form.vars['review_duration']}"
+        
+        if session.change_review_due_date_previous_page:
+            redirect(session.change_review_due_date_previous_page)
+
+    elif request.env.http_referer and 'change_review_due_date' not in request.env.http_referer:
+            session.change_review_due_date_previous_page = request.env.http_referer
+    
+    content = CENTER(H3(f'The current review deadline is {default_value}.'),
+                     P('Please select the updated deadline or click Cancel.', _class="info-sub-text"),
+                     _class="col-sm-12", _style="text-align: center; margin-bottom: 10px")
+
+    return dict(content=content, form=form)
