@@ -121,7 +121,7 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
         showDecisionLink=show_decision_link,
         inviteReviewerLink=invite_reviewer_link,
         writeDecisionLink=write_decision_link,
-        showSearchingForReviewersButton=show_searching_for_reviewers_button,
+        showSearchingForReviewersButton=False,
         showRemoveSearchingForReviewersButton=show_remove_searching_for_reviewers_button,
         isArticleSubmitter=(article.user_id == auth.user_id),
     )

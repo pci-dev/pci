@@ -717,7 +717,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             editRecommendationLink=editRecommendationLink,
             editRecommendationDisabled=editRecommendationDisabled,
             reviewsList=reviewsList,
-            showSearchingForReviewersButton=showSearchingForReviewersButton,
+            showSearchingForReviewersButton=False,
             showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
             scheduledSubmissionRevision=scheduledSubmissionRevision,
             isScheduledSubmission=is_scheduled_submission(art),
