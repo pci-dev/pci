@@ -1819,7 +1819,8 @@ def verify_co_authorship():
     elif has_reviewers:
         recommenders = [{"group" : "recommender", "name" : mkUserNoSpan(None, db, user.recommender_id)} for user in has_recommender]
         recommenders += [{"group" : "reviewer", "name" : mkUserNoSpan(None, db, user.reviewer_id)} for user in has_reviewers]
-    grid = query_semantic_api(authors, recommenders)
+        
+    grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 
     return dict(
         myBackButton = common_small_html.mkBackButton(),
