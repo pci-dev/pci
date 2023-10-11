@@ -1,9 +1,10 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Iterable, List, Optional as _, cast
+from typing import Any, Iterable, List, Optional as _, Tuple, cast
 from gluon.contrib.appconfig import AppConfig
 from models.recommendation import Recommendation
+from models.user import User
 from pydal.objects import Row, Rows
 from pydal import DAL
 
@@ -184,3 +185,18 @@ class Review(Row):
         return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
 
         
+    @staticmethod
+    def get_all_with_reviewer(db: DAL, reviews_states: List[ReviewState] = []):
+        if len(reviews_states) == 0:
+            result = db(db.t_reviews.reviewer_id == db.auth_user.id).select(db.t_reviews.ALL, db.auth_user.ALL, orderby=db.auth_user.last_name|db.auth_user.first_name)
+        else:
+            states_values: List[str] = []
+            for review_state in reviews_states:
+                states_values.append(review_state.value)
+            result = db((db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.review_state.belongs(states_values))).select(orderby=db.auth_user.last_name|db.auth_user.first_name)
+
+        formatted_result: List[Tuple[Review, User]] = []
+        for line in result:
+            formatted_result.append((line.t_reviews, line.auth_user))
+
+        return formatted_result
