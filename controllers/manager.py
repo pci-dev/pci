@@ -43,6 +43,7 @@ from app_modules.mastodon import Mastodon
 from models.suggested_recommender import SuggestedRecommender
 
 from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import mkUserNoSpan
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
