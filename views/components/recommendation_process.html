@@ -220,7 +220,7 @@
 
   <!-- Round reviews -->
   {{for review in reviewsList:}}
-    <div>  
+    {{if review['showReviewExtraTimeButtons'] or review['showReviewRequest']:}}<div class="review-card">{{else:}}<div>{{pass}}  
       {{if review['authors'] and not review['showReviewRequest']:}}
         <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}
@@ -235,34 +235,44 @@
           <i class="glyphicon glyphicon-envelope" style="margin-right: 10px;"></i>
           {{= T('Review invitation')}}
         </h3>
-        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
-          <a class="buttontext btn btn-success" 
+        <div class="pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <div>
+            <a class="buttontext btn btn-success" 
             href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('Yes, I would like to review this preprint')}}
+            {{=T('I accept to review this preprint within ') + review['review_duration'].lower()}}
           </a>
-          <a class="buttontext btn btn-warning" 
+        </div>
+          <div>
+            <a class="buttontext btn btn-info" 
+              href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id'], more_delay='true'))}}"
+            >
+              {{=T("I accept to review this preprint, but I'll need more time to perform my review")}}
+            </a>
+          </div>
+          <div>
+            <a class="buttontext btn btn-warning""
             href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('No thanks, I\'d rather not')}}
+            {{=T('Decline')}}
           </a>
+          </div>
         </div>
       {{pass}}
 
       <!-- Accept request to review article invitation buttons -->  
       {{if review['showReviewRequest']:}}
-        <div class="pci2-flex-row pci2-flex-center pci2-full-width pci-opinionform" style="margin: 10px 0;">
+          <p class="unfinished-label">{{=T("This user is willing to review this preprint.")}}</p>
           <a class="buttontext btn btn-success" 
             href="{{=review["acceptReviewRequestLink"]}}"
           >
-            {{=T('Yes, I accept this review request')}}
+            {{=T('I accept')}}
           </a>
           <a class="buttontext btn btn-warning" 
             href="{{=review["rejectReviewRequestLink"]}}"
           >
-            {{=T('No thanks, I\'d rather not')}}
+            {{=T('I decline')}}
           </a>
-        </div>
       {{pass}}
 
       <!-- Review invitation buttons -->  
@@ -280,17 +290,21 @@
         </div>
       {{pass}}
 
+      {{if review['showReviewExtraTimeButtons']:}}
+        <p class="unfinished-label">{{=T("This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.")}}</p>
+          <a class="buttontext btn btn-success" href={{=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review["id"]), user_signature=True)}}>
+          {{=T('I accept')}}
+        </a>
+        <a class="buttontext btn btn-warning" href={{=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review["id"]), user_signature=True)}}>
+          {{=T('I decline')}}
+        </a>
+      {{pass}}
+
       <!-- Review text -->  
       {{if (review['text'] is not None) or (review['pdfLink'] is not None) or (review['showEditButtons']):}}
         <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
           {{if review['text']:}}
             {{=review['text']}}
-          {{pass}}
-
-          {{if review['state'] == 'Awaiting review':}}
-            <div class="unfinished-label">
-              In progress, not completed yet.
-            </div>
           {{pass}}
 
           {{if review['pdfLink'] is not None:}}
@@ -313,6 +327,11 @@
               {{pass}}
             </div>
           {{pass}}
+        </div>
+      {{pass}}
+      {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review':}}
+        <div class="info-text">
+          In progress, not completed yet.
         </div>
       {{pass}}
     </div>

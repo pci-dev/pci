@@ -19,6 +19,8 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.reminders import getDefaultReviewDuration
 
+from models.review import ReviewDuration, ReviewState, Review
+
 from controller_modules import recommender_module
 
 
@@ -1075,7 +1077,7 @@ db.define_table(
     migrate=False,
 )
 
-db.review_duration_choices = ("Two weeks", "Three weeks", "Four weeks", "Five weeks", "Six weeks", "Seven weeks", "Eight weeks")
+db.review_duration_choices = (ReviewDuration.TWO_WEEK.value, ReviewDuration.THREE_WEEK.value, ReviewDuration.FOUR_WEEK.value, ReviewDuration.FIVE_WEEK.value, ReviewDuration.SIX_WEEK.value, ReviewDuration.SEVEN_WEEK.value, ReviewDuration.EIGHT_WEEK.value)
 db.review_duration_scheduled_track = "Five working days"
 db.review_duration_requires = IS_IN_SET(db.review_duration_choices
         + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
@@ -1222,7 +1224,7 @@ def reviewSuggested(s, row):
 def reviewDone(s, f):
     if not hasattr(f, "review_state"): return
 
-    o = s.select().first()
+    o = cast(Review, s.select().first())
     reviewId = o["id"]
     rev = db.t_reviews[reviewId]
     recomm = db.t_recommendations[rev.recommendation_id]
@@ -1253,6 +1255,22 @@ def reviewDone(s, f):
             emailing.create_reminder_recommender_could_make_decision(session, auth, db, recomm.id)
         if o["review_state"] == "Awaiting review" and f['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
             emailing.delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
+        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and o.review_state != f["review_state"]:
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderAcceptationReview", o.recommendation_id, review=o)
+
+        if o.review_state == ReviewState.AWAITING_RESPONSE.value and f["review_state"] == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationRegisteredUser"], o.id)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerInvitationNewRoundRegisteredUser"], o.id)
+            emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewInvitationNewUser"], o.id)
+            
+        if o.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and f["review_state"] == ReviewState.AWAITING_REVIEW.value:
+            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, o["id"])
+            emailing.create_reminder_for_reviewer_review_due(session, auth, db, o["id"])
+            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, o["id"])
+
+            emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderNewReviewersNeeded", o.recommendation_id)
+            emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, o.id)
 
         if o["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and f["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(session, auth, db, o["id"])

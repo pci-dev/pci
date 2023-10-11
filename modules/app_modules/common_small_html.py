@@ -12,7 +12,8 @@ from collections import OrderedDict
 import io
 from PIL import Image
 
-from gluon import current, IS_IN_DB
+from gluon import current, IS_IN_DB, IS_IN_SET
+from gluon.globals import Request
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
@@ -20,8 +21,12 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
+from models.article import Article
+from models.review import Review, ReviewState
+from models.user import User
 from pydal import DAL
 
+from app_modules.helper import getText
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
 
@@ -401,16 +406,16 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 ######################################################################################################################################################################
 # Other status
 ######################################################################################################################################################################
-def mkReviewStateDiv(auth, db, state):
+def mkReviewStateDiv(auth: Auth, db: DAL, state: str):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
-    if state == "Awaiting response" or state == "Willing to review":
+    if state == ReviewState.AWAITING_RESPONSE.value or state == ReviewState.WILLING_TO_REVIEW.value:
         color_class = "warning"
-    elif state == "Declined by recommender":
+    elif state == ReviewState.DECLINED_BY_RECOMMENDER.value:
         color_class = "danger"
-    elif state == "Awaiting review":
+    elif state == ReviewState.AWAITING_REVIEW.value:
         color_class = "info"
-    elif state == "Review completed":
+    elif state == ReviewState.REVIEW_COMPLETED.value or state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         color_class = "success"
     else:
         color_class = "default"
@@ -1109,3 +1114,82 @@ def complete_profile_dialog(next: str):
     DIV(A(current.T("Complete my profile"), _href=URL("default", "user/profile", user_signature=True, vars=dict(_next=next)), _class="btn btn-info", _id="complete-profile-confirm-dialog"),
         SPAN(current.T("Later"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="complete-profile-cancel-dialog"),
     _class="modal-footer"), _id="complete-profile-modal", _class="modal fade", _role="dialog")
+####################################################################################
+
+def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id: int, user: User, review: Review, more_delay: bool):
+    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
+
+    form = FORM(
+        INPUT(_value=article_id, _type="hidden", name="articleId"),
+        INPUT(_value="true", _type="hidden", _name="ethics_approved"),
+        DIV(
+            LABEL(
+                INPUT(_type="checkbox", _name="no_conflict_of_interest", _id="no_conflict_of_interest", _value="yes"),
+                B(TAG(current.T("I declare that I have no conflict of interest with the authors or the content of the article")))
+            ),
+            _class="checkbox"
+        ),
+        SPAN(disclaimerText),
+        _id="invitation-to-review-form", _enctype="multipart/form-data", _method="POST"
+    )
+
+    if not more_delay:
+        form.append(DIV(
+            LABEL(
+                INPUT(_type="checkbox", _name="due_time", _id="due_time", _value="yes"),
+                B(TAG(current.T('I agree to post my review within %s.') % dueTime))
+            ),
+            _class="checkbox")
+        )
+    
+    form.append(DIV(
+        LABEL(
+            INPUT(_type="checkbox", _name="anonymous_agreement", _id="anonymous_agreement", _value="yes"),
+            B(TAG(current.T('In the event that authors submit their article to a journal once recommended by PCI, I agree that my name and my Email address may be passed on in confidence to that journal.')))
+        ),
+        _class="checkbox"
+    ))
+
+    if not user.ethical_code_approved:
+        form.append(
+            DIV(
+                LABEL(
+                    INPUT(_type="checkbox", _name="cgu_checkbox", _id="cgu_checkbox", _value="yes"),
+                    B(
+                        TAG(current.T("I agree to comply with the ")),
+                        A(TAG(current.T("General Terms of Use")), _target="_blank", _href=URL('about', 'gtu')),
+                        TAG(" and the "),
+                        A(TAG(current.T("code of conduct")), _target="_blank", _href=URL('about', 'ethics'))
+                    )
+                ),
+                _class="checkbox"   
+            )
+        )
+
+    if more_delay:
+        form.append(
+            DIV(
+                LABEL(
+                    INPUT(_type="checkbox", _name="new_delay_agreement", _id="new_delay_agreement", _value="yes"),
+                    B(TAG(current.T('I agree to post my review within the following duration.')))
+                ),
+            _class="checkbox"
+            )
+        )
+
+        delay_form = SQLFORM.factory(
+            Field("review_duration", type="text", label=current.T("Choose the duration before posting my review"), default=dueTime.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
+            buttons=[]
+        )
+        form.append(delay_form.components[0])
+
+    form.append(
+        DIV(
+            INPUT(_type="submit", _class="btn btn-success pci-panelButton", _value=current.T('Yes, I would like to review this preprint')),
+            A(current.T('No thanks, I\'d rather not'), _href=URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key)), _class="buttontext btn btn-warning"),
+            _class="pci2-flex-center"
+        )
+    )
+
+    return form

@@ -5,6 +5,8 @@ from app_modules import emailing
 from app_components import app_forms
 from app_components.ongoing_recommendation import is_scheduled_submission
 
+from models.review import Review, ReviewState
+
 
 
 ######################################################################################################################################################################
@@ -663,3 +665,74 @@ def edit_resend_auth():
         redirect(request.env.http_referer)
 
     redirect(URL(c="recommender", f="edit_and_resend_email", vars=dict(mailId=mailId, reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController)))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def accept_new_delay_to_reviewing():
+    review_id = request.vars["reviewId"]
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+
+    if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+        Review.set_review_status(review, ReviewState.AWAITING_REVIEW)
+        emailing.send_decision_new_delay_review_mail(session, auth, db, True, review)
+        return _new_delay_to_reviewing_redirection(True)
+    else:
+        session.flash = T("Unable to validate")
+        redirect(URL('default','index'))
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def decline_new_delay_to_reviewing():
+    review_id = request.vars["reviewId"]
+    if not review_id:
+        session.flash = T("Review id not found")
+        redirect(URL('default','index'))
+        return
+
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = T("Review not found")
+        redirect(URL('default','index'))
+        return
+
+    if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+        Review.set_review_status(review, ReviewState.DECLINED_BY_RECOMMENDER)
+        emailing.send_decision_new_delay_review_mail(session, auth, db, False, review)
+        return _new_delay_to_reviewing_redirection(False)
+    else:
+        session.flash = T("Unable to decline")
+        redirect(URL('default','index'))
+
+######################################################################################################################################################################
+
+def _new_delay_to_reviewing_redirection(accept: bool):
+    response.view = "default/myLayout.html"
+
+    message1 = ""
+    message2 = ""
+    message3 = ""
+    if accept:
+        message1 = T("Thanks for accepting the extra delay requested to perform this review.")
+        message2 = T("An email has been sent to this reviewer to tell them that they can start their review. Automatic reminders will be sent, if necessary, to remind this reviewer to post their review in due time.")
+        message3 = T("Thanks again for managing this evaluation process!")
+    else:
+        message1 = T("You have declined this offer to review. Thank you for managing this request.")
+        message2 = T("An email has been sent to the reviewer to convey your decision and, as a result, they will not be reviewing this manuscript.")
+
+    return dict(
+        form=CENTER(
+            P(message1, _style="font-size: initial; font-weight: bold;"),
+            P(message2, _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(message3, _style="font-size: initial; font-weight: bold;"),
+            A(T("Back to your dashboard"), _href=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True), _class="btn btn-success")
+        )
+    )

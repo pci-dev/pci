@@ -4,7 +4,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import Optional, cast
+from typing import Optional, cast, Any, Dict
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -47,9 +47,10 @@ from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
 from models.article import Article
-from models.review import Review
+from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
+from models.mail_queue import MailQueue
 
 
 myconf = AppConfig(reload=True)
@@ -1795,7 +1796,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                 port=mail_vars["port"],
             )
 
-        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(True, link, declineLinkTarget)
+        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(link, declineLinkTarget, review.review_duration)
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
@@ -1804,7 +1805,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
             if declineLinkTarget:
-                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(False, linkTarget, declineLinkTarget)
+                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(linkTarget, declineLinkTarget, review.review_duration)
 
         elif review.review_state == "Awaiting review":
             reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
@@ -1866,29 +1867,34 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     emailing_tools.getFlashMessage(session, reports)
 
 
-def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, declineLinkTarget: str):
-    button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block;"
+def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, review_duration: str):
+    button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; hyphens: none;"
 
-    if has_reset_password:
-        return DIV(
+    return DIV(
                 P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
                 DIV(
                     A(
                         SPAN(
-                            current.T("ACCEPT"),
+                            current.T("I accept to review this preprint within ") + review_duration.lower(),
                             _style=button_style + "background: #93c54b",
                         ),
                         _href=link,
                         _style="text-decoration: none; display: block",
                     ),
-                    _style="width: 100%; text-align: center;",
-                ),
-                P(B(current.T("OR")), _style="margin: 1em; text-align: center;"),
-                DIV(
+                    B(current.T("OR")),
                     A(
                         SPAN(
-                            current.T("DECLINE"),
-                            _style=button_style + "background: #c54b4b",
+                            current.T("I accept to review this preprint, but I'll need more time to perform my review"),
+                            _style=button_style + "background: #29abe0",
+                        ),
+                        _href=link + "&more_delay=true",
+                        _style="text-decoration: none; display: block",
+                    ),
+                    B(current.T("OR")),
+                    A(
+                        SPAN(
+                            current.T("Decline"),
+                            _style=button_style + "background: #f47c3c",
                         ),
                         _href=declineLinkTarget,
                         _style="text-decoration: none; display: block",
@@ -1896,30 +1902,6 @@ def generate_reviewer_invitation_buttons(has_reset_password: bool, link: str, de
                     _style="width: 100%; text-align: center; margin-bottom: 25px;",
                 ),
             )
-    else:
-        return DIV(
-                    P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
-                    DIV(
-                        A(
-                            SPAN(
-                                current.T("Yes, I would like to review this preprint"),
-                                _style=button_style + "background: #93c54b",
-                            ),
-                            _href=link,
-                            _style="text-decoration: none; display: block",
-                        ),
-                        B(current.T("OR")),
-                        A(
-                            SPAN(
-                                current.T("No thanks, I would rather not"),
-                                _style=button_style + "background: #f47c3c",
-                            ),
-                            _href=declineLinkTarget,
-                            _style="text-decoration: none; display: block",
-                        ),
-                        _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                    ),
-                )
 
 ######################################################################################################################################################################
 def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):
@@ -1947,7 +1929,7 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
     
             mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
 
-            if review.review_state in ["Awaiting response", "Awaiting review", "Willing to review", "Review completed"]:
+            if review.review_state in [ReviewState.NEED_EXTRA_REVIEW_TIME.value, ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value, ReviewState.WILLING_TO_REVIEW.value, ReviewState.REVIEW_COMPLETED.value]:
                 hashtag_template = "#RecommenderSuggestedReviewersAccepted"
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
@@ -3089,7 +3071,7 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False):
+def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
     recomm = db.t_recommendations[recommendationId]
 
     if recomm:
@@ -3145,9 +3127,12 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
                 ).delete()
 
         else:
-            db(
-                (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
-            ).delete()
+            if review:
+                MailQueue.get_by_review_for_recommender(db, hashtag_template, recomm_mail, review).delete()
+            else:
+                db(
+                    (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
+                ).delete()
 
             if pciRRactivated:
                 hashtag_template_rr = hashtag_template + "Stage"
@@ -3328,3 +3313,147 @@ def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject:
     form = replace_mail_vars_set_not_considered_mail(auth, db, article, subject, message)
     send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
 
+########################################################
+
+def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: DAL, review: Review):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation:
+        return
+
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        return
+    
+    recommender = User.get_by_id(db, recommendation.recommender_id)
+    if not recommender:
+        return
+
+    mail_vars["delay"] = review.review_duration
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
+    mail_vars["linkTarget"] = URL(
+        c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
+    )
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["destAddress"] = recommender.email
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+
+    hashtag_template = "#ConditionalRecommenderAcceptationReview"
+
+    buttons = conditional_acceptation_review_mail_button(review.id, mail_vars)
+    conditional_recommender_acceptation_review_mail_id = emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
+
+    create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
+
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    emailing_tools.getFlashMessage(session, reports)
+
+
+def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[str, Any]):
+    return DIV(
+            A(
+                SPAN(
+                    current.T("I accept"),
+                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                ),
+                _href=URL(c="recommender_actions",
+                          f="accept_new_delay_to_reviewing",
+                          vars=dict(reviewId=review_id),
+                          user_signature=True,
+                          scheme=mail_vars["scheme"],
+                          host=mail_vars["host"],
+                          port=mail_vars["port"]),
+                _style="text-decoration: none; display: block",
+            ),
+            B(current.T("OR")),
+            A(
+                SPAN(
+                    current.T("I decline"),
+                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
+                ),
+                _href=URL(c="recommender_actions",
+                          f="decline_new_delay_to_reviewing",
+                          vars=dict(reviewId=review_id),
+                          user_signature=True,
+                          scheme=mail_vars["scheme"],
+                          host=mail_vars["host"],
+                          port=mail_vars["port"]),
+                _style="text-decoration: none; display: block",
+            ),
+            _style="width: 100%; text-align: center; margin-bottom: 25px;",
+        )
+
+########################################################
+
+def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, accept: bool, review: Review):
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
+    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    if not recommendation:
+        return
+
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        return
+    
+    reviewer = User.get_by_id(db, review.reviewer_id)
+    if not reviewer:
+        return
+
+    mail_vars["delay"] = review.review_duration
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
+    mail_vars["linkTarget"] = URL(
+        c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
+    )
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destAddress"] = reviewer.email
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["reviewDuration"] = review.review_duration.lower() if review.review_duration else ''
+    mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review.review_duration))
+    mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
+
+    if accept:
+        hashtag_template = "#RecommenderAcceptReviewNewDelay"
+    else:
+        hashtag_template = "#RecommenderDeclineReviewNewDelay"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    emailing_tools.getFlashMessage(session, reports)
+
+########################################################
+
+def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
+    if not review or not recommendation or not article or not recommender or not buttons:
+        return None
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["delay"] = review.review_duration
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleAuthors"] = mkAuthors(article)
+    mail_vars["linkTarget"] = URL(
+        c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
+    )
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["destAddress"] = recommender.email
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+
+    mail_vars["message"] = ''
+    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(db, conditional_recommender_acceptation_review_mail_id)
+    if conditional_recommender_acceptation_review_mail:
+        mail_vars["message"] = MailQueue.get_mail_content(conditional_recommender_acceptation_review_mail)
+    
+    hashtag_template = "#ReminderRecommenderAcceptationReview"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)

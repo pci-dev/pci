@@ -1,9 +1,20 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from enum import Enum
-from typing import Iterable, List, Optional as _, cast
+from typing import Any, Iterable, List, Optional as _, cast
+from models.recommendation import Recommendation
 from pydal.objects import Row, Rows
 from pydal import DAL
+
+class ReviewDuration(Enum):
+    TWO_WEEK = 'Two weeks'
+    THREE_WEEK = 'Three weeks'
+    FOUR_WEEK = 'Four weeks'
+    FIVE_WEEK = 'Five weeks'
+    SIX_WEEK = 'Six weeks'
+    SEVEN_WEEK = 'Seven weeks'
+    EIGHT_WEEK = 'Eight weeks'
+
 
 class ReviewState(Enum):
     CANCELLED = 'Cancelled'
@@ -15,6 +26,7 @@ class ReviewState(Enum):
     WILLING_TO_REVIEW = 'Willing to review'
     DECLINED = 'Declined'
     REVIEW_COMPLETED = 'Review completed'
+    NEED_EXTRA_REVIEW_TIME = 'Need extra review time'
     
 
 class Review(Row):
@@ -33,7 +45,7 @@ class Review(Row):
     emailing: _[str]
     quick_decline_key: _[str]
     reviewer_details: _[str]
-    review_duration: _[datetime]
+    review_duration: _[str]
     anonymous_agreement: _[bool]
     suggested_reviewers_send: _[bool]
 
@@ -44,8 +56,11 @@ class Review(Row):
 
 
     @staticmethod
-    def get_by_recommendation_id(db: DAL, id: int):
-        return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
+    def get_by_recommendation_id(db: DAL, id: int, order_by: _[Any] = None):
+        if order_by:
+            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select(orderby=order_by))
+        else:
+            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
     
 
     @staticmethod
@@ -64,14 +79,37 @@ class Review(Row):
 
 
     @staticmethod
-    def accept_review(review: Review, anonymous_agreement: _[bool] = False):
-        review.review_state = ReviewState.AWAITING_REVIEW.value
+    def accept_review(review: Review, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
+        review.review_state = state.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
         return review.update_record()
     
+
     @staticmethod
     def set_suggested_reviewers_send(review: Review):
         review.suggested_reviewers_send = True
         return review.update_record()
+    
+    
+    @staticmethod
+    def set_review_duration(review: Review, review_duration: str):
+        review.review_duration = review_duration
+        return review.update_record()
+    
+
+    @staticmethod
+    def set_review_status(review: Review, state: ReviewState):
+        review.review_state = state.value
+        return review.update_record()
+
+
+    @staticmethod
+    def get_unfinished_reviews(db: DAL, recommendation: Recommendation):
+        return cast(int, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs(ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value))).count())
+
+
+    @staticmethod
+    def is_reviewer_also_recommender(db: DAL, recommendation: Recommendation):
+        return cast(bool, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).count() == 1)

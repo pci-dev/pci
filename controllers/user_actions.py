@@ -12,7 +12,7 @@ from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
 from gluon.http import redirect
-from models.review import Review
+from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
 
@@ -249,19 +249,90 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
 
-    user = User.get_by_id(db, review.reviewer_id)
-    if user and user.reset_password_key:
-        db(db.auth_user.id == review.reviewer_id).delete()
+    if auth.user_id:
+        user = User.get_by_id(db, review.reviewer_id)
+        if user and user.reset_password_key:
+            db(db.auth_user.id == review.reviewer_id).delete()
 
     next = get_next(request)
     if next and review.suggested_reviewers_send:
         redirect(next)
 
-    message = T("Thank you for accepting to review this article!")
-    form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+    message = T("Thank you for agreeing to review this article!")
+    form: FORM
 
-    return _accept_review_page(message, form)
+    if review.review_state == ReviewState.AWAITING_REVIEW.value:
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _accept_review_page(message, form)
+    elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+        return _declined_by_recommender_page()
+    elif review.acceptation_timestamp:
+        if not review.suggested_reviewers_send:
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                next = URL(c="user_actions", f="suggestion_sent_page")
+            form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _awaiting_recommender_response_page(message, form)
 
+
+def send_suggestion_page():
+    default_next =cast(str, URL(c="user_actions", f="suggestion_sent_page"))
+    review_id = get_review_id(request)
+    if not review_id:
+        session.flash = current.T('No review id found')
+        redirect(URL('default','index'))
+        return
+    
+    review = Review.get_by_id(db, review_id)
+    if not review:
+        session.flash = current.T('No review found')
+        redirect(URL('default','index'))
+        return
+    
+    next = get_next(request)
+    if review.suggested_reviewers_send:
+        if next:
+            redirect(next)
+        else:
+            redirect(default_next)
+
+    if not next:
+        next = default_next
+
+    message = T("Thank you for agreeing to review this article!")
+    form: FORM
+
+    if review.review_state == ReviewState.AWAITING_REVIEW.value:
+        form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _accept_review_page(message, form)
+    elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+        return _declined_by_recommender_page()
+    elif review.acceptation_timestamp:
+        if not review.suggested_reviewers_send:
+            if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+                if auth.user_id:
+                    next = cast(str, URL(c="user_actions", f="suggestion_sent_page"))
+            form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
+        return _awaiting_recommender_response_page(message, form)
+
+    
+def _declined_by_recommender_page():
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(T("Following your request for a delay, the recommender decline your reviewing of the article."),
+              _style="font-size: initial; font-weight: bold; width: 800px")
+        )
+    )
+
+def _awaiting_recommender_response_page(message: str, form: FORM):
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(message, _style="font-size: initial; font-weight: bold"),
+            P(T("Your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."), _style="font-size: large; font-weight: bold; width: 800px"),
+            form if form else DIV(_style="height: 20em;")
+        )
+    )
 
 def _accept_review_page(message, form):
     '''
@@ -270,8 +341,19 @@ def _accept_review_page(message, form):
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(message),
+            P(message, _style="font-size: initial; font-weight: bold; width: 800px"),
             form if form else DIV(_style="height: 20em;"),
+        )
+    )
+
+def suggestion_sent_page():
+    response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(T("Thank you for these suggestions and thanks for agreeing to review this article!"),
+              _style="font-size: initial; font-weight: bold; width: 800px"),
+            P(T("As a reminder your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."),
+              _style="font-size: initial; font-weight: bold; width: 800px")
         )
     )
 

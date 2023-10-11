@@ -50,14 +50,17 @@ class External_user_reviews:
         select("a", "View e-mails").click()
         select("tr", contains="#DefaultReviewInvitationNewUser") \
                 .select("a", "VIEW").click()
-        accept_link = select("a", "ACCEPT").get_attribute("href")
+        accept_link = select("a", contains="I accept to review this").get_attribute("href")
         logout(users.manager)
         visit(accept_link)
 
 
     def accept_invitation_to_review(_, article):
-        article.title = select('.pci2-article-row-short h3').text
+        article.title = select('.pci2-article-row-short h3').wait_clickable().text
         Reviewer.confirm_requirements(reviewer=_.user)
+
+    def send_suggestions(_):
+        Reviewer.send_suggestion()
 
     def first_time_login(_):
         password = _.user.password
@@ -65,8 +68,6 @@ class External_user_reviews:
         select("input[name=new_password2]").send_keys(password)
         select("input[type=submit]").click()
 
-    def send_suggestions(_):
-        Reviewer.send_suggestion()
 
     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
             reason="scheduled track")
@@ -90,7 +91,7 @@ class Reviewer:
         row.select(".pci-status", awaiting_cue)
         row.select("a", "ACCEPT OR DECLINE").click()
 
-        select("a", contains="YES, I WOULD LIKE TO REVIEW").click()
+        select("a", contains="I ACCEPT TO REVIEW THIS").click()
 
     def confirm_requirements(reviewer=reviewer):
         assert select("input[type=submit]").get_attribute("disabled")
