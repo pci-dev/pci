@@ -8,6 +8,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Recaptcha2
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow
+from pydal import Field
 
 from gluon.custom_import import track_changes
 
@@ -18,6 +19,7 @@ from app_modules.helper import *
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules.orcid import ORCID_NUMBER_FIELD_TYPE, OrcidValidator
 
 from models.review import ReviewDuration, ReviewState, Review
 
@@ -207,6 +209,7 @@ db.define_table(
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
 auth.settings.extra_fields["auth_user"] = [
+    Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label="ORCID", requires=OrcidValidator(), maxlength=19),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),

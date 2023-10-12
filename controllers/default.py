@@ -251,6 +251,7 @@ def user():
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
+            form.element(_name="orcid")["_maxlength"] = 19
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
             if suite:
                 auth.settings.register_next = suite
@@ -265,6 +266,7 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
             if not (auth.has_membership(role="recommender") and pciRRactivated):
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
+            form.element(_name="orcid")["_maxlength"] = 19
             if suite:
                 auth.settings.profile_next = suite
 
@@ -306,7 +308,13 @@ def user():
             customText = getText(request, auth, db, "#ResetPasswordText")
             form.element(_type="submit")["_class"] = "btn btn-success"
 
-    return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
+    return dict(titleIcon=titleIcon,
+                pageTitle=pageTitle,
+                customText=customText,
+                myBottomText=myBottomText,
+                pageHelp=pageHelp,
+                form=form,
+                myFinalScript=common_tools.get_script("orcid_formatter.js"))
 
 
 def check_already_registered(form):
