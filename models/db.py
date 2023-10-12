@@ -21,8 +21,6 @@ from app_modules import common_small_html
 
 from models.review import ReviewDuration, ReviewState, Review
 
-from models.review import ReviewDuration
-
 from controller_modules import recommender_module
 
 

@@ -476,7 +476,7 @@ def insertReminderMailInQueue(
     sender_name: Optional[str]=None
 ):
 
-    reminder = getReminder(db, hashtag_template, review_id)
+    reminder = getReminder(hashtag_template, db.t_reviews[review_id])
 
     ccAddresses = None
     replytoAddresses = None

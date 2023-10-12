@@ -1,7 +1,6 @@
 from typing import List, Optional
 from gluon.contrib.appconfig import AppConfig
 from models.review import Review, ReviewDuration
-from pydal import DAL
 import datetime
 
 from gluon.custom_import import track_changes
@@ -111,21 +110,9 @@ _avoid_weekend_reminders_RR = [
     'ReminderReviewerReviewInvitationRegisteredUser',
     'ReminderReviewerInvitationNewRoundRegisteredUser',
     'ReminderReviewInvitationRegisteredUserNewReviewer',
-    'ReminderReviewInvitationRegisteredUserReturningReviewer'
+    'ReminderReviewInvitationRegisteredUserReturningReviewer',
+    'ReminderRecommenderAcceptationReview'
 ]
-
-
-def getDefaultReviewDuration():
-    return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
-
-
-def getReviewDays(review: Review):
-    if review and review.review_duration:
-        duration = review.review_duration
-    else:
-        duration = getDefaultReviewDuration()
-
-    return getReviewDaysFromDuration(duration)
 
 
 def getReviewDaysFromDuration(duration: str):
@@ -156,7 +143,7 @@ def getReviewReminders(days: int):
 
 
 def getReminderValues(review: Review):
-    days=getReviewDays(review)
+    days = Review.get_review_days_from_due_date(review)
     reminder_soon_due, reminder_due, reminder_over_due = getReviewReminders(days)
     reminder_values = {
         "reminder_soon_due" : reminder_soon_due,
@@ -176,7 +163,7 @@ def get_reminders_from_config():
         _reminders[hashtag] = days
 
 
-def getReminder(db: DAL, hashtag_template: str, review_id: int):
+def getReminder(hashtag_template: str, review: Review):
     hash_temp = hashtag_template
     hash_temp = hash_temp.replace("#", "")
     hash_temp = hash_temp.replace("Stage1", "")
@@ -184,7 +171,6 @@ def getReminder(db: DAL, hashtag_template: str, review_id: int):
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
 
     if hash_temp in _review_reminders:
-        review = Review.get_by_id(db, review_id)
         if review:
             reminder_values = getReminderValues(review)
             days = reminder_values[_review_reminders[hash_temp]]

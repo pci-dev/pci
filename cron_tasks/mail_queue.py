@@ -109,7 +109,7 @@ def prepareNextReminder(mail_item):
     reminder_count = mail_item["reminder_count"]
     hashtag_template = mail_item["mail_template_hashtag"]
     review_id = mail_item["review_id"]
-    reminder = getReminder(db, hashtag_template, review_id)
+    reminder = getReminder(hashtag_template, db.t_reviews[review_id])
     reminder_days = reminder["elapsed_days"] if reminder else []
 
     if len(reminder_days) > reminder_count + 1:
