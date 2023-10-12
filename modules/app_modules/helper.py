@@ -178,7 +178,7 @@ def query_semantic_api(authors: list, recommenders: list):
         return grid
     # Check if any of the authors have co-published with the suggested recommenders
     for author in authors:
-        grid.append(BR()), grid.append(DIV(SPAN(f'Author {author["name"]}')))
+        grid.append(BR()), grid.append(DIV(SPAN(B(f'Author {author["name"]}'))))
         author_data = []
         author_data.extend(get_author_ids(author))
         found = False
@@ -193,8 +193,9 @@ def query_semantic_api(authors: list, recommenders: list):
                     if author_id ["authorId"] == co_author_id:
                         found = True
                         matched_paper = paper
+                        author_url = f'https://www.semanticscholar.org/author/{author_id["authorId"]}'
                         paper_url = f'https://api.semanticscholar.org/{matched_paper["paperId"]}'
-                        grid.append(DIV(SPAN(f'{author_id["name"]} has co-published with {data["group"]} {data["name"]} on this ', A('paper', _href=paper_url, _target="_blank"), f' published in {matched_paper["year"]}')))
+                        grid.append(DIV(SPAN(A(author_id["name"], _href=author_url, _target="_blank"), f' has co-published with {data["group"]} {data["name"]} on this ', A('paper', _href=paper_url, _target="_blank"), f' published in {matched_paper["year"]}')))
         if not found:
             grid.append(DIV(SPAN(f'{author_id["name"]} has no co-publication with anyone assigned to this article.')))
 
