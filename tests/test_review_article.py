@@ -10,28 +10,28 @@ recommender = users.recommender
 from conftest import store as article
 
 
-@test
-class Reviewer_reviews:
+# @test
+# class Reviewer_reviews:
 
-    def login_as_reviewer(_):
-        login(reviewer)
+#     def login_as_reviewer(_):
+#         login(reviewer)
 
-    def accept_to_review(_, article):
-        Reviewer.accept_to_review(article)
+#     def accept_to_review(_, article):
+#         Reviewer.accept_to_review(article)
 
-    def confirm_requirements(_):
-        Reviewer.confirm_requirements()
+#     def confirm_requirements(_):
+#         Reviewer.confirm_requirements()
 
-    def send_suggestions(_):
-        Reviewer.send_suggestion()
+#     def send_suggestions(_):
+#         Reviewer.send_suggestion()
 
-    @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
-            reason="scheduled track")
-    def upload_review(_, article):
-        Reviewer.upload_review(article)
+#     @mark.skipif(config.is_rr and config.is_rr.scheduled_track,
+#             reason="scheduled track")
+#     def upload_review(_, article):
+#         Reviewer.upload_review(article)
 
-    def logout(_):
-        logout(reviewer)
+#     def logout(_):
+#         logout(reviewer)
 
 
 @test

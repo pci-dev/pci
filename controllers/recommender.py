@@ -1241,12 +1241,13 @@ def reviewers():
             myContents = ""
         longname = myconf.take("app.longname")
         myUpperBtn = DIV(
+            # A(
+            #     SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
+            #     _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", regUser=reg_user, exclude=excludeList)),
+            # ),
             A(
-                SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
-                _href=URL(c="recommender", f="search_reviewers", vars=dict(recommId=recommId, myGoal="4review", regUser=reg_user, exclude=excludeList)),
-            ),
-            A(
-                SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
+                # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
+                SPAN(current.T("Invite a reviewer"), _class="btn btn-default"),
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
