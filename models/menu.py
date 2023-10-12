@@ -452,6 +452,7 @@ def _ManagerMenu():
 def _AboutMenu():
     aboutMenu = [
         menu_entry("About", "glyphicon-text-color", URL("about", "about")),
+        menu_entry("Other PCIs", "glyphicon-link",  "https://peercommunityin.org/current-pcis/", new_window=True)
     ]
 
     if not pciRRactivated: aboutMenu += [
