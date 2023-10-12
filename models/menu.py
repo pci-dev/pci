@@ -207,7 +207,6 @@ def _UserMenu():
         contribMenuClass = "pci-enhancedMenuItem"
 
     myContributionsMenu += [
-        (txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True)),
         menu_entry("Submit a preprint", "glyphicon-edit", URL("user", "new_submission", user_signature=True)),
         divider(),
     ]
