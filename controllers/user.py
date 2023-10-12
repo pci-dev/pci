@@ -876,12 +876,24 @@ def edit_my_article():
             article.art_stage_1_id = None
         article.request_submission_change = False
         article.update_record()
+
         manager_ids = common_tools.extract_manager_ids(form, manager_ids)
-        myVars = dict(articleId=article.id, manager_authors=manager_ids)
+        page_vars = dict(articleId=art.id, manager_authors=manager_ids)
+
+        target_page = "recommendations"
+        anchor = "author-reply"
+
         if art.status in ["Pending", "Pre-submission"] :
-            redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
-        else:
-            redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True, anchor="author-reply"))
+            anchor = None
+
+            if art.coar_notification_id:
+                # alternative: if request.vars.key: # coar first time only
+                target_page = (
+                        "fill_report_survey" if pciRRactivated else
+                        "add_suggested_recommender"
+                )
+
+        redirect(URL(c="user", f=target_page, vars=page_vars, anchor=anchor))
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
