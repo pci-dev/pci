@@ -1078,7 +1078,7 @@ db.define_table(
 )
 
 db.review_duration_choices = (ReviewDuration.TWO_WEEK.value, ReviewDuration.THREE_WEEK.value, ReviewDuration.FOUR_WEEK.value, ReviewDuration.FIVE_WEEK.value, ReviewDuration.SIX_WEEK.value, ReviewDuration.SEVEN_WEEK.value, ReviewDuration.EIGHT_WEEK.value)
-db.review_duration_scheduled_track = "Five working days"
+db.review_duration_scheduled_track = ReviewDuration.FIVE_WORKING_DAY.value
 db.review_duration_requires = IS_IN_SET(db.review_duration_choices
         + ((db.review_duration_scheduled_track,) if pciRRactivated else ())
 )
