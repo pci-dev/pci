@@ -707,7 +707,7 @@ def search_recommenders():
         ]
 
     select_all_btn = DIV(A(
-                         SPAN(current.T("Suggest all selected"), _class="btn btn-default"),
+                         SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
                          _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds=''), user_signature=True),
                          _class="button select-all-btn",
                          )
@@ -749,8 +749,6 @@ def search_recommenders():
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
     select_all_script = common_tools.get_script("select_all.js")
-
-
 
     response.view = "default/gab_list_layout.html"
     return dict(

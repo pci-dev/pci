@@ -197,6 +197,7 @@ def recommendations():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders():
+    whatNext = request.vars["whatNext"]
     articleId = request.vars.articleId
     excludeList = common_tools.get_exclude_list(request)
     if excludeList is None:
@@ -216,6 +217,7 @@ def search_recommenders():
     else:
         users = db.auth_user
         full_text_search_fields = [
+            'id',
             'first_name',
             'last_name',
             'email',
@@ -232,17 +234,31 @@ def search_recommenders():
         users.thematics.type = "string"
         users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
+        users.id.label = "Name"
+        users.id.readable = True
+        users.id.represent = lambda uid, row: DIV(
+                common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+                _class="pci-w300Cell")
+
         for f in users.fields:
             if not f in full_text_search_fields:
                 users[f].readable = False
 
         def mkButton(func):
             return lambda row: "" if row.auth_user.id in excludeList \
-                    else func(auth, db, row, art.id, excludeList, request.vars)
+                    else DIV( func(auth, db, row, art.id, excludeList, request.vars),
+                                            INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'))
 
         links = [
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
         ]
+
+        select_all_btn = DIV(A(
+                            SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
+                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclude=excludeList), user_signature=True),
+                            _class="button select-all-btn",
+                            )
+                            )
 
         if pciRRactivated:
             links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton)))
@@ -265,19 +281,13 @@ def search_recommenders():
                         csv=csv,
                         exportclasses=expClass,
                         fields=[
-                            users._id,
-                            users.uploaded_picture,
-                            users.first_name,
-                            users.last_name,
-                            users.laboratory,
-                            users.institution,
-                            users.city,
-                            users.country,
+                            users.id,
                             users.thematics,
+                            users.keywords,
                             users.orcid
                         ],
                         links=links,
-                        orderby=users._id,
+                        orderby=users.id,
                         _class="web2py_grid action-button-absolute",
                     )
 
@@ -305,7 +315,7 @@ def search_recommenders():
         myUpperBtn = ""
         if len(grid) >= 10:
             myUpperBtn = myAcceptBtn
-
+        select_all_script = common_tools.get_script("select_all.js")
         response.view = "default/gab_list_layout.html"
         return dict(
             pageHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
@@ -315,6 +325,8 @@ def search_recommenders():
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             grid=grid,
+            selectAllBtn = select_all_btn,
+            selectAllScript = select_all_script,
             absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 

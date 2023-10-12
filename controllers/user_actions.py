@@ -73,6 +73,23 @@ def suggest_article_to():
 
 ######################################################################################################################################################################
 @auth.requires_login()
+def suggest_all_selected():
+    articleId = request.vars["articleId"]
+    recommenderIds = request.vars["recommenderIds"]
+    exclude = request.vars["exclude"]
+    myVars = request.vars
+    recommender_names = ''
+    excludeList = exclude if type(exclude) is list else exclude.split(",")
+    for recommenderId in recommenderIds.split(','):
+        recommender_names += common_small_html.mkUser(auth, db, recommenderId).flatten() + ', '
+        user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
+        excludeList.append(str(recommenderId))
+    myVars["exclude"] = ",".join(excludeList)
+    session.flash = T('Suggested recommenders "%s" added.') % recommender_names[:-2]
+    redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
+
+######################################################################################################################################################################
+@auth.requires_login()
 def exclude_article_from():
     articleId = int(request.vars["articleId"])
     recommenderId = int(request.vars["recommenderId"])
