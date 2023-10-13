@@ -87,6 +87,7 @@ class User_submits:
     select("a", "Suggest recommenders".upper()).click()
     select('#simple-search-input').clear()
     select('#simple-search-input').send_keys(recommender.name + "\n")
+    select('#simple-search-btn').click()
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
