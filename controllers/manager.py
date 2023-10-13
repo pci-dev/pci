@@ -685,7 +685,7 @@ def search_recommenders():
             users[f].readable = False
 
     def limit_to_width(value, row):
-        return SPAN(current.T("%s" %', '.join(value)), _class="max400w"),
+        return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
 
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"

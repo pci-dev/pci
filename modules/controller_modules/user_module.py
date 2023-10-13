@@ -38,10 +38,13 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
     vars["recommenderId"] = row.auth_user["id"]
     _class = "buttontext btn btn-default pci-submitter"
+    _btn_label = "Suggest as Recommender"
     if pciRRactivated:
         _class = "buttontext btn btn-success pci-submitter"
+        _btn_label = "Suggest"
+
     anchor = A(
-        SPAN(current.T("Suggest as recommender"), _class=_class),
+        SPAN(current.T(_btn_label), _class=_class),
         _href=URL(
             c="user_actions",
             f="suggest_article_to",
@@ -56,7 +59,7 @@ def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
 def mkExcludeRecommenderButton(auth, db, row, articleId, excludeList, vars):
     vars["recommenderId"] = row.auth_user["id"]
     anchor = A(
-        SPAN(current.T("Exclude recommender"), _class="buttontext btn btn-default pci-submitter"),
+        SPAN(current.T("Exclude"), _class="buttontext btn btn-warning pci-submitter"),
         _href=URL(
             c="user_actions",
             f="exclude_article_from",

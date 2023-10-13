@@ -230,9 +230,19 @@ def search_recommenders():
             'keywords',
         ]
 
+        def limit_to_width_list(value, row):
+            return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
+
+        def limit_to_width_str(value, row):
+            if value == None: return SPAN(_class="m300w")
+            return SPAN(current.T("%s" %value), _class="m300w"),
+
         users.thematics.label = "Thematics fields"
         users.thematics.type = "string"
         users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+        users.thematics.represent = limit_to_width_list
+
+        users.keywords.represent = limit_to_width_str
 
         users.id.label = "Name"
         users.id.readable = True
@@ -247,7 +257,8 @@ def search_recommenders():
         def mkButton(func):
             return lambda row: "" if row.auth_user.id in excludeList \
                     else DIV( func(auth, db, row, art.id, excludeList, request.vars),
-                                            INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'))
+                              INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'),
+                              _class="min15w")
 
         links = [
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),

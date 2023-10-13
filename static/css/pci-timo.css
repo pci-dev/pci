@@ -18,9 +18,14 @@
         float: right;
     }
 
-    .max400w {
+    .m300w {
         max-width: 30rem;
         display: inline-block;
+        min-width: 20rem;
+    }
+
+    .min15w {
+        min-width: 15rem;
     }
 
     .multiple-choice-checks {
