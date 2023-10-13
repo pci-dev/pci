@@ -546,7 +546,7 @@ def recap_reviews():
     grid = TABLE(_class="pci-AdminReviewsSynthesis")
     grid.append(head)
 
-    resu = db.executesql("""SELECT * FROM _t_%(runId)s ORDER BY article_id;""" % locals())
+    resu = db.executesql("""SELECT * FROM _t_%(runId)s ORDER BY submission DESC;""" % locals())
     for r in resu:
         row = TR()
         iCol = 0
