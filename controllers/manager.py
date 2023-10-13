@@ -43,7 +43,9 @@ from app_modules.mastodon import Mastodon
 from models.suggested_recommender import SuggestedRecommender
 
 from app_modules.common_small_html import md_to_html
-from app_modules.common_small_html import mkUserNoSpan
+from app_modules.common_small_html import group_reviewers
+from app_modules.common_small_html import mkUserNoSpan 
+from app_modules.common_small_html import mk_recommender_no_span
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
@@ -1803,11 +1805,12 @@ def verify_co_authorship():
     authors = (article.authors).replace("and", "").split(",")
     authors = [{"group" : "author", "name" : x.strip()} for x in authors]
 
+    reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
                             (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
-    has_recommender = db(db.t_recommendations.article_id == article.id).select(db.t_recommendations.recommender_id)
-    no_reviewers = db((db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count() == 0
-    has_reviewers = db((db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).select(db.t_reviews.reviewer_id)
+    has_recommender = db(db.t_recommendations.article_id == article.id).select(db.t_recommendations.recommender_id, db.t_recommendations.recommender_details).first()
+    no_reviewers = db(reviewer_query).count() == 0
+    has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details)
 
     grid = []
     recommenders = []
@@ -1816,10 +1819,10 @@ def verify_co_authorship():
     if is_suggested and not has_recommender:
         recommenders = [{"group" : "suggested recommender", "name" : mkUserNoSpan(None, db, user.suggested_recommender_id)} for user in is_suggested]
     elif has_recommender and no_reviewers:
-        recommenders = [{"group" : "recommender", "name" : mkUserNoSpan(None, db, user.recommender_id)} for user in has_recommender]
+        recommenders = [{"group" : "recommender", "name" : mk_recommender_no_span(db, has_recommender)}]
     elif has_reviewers:
-        recommenders = [{"group" : "recommender", "name" : mkUserNoSpan(None, db, user.recommender_id)} for user in has_recommender]
-        recommenders += [{"group" : "reviewer", "name" : mkUserNoSpan(None, db, user.reviewer_id)} for user in has_reviewers]
+        recommenders = [{"group" : "recommender", "name" : mk_recommender_no_span(db, has_recommender)}]
+        recommenders += group_reviewers(db, has_reviewers)
         
     grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 
