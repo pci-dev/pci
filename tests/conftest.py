@@ -70,6 +70,7 @@ from contextlib import contextmanager
 @contextmanager
 def element_frame(self):
     driver.switch_to.frame(self)
+    self.click()
     yield self
     driver.switch_to.default_content()
 
