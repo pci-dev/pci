@@ -4,9 +4,9 @@ from argparse import Namespace
 from os import getenv
 
 def get_driver():
-    options = webdriver.chrome.options.Options()
+    options = webdriver.firefox.options.Options()
     options.add_argument("--headless") if not getenv("SHOW") else None
-    return webdriver.Chrome(options=options)
+    return webdriver.Firefox(options=options)
 
 def get_config():
     base_url = "http://localhost:8000/pci"
@@ -70,6 +70,7 @@ from contextlib import contextmanager
 @contextmanager
 def element_frame(self):
     driver.switch_to.frame(self)
+    self.click()
     yield self
     driver.switch_to.default_content()
 

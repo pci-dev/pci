@@ -8,16 +8,9 @@ runs:
             python-version: '3.8'
             cache: 'pip'
 
-      - run: |
-          : divert chromedriver snap install so it is cached
-
-          sudo add-apt-repository ppa:saiarcot895/chromium-beta > /dev/null
-          sudo apt-get update
-        shell: bash
-
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: chromium-chromedriver postgresql postgresql-contrib libimage-exiftool-perl
+          packages: firefox-geckodriver postgresql postgresql-contrib libimage-exiftool-perl
           version: 1.0
 
       - run: make web2py pydeps db.admin

@@ -87,6 +87,7 @@ class User_submits:
     select("a", "Suggest recommenders".upper()).click()
     select('#simple-search-input').clear()
     select('#simple-search-input').send_keys(recommender.name + "\n")
+    select('#simple-search-btn').click()
     select("a", "Suggest as recommender".upper()).click()
 
  def mail_sent_to_recommender(_):
@@ -195,16 +196,6 @@ class Recommender_handles:
     notif.contains("e-mail sent to admin")
     notif.contains("e-mail sent to submitter")
     notif.contains("e-mail sent to " + recommender.name)
-
-#  def search_and_invite_registered_reviewer(_):
-#     select(".btn", contains="Choose a reviewer from the".upper()).click()
-#     select('#simple-search-input').send_keys(reviewer.name + "\n")
-
-#     select("a", "Prepare an invitation".upper()).click()
-#     select("input[type=submit]").click()
-
-#     select.notif(contains="e-mail sent to " + reviewer.name)
-#     select("a", "Done".upper()).click()
 
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()

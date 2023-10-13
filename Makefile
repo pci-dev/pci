@@ -60,13 +60,16 @@ private/% static/%:
 start: log = > /dev/null
 
 
-test.install.selenium: install.selenium install.chromium
+test.install.selenium: install.selenium install.firefox
 
 install.selenium:
 	pip install -r tests/requirements.txt
 
 install.chromium:
 	sudo apt install chromium-chromedriver
+
+install.firefox:
+	sudo apt install firefox-geckodriver
 
 test.install.cypress:
 	sudo apt-get install npm
