@@ -684,9 +684,13 @@ def search_recommenders():
         if not f in full_text_search_fields:
             users[f].readable = False
 
+    def limit_to_width(value, row):
+        return SPAN(current.T("%s" %', '.join(value)), _class="max400w"),
+
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    users.thematics.represent = limit_to_width
 
     users.id.label = "Name"
     users.id.readable = True

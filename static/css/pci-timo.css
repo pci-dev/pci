@@ -18,11 +18,17 @@
         float: right;
     }
 
+    .max400w {
+        max-width: 30rem;
+        display: inline-block;
+    }
+
     .multiple-choice-checks {
-        width: 3rem;
-        height: 3rem;
+        width: 2.8rem;
+        height: 2.8rem;
         position: relative;
         top: .9rem;
+        margin-left: 1rem!important;
     }
 
     #chckbxs_mandatory label {
