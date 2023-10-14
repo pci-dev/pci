@@ -7,6 +7,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 import requests
 import datetime
+import re
 
 myconf = AppConfig(reload=True)
 description = myconf.take("app.description")
@@ -135,17 +136,35 @@ def replaceMailVars(text, mail_vars):
 
     return text
 
-
+######################################################################################################################################################################
 def is_recommender(auth, request):
     return (
         auth.has_membership(role="recommender") and
         str(auth.user_id) == request.vars["recommender"]
     )
 
+######################################################################################################################################################################
 def is_co_recommender(auth, db, recommId):
     return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
 
+######################################################################################################################################################################
+def extract_name(s):
+    # Split pattern to handle most cases
+    split_pattern = re.compile(r'\b\s*and\s*\b|;\s*|,\s*(?=[A-Z])|,\s+and\s+|&')
+    # Check and handle "John, Doe and Jane, Doe and Unknown, User" format
+    if re.match(r'(\w+), (\w+) and', s):
+        s = re.sub(r'(\w+), (\w+)', r'\1 \2', s)
+    # Check and handle "John, D"  format
+    elif re.match(r'(\w+),\s(\w)\b', s):
+        s = re.sub(r'(\w+),\s(\w)\b', r'\1 \2', s)
+        # Check and handle "John, Doe" format
+    elif re.match('(\w+),\s(\w+)(?:;\s)?', s):
+        s = re.sub(r'(\w+),\s(\w+)', r'\1 \2', s)
+
+    return [part.strip() for part in split_pattern.split(s) if part.strip()]
+
+######################################################################################################################################################################
 def query_semantic_api(authors: list, recommenders: list):
     grid = []
     all_data = {

@@ -1802,8 +1802,8 @@ def verify_co_authorship():
     response.view = "default/myLayout.html"
     articleId = request.vars["articleId"]
     article = db.t_articles[articleId]
-    authors = (article.authors).replace("and", "").split(",")
-    authors = [{"group" : "author", "name" : x.strip()} for x in authors]
+    authors = extract_name(article.authors)
+    authors = [{"group" : "author", "name" : author} for author in authors]
 
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
