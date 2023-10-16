@@ -1733,10 +1733,11 @@ def email_for_registered_reviewer():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def email_for_new_reviewer():
     response.view = "default/myLayout.html"
-
     recommendation_id = request.vars["recommId"]
     new_stage = convert_string(request.vars["new_stage"])
     recommendation = Recommendation.get_by_id(db, recommendation_id)
+    name_modal = False
+    name_modal_div = False
     if not recommendation:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1806,7 +1807,45 @@ def email_for_new_reviewer():
 
     form.element(_type="submit")["_value"] = T("Send e-mail")
 
-    if form.process().accepted:
+    def check_the_name(form):
+        existingUserName = db((db.auth_user.first_name.lower() == form.vars.reviewer_first_name.lower()) & (db.auth_user.last_name.lower() == form.vars.reviewer_last_name.lower())).select().last()
+        if existingUserName:
+            form.errors.reviewer_last_name = SPAN(T("Name already exists"))
+
+    def create_name_modal(existingUser):
+        name_modal_div = DIV(
+            DIV(
+                DIV(
+                    SPAN(T("We found that this name is already in our reviewer database. Is this the person you are looking for?")),
+                    BR(),BR(),
+                    SPAN(T(str(existingUser))),
+                    _class="modal-body"),
+                DIV(A(SPAN(T("Yes, please invite that reviewer"), _class="btn btn-info",
+                           _href=URL())),
+                    A(SPAN(T("No, please invite the reviewer I entered"), _class="btn btn-info",
+                           _href=URL())),
+                    _class="modal-footer"),
+                _class="modal fade in",
+                _id="find-reviewer-modal",
+                _style="display: block; padding-right:0px"
+            ),
+            DIV(_class="modal-backdrop fade in")
+        )
+        return name_modal_div
+
+    accepted = form.process(onvalidation=check_the_name).accepted
+
+    if not accepted and form.vars.reviewer_first_name != None and form.vars.reviewer_last_name != None:
+        name_modal = True
+        existingUser = db((db.auth_user.first_name.lower() == form.vars.reviewer_first_name.lower()) & (db.auth_user.last_name.lower() == form.vars.reviewer_last_name.lower())).select().last()
+        existingUserName = "%s %s (%s)"%(existingUser.first_name, existingUser.last_name,
+                                                    existingUser.email)
+        if existingUser.institution: existingUserName += ', %s'%existingUser.institution
+        if existingUser.laboratory: existingUserName += ', %s'%existingUser.laboratory
+        if existingUser.country: existingUserName += ', %s'%existingUser.country
+        name_modal_div = create_name_modal(existingUserName)
+
+    if accepted:
         clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc)
         cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -1913,11 +1952,12 @@ def email_for_new_reviewer():
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForNewReviewer"),
         titleIcon="envelope",
+        name_modal=name_modal,
+        name_modal_div=name_modal_div,
         pageTitle=getTitle(request, auth, db, "#EmailForNewReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForNewReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
-
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
