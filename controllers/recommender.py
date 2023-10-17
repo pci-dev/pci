@@ -1169,7 +1169,7 @@ def reviewers():
     if article.report_stage == "STAGE 2":
         reg_user, new_stage = True, True
     co_recommender = is_co_recommender(auth, db, recomm.id)
-    keywords =  "+".join((article.keywords).split(','))
+    keywords =  "+".join((article.keywords).split(',')) if article.keywords else None
 
     if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
@@ -1274,8 +1274,8 @@ def reviewers():
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
             ),
             A(
-                SPAN(current.T("Search possible reviewers on Google Scholar"), _class="btn btn-info"),
-                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019&as_yhi=2023", _target="blank",
+                SPAN(current.T("Search possible reviewers on Google Scholar"), _class="btn btn-info" if keywords else "btn btn-info disabled"),
+                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019&as_yhi=2023" if keywords else None, _target="_blank",
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
