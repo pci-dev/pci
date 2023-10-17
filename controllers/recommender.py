@@ -1169,6 +1169,8 @@ def reviewers():
     if article.report_stage == "STAGE 2":
         reg_user, new_stage = True, True
     co_recommender = is_co_recommender(auth, db, recomm.id)
+    keywords =  "+".join((article.keywords).split(','))
+
     if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1270,6 +1272,10 @@ def reviewers():
                 # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
                 SPAN(H6(B("Invite a reviewer")), _class="btn btn-lg btn-default"),
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
+            ),
+            A(
+                SPAN(current.T("Search possible reviewers on Google Scholar"), _class="btn btn-info"),
+                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019&as_yhi=2023", _target="blank",
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
