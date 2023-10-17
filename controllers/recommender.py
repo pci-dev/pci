@@ -7,6 +7,8 @@ import datetime
 from dateutil.relativedelta import *
 from typing import cast, Optional
 
+from lxml import html
+
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
 from gluon.html import markmin_serializer
@@ -1257,6 +1259,10 @@ def reviewers():
                 # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
                 SPAN(current.T("Invite a reviewer"), _class="btn btn-default"),
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
+            ),
+            A(
+                SPAN(current.T("Search possible reviewers with Jane"), _class="btn btn-primary"),
+                _href=f"http://jane.biosemantics.org/suggestions.php?findAuthors&text={html.fromstring(article.abstract).text_content()}", _target="_blank"
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
