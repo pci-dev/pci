@@ -1262,6 +1262,10 @@ def reviewers():
                 SPAN(current.T("Possible reviewers identified by Jane"), _class="btn btn-primary"),
                 _href=f"http://jane.biosemantics.org/suggestions.php?findAuthors&text={html.fromstring(article.abstract).text_content()}", _target="_blank"
             ),
+            A(
+                SPAN(current.T("Related articles in Google Scholar"), _class="btn btn-info" if keywords else "btn btn-info disabled"),
+                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019&as_yhi=2023" if keywords else None, _target="_blank",
+            ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",)
         myUpperBtn = DIV(
             # A(
@@ -1272,10 +1276,6 @@ def reviewers():
                 # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
                 SPAN(H6(B("Invite a reviewer")), _class="btn btn-lg btn-default"),
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
-            ),
-            A(
-                SPAN(current.T("Search possible reviewers on Google Scholar"), _class="btn btn-info" if keywords else "btn btn-info disabled"),
-                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019&as_yhi=2023" if keywords else None, _target="_blank",
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
         )
