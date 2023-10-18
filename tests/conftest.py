@@ -5,7 +5,7 @@ from os import getenv
 
 def get_driver():
     options = webdriver.firefox.options.Options()
-    options.add_argument("--headless") if not getenv("SHOW") else None
+    options.add_argument("--headless") if not getenv("show") else None
     return webdriver.Firefox(options=options)
 
 def get_config():

@@ -32,4 +32,4 @@ specific tests:
 Running non-headless
 --------------------
 
-	SHOW=y pytest -k about
+	show=y pytest -k about
