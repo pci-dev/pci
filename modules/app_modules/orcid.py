@@ -5,7 +5,7 @@ from attr import dataclass
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Request, Session
-from gluon.html import A, URL
+from gluon.html import A, CENTER, FORM, URL
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
 from gluon import current
@@ -37,14 +37,19 @@ class OrcidTools:
     
 
     @staticmethod
-    def configure_orcid_input(session: Session, request: Request, auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
-        auth_user_form.element(_name="orcid")["_maxlength"] = ORCID_NUMBER_LENGTH_WITH_HYPHEN
+    def configure_orcid_input(form: FORM):
+        form.element(_name="orcid")["_maxlength"] = ORCID_NUMBER_LENGTH_WITH_HYPHEN
+    
+
+    @staticmethod
+    def add_orcid_auth_user_form(session: Session, request: Request, auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
+        OrcidTools.configure_orcid_input(auth_user_form)
         if not redirect_url or len(redirect_url) == 0:
             return
 
         orcid_api = OrcidAPI(redirect_url)
-        orcid_row = auth_user_form.element(_id="auth_user_orcid__row").components[1]
-        orcid_row.components.insert(0, orcid_api.get_orcid_html_button())
+        orcid_row = auth_user_form.element(_class="form-horizontal")
+        orcid_row.components.insert(0, CENTER(orcid_api.get_orcid_html_button()))
         if session.click_orcid:
             try:
                 orcid_api.update_form(session, request, auth_user_form)
@@ -118,11 +123,11 @@ class OrcidAPI:
         redirect(authorization_url)
 
 
-    def get_orcid_html_button(self):
-        return A('Use ORCID account to fill profile', _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style="margin-left: -1px")
+    def get_orcid_html_button(self, style: Optional[str] = None):
+        return A('Use ORCID account to fill profile', _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
 
 
-    def update_form(self, session: Session, request: Request, form: SQLFORM):
+    def update_form(self, session: Session, request: Request, form: FORM):
         if not session.token_orcid:
             code = OrcidAPI.get_code_in_url(request)
             if not code:
@@ -140,7 +145,7 @@ class OrcidAPI:
         self.__fill_form(user_infos, form)
 
 
-    def __fill_form(self, user_infos: Any, form: SQLFORM):
+    def __fill_form(self, user_infos: Any, form: FORM):
         first_name_value = cast(Optional[str], sget(user_infos, 'person', 'name', 'given-names', 'value'))
         last_name_value = cast(Optional[str], sget(user_infos, 'person', 'name', 'family-name', 'value'))
         orcid_value = cast(Optional[str], sget(user_infos, 'orcid-identifier', 'path'))
@@ -240,7 +245,7 @@ class OrcidAPI:
         return website_value
 
 
-    def __set_value_in_form(self, form: SQLFORM, form_name: str, value: Optional[str]):
+    def __set_value_in_form(self, form: FORM, form_name: str, value: Optional[str]):
         if not value or len(value) == 0:
             return
                 
