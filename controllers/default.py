@@ -128,7 +128,7 @@ def index():
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
-    except: original_grid = None
+    except: redirect(request.home)
 
     integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']
