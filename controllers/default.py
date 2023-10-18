@@ -252,7 +252,7 @@ def user():
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
-            OrcidTools.configure_orcid_input(session, request, form)
+            OrcidTools.configure_orcid_input(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, port=port, user_signature=True))
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
             if suite:
                 auth.settings.register_next = suite
