@@ -32,7 +32,7 @@ def takePort(p: Optional[str]):
 
 
 ######################################################################################################################################################################
-def get_script(scriptName):
+def get_script(scriptName: str):
     return SCRIPT(_src=URL("static", "js/pci/"+scriptName), _type="text/javascript")
 
 
