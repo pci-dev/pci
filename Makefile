@@ -71,25 +71,15 @@ install.chromium:
 install.firefox:
 	sudo apt install firefox-geckodriver
 
-test.install.cypress:
-	sudo apt-get install npm
-	sudo npm install -g n
-	sudo n stable
-	sudo npm install -g npm@latest
-	npm install
+test.install: test.install.selenium
 
-test.install: test.install.selenium test.install.cypress
-
-test.setup: test.db cypress/fixtures/users.json
+test.setup: test.db
 
 test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
 test.db.rr:
 	$(psql) main < sql_dumps/insert_default_mail_templates_pci_RR.sql
-
-cypress/%:
-	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
 test.reset:	reset set.conf.rr.false
 test.reset.rr:	reset set.conf.rr.true test.db.rr
@@ -100,17 +90,11 @@ set.conf.rr.%:
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 	sed -i '/^scheduled_submissions/ s/=.*/= $*/' private/appconfig.ini
 
-test.full:
-	npx cypress run --spec cypress/e2e/preprint_in_one_round.cy.js
+test.full:		test_full.py
+test.basic:		test_basic.py
+test.medium:		test_medium.py
+test.scheduled-track:	test_scheduled_track.py
 
-test.basic:
-	cd tests ; pytest -xv test_basic.py
-
-test.medium:
-	cd tests ; pytest -v test_medium.py
-
-test.scheduled-track:
-	cd tests ; pytest -xv test_scheduled_track.py
 
 test.create-article:
 	cd tests ; pytest -k "basic and User_submits"
@@ -134,7 +118,7 @@ delete.external.user:
 test.medium test.scheduled-track: delete.external.user
 
 test.clean:
-	killall -9 chromedriver || true
+	killall -9 geckodriver || true
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py

@@ -9,11 +9,6 @@ static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/appconfig.ini
 utils/.test-sites.conf
-node_modules
-cypress/videos
-cypress/screenshots
-cypress/fixtures/users.json
-package-lock.json
 tmp/*
 static/images/background.png
 static/images/small-background.png

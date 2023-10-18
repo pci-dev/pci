@@ -51,7 +51,7 @@ See [Mailing-queue](doc/Mailing-queue.md) to run one.
 Running tests
 -------------
 
-There are two flavours of automated tests: cypress & selenium+pytest.
+Automated tests run as selenium+pytest.
 
 The tests can be used to populate an "empty" vanilla dev instance.
 

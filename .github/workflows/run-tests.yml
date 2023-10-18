@@ -16,5 +16,31 @@ jobs:
       - run: make test.reset
       - run: make test.basic
 
+  test-basic-rr:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/setup-tests
+
       - run: make test.reset.rr
       - run: make test.basic
+
+  test-full:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/setup-tests
+
+      - run: make test.reset
+      - run: make test.full
+
+  test-full-rr:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/setup-tests
+      - run: make test.reset.rr
+      - run: make test.full

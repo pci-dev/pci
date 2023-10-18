@@ -197,6 +197,18 @@ class Recommender_handles:
     notif.contains("e-mail sent to submitter")
     notif.contains("e-mail sent to " + recommender.name)
 
+ def search_and_invite_registered_reviewer(_):
+    select(".btn", contains= "Invite a reviewer".upper()).click()
+
+    select("#no_table_reviewer_first_name").send_keys(reviewer.name)
+    select("#no_table_reviewer_last_name").send_keys("dude")
+    select("#no_table_reviewer_email").send_keys(reviewer.email)
+
+    select("input[type=submit]").click()
+
+    select.notif(contains="e-mail sent to " + reviewer.name)
+    select("a", "Done".upper()).click()
+
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()
     select("a", f"{preprint.capitalize()}(s) you are handling").click()
