@@ -131,7 +131,16 @@ def request_endorsement(req):
     if not user:
         user = create_new_user(user_email, user_name)
 
-    article = create_prefilled_submission(req, user)
+    context = req["context"]["id"] if "context" in req.keys() else None
+    if context:
+        article = update_resubmitted_article(req, context)
+
+        if not article: raise HTTP(
+                status=http.HTTPStatus.BAD_REQUEST.value,
+                body=f"article not found: context.id='{context}'")
+    else:
+        article = create_prefilled_submission(req, user)
+
     emailing.send_to_coar_requester(session, auth, db, user, article)
 
 
@@ -178,6 +187,19 @@ def create_prefilled_submission(req, user):
         status="Pre-submission",
         coar_notification_id=coar_req_id,
     )
+
+
+def update_resubmitted_article(req, context):
+    article = db(db.t_articles.coar_notification_id == context) \
+                    .select().first()
+    if not article:
+        return
+    article.coar_notification_id = req["id"]
+    article.doi = req["object"]["url"]["id"]
+
+    article.update_record()
+
+    return article
 
 
 def validate_request(body, content_type, coar_notifier):
