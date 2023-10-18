@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from functools import reduce
 from re import match
-from typing import List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -222,3 +223,8 @@ def get_next(request: Request):
         return next
     else:
         return None
+    
+###################################################################
+
+def sget(dictionary: Dict[Any, Any], *keys: Any):
+    return reduce(lambda d, key: d.get(key, None) if isinstance(d, dict) else None, keys, dictionary)
