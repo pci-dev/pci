@@ -151,17 +151,27 @@ class OrcidAPI:
         country_value = self.__extract_country_value(user_infos)
         laboratory_value = self.__extract_laboratory_value(user_infos)
         city_value = self.__extract_city_value(user_infos)
+        email_value = self.__extract_email_value(user_infos)
 
         self.__set_value_in_form(form, 'first_name', first_name_value)
         self.__set_value_in_form(form, 'last_name', last_name_value)
         self.__set_value_in_form(form, 'orcid', orcid_value)
         self.__set_value_in_form(form, 'institution', institution_value)
         self.__set_value_in_form(form, 'keywords', keyword_value)
-        self.__set_value_in_form(form, 'cv', cv_value, True)
+        self.__set_value_in_form(form, 'cv', cv_value)
         self.__set_value_in_form(form, 'website', website_value)
-        self.__set_value_in_form(form, 'country', country_value, select=True)
+        self.__set_value_in_form(form, 'country', country_value)
         self.__set_value_in_form(form, 'laboratory', laboratory_value)
         self.__set_value_in_form(form, 'city', city_value)
+        self.__set_value_in_form(form, 'email', email_value)
+    
+
+    def __extract_email_value(self, user_infos: Any):
+        email_value: Optional[str] = ''
+        emails = cast(Optional[List[Any]], sget(user_infos, 'person', 'emails', 'email'))
+        if emails and len(emails) > 0:
+            email_value = cast(Optional[str], emails[0].get('email'))
+        return email_value
 
 
     def __extract_city_value(self, user_infos: Any):
@@ -230,18 +240,24 @@ class OrcidAPI:
         return website_value
 
 
-    def __set_value_in_form(self, form: SQLFORM, form_name: str, value: Optional[str], textarea: bool = False, select: bool = False):
+    def __set_value_in_form(self, form: SQLFORM, form_name: str, value: Optional[str]):
         if not value or len(value) == 0:
             return
                 
         input = form.element(_name=form_name)
-        if textarea:
-            input.components[0] = value
+        if not input:
+            return
+        
+        if input.tag == 'textarea':
+            if len(input.components) > 0:
+                input.components[0] = value
+            else:
+                input.components.append(value)
             return
         
         input["_value"] = value
 
-        if select:
+        if input.tag == 'select':
             for component in input.components:
                 if component["_selected"]:
                     component["_selected"] = None
