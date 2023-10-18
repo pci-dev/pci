@@ -71,25 +71,15 @@ install.chromium:
 install.firefox:
 	sudo apt install firefox-geckodriver
 
-test.install.cypress:
-	sudo apt-get install npm
-	sudo npm install -g n
-	sudo n stable
-	sudo npm install -g npm@latest
-	npm install
+test.install: test.install.selenium
 
-test.install: test.install.selenium test.install.cypress
-
-test.setup: test.db cypress/fixtures/users.json
+test.setup: test.db
 
 test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
 test.db.rr:
 	$(psql) main < sql_dumps/insert_default_mail_templates_pci_RR.sql
-
-cypress/%:
-	cd $(dir $@) && cp _$(notdir $@) $(notdir $@)
 
 test.reset:	reset set.conf.rr.false
 test.reset.rr:	reset set.conf.rr.true test.db.rr

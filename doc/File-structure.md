@@ -42,9 +42,4 @@ static/
   images/ # Static images files
   fonts/ # Static fonts files
   uploads/ # symlink to ../uploads = uploaded images, exposed publicly
-
-cypress/
-  integration/ # Define all tests
-  supports/ # Define common commands for tests (such as login, check article status...)
-  fixtures/ # Datas needed to run tests
 ```

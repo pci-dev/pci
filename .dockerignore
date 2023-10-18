@@ -1,7 +1,5 @@
 Dockerfile
 __pycache__
-node_modules
-cypress
 web2py
 sessions
 errors

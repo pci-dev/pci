@@ -4,13 +4,7 @@ PCI Automated Tests
 Requirements
 ------------
 
-Selenium tests:
-
-	make test.install.selenium
-
-Cypress tests:
-
-	make test.install.cypress
+	make test.install
 
 
 Setup test environment
@@ -27,11 +21,7 @@ full one-round scenario:
 
 	make test.full
 
-or live:
-
-	cd tmp
-	ln -s ../cypress* ../tests .
-	npx cypress open
+	SHOW=y make test.full
 
 shorter scenario:
 
