@@ -1,12 +1,17 @@
 import json
 import requests
 
+import uuid
+uid = str(uuid.uuid4())
+
 def test_request_endorsement():
     data = json.loads(request_endorsement)
+    data["id"] = uid
     post(data)
 
 def test_cancel_endorsement_request():
     data = json.loads(cancel_endorsement_request)
+    data["object"]["id"] = uid
     post(data)
 
 
