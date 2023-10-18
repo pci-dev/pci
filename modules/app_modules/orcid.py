@@ -7,12 +7,11 @@ from gluon.globals import Request, Session
 from gluon.html import A, URL
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
+from gluon import current
 
 from app_modules.httpClient import HttpClient
-from app_modules.common_tools import sget
+from app_modules.common_tools import get_next, get_script, sget
 from app_modules.country import Country
-
-
 
 
 class OrcidTools:
@@ -29,9 +28,48 @@ class OrcidTools:
         if not value or len(value) == 0:
             return None
         return value.replace('-', '')
+    
+
+    @staticmethod
+    def get_orcid_formatter_script():
+        return get_script("orcid_formatter.js")
+    
+
+    @staticmethod
+    def configure_orcid_input(session: Session, request: Request, auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
+        auth_user_form.element(_name="orcid")["_maxlength"] = ORCID_NUMBER_LENGTH_WITH_HYPHEN
+        if not redirect_url or len(redirect_url) == 0:
+            return
+
+        orcid_api = OrcidAPI(redirect_url)
+        orcid_row = auth_user_form.element(_id="auth_user_orcid__row").components[1]
+        orcid_row.components.insert(0, orcid_api.get_orcid_html_button())
+        if session.click_orcid:
+            try:
+                orcid_api.update_form(session, request, auth_user_form)
+            except Exception as e:
+                session.flash = e
+            session.click_orcid = False
+
+
+    @staticmethod
+    def redirect_ORCID_authentication(session: Session, request: Request):
+        session.click_orcid = True
+        next = get_next(request)
+        if not next:
+            session.flash = current.T('Redirection URL is required for ORCID authentication')
+            return redirect(URL('default','index'))
+        code = OrcidAPI.get_code_in_url(request)
+        if not code:
+            orcid_api = OrcidAPI(next)
+            orcid_api.go_to_authentication_page()
+        else:
+            redirect(next)
 
 
 ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "string", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
+ORCID_NUMBER_LENGTH = 16
+ORCID_NUMBER_LENGTH_WITH_HYPHEN = ORCID_NUMBER_LENGTH + 3
 
 
 class OrcidValidator:
@@ -45,7 +83,7 @@ class OrcidValidator:
         if not value or len(value) == 0:
             return value, None
 
-        if len(value) != 16:
+        if len(value) != ORCID_NUMBER_LENGTH:
             return value, f'{self.error_message}: expected length 16, got {len(value)}'
         
         if not value.isdigit():

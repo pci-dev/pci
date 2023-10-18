@@ -12,7 +12,7 @@ from app_modules.helper import *
 from app_modules.common_small_html import complete_profile_dialog, invitation_to_review_form
 from controller_modules import adjust_grid
 from app_modules.emailing import send_conditional_acceptation_review_mail
-from app_modules.orcid import OrcidAPI
+from app_modules.orcid import OrcidTools
 from gluon import DAL
 # -------------------------------------------------------------------------
 # app configuration made easy. Look inside private/appconfig.ini
@@ -252,7 +252,7 @@ def user():
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
-            form.element(_name="orcid")["_maxlength"] = 19
+            OrcidTools.configure_orcid_input(session, request, form)
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
             if suite:
                 auth.settings.register_next = suite
@@ -269,16 +269,8 @@ def user():
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
             form.element(_name="orcid")["_maxlength"] = 19
 
-            orcid_api = OrcidAPI(URL(c="default", f="user", args="profile", host=host, scheme=scheme, port=port))
-            orcid_row = form.element(_id="auth_user_orcid__row").components[1]
-            orcid_row.components.insert(0, orcid_api.get_orcid_html_button())
-            if session.click_orcid:
-                try:
-                    orcid_api.update_form(session, request, form)
-                except Exception as e:
-                    session.flash = e
-                session.click_orcid = False
-            
+            OrcidTools.configure_orcid_input(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, port=port))
+
             if suite:
                 auth.settings.profile_next = suite
 
@@ -326,7 +318,7 @@ def user():
                 myBottomText=myBottomText,
                 pageHelp=pageHelp,
                 form=form,
-                myFinalScript=common_tools.get_script("orcid_formatter.js"))
+                myFinalScript=OrcidTools.get_orcid_formatter_script())
 
 
 def check_already_registered(form):
@@ -358,17 +350,7 @@ def show_account_menu_dialog():
 
 
 def redirect_ORCID_authentication():
-    session.click_orcid = True
-    next = get_next(request)
-    if not next:
-        session.flash = T('Redirection URL is required for ORCID authentication')
-        return redirect(URL('default','index'))
-    code = OrcidAPI.get_code_in_url(request)
-    if not code:
-        orcid_api = OrcidAPI(next)
-        orcid_api.go_to_authentication_page()
-    else:
-        redirect(next)
+    OrcidTools.redirect_ORCID_authentication(session, request)
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
