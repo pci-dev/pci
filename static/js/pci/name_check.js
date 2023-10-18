@@ -34,11 +34,9 @@ function check_database(name_json) {
             console.log('uh oh: ', error);
         }
     })
-
 }
 
 function create_question_modal(user_json) {
-    console.log(user_json);
     let container = document.createElement('div');
     let backdrop = document.createElement('div');
     backdrop.classList.add('modal-backdrop');
@@ -71,7 +69,7 @@ function create_question_modal(user_json) {
     confirm_link.innerHTML = 'Yes, please add that reviewer';
     confirm_link.classList.add('btn');
     confirm_link.classList.add('btn-info');
-    confirm_link.setAttribute('onclick', 'add_proposed('+ user_json['first_name'] + ', ' + user_json['last_name'] +')');
+    confirm_link.setAttribute('onclick', 'add_proposed("'+ user_json['first_name'] + '", "' + user_json['last_name'] +'")');
     let nofirm_link = document.createElement('a');
     nofirm_link.innerHTML = 'No, please add the exact reviewer I entered';
     nofirm_link.classList.add('btn');
@@ -89,6 +87,7 @@ function create_question_modal(user_json) {
 
 
 function gather_name() {
+    // extract name from from for JSON
     let firstname_field = document.querySelector('#no_table_reviewer_first_name');
     let lastname_field = document.querySelector('#no_table_reviewer_last_name');
     let field_json = {'first_name': firstname_field.value, 'last_name': lastname_field.value};
@@ -100,4 +99,37 @@ function resume_invite() {
     // the proposed name was not the one the recommender wants. So proceed with the entered data
     unique = true;
     submit_btn_2.click();
+}
+
+
+function add_proposed(first_name, last_name) {
+    // if the proposed name is the one the recommender wants, add it via AJAX call
+    let name_json = {'first_name': first_name, 'last_name': last_name};
+    let review_duration_field = document.querySelector('#no_table_review_duration');
+    let subject_field = document.querySelector('#no_table_subject');
+    let message_field = document.querySelector('#no_table_message_ifr');
+    let cc_field = document.querySelector('#no_table_cc');
+    name_json['review_duration'] = review_duration_field.value;
+    name_json['subject'] = subject_field.value;
+    name_json['message'] = message_field.contentWindow.document.body.innerText;
+    name_json['cc'] = cc_field.value;
+    let queryString = window.location.search;
+    let urlParams = new URLSearchParams(queryString);
+    let recommId = urlParams.get('recommId');
+    let new_stage = urlParams.get('new_stage');
+    name_json['recommId'] = recommId;
+    name_json['new_stage'] = new_stage;
+    $.ajax({
+        url: 'add_proposed_reviewer',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(name_json),
+        success: function(response) {
+            let current_url_stem = window.location.href.split('/recommender')[0];
+            window.location.href = current_url_stem + '/recommender/reviewers?recommId=' + String(recommId);
+        },
+        error: function(error) {
+            console.log('Error: ', error);
+        }
+    })
 }

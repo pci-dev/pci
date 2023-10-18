@@ -1594,7 +1594,6 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
         return
 
-    
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -1926,6 +1925,10 @@ def check_reviewer_name():
     last_name = request.vars['last_name']
     first_name = request.vars['first_name']
 
+    if not last_name or not first_name:
+        response_json['success'] = False
+        return response.json(response_json)
+
     existingUser = db((db.auth_user.first_name.lower() == first_name.lower()) & (db.auth_user.last_name.lower() == last_name.lower())).select().last()
     response_json = {}
     if existingUser:
@@ -1940,6 +1943,145 @@ def check_reviewer_name():
         response_json['success'] = False
 
     return response.json(response_json)
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def add_proposed_reviewer():
+    last_name = request.vars['last_name']
+    first_name = request.vars['first_name']
+    recommendation_id = request.vars['recommId']
+    review_duration = request.vars['review_duration']
+    new_stage = request.vars['new_stage']
+    subject = request.vars['subject']
+    message = request.vars['message']
+    cc = request.vars['cc']
+
+    if not last_name or not first_name or not recommendation_id or not review_duration:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    recommendation = Recommendation.get_by_id(db, recommendation_id)
+    if not recommendation:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    co_recommender = is_co_recommender(auth, db, recommendation.id)
+    if (recommendation.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    article = Article.get_by_id(db, recommendation.article_id)
+    if not article:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+
+    sender: Optional[User] = None
+    if auth.has_membership(role="manager"): sender = User.get_by_id(db, recommendation.recommender_id)
+    else: sender = cast(User, auth.user)
+
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, last_name)
+    parallelText = ""
+    if parallelSubmissionAllowed:
+        parallelText += (
+            """Note that if the authors abandon the process at %(appLongName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appLongName)s website as recognition of their work and in order to enable critical discussion.\n"""
+            % mail_vars
+        )
+        if article.parallel_submission:
+            parallelText += (
+                """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.\n"""
+                % mail_vars
+            )
+
+    if pciRRactivated:
+        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        mail_vars = dict(mail_vars, **rr_vars)
+
+    existingUser = db((db.auth_user.first_name.lower() == first_name.lower()) & (db.auth_user.last_name.lower() == last_name.lower())).select().last()
+    new_user_id = existingUser.id
+
+    recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
+    if recomm_round > 1 and not pciRRactivated:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
+    else:
+        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
+    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
+    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
+    default_message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
+
+    default_subject = emailing.patch_email_subject(default_subject, recommendation.article_id)
+    replyto_address = "%s, %s" % (sender.email, myconf.take("contacts.managers"))
+    default_cc = '%s, %s'%(sender.email, myconf.take('contacts.managers'))
+    clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(cc)
+    cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
+    clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
+    replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
+    clean_reviewer_email, clean_reviewer_errors = emailing_tools.clean_addresses(existingUser.email.lower())
+    request.vars.reviewer_email = clean_reviewer_email
+
+    reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
+    if existingUser.reset_password_key:
+        existingUser.update_record(reset_password_key=reset_password_key)
+        existingUser = None
+    nbExistingReviews = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == new_user_id)).count()
+
+    if nbExistingReviews > 0:
+        session.flash = T('User %s %s has already been invited. E-mail cancelled.') % (first_name, last_name)
+    else:
+        # Create review
+        quickDeclineKey = web2py_uuid()
+
+        reviewId = db.t_reviews.insert(
+                recommendation_id=recommendation_id,
+                reviewer_id=new_user_id,
+                review_state=None,
+                quick_decline_key=quickDeclineKey,
+                review_duration=review_duration,
+        )
+
+        declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
+                scheme=scheme, host=host, port=port)
+
+        recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
+        if recomm_round > 1 and not pciRRactivated:
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
+        else:
+            hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
+        reset_password_key = None
+        linkTarget = URL(
+            c="default",
+            f="invitation_to_review",
+            vars=dict(reviewId=reviewId),
+            scheme=scheme,
+            host=host,
+            port=port,
+        )
+
+        try:
+            emailing.send_reviewer_invitation(
+                session,
+                auth,
+                db,
+                reviewId,
+                replyto_addresses,
+                cc_addresses,
+                hashtag_template,
+                subject,
+                message,
+                reset_password_key,
+                linkTarget,
+                declineLinkTarget,
+                new_stage=new_stage,
+            )
+        except Exception as e:
+            session.flash = (session.flash or "") + T("E-mail failed.")
+            pass
+
+    redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
 
 
 ######################################################################################################################################################################
