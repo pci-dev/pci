@@ -269,7 +269,7 @@ def user():
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
             form.element(_name="orcid")["_maxlength"] = 19
 
-            OrcidTools.configure_orcid_input(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, port=port))
+            OrcidTools.configure_orcid_input(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, port=port, user_signature=True))
 
             if suite:
                 auth.settings.profile_next = suite

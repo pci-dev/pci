@@ -1,3 +1,4 @@
+from http.client import HTTPException
 from typing import Any, Dict, List, Optional, cast
 from attr import dataclass
 
@@ -47,7 +48,7 @@ class OrcidTools:
         if session.click_orcid:
             try:
                 orcid_api.update_form(session, request, auth_user_form)
-            except Exception as e:
+            except HTTPException as e:
                 session.flash = e
             session.click_orcid = False
 
@@ -258,7 +259,7 @@ class OrcidAPI:
         if response.status_code == 200:
             return response.json()
         else:
-            raise Exception(response.text)
+            raise HTTPException(response.text)
 
 
     def __init_token_orcid(self, code: str):
@@ -274,7 +275,7 @@ class OrcidAPI:
         if 'access_token' in json_response and 'orcid' in json_response:
             self.__orcid_keys = OrcidAPI.OrcidKeys(json_response['access_token'], json_response['orcid'])
         else:
-            raise Exception(response.text)
+            raise HTTPException(response.text)
 
 
     @staticmethod
