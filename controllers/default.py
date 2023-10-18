@@ -128,7 +128,7 @@ def index():
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
-    except: original_grid = None
+    except: redirect(request.home)
 
     integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']
@@ -162,7 +162,7 @@ def index():
         _style="margin-top: 15px; margin-bottom: 20px",
     )
     grid.element(".web2py_table").insert(0, lastRecommTitle) \
-            if grid.element(".web2py_table") else None
+            if grid and grid.element(".web2py_table") else None
 
     return dict(
             pageTitle=getTitle(request, auth, db, "#HomeTitle"),
