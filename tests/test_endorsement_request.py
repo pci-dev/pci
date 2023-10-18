@@ -14,6 +14,13 @@ def test_cancel_endorsement_request():
     data["object"]["id"] = uid
     post(data)
 
+def test_resubmit_endorsement():
+    data = json.loads(request_endorsement)
+    data["context"] = { "id": uid }
+    data["id"] = str(uuid.uuid4())
+    data["object"]["url"]["id"] = "https://hal.inrae.fr/hal-02630042v2"
+    post(data)
+
 
 def post(data):
     target = "http://localhost:8000/pci/coar_notify/inbox"
