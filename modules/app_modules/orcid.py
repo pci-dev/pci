@@ -1,12 +1,28 @@
-from typing import Optional
+from typing import Any, Dict, List, Optional, cast
+from attr import dataclass
+
 from gluon.dal import SQLCustomType
+from gluon.contrib.appconfig import AppConfig
+from gluon.globals import Request, Session
+from gluon.html import A, URL
+from gluon.http import redirect
+from gluon.sqlhtml import SQLFORM
+
+from app_modules.httpClient import HttpClient
+from app_modules.common_tools import sget
+from app_modules.country import Country
+
+
+
 
 class OrcidTools:
+
     @staticmethod
     def add_hyphen(value: Optional[str]):
         if not value or len(value) == 0:
             return None
         return '-'.join(value[i:i+4] for i in range(0, len(value), 4))
+
 
     @staticmethod
     def remove_hyphen(value: Optional[str]):
@@ -17,9 +33,12 @@ class OrcidTools:
 
 ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "string", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
 
+
 class OrcidValidator:
+
     def __init__(self):
         self.error_message = 'Invalid ORCID number'
+
 
     def __call__(self, value: Optional[str]):
         value = OrcidTools.remove_hyphen(value)
@@ -33,3 +52,195 @@ class OrcidValidator:
             return value, f'{self.error_message}: must contain only digits'
         
         return value, None
+
+
+class OrcidAPI:
+
+    @dataclass(frozen=True)
+    class OrcidKeys:
+        token: str
+        orcid: str
+
+    AUTHORIZE_URL = 'https://orcid.org/oauth/authorize'
+    OAUTH_TOKEN_URL = 'https://orcid.org/oauth/token'
+    API_URL = 'https://pub.orcid.org/v3.0/'
+
+    def __init__(self, redirect_url: str):
+        self.__redirect_url = redirect_url
+
+        self.__myconf = AppConfig()
+        self.__client_id = self.__myconf.take('ORCID.client_id')
+        self.__client_secrect = self.__myconf.take('ORCID.client_secret')
+
+        self.__orcid_keys: Optional[OrcidAPI.OrcidKeys] = None
+
+    def go_to_authentication_page(self):
+        authorization_url = f'{self.AUTHORIZE_URL}?client_id={self.__client_id}&response_type=code&scope=/authenticate&redirect_uri={self.__redirect_url}'
+        redirect(authorization_url)
+
+
+    def get_orcid_html_button(self):
+        return A('Use ORCID account to fill profile', _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style="margin-left: -1px")
+
+
+    def update_form(self, session: Session, request: Request, form: SQLFORM):
+        if not session.token_orcid:
+            code = OrcidAPI.get_code_in_url(request)
+            if not code:
+                return
+
+            if self.__orcid_keys:
+                session.token_orcid = self.__orcid_keys
+            else:
+                self.__init_token_orcid(code)
+                session.token_orcid = self.__orcid_keys
+        else:
+            self.__orcid_keys = session.token_orcid
+                
+        user_infos = self.__retrieve_user_infos()
+        self.__fill_form(user_infos, form)
+
+
+    def __fill_form(self, user_infos: Any, form: SQLFORM):
+        first_name_value = cast(Optional[str], sget(user_infos, 'person', 'name', 'given-names', 'value'))
+        last_name_value = cast(Optional[str], sget(user_infos, 'person', 'name', 'family-name', 'value'))
+        orcid_value = cast(Optional[str], sget(user_infos, 'orcid-identifier', 'path'))
+        cv_value = cast(Optional[str], sget(user_infos, 'person', 'biography', 'content'))
+        institution_value = self.__extract_institution_value(user_infos)
+        keyword_value = self.__extract_keyword_value(user_infos)
+        website_value = self.__extract_website_value(user_infos)
+        country_value = self.__extract_country_value(user_infos)
+        laboratory_value = self.__extract_laboratory_value(user_infos)
+        city_value = self.__extract_city_value(user_infos)
+
+        self.__set_value_in_form(form, 'first_name', first_name_value)
+        self.__set_value_in_form(form, 'last_name', last_name_value)
+        self.__set_value_in_form(form, 'orcid', orcid_value)
+        self.__set_value_in_form(form, 'institution', institution_value)
+        self.__set_value_in_form(form, 'keywords', keyword_value)
+        self.__set_value_in_form(form, 'cv', cv_value, True)
+        self.__set_value_in_form(form, 'website', website_value)
+        self.__set_value_in_form(form, 'country', country_value, select=True)
+        self.__set_value_in_form(form, 'laboratory', laboratory_value)
+        self.__set_value_in_form(form, 'city', city_value)
+
+
+    def __extract_city_value(self, user_infos: Any):
+        city_value: Optional[str] = ''
+        affiliations = cast(Optional[List[Any]], sget(user_infos, 'activities-summary', 'employments', 'affiliation-group'))
+        if affiliations and len(affiliations) > 0:
+            affiliation = cast(Dict[str, Any], affiliations[0])
+            summaries = cast(Optional[List[Any]], affiliation.get('summaries'))
+            if summaries and len(summaries) > 0:
+                summary = cast(Dict[str, Any], summaries[0])
+                city_value = cast(Optional[str], sget(summary, 'employment-summary', 'organization', 'address', 'city'))
+        return city_value
+
+
+    def __extract_laboratory_value(self, user_infos: Any):
+        laboratory_value: Optional[str] = ''
+        affiliations = cast(Optional[List[Any]], sget(user_infos, 'activities-summary', 'employments', 'affiliation-group'))
+        if affiliations and len(affiliations) > 0:
+            affiliation = cast(Dict[str, Any], affiliations[0])
+            summaries = cast(Optional[List[Any]], affiliation.get('summaries'))
+            if summaries and len(summaries) > 0:
+                summary = cast(Dict[str, Any], summaries[0])
+                laboratory_value = cast(Optional[str], sget(summary, 'employment-summary', 'department-name'))
+        return laboratory_value
+
+
+    def __extract_country_value(self, user_infos: Any):
+        country_value: Optional[str] = ''
+        addresses = cast(Optional[List[Any]], sget(user_infos, 'person', 'addresses', 'address'))
+        if addresses and len(addresses) > 0:
+            address = cast(Dict[str, Any], addresses[0])
+            country_code = cast(Optional[str], sget(address, 'country', 'value'))
+            if country_code and len(country_code) > 0:
+                country_value = Country[country_code].value
+        return country_value
+
+
+    def __extract_institution_value(self, user_infos: Any):
+        insitution_value: Optional[str] = ''
+        affiliations = cast(Optional[List[Any]], sget(user_infos, 'activities-summary', 'employments', 'affiliation-group'))
+        if affiliations and len(affiliations) > 0:
+            affiliation = cast(Dict[str, Any], affiliations[0])
+            summaries = cast(Optional[List[Any]], affiliation.get('summaries'))
+            if summaries and len(summaries) > 0:
+                summary = cast(Dict[str, Any], summaries[0])
+                insitution_value = cast(Optional[str], sget(summary, 'employment-summary', 'organization', 'name'))
+        return insitution_value
+
+
+    def __extract_keyword_value(self, user_infos: Any):
+        keywords = cast(Optional[List[Any]], sget(user_infos, 'person', 'keywords', 'keyword'))
+        keyword_value = ''
+        if keywords and len(keywords) > 0:
+            for keyword in keywords:
+                keyword_value += keyword.get('content', '') + ','
+            keyword_value = keyword_value[:-1]
+        return keyword_value
+    
+
+    def __extract_website_value(self, user_infos: Any):
+        website_value: Optional[str] = ''
+        websites = cast(Optional[List[Any]], sget(user_infos, 'person', 'researcher-urls', 'researcher-url'))
+        if websites and len(websites) > 0:
+            website = cast(Dict[str, Any], websites[0])
+            website_value = cast(Optional[str], sget(website, 'url', 'value'))
+        return website_value
+
+
+    def __set_value_in_form(self, form: SQLFORM, form_name: str, value: Optional[str], textarea: bool = False, select: bool = False):
+        if not value or len(value) == 0:
+            return
+                
+        input = form.element(_name=form_name)
+        if textarea:
+            input.components[0] = value
+            return
+        
+        input["_value"] = value
+
+        if select:
+            for component in input.components:
+                if component["_selected"]:
+                    component["_selected"] = None
+                if component["_value"] == value:
+                    component["_selected"] = 'selected'
+
+
+    def __retrieve_user_infos(self) -> Optional[Dict[str, Any]]:
+        if not self.__orcid_keys:
+            return
+        
+        http_client = HttpClient(default_headers={'Accept': 'application/json', 'Authorization': f'Bearer {self.__orcid_keys.token}'})
+        response = http_client.get(self.API_URL + self.__orcid_keys.orcid)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(response.text)
+
+
+    def __init_token_orcid(self, code: str):
+        if not code:
+            return None
+        
+        payload = f'client_id={self.__client_id}&client_secret={self.__client_secrect}&grant_type=authorization_code&redirect_uri={self.__redirect_url}&code={code}'
+        
+        http_client = HttpClient({'Content-Type': 'application/x-www-form-urlencoded'})
+        response = http_client.post(self.OAUTH_TOKEN_URL, data=payload)
+        json_response = response.json()
+
+        if 'access_token' in json_response and 'orcid' in json_response:
+            self.__orcid_keys = OrcidAPI.OrcidKeys(json_response['access_token'], json_response['orcid'])
+        else:
+            raise Exception(response.text)
+
+
+    @staticmethod
+    def get_code_in_url(request: Request):
+        if 'code' in request.vars:
+            return cast(str, request.vars['code'])
+        return None
