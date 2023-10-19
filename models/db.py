@@ -211,7 +211,7 @@ db.define_table(
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
 auth.settings.extra_fields["auth_user"] = [
-    Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label="ORCID", requires=OrcidValidator(), maxlength=ORCID_NUMBER_LENGTH_WITH_HYPHEN),
+    Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label="ORCID number", requires=OrcidValidator(), maxlength=ORCID_NUMBER_LENGTH_WITH_HYPHEN),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
