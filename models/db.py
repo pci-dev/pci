@@ -575,6 +575,7 @@ db.define_table(
     Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     Field("manager_authors", type="string", length=50, default=""),
     Field("coar_notification_id", type="text", readable=False, writable=False),
+    Field("coar_notification_closed", type="boolean", readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
