@@ -250,13 +250,18 @@ class COARNotifier:
 
     def send_acknowledge_and_tentative_accept(self, article):
         if not article.coar_notification_id: return
+        if article.coar_notification_closed: return
 
         send_ack(self, "Accept", article)
 
     def send_acknowledge_and_reject(self, article):
         if not article.coar_notification_id: return
+        if article.coar_notification_closed: return
 
         send_ack(self, "Reject", article)
+
+        article.coar_notification_closed = True
+        article.update_record()
 
 
     def record_notification(

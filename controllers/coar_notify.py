@@ -212,6 +212,7 @@ def update_resubmitted_article(req, context):
         return article
 
     article.coar_notification_id = req["id"]
+    article.coar_notification_closed = False
     article.doi = req["object"]["url"]["id"]
 
     article.update_record()
