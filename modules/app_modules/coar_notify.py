@@ -4,6 +4,7 @@ import datetime
 import functools
 import io
 import json
+import re
 import typing
 import uuid
 
@@ -334,6 +335,7 @@ def _get_target_inbox(article):
 def article_cite_as(article):
     inbox = get_target_inbox(article)
     if ".hal." in inbox:
-        return article.doi + f"v{article.ms_version}"
+        article_doi = re.sub('v[0-9]+/?$', '', article.doi)
+        return article_doi + f"v{article.ms_version}"
     else:
         return article.doi
