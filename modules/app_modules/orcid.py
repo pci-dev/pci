@@ -5,7 +5,7 @@ from attr import dataclass
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Request, Session
-from gluon.html import A, CENTER, FORM, URL
+from gluon.html import A, CENTER, FORM, IMG, URL
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
 from gluon import current
@@ -124,7 +124,8 @@ class OrcidAPI:
 
 
     def get_orcid_html_button(self, style: Optional[str] = None):
-        return A('Use ORCID account to fill profile', _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
+        return A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="20px", _width="20px", _style="position: relative; bottom: 2px; right: 6px;"),
+                 current.T('Log to your ORCID account to partially fill your profile'), _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
 
 
     def update_form(self, session: Session, request: Request, form: FORM):
