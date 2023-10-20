@@ -118,7 +118,7 @@ delete.external.user:
 test.medium test.scheduled-track: delete.external.user
 
 test.clean:
-	killall -9 geckodriver || true
+	pkill -9 -ef 'geckodriver[ ]|marionette[ ]' || true
 
 coar.refresh:
 	touch modules/app_modules/coar_notify.py
