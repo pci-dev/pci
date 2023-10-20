@@ -1925,20 +1925,26 @@ def check_reviewer_name():
     last_name = request.vars['last_name']
     first_name = request.vars['first_name']
 
+    response_json = {}
+
     if not last_name or not first_name:
         response_json['success'] = False
         return response.json(response_json)
 
-    existingUser = db((db.auth_user.first_name.lower() == first_name.lower()) & (db.auth_user.last_name.lower() == last_name.lower())).select().last()
-    response_json = {}
-    if existingUser:
+    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
+    if existingUsers:
+        users = []
+        for user in existingUsers:
+            single_user = {}
+            single_user['first_name'] = user.first_name
+            single_user['last_name'] = user.last_name
+            single_user['email'] = user.email
+            single_user['institution'] = user.institution
+            single_user['laboratory'] = user.laboratory
+            single_user['country'] = user.country
+            users.append(single_user)
+        response_json['users'] = users
         response_json['success'] = True
-        response_json['first_name'] = existingUser.first_name
-        response_json['last_name'] = existingUser.last_name
-        response_json['email'] = existingUser.email
-        response_json['institution'] = existingUser.institution
-        response_json['laboratory'] = existingUser.laboratory
-        response_json['country'] = existingUser.country
     else:
         response_json['success'] = False
 
