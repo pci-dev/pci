@@ -131,17 +131,31 @@ def request_endorsement(req):
     if not user:
         user = create_new_user(user_email, user_name)
 
-    context = req["context"]["id"] if "context" in req.keys() else None
-    if context:
-        article = update_resubmitted_article(req, context)
-
-        if not article: raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"article not found: context.id='{context}'")
+    if "context" in req.keys():
+        article = handle_resubmission(req, user)
     else:
         article = create_prefilled_submission(req, user)
 
     emailing.send_to_coar_requester(session, auth, db, user, article)
+
+
+def handle_resubmission(req, user):
+    context = req["context"]
+    if not "id" in context: raise HTTP(
+            status=http.HTTPStatus.BAD_REQUEST.value,
+            body=f"no context.id")
+
+    context_id = context["id"]
+    article = update_resubmitted_article(req, context_id)
+
+    if not article: raise HTTP(
+            status=http.HTTPStatus.BAD_REQUEST.value,
+            body=f"no matching article for context.id='{context_id}'")
+    if article.status != 'Awaiting revision': raise HTTP(
+            status=http.HTTPStatus.BAD_REQUEST.value,
+            body=f"not awaiting revision: article.id='{article.id}'")
+
+    return article
 
 
 def cancel_endorsement(req):
@@ -194,6 +208,9 @@ def update_resubmitted_article(req, context):
                     .select().first()
     if not article:
         return
+    if article.status != "Awaiting revision":
+        return article
+
     article.coar_notification_id = req["id"]
     article.doi = req["object"]["url"]["id"]
 
