@@ -1,5 +1,6 @@
 import json
 import requests
+import pytest
 
 import uuid
 uid = str(uuid.uuid4())
@@ -19,7 +20,9 @@ def test_resubmit_endorsement():
     data["context"] = { "id": uid }
     data["id"] = str(uuid.uuid4())
     data["object"]["url"]["id"] = "https://hal.inrae.fr/hal-02630042v2"
-    post(data)
+    with pytest.raises(Exception) as e:
+        post(data)
+        assert "not awaiting revision" in str(e.value)
 
 
 def post(data):
