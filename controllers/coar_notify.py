@@ -133,10 +133,10 @@ def request_endorsement(req):
 
     if "context" in req.keys():
         article = handle_resubmission(req, user)
+        emailing.send_to_coar_resubmitter(session, auth, db, user, article)
     else:
         article = create_prefilled_submission(req, user)
-
-    emailing.send_to_coar_requester(session, auth, db, user, article)
+        emailing.send_to_coar_requester(session, auth, db, user, article)
 
 
 def handle_resubmission(req, user):
