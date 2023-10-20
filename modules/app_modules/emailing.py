@@ -3156,7 +3156,7 @@ def send_to_coar_requester(session, auth, db, user, article):
         scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
     )
 
-    hashtag_template = "#UserCompleteSubmission"
+    hashtag_template = "#UserCompleteSubmissionCOAR"
 
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
 

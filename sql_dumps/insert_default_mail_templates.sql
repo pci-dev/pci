@@ -257,7 +257,7 @@ delete from mail_templates where hashtag in (
 INSERT INTO mail_templates (hashtag, lang, subject, description, contents)
 VALUES
 (
-E'#UserCompleteSubmission',
+E'#UserCompleteSubmissionCOAR',
 E'default',
 E'{{appName}}: Please complete your submission made from a preprint server',
 E'Mail to submitter when submission made from a preprint server',
