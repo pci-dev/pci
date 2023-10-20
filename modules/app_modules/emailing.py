@@ -191,6 +191,8 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
+            if article.coar_notification_id: hashtag_template = "#SubmitterAwaitingSubmissionCOAR"
+
             current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Pre-recommended":
