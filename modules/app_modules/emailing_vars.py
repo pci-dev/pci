@@ -170,7 +170,8 @@ def getRRInvitiationVars(db, article, new_stage):
         rr_vars["Stage2_Stage1recommendationtext"] = Stage2_Stage1recommendationtext
         rr_vars["Stage1_registeredURL"] = Stage1_registeredURL
         rr_vars["Stage2vsStage1_trackedchangesURL"] = Stage2vsStage1_trackedchangesURL
-
+    else:
+        stage1_art = article
 
     pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
     programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
