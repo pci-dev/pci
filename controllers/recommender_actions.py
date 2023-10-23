@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import cast
-from datetime import datetime
+import datetime
 
 from app_modules.helper import *
 from app_modules import emailing
@@ -771,7 +771,7 @@ def change_review_due_date():
     
     if form.process().accepted:
         try:
-            new_duration = datetime.strptime(form.vars['review_duration'], '%Y-%m-%d')
+            new_duration = datetime.datetime.strptime(form.vars['review_duration'], '%Y-%m-%d')
             if new_duration == review.due_date:
                 session.flash = T('This date is already configured. No change.')
                 redirect(session.change_review_due_date_previous_page)
