@@ -168,7 +168,7 @@ def extract_name(s):
 def query_semantic_api(authors: list, recommenders: list):
     grid = []
     all_data = {
-        "author" : [], "invited reviewer": [], "recommender" : [], "suggested recommender" : [], "accepted reviewer": []
+        "author" : [], "invited reviewer": [], "recommender" : [], "suggested recommender" : [], "accepted reviewer": [], "co-recommender": []
     }
     
     def get_author_ids(data):

@@ -995,12 +995,12 @@ def group_reviewers(db, reviewers):
     return result
 
 ###########################################################################################################################
-def mk_recommender_no_span(db, recommender):
+def mk_co_recommender_no_span(db, recommender):
     name = ""
-    if recommender.recommender_details:
-        name = get_name_from_details(recommender.recommender_details)
+    if recommender.contributor_details:
+        name = get_name_from_details(recommender.contributor_details)
     else:
-        name = mkUserNoSpan(None, db, recommender.recommender_id)
+        name = mkUserNoSpan(None, db, recommender.contributor_id)
 
     return name
 
