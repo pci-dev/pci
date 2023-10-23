@@ -214,13 +214,17 @@ def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False,
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False):
+def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False, orcid=False):
     if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
     else:
         theUser = None
 
-    return _mkUser(theUser, linked, reverse)
+    user_with_mail = _mkUser(theUser, linked, reverse)
+    if orcid:
+        return OrcidTools.build_name_with_orcid(user_with_mail, theUser.orcid)
+    else:
+        return user_with_mail
 
 
 def _mkUser(theUser, linked=False, reverse=False):
@@ -986,7 +990,7 @@ def mkRecommendersString(auth, db, recomm):
     return recommendersStr
 
 ######################################################################################################################################################################
-def mkReviewerInfo(auth, db, user):
+def mkReviewerInfo(auth, db, user, orcid: bool = False):
     anchor = ""
     if user:
         if "auth_user" in user:
@@ -1000,8 +1004,13 @@ def mkReviewerInfo(auth, db, user):
         institution = "" if institution is None else institution + ", "
         expertise = user.cv
         areas_of_expertise = current.T("Areas of expertise")
+
+        reviewer_name_html = reviewer_name
+        if orcid:
+            reviewer_name_html = OrcidTools.build_name_with_orcid(reviewer_name, user.orcid)
+
         anchor = DIV(
-            B(reviewer_name, _class="article-title"),
+            B(reviewer_name_html, _class="article-title"),
             DIV(institution, user.country or ""),
             DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
             DIV(A(areas_of_expertise, _tabindex="0",  _role="button",
