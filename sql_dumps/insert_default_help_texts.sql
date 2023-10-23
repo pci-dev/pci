@@ -347,3 +347,9 @@ VALUES
 (E'#LateReviewStatText',E'default',E'<p><span style="line-height: 1.2em;">Ongoing recommendations for which at least one agreed review is late. </span></p>\n<p><span style="line-height: 1.2em;">In case of any problems or difficulties, please contact us at <a href="mailto:?to={{contact}}">{{contact}}</a></span></p>'),
 (E'#LateReviewStatTitle',E'default',E'Late Reviews');
 
+-- 2023-10-23vupdates/verify_author_help_texts.sql
+INSERT INTO help_texts("hashtag","lang","contents")
+VALUES
+(E'#VerifyCoAuthor',E'default',E''),
+(E'#VerifyCoAuthorText',E'default',E''),
+(E'#VerifyCoAuthorTitle',E'default',E'Verify Co-authorship');
