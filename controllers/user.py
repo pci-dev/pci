@@ -254,25 +254,25 @@ def search_recommenders():
             if not f in full_text_search_fields:
                 users[f].readable = False
 
-        def mkButton(func):
+        def mkButton(func, modus):
             return lambda row: "" if row.auth_user.id in excludeList \
                     else DIV( func(auth, db, row, art.id, excludeList, request.vars),
-                              INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'),
+                              INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
                               _class="min15w")
 
         links = [
-            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
+            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton, 'suggest')),
         ]
 
         select_all_btn = DIV(A(
-                            SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
-                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclude=excludeList), user_signature=True),
+                            SPAN(current.T("CLICK HERE TO SUGGEST/EXCLUDE ALL SELECTED RECOMMENDERS"), _class="btn btn-default"),
+                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclusionIds='', exclude=excludeList)),
                             _class="button select-all-btn",
                             )
                             )
 
         if pciRRactivated:
-            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton)))
+            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton, 'exclude')))
 
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
