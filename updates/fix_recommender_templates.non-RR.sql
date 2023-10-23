@@ -1,0 +1,10 @@
+delete from mail_templates where hashtag in (
+	'#ReminderRecommenderNewReviewersNeeded'
+);
+insert into mail_templates (hashtag,lang,subject,description,contents) values (
+E'#ReminderRecommenderNewReviewersNeeded',
+E'default',
+E'{{appName}}: Please, invite additional reviewers',
+E'Mail to recommender to ask them to send new referee invitations if <2 reviewers have accepted the review invitation',
+E'<p>Dear {{destPerson}},</p><p>Thanks for sending invitations to review the preprint by {{articleAuthors}}. All invited reviewers have already received a reminder, but you still need to find other reviewers to be sure to obtain two reviews. Hence, we encourage you to invite further reviewers as follows:</p><p>1) Go to <a href="{{siteUrl}}" data-mce-href="{{siteUrl}}">{{siteUrl}}</a> and log in</p><p>2) Go to \'For recommenders —&gt; Preprint(s) you are handling\' in the top menu.</p><p>3) Click on the green \'INVITE A REVIEWER\' button in the line corresponding to the preprint considered.</p><p>To invite a reviewer: click on the black ‘INVITE A REVIEWER’ button and complete the form (first name, last name, and e-mail address of the reviewer). You can change the subject and/or the message if you wish. Then, click on the blue \'SEND E-MAIL\' button at the end of the form.</p><p>4) When you have sent invitations to all your chosen reviewers, click on the blue \'DONE \'button.</p><p><strong>To identify potential reviewers, you might:</strong></p><ul><li>use your own network</li><li>look at the reviewers suggested by the authors&nbsp;</li><li>look at the reviewers suggested by the reviewers you\'ve already invited</li><li>look at the references section of the preprint</li><li>use the JANE tool (<a href="https://jane.biosemantics.org/" data-mce-href="https://jane.biosemantics.org/">https://jane.biosemantics.org/</a>)</li></ul><p>When inviting referees for a preprint, keep in mind that a large gender, career stage, and geographic diversity is desirable.</p><p>If you need assistance in any way do not hesitate to ask us.</p><p>Thanks in advance.</p><p>Best regards</p><p>The Managing Board of {{appName}}</p>'
+);
