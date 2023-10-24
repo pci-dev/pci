@@ -264,10 +264,17 @@ def search_recommenders():
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton, 'suggest')),
         ]
 
+        btn_label = "CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"
+        btn_style = "btn-success"
+        if pciRRactivated:
+            btn_label = "CLICK HERE TO SUGGEST/EXCLUDE ALL SELECTED RECOMMENDERS"
+            btn_style = "btn_default"
+
         select_all_btn = DIV(A(
-                            SPAN(current.T("CLICK HERE TO SUGGEST/EXCLUDE ALL SELECTED RECOMMENDERS"), _class="btn btn-default"),
+                            SPAN(current.T(btn_label), _class="btn %s"%btn_style),
                             _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclusionIds='', exclude=excludeList)),
                             _class="button select-all-btn",
+                            _id="select-all-btn",
                             )
                             )
 
@@ -321,6 +328,7 @@ def search_recommenders():
                 _class="button",
             ),
             _style="text-align:center; margin-top:16px;",
+            _class="done-btn",
         )
 
         myUpperBtn = ""

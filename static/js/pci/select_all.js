@@ -1,15 +1,116 @@
-relocate_select_btn();
+relocate_btns();
+let select_buttons = document.querySelectorAll('.select-all-btn');
+var exclude_checked = 0;
+
+if (select_buttons.length > 0) {
+    // prepare modal creation for confirmation of multiple recommender exclusions
+    var modal = document.createElement('div');
+    var modal_backdrop = document.createElement('div');
+    var button_yes = document.createElement('span');
+    var button_nope = document.createElement('span');
+    var modal_body = document.createElement('div');
+    var modal_footer = document.createElement('div');
+    var prevent_or_fire = 'prevent';
+
+    for (let i = 0; i < select_buttons.length; i++) {
+        let status_button = select_buttons[i];
+        create_modal('button', status_button[i]);
+        status_button.addEventListener('click', function(event) {
+        if (prevent_or_fire == 'prevent') {
+            event.preventDefault();
+            var exclude_checkboxes = document.querySelectorAll('.exclude');
+            for (let i = 0; i < exclude_checkboxes.length; i++) {
+                if (exclude_checkboxes[i].checked) { exclude_checked += 1; }
+            }
+            if (exclude_checked < 2) {
+                exclude_checked = 0;
+                prevent_or_fire = 'fire';
+                status_button.click();
+                return
+            }
+            modal_body.innerHTML = 'Are you sure you want to EXCLUDE all of these potential recommenders?';
+
+            // if status field is changed, show modal and hook listeners to the buttons
+            let body = document.querySelector('body');
+            body.style.overflow = 'hidden';
+
+            modal.style.display = 'block';
+            document.body.appendChild(modal_backdrop);
+            modal_backdrop.style.display = 'block';
+
+            button_yes.addEventListener('click', function() {
+                // allow change and remove modal
+                modal.style.display = 'none';
+                modal_backdrop.style.display = 'none';
+                body.style.overflow = 'scroll';
+                prevent_or_fire = 'fire';
+                status_button.click();
+            })
+
+            button_nope.addEventListener('click', function() {
+                // reject change and remove modal
+                modal.style.display = 'none';
+                modal_backdrop.style.display = 'none';
+                body.style.overflow = 'scroll';
+            })
+            exclude_checked = 0;
+        }
+        else { prevent_or_fire == 'prevent'; }
+        })
+    }
+}
 
 
-function relocate_select_btn() {
-    let first_sort_btn = document.querySelector('.select-all-btn');
+function create_modal() {
+    // create confirmation modal
+    modal.id = "confirm-change-modal";
+    modal.classList.add('modal');
+    modal.classList.add('fade');
+    modal.classList.add('in');
+    modal.setAttribute('role', 'dialog');
+    modal.style.paddingRight = '0px';
+
+    modal_body.classList.add('modal-body');
+    modal_footer.classList.add('modal-footer');
+
+    button_yes.classList.add('btn');
+    button_yes.classList.add('btn-info');
+    button_yes.setAttribute('data-dismiss', 'modal');
+    button_yes.setAttribute('type', 'button');
+    button_yes.innerHTML = 'Yes'
+
+    button_nope.classList.add('btn');
+    button_nope.classList.add('btn-default');
+    button_nope.setAttribute('data-dismiss', 'modal');
+    button_nope.setAttribute('type', 'button');
+    button_nope.innerHTML = 'No';
+
+    modal_footer.appendChild(button_yes);
+    modal_footer.appendChild(button_nope);
+
+    modal.appendChild(modal_body);
+    modal.appendChild(modal_footer);
+
+    modal_backdrop.classList.add('modal-backdrop');
+    modal_backdrop.classList.add('fade');
+    modal_backdrop.classList.add('in');
+
+    document.body.appendChild(modal);
+}
+
+
+function relocate_btns() {
+    let first_select_btn = document.querySelector('.select-all-btn');
+    let first_accept_btn = document.querySelector('.done-btn');
     let grid = document.querySelector('.web2py_grid');
     let table = grid.querySelector('.web2py_table');
     let counter = grid.querySelector('.web2py_counter');
     counter.style.marginBottom = '0';
-    grid.insertBefore(first_sort_btn, table);
+    grid.insertBefore(first_select_btn, table);
+    if (first_accept_btn) {
+        grid.insertBefore(first_accept_btn, table);
+    }
 }
-
 
 function update_parameter_for_selection(checkbox_clicked) {
     // checkbox is clicked, uncheck partner box of the same row and add ID to button referral
@@ -19,7 +120,7 @@ function update_parameter_for_selection(checkbox_clicked) {
     if (modus == 'suggest') {
         recommender_row = checkbox_clicked.parentNode.parentNode.parentNode;
         let exclude_btn = recommender_row.querySelector('.exclude');
-        exclude_btn.checked = false;
+        if (exclude_btn) { exclude_btn.checked = false; }
      }
     else {
         recommender_row = checkbox_clicked.parentNode.parentNode.parentNode.parentNode;
@@ -57,10 +158,10 @@ function update_parameter_for_selection(checkbox_clicked) {
 
 
 function update_parameters_in_url(url, paramNames, paramValues) {
+
     var newUrl;
 
     for (let i = 0; i < paramNames.length; i++) {
-        if (paramValues[i] == '') { continue }
         var encodedParamName = encodeURIComponent(paramNames[i]);
         var encodedParamValue = encodeURIComponent(paramValues[i]).replace(/%2C/g, ',');
 

@@ -706,7 +706,7 @@ def search_recommenders():
                 _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
                 _class="button",
                 ),
-                INPUT(_type="checkbox", _id='checkbox_'+str(row.auth_user.id), _class="multiple-choice-checks", _onclick='update_parameter_for_selection()'))
+                INPUT(_type="checkbox", _id='checkbox_suggest_%s'%(str(row.auth_user.id)), _class="multiple-choice-checks suggest", _onclick='update_parameter_for_selection(this)'))
             ),
         ]
 
@@ -714,6 +714,7 @@ def search_recommenders():
                          SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
                          _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds=''), user_signature=True),
                          _class="button select-all-btn",
+                         _id="select-all-btn",
                          )
                         )
 
