@@ -2679,6 +2679,8 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             mail_vars["Stage2_Stage1recommendationtext"] = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
             mail_vars["Stage1_registeredURL"] = report_survey.q30
             mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
+        else:
+            stage1_art = article
 
         if pciRRactivated:
             mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
