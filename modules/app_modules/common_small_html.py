@@ -1,6 +1,6 @@
 import gc
 import os
-from typing import Optional
+from typing import Optional, cast
 import pytz
 from re import sub, match
 from copy import deepcopy
@@ -29,6 +29,7 @@ from pydal import DAL
 from app_modules.helper import getText
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
+from app_modules.orcid import OrcidTools
 
 myconf = AppConfig(reload=True)
 
@@ -1121,6 +1122,33 @@ def complete_profile_dialog(next: str):
     DIV(A(current.T("Complete my profile"), _href=URL("default", "user/profile", user_signature=True, vars=dict(_next=next)), _class="btn btn-info", _id="complete-profile-confirm-dialog"),
         SPAN(current.T("Later"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="complete-profile-cancel-dialog"),
     _class="modal-footer"), _id="complete-profile-modal", _class="modal fade", _role="dialog")
+
+####################################################################################
+
+def complete_orcid_dialog(db: DAL): 
+    radio_label_style = "display: inline;"
+    url = cast(str, URL("default", "orcid_choice"))
+    
+    return DIV(
+        OrcidTools.get_orcid_formatter_script(),
+        common_tools.get_script('complete_orcid_dialog.js'),
+
+        IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="50px", _width="50px", _style="margin-left: 10px"),
+        H4('You have not yet declared your ORCID number', _class="modal-body", _style="display: inline-block; font-weight: bold; position: relative; top: 3px"),
+        HR( _class="hr"),
+        DIV(
+            DIV(INPUT(_type="radio", _id="yes-orcid", _name="orcid_radio", _value="yes",  _checked="checked"), LABEL("Set my ORCID number", _for="yes-orcid", _style=radio_label_style), _style="display: inline-block; margin-right: 20px"),
+            OrcidTools.configure_orcid_input(INPUT(_id="auth_user_orcid", _type="text", _name="orcid", _class="form-control pci2-input", _style="width: 180px; margin-top: 10px; display: inline-block")),
+            HR( _class="hr"),
+            DIV(INPUT(_type="radio", _id="no-orcid", _name="orcid_radio", _value="no"), LABEL("You prefer not to indicate any ORCID number, we won't remind to fill in your ORCID number", _for="no-orcid", _style=radio_label_style)),
+            HR( _class="hr"),
+            DIV(INPUT(_type="radio", _id="later-orcid", _name="orcid_radio", _value="later"), LABEL("Remind me later", _for="later-orcid", _style=radio_label_style), _style="margin-bottom: 20px"),
+        _style="margin-left: 10px; margin-right: 10px; margin-bottom: 10px"
+        ),
+
+        DIV(BUTTON(current.T("Submit"), _class="btn btn-info", _id="complete-orcid-dialog-confirm", _onclick=f"submitForm('{url}')"), _class="modal-footer"),
+        _id="complete-profile-modal", _class="modal fade", _role="dialog")
+
 ####################################################################################
 
 def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id: int, user: User, review: Review, more_delay: bool):

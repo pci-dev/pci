@@ -37,8 +37,9 @@ class OrcidTools:
     
 
     @staticmethod
-    def configure_orcid_input(form: FORM):
+    def configure_orcid_input(form: DIV):
         form.element(_name="orcid")["_maxlength"] = ORCID_NUMBER_LENGTH_WITH_HYPHEN
+        return form
     
 
     @staticmethod
