@@ -162,20 +162,24 @@ def getPCiRRrecommendationText(db, article):
     return recommendation_text
 
 
+def getPCiRRstageVars(article):
+    if article.art_stage_1_id is None:
+        return {}
+
+    stage1_art = current.db.t_articles[article.art_stage_1_id]
+    report_survey = article.t_report_survey.select().last()
+
+    mail_vars = {}
+    mail_vars["Stage1_registeredURL"] = report_survey.q30
+    mail_vars["Stage2_Stage1recommendationtext"] = getPCiRRrecommendationText(current.db, stage1_art)
+    mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
+
+    return mail_vars
+
+
 def getRRInvitiationVars(db, article, new_stage):
     rr_vars = dict()
-    if article.art_stage_1_id is not None:
-        stage1_art = db.t_articles[article.art_stage_1_id]
-        report_survey = article.t_report_survey.select().last()
-        Stage2_Stage1recommendationtext = getPCiRRrecommendationText(db, stage1_art)
-        Stage1_registeredURL = report_survey.q30
-        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
-
-        rr_vars["Stage2_Stage1recommendationtext"] = Stage2_Stage1recommendationtext
-        rr_vars["Stage1_registeredURL"] = Stage1_registeredURL
-        rr_vars["Stage2vsStage1_trackedchangesURL"] = Stage2vsStage1_trackedchangesURL
-    else:
-        stage1_art = article
+    rr_vars.update(getPCiRRstageVars(article))
 
     pci_rr_vars = getPCiRRinvitationTexts(article, new_stage)
     programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
