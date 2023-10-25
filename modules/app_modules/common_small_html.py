@@ -155,10 +155,10 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 
 
 ######################################################################################################################################################################
-def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False, orcid: bool = False):
+def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False, orcid: bool = False, orcid_exponant: bool = False):
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.orcid).last()
-        return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid)
+        return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid, orcid_exponant=orcid_exponant)
     else:
         return SPAN("")
 
@@ -175,7 +175,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 
 ######################################################################################################################################################################
-def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False):
+def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
     if theUser:
         if linked:
             if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
@@ -191,6 +191,9 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
 
         if orcid:
             resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='15px', width='15px', style='margin-right: 3px')
+        if orcid_exponant:
+            style = 'margin-right: 3px; position: relative; bottom: 12px; left: 2px'
+            resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='12px', width='12px', style=style, force_style=True)
     else:
         resu = SPAN("?")
     return resu
@@ -796,7 +799,7 @@ def mkReviewersString(auth, db, articleId):
 # builds names list (recommender, co-recommenders, reviewers)
 def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False,
                               host=False, port=False, scheme=False,
-                              this_recomm_only=False, citation=False, orcid: bool = False
+                              this_recomm_only=False, citation=False, orcid: bool = False, orcid_exponant: bool = False
                              ):
     whoDidIt = []
 
@@ -828,7 +831,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
@@ -838,7 +841,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
@@ -876,7 +879,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))                  
                     if ir == nr - 1 and ir >= 1:
@@ -886,7 +889,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
@@ -906,7 +909,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme, orcid=orcid))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
                         whoDidIt.append(mk_user_name(theUser, "reviewer_"))
                     if iw == nw + na1 - 1 and iw >= 1:

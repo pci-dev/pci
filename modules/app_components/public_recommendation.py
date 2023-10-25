@@ -99,8 +99,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
                         with_reviewers=False, linked=False,
                         host=host, port=port, scheme=scheme,
                         recomm=finalRecomm, this_recomm_only=True,
-                        citation=True,
-                        orcid=True)
+                        citation=True)
     cite = DIV(
         SPAN(
             B("Cite this recommendation as:", _class="pci2-main-color-text"),
@@ -145,7 +144,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             with_reviewers=True, linked=True,
             host=host, port=port, scheme=scheme,
             this_recomm_only=True,
-            orcid=True
+            orcid_exponant=True
             )
 
     # PDF (if any)
@@ -299,7 +298,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                     current.T("Reviewed by"),
                     " ",
                     common_small_html.get_name_from_details(review.reviewer_details) or
-                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True, orcid=True),
+                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True, orcid_exponant=True),
                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
                 )
 
@@ -360,7 +359,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
                         with_reviewers=False, linked=True,
                         host=host, port=port, scheme=scheme,
                         this_recomm_only=True,
-                        orcid=True
+                        orcid_exponant=True
                         )
         recommAuthors = SPAN(recommAuthors)
         recommRound -= 1
