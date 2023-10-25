@@ -110,6 +110,14 @@
         margin: 5rem 0;
     }
 
+    .done-btn {
+        margin-top: 0!important;
+    }
+
+    .done-btn a {
+        float: right;
+    }
+
     #main-page-search-grid .web2py_console .w2p_query_row input[type="text"] {
         flex-grow: 1;
         flex: unset;
