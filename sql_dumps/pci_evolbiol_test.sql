@@ -3102,3 +3102,7 @@ ADD COLUMN "email_options" character varying(1024) DEFAULT '|Email to reviewers|
 -- 2023-10-12 updates/ORCID_auth_user.sql
 ALTER TABLE "auth_user" 
 ADD COLUMN IF NOT EXISTS orcid varchar(16);
+
+--- 2023-10-25 updates/no_orcid_auth_user.sql
+ALTER TABLE "auth_user" 
+ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;

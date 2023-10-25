@@ -212,6 +212,7 @@ db.define_table(
 # -------------------------------------------------------------------------
 auth.settings.extra_fields["auth_user"] = [
     Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label=OrcidTools.get_orcid_number_label(), requires=OrcidValidator(), maxlength=ORCID_NUMBER_LENGTH_WITH_HYPHEN),
+    Field("no_orcid", type="boolean", default=True, writable=False, readable=False),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),

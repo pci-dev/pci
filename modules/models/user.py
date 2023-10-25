@@ -32,6 +32,7 @@ class User(Row):
     website: _[str]
     keywords: _[str]
     orcid: _[str]
+    no_orcid: bool
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
