@@ -2612,7 +2612,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
             mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
 
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
+            mail_vars.update(getPCiRRinvitationTexts(article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
@@ -2683,7 +2683,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
             stage1_art = article
 
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
+            mail_vars.update(getPCiRRinvitationTexts(article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""

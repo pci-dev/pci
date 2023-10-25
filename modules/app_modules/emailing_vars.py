@@ -79,6 +79,10 @@ def getMails(db, role):
 def getPCiRRinvitationTexts(article, new_stage=False):
     report_survey = article.t_report_survey.select().last()
 
+    stage1_art = current.db.t_articles[article.art_stage_1_id]
+    if stage1_art and new_stage:
+        article = stage1_art
+
     programmaticRR_invitation_text = ""
     signedreview_invitation_text = ""
     if report_survey is not None:
@@ -173,7 +177,7 @@ def getRRInvitiationVars(db, article, new_stage):
     else:
         stage1_art = article
 
-    pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
+    pci_rr_vars = getPCiRRinvitationTexts(article, new_stage)
     programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
     signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 
