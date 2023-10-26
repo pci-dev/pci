@@ -58,6 +58,15 @@
         z-index: 1;
     }
 
+    #find-reviewer-modal {
+        max-width: 50%;
+        width: fit-content;
+        overflow: scroll;
+        top: 10%;
+        left: 25%;
+        max-height: 85%;
+    }
+
     .modal-body hr {
         border-bottom: 1px solid;
     }

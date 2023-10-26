@@ -6,8 +6,6 @@ var choose_note = false;
 submit_btn_2.addEventListener('click', function(evt) {
     if (!unique) {
         evt.preventDefault();
-        let firstname = '';
-        let lastname = '';
         name_json = gather_name();
         check_database(name_json);
     }
@@ -101,8 +99,20 @@ function create_question_modal(user_json) {
     modal_body.appendChild(span);
     modal.appendChild(modal_body);
     modal.appendChild(modal_footer);
+
     container.appendChild(modal);
     document.body.appendChild(container);
+
+    adjust_positiong(modal);
+}
+
+
+function adjust_positiong(modal) {
+    let screen_height = window.innerHeight;
+    let modal_height = modal.offsetHeight;
+    let top_pos = screen_height/2 - modal_height/2;
+    modal.style.top = String(top_pos) + 'px';
+    modal.style.maxHeight = String(screen_height - top_pos - 20) + 'px';
 }
 
 
