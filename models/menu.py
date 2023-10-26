@@ -205,6 +205,9 @@ def _UserMenu():
     if nWaitingForReviewer > 0:
         txtWaitingForReviewer = SPAN(txtWaitingForReviewer, _class="pci-enhancedMenuItem")
         contribMenuClass = "pci-enhancedMenuItem"
+        myContributionsMenu += [
+            (txtWaitingForReviewer, False, URL("user", "articles_awaiting_reviewers", user_signature=True))
+        ]
 
     myContributionsMenu += [
         menu_entry("Submit a preprint", "glyphicon-edit", URL("user", "new_submission", user_signature=True)),
