@@ -2387,6 +2387,7 @@ def review_emails():
     reviewId = request.vars["reviewId"]
     urlFunction = request.function
     urlController = request.controller
+    http_ref = request.env.http_referer
 
     review = db.t_reviews[reviewId]
     if not review:
@@ -2481,6 +2482,9 @@ def review_emails():
         links_placement="left",
         _class="web2py_grid action-button-absolute",
     )
+    back_button = URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)
+    if "manager" in http_ref:
+        back_button = http_ref
 
     myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
@@ -2488,7 +2492,7 @@ def review_emails():
         pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
         customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
         pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
-        myBackButton=common_small_html.mkBackButton(target=URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False), user_signature=True)),
+        myBackButton=common_small_html.mkBackButton(target=back_button),
         grid=grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
