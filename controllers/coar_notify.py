@@ -336,8 +336,8 @@ def get_request_type(body):
 import re
 
 def get_person_name(body):
-    name = re.match(r'.*"type": "Person", "name": "([^"]*)".*', body)
-    if name: return name[1]
+    name = re.match(r'.*"actor": .* "name": ("[^"]+")', body)
+    if name: return json.loads(name[1])
 
     name = re.match(r'.*"@type": "as:Person", "as:name": "([^"]*)".*', body)
     if name: return name[1]
@@ -348,8 +348,10 @@ def get_person_name(body):
     return "(anonymous)"
 
 def get_object_ref(body):
-    obj_ref = re.match(r'.*"object": {.* "object": "([^"]+)".*', body)
-    if obj_ref: return obj_ref[1]
+    try: return json.loads(body)["object"]["object"]
+    except: pass
+    try: return json.loads(body)["object"]["id"]
+    except: pass
 
     obj_ref = re.match(r'.*"as:object": {"@id": "([^"]+)".*', body)
     if obj_ref: return obj_ref[1]
