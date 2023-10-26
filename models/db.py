@@ -21,7 +21,7 @@ from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.country import Country
-from app_modules.orcid import ORCID_NUMBER_FIELD_TYPE, ORCID_NUMBER_LENGTH_WITH_HYPHEN, OrcidValidator
+from app_modules.orcid import ORCID_NUMBER_FIELD_TYPE, ORCID_NUMBER_LENGTH_WITH_HYPHEN, OrcidTools, OrcidValidator
 
 from models.review import ReviewDuration, ReviewState, Review
 
@@ -211,7 +211,7 @@ db.define_table(
 # create all tables needed by auth if not custom tables
 # -------------------------------------------------------------------------
 auth.settings.extra_fields["auth_user"] = [
-    Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label="ORCID number", requires=OrcidValidator(), maxlength=ORCID_NUMBER_LENGTH_WITH_HYPHEN),
+    Field("orcid", type=ORCID_NUMBER_FIELD_TYPE, label=OrcidTools.get_orcid_number_label(), requires=OrcidValidator(), maxlength=ORCID_NUMBER_LENGTH_WITH_HYPHEN),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
     Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),

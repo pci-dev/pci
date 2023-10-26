@@ -5,7 +5,7 @@ from attr import dataclass
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Request, Session
-from gluon.html import A, CENTER, FORM, IMG, URL
+from gluon.html import A, CENTER, FORM, IMG, URL, SPAN, DIV, STRONG
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
 from gluon import current
@@ -71,6 +71,11 @@ class OrcidTools:
             orcid_api.go_to_authentication_page()
         else:
             redirect(next)
+
+    
+    @staticmethod
+    def get_orcid_number_label():
+        return DIV(STRONG("ORCID number"), SPAN(" (using the following format: 0000-000X-XXX-XXX)", _style="font-size: small; font-weight: initial"))
 
 
 ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "string", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
