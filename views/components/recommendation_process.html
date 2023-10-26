@@ -329,7 +329,7 @@
           {{pass}}
         </div>
       {{pass}}
-      {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review':}}
+      {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review' and review['authors'] and not review['showEditButtons']:}}
         <div class="info-text">
           In progress, not completed yet.
         </div>

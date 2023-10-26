@@ -2718,10 +2718,11 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(db, reviewId)
-    recomm = db.t_recommendations[review.recommendation_id]
-    article = db.t_articles[recomm.article_id]
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    article = Article.get_by_id(db, recomm.article_id)
+    reviewer = User.get_by_id(db, review.reviewer_id)
 
-    if review and recomm and article:
+    if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
@@ -2735,6 +2736,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["reviewDueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT) if review.due_date else str((datetime.datetime.now() + datetime.timedelta(days=get_review_days(review))).strftime(DEFAULT_DATE_FORMAT))
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
@@ -2767,11 +2769,12 @@ def getScheduledReviewDueDate(article):
 def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = db.t_reviews[reviewId]
-    recomm = db.t_recommendations[review.recommendation_id]
-    article = db.t_articles[recomm.article_id]
+    review = Review.get_by_id(db, reviewId)
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    article = Article.get_by_id(db, recomm.article_id)
+    reviewer = User.get_by_id(db, review.reviewer_id)
 
-    if review and recomm and article:
+    if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
@@ -2783,6 +2786,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
@@ -2801,11 +2805,12 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = db.t_reviews[reviewId]
-    recomm = db.t_recommendations[review.recommendation_id]
-    article = db.t_articles[recomm.article_id]
+    review = Review.get_by_id(db, reviewId)
+    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    article = Article.get_by_id(db, recomm.article_id)
+    reviewer = User.get_by_id(db, review.reviewer_id)
 
-    if review and recomm and article:
+    if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
@@ -2817,6 +2822,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
 
@@ -3417,9 +3423,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
-    mail_vars["linkTarget"] = URL(
-        c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
-    )
+    mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
     mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)

@@ -350,9 +350,9 @@ def suggestion_sent_page():
     response.view = "default/info.html"
     return dict(
         message=CENTER(
-            P(T("Thank you for these suggestions and thanks for agreeing to review this article!"),
+            P(T("Thank you for agreeing to evaluate this submission and for any reviewer suggestions."),
               _class="info-sub-text", _style="width: 800px"),
-            P(T("As a reminder your request for a delay must be accepted by the recommender before you can review this article. An email will be sent to you after the recommender has made a decision."),
+            P(T("Your offer to review under an extended deadline must be accepted by the recommender before your role is confirmed. You will be informed via email as soon as the recommender has decided."),
               _class="info-sub-text", _style="width: 800px")
         )
     )
