@@ -1132,22 +1132,24 @@ def complete_orcid_dialog(db: DAL):
     return DIV(
         OrcidTools.get_orcid_formatter_script(),
         common_tools.get_script('complete_orcid_dialog.js'),
-
-        IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="50px", _width="50px", _style="margin-left: 10px"),
-        H4('You have not yet declared your ORCID number', _class="modal-body", _style="display: inline-block; font-weight: bold; position: relative; top: 3px"),
+        DIV(
+            IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="50px", _width="50px", _style="margin-left: 10px"),
+            H4(current.T('You have not declared your ORCID number yet'), _class="modal-body", _style="display: inline-block; font-weight: bold; position: relative; top: 3px; white-space: break-spaces; max-width: 90%"),
+            _style="white-space: nowrap; width: fit-content"),
         HR( _class="hr"),
         DIV(
-            DIV(INPUT(_type="radio", _id="yes-orcid", _name="orcid_radio", _value="yes",  _checked="checked"), LABEL("Set my ORCID number", _for="yes-orcid", _style=radio_label_style), _style="display: inline-block; margin-right: 20px"),
+            DIV(INPUT(_type="radio", _id="yes-orcid", _name="orcid_radio", _value="yes",  _checked="checked"), LABEL(current.T("Please, set my ORCID number in my profile"), _for="yes-orcid", _style=radio_label_style), _style="display: inline-block; margin-right: 20px"),
             OrcidTools.configure_orcid_input(INPUT(_id="auth_user_orcid", _type="text", _name="orcid", _class="form-control pci2-input", _style="width: 180px; margin-top: 10px; display: inline-block")),
+            P(current.T("(provide your ORCID number as follow: 0000-000X-XXX-XXX)"), _style="font-size: smaller; margin-bottom: 0px;"),
             HR( _class="hr"),
-            DIV(INPUT(_type="radio", _id="no-orcid", _name="orcid_radio", _value="no"), LABEL("You prefer not to indicate any ORCID number, we won't remind to fill in your ORCID number", _for="no-orcid", _style=radio_label_style)),
+            DIV(INPUT(_type="radio", _id="no-orcid", _name="orcid_radio", _value="no"), LABEL(current.T("You prefer not to provide an ORCID number; we will not remind you to fill it in"), _for="no-orcid", _style=radio_label_style)),
             HR( _class="hr"),
             DIV(INPUT(_type="radio", _id="later-orcid", _name="orcid_radio", _value="later"), LABEL("Remind me later", _for="later-orcid", _style=radio_label_style), _style="margin-bottom: 20px"),
         _style="margin-left: 10px; margin-right: 10px; margin-bottom: 10px"
         ),
 
-        DIV(BUTTON(current.T("Submit"), _class="btn btn-info", _id="complete-orcid-dialog-confirm", _onclick=f"submitForm('{url}')"), _class="modal-footer"),
-        _id="complete-profile-modal", _class="modal fade", _role="dialog")
+        DIV(BUTTON(current.T("Submit"), _class="btn btn-info", _id="complete-orcid-dialog-confirm", _onclick=f"submitForm('{url}')"), _class="modal-footer", _style="justify-content: left; display: flex"),
+        _id="complete-profile-modal", _class="modal fade", _role="dialog", _style="height: auto; max-height: 400px; min-width: 330px; max-width: 585px; top: 15%; left: 30%; width: 50%")
 
 ####################################################################################
 
