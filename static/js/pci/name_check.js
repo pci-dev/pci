@@ -76,25 +76,19 @@ function create_question_modal(user_json) {
     modal_footer.classList.add('modal-footer');
     modal_footer.classList.add('modal-footer2');
     let confirm_link = document.createElement('a');
-    confirm_link.innerHTML = 'Yes, add the selected reviewer';
+    confirm_link.innerHTML = 'Yes, use the selected user and return to invitation editing';
     confirm_link.id = 'confirm-btn';
     confirm_link.classList.add('btn');
     confirm_link.classList.add('btn-info');
     confirm_link.setAttribute('onclick', 'add_proposed()');
     let nofirm_link = document.createElement('a');
-    nofirm_link.innerHTML = 'No, add the exact reviewer I entered';
+    nofirm_link.innerHTML = 'No, use the exact user I entered and return to invitation editing';
     nofirm_link.classList.add('btn');
     nofirm_link.classList.add('btn-info');
     nofirm_link.setAttribute('onclick', 'resume_invite()');
-    let return_link = document.createElement('a');
-    return_link.innerHTML = 'No, I want to return to the form';
-    return_link.classList.add('btn');
-    return_link.classList.add('btn-info');
-    return_link.setAttribute('onclick', 'return_to_form()');
 
     modal_footer.appendChild(confirm_link);
     modal_footer.appendChild(nofirm_link);
-    modal_footer.appendChild(return_link);
 
     modal_body.appendChild(span);
     modal.appendChild(modal_body);
@@ -128,12 +122,13 @@ function gather_name() {
 function resume_invite() {
     // the proposed name was not the one the recommender wants. So proceed with the entered data
     unique = true;
-    submit_btn_2.click();
+    return_to_form();
 }
 
 
 function add_proposed() {
-    // if the proposed name is the one the recommender wants, add it via AJAX call
+    // if the proposed name is the one the recommender wants, enter the correct
+    // credentials to the form and return to form
     let checkboxes = document.querySelectorAll('.user-checkbox');
     let user_index = false;
     let user = 'false'; // this string is required, because index 0 equals false
@@ -149,34 +144,20 @@ function add_proposed() {
         return
     }
 
-    let name_json = {'first_name': user['first_name'], 'last_name': user['last_name']};
-    let review_duration_field = document.querySelector('#no_table_review_duration');
-    let subject_field = document.querySelector('#no_table_subject');
-    let message_field = document.querySelector('#no_table_message_ifr');
-    let cc_field = document.querySelector('#no_table_cc');
-    name_json['review_duration'] = review_duration_field.value;
-    name_json['subject'] = subject_field.value;
-    name_json['message'] = message_field.contentWindow.document.body.innerText;
-    name_json['cc'] = cc_field.value;
-    let queryString = window.location.search;
-    let urlParams = new URLSearchParams(queryString);
-    let recommId = urlParams.get('recommId');
-    let new_stage = urlParams.get('new_stage');
-    name_json['recommId'] = recommId;
-    name_json['new_stage'] = new_stage;
-    $.ajax({
-        url: 'add_proposed_reviewer',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(name_json),
-        success: function(response) {
-            let current_url_stem = window.location.href.split('/recommender')[0];
-            window.location.href = current_url_stem + '/recommender/reviewers?recommId=' + String(recommId);
-        },
-        error: function(error) {
-            console.log('Error: ', error);
-        }
-    })
+    let first_name = user['first_name']
+    let last_name = user['last_name']
+    let email = user['email']
+
+    let first_name_field = document.querySelector('#no_table_reviewer_first_name');
+    let last_name_field = document.querySelector('#no_table_reviewer_last_name');
+    let email_field = document.querySelector('#no_table_reviewer_email');
+
+    first_name_field.value = first_name;
+    last_name_field.value = last_name;
+    email_field.value = email;
+
+    unique = true;
+    return_to_form();
 }
 
 
