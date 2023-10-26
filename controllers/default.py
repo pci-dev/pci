@@ -541,8 +541,6 @@ def invitation_to_review_acceptation():
     titleIcon = "user"
     pageTitle = cast(str, T("Create account"))
     customText = CENTER(
-        P(T("Thank you for these suggestions and thanks for agreeing to review this article!"), _class="info-sub-text", _style="width: 800px"),
-        P(T("If you asked for an extra delay in performing your review, it must be accepted by the recommender before you start reviewing this article (an email will be sent to let you know the decision of the recommender)"), _class="info-sub-text", _style="width: 800px"),
         P(T("Please create an account right now by defining a password below (your login is your email address)"), _style="font-weight: bold; width: 800px"),
     )
     form.element(_type="submit")["_class"] = "btn btn-success"
