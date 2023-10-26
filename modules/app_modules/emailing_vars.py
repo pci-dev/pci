@@ -152,7 +152,7 @@ def getPCiRRScheduledSubmissionsVars(article):
 #         )
 
 #         return mail_vars
-def getPCiRRrecommendationText(db, article):
+def getPCiRRrecommendationText(article):
     recommendation_text = ""
     if article.status == "Recommended":
         href=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port)
@@ -171,7 +171,7 @@ def getPCiRRstageVars(article):
 
     mail_vars = {}
     mail_vars["Stage1_registeredURL"] = report_survey.q30
-    mail_vars["Stage2_Stage1recommendationtext"] = getPCiRRrecommendationText(current.db, stage1_art)
+    mail_vars["Stage2_Stage1recommendationtext"] = getPCiRRrecommendationText(stage1_art)
     mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
 
     return mail_vars
