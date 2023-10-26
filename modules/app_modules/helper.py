@@ -192,7 +192,7 @@ def query_semantic_api(authors: list, recommenders: list):
         else:
             grid.append(DIV(SPAN(f'Data not found for {user["group"]} {user["name"]}')))
 
-    recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"]
+    recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"] + all_data["co-recommender"]
     if len(recommender_data) == 0:
         return grid
     # Check if any of the authors have co-published with the suggested recommenders
