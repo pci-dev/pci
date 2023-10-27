@@ -43,6 +43,7 @@ from app_components import ongoing_recommendation
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
+from app_modules.emailing_vars import getPCiRRstageVars
 from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
@@ -2604,15 +2605,10 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
-        if article.art_stage_1_id is not None:
-            stage1_art = db.t_articles[article.art_stage_1_id]
-            report_survey = article.t_report_survey.select().last()
-            mail_vars["Stage2_Stage1recommendationtext"] = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
-            mail_vars["Stage1_registeredURL"] = report_survey.q30
-            mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
 
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
+            mail_vars.update(getPCiRRstageVars(article))
+            mail_vars.update(getPCiRRinvitationTexts(article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""
@@ -2673,17 +2669,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["r2r_url"] = r2r_url
         mail_vars["trackchanges_url"] = trackchanges_url
 
-        if article.art_stage_1_id is not None:
-            stage1_art = db.t_articles[article.art_stage_1_id]
-            report_survey = article.t_report_survey.select().last()
-            mail_vars["Stage2_Stage1recommendationtext"] = emailing_vars.getPCiRRrecommendationText(db, stage1_art)
-            mail_vars["Stage1_registeredURL"] = report_survey.q30
-            mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
-        else:
-            stage1_art = article
-
         if pciRRactivated:
-            mail_vars.update(getPCiRRinvitationTexts(stage1_art if new_stage else article, new_stage))
+            mail_vars.update(getPCiRRstageVars(article))
+            mail_vars.update(getPCiRRinvitationTexts(article, new_stage))
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         mail_vars["parallelText"] = ""

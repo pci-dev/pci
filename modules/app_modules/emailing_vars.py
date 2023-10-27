@@ -79,6 +79,10 @@ def getMails(db, role):
 def getPCiRRinvitationTexts(article, new_stage=False):
     report_survey = article.t_report_survey.select().last()
 
+    stage1_art = current.db.t_articles[article.art_stage_1_id]
+    if stage1_art and new_stage:
+        article = stage1_art
+
     programmaticRR_invitation_text = ""
     signedreview_invitation_text = ""
     if report_survey is not None:
@@ -148,7 +152,7 @@ def getPCiRRScheduledSubmissionsVars(article):
 #         )
 
 #         return mail_vars
-def getPCiRRrecommendationText(db, article):
+def getPCiRRrecommendationText(article):
     recommendation_text = ""
     if article.status == "Recommended":
         href=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port)
@@ -158,22 +162,26 @@ def getPCiRRrecommendationText(db, article):
     return recommendation_text
 
 
+def getPCiRRstageVars(article):
+    if article.art_stage_1_id is None:
+        return {}
+
+    stage1_art = current.db.t_articles[article.art_stage_1_id]
+    report_survey = article.t_report_survey.select().last()
+
+    mail_vars = {}
+    mail_vars["Stage1_registeredURL"] = report_survey.q30
+    mail_vars["Stage2_Stage1recommendationtext"] = getPCiRRrecommendationText(stage1_art)
+    mail_vars["Stage2vsStage1_trackedchangesURL"] = report_survey.tracked_changes_url
+
+    return mail_vars
+
+
 def getRRInvitiationVars(db, article, new_stage):
     rr_vars = dict()
-    if article.art_stage_1_id is not None:
-        stage1_art = db.t_articles[article.art_stage_1_id]
-        report_survey = article.t_report_survey.select().last()
-        Stage2_Stage1recommendationtext = getPCiRRrecommendationText(db, stage1_art)
-        Stage1_registeredURL = report_survey.q30
-        Stage2vsStage1_trackedchangesURL = report_survey.tracked_changes_url
+    rr_vars.update(getPCiRRstageVars(article))
 
-        rr_vars["Stage2_Stage1recommendationtext"] = Stage2_Stage1recommendationtext
-        rr_vars["Stage1_registeredURL"] = Stage1_registeredURL
-        rr_vars["Stage2vsStage1_trackedchangesURL"] = Stage2vsStage1_trackedchangesURL
-    else:
-        stage1_art = article
-
-    pci_rr_vars = getPCiRRinvitationTexts(article if not new_stage else stage1_art, new_stage)
+    pci_rr_vars = getPCiRRinvitationTexts(article, new_stage)
     programmaticRR_invitation_text = pci_rr_vars["programmaticRR_invitation_text"]
     signedreview_invitation_text = pci_rr_vars["signedreview_invitation_text"]
 

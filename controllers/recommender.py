@@ -1881,7 +1881,7 @@ def email_for_new_reviewer():
                     )
             except Exception as e:
                     session.flash = (session.flash or "") + T("E-mail failed.")
-                    pass
+                    raise e
 
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
 
