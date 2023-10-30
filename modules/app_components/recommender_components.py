@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Dict, List, cast
+from app_components.ongoing_recommendation import is_scheduled_submission
 from gluon import current
 from gluon.globals import Request, Response
 from gluon.tools import Auth
@@ -83,10 +84,13 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
                 review_vars["actions"].append(dict(text=current.T("Decline"), link=URL(c="recommender_actions", f="decline_new_delay_to_reviewing", vars=dict(reviewId=review.id), user_signature=True)))
 
             if review.review_state == ReviewState.AWAITING_REVIEW.value:
-                review_vars["actions"].append(dict(
-                    text=current.T("Change date of the review due"),
-                    link=URL(c="recommender_actions", f="change_review_due_date", vars=dict(reviewId=review.id))
-                ))
+                if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article)):
+                   pass
+                else:
+                    review_vars["actions"].append(dict(
+                        text=current.T("Change date of the review due"),
+                        link=URL(c="recommender_actions", f="change_review_due_date", vars=dict(reviewId=review.id))
+                    ))
             
             review_list.append(review_vars)
             if review.review_state == ReviewState.REVIEW_COMPLETED.value:
