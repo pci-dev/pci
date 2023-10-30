@@ -706,7 +706,7 @@ def sanitizeHtmlContent(text):
 def mkEditResendButton(auth, db, row, urlFunction=None, urlController=None):
     anchor = A(
         SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
-        _href=URL(c="admin_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], urlFunction=urlFunction, urlController=urlController), user_signature=True),
+        _href=URL(c="admin_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], articleId=row["article_id"], hashtag=row["mail_template_hashtag"], urlFunction=urlFunction, urlController=urlController), user_signature=True),
         _class="button",
     )
     return anchor

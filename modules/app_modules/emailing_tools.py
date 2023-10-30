@@ -431,6 +431,8 @@ def insertMailInQueue(
     authors_reply=None,
     sugg_recommender_buttons=None,
     reviewer_invitation_buttons=None,
+    alternative_subject=None, # for edit/resend mails
+    alternative_content=None, # for edit/resend mails
 ):
     mail = buildMail(
         db,
@@ -444,13 +446,20 @@ def insertMailInQueue(
         reviewer_invitation_buttons=reviewer_invitation_buttons,
     )
 
+    if alternative_subject:
+        subject = alternative_subject
+        content = alternative_content
+    else:
+        subject = mail["subject"]
+        content = mail["content"]
+
     return db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=mail_vars.get("ccAddresses"),
         replyto_addresses=mail_vars.get("replytoAddresses"),
         bcc_mail_addresses=mail_vars.get("bccAddresses"),
-        mail_subject=mail["subject"],
-        mail_content=mail["content"],
+        mail_subject=subject,
+        mail_content=content,
         user_id=auth.user_id,
         article_id=article_id,
         recommendation_id=recommendation_id,
