@@ -50,7 +50,6 @@ class User_submits:
     select("#t_articles_ms_version").send_keys(art_version)
 
     if is_rr:
-        select("#t_articles_report_stage").send_keys("Stage 1")
         select("#t_articles_sub_thematics").send_keys("sub-thematic")
 
     if not is_rr:
