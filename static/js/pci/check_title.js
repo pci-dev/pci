@@ -5,8 +5,7 @@ function checkTitle(){
     }
     else if (jQuery("#no_table_report_stage").val() === "STAGE 2") {
         jQuery("#no_table_title__row").hide();
-        jQuery("#submit_record__row .btn-primary").prop("disabled", true);
-        window.location.href = "fill_new_article";
+        jQuery("#submit_record__row .btn-primary").prop("disabled", false);
     } else {
       jQuery("#no_table_title__row").hide();
       jQuery("#submit_record__row .btn-primary").prop("disabled", true);
