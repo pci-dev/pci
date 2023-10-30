@@ -35,7 +35,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
-def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False):
+def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False, orcid_exponant: bool = False):
     if fullURL:
         scheme = myconf.take("alerts.scheme")
         host = myconf.take("alerts.host")
@@ -58,6 +58,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
                         with_reviewers=True, linked=True,
                         host=host, port=port, scheme=scheme,
                         recomm=recomm, this_recomm_only=True,
+                        orcid_exponant=orcid_exponant
                         )
 
     if withDate:
