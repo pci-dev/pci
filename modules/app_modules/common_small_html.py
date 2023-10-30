@@ -1127,6 +1127,7 @@ def complete_profile_dialog(next: str):
 
 def complete_orcid_dialog(db: DAL): 
     radio_label_style = "display: inline;"
+    radio_container_style = "margin-top: 5px;"
     url = cast(str, URL("default", "orcid_choice"))
     
     return DIV(
@@ -1139,17 +1140,15 @@ def complete_orcid_dialog(db: DAL):
         HR( _class="hr"),
         DIV(
             DIV(INPUT(_type="radio", _id="yes-orcid", _name="orcid_radio", _value="yes",  _checked="checked"), LABEL(current.T("Please, set my ORCID number in my profile"), _for="yes-orcid", _style=radio_label_style), _style="display: inline-block; margin-right: 20px"),
-            OrcidTools.configure_orcid_input(INPUT(_id="auth_user_orcid", _type="text", _name="orcid", _class="form-control pci2-input", _style="width: 180px; margin-top: 10px; display: inline-block")),
+            OrcidTools.configure_orcid_input(INPUT(_id="auth_user_orcid", _type="text", _name="orcid", _class="form-control pci2-input", _style="width: 180px; margin-top: 5px; display: inline-block")),
             P(current.T("(provide your ORCID number as follow: 0000-000X-XXX-XXX)"), _style="font-size: smaller; margin-bottom: 0px;"),
-            HR( _class="hr"),
-            DIV(INPUT(_type="radio", _id="no-orcid", _name="orcid_radio", _value="no"), LABEL(current.T("You prefer not to provide an ORCID number; we will not remind you to fill it in"), _for="no-orcid", _style=radio_label_style)),
-            HR( _class="hr"),
-            DIV(INPUT(_type="radio", _id="later-orcid", _name="orcid_radio", _value="later"), LABEL("Remind me later", _for="later-orcid", _style=radio_label_style), _style="margin-bottom: 20px"),
+            DIV(INPUT(_type="radio", _id="no-orcid", _name="orcid_radio", _value="no"), LABEL(current.T("You prefer not to provide an ORCID number; we will not remind you to fill it in"), _for="no-orcid", _style=radio_label_style), _style=radio_container_style),
+            DIV(INPUT(_type="radio", _id="later-orcid", _name="orcid_radio", _value="later"), LABEL("Remind me later", _for="later-orcid", _style=radio_label_style), _style=radio_container_style + "margin-bottom: 20px"),
         _style="margin-left: 10px; margin-right: 10px; margin-bottom: 10px"
         ),
 
         DIV(BUTTON(current.T("Submit"), _class="btn btn-info", _id="complete-orcid-dialog-confirm", _onclick=f"submitForm('{url}')"), _class="modal-footer", _style="justify-content: left; display: flex"),
-        _id="complete-profile-modal", _class="modal fade", _role="dialog", _style="height: auto; max-height: 400px; min-width: 330px; max-width: 585px; top: 15%; left: 30%; width: 50%")
+        _id="complete-profile-modal", _class="modal fade", _role="dialog", _style="min-width: 330px; max-width: 585px; top: 50%; left: 50%; width: 50%; transform:translate(-50%,-50%);")
 
 ####################################################################################
 
