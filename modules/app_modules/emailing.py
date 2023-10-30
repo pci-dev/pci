@@ -1797,7 +1797,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
                 port=mail_vars["port"],
             )
 
-        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(link, declineLinkTarget, review.review_duration)
+        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(link, declineLinkTarget, review.review_duration, article)
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
@@ -1806,7 +1806,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
             if declineLinkTarget:
-                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(linkTarget, declineLinkTarget, review.review_duration)
+                reviewer_invitation_buttons = generate_reviewer_invitation_buttons(linkTarget, declineLinkTarget, review.review_duration, article)
 
         elif review.review_state == "Awaiting review":
             reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
@@ -1868,41 +1868,52 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     emailing_tools.getFlashMessage(session, reports)
 
 
-def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, review_duration: str):
+def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, review_duration: str, article: Article):
     button_style = "margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; hyphens: none;"
 
-    return DIV(
-                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
-                DIV(
-                    A(
+    accept_button = A(
                         SPAN(
                             current.T("I accept to review this preprint within ") + review_duration.lower(),
                             _style=button_style + "background: #93c54b",
                         ),
                         _href=link,
                         _style="text-decoration: none; display: block",
-                    ),
-                    B(current.T("OR")),
-                    A(
-                        SPAN(
-                            current.T("I accept to review this preprint, but I'll need more time to perform my review"),
-                            _style=button_style + "background: #29abe0",
-                        ),
-                        _href=link + "&more_delay=true",
-                        _style="text-decoration: none; display: block",
-                    ),
-                    B(current.T("OR")),
-                    A(
+                    )
+
+    more_delay_button = A(
+                            SPAN(
+                                current.T("I accept to review this preprint, but I'll need more time to perform my review"),
+                                _style=button_style + "background: #29abe0",
+                            ),
+                            _href=link + "&more_delay=true",
+                            _style="text-decoration: none; display: block",
+                        )
+    
+    decline_button = A(
                         SPAN(
                             current.T("Decline"),
                             _style=button_style + "background: #f47c3c",
                         ),
                         _href=declineLinkTarget,
                         _style="text-decoration: none; display: block",
-                    ),
-                    _style="width: 100%; text-align: center; margin-bottom: 25px;",
-                ),
+                    )
+
+    html = DIV(
+                P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
+                DIV(accept_button, _style="width: 100%; text-align: center; margin-bottom: 25px;"),
             )
+    
+    if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or ongoing_recommendation.is_scheduled_submission(article)):
+        pass
+    else:
+        html.components[1].components.append(B(current.T("OR")))
+        html.components[1].components.append(more_delay_button)
+        
+    html.components[1].components.append(B(current.T("OR")))
+    html.components[1].components.append(decline_button)
+
+    return html
+    
 
 ######################################################################################################################################################################
 def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):

@@ -6,6 +6,7 @@ import time
 from typing import Any, Optional, cast
 
 from app_components import article_components
+from app_components.ongoing_recommendation import is_scheduled_submission
 from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
 from app_modules.common_small_html import complete_profile_dialog, invitation_to_review_form
@@ -429,6 +430,9 @@ def invitation_to_review():
         session.flash = current.T('No recommender found')
         redirect(URL('default','index'))
         return
+    
+    if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article)):
+        more_delay = False
 
     reset_password_key = get_reset_password_key(request)
     user: Optional[User] = None
