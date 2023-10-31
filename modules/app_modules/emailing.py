@@ -3512,8 +3512,8 @@ def send_message_to_recommender_and_reviewers(auth, db, article_id):
         recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(auth, db, article_id)
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
-        mail_vars["published_doi"] = common_small_html.mkDOI(article.doi_of_published_article)
+        mail_vars["articleDoi"] = common_small_html.mkLinkDOI(article.doi)
+        mail_vars["published_doi"] = common_small_html.mkLinkDOI(article.doi_of_published_article)
         mail_vars["ccAddresses"] = recommenders_mails[1:]
 
         hashtag_template = "#ArticlePublishedPCJ"
