@@ -309,10 +309,9 @@ class COARNotifier:
         if direction == "Outbound":
             validate_outbound_notification(graph)
 
-        inbox_url = list(graph.objects(predicate=
-            ACTIVITYSTREAMS.target if direction == "Outbound"
-            else ACTIVITYSTREAMS.origin
-        ))[0]
+        inbox_url = body \
+                ["target" if direction == "Outbound" else "origin"] \
+                ["inbox"]
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
