@@ -96,6 +96,7 @@ cancel_endorsement_request = """
   },
   "origin": {
     "id": "https://some-organisation.org",
+    "inbox": "https://some-organisation.org/inbox/",
     "name": "Some Organisation",
     "type": "Organization"
   },
