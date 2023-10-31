@@ -706,3 +706,17 @@ def replace_mail_vars_set_not_considered_mail(auth: Auth, db: DAL, article: Arti
     form.message = replaceMailVars(form.message, mail_vars)
 
     return form
+
+####################################################################################################
+def get_recommenders_and_reviewers_mails(auth, db, article_id):
+    emails = []
+    recomm = db.get_last_recomm(article_id)
+    recommender = db((db.t_recommendations.article_id == article_id) & (db.auth_user.id == db.t_recommendations.recommender_id)).select(db.auth_user.email)
+    reviewers = db((db.t_recommendations.article_id == article_id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & \
+                   (db.t_reviews.review_state == "Review completed") & (db.auth_user.id == db.t_reviews.reviewer_id)).select(db.auth_user.email)
+    co_recommenders = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.auth_user.id == db.t_press_reviews.contributor_id)).select(db.auth_user.email) 
+    all_mails = recommender + reviewers + co_recommenders
+    for mail in all_mails:
+        if mail.email not in emails:
+            emails.append(mail.email)
+    return emails

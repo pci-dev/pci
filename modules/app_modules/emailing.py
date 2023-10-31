@@ -3502,3 +3502,19 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
+
+##################################################################################################################################################################
+def send_message_to_recommender_and_reviewers(auth, db, article_id):
+    mail_vars = emailing_tools.getMailCommonVars()
+    article = db.t_articles[article_id]
+
+    if article:
+        recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(auth, db, article_id)
+        mail_vars["destAddress"] = recommenders_mails[0]
+        mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
+        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["published_doi"] = common_small_html.mkDOI(article.doi_of_published_article)
+        mail_vars["ccAddresses"] = recommenders_mails[1:]
+
+        hashtag_template = "#ArticlePublishedPCJ"
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
