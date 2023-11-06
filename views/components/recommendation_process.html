@@ -243,6 +243,7 @@
             {{=T('I accept to review this preprint within ') + review['review_duration'].lower()}}
           </a>
         </div>
+        {{if not isSchedulingTrack:}}
           <div>
             <a class="buttontext btn btn-info" 
               href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id'], more_delay='true'))}}"
@@ -250,6 +251,7 @@
               {{=T("I accept to review this preprint, but I'll need more time to perform my review")}}
             </a>
           </div>
+          {{pass}}
           <div>
             <a class="buttontext btn btn-warning""
             href="{{=URL(c='user_actions', f='decline_new_review',  vars=dict(reviewId=review['id']))}}"

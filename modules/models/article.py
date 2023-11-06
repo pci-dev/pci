@@ -68,6 +68,7 @@ class Article(Row):
     preprint_server: _[str]
     funding: _[str]
     article_year: _[int]
+    is_scheduled: bool
 
 
     @staticmethod
