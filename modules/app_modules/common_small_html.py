@@ -406,7 +406,7 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 ######################################################################################################################################################################
 # Other status
 ######################################################################################################################################################################
-def mkReviewStateDiv(auth: Auth, db: DAL, state: str):
+def mkReviewStateDiv(auth: Auth, db: DAL, state: str, review: Optional[Review] = None):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
     if state == ReviewState.AWAITING_RESPONSE.value or state == ReviewState.WILLING_TO_REVIEW.value:
@@ -415,8 +415,15 @@ def mkReviewStateDiv(auth: Auth, db: DAL, state: str):
         color_class = "danger"
     elif state == ReviewState.AWAITING_REVIEW.value:
         color_class = "info"
-    elif state == ReviewState.REVIEW_COMPLETED.value or state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+    elif state == ReviewState.REVIEW_COMPLETED.value:
         color_class = "success"
+    elif state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+        color_class = "success"
+        if review:
+            if review.due_date:
+                state_txt = review.due_date.strftime('%b %d, %Y').upper() + " REVIEW DATE REQUESTED"
+            elif review.review_duration:
+                state_txt = review.review_duration.upper() + " REVIEW TIME REQUESTED"
     else:
         color_class = "default"
     return DIV(state_txt, _class="cyp-review-state pci-status " + color_class)

@@ -969,6 +969,7 @@
     "I accept to review this preprint, but I'll need more time to perform my review": "I accept to review this report, but I'll need more time to perform my review",
     "I accept to review this preprint within ": "I accept to review this report within ",
     "Thanks for accepting to review this preprint.": "Thanks for accepting to review this report.",
-    "This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.": "This invited reviewer agreed to review this report, but has requested extra time to perform their review.",
+    "This invited reviewer agreed to review this preprint, but has requested %(review_duration)s to perform their review.": "This invited reviewer agreed to review this report, but has requested %(review_duration)s to perform their review.",
+    "This invited reviewer agreed to review this preprint, but has requested until %(review_due_date)s to perform their review.": "This invited reviewer agreed to review this report, but has requested until %(review_due_date)s to perform their review.",
     "This user is willing to review this preprint.": "This user is willing to review this report.",
 }

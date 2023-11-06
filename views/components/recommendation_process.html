@@ -240,7 +240,7 @@
             <a class="buttontext btn btn-success" 
             href="{{=URL(c='default', f='invitation_to_review',  vars=dict(reviewId=review['id']))}}"
           >
-            {{=T('I accept to review this preprint within ') + review['review_duration'].lower()}}
+            {{=T('I accept to review this preprint within ') + review['review_duration']}}
           </a>
         </div>
         {{if not isSchedulingTrack:}}
@@ -293,7 +293,11 @@
       {{pass}}
 
       {{if review['showReviewExtraTimeButtons']:}}
-        <p class="unfinished-label">{{=T("This invited reviewer agreed to review this preprint, but has requested extra time to perform their review.")}}</p>
+        {{if review['due_date']:}}
+        <p class="unfinished-label">{{=T("This invited reviewer agreed to review this preprint, but has requested until %(review_due_date)s to perform their review.") % {'review_due_date': review['due_date'].strftime('%b %d, %Y')} }}</p>
+        {{else:}}
+        <p class="unfinished-label">{{=T("This invited reviewer agreed to review this preprint, but has requested %(review_duration)s to perform their review.") % {'review_duration': review['review_duration']} }}</p>
+        {{pass}}
           <a class="buttontext btn btn-success" href={{=URL(c="recommender_actions", f="accept_new_delay_to_reviewing", vars=dict(reviewId=review["id"]), user_signature=True)}}>
           {{=T('I accept')}}
         </a>
