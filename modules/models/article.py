@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional as _, cast
+from typing import List, Optional as _, cast
 from pydal.objects import Row
 from pydal import DAL
 
@@ -59,8 +59,8 @@ class Article(Row):
     scripts_doi: _[str]
     codes_used_in_study: _[str]
     codes_doi: _[str]
-    suggest_reviewers: _[str]
-    competitors: _[str]
+    suggest_reviewers: _[List[str]]
+    competitors: _[List[str]]
     doi_of_published_article: _[str]
     submitter_details: _[str]
     request_submission_change: _[bool]
