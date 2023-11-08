@@ -67,7 +67,15 @@ for (const id_textarea of ids_array_inline) {
         `);
     }
 
-    tinymce.init(tinymce_options);
+    tinymce.init(tinymce_options).then((el) => {
+      const editor = el[0]
+      const observer = new MutationObserver((changes) => {
+        changes[0].target.style.overflowY = 'scroll';
+      });
+      
+      editor.contentDocument.body.style.overflowY = 'scroll';
+      observer.observe(editor.contentDocument.body, { attributeFilter: ['style'] });
+    });
   }
 }
 
