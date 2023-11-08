@@ -1117,7 +1117,7 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     if new_stage:
         latestRoundRecommId = recomm.id
         prevRoundreviewersList = db((db.t_reviews.recommendation_id.belongs(total_count)) & (db.t_reviews.review_state == "Review completed")).select(
-            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details
+                orderby=db.t_reviews.id,
         )
         text = "Choose a reviewer from Stage 1"
     if new_round:
