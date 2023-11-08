@@ -1091,7 +1091,7 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                                     common_small_html.mkUserWithMail(auth, db, reviewer_id),
                             " ",
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            SPAN(f"(Anonymous reviewer {str(nb_anonymous)})", _style="font-style: italic") if con.anonymously else "",
+                            SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, con, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if con.anonymously else "",
                             A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
                                 _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                     if reviewer_id not in current_reviewers_id else "",
@@ -1123,9 +1123,7 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     if new_round:
         previousRoundRecommId = total_count[-2]
         latestRoundRecommId = max(total_count)
-        prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(
-            db.t_reviews.id, db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details, db.t_reviews.anonymously, orderby=db.t_reviews.id
-        )
+        prevRoundreviewersList = db((db.t_reviews.recommendation_id == previousRoundRecommId) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
         text = "Reviewers from the previous round of review"
     prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
     prevRoundHeader = DIV(
@@ -1232,9 +1230,7 @@ def reviewers():
                     reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
         
-        reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(
-            db.t_reviews.id, db.t_reviews.review_state, db.t_reviews.reviewer_id, db.t_reviews.reviewer_details
-        )
+        reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(orderby=db.t_reviews.id)
         selfFlag = False
         selfFlagCancelled = False
         reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
