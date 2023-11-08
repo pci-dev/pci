@@ -464,7 +464,11 @@ def recommendations():
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
-    set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
+    
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if not manager_coauthor:
+        set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
+    else: set_not_considered_button = ''
 
     recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
@@ -642,6 +646,12 @@ def manage_recommendations():
     art = db.t_articles[articleId]
     if art is None:
         redirect(URL(c="manager", f="all_recommendations"))
+    
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
 
     target = URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)
     if "edit" in request.env.request_uri:
@@ -1184,6 +1194,27 @@ def all_recommendations():
         & (db.t_recommendations.id == db.v_reviewers.id)
         & (db.t_recommendations.id == db.v_recommendation_contributors.id)
     )
+
+    #manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if True:#manager_coauthor:
+        #coauthors = common_tools.get_manager_coauthors(article)
+        query = (
+          (db.t_recommendations.article_id == db.t_articles.id)
+        & (db.t_articles.already_published == isPress)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+        & (db.t_recommendations.id == db.v_reviewers.id)
+        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
+        & (db.auth_user.id == auth.user_id)
+
+        )
+    else: query = (
+          (db.t_recommendations.article_id == db.t_articles.id)
+        & (db.t_articles.already_published == isPress)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+        & (db.t_recommendations.id == db.v_reviewers.id)
+        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
+        )
+
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
     resu = _all_recommendations(goBack, query, isPress)
@@ -1314,7 +1345,7 @@ def _all_recommendations(goBack, query, isPress):
                       't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics', 
                       't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
                       't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version',
-                      'v_recommendation_contributors.id']
+                      't_articles.manager_authors', 'v_recommendation_contributors.id']
     integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
@@ -1440,7 +1471,11 @@ def article_emails():
     article = db.t_articles[articleId]
     urlFunction = request.function
     urlController = request.controller
-    referer = request.env.http_referer
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if manager_coauthor:
+        pass
+
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
         SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
@@ -1491,8 +1526,11 @@ def article_emails():
 
     myScript = common_tools.get_script("replace_mail_content.js")
 
+    if manager_coauthor: query = (db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag != '#RecommenderReviewerReviewCompleted')
+    else: query = (db.mail_queue.article_id == articleId)
+
     grid = SQLFORM.grid(
-        ((db.mail_queue.article_id == articleId)),
+        query,
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),

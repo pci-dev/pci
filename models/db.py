@@ -569,6 +569,7 @@ db.define_table(
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
+    Field("manager_authors", type="string", length=50, default=""),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),

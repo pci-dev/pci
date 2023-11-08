@@ -486,6 +486,10 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
         reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
             orderby=db.t_reviews.id
         )
+
+        manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+        if manager_coauthor: break
+
         count_anon = 0
         for review in reviews:
             if review.review_state == "Awaiting review":
@@ -783,10 +787,20 @@ def getManagerButton(art, auth, isRecommender):
     if pciRRactivated and is_scheduled_track(art) and is_stage_1(art):
         return validate_stage_button(art)
 
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if isRecommender:
         return sorry_you_are_recommender_note()
+    elif manager_coauthor:
+        return sorry_you_are_coauthor_note()
     else:
         return validate_stage_button(art)
+
+
+def sorry_you_are_coauthor_note():
+            return DIV(
+                B(current.T("Note: Since you have been declared as a co-author of this submitted preprint, you cannot take part in the reviewing process.")),
+                _class="pci2-flex-center"
+            )
 
 
 def sorry_you_are_recommender_note():

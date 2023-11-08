@@ -903,34 +903,41 @@ def one_review():
 
     revId = request.vars["reviewId"]
     rev = db.t_reviews[revId]
-    form = ""
-    if rev == None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    recomm = db.t_recommendations[rev.recommendation_id]
-    if recomm == None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
-    db.t_reviews._id.readable = False
-    db.t_reviews.reviewer_id.writable = False
-    db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
-    db.t_reviews.anonymously.default = True
-    db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
-    db.t_reviews.review.writable = auth.has_membership(role="manager")
-    db.t_reviews.review_state.writable = auth.has_membership(role="manager")
-    db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
-    db.t_reviews.review.represent = lambda text, row: WIKI(text or "", safe_mode=False)
-    form = SQLFORM(
-        db.t_reviews,
-        record=revId,
-        readonly=True,
-        fields=["reviewer_id", "no_conflict_of_interest", "anonymously", "review", "review_pdf"],
-        showid=False,
-        upload=URL("default", "download"),
-    )
+    art = db((db.t_recommendations.id == rev.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select().last()
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(URL(c=request.controller, f=" "))
+    else:
+        form = ""
+        if rev == None:
+            session.flash = auth.not_authorized()
+            redirect(request.env.http_referer)
+        recomm = db.t_recommendations[rev.recommendation_id]
+        if recomm == None:
+            session.flash = auth.not_authorized()
+            redirect(request.env.http_referer)
+        if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+            session.flash = auth.not_authorized()
+            redirect(request.env.http_referer)
+        db.t_reviews._id.readable = False
+        db.t_reviews.reviewer_id.writable = False
+        db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+        db.t_reviews.anonymously.default = True
+        db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
+        db.t_reviews.review.writable = auth.has_membership(role="manager")
+        db.t_reviews.review_state.writable = auth.has_membership(role="manager")
+        db.t_reviews.review_state.represent = lambda text, row: common_small_html.mkReviewStateDiv(auth, db, text)
+        db.t_reviews.review.represent = lambda text, row: WIKI(text or "", safe_mode=False)
+        form = SQLFORM(
+            db.t_reviews,
+            record=revId,
+            readonly=True,
+            fields=["reviewer_id", "no_conflict_of_interest", "anonymously", "review", "review_pdf"],
+            showid=False,
+            upload=URL("default", "download"),
+        )
     return dict(
         pageHelp=getHelp(request, auth, db, "#RecommenderArticleOneReview"),
         customText=getText(request, auth, db, "#RecommenderArticleOneReviewText"),
@@ -948,6 +955,12 @@ def reviews():
 
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
+    art = db(db.t_recommendations.article_id == db.t_articles.id).select().last()
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(URL(c=request.controller, f=" "))
     if recomm == None:
         session.flash = auth.not_authorized()
         redirect(URL(c=request.controller, f=" "))

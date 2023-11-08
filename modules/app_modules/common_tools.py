@@ -107,7 +107,21 @@ def get_exclude_list(request):
         return list(map(int, excludeList))
     except:
         return None
+
+
+def check_coauthorship(user_id, article):
+    manager_authors = (article.manager_authors or "").split(',')
+    for manager in manager_authors:
+        if manager == str(user_id): return True
+    return False
+
+
+def get_manager_coauthors(db, artId):
+    article = db(db.t_articles.id == artId).select().last()
+    manager_authors = (article.manager_authors or "").split(',')
     
+    return manager_authors
+
 
 def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
     article = Article.get_by_id(db, article_id)

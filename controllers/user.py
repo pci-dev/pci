@@ -455,6 +455,7 @@ def fill_new_article():
     db.t_articles.already_published.writable = False
     db.t_articles.request_submission_change.readable = False
     db.t_articles.request_submission_change.writable = False
+    db.t_articles.manager_authors.readable = False
     db.t_articles.cover_letter.readable = True
     db.t_articles.cover_letter.writable = True
     db.t_articles.suggest_reviewers.readable = True
@@ -552,13 +553,17 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,
+    managers = get_managers()
+    manager_ids = [m[0] for m in managers]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=False, label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
+    form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,
             extra_fields=[
                 Field("recomm_notice", widget=widget(_type="hidden"),
                     label=T("On the next page you will have the possibility to suggest recommenders for your article"),
                 ),
-            ],
+            ] + manager_label + manager_fields,
     )
 
     app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
@@ -592,7 +597,9 @@ def fill_new_article():
             pass
         else:
             session.flash = T("Article submitted", lazy=False)
-        myVars = dict(articleId=articleId)
+
+        manager_ids = extract_manager_ids(form, manager_ids)
+        myVars = dict(articleId=articleId, manager_authors=manager_ids)
         # for thema in form.vars.thematics:
         # myVars['qy_'+thema] = 'on'
         # myVars['qyKeywords'] = form.vars.keywords
@@ -621,6 +628,26 @@ def fill_new_article():
         form=form,
         myFinalScript=myScript or "",
     )
+
+def extract_manager_ids(form, manager_ids):
+    # extract the positively checked manager co-author IDs from the form
+    manager_authors = []
+    for m_id in manager_ids:
+        form_field = form.vars['chk_' + m_id]
+        if form_field == 'on': manager_authors.append(m_id)
+
+    return ','.join(manager_authors)
+
+
+def get_managers():
+    # collect managers and admins
+    manager_query = db((db.auth_user._id == db.auth_membership.user_id) & ((db.auth_membership.group_id == '2') | (db.auth_membership.group_id == '3'))).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
+    users = []
+    for manager in manager_query:
+        user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
+        if user not in users: users.append(user)
+
+    return users
 
 
 ######################################################################################################################################################################
@@ -1482,7 +1509,12 @@ def add_suggested_recommender():
     response.view = "default/myLayout.html"
 
     articleId = request.vars["articleId"]
+    manager_authors = request.vars["manager_authors"]
     art = db.t_articles[articleId]
+
+    if manager_authors != '':
+        art.update_record(manager_authors=manager_authors)
+
     if (art.user_id != auth.user_id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)

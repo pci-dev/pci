@@ -106,6 +106,36 @@
         min-height: 5rem;
     }
 
+    #t_articles_manager_label__row input {
+        display: none;
+    }
+
+    #t_articles_manager_label__row .col-sm-9 {
+        height: 0;
+    }
+
+    #t_articles_manager_label__row .help-block {
+        margin: 0;
+    }
+
+    .manager-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .manager-container .manager-item {
+        width: 100%;
+        max-width: 800px;
+        text-align: left;
+        padding-left: 15px;
+    }
+
+    .manager-item > input,
+    .manager-item > div {
+        display: inline-block;
+    }
+
     #main-page-search-grid .web2py_table table thead {
         display: none;
     }
