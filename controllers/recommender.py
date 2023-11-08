@@ -1200,7 +1200,7 @@ def reviewers():
                     suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
                     reviewer_box = DIV(_class="content2")
                     for reviewer in suggested_by_reviewers:
-                        reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
+                        reviewer_ul = DIV(STRONG("%s suggested:"%reviewer, _style="font-weight: bold"), UL(suggested_by_reviewers[reviewer], _style="list-style: none"))
                         reviewer_box.append(reviewer_ul)
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
