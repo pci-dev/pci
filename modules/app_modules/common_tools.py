@@ -223,8 +223,30 @@ def get_next(request: Request):
         return next
     else:
         return None
-    
+
 ###################################################################
 
 def sget(dictionary: Dict[Any, Any], *keys: Any):
     return reduce(lambda d, key: d.get(key, None) if isinstance(d, dict) else None, keys, dictionary)
+
+###################################################################
+
+def separate_suggestions(suggested_reviewers: List[str]):
+    suggested_by_author: List[str] = []
+    suggestor_2_suggestions: Dict[str, List[str]] = {}
+    for reviewer in suggested_reviewers:
+        if ' suggested:' in reviewer:
+            suggestor_re = match('(.*) suggested:(.*)', reviewer)
+            if suggestor_re:
+                suggestor = suggestor_re.group(1)
+                suggestion = suggestor_re.group(2)
+                if suggestor in suggestor_2_suggestions.keys():
+                    suggestions: Any = suggestor_2_suggestions[suggestor]
+                    suggestions.append(suggestion)
+                    suggestor_2_suggestions[suggestor] = suggestions
+                else:
+                    suggestor_2_suggestions[suggestor] = [suggestion]
+        else:
+            suggested_by_author.append(reviewer)
+
+    return suggested_by_author, suggestor_2_suggestions
