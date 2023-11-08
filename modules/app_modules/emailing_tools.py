@@ -431,6 +431,8 @@ def insertMailInQueue(
     authors_reply=None,
     sugg_recommender_buttons=None,
     reviewer_invitation_buttons=None,
+    alternative_subject=None, # for edit/resend mails
+    alternative_content=None, # for edit/resend mails
 ):
     mail = buildMail(
         db,
@@ -442,15 +444,24 @@ def insertMailInQueue(
         article_id=article_id,
         sugg_recommender_buttons=sugg_recommender_buttons,
         reviewer_invitation_buttons=reviewer_invitation_buttons,
+        alternative_subject=alternative_subject,
+        alternative_content=alternative_content,
     )
+
+    if alternative_subject:
+        subject = alternative_subject
+        content = alternative_content
+    else:
+        subject = mail["subject"]
+        content = mail["content"]
 
     return db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=mail_vars.get("ccAddresses"),
         replyto_addresses=mail_vars.get("replytoAddresses"),
         bcc_mail_addresses=mail_vars.get("bccAddresses"),
-        mail_subject=mail["subject"],
-        mail_content=mail["content"],
+        mail_subject=subject,
+        mail_content=content,
         user_id=auth.user_id,
         article_id=article_id,
         recommendation_id=recommendation_id,
@@ -552,13 +563,17 @@ def insertNewsLetterMailInQueue(
 
 ######################################################################################################################################################################
 def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None,
-        article_id=None,
+        article_id=None, alternative_subject=None, alternative_content=None,
     ):
 
     mail_template = getMailTemplateHashtag(db, hashtag_template)
 
-    subject = replaceMailVars(mail_template["subject"], mail_vars)
-    content = replaceMailVars(mail_template["content"], mail_vars)
+    if alternative_subject:
+        subject = alternative_subject
+        content = alternative_content
+    else:
+        subject = replaceMailVars(mail_template["subject"], mail_vars)
+        content = replaceMailVars(mail_template["content"], mail_vars)
 
     if article_id is None:
         subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")

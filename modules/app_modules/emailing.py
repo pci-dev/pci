@@ -2065,7 +2065,7 @@ def mk_mail(subject, message, resend=False):
         )
     )
 ######################################################################################################################################################################
-def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None):
+def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None, hashtag=None):
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -2073,37 +2073,27 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
     replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
 
     mail_content = mk_mail(form.vars.subject, form.vars.content, resend=True)
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = form.vars.dest_mail_address
+    mail_vars["ccAddresses"] = cc_addresses
+    mail_vars["replytoAddresses"] = replyto_addresses
 
-    if recommId != 'None' and reviewId != 'None':
-        db.mail_queue.insert(
-            user_id = auth.user_id,
-            dest_mail_address = form.vars.dest_mail_address,
-            replyto_addresses = replyto_addresses,
-            cc_mail_addresses = cc_addresses,
-            mail_subject = form.vars.subject,
-            mail_content = mail_content,
-            review_id = reviewId,
-            recommendation_id = recommId,
-        )
+    if recommId != 'None' and reviewId != 'None' and articleId == 'None':
+        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars, recommendation_id=recommId,
+                                         review=reviewId, alternative_subject=form.vars.subject,
+                                         alternative_content=mail_content)
+    elif recommId != 'None' and reviewId != 'None' and articleId != 'None':
+        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars, recommendation_id=recommId,
+                                         article_id=articleId, review=reviewId, alternative_subject=form.vars.subject,
+                                         alternative_content=mail_content)
     elif articleId != 'None':
-        db.mail_queue.insert(
-            user_id = auth.user_id,
-            dest_mail_address = form.vars.dest_mail_address,
-            replyto_addresses = replyto_addresses,
-            cc_mail_addresses = cc_addresses,
-            mail_subject = form.vars.subject,
-            mail_content = mail_content,
-            article_id = articleId,
-        )
+        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars,
+                                         article_id=articleId, alternative_subject=form.vars.subject,
+                                         alternative_content=mail_content)
     else:
-        db.mail_queue.insert(
-            user_id = auth.user_id,
-            dest_mail_address = form.vars.dest_mail_address,
-            replyto_addresses = replyto_addresses,
-            cc_mail_addresses = cc_addresses,
-            mail_subject = form.vars.subject,
-            mail_content = mail_content,
-        )             
+        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars,
+                                         alternative_subject=form.vars.subject,
+                                         alternative_content=mail_content)
 
     reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
     emailing_tools.getFlashMessage(session, reports)

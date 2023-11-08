@@ -749,6 +749,8 @@ def edit_config():
 def edit_and_resend_email():
     response.view = "default/myLayout.html"
     mailId = request.vars["mailId"]
+    articleId = request.vars["articleId"]
+    hashtag = request.vars["hashtag"]
     urlFunction = request.vars['urlFunction']
     urlController = request.vars['urlController']
 
@@ -781,12 +783,14 @@ def edit_and_resend_email():
                 auth, 
                 db, 
                 form,
+                articleId=articleId,
+                hashtag=hashtag,
                 )
             resent = True
         except Exception as e:
             session.flash = (session.flash or "") + T("E-mail failed.")
             raise e
-        redirect(URL(c=urlController, f=urlFunction))
+        redirect(URL(c=urlController, f=urlFunction, vars=dict(articleId=articleId), user_signature=True))
 
     return dict(
         form=form,

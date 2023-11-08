@@ -155,6 +155,8 @@ def toggle_shedule_mail_from_queue():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="manager"))
 def edit_resend_auth():
     mailId = request.vars['mailId']
+    articleId = request.vars['articleId']
+    hashtag = request.vars['hashtag']
     urlFunction = request.vars['urlFunction']
     urlController = request.vars['urlController']
         
@@ -162,4 +164,4 @@ def edit_resend_auth():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    redirect(URL(c="admin", f="edit_and_resend_email", vars=dict(mailId=mailId, urlFunction=urlFunction, urlController=urlController)))
+    redirect(URL(c="admin", f="edit_and_resend_email", vars=dict(mailId=mailId, articleId=articleId, hashtag=hashtag, urlFunction=urlFunction, urlController=urlController)))
