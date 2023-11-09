@@ -12,6 +12,7 @@ from app_modules.helper import *
 from app_modules.common_small_html import complete_profile_dialog, invitation_to_review_form
 from controller_modules import adjust_grid
 from app_modules.emailing import send_conditional_acceptation_review_mail
+from app_modules.orcid import OrcidTools
 from gluon import DAL
 # -------------------------------------------------------------------------
 # app configuration made easy. Look inside private/appconfig.ini
@@ -251,6 +252,7 @@ def user():
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
+            OrcidTools.add_orcid_auth_user_form(session, request, form, URL(c="default", f="user", args="register", host=host, scheme=scheme))
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
             if suite:
                 auth.settings.register_next = suite
@@ -265,6 +267,10 @@ def user():
             form.element(_type="submit")["_class"] = "btn btn-success"
             if not (auth.has_membership(role="recommender") and pciRRactivated):
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
+            form.element(_name="orcid")["_maxlength"] = 19
+
+            OrcidTools.add_orcid_auth_user_form(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, user_signature=True))
+
             if suite:
                 auth.settings.profile_next = suite
 
@@ -306,7 +312,13 @@ def user():
             customText = getText(request, auth, db, "#ResetPasswordText")
             form.element(_type="submit")["_class"] = "btn btn-success"
 
-    return dict(titleIcon=titleIcon, pageTitle=pageTitle, customText=customText, myBottomText=myBottomText, pageHelp=pageHelp, form=form)
+    return dict(titleIcon=titleIcon,
+                pageTitle=pageTitle,
+                customText=customText,
+                myBottomText=myBottomText,
+                pageHelp=pageHelp,
+                form=form,
+                myFinalScript=OrcidTools.get_orcid_formatter_script())
 
 
 def check_already_registered(form):
@@ -335,6 +347,10 @@ def show_account_menu_dialog():
     next = get_next(request)
     dialog = complete_profile_dialog(next)
     return dialog
+
+
+def redirect_ORCID_authentication():
+    OrcidTools.redirect_ORCID_authentication(session, request)
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):

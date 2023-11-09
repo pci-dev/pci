@@ -31,7 +31,7 @@ class User(Row):
     recover_email_key: _[str]
     website: _[str]
     keywords: _[str]
-
+    orcid: _[str]
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
