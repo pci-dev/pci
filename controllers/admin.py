@@ -66,7 +66,8 @@ def list_users():
         db.auth_user.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", zero=None)
         db.auth_user.thematics.type = "string" # for advanced search dd, vs "list:string" in edit form
 
-    if 'edit' in request.raw_args:
+    if hasattr(request, 'raw_args') and request.raw_args and \
+            'edit' in request.raw_args:
         user_id = [val for val in request.args if val.isdigit()]
         auth_query = db((db.auth_membership.user_id == next(iter(user_id), None)) & (db.auth_membership.group_id == db.auth_group._id) & (db.auth_group.role == "recommender")).select()
 
