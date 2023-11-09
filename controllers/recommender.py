@@ -1094,6 +1094,7 @@ def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new
                             " ",
                             B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
                             SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, con, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if con.anonymously  and new_round else "",
+                            SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, con, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if con.anonymously  and (new_stage and not new_round) else "",
                             A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
                                 _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                     if reviewer_id not in current_reviewers_id else "",
