@@ -284,6 +284,23 @@ def list_addresses(addresses):
                 if addresses else []
 
 #######################################################################################################################################################################
+def exempt_addresses(db, addresses, hashtag_template):
+    for address in addresses:
+        user_id = db(db.auth_user.email == address).select(db.auth_user.id).last()
+        if user_id:
+            user = db.auth_user[user_id.id]
+            email_options = ",".join(user.email_options)
+            if hashtag_template == "#ReminderSubmitterScheduledSubmissionDue":
+                continue
+            elif user.email_options == []:
+                addresses.remove(address)
+            elif "authors" not in email_options and "Submitter" in hashtag_template:
+                addresses.remove(address)
+            elif "reviewers"  not in  email_options and ("Reviewer" in hashtag_template or "Review" in hashtag_template):
+                addresses.remove(address)
+    return addresses
+
+#######################################################################################################################################################################
 def clean_addresses(dirty_string_adresses):
     '''
     creates a string of clean mail addresses, divided by comma
@@ -447,6 +464,9 @@ def insertMailInQueue(
         alternative_subject=alternative_subject,
         alternative_content=alternative_content,
     )
+    ccAddresses = mail_vars.get("ccAddresses") or None
+    if pciRRactivated and ccAddresses:
+        ccAddresses = exempt_addresses(db, ccAddresses, hashtag_template)
 
     if alternative_subject:
         subject = alternative_subject
@@ -457,7 +477,7 @@ def insertMailInQueue(
 
     return db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
-        cc_mail_addresses=mail_vars.get("ccAddresses"),
+        cc_mail_addresses=ccAddresses,
         replyto_addresses=mail_vars.get("replytoAddresses"),
         bcc_mail_addresses=mail_vars.get("bccAddresses"),
         mail_subject=subject,
@@ -489,12 +509,10 @@ def insertReminderMailInQueue(
 
     reminder = getReminder(hashtag_template, db.t_reviews[review_id])
 
-    ccAddresses = None
-    replytoAddresses = None
-    if "ccAddresses" in mail_vars:
-        ccAddresses = mail_vars["ccAddresses"]
-    if "replytoAddresses" in mail_vars:
-        replytoAddresses = mail_vars["replytoAddresses"]
+    ccAddresses = mail_vars.get("ccAddresses") or None
+    replytoAddresses = mail_vars.get("replytoAddresses") or None
+    if pciRRactivated and ccAddresses and "OverDue" not in hashtag_template:
+            ccAddresses = exempt_addresses(db, ccAddresses, hashtag_template)
 
     if reminder:
         elapsed_days = reminder["elapsed_days"][0]

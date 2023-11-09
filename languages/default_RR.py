@@ -491,6 +491,7 @@
     "Ongoing reviewers": "Ongoing reviewers",
     "Online examples": "Online examples",
     "Open to reviewers": "Open to reviewers",
+    "Opt in/out of being cc'ed": "Opt in to being cc'ed on emails for submissions you handle as a Recommender (note that you will always be cc'ed if an author or reviewer is overdue on their task)",
     "Origin": "Origin",
     "or import from csv file": "or import from csv file",
     " or ": " or ",

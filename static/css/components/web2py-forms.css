@@ -58,7 +58,8 @@ textarea.form-control {
 .checkbox #t_articles_picture_rights_ok__label,
 .checkbox #auth_user_remember_me__label,
 input[name=thematics]+label,
-input[name=alerts]+label {
+input[name=alerts]+label,
+input[name=email_options]+label {
     font-weight: normal;
 }
 

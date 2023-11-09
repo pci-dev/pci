@@ -47,6 +47,7 @@ from app_modules.emailing_vars import getPCiRRstageVars
 from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
+from app_modules.emailing_tools import exempt_addresses
 from models.article import Article
 from models.review import Review, ReviewState
 from models.recommendation import Recommendation
@@ -1845,10 +1846,10 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     sender_name = None
     if not pciRRactivated and sender:
         sender_name = f'{sender.first_name} {sender.last_name}'
-
+    ccAddresses = exempt_addresses(db, mail_vars["ccAddresses"], hashtag_template)
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
-        cc_mail_addresses=mail_vars["ccAddresses"],
+        cc_mail_addresses=ccAddresses,
         replyto_addresses=mail_vars["replytoAddresses"],
         mail_subject=subject,
         mail_content=message,
@@ -2002,19 +2003,21 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.replyto)
     replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
 
+    hashtag_template = "#ReviewerGenericMail"
     mail_content = mk_mail(form.subject, form.message)
+    ccAddresses = exempt_addresses(db, cc_addresses, hashtag_template)
 
     db.mail_queue.insert(
         user_id             = auth.user_id,
         dest_mail_address   = reviewer_email,
         replyto_addresses   = replyto_addresses,
-        cc_mail_addresses   = cc_addresses,
+        cc_mail_addresses   = ccAddresses,
         mail_subject        = form.subject,
         mail_content        = mail_content,
 
         article_id          = recomm.article_id,
         recommendation_id   = recomm.id,
-        mail_template_hashtag = "#ReviewerGenericMail",
+        mail_template_hashtag = hashtag_template,
     )
 
     reports = emailing_tools.createMailReport(True, reviewer_email, reports=[])
@@ -2030,12 +2033,13 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
     form.message
 
     mail_content = mk_mail(form.subject, form.message)
+    ccAddresses = exempt_addresses(db, cc_addresses, mail_template)
 
     db.mail_queue.insert(
         user_id             = auth.user_id,
         dest_mail_address   = author_email,
         replyto_addresses   = replyto_addresses,
-        cc_mail_addresses   = cc_addresses,
+        cc_mail_addresses   = ccAddresses,
         mail_subject        = form.subject,
         mail_content        = mail_content,
 

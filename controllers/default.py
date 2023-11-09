@@ -263,6 +263,8 @@ def user():
             customText = getText(request, auth, db, "#ProfileText")
             myBottomText = getText(request, auth, db, "#ProfileBottomText")
             form.element(_type="submit")["_class"] = "btn btn-success"
+            if not (auth.has_membership(role="recommender") and pciRRactivated):
+                form.element("#auth_user_email_options__row")["_style"] = "display: none;"
             if suite:
                 auth.settings.profile_next = suite
 
