@@ -32,6 +32,7 @@ class User(Row):
     website: _[str]
     keywords: _[str]
     orcid: _[str]
+    no_orcid: bool
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
@@ -42,7 +43,19 @@ class User(Row):
     def get_by_reset_password_key(db: DAL, reset_password_key: str):
         user = db(db.auth_user.reset_password_key == reset_password_key).select().first()
         return cast(_[User], user)
+    
 
+    @staticmethod
+    def set_orcid(user: User, orcid: str):
+        user.orcid = orcid
+        return user.update_record()
+
+
+    @staticmethod
+    def set_no_orcid(user: User, no_orcid: bool = True):
+        user.no_orcid = no_orcid
+        return user.update_record()
+    
 
     @staticmethod
     def is_profile_completed(user: User): 

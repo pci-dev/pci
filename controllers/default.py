@@ -9,7 +9,7 @@ from app_components import article_components
 from app_components.ongoing_recommendation import is_scheduled_submission
 from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
-from app_modules.common_small_html import complete_profile_dialog, invitation_to_review_form
+from app_modules.common_small_html import complete_orcid_dialog, complete_profile_dialog, invitation_to_review_form
 from controller_modules import adjust_grid
 from app_modules.emailing import send_conditional_acceptation_review_mail
 from app_modules.orcid import OrcidTools
@@ -338,16 +338,40 @@ def show_account_menu_dialog():
     current_user = cast(User, auth.user)
     if not current_user:
         return
-    
+
     is_profile_completed = User.is_profile_completed(current_user)
-    if is_profile_completed:
+    if is_profile_completed and current_user.orcid:
         return
 
     session.show_account_menu_dialog = True
-    next = get_next(request)
-    dialog = complete_profile_dialog(next)
+    
+    dialog = None
+    if not is_profile_completed:
+        next = get_next(request)
+        dialog = complete_profile_dialog(next)
+    elif not current_user.orcid and not current_user.no_orcid:
+        dialog = complete_orcid_dialog(db)
     return dialog
 
+
+def orcid_choice():
+    payload: Any = request.vars
+    if not payload.value or payload.value not in ('yes', 'no'):
+        return
+
+    current_user = User.get_by_id(db, auth.user_id)
+    if not current_user:
+        response.flash = T('No user found')
+        return
+    
+    if payload.value == 'yes' and payload.orcid and len(payload.orcid) == 19:
+        User.set_orcid(current_user, payload.orcid)
+        response.flash = T('ORCID saved!')
+
+    if payload.value == 'no':
+        User.set_no_orcid(current_user)
+        response.flash = T('Preference saved!')
+    
 
 def redirect_ORCID_authentication():
     OrcidTools.redirect_ORCID_authentication(session, request)

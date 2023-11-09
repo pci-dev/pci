@@ -297,7 +297,10 @@
             }
 
             $('body').append(dialogHtml);
-            $('#complete-profile-modal').modal('show');
+            $('#complete-profile-modal').modal({
+              backdrop: 'static',
+              keyboard: false
+            });
           }
 	      });
       }
