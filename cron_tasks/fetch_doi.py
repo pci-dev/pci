@@ -12,20 +12,32 @@ url = "https://peercommunityjournal.org/en/latest/feed/pcj/"
 feed = feedparser.parse(url)
 prefix = "https://doi.org/"
 
+def email_sent(article_id):
+    return db(
+            (db.mail_queue.mail_template_hashtag == "#ArticlePublishedPCJ")
+            & (db.mail_queue.article_id == article_id)
+    ).count() > 0
+
+def send_mails_for_published_dois():
+        articles = db((db.t_articles.doi_of_published_article != None) & (db.t_articles.status == "Recommended")).select(db.t_articles.id)
+        for article in articles:
+            if not email_sent:
+                emailing.send_message_to_recommender_and_reviewers(auth, db, article.id)
+
 def get_article_id(doi):
     article_id, pci_name = None, None
     url = f'https://api.crossref.org/works/{doi}'
     response = requests.get(url)
     if response.ok:
         data = response.json()
-        references = data["message"]["reference"]
-        for reference in references:
-            try:
+        try:
+            references = data["message"]["reference"]
+            for reference in references:
                 if "pci" in reference["DOI"]:
                     article_id = int(reference["DOI"][9:].split(".")[-1][1:])
                     pci_name = reference["DOI"][9:].split(".")[1]
-            except:
-                pass
+        except:
+            pass
     return article_id, pci_name
 
 def update_article(id, published_doi):
@@ -35,6 +47,7 @@ def update_article(id, published_doi):
         emailing.send_message_to_recommender_and_reviewers(auth, db, id)
 
 
+send_mails_for_published_dois()
 for entry in feed.entries:
     entry_date = datetime.strptime(entry.published, "%a, %d %b %Y %H:%M:%S %z")
     if now - entry_date <= time_range:
