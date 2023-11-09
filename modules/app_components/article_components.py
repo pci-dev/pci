@@ -283,10 +283,10 @@ def getArticleInfosCard(auth, db, response, article, printable,
         articleContent.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
 
     if article.suggest_reviewers and policy_1():
-        articleContent.update([("suggestReviewers", UL(article.suggest_reviewers or "", safe_mode=False))])
+        articleContent.update([("suggestReviewers", UL(article.suggest_reviewers or "", safe_mode=False))]) if not isRecommended else None
 
     if article.competitors and policy_1():
-        articleContent.update([("competitors", UL(article.competitors or "", safe_mode=False))])
+        articleContent.update([("competitors", UL(article.competitors or "", safe_mode=False))]) if not isRecommended else None
 
     if abstract:
         articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
