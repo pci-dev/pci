@@ -1184,6 +1184,7 @@ def reviewers():
         suggested_reviewers_by_author = ""
         suggested_reviewers_by_reviewers = ""
         oppossed_reviewers = ""
+        action_text = "You may invite them by clicking on the “INVITE A REVIEWER” button below"
         if not pciRRactivated:
             if article.suggest_reviewers:
                 (suggested_by_author, suggested_by_reviewers) = common_tools.separate_suggestions(article.suggest_reviewers)
@@ -1191,7 +1192,7 @@ def reviewers():
                     suggested_reviewers_by_author = DIV(
                         BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
                         DIV(P(UL(suggested_by_author),
-                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            H5(B(action_text))),
                             _class="content2"),
                         )
                 if len(suggested_by_reviewers) > 0:
@@ -1201,7 +1202,7 @@ def reviewers():
                     for reviewer in suggested_by_reviewers:
                         reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
                         reviewer_box.append(reviewer_ul)
-                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
                         
             if article.competitors:
@@ -1216,7 +1217,7 @@ def reviewers():
                     suggested_reviewers_by_author = DIV(
                         BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
                         DIV(P(UL(report[0].q8),
-                            H5(B("You may invite them by clicking on one of the buttons below"))),
+                            H5(B(action_text))),
                             _class="content2"),
                         )
                 if report[0].q9:
@@ -1234,7 +1235,7 @@ def reviewers():
                     for reviewer in suggested_by_reviewers:
                         reviewer_ul = P("%s suggested:"%reviewer, UL(suggested_by_reviewers[reviewer]))
                         reviewer_box.append(reviewer_ul)
-                    reviewer_box.append(H5(B("You may invite them by clicking on one of the buttons below")))
+                    reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
         
         reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(orderby=db.t_reviews.id)
