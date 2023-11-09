@@ -7,6 +7,8 @@ import datetime
 from dateutil.relativedelta import *
 from typing import cast, Optional
 
+from lxml import html
+
 from gluon.utils import web2py_uuid
 from gluon.contrib.markdown import WIKI
 from gluon.html import markmin_serializer
@@ -1248,6 +1250,13 @@ def reviewers():
         else:
             myContents = ""
         longname = myconf.take("app.longname")
+        tools_button = DIV(
+            H5(B("Tools to help you find reviewers (attention: the name of the authors can come first)")),
+            A(
+                SPAN(current.T("Possible reviewers identified by Jane"), _class="btn btn-primary"),
+                _href=f"http://jane.biosemantics.org/suggestions.php?findAuthors&text={html.fromstring(article.abstract).text_content()}", _target="_blank"
+            ),
+            _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",)
         myUpperBtn = DIV(
             # A(
             #     SPAN(current.T("Choose a reviewer from the %s database") % (longname), _class="btn btn-success"),
@@ -1255,7 +1264,7 @@ def reviewers():
             # ),
             A(
                 # SPAN(current.T("Choose a reviewer outside %s database") % (longname), _class="btn btn-default"),
-                SPAN(current.T("Invite a reviewer"), _class="btn btn-default"),
+                SPAN(H6(B("Invite a reviewer")), _class="btn btn-lg btn-default"),
                 _href=URL(c="recommender", f="email_for_new_reviewer", vars=dict(recommId=recommId, new_stage=new_stage)),
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",
@@ -1281,6 +1290,7 @@ def reviewers():
             suggested_reviewers_by_author=suggested_reviewers_by_author,
             suggested_reviewers_by_reviewers=suggested_reviewers_by_reviewers,
             oppossed_reviewers=oppossed_reviewers,
+            tools_button=tools_button,
             form="",
             myUpperBtn=myUpperBtn,
             myFinalScript=myScript,
