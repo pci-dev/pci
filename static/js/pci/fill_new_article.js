@@ -10,7 +10,7 @@ jQuery(document).ready(function() {
     't_articles_no_financial_conflict_of_interest',
   ]
   
-  var pciRRactivated = document.querySelector("#t_articles_report_stage")
+  var pciRRactivated = document.querySelector("#t_articles_report_stage__label")
   if (pciRRactivated) {
       prerequisites = [
         't_articles_i_am_an_author',

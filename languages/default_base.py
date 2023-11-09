@@ -839,6 +839,7 @@
     "Timeline": "Timeline",
     "Timestamp": "Timestamp",
     "Title": "Title",
+    "Title error message": "Oops! It looks like you already submitted a Snapshot with this title. To submit your Stage 1 manuscript associated with this Snapshot, please go to your Snapshot’s submission page and link the Stage 1 there. If you think this message is an error, please contact PCI RR at ",
     "TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:": "TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:",
     "Today": "Today",
     "Toggle reviews": "Toggle reviews",

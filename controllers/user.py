@@ -38,7 +38,7 @@ parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=Fal
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
-
+contact = myconf.get("contacts.contact")
 ######################################################################################################################################################################
 def index():
     return my_reviews()
@@ -352,7 +352,7 @@ def new_submission():
         customText=getText(request, auth, db, "#NewRecommendationRequestInfo")
         
         if auth.user:
-            submitPreprintLink = URL("user", "fill_new_article", user_signature=True)
+            submitPreprintLink = URL("user", "check_title" if pciRRactivated else "fill_new_article", user_signature=True)
         else:
             loginLink = URL(c="default", f="user", args=["login"], vars=dict(_next=URL(c="user", f="new_submission")))
             registerLink = URL(c="default", f="user", args=["register"], vars=dict(_next=URL(c="user", f="new_submission")))
@@ -368,10 +368,45 @@ def new_submission():
         form=form
     )
 
+######################################################################################################################################################################
+@auth.requires_login()
+def check_title():
+    form = SQLFORM.factory(
+        Field("report_stage", type="string", label=T("Is this a Stage 1 or Stage 2 submission?"), requires=IS_IN_SET(("STAGE 1", "STAGE 2"))),
+        Field("title", label=T("Title"), type="string", length=250),
+    )
+    form.element(_type="submit")["_value"] = T("Continue")
+    def onvalidation(form):
+        if form.vars.report_stage == "STAGE 1":
+            if form.vars.title is None:
+                form.errors.title = T("Title cannot be empty, please provide a title")
+            else:
+                title_already_submitted = db((db.t_articles.user_id == auth.user_id) & (db.t_articles.title.lower() == form.vars.title.lower()) & (db.t_articles.report_stage == "STAGE 1") & (db.t_articles.scheduled_submission_date != None)).select().last()
+                if title_already_submitted:
+                    form.errors.title =  SPAN(T("Title error message"), A(contact, _href="mailto:%s" % contact, _target="_blank"))
 
+    if form.process(onvalidation=onvalidation).accepted:
+        myVars = dict(title=form.vars.title or "", report_stage=form.vars.report_stage)
+        redirect(URL(c="user", f="fill_new_article", vars=myVars, user_signature=True))
+
+    myScript = common_tools.get_script("check_title.js")
+    response.view = "default/myLayout.html"
+    return dict(
+        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
+        customText=getText(request, auth, db, "#UserEditArticleText"),
+        titleIcon="edit",
+        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        myFinalScript=myScript,
+        form=form
+    )
+
+
+    
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
+    title = request.vars.title
+    report_stage = request.vars.report_stage
     db.t_articles.article_source.writable = False
     db.t_articles.ms_version.writable = True
     db.t_articles.upload_timestamp.readable = False
@@ -402,6 +437,8 @@ def fill_new_article():
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
 
     if pciRRactivated:
+        if title is None and report_stage is None:
+            redirect(URL(c="user", f="check_title",user_signature=True))
         db.t_articles.report_stage.readable = True
         db.t_articles.report_stage.writable = True
         db.t_articles.sub_thematics.readable = True
@@ -412,7 +449,10 @@ def fill_new_article():
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
 
-        db.t_articles.report_stage.requires = IS_IN_SET(("STAGE 1", "STAGE 2"))
+        db.t_articles.title.default = title  if type(title) is str else title[0]
+        db.t_articles.report_stage.default = report_stage if type(report_stage) is str else report_stage[0]
+
+        db.t_articles.report_stage.writable = False
         db.t_articles.ms_version.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
