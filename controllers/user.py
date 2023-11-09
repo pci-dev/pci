@@ -22,9 +22,9 @@ from app_components import ongoing_recommendation
 from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
-from models.review import Review, ReviewState
+from app_modules.orcid import OrcidTools
 
-from models.review import Review
+from models.review import Review, ReviewState
 from models.article import Article
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
@@ -250,6 +250,7 @@ def search_recommenders():
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
         db.auth_group.role.searchable = False
+        db.auth_user.first_name.represent = lambda text, row: OrcidTools.build_name_with_orcid(text, '000', before=True)
 
         original_grid = SQLFORM.grid(
                         query,
@@ -273,6 +274,7 @@ def search_recommenders():
                             users.city,
                             users.country,
                             users.thematics,
+                            users.orcid
                         ],
                         links=links,
                         orderby=users._id,

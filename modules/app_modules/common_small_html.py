@@ -155,10 +155,10 @@ def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=Fa
 
 
 ######################################################################################################################################################################
-def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False):
+def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False, orcid: bool = False, orcid_exponant: bool = False):
     if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-        return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port)
+        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.orcid).last()
+        return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid, orcid_exponant=orcid_exponant)
     else:
         return SPAN("")
 
@@ -175,7 +175,7 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 
 ######################################################################################################################################################################
-def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False):
+def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
     if theUser:
         if linked:
             if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
@@ -188,6 +188,12 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
         else:
             if reverse: resu = SPAN("%s, %s." % (theUser.last_name, theUser.first_name[0]))
             else: resu = SPAN("%s %s" % (theUser.first_name, theUser.last_name))
+
+        if orcid:
+            resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='15px', width='15px', style='margin-right: 3px')
+        if orcid_exponant:
+            style = 'margin-right: 3px; position: relative; bottom: 12px; left: 2px'
+            resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='12px', width='12px', style=style, force_style=True)
     else:
         resu = SPAN("?")
     return resu
@@ -214,13 +220,17 @@ def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False,
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False):
+def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False, orcid=False):
     if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
+        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
     else:
         theUser = None
 
-    return _mkUser(theUser, linked, reverse)
+    user_with_mail = _mkUser(theUser, linked, reverse)
+    if orcid:
+        return OrcidTools.build_name_with_orcid(user_with_mail, theUser.orcid)
+    else:
+        return user_with_mail
 
 
 def _mkUser(theUser, linked=False, reverse=False):
@@ -789,7 +799,7 @@ def mkReviewersString(auth, db, articleId):
 # builds names list (recommender, co-recommenders, reviewers)
 def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False,
                               host=False, port=False, scheme=False,
-                              this_recomm_only=False, citation=False,
+                              this_recomm_only=False, citation=False, orcid: bool = False, orcid_exponant: bool = False
                              ):
     whoDidIt = []
 
@@ -821,7 +831,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
@@ -831,7 +841,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
@@ -869,7 +879,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))                  
                     if ir == nr - 1 and ir >= 1:
@@ -879,7 +889,7 @@ def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_revi
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme))
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
                     else:
                         whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
@@ -986,7 +996,7 @@ def mkRecommendersString(auth, db, recomm):
     return recommendersStr
 
 ######################################################################################################################################################################
-def mkReviewerInfo(auth, db, user):
+def mkReviewerInfo(auth, db, user, orcid: bool = False):
     anchor = ""
     if user:
         if "auth_user" in user:
@@ -1000,8 +1010,13 @@ def mkReviewerInfo(auth, db, user):
         institution = "" if institution is None else institution + ", "
         expertise = user.cv
         areas_of_expertise = current.T("Areas of expertise")
+
+        reviewer_name_html = reviewer_name
+        if orcid:
+            reviewer_name_html = OrcidTools.build_name_with_orcid(reviewer_name, user.orcid)
+
         anchor = DIV(
-            B(reviewer_name, _class="article-title"),
+            B(reviewer_name_html, _class="article-title"),
             DIV(institution, user.country or ""),
             DIV(A(B(user.website), _href=user.website, _class="doi_url", _target="_blank") if user.website else ""),
             DIV(A(areas_of_expertise, _tabindex="0",  _role="button",

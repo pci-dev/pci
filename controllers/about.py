@@ -17,6 +17,7 @@ track_changes(True)  # reimport module if changed; disable in production
 from app_modules.helper import *
 
 from app_modules import common_tools
+from app_modules.orcid import OrcidTools
 from controller_modules import adjust_grid
 
 from gluon.contrib.appconfig import AppConfig
@@ -387,7 +388,7 @@ def recommenders():
     def mkName(row):
         user = users[row.auth_user.id]
         first_name = str(user.first_name)
-        return A(' '.join([name.capitalize() for name in first_name.split(' ')]) + ' ' + str(user.last_name).upper(),
+        return A(OrcidTools.build_name_with_orcid(' '.join([name.capitalize() for name in first_name.split(' ')]) + ' ' + str(user.last_name).upper(), user.orcid),
                  _href=URL(c="public", f="user_public_page", vars=dict(userId=row.auth_user.id)))
 
     def mkAffiliation(row):

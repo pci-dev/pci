@@ -62,7 +62,8 @@ def index():
         return article_components.getRecommArticleRowCard(auth, db, response,
                         row,
                         recomms.get(row.id),
-                        withDate=True)
+                        withDate=True,
+                        orcid_exponant=True)
 
     t_articles = db.v_article
 

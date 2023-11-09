@@ -79,6 +79,25 @@ class OrcidTools:
         return DIV(STRONG("ORCID number"), SPAN(" (using the following format: 0000-000X-XXX-XXX)", _style="font-size: small; font-weight: initial"))
 
 
+    @staticmethod
+    def build_name_with_orcid(user_name: Any, orcid_id: Optional[str], before: bool = False, height: str = '20px', width: str = '20px', style: str = '', force_style: bool = False):
+        if not orcid_id:
+            return user_name
+
+        if not force_style:
+            if before:
+                style += ";position: relative; right: 3px; bottom: 1px;"
+            else:
+                style += ";position: relative; left: 3px; bottom: 1px;" 
+        
+        orcid_link = A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth=height, _width=width), 
+                  _title=orcid_id, _href=f"https://orcid.org/{orcid_id}", _target="_blank", _rel="noreferrer noopener", _style=style)
+        
+        if before:
+            return SPAN(orcid_link, user_name)
+        else:
+            return SPAN(user_name, orcid_link)
+
 ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "string", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
 ORCID_NUMBER_LENGTH = 16
 ORCID_NUMBER_LENGTH_WITH_HYPHEN = ORCID_NUMBER_LENGTH + 3

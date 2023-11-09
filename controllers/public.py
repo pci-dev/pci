@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from app_modules.helper import *
+from app_modules.orcid import OrcidTools
 
 from app_components import article_components
 
 from gluon.storage import Storage
 
+from models.user import User
 
 ######################################################################################################################################################################
 def index():
@@ -36,12 +38,12 @@ def user_public_page():
         )
 
 
-def profile_page(user):
+def profile_page(user: User):
             # (gab) is always on false ????
                 withMail = False
                 userId = user.id
 
-                nameTitle = (user.last_name or "").upper(), " ", (user.first_name or "")
+                nameTitle = SPAN((user.last_name or "").upper() + " " + (user.first_name or ""), _class="pci2-main-color-text text-center", _style="text-transform: none")
                 pageTitle = (
                     (user.last_name or "").upper(),
                     " ",
@@ -132,7 +134,7 @@ def profile_page(user):
                     nbReviews=nbReviews,
                     reviewsList=DIV(reviews, _class="pci2-articles-list"),
                     userAvatar=img,
-                    userName=nameTitle,
+                    userName=OrcidTools.build_name_with_orcid(nameTitle, user.orcid),
                     userInfosList=UL(addr, mail, thema, roles) if withMail else UL(addr, thema, roles),
                     userCv=userCv,
                     userWebsite=user.website,
