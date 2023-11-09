@@ -2676,6 +2676,7 @@ def article_reviews_emails():
     # the grid is adjusted after creation to adhere to our requirements
     try: grid = adjust_grid.adjust_grid_basic(original_grid, 'mail_queue', remove_options, integer_fields)
     except: grid = original_grid
+    target = URL('recommender','recommendations', vars=dict(articleId=articleId), user_signature=True)
 
 
     myScript = common_tools.get_script("replace_mail_content.js")
@@ -2684,7 +2685,7 @@ def article_reviews_emails():
         pageTitle=getTitle(request, auth, db, "#ArticleReviewsEmailsTitle"),
         customText=getText(request, auth, db, "#ArticleReviewsEmailsText"),
         pageHelp=getHelp(request, auth, db, "#ArticleReviewsEmails"),
-        myBackButton=common_small_html.mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(target=target), 
         grid=original_grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
