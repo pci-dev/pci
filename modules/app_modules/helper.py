@@ -190,7 +190,7 @@ def query_semantic_api(authors: list, recommenders: list):
         if len(user_data) > 0:
             all_data[user["group"]] += user_data
         else:
-            grid.append(DIV(SPAN(f'Data not found for {user["group"]} {user["name"]}')))
+            grid.append(DIV(SPAN(f'Analysis not possible for {user["group"]} {user["name"]}(not found in semantic scholar database)')))
 
     recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"] + all_data["co-recommender"]
     if len(recommender_data) == 0:
