@@ -1186,7 +1186,7 @@ def reviewers():
         oppossed_reviewers = ""
         if not pciRRactivated:
             if article.suggest_reviewers:
-                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                (suggested_by_author, suggested_by_reviewers) = common_tools.separate_suggestions(article.suggest_reviewers)
                 if len(suggested_by_author) > 0:
                     suggested_reviewers_by_author = DIV(
                         BUTTON(H4(B("Reviewers suggested by the authors", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
@@ -1226,7 +1226,7 @@ def reviewers():
                             _class="content2"),
                         )
             if article.suggest_reviewers:
-                (suggested_by_author, suggested_by_reviewers) = separate_suggestions(article.suggest_reviewers)
+                (suggested_by_author, suggested_by_reviewers) = common_tools.separate_suggestions(article.suggest_reviewers)
                 if len(suggested_by_reviewers) > 0:
                     suggested_reviewers_by_reviewers = DIV()
                     suggested_reviewers_by_reviewers.append(BUTTON(H4(B("Alternative reviewers suggested by invited reviewers", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"))
@@ -2653,26 +2653,6 @@ def article_reviews_emails():
 
 def mail_form_processing(form):
     app_forms.update_mail_content_keep_editing_form(form, db, request, response)
-
-
-def separate_suggestions(suggested_reviewers):
-    suggested_by_author = []
-    suggested_by_reviewers = []
-    suggestor_2_suggestions = {}
-    for reviewer in suggested_reviewers:
-        if ' suggested:' in reviewer:
-            suggestor_re = re.match('(.*) suggested:(.*)', reviewer)
-            suggestor = suggestor_re.group(1)
-            suggestion = suggestor_re.group(2)
-            if suggestor in suggestor_2_suggestions.keys():
-                suggestions = suggestor_2_suggestions[suggestor]
-                suggestions.append(suggestion)
-                suggestor_2_suggestions[suggestor] = suggestions
-            else:
-                suggestor_2_suggestions[suggestor] = [suggestion]
-        else: suggested_by_author.append(reviewer)
-
-    return suggested_by_author, suggestor_2_suggestions
 
 
 ######################################################################################################################################################################

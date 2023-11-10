@@ -25,6 +25,7 @@ from gluon.sqlhtml import *
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
+from models.article import Article
 
 
 myconf = AppConfig(reload=True)
@@ -182,7 +183,7 @@ class article_infocard_for_search_screens:
 for_search = article_infocard_for_search_screens().__dict__
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, article, printable,
+def getArticleInfosCard(auth, db, response, article: Article, printable,
         with_cover_letter=True,
         submittedBy=True,
         abstract=True,
@@ -283,7 +284,9 @@ def getArticleInfosCard(auth, db, response, article, printable,
         articleContent.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
 
     if article.suggest_reviewers and policy_1():
-        articleContent.update([("suggestReviewers", UL(article.suggest_reviewers or "", safe_mode=False))]) if not isRecommended else None
+        suggested_by_author = common_tools.separate_suggestions(article.suggest_reviewers)[0]
+        if len(suggested_by_author) > 0:
+            articleContent.update([("suggestReviewers", UL(suggested_by_author or "", safe_mode=False))]) if not isRecommended else None
 
     if article.competitors and policy_1():
         articleContent.update([("competitors", UL(article.competitors or "", safe_mode=False))]) if not isRecommended else None
