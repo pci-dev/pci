@@ -337,7 +337,7 @@
       {{pass}}
       {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review' and review['authors'] and not review['showEditButtons']:}}
         <div class="info-text">
-          In progress, not completed yet.
+          In progress. Due date {{=review['due_date'].strftime('%b %d, %Y')}}.
         </div>
       {{pass}}
     </div>
