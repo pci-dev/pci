@@ -79,7 +79,9 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     verifyUrl = None
     if auth.has_membership(role="manager"):
         printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True)
-        verifyUrl = URL(c="manager", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), user_signature=True)
+    
+    if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and art.user_id != auth.user_id:
+        verifyUrl = URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), user_signature=True)
 
     recommenderSurveyButton = None
     if lastRecomm and (auth.user_id == lastRecomm.recommender_id or co_recommender):

@@ -43,9 +43,6 @@ from app_modules.mastodon import Mastodon
 from models.suggested_recommender import SuggestedRecommender
 
 from app_modules.common_small_html import md_to_html
-from app_modules.common_small_html import group_reviewers
-from app_modules.common_small_html import mkUserNoSpan 
-from app_modules.common_small_html import mk_co_recommender_no_span
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
@@ -1793,46 +1790,4 @@ def email_for_recommender():
         titleIcon="envelope",
         pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
-    )
-
-######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
-def verify_co_authorship():
-
-    response.view = "default/myLayout.html"
-    articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
-    recomm = db.get_last_recomm(articleId)
-    authors = extract_name(article.authors)
-    authors = [{"group" : "author", "name" : author} for author in authors]
-
-    reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
-    is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
-                            (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
-    has_recommender = db(db.v_article_recommender.recommendation_id == recomm.id).select(db.v_article_recommender.recommender) if recomm else None
-    has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details) if recomm else None
-
-    grid = []
-    recommenders = []
-
-    # List of suggested recommenders
-    if is_suggested and not has_recommender:
-        recommenders = [{"group" : "suggested recommender", "name" : mkUserNoSpan(None, db, user.suggested_recommender_id)} for user in is_suggested]
-    if has_recommender:
-        recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
-    if has_co_recommenders:
-        recommenders += [{"group" : "co-recommender", "name" : mk_co_recommender_no_span(db, user)} for user in has_co_recommenders]
-    if has_reviewers:
-        recommenders += group_reviewers(db, has_reviewers)
-  
-    grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
-
-    return dict(
-        myBackButton = common_small_html.mkBackButton(),
-        customText=getText(request, auth, db, "#VerifyCoAuthorText"),
-        titleIcon="ok-sign",
-        pageTitle=getText(request, auth, db, "#VerifyCoAuthorTitle"),
-        pageHelp=getHelp(request, auth, db, "#VerifyCoAuthor"),
-        grid=DIV(grid),
     )
