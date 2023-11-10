@@ -2954,6 +2954,7 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
+        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionSoonDue", article)
 
@@ -2979,6 +2980,7 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
+        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionDue", article)
 
@@ -3004,6 +3006,7 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
         mail_vars["articleAuthors"] = article.authors
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionOverDue", article)
 
