@@ -665,6 +665,8 @@ def search_recommenders():
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
 
     excludeList = common_tools.get_exclude_suggested_recommender(auth, db, articleId)
+    excluded_by_submitter_query = db(db.t_excluded_recommenders.article_id == articleId).select()
+    excluded_by_submitter = [m['excluded_recommender_id'] for m in excluded_by_submitter_query]
 
     users = db.auth_user
     full_text_search_fields = [
@@ -706,9 +708,12 @@ def search_recommenders():
                 _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
                 _class="button",
                 ),
-                INPUT(_type="checkbox", _id='checkbox_suggest_%s'%(str(row.auth_user.id)), _class="multiple-choice-checks suggest", _onclick='update_parameter_for_selection(this)'))
+                INPUT(_type="checkbox", _id='checkbox_suggest_%s'%(str(row.auth_user.id)), _class="multiple-choice-checks suggest", _onclick='update_parameter_for_selection(this)'),
+                DIV(current.T("Excluded by author(s)"), _class="exclude_by_submitter") if row.auth_user.id in excluded_by_submitter else ""
+                ),
             ),
         ]
+
 
     select_all_btn = DIV(A(
                          SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),

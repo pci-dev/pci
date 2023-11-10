@@ -40,6 +40,12 @@
         max-width: 95%;
     }
 
+    .exclude_by_submitter {
+        color: red;
+        padding-left: 1rem;
+        font-weight: 900;
+    }
+
     #hidden-html {
         display: none;
     }
