@@ -197,6 +197,7 @@ def recommendations():
 ######################################################################################################################################################################
 @auth.requires_login()
 def search_recommenders():
+    whatNext = request.vars["whatNext"]
     articleId = request.vars.articleId
     excludeList = common_tools.get_exclude_list(request)
     if excludeList is None:
@@ -216,6 +217,7 @@ def search_recommenders():
     else:
         users = db.auth_user
         full_text_search_fields = [
+            'id',
             'first_name',
             'last_name',
             'email',
@@ -228,24 +230,56 @@ def search_recommenders():
             'keywords',
         ]
 
+        def limit_to_width_list(value, row):
+            return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
+
+        def limit_to_width_str(value, row):
+            if value == None: return SPAN(_class="m300w")
+            return SPAN(current.T("%s" %value), _class="m300w"),
+
         users.thematics.label = "Thematics fields"
         users.thematics.type = "string"
         users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+        users.thematics.represent = limit_to_width_list
+
+        users.keywords.represent = limit_to_width_str
+
+        users.id.label = "Name"
+        users.id.readable = True
+        users.id.represent = lambda uid, row: DIV(
+                common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+                _class="pci-w300Cell")
 
         for f in users.fields:
             if not f in full_text_search_fields:
                 users[f].readable = False
 
-        def mkButton(func):
+        def mkButton(func, modus):
             return lambda row: "" if row.auth_user.id in excludeList \
-                    else func(auth, db, row, art.id, excludeList, request.vars)
+                    else DIV( func(auth, db, row, art.id, excludeList, request.vars),
+                              INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
+                              _class="min15w")
 
         links = [
-            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton)),
+            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton, 'suggest')),
         ]
 
+        btn_label = "CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"
+        btn_style = "btn-success"
         if pciRRactivated:
-            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton)))
+            btn_label = "CLICK HERE TO SUGGEST/EXCLUDE ALL SELECTED RECOMMENDERS"
+            btn_style = "btn_default"
+
+        select_all_btn = DIV(A(
+                            SPAN(current.T(btn_label), _class="btn %s"%btn_style),
+                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclusionIds='', exclude=excludeList)),
+                            _class="button select-all-btn",
+                            _id="select-all-btn",
+                            )
+                            )
+
+        if pciRRactivated:
+            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton, 'exclude')))
 
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
@@ -265,19 +299,13 @@ def search_recommenders():
                         csv=csv,
                         exportclasses=expClass,
                         fields=[
-                            users._id,
-                            users.uploaded_picture,
-                            users.first_name,
-                            users.last_name,
-                            users.laboratory,
-                            users.institution,
-                            users.city,
-                            users.country,
+                            users.id,
                             users.thematics,
+                            users.keywords,
                             users.orcid
                         ],
                         links=links,
-                        orderby=users._id,
+                        orderby=users.id,
                         _class="web2py_grid action-button-absolute",
                     )
 
@@ -300,12 +328,13 @@ def search_recommenders():
                 _class="button",
             ),
             _style="text-align:center; margin-top:16px;",
+            _class="done-btn",
         )
 
         myUpperBtn = ""
         if len(grid) >= 10:
             myUpperBtn = myAcceptBtn
-
+        select_all_script = common_tools.get_script("select_all.js")
         response.view = "default/gab_list_layout.html"
         return dict(
             pageHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
@@ -315,6 +344,8 @@ def search_recommenders():
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             grid=grid,
+            selectAllBtn = select_all_btn,
+            selectAllScript = select_all_script,
             absoluteButtonScript=common_tools.absoluteButtonScript,
         )
 

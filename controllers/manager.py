@@ -665,6 +665,8 @@ def search_recommenders():
         articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
 
     excludeList = common_tools.get_exclude_suggested_recommender(auth, db, articleId)
+    excluded_by_submitter_query = db(db.t_excluded_recommenders.article_id == articleId).select()
+    excluded_by_submitter = [m['excluded_recommender_id'] for m in excluded_by_submitter_query]
 
     users = db.auth_user
     full_text_search_fields = [
@@ -684,20 +686,42 @@ def search_recommenders():
         if not f in full_text_search_fields:
             users[f].readable = False
 
+    def limit_to_width(value, row):
+        return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
+
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    users.thematics.represent = limit_to_width
+
+    users.id.label = "Name"
+    users.id.readable = True
+    users.id.represent = lambda uid, row: DIV(
+            common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+            _class="pci-w300Cell")
 
     links = []
     if articleId:
         links += [
-        dict(header="", body=lambda row: "" if row.auth_user.id in excludeList else A(
+        dict(header="", body=lambda row: "" if row.auth_user.id in excludeList else DIV(A(
                 SPAN(current.T("Suggest as recommender"), _class="buttontext btn btn-default pci-submitter"),
                 _href=URL(c="manager_actions", f="suggest_article_to", vars=dict(articleId=articleId, recommenderId=row.auth_user.id, whatNext=whatNext), user_signature=True),
                 _class="button",
+                ),
+                INPUT(_type="checkbox", _id='checkbox_suggest_%s'%(str(row.auth_user.id)), _class="multiple-choice-checks suggest", _onclick='update_parameter_for_selection(this)'),
+                DIV(current.T("Excluded by author(s)"), _class="exclude_by_submitter") if row.auth_user.id in excluded_by_submitter else ""
+                ),
             ),
-        ),
-    ]
+        ]
+
+
+    select_all_btn = DIV(A(
+                         SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
+                         _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds=''), user_signature=True),
+                         _class="button select-all-btn",
+                         _id="select-all-btn",
+                         )
+                        )
 
     query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
 
@@ -716,15 +740,9 @@ def search_recommenders():
         csv=csv,
         exportclasses=expClass,
         fields=[
-            users._id,
-            users.uploaded_picture,
-            users.first_name,
-            users.last_name,
-            users.laboratory,
-            users.institution,
-            users.city,
-            users.country,
+            users.id,
             users.thematics,
+            users.keywords,
         ],
         links=links,
         orderby=users._id,
@@ -740,6 +758,7 @@ def search_recommenders():
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
+    select_all_script = common_tools.get_script("select_all.js")
 
     response.view = "default/gab_list_layout.html"
     return dict(
@@ -750,6 +769,8 @@ def search_recommenders():
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         articleHeaderHtml=articleHeaderHtml,
+        selectAllBtn = select_all_btn,
+        selectAllScript = select_all_script,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 

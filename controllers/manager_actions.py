@@ -226,6 +226,17 @@ def suggest_article_to():
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
+def suggest_all_selected():
+    articleId = request.vars["articleId"]
+    whatNext = request.vars["whatNext"]
+    recommenderIds = request.vars["recommenderIds"]
+    for recommenderId in recommenderIds.split(','):
+        db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
+    redirect(whatNext)
+
+
+######################################################################################################################################################################
+@auth.requires(auth.has_membership(role="manager"))
 def set_not_considered():
     if not 'articleId' in request.vars:
         session.flash = 'Article id missing'

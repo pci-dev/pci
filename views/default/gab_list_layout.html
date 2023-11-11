@@ -32,13 +32,27 @@
 </div>
 {{pass}}
 
+{{if 'selectAllBtn' in locals():}}
+	{{=selectAllBtn}}
+{{pass}}
+
+{{if 'myAcceptBtn' in locals():}}
+	{{=myAcceptBtn}}
+{{pass}}
 
 <div>
 	{{=grid}}
+	{{if 'selectAllBtn' in locals():}}
+		{{=selectAllBtn}}
+	{{pass}}
 </div>
 
 {{if 'myAcceptBtn' in locals():}}
 	{{=myAcceptBtn}}
+{{pass}}
+
+{{if 'selectAllScript' in locals():}}
+	{{=selectAllScript}}
 {{pass}}
 
 {{if 'myFinalScript' in locals():}}

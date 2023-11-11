@@ -38,7 +38,7 @@ for (let i=0; i<confirmation_change_buttons.length; i++) {
     }
 }
 
-console.log(status_buttons)
+
 if (status_fields.length > 0 || status_buttons.length > 0) {
     var modal = document.createElement('div');
     var modal_backdrop = document.createElement('div');

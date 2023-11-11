@@ -91,7 +91,8 @@ class User_submits:
     select('#simple-search-input').clear()
     select('#simple-search-input').send_keys(recommender.name + "\n")
     select('#simple-search-btn').click()
-    select("a", "Suggest as recommender".upper()).click()
+    suggest_btn = "Suggest" if is_rr else "Suggest as recommender"
+    select("a", suggest_btn.upper()).click()
 
  def mail_sent_to_recommender(_):
     select.notif().contains("Suggested recommender")
