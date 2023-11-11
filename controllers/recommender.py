@@ -1594,7 +1594,6 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
         return
 
-    
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -1733,10 +1732,10 @@ def email_for_registered_reviewer():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def email_for_new_reviewer():
     response.view = "default/myLayout.html"
-
     recommendation_id = request.vars["recommId"]
     new_stage = convert_string(request.vars["new_stage"])
     recommendation = Recommendation.get_by_id(db, recommendation_id)
+
     if not recommendation:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1812,10 +1811,14 @@ def email_for_new_reviewer():
 
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
-        
+
         new_user_id = None
-        clean_reviewer_email, clean_reviewer_errors = emailing_tools.clean_addresses(request.vars.reviewer_email.lower())
+        clean_reviewer_email, clean_reviewer_errors = emailing_tools.clean_addresses(form.vars.reviewer_email.lower())
         request.vars.reviewer_email = clean_reviewer_email
+
+        if clean_reviewer_email == '':
+            session.flash = (session.flash or "") + T("E-mail failed.")
+            redirect(request.env.http_referer)
 
         # NOTE adapt long-delay key for invitation
         reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
@@ -1909,6 +1912,7 @@ def email_for_new_reviewer():
 
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
 
+    myScript = common_tools.get_script("name_check.js")
     return dict(
         form=form,
         pageHelp=getHelp(request, auth, db, "#EmailForNewReviewer"),
@@ -1916,7 +1920,40 @@ def email_for_new_reviewer():
         pageTitle=getTitle(request, auth, db, "#EmailForNewReviewerInfoTitle"),
         customText=getText(request, auth, db, "#EmailForNewReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
+        myFinalScript=myScript,
     )
+
+
+@auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
+def check_reviewer_name():
+    last_name = request.vars['last_name']
+    first_name = request.vars['first_name']
+
+    response_json = {}
+
+    if not last_name or not first_name:
+        response_json['success'] = False
+        return response.json(response_json)
+
+    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
+    if existingUsers:
+        users = []
+        for user in existingUsers:
+            single_user = {}
+            single_user['first_name'] = user.first_name
+            single_user['last_name'] = user.last_name
+            single_user['email'] = user.email
+            single_user['institution'] = user.institution
+            single_user['laboratory'] = user.laboratory
+            single_user['country'] = user.country
+            users.append(single_user)
+        response_json['users'] = users
+        response_json['success'] = True
+    else:
+        response_json['success'] = False
+
+    return response.json(response_json)
+
 
 
 ######################################################################################################################################################################

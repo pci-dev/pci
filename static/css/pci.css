@@ -1361,7 +1361,8 @@ header {
 }
 
 #complete-profile-modal,
-#confirm-change-modal {
+#confirm-change-modal,
+#find-reviewer-modal {
   position: fixed;
   width: 30%;
   height: fit-content;
@@ -1372,7 +1373,8 @@ header {
 }
 
 #complete-profile-modal #complete-profile-confirm-dialog,
-#confirm-change-modal .btn-info {
+#confirm-change-modal .btn-info,
+#find-reviewer-modal .btn-info {
   margin-bottom: 0px;
 }
 

@@ -209,9 +209,9 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys(reviewer.email)
 
     select("input[type=submit]").click()
-
-    select.notif(contains="e-mail sent to " + reviewer.name)
-    select("a", "Done".upper()).click()
+    select("input#checkbox_0.user-checkbox").click()
+    select("a", contains="Yes, use the selected user and return to invitation editing".upper()).click()
+    select("input[type=submit]").click()
 
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()
@@ -227,8 +227,8 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys("ratalatapouet@toto.com")
 
     select("input[type=submit]").click()
-    notif = select.notif()
-    notif.contains("e-mail sent to Titi Toto")
+    import time; time.sleep(.5)
+    select.notif().wait_clickable().contains("e-mail sent to Titi Toto")
     # message 'User "ratalatapouet@toto.com" created' shown only first time
 
  def logout_recommender(_):

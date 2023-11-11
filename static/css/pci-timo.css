@@ -58,6 +58,23 @@
         z-index: 1;
     }
 
+    #find-reviewer-modal {
+        max-width: 50%;
+        width: fit-content;
+        overflow: scroll;
+        top: 10%;
+        left: 25%;
+        max-height: 85%;
+    }
+
+    .modal-body hr {
+        border-bottom: 1px solid;
+    }
+
+    .user-checkbox {
+        float: right;
+    }
+
     .statistics tbody tr {
         min-height: 5rem;
     }
@@ -136,6 +153,10 @@
 
     .column-merge-hr {
         border-top: 1px solid grey;
+    }
+
+    .red {
+        color: red;
     }
 
     .recommender-preprints-table .cyp-review-state.pci-status,
