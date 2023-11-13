@@ -428,7 +428,7 @@ def mkReviewStateDiv(auth: Auth, db: DAL, state: str, review: Optional[Review] =
         color_class = "info"
         if review:
             if review.due_date:
-                state_txt = f"{state_txt} {review.due_date.strftime('%b %d, %Y').upper()}"
+                state_txt = f"{state_txt}: DUE {review.due_date.strftime('%b %d, %Y').upper()}"
     elif state == ReviewState.REVIEW_COMPLETED.value:
         color_class = "success"
     elif state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
