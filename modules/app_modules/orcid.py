@@ -118,9 +118,11 @@ class OrcidValidator:
             return value, f'{self.error_message}: expected length 16, got {len(value)}'
         
         if value[-1] == "X":
-            value = value[:-1]
+            digits = value[:-1]
+        else:
+            digits = value
 
-        if not value.isdigit():
+        if not digits.isdigit():
             return value, f'{self.error_message}: must contain only digits, optionally a trailing X'
         
         return value, None
