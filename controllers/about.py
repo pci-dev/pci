@@ -309,6 +309,9 @@ def _get_review_with_reviewer_by_year(db: DAL):
             review_date = review.due_date
         else:
             review_date = Review.get_due_date_from_review_duration(review)
+
+        if review_date > datetime.datetime.today():
+            continue
         
         recommendation = dict_id_recommendations.get(review.recommendation_id)
         if recommendation and recommendation.validation_timestamp and review_date < recommendation.validation_timestamp:
