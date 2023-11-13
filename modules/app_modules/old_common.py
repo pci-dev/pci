@@ -534,7 +534,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 for recommenderOwnReviewState in recommenderOwnReviewStates:
                     if recommenderOwnReviewState.review_state == "Review completed":
                         recommReviewFilledOrNull = True  # Yes, his/her review is completed
-
+            count_anon = 0
             for review in reviews:
                 # No one is allowd to see ongoing reviews ...
                 hideOngoingReview = True
@@ -620,12 +620,14 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                     # myReviews.append(HR())
                     # buttons allowing to edit and validate the review
                     if review.anonymously:
+                        count_anon += 1
+                        reviewer_number = common_tools.find_reviewer_number(db, review, count_anon)
                         myReviews.append(
                             SPAN(
                                 I(
                                     current.T("Reviewed by")
                                     + " "
-                                    + current.T("anonymous reviewer")
+                                    + current.T("anonymous reviewer " + reviewer_number)
                                     + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                                 )
                             )
