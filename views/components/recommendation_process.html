@@ -307,7 +307,7 @@
       {{pass}}
 
       <!-- Review text -->  
-      {{if ((review['text'] is not None) or (review['pdfLink'] is not None) or (review['showEditButtons'])) and review['state'] != 'Awaiting review':}}
+      {{if (review['text'] is not None) or (review['pdfLink'] is not None) or (review['showEditButtons']):}}
         <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
           {{if review['text']:}}
             {{=review['text']}}
