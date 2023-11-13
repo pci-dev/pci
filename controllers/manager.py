@@ -548,6 +548,10 @@ def manage_recommendations():
     if art is None:
         redirect(URL(c="manager", f="all_recommendations"))
 
+    target = URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)
+    if "edit" in request.env.request_uri:
+        target = URL('manager','manage_recommendations', vars=dict(articleId=articleId), user_signature=True)
+
     query = db.t_recommendations.article_id == articleId
     db.t_recommendations.recommender_id.default = auth.user_id
     db.t_recommendations.article_id.default = articleId
@@ -639,7 +643,7 @@ def manage_recommendations():
     confirmationScript = common_tools.get_script("confirmation.js")
 
     return dict(
-        myBackButton=common_small_html.mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(target=target),
         pageHelp=getHelp(request, auth, db, "#ManageRecommendations"),
         customText=getText(request, auth, db, "#ManageRecommendationsText"),
         titleIcon="edit",
@@ -1341,7 +1345,7 @@ def article_emails():
     article = db.t_articles[articleId]
     urlFunction = request.function
     urlController = request.controller
-
+    referer = request.env.http_referer
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
         SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
@@ -1429,7 +1433,7 @@ def article_emails():
         pageTitle=getTitle(request, auth, db, "#ArticleEmailsTitle"),
         customText=getText(request, auth, db, "#ArticleEmailsText"),
         pageHelp=getHelp(request, auth, db, "#ArticleEmails"),
-        myBackButton=common_small_html.mkBackButton(),
+        myBackButton=common_small_html.mkBackButton(target=URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)), 
         grid=grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
