@@ -307,7 +307,7 @@
       {{pass}}
 
       <!-- Review text -->  
-      {{if (review['text'] is not None) or (review['pdfLink'] is not None) or (review['showEditButtons']):}}
+      {{if ((review['text'] is not None) or (review['pdfLink'] is not None) or (review['showEditButtons'])) and review['state'] != 'Awaiting review':}}
         <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
           {{if review['text']:}}
             {{=review['text']}}
@@ -335,7 +335,7 @@
           {{pass}}
         </div>
       {{pass}}
-      {{if review['text'] is None and review['pdfLink'] is None and review['state'] == 'Awaiting review' and review['authors'] and not review['showEditButtons']:}}
+      {{if review['state'] == 'Awaiting review' and review['authors'] and not review['showEditButtons']:}}
         <div class="info-text">
           In progress{{if review['due_date']:}}. Due date {{=review['due_date'].strftime('%b %d, %Y')}}.
           {{else:}}, not completed yet.
