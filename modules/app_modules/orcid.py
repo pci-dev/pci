@@ -117,8 +117,11 @@ class OrcidValidator:
         if len(value) != ORCID_NUMBER_LENGTH:
             return value, f'{self.error_message}: expected length 16, got {len(value)}'
         
+        if value[-1] == "X":
+            value = value[:-1]
+
         if not value.isdigit():
-            return value, f'{self.error_message}: must contain only digits'
+            return value, f'{self.error_message}: must contain only digits, optionally a trailing X'
         
         return value, None
 

@@ -26,7 +26,7 @@ function checkOrcidNumber() {
     return;
   }
 
-  orcid_regex = /^\d{4}-\d{4}-\d{4}-\d{4}$/;
+  orcid_regex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
   if (orcid_regex.test(authUserOrcid.value)) {
     submitButton.disabled = false;
   } else {
