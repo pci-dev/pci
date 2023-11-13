@@ -1255,7 +1255,7 @@ def reviewers():
             myContents = ""
         longname = myconf.take("app.longname")
         tools_button = DIV(
-            H5(B("Tools to help you find reviewers (attention: the name of the authors can come first)")),
+            H5(B("Tools to help you find reviewers. Be careful not to invite any of the authors as reviewers, as their names can appear in search outputs.")),
             A(
                 SPAN(current.T("Possible reviewers identified by Jane"), _class="btn btn-primary"),
                 _href=f"http://jane.biosemantics.org/suggestions.php?findAuthors&text={html.fromstring(article.abstract).text_content()}", _target="_blank"
