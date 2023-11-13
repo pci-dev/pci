@@ -1156,16 +1156,18 @@ def reviewers():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
 
+    if not recomm:
+        return my_recommendations()
+
     if recomm:
         article= db.t_articles[recomm.article_id]
         if article.user_id == auth.user_id:
             session.flash = auth.not_authorized()
             redirect(request.env.http_referer)
+
     reg_user, new_stage = False, False
     if article.report_stage == "STAGE 2":
         reg_user, new_stage = True, True
-    if not recomm:
-        return my_recommendations()
     co_recommender = is_co_recommender(auth, db, recomm.id)
     if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
