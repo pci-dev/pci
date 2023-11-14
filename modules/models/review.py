@@ -137,6 +137,21 @@ class Review(Row):
     
 
     @staticmethod
+    def get_due_date(db: DAL, review: Review):
+        if review.due_date:
+            return review.due_date
+        
+        due_date: _[datetime] = None
+        if pciRRactivated:
+            due_date = Review.get_due_date_from_scheduled_submission_date(db, review)
+        
+        if not due_date:
+            due_date = Review.get_due_date_from_review_duration(review)
+
+        return due_date
+
+
+    @staticmethod
     def get_due_date_from_review_duration(review: Review):
         nb_days_from_duration = Review.get_review_days_from_duration(review)
         if review.acceptation_timestamp:
