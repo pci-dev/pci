@@ -304,7 +304,7 @@ def _get_review_with_reviewer_by_year(db: DAL):
     reviews_users = Review.get_all_with_reviewer(db, [ReviewState.REVIEW_COMPLETED])
     for review_user in reviews_users:
         review = review_user[0]
-        review_date: Optional[datetime]
+        review_date: Optional[datetime.datetime]
         if review.due_date:
             review_date = review.due_date
         else:
