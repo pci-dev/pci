@@ -691,17 +691,18 @@ def search_recommenders():
             users[f].readable = False
 
     def limit_to_width(value, row):
-        return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
+        return SPAN(current.T("%s" %', '.join(value)), _class="m230w"),
 
-    def limit_to_width_kw(value, row):
-        return SPAN(current.T("%s"%(value)), _class="m300w"),
+    def limit_to_width_str(value, row):
+        if value == None: return SPAN(_class="m230w")
+        return SPAN(current.T("%s" %value), _class="m230w"),
 
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
     users.thematics.represent = limit_to_width
 
-    users.keywords.represent = limit_to_width_kw
+    users.keywords.represent = limit_to_width_str
 
     users.id.label = "Name"
     users.id.readable = True

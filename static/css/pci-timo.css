@@ -24,6 +24,12 @@
         min-width: 20rem;
     }
 
+    .m230w {
+        max-width: 23rem;
+        display: inline-block;
+        min-width: 20rem;
+    }
+
     .min15w {
         min-width: 15rem;
     }
