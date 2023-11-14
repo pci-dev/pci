@@ -737,7 +737,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     managerButton = getManagerButton(art, auth, amIinRecommenderList or amIinCoRecommenderList) \
             if not printable else None
 
-    return DIV(recommendationRounds, managerButton or "")
+    return DIV(recommendationRounds, BR(), managerButton or "")
 
 
 def is_scheduled_submission(article):
