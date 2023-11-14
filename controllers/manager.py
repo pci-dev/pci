@@ -693,10 +693,15 @@ def search_recommenders():
     def limit_to_width(value, row):
         return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
 
+    def limit_to_width_kw(value, row):
+        return SPAN(current.T("%s"%(value)), _class="m300w"),
+
     users.thematics.label = "Thematics fields"
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
     users.thematics.represent = limit_to_width
+
+    users.keywords.represent = limit_to_width_kw
 
     users.id.label = "Name"
     users.id.readable = True
@@ -749,7 +754,7 @@ def search_recommenders():
             users.keywords,
         ],
         links=links,
-        orderby=users._id,
+        orderby=(users.last_name, users.first_name),
         _class="web2py_grid action-button-absolute",
     )
 
