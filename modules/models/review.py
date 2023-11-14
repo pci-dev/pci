@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, Tuple, cast
 from gluon.contrib.appconfig import AppConfig
+from models.article import Article
 from models.recommendation import Recommendation
 from models.user import User
 from pydal.objects import Row, Rows
@@ -137,11 +138,26 @@ class Review(Row):
 
     @staticmethod
     def get_due_date_from_review_duration(review: Review):
+        nb_days_from_duration = Review.get_review_days_from_duration(review)
+        if review.acceptation_timestamp:
+            return review.acceptation_timestamp + timedelta(nb_days_from_duration)
+        else:
+            return datetime.today() + timedelta(nb_days_from_duration)
+        
+
+    @staticmethod
+    def get_due_date_from_scheduled_submission_date(db: DAL, review: Review):
+        recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+        if not recommendation:
+            return None
+        
+        article = Article.get_by_id(db, recommendation.article_id)
+        if not article:
+            return None
+        
+        if article.scheduled_submission_date:
             nb_days_from_duration = Review.get_review_days_from_duration(review)
-            if review.acceptation_timestamp:
-                return review.acceptation_timestamp + timedelta(nb_days_from_duration)
-            else:
-                return datetime.today() + timedelta(nb_days_from_duration)
+            return article.scheduled_submission_date + timedelta(nb_days_from_duration)
     
 
     @staticmethod
