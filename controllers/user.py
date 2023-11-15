@@ -305,7 +305,7 @@ def search_recommenders():
                             users.orcid
                         ],
                         links=links,
-                        orderby=users.id,
+                        orderby=(users.last_name, users.first_name),
                         _class="web2py_grid action-button-absolute",
                     )
 
