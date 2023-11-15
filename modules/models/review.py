@@ -104,11 +104,12 @@ class Review(Row):
     
     
     @staticmethod
-    def set_review_duration(review: Review, review_duration: str):
+    def set_review_duration(review: Review, article: Article, review_duration: str):
         review.review_duration = review_duration
-        due_date = Review.get_due_date_from_review_duration(review)
-        if due_date:
-            review.due_date = due_date
+        if not pciRRactivated and not article.scheduled_submission_date:
+            due_date = Review.get_due_date_from_review_duration(review)
+            if due_date:
+                review.due_date = due_date
         return review.update_record()
     
 
