@@ -1697,7 +1697,7 @@ def email_for_registered_reviewer():
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
         
-        Review.set_review_duration(review, form.vars.review_duration)
+        Review.set_review_duration(review, article, form.vars.review_duration)
 
         try:
                 emailing.send_reviewer_invitation(

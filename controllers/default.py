@@ -508,7 +508,7 @@ def invitation_to_review():
             url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
             
             if more_delay and request.vars.review_duration and review.review_duration != request.vars.review_duration:
-                Review.set_review_duration(review, request.vars.review_duration)
+                Review.set_review_duration(review, article, request.vars.review_duration)
                 url_vars['more_delay'] = 'true'
             
             action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
