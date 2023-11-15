@@ -171,8 +171,9 @@ class Review(Row):
             return None
         
         if article.scheduled_submission_date:
-            nb_days_from_duration = Review.get_review_days_from_duration(review)
-            return article.scheduled_submission_date + timedelta(nb_days_from_duration)
+            review_start_date = article.scheduled_submission_date + timedelta(days=7)
+            review_due_date = review_start_date + timedelta(days=7)
+            return review_due_date
     
 
     @staticmethod
