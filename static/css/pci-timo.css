@@ -30,6 +30,13 @@
         min-width: 20rem;
     }
 
+    .m130w,
+    .break-reviewer-stat {
+        max-width: 13rem;
+        display: inline-block;
+        min-width: 13rem;
+    }
+
     .min15w {
         min-width: 15rem;
     }
