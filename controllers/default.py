@@ -508,7 +508,7 @@ def invitation_to_review():
             url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
             
             if more_delay and request.vars.review_duration and review.review_duration != request.vars.review_duration:
-                Review.set_review_duration(review, request.vars.review_duration)
+                Review.set_review_duration(review, article, request.vars.review_duration)
                 url_vars['more_delay'] = 'true'
             
             action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
@@ -564,17 +564,18 @@ def invitation_to_review_acceptation():
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
         review = Review.get_by_id(db, review_id)
-        if review:
+        article = Article.get_by_id(db, article_id)
+        if review and article:
             if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
                 url_vars = dict(reviewId=review_id, _next=URL(c="user_actions", f="suggestion_sent_page"))
                 session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
             if not review.acceptation_timestamp:
                 if more_delay:
-                    Review.accept_review(review, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
+                    Review.accept_review(review, article, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
                     send_conditional_acceptation_review_mail(session, auth, db, review)
                 else:
-                    Review.accept_review(review, True)
+                    Review.accept_review(review, article, True)
 
             if user and not review.suggested_reviewers_send and not auth.user_id:
                 url_vars = dict(_next=URL("default", "invitation_to_review_acceptation", vars=request.vars), reviewId=review_id)

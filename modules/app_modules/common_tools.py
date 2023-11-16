@@ -195,10 +195,10 @@ def get_article_id(request: Request):
     if 'articleId' in request.vars:
         articleId = cast(str, request.vars['articleId'])
         if isinstance(articleId, list):
-            return articleId[1]
+            return int(articleId[1])
         if articleId == "":
             return None
-        return articleId
+        return int(articleId)
     else:
         return None
     

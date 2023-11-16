@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, Tuple, cast
 from gluon.contrib.appconfig import AppConfig
+from models.article import Article
 from models.recommendation import Recommendation
 from models.user import User
 from pydal.objects import Row, Rows
@@ -86,13 +87,13 @@ class Review(Row):
 
 
     @staticmethod
-    def accept_review(review: Review, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
+    def accept_review(review: Review, article: Article, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
         review.review_state = state.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
         if review.review_duration:
-            review.due_date = Review.get_due_date_from_review_duration(review)
+            Review.set_review_duration(review, article, review.review_duration)
         return review.update_record()
     
 
@@ -103,11 +104,12 @@ class Review(Row):
     
     
     @staticmethod
-    def set_review_duration(review: Review, review_duration: str):
+    def set_review_duration(review: Review, article: Article, review_duration: str):
         review.review_duration = review_duration
-        due_date = Review.get_due_date_from_review_duration(review)
-        if due_date:
-            review.due_date = due_date
+        if not pciRRactivated and not article.scheduled_submission_date:
+            due_date = Review.get_due_date_from_review_duration(review)
+            if due_date:
+                Review.set_due_date(review, due_date)
         return review.update_record()
     
 
@@ -136,12 +138,43 @@ class Review(Row):
     
 
     @staticmethod
+    def get_due_date(db: DAL, review: Review):
+        if review.due_date:
+            return review.due_date
+        
+        due_date: _[datetime] = None
+        if pciRRactivated:
+            due_date = Review.get_due_date_from_scheduled_submission_date(db, review)
+        
+        if not due_date:
+            due_date = Review.get_due_date_from_review_duration(review)
+
+        return due_date
+
+
+    @staticmethod
     def get_due_date_from_review_duration(review: Review):
-            nb_days_from_duration = Review.get_review_days_from_duration(review)
-            if review.acceptation_timestamp:
-                return review.acceptation_timestamp + timedelta(nb_days_from_duration)
-            else:
-                return datetime.today() + timedelta(nb_days_from_duration)
+        nb_days_from_duration = Review.get_review_days_from_duration(review)
+        if review.acceptation_timestamp:
+            return review.acceptation_timestamp + timedelta(nb_days_from_duration)
+        else:
+            return datetime.today() + timedelta(nb_days_from_duration)
+        
+
+    @staticmethod
+    def get_due_date_from_scheduled_submission_date(db: DAL, review: Review):
+        recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+        if not recommendation:
+            return None
+        
+        article = Article.get_by_id(db, recommendation.article_id)
+        if not article:
+            return None
+        
+        if article.scheduled_submission_date:
+            review_start_date = article.scheduled_submission_date + timedelta(days=7)
+            review_due_date = review_start_date + timedelta(days=7)
+            return review_due_date
     
 
     @staticmethod
