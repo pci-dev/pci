@@ -87,13 +87,13 @@ class Review(Row):
 
 
     @staticmethod
-    def accept_review(review: Review, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
+    def accept_review(review: Review, article: Article, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
         review.review_state = state.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
         review.anonymous_agreement = anonymous_agreement or False
         if review.review_duration:
-            review.due_date = Review.get_due_date_from_review_duration(review)
+            Review.set_review_duration(review, article, review.review_duration)
         return review.update_record()
     
 
@@ -109,7 +109,7 @@ class Review(Row):
         if not pciRRactivated and not article.scheduled_submission_date:
             due_date = Review.get_due_date_from_review_duration(review)
             if due_date:
-                review.due_date = due_date
+                Review.set_due_date(review, due_date)
         return review.update_record()
     
 
