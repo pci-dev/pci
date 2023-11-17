@@ -1,4 +1,5 @@
 relocate_btns();
+remove_obsolete_checkboxes();
 let select_buttons = document.querySelectorAll('.select-all-btn');
 var exclude_checked = 0;
 
@@ -111,6 +112,17 @@ function relocate_btns() {
         grid.insertBefore(first_accept_btn, table);
     }
 }
+
+
+function remove_obsolete_checkboxes() {
+    let checkbox_containers = document.querySelectorAll('.min15w');
+    for (let i = 0; i < checkbox_containers.length; i++) {
+        if (checkbox_containers[i].children.length < 2) {
+            checkbox_containers[i].remove();
+        }
+    }
+}
+
 
 function update_parameter_for_selection(checkbox_clicked) {
     // checkbox is clicked, uncheck partner box of the same row and add ID to button referral

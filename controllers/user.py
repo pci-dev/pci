@@ -1512,7 +1512,7 @@ def add_suggested_recommender():
     manager_authors = request.vars["manager_authors"]
     art = db.t_articles[articleId]
 
-    if manager_authors != '':
+    if manager_authors != None:
         art.update_record(manager_authors=manager_authors)
 
     if (art.user_id != auth.user_id) and not (auth.has_membership(role="manager")):

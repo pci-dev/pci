@@ -463,12 +463,14 @@ def recommendations():
 
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
-    recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if not manager_coauthor:
         set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
-    else: set_not_considered_button = ''
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+    else:
+        set_not_considered_button = ''
+        recommTopButtons = ''
 
     recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
@@ -1194,20 +1196,7 @@ def all_recommendations():
         & (db.t_recommendations.id == db.v_reviewers.id)
         & (db.t_recommendations.id == db.v_recommendation_contributors.id)
     )
-
-    #manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
-    if True:#manager_coauthor:
-        #coauthors = common_tools.get_manager_coauthors(article)
-        query = (
-          (db.t_recommendations.article_id == db.t_articles.id)
-        & (db.t_articles.already_published == isPress)
-        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
-        & (db.t_recommendations.id == db.v_reviewers.id)
-        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
-        & (db.auth_user.id == auth.user_id)
-
-        )
-    else: query = (
+    query = (
           (db.t_recommendations.article_id == db.t_articles.id)
         & (db.t_articles.already_published == isPress)
         & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)

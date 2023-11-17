@@ -354,7 +354,6 @@ function check_checkboxes() {
   // check if all checkboxes are checked, and if they are, prompt user
   let checkboxes = document.querySelectorAll('.manager_checks');
   for (let i = 0; i < checkboxes.length; i++) {
-    console.log(i)
     if (checkboxes[i].checked == false) { return }
   }
   let alert = window.alert('Submission impossible because all managers are also co-authors. Please contact the managing board at contact@xxx.peercommunityin.org')
