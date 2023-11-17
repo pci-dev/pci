@@ -202,7 +202,7 @@ def query_semantic_api(authors: list, recommenders: list):
         author_data.extend(get_author_ids(author))
         found = False
         if len(author_data) == 0:
-            grid.append(DIV(SPAN(f'Data not found')))
+            grid.append(DIV(SPAN(f'Analysis not possible for {user["group"]} {user["name"]} (not found in semantic scholar database)')))
             continue
 
         for data in recommender_data:
