@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 from gluon import current
 from gluon.tools import Auth
 from gluon.html import *
@@ -147,7 +148,6 @@ def is_recommender(auth, request):
 def is_co_recommender(auth, db, recommId):
     return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
-
 ######################################################################################################################################################################
 def extract_name(s):
     # Split pattern to handle most cases
@@ -221,3 +221,10 @@ def query_semantic_api(authors: list, recommenders: list):
 
     return grid
 
+######################################################################################################################################################################
+def format_keywords_for_google_scholar(input_string):
+    # Split the string by commas, semicolons, or 'and'
+    keywords = re.split(r',|;| and ', input_string)
+    
+    formatted_keywords = ['"' + keyword.strip().replace(' ', '+') + '"' for keyword in keywords]
+    return '+AND+'.join(formatted_keywords)
