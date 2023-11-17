@@ -128,6 +128,7 @@ class COARNotifier:
                 "type": ["Service"],
             },
             "target": {
+                "id": re.sub("(http[s]?://[^/]+/).*", "\\1", target_inbox),
                 "inbox": target_inbox,
                 "type": ["Service"],
             },
