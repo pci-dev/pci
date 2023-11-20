@@ -77,7 +77,7 @@
     }}
 
   </head>
-  <body>
+  <body class="{{if auth.is_impersonating():}}impersonate{{pass}}">
     {{if request.controller == 'about' or request.function == 'index' or request.controller == 'help' or request.controller == 'articles':}}
       {{right_sidebar_enabled = True}}
       {{middle_column = mc1}}
@@ -94,7 +94,7 @@
     {{pass}}
 
     <!-- Navbar ======================================= -->
-    <nav class="navbar">
+    <nav class="navbar {{if auth.is_impersonating():}}impersonate{{pass}}">
       <div class="navbar-header"> 
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
           <span class="sr-only">Toggle navigation</span>
@@ -104,6 +104,14 @@
         </button>
         {{=response.logo or ''}}
       </div>
+
+      {{if auth.is_impersonating():}}
+        <div id="impersonate-header"> 
+          <p>{{=auth.user.first_name}} {{=auth.user.last_name}} (id = {{=auth.user.id}})</p>
+          <h2>Impersonate mode</h2>
+          <a class="btn btn-default" href="{{=URL(c="manager", f="uninpersonate")}}">Quit impersonate mode</a>
+        </div>
+      {{pass}}
 
       <div class="main-logo">
         <a href="{{=URL(c='default', f='index')}}">

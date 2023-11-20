@@ -1410,3 +1410,7 @@ header {
   font-size: initial;
   font-weight: bold;
 }
+
+body.impersonate {
+  margin-top: 49px;
+}
