@@ -1169,6 +1169,8 @@ def reviewers():
     if article.report_stage == "STAGE 2":
         reg_user, new_stage = True, True
     co_recommender = is_co_recommender(auth, db, recomm.id)
+    keywords =  format_keywords_for_google_scholar(article.keywords) if article.keywords else None
+
     if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1259,6 +1261,10 @@ def reviewers():
             A(
                 SPAN(current.T("Possible reviewers identified by Jane"), _class="btn btn-primary"),
                 _href=f"http://jane.biosemantics.org/suggestions.php?findAuthors&text={html.fromstring(article.abstract).text_content()}", _target="_blank"
+            ),
+            A(
+                SPAN(current.T("Related articles in Google Scholar"), _class="btn btn-info" if keywords else "btn btn-info disabled"),
+                _href=f"https://scholar.google.com/scholar?q={keywords}&as_ylo=2019" if keywords else None, _target="_blank",
             ),
             _style="margin-top:8px; margin-bottom:16px; text-align:left; max-width:1200px; width: 100%",)
         myUpperBtn = DIV(
