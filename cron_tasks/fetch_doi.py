@@ -21,7 +21,7 @@ def email_sent(article_id):
 def send_mails_for_published_dois():
         articles = db((db.t_articles.doi_of_published_article != None) & (db.t_articles.status == "Recommended")).select(db.t_articles.id)
         for article in articles:
-            if not email_sent:
+            if not email_sent(article.id):
                 emailing.send_message_to_recommender_and_reviewers(auth, db, article.id)
 
 def get_article_id(doi):
@@ -44,7 +44,7 @@ def update_article(id, published_doi):
     article = db((db.t_articles.id == id) & (db.t_articles.doi_of_published_article == None) & (db.t_articles.status == "Recommended")).select().last()
     if article:
         article.update_record(doi_of_published_article=published_doi)
-        emailing.send_message_to_recommender_and_reviewers(auth, db, id)
+        emailing.send_message_to_recommender_and_reviewers(auth, db, article.id)
 
 
 send_mails_for_published_dois()
