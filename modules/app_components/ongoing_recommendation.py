@@ -696,6 +696,11 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             and not pciRRactivated
         )
 
+        suspend_submissions = False
+        status = db.config[1]
+        if pciRRactivated and status['allow_submissions'] is False:
+            suspend_submissions = True
+
         componentVars = dict(
             articleId=art.id,
             recommId=recomm.id,
@@ -729,6 +734,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             isArticleSubmitter=(art.user_id == auth.user_id),
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
+            suspend_submissions=suspend_submissions,
             isSchedulingTrack=(pciRRactivated and art.report_stage == "STAGE 1" and (art.is_scheduled or is_scheduled_submission(art)))
         )
 

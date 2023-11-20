@@ -26,17 +26,17 @@
             <div class="pci2-flex-column pci2-flex-center">
 
               <div class="pci2-flex-row pci2-full-width">
-                <a class="buttontext btn btn-default pci2-flex-center"
+                <a {{if suspend_submissions:}}disabled{{pass}} class="buttontext btn btn-default pci2-flex-center"
                   style="flex: 1;" 
-                  href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
+                  {{if not suspend_submissions:}} href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}" {{pass}}
                 >
                   {{=T('Update your article data')}}
                 </a>
 
-                <a {{if replyButtonDisabled:}}disabled{{pass}}
+                <a {{if replyButtonDisabled or suspend_submissions:}}disabled{{pass}}
                   class="buttontext btn btn-info pci2-flex-center"
                   style="flex: 1;" 
-                  {{if not replyButtonDisabled:}} href="{{=editAuthorsReplyLink}}" {{pass}}
+                  {{if not replyButtonDisabled and not suspend_submissions:}} href="{{=editAuthorsReplyLink}}" {{pass}}
                   >
                   {{=T('Write or upload your reply to the recommender')}}
                 </a>
@@ -47,6 +47,9 @@
               <a disabled style="font-size: 20px; height: 35px" class="buttontext btn btn-success pci2-flex-center pci2-full-width">
                 SEND RESUBMISSION
               </a>
+              {{if suspend_submissions:}}
+                <span><b>It is not possible submit a revised manuscript during a scheduled shutdown period. Please see the PCI RR homepage for details</b></span>
+              {{pass}}
             </div>
 
           {{else:}}
