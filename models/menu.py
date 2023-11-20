@@ -440,6 +440,7 @@ def _ManagerMenu():
     managerMenu += [
         (txtPreSubmitted, False, URL("manager", "presubmissions", user_signature=True)),
         menu_entry("Perform tasks in place of recommenders", "glyphicon-education", URL("manager", "all_recommendations", user_signature=True)),
+        menu_entry("Perform tasks in place of users", "glyphicon-user", URL("manager", "impersonate_users", user_signature=True)),
         menu_entry("Handling process(es) completed", "glyphicon-ok-sign", URL("manager", "completed_articles", user_signature=True), _class="pci-manager"),
         menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
         menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
