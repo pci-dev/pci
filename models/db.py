@@ -591,6 +591,9 @@ def deltaStatus(s, f):
         o = s.select().first()
         recomm = db.get_last_recomm(o.id)
 
+        if f.status == "Recommended" and 'pcjournal' in f.doi_of_published_article :
+            emailing.send_message_to_recommender_and_reviewers(auth, db, o["id"])
+
         if f.status == "Awaiting revision" and o.status != f.status:
             f.request_submission_change = True
 
