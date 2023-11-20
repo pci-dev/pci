@@ -165,7 +165,7 @@ def impersonate():
             return redirect(URL('default','index'))
 
     auth.impersonate(user_id)
-    session.flash = f'You have in impersonal mode (user_id={user_id})'
+    session.flash = f'Impersonal mode: You are logged as {auth.user.first_name} {auth.user.last_name} (user_id = {user_id})'
     return redirect(URL('default','index'))
 
 
