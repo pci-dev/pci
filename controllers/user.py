@@ -231,6 +231,7 @@ def search_recommenders():
         ]
 
         def limit_to_width_list(value, row):
+            if value == None: return SPAN(_class="m300w")
             return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
 
         def limit_to_width_str(value, row):
