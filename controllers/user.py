@@ -553,7 +553,7 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    managers = get_managers()
+    managers = common_tools.get_managers(db)
     manager_ids = [m[0] for m in managers]
     manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=False, label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
@@ -598,7 +598,7 @@ def fill_new_article():
         else:
             session.flash = T("Article submitted", lazy=False)
 
-        manager_ids = extract_manager_ids(form, manager_ids)
+        manager_ids = common_tools.extract_manager_ids(form, manager_ids)
         myVars = dict(articleId=articleId, manager_authors=manager_ids)
         # for thema in form.vars.thematics:
         # myVars['qy_'+thema] = 'on'
@@ -628,26 +628,6 @@ def fill_new_article():
         form=form,
         myFinalScript=myScript or "",
     )
-
-def extract_manager_ids(form, manager_ids):
-    # extract the positively checked manager co-author IDs from the form
-    manager_authors = []
-    for m_id in manager_ids:
-        form_field = form.vars['chk_' + m_id]
-        if form_field == 'on': manager_authors.append(m_id)
-
-    return ','.join(manager_authors)
-
-
-def get_managers():
-    # collect managers and admins
-    manager_query = db((db.auth_user._id == db.auth_membership.user_id) & ((db.auth_membership.group_id == '2') | (db.auth_membership.group_id == '3'))).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
-    users = []
-    for manager in manager_query:
-        user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
-        if user not in users: users.append(user)
-
-    return users
 
 
 ######################################################################################################################################################################

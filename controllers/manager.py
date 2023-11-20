@@ -433,8 +433,12 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def recommendations():
     articleId = request.vars["articleId"]
+    manager_authors = request.vars["manager_authors"]
     art = db.t_articles[articleId]
     printable = "printable" in request.vars and request.vars["printable"] == "True"
+
+    if manager_authors != None:
+        art.update_record(manager_authors=manager_authors)
 
     if art is None:
         session.flash = auth.not_authorized()
@@ -995,6 +999,7 @@ def edit_article():
 
     db.t_articles.request_submission_change.readable = False
     db.t_articles.request_submission_change.writable = False
+    db.t_articles.manager_authors.readable = False
 
     if not art.already_published: # != "postprint"
         db.t_articles.article_source.readable = False
@@ -1078,7 +1083,20 @@ def edit_article():
         db.t_articles.record_url_version.readable = False
         db.t_articles.record_url_version.writable = False
 
-    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True)
+    try: article_manager_coauthors = art.manager_authors
+    except: article_manager_coauthors = False
+    managers = common_tools.get_managers(db)
+    manager_checks = {}
+    for m in managers:
+        manager_checks[m[0]] = False
+    if article_manager_coauthors:
+        for amc in article_manager_coauthors.split(','):
+            manager_checks[amc] = True
+    manager_ids = [m[0] for m in managers]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
+
+    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
     try:
         article_version = int(art.ms_version)
     except:
@@ -1108,7 +1126,9 @@ def edit_article():
 
         session.flash = T("Article saved", lazy=False)
         controller = "manager" if auth.has_membership(role="manager") else "recommender"
-        redirect(URL(c=controller, f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        manager_ids = common_tools.extract_manager_ids(form, manager_ids)
+        myVars = dict(articleId=art.id, manager_authors=manager_ids)
+        redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
