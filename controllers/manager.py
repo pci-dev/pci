@@ -691,6 +691,7 @@ def search_recommenders():
             users[f].readable = False
 
     def limit_to_width(value, row):
+        if value == None: return SPAN(_class="m230w")
         return SPAN(current.T("%s" %', '.join(value)), _class="m230w"),
 
     def limit_to_width_str(value, row):
