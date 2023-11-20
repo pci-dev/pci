@@ -256,12 +256,10 @@ def _mkUser(theUser, linked=False, reverse=False):
 
 
 def mkUserNoSpan(auth, db, userId):
+    resu = ""
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-    else:
-        theUser = None
-
-    resu = "%s %s" % (theUser.first_name, theUser.last_name)
+        resu = "%s %s" % (theUser.first_name, theUser.last_name)
 
     return resu
 
@@ -981,6 +979,30 @@ def getArticleSubmitter(auth, db, art):
 
     return result
 
+###########################################################################################################################
+def group_reviewers(db, reviewers):
+    result = []
+    for reviewer in reviewers:
+        if reviewer.reviewer_details:
+            name = get_name_from_details(reviewer.reviewer_details)
+        else:
+            name = mkUserNoSpan(None, db, reviewer.reviewer_id)
+        group = "accepted reviewer"
+        if reviewer.review_state == "Awaiting response":
+            group = "invited reviewer"
+
+        result.append({"group": group, "name" : name})
+    return result
+
+###########################################################################################################################
+def mk_co_recommender_no_span(db, recommender):
+    name = ""
+    if recommender.contributor_details:
+        name = get_name_from_details(recommender.contributor_details)
+    else:
+        name = mkUserNoSpan(None, db, recommender.contributor_id)
+
+    return name
 
 ######################################################################################################################################################################
 def mkRecommendersString(auth, db, recomm):

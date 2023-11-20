@@ -68,6 +68,15 @@
 
 
   	  <div class="pci2-flex-grow"></div>
+
+      {{if 'verifyUrl' in locals() and printableUrl is not None and verifyUrl is not None:}}
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right pci2-yellow-link" style="margin-right: 25px"
+        href="{{=verifyUrl}}"
+      >
+        <i class="glyphicon glyphicon-ok-sign"></i>
+  		  {{=T('Check co-authorship')}}
+      </a>
+      {{pass}}
       
       {{if 'printableUrl' in locals() and printableUrl is not None:}}
       <a class="pci2-flex-row pci2-align-items-center pci2-tool-link-right pci2-yellow-link"
