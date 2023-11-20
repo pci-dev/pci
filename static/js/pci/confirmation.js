@@ -178,10 +178,11 @@ function create_modal() {
 
 function multiple_choice_button() {
     let recommend = document.querySelector('#opinion_recommend');
+    let recommend_private = document.querySelector('#opinion_recommend_private');
     let revision = document.querySelector('#opinion_revise');
     let reject = document.querySelector('#opinion_reject');
 
-    if (recommend.checked) { modal_body.innerHTML = 'Are you sure you want to recommend the preprint?'; }
+    if (recommend.checked || recommend_private.checked) { modal_body.innerHTML = 'Are you sure you want to recommend the preprint?'; }
     if (revision.checked) { modal_body.innerHTML = 'Are you sure you want to request a revision?'; }
     if (reject.checked) { modal_body.innerHTML = 'Are you sure you want to reject the preprint?'; }
 
