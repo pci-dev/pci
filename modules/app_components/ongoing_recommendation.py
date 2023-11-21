@@ -751,7 +751,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
     return DIV(recommendationRounds, BR(), managerButton or "")
 
 
-def is_scheduled_submission(article):
+def is_scheduled_submission(article: Article) -> bool:
     return scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
