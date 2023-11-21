@@ -305,8 +305,6 @@ div.w2p_flash.alert.custom-disappear {
 }
 
 .tox-tinymce {
-  min-height: 250px;
-  max-height: 250px;
   border-radius: 4px !important;
   border-color: #dfd7ca !important;
 }

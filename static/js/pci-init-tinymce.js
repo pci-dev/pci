@@ -58,7 +58,9 @@ function initTinyMCE(elementSelector, idTextarea) {
         convert_urls: false,
         branding: false,
         menubar: false,
-        statusbar: false,
+        resize: true,
+        statusbar: true,
+        elementpath: false,
         plugins: "table paste lists link autoresize media image hr",
         paste_as_text: safePasteActivated,
         toolbar_sticky: true,
@@ -148,6 +150,7 @@ function initTinyMCE(elementSelector, idTextarea) {
           (tinymce_options.content_style = `
 				body{
             font-family: "Open Sans", sans-serif;
+            height: 330px;
 				}
             
 				blockquote {
