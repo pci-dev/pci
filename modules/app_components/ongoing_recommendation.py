@@ -21,7 +21,7 @@ from models.article import ArticleStatus, Article
 
 from controller_modules import manager_module
 from models.article import is_scheduled_submission
-from models.review import ReviewState
+from models.review import Review, ReviewState
 
 myconf = AppConfig(reload=True)
 
@@ -499,7 +499,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewVars = dict(
                 id=review.id,
                 review_duration=review.review_duration.lower(),
-                due_date=review.due_date,
+                due_date=Review.get_due_date(db, review),
                 showInvitationButtons=False,
                 showReviewRequest=False,
                 showPendingAskForReview=False,
