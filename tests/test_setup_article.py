@@ -60,13 +60,14 @@ class User_submits:
         select("#t_articles_codes_doi").send_keys("https://github.com/")
         select("#t_articles_funding").send_keys("The authors declare that they have received no specific funding for this study")
 
+    select('input[name="thematics"]')[0].click() # Must be before the tinymce textarea for the checkbox to be available to click on.
+
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(article.abstract)
     select("#t_articles_keywords").send_keys(article.keywords)
     with select("#t_articles_cover_letter_ifr").frame():
         select("body").send_keys(article.cover_letter)
 
-    select('input[name="thematics"]')[0].click()
     select("#t_articles_i_am_an_author").click()
     select("#t_articles_is_not_reviewed_elsewhere").click()
     if not is_rr:
