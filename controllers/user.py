@@ -35,6 +35,7 @@ myconf = AppConfig(reload=True)
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
+status = db.config[1]
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -366,7 +367,6 @@ def new_submission():
     db.config.allow_submissions.writable = True
     db.config.allow_submissions.readable = True
 
-    status = db.config[1]
     fields = ["allow_submissions"]
     
     if auth.has_membership(role="manager"):
@@ -608,7 +608,7 @@ def fill_new_article():
     customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
     if pciRRactivated:
         customText = ""
-    status = db.config[1]
+
     if status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
@@ -857,7 +857,6 @@ def edit_my_article():
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
-    status = db.config[1]
 
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
@@ -948,7 +947,6 @@ def edit_report_survey():
     if fullSubmissionOpened:
         form.element("#t_report_survey_q10")["_disabled"] = 1
 
-    status = db.config[1]
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
@@ -1599,6 +1597,8 @@ def edit_reply():
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+    if pciRRactivated and status['allow_submissions'] is False:
+        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReply"),
         # myBackButton = common_small_html.mkBackButton(),
