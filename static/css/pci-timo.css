@@ -1612,6 +1612,7 @@
 
     .pci-w200Cell {
         overflow: unset;
+        max-width: 200px;
     }
 
     .pci-AdminReviewsSynthesis {
