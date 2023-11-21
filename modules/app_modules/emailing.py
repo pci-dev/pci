@@ -20,6 +20,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.storage import Storage
+import models.article
 from pydal import DAL
 
 from gluon.custom_import import track_changes
@@ -1904,7 +1905,7 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
                 DIV(accept_button, _style="width: 100%; text-align: center; margin-bottom: 25px;"),
             )
     
-    if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or ongoing_recommendation.is_scheduled_submission(article)):
+    if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or models.article.is_scheduled_submission(article)):
         pass
     else:
         html.components[1].components.append(B(current.T("OR")))
@@ -2746,7 +2747,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
 
 def isScheduledTrack(art):
-    return ongoing_recommendation.is_scheduled_submission(art)
+    return models.article.is_scheduled_submission(art)
 
 
 def getScheduledSubmissionDate(article):

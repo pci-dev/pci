@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Dict, List, cast
-from app_components.ongoing_recommendation import is_scheduled_submission
+from models.article import is_scheduled_submission
 from gluon import current
 from gluon.globals import Request, Response
 from gluon.tools import Auth

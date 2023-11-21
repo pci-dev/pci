@@ -2,7 +2,7 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, Tuple, cast
-from app_components.ongoing_recommendation import is_scheduled_submission
+from models.article import is_scheduled_submission
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article
 from models.recommendation import Recommendation

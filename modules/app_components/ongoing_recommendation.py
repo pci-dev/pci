@@ -20,6 +20,7 @@ from app_modules import hypothesis
 from models.article import ArticleStatus, Article
 
 from controller_modules import manager_module
+from models.article import is_scheduled_submission
 from models.review import ReviewState
 
 myconf = AppConfig(reload=True)
@@ -749,17 +750,6 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if not printable else None
 
     return DIV(recommendationRounds, BR(), managerButton or "")
-
-
-def is_scheduled_submission(article: Article) -> bool:
-    return scheduledSubmissionActivated and (
-        article.scheduled_submission_date is not None
-        or article.status.startswith("Scheduled submission")
-        or (
-            article.t_report_survey.select().first().q10 is not None
-            and article.t_recommendations.count() == 1
-        )
-    )
 
 
 def is_scheduled_review_open(article):
