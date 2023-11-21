@@ -1,5 +1,0 @@
-INSERT INTO help_texts("hashtag","lang","contents")
-VALUES
-(E'#VerifyCoAuthor',E'default',E''),
-(E'#VerifyCoAuthorText',E'default',E'<p style="font-weight: 400;"><strong>CAUTIONARY NOTES</strong></p>\n<ol>\n<li style="font-weight: 400;">&nbsp;Shared co-authorships may be missed where the names included in PCI entries for authors, reviewers, or recommenders differ even slightly from those in published articles – e.g. if a recommender is named “Jon Smith” on the PCI system but writes academic papers under the name “Jonathan A. Smith”, the search may miss co-authorships. To maximise accuracy, ensure that the names and use of abbreviated middle names are as similar as possible between the PCI&nbsp; system and those used in published papers.</li>\n<li style="font-weight: 400;">The accuracy of searches is limited by the quality of data indexed by Semantic Scholar. Even where shared co-authorships are found, the date of publication may not always be accurate.</li>\n</ol>\n<p>&nbsp;</p>'),
-(E'#VerifyCoAuthorTitle',E'default',E'Check Co-authorship');
