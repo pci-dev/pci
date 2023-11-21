@@ -3,6 +3,10 @@ from enum import Enum
 from typing import List, Optional as _, cast
 from pydal.objects import Row
 from pydal import DAL
+from gluon.contrib.appconfig import AppConfig
+
+myconf = AppConfig(reload=True)
+scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 class ArticleStatus(Enum):
     NOT_CONSIDERED = 'Not considered'
@@ -74,3 +78,14 @@ class Article(Row):
     @staticmethod
     def get_by_id(db: DAL, id: int):
         return cast(_[Article], db.t_articles[id])
+
+
+def is_scheduled_submission(article: Article) -> bool:
+    return scheduledSubmissionActivated and (
+        article.scheduled_submission_date is not None
+        or article.status.startswith("Scheduled submission")
+        or (
+            article.t_report_survey.select().first().q10 is not None
+            and article.t_recommendations.count() == 1
+        )
+    )

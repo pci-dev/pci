@@ -6,7 +6,7 @@ import datetime
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
-from app_components.ongoing_recommendation import is_scheduled_submission
+from models.article import is_scheduled_submission
 
 from models.review import Review, ReviewState
 
