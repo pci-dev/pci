@@ -2,9 +2,11 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, Tuple, cast
+from app_components.ongoing_recommendation import is_scheduled_submission
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article
 from models.recommendation import Recommendation
+from models.report_survey import ReportSurvey
 from models.user import User
 from pydal.objects import Row, Rows
 from pydal import DAL
@@ -106,7 +108,7 @@ class Review(Row):
     @staticmethod
     def set_review_duration(review: Review, article: Article, review_duration: str):
         review.review_duration = review_duration
-        if not pciRRactivated and not article.scheduled_submission_date:
+        if not is_scheduled_submission(article):
             due_date = Review.get_due_date_from_review_duration(review)
             if due_date:
                 Review.set_due_date(review, due_date)
@@ -171,8 +173,13 @@ class Review(Row):
         if not article:
             return None
         
-        if article.scheduled_submission_date:
-            review_start_date = article.scheduled_submission_date + timedelta(days=7)
+        if not is_scheduled_submission(article):
+            return None
+        
+        report_survey = ReportSurvey.get_by_article(db, article.id)
+
+        if report_survey and report_survey.q10:
+            review_start_date = report_survey.q10 + timedelta(days=7)
             review_due_date = review_start_date + timedelta(days=7)
             return review_due_date
     
