@@ -270,7 +270,6 @@ def search_recommenders():
         btn_style = "btn-success"
         if pciRRactivated:
             btn_label = "CLICK HERE TO SUGGEST/EXCLUDE ALL SELECTED RECOMMENDERS"
-            btn_style = "btn_default"
 
         select_all_btn = DIV(A(
                             SPAN(current.T(btn_label), _class="btn %s"%btn_style),
