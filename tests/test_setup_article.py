@@ -1,4 +1,4 @@
-from conftest import test, select, login, logout, users
+from conftest import DEFAULT_SLEEP, test, select, login, logout, users
 from conftest import config
 
 import os
@@ -101,7 +101,7 @@ class User_submits:
 
  def complete_submission(_):
     select("a", "Complete your submission".upper()).click()
-    time.sleep(.1)
+    time.sleep(DEFAULT_SLEEP)
     select(".pci-status", "SUBMISSION PENDING VALIDATION")
 
  def logout_user(_):
@@ -228,7 +228,8 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys("ratalatapouet@toto.com")
 
     select("input[type=submit]").click()
-    import time; time.sleep(.5)
+
+    import time; time.sleep(DEFAULT_SLEEP)
     select.notif().wait_clickable().contains("e-mail sent to Titi Toto")
     # message 'User "ratalatapouet@toto.com" created' shown only first time
 

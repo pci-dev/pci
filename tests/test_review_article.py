@@ -1,4 +1,4 @@
-from conftest import test, select, login, logout, users, visit
+from conftest import DEFAULT_SLEEP, test, select, login, logout, users, visit
 from conftest import config
 from pytest import mark
 
@@ -103,7 +103,8 @@ class Reviewer:
         Reviewer.check_notification(reviewer)
 
     def upload_review(article, reviewer=reviewer):
-        select("a", contains="WRITE, EDIT OR UPLOAD YOUR REVIEW").click()
+        import time; time.sleep(DEFAULT_SLEEP)
+        select("a", contains="WRITE, EDIT OR UPLOAD YOUR REVIEW").wait_clickable().click()
 
         with select("#t_reviews_review_ifr").frame():
             select("body").send_keys("review text: luved it")
