@@ -3,6 +3,9 @@ from selenium import webdriver
 from argparse import Namespace
 from os import getenv
 
+DEFAULT_TIMEOUT = int(5)
+DEFAULT_SLEEP = int(1)
+
 def get_driver():
     options = webdriver.firefox.options.Options()
     options.add_argument("--headless") if not getenv("show") else None
@@ -55,8 +58,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from time import sleep
 
 def wait_clickable(self):
-    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable(self))
-    sleep(.1)
+    WebDriverWait(driver, timeout=DEFAULT_TIMEOUT).until(EC.element_to_be_clickable(self))
+    sleep(DEFAULT_SLEEP)
     return self
 
 def element_contains(self, text):
@@ -89,11 +92,15 @@ def visit(url):
 def select(css, text="", contains="", _=driver):
     if text or contains:
         return lookup(css, text, contains, _=_)
-    sel = _.find_elements(By.CSS_SELECTOR, css)
+    sel = WebDriverWait(_, timeout=DEFAULT_TIMEOUT).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, css)))
     return sel if len(sel) > 1 else sel[0]
 
 def lookup(css, text="", contains="", _=driver):
-    for e in _.find_elements(By.CSS_SELECTOR, css):
+    try:
+        elements = WebDriverWait(_, timeout=DEFAULT_TIMEOUT).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, css)))
+    except:
+        elements = []
+    for e in elements:
         print(f"e.text='{e.text}'")
         if text and (text == e.text):
             print(f"text={text}")
@@ -104,7 +111,7 @@ def lookup(css, text="", contains="", _=driver):
     raise KeyError("no such element: " + text)
 
 def select_notif(text="", contains=""):
-    sleep(.1)
+    sleep(DEFAULT_SLEEP)
     return select(".w2p_flash", text=text, contains=contains)
 
 select.notif = select_notif
