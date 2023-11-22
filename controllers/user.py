@@ -257,10 +257,10 @@ def search_recommenders():
                 users[f].readable = False
 
         def mkButton(func, modus):
-            return lambda row: "" if row.auth_user.id in excludeList \
+            return lambda row: "" if row.auth_user.id in excludeList else ("" if str(row.auth_user.id) in art.manager_authors.split(',') \
                     else DIV( func(auth, db, row, art.id, excludeList, request.vars),
                               INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
-                              _class="min15w")
+                              _class="min15w"))
 
         links = [
             dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton, 'suggest')),
@@ -886,8 +886,13 @@ def fill_report_survey():
     if not ("articleId" in request.vars):
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
+    manager_authors = request.vars["manager_authors"]
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+
+    if manager_authors != None:
+        art.update_record(manager_authors=manager_authors)
+
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
