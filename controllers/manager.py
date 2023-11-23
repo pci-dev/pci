@@ -39,6 +39,7 @@ from app_modules import emailing_vars
 from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
+from models.group import Group, Role
 
 from models.suggested_recommender import SuggestedRecommender
 
@@ -46,8 +47,11 @@ from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
+from gluon.http import redirect
+
 from models.article import ArticleStatus
 from models.user import User
+from models.membership import Membership
 
 
 myconf = AppConfig(reload=True)
@@ -82,6 +86,97 @@ def all_articles():
     resu["pageTitle"] = getTitle(request, auth, db, "#ManagerAllArticlesTitle")
     resu["pageHelp"] = getHelp(request, auth, db, "#ManageAllArticlesHelp")
     return resu
+
+######################################################
+@auth.requires(auth.has_membership(role="manager"))
+def impersonate_users():
+    fields = [
+        db.auth_user.id,
+        db.auth_user.first_name,
+        db.auth_user.last_name,
+        db.auth_user.email
+    ]
+
+    memberships = Membership.get_all(db)
+    user_id_with_role: List[int] = []
+    for membership in memberships:
+        user_id_with_role.append(membership.user_id)
+
+    grid = SQLFORM.grid(
+                    ~db.auth_user.id.belongs(user_id_with_role),
+                    fields=fields,
+                    editable=False,
+                    deletable=False,
+                    create=False,
+                    details=False,
+                    searchable=True,
+                    csv=False,
+                    maxtextlength=250,
+                    paginate=25,
+                    links=[dict(header="", body=_impersonate_button)]
+    )
+
+    response.view = "default/myLayout.html"
+    return dict(
+        titleIcon="user",
+        pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
+        pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
+        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        grid=grid,
+        
+    )
+
+def _impersonate_button(user: User):
+    return A('Impersonate', _href=URL('manager', 'impersonate', args=user.id), _class="buttontext btn btn-default pci-button")
+
+@auth.requires(auth.has_membership(role="manager"))
+def impersonate():
+    if len(request.args) != 1:
+        session.flash = 'Bad argument'
+        return redirect(URL('default','index'))
+
+    try:
+        user_id = int(request.args[0])
+    except ValueError:
+        session.flash = 'Bad user id'
+        return redirect(URL('default','index'))
+    except Exception as e:
+        session.flash = e
+        return redirect(URL('default','index'))
+
+    if Membership.has_membership(db, user_id):
+        session.flash = "You can't impersonate this user"
+        return redirect(URL('default','index'))
+    
+    if auth.is_impersonating():
+        session.flash = 'You are already impersonating user'
+        return redirect(URL('default','index'))
+    
+    if not auth.has_membership(Role.MANAGER.value):
+        session.flash = 'You are not manager'
+        return redirect(URL('default','index'))
+    
+    if not auth.has_permission('impersonate', db.auth_user, user_id):
+        manager_group = Group.get_by_role(db, Role.MANAGER)
+        if manager_group:
+            auth.add_permission(manager_group.id, 'impersonate', db.auth_user, user_id)
+        else:
+            session.flash = 'Manager group is missing'
+            return redirect(URL('default','index'))
+
+    auth.impersonate(user_id)
+    session.flash = f'Impersonal mode: You are logged as {auth.user.first_name} {auth.user.last_name} (user_id = {user_id})'
+    return redirect(URL('default','index'))
+
+
+def uninpersonate():
+    if auth.is_impersonating():
+        auth.impersonate(0)
+        session.flash = 'You have left impersonal mode'
+        return redirect(URL('manager','impersonate_users'))
+
+    session.flash = 'You are not in impersonal mode'
+    return redirect(URL('default','index'))
 
 
 ######################################################################################################################################################################

@@ -1436,6 +1436,10 @@
     .footer-content > ul {
         flex-direction: row;
     }
+
+    .navbar.impersonate {
+        margin-top: 49px;
+    }
 }
 
 @media only screen and (min-width: 1200px) {
