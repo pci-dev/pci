@@ -846,8 +846,6 @@ def setRecommendationDoi(s, _recomm):
     if not recomm: return # on delete user
 
     if pciRRactivated:
-        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction", 
-                                                   "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction"], recomm.id)
         if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
             return
 
