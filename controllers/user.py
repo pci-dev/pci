@@ -261,7 +261,8 @@ def search_recommenders():
                 users[f].readable = False
 
         def mkButton(func, modus):
-            return lambda row: "" if row.auth_user.id in excludeList else ("" if str(row.auth_user.id) in art.manager_authors.split(',') \
+            return lambda row: "" if row.auth_user.id in excludeList else (
+                    "" if str(row.auth_user.id) in (art.manager_authors or "").split(',')
                     else DIV( func(auth, db, row, art.id, excludeList, request.vars),
                               INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
                               _class="min15w"))
