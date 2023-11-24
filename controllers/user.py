@@ -888,6 +888,7 @@ def edit_my_article():
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
+    manager_script = common_tools.get_script("manager_selection.js")
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
         customText=getText(request, auth, db, "#UserEditArticleText"),
@@ -895,6 +896,7 @@ def edit_my_article():
         pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
         myFinalScript=myScript,
+        managerScript = manager_script,
         pciRRjsScript=pciRRjsScript,
     )
 
