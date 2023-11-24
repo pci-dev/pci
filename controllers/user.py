@@ -52,10 +52,14 @@ def recommendations():
     myScript = ""
 
     articleId = request.vars["articleId"]
+    manager_authors = request.vars["manager_authors"]
     if not articleId:
         return my_articles()
 
     art = db.t_articles[articleId]
+    if manager_authors != None:
+        art.update_record(manager_authors=manager_authors)
+
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -655,6 +659,7 @@ def edit_my_article():
     db.t_articles.cover_letter.writable = True
     db.t_articles.request_submission_change.readable = False
     db.t_articles.request_submission_change.writable = False
+    db.t_articles.manager_authors.readable = False
 
     db.t_articles.results_based_on_data.requires(db.data_choices)
     db.t_articles.scripts_used_for_result.requires(db.script_choices)
@@ -822,7 +827,21 @@ def edit_my_article():
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
-    form = SQLFORM(db.t_articles, articleId, fields=fields, upload=URL("static", "uploads"), deletable=deletable, buttons=buttons, showid=False)
+    try: article_manager_coauthors = art.manager_authors
+    except: article_manager_coauthors = False
+    managers = common_tools.get_managers(db)
+    manager_checks = {}
+    for m in managers:
+        manager_checks[m[0]] = False
+    if article_manager_coauthors:
+        for amc in article_manager_coauthors.split(','):
+            manager_checks[amc] = True
+    manager_ids = [m[0] for m in managers]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
+
+    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
+
     try:
         article_version = int(art.ms_version)
     except:
@@ -856,10 +875,12 @@ def edit_my_article():
             article.art_stage_1_id = None
         article.request_submission_change = False
         article.update_record()
+        manager_ids = common_tools.extract_manager_ids(form, manager_ids)
+        myVars = dict(articleId=article.id, manager_authors=manager_ids)
         if art.status in ["Pending", "Pre-submission"] :
-            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+            redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True))
         else:
-            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
+            redirect(URL(c="user", f="recommendations", vars=myVars, user_signature=True, anchor="author-reply"))
 
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
