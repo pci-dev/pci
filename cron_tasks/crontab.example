@@ -12,3 +12,6 @@
 
 # and runs delete old tmp pdf file with no metadata (to stream it) every 6 hours
 0 */6 * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/delete_old_tmp_PDFs.py >> /tmp/PCiEvolBiol3.cron.output 2>&1
+
+# and runs fetch_doi every 6 hours
+0 */6 * * * cd /home/www-data/web2py/ && python3 web2py.py -S PCiEvolBiol3 -M -R applications/PCiEvolBiol3/cron_tasks/fetch_doi.py >> /tmp/PCiEvolBiol3.cron.output 2>&1

@@ -354,3 +354,8 @@ INSERT INTO mail_templates (hashtag,lang,subject,description,contents) VALUES
 <p>Many thanks in advance for completing your review.</p>
 <p>Best regards</p>
 <p>The managing board of {{appName}}</p>');
+
+--31-10-2023 published_doi.sql
+INSERT INTO "mail_templates"("hashtag","lang","subject","description","contents")
+VALUES
+(E'#ArticlePublishedPCJ',E'default',E'{{appName}}: An article you evaluated is now published in the Peer Community Journal',E'Mail to notify recommender and reviewers that the article has been published on PCJ',E'<p>Dear PCI recommender and reviewers,</p>\n<p>We are pleased to inform you that the article you reviewed and recommended for {{appName}} (<a href="{{articleDoi}}">{{articleDoi}}</a>) has recently been published in the <a href="https://peercommunityjournal.org">Peer Community Journal</a>&nbsp;(a Diamond Open Access Journal) at the request of the authors.</p>\n<p>Here is the DOI of the article now published in Peer Community Journal: <a href="{{published_doi}}">{{published_doi}}</a></p>\n<p>Please note that links to your recommendation and reviews published by {{appName}} are available on the <a href="{{published_doi}}">webpage</a> and in the pdf of the published article.</p>\n<p>Thank you again for your contribution.</p>\n<p>The Managing Board of {{appName}}</p>\n<p>&nbsp;</p>');
