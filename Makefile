@@ -159,8 +159,5 @@ dev:
 	docker run --rm -it -p 8001:8001 -v `pwd`:/pci pci
 
 log:
-	git log --oneline --merges --no-decorate \
-		`git describe --tag --abbrev=0`.. \
-	| cut -d ' ' -f 2- \
-	| sed 's:Merge \(pull request \|PR \)\?::' \
-	-
+	@git log --merges --format=%s \
+		`git describe --tag --abbrev=0`..
