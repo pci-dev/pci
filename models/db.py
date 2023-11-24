@@ -584,15 +584,18 @@ db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(la
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(s, i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
+db.t_articles._after_update.append(lambda s, f: publishedDoi(s, f))
 
+def publishedDoi(s, f):
+    if "status" in f:
+        o = s.select().first()
+        if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
+                emailing.send_message_to_recommender_and_reviewers(auth, db, o["id"])
 
 def deltaStatus(s, f):
     if "status" in f:
         o = s.select().first()
         recomm = db.get_last_recomm(o.id)
-
-        if f.status == "Recommended" and 'pcjournal' in f.doi_of_published_article :
-            emailing.send_message_to_recommender_and_reviewers(auth, db, o["id"])
 
         if f.status == "Awaiting revision" and o.status != f.status:
             f.request_submission_change = True
