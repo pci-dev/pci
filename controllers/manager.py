@@ -913,6 +913,12 @@ def suggested_recommenders():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
+
     articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
 
     query = db.t_suggested_recommenders.article_id == articleId
@@ -988,6 +994,12 @@ def edit_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
 
     if art == None:
         # raise HTTP(404, "404: "+T('Unavailable'))
@@ -1159,6 +1171,12 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("all_articles", user_signature=True))
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
 
     survey = db(db.t_report_survey.article_id == articleId).select().last()
     if survey is None:
