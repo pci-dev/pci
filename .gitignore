@@ -8,7 +8,6 @@ uploads/
 static/plugin_ckeditor
 static/web2py.plugin.ckeditor.w2p.uncompressed
 private/appconfig.ini
-utils/.test-sites.conf
 tmp/*
 static/images/background.png
 static/images/small-background.png
