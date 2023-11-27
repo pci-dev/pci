@@ -584,9 +584,9 @@ db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(la
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(s, i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
-db.t_articles._after_update.append(lambda s, f: publishedDoi(s, f))
+db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
 
-def publishedDoi(s, f):
+def setPublishedDoi(s, f):
     if "status" in f:
         o = s.select().first()
         if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
