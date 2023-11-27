@@ -988,6 +988,7 @@ def edit_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+
     if art == None:
         # raise HTTP(404, "404: "+T('Unavailable'))
         redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
@@ -1483,7 +1484,9 @@ def article_emails():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
-        pass
+        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
