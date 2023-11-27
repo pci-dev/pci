@@ -328,6 +328,8 @@ class COARNotifier:
 
 def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
     origin_req = get_origin_request(article)
+    if not origin_req: return
+
     target_inbox = origin_req["origin"]["inbox"]
     origin_object = origin_req["object"]["id"]
     notification = {
@@ -356,11 +358,8 @@ def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
 
 def get_origin_request(article):
     db = current.db
-    return json.loads(
-        db(db.t_coar_notification.coar_id == article.coar_notification_id)
-        .select().first()
-        .body
-    )
+    req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
+    return json.loads(req.body) if req else None
 
 
 def validate_outbound_notification(graph):
