@@ -37,7 +37,9 @@ class User(Row):
     @staticmethod
     def get_by_id(id: int):
         db = current.db
-        return cast(_[User], db.auth_user[id])
+        try: user = db.auth_user[id]
+        except: user = None
+        return cast(_[User], user)
     
     
     @staticmethod
