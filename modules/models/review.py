@@ -239,3 +239,24 @@ class Review(Row):
             formatted_result.append((line.t_reviews, line.auth_user))
 
         return formatted_result
+    
+
+    @staticmethod
+    def get_all_by_user(db: DAL, reviewer_id: int, reviews_states: List[ReviewState] = []):
+        if len(reviews_states) == 0:
+            result = db((db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.reviewer_id == reviewer_id)).select(db.t_reviews.ALL, orderby=db.auth_user.last_name|db.auth_user.first_name)
+        else:
+            states_values: List[str] = []
+            for review_state in reviews_states:
+                states_values.append(review_state.value)
+            result = db((db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.review_state.belongs(states_values)) & (db.t_reviews.reviewer_id == reviewer_id)).select(db.t_reviews.ALL, orderby=db.auth_user.last_name|db.auth_user.first_name)
+        return cast(List[Review], result)
+
+
+    @staticmethod
+    def change_reviews_state(db: DAL, reviewer_id: int, reviews_states: List[ReviewState], new_review_state: ReviewState):
+        reviews = Review.get_all_by_user(db, reviewer_id, reviews_states)
+        for review in reviews:
+            Review.set_review_status(review, new_review_state)
+        return reviews
+        
