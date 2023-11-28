@@ -907,7 +907,8 @@ def one_review():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
     if manager_coauthor:
-        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
+        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
         redirect(URL(c=request.controller, f=" "))
     else:
         form = ""
@@ -959,7 +960,8 @@ def reviews():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
     if manager_coauthor:
-        session.flash = T("You cannot access to this page because you are a co-author of this submitted preprint")
+        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
+        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
         redirect(URL(c=request.controller, f=" "))
     if recomm == None:
         session.flash = auth.not_authorized()
@@ -2815,6 +2817,13 @@ def verify_co_authorship():
     recomm = db.get_last_recomm(articleId)
     authors = extract_name(article.authors)
     authors = [{"group" : "author", "name" : author} for author in authors]
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if manager_coauthor:
+        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
+        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        redirect(request.env.http_referer)
+        return
 
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \

@@ -797,8 +797,10 @@ def getManagerButton(art, auth, isRecommender):
 
 
 def sorry_you_are_coauthor_note():
+            if pciRRactivated: note = "Note: Since you have been declared as a co-author of this submission, you cannot take part in the reviewing process."
+            else: note = "Note: Since you have been declared as a co-author of this submitted preprint, you cannot take part in the reviewing process."
             return DIV(
-                B(current.T("Note: Since you have been declared as a co-author of this submitted preprint, you cannot take part in the reviewing process.")),
+                B(current.T(note)),
                 _class="pci2-flex-center"
             )
 
