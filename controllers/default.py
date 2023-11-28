@@ -300,7 +300,7 @@ def user():
             pageHelp = getHelp(request, auth, db, "#ResetPassword")
             customText = getText(request, auth, db, "#ResetPasswordText")
             vkey = get_reset_password_key(request)
-            user = User.get_by_reset_password_key(db, vkey)
+            user = User.get_by_reset_password_key(vkey)
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (vkey is not None) and (suite is not None) and (user is None):
                 redirect(suite)
@@ -481,7 +481,7 @@ def invitation_to_review():
     user: Optional[User] = None
 
     if reset_password_key and not auth.user_id:
-        user = User.get_by_reset_password_key(db, reset_password_key)
+        user = User.get_by_reset_password_key(reset_password_key)
     elif auth.user_id:
         user = User.get_by_id(auth.user_id)
     
@@ -551,7 +551,7 @@ def invitation_to_review_acceptation():
     reset_password_key = get_reset_password_key(request)
     user: Optional[User] = None
     if reset_password_key and not auth.user_id:
-        user = User.get_by_reset_password_key(db, reset_password_key)
+        user = User.get_by_reset_password_key(reset_password_key)
     elif auth.user_id:
         user = User.get_by_id(auth.user_id)
 
