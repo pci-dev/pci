@@ -360,7 +360,7 @@ def orcid_choice():
     if not payload.value or payload.value not in ('yes', 'no'):
         return
 
-    current_user = User.get_by_id(db, auth.user_id)
+    current_user = User.get_by_id(auth.user_id)
     if not current_user:
         response.flash = T('No user found')
         return
@@ -468,7 +468,7 @@ def invitation_to_review():
         redirect(URL('default','index'))
         return
     
-    recommender = User.get_by_id(db, recommendation.recommender_id)
+    recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
         session.flash = current.T('No recommender found')
         redirect(URL('default','index'))
@@ -483,7 +483,7 @@ def invitation_to_review():
     if reset_password_key and not auth.user_id:
         user = User.get_by_reset_password_key(db, reset_password_key)
     elif auth.user_id:
-        user = User.get_by_id(db, auth.user_id)
+        user = User.get_by_id(auth.user_id)
     
     if not user:
         redirect(URL(a='default', c='user', args='login', vars=dict(_next=URL(args=request.args, vars=request.vars))))
@@ -553,7 +553,7 @@ def invitation_to_review_acceptation():
     if reset_password_key and not auth.user_id:
         user = User.get_by_reset_password_key(db, reset_password_key)
     elif auth.user_id:
-        user = User.get_by_id(db, auth.user_id)
+        user = User.get_by_id(auth.user_id)
 
     if user and not user.ethical_code_approved:
         user.ethical_code_approved = True

@@ -1037,7 +1037,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     if pciRRactivated:
         mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
     if reviewer:
         mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
@@ -1763,14 +1763,14 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
         emailing_tools.getFlashMessage(session, reports)
         return
     
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
-        sender = User.get_by_id(db, recommendation.recommender_id)
+        sender = User.get_by_id(recommendation.recommender_id)
     else:
         sender = cast(User, auth.user)
     
@@ -2591,12 +2591,12 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(db, recomm.article_id)
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
         sender: Optional[User] = None
         if auth.has_membership(role="manager"):
-            sender = User.get_by_id(db, recomm.recommender_id)
+            sender = User.get_by_id(recomm.recommender_id)
         else:
             sender = cast(User, auth.user)
 
@@ -2645,12 +2645,12 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(db, recomm.article_id)
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
         sender: Optional[User] = None
         if auth.has_membership(role="manager"):
-            sender = User.get_by_id(db, recomm.recommender_id)
+            sender = User.get_by_id(recomm.recommender_id)
         else:
             sender = cast(User, auth.user)
 
@@ -2714,7 +2714,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(db, recomm.article_id)
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
@@ -2766,7 +2766,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(db, recomm.article_id)
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
@@ -2802,7 +2802,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(db, recomm.article_id)
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
@@ -3337,7 +3337,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     if not article:
         return
     
-    recommender = User.get_by_id(db, recommendation.recommender_id)
+    recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
         return
 
@@ -3412,7 +3412,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     if not article:
         return
     
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
         return
 
@@ -3480,11 +3480,11 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     if not article:
         return
     
-    reviewer = User.get_by_id(db, review.reviewer_id)
+    reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
         return
     
-    recommender = User.get_by_id(db, recommendation.recommender_id)
+    recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
         return
 

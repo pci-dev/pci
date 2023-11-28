@@ -49,7 +49,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     def __get_user_name(self, user_id: int) -> str:
-        user = User.get_by_id(self._db, user_id)
+        user = User.get_by_id(user_id)
 
         if not user:
             return 'Anonymous'

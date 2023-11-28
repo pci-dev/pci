@@ -280,7 +280,7 @@ def accept_review_confirmed(): # no auth required
         return
 
     if auth.user_id:
-        user = User.get_by_id(db, review.reviewer_id)
+        user = User.get_by_id(review.reviewer_id)
         if user and user.reset_password_key:
             db(db.auth_user.id == review.reviewer_id).delete()
 
