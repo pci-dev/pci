@@ -9,9 +9,9 @@ from app_components import article_components
 from models.article import is_scheduled_submission
 from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
-from app_modules.common_small_html import complete_orcid_dialog, complete_profile_dialog, invitation_to_review_form
+from app_modules.common_small_html import complete_orcid_dialog, complete_profile_dialog, invitation_to_review_form, unsubscribe_checkbox
 from controller_modules import adjust_grid
-from app_modules.emailing import send_conditional_acceptation_review_mail
+from app_modules.emailing import send_conditional_acceptation_review_mail, send_unsubscription_alert_for_manager
 from app_modules import emailing
 from app_modules.orcid import OrcidTools
 from gluon import DAL
@@ -26,6 +26,7 @@ from gluon.sqlhtml import SQLFORM
 from gluon.utils import web2py_uuid
 
 from models.article import Article
+from models.membership import Membership
 from models.recommendation import Recommendation
 from models.review import Review, ReviewState
 from models.user import User
@@ -232,6 +233,10 @@ def user():
     customText = ""
     myBottomText = ""
 
+    if request.args and len(request.args) > 0 and request.args[0] == 'logout':
+        if request.vars and len(request.vars) > 0 and request.vars['unsubscribe']:
+            auth.settings.logout_next = URL('default','unsubscribe_page')
+
     form = auth()
     db.auth_user.registration_key.writable = False
     db.auth_user.registration_key.readable = False
@@ -287,7 +292,7 @@ def user():
 
             OrcidTools.add_orcid_auth_user_form(session, request, form,
                     URL(c="default", f="user", args="profile", scheme=True, vars={"_next": suite or ""}))
-
+            form.components[1].insert(len(form.components[1]) - 1, unsubscribe_checkbox())
             if suite:
                 auth.settings.profile_next = suite
 
@@ -461,6 +466,54 @@ def orcid_choice():
 
 def redirect_ORCID_authentication():
     OrcidTools.redirect_ORCID_authentication(session, request)
+
+
+@auth.requires_signature()
+def unsubscribe():
+    user_id = cast(Optional[int], auth.user_id)
+    if not user_id:
+        return redirect(URL("default", "index"))
+    
+    current_user = User.get_by_id(user_id)
+    if not current_user:
+        return redirect(URL("default", "index"))
+    
+    send_unsubscription_alert_for_manager(auth, db)
+
+    User.empty_user_data(current_user)
+    Membership.remove_all_membership(db, current_user.id)
+    Review.change_reviews_state(db, user_id, 
+                                        [ReviewState.ASK_FOR_REVIEW,
+                                         ReviewState.AWAITING_REVIEW,
+                                         ReviewState.AWAITING_RESPONSE,
+                                         ReviewState.WILLING_TO_REVIEW,
+                                         ReviewState.NEED_EXTRA_REVIEW_TIME],
+                                         ReviewState.DECLINED)
+    
+
+    
+    response.cookies['unsubscribe'] = True
+    redirect(URL("default", "user", args='logout', vars=dict(unsubscribe=True), user_signature=True))
+
+
+def unsubscribe_page():
+    if auth.user_id:
+        return redirect(URL("default", "index"))
+    
+    if 'unsubscribe' in request.cookies and request.cookies['unsubscribe'].value:
+        response.cookies['unsubscribe'] = False
+        response.cookies['unsubscribe']['expires'] = 0
+    else:
+        return redirect(URL("default", "index"))
+    
+    response.view = "default/myLayoutBot.html"
+
+    pageTitle = f"Your account has been successfully deleted."
+    customText = "You can re-register at any time using the same email address or a different one.."
+
+    return dict(pageTitle=pageTitle,
+                customText=customText)
+
 
 ######################################################################################################################################################################
 def change_mail_form_processing(form):
