@@ -3518,7 +3518,7 @@ def send_message_to_recommender_and_reviewers(auth, db, article_id):
 
 def send_unsubscription_alert_for_manager(auth: Auth, db: DAL):
     mail_vars = emailing_tools.getMailCommonVars()
-    hashtag_template = "#UnsubscriptionManagerAlert"
+    hashtag_template = "#UnsubscriptionAlert"
 
     mail_vars["person"] = common_small_html.mkUser(auth, db, auth.user.id)
     mail_vars["address"] = auth.user.email
