@@ -5,7 +5,7 @@ import re
 import copy
 import datetime
 from dateutil.relativedelta import *
-from typing import cast, Optional
+from typing import cast, Optional, List
 
 from lxml import html
 
@@ -1046,65 +1046,67 @@ def reviews():
         )
 
 ######################################################################################################################################################################
-def edit_reviewers(reviewersListSel, recomm, recommId=None, new_round=False, new_stage=False):
-            reviewers_emails = [auth.user.email] # To prevent duplication
-            reviewersIds = [auth.user_id]
-            reviewersList = []
-            current_reviewers_id = []
+def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, latest_round_recommendation_id: Optional[int] = None, new_round: bool = False, new_stage: bool = False):
+            reviewers_emails: List[str] = [auth.user.email] # To prevent duplication
+            reviewers_ids: List[int] = [auth.user_id]
+            reviewers_list: List[LI] = []
+            current_reviewers_ids: List[int] = []
             nb_anonymous = 1
-            for con in reviewersListSel:
-                if con.review_state is None:  # delete this unfinished review declaration
-                    db(db.t_reviews.id == con.id).delete()
+            
+            for review in reviews:
+                if review.review_state is None:  # delete this unfinished review declaration
+                    db(db.t_reviews.id == review.id).delete()
                     continue
 
-                reviewer_id = con.reviewer_id
+                reviewer_id = review.reviewer_id
+                reviewer_email: Optional[str] = None
                 if reviewer_id:
-                    reviewer_email = db.auth_user[reviewer_id].email
-                elif con.reviewer_details:
-                    reviewer_email = re.search(r'\[(.*?)\]', con.reviewer_details).group(1)
-                else:
-                    reviewer_email = None
+                    reviewer = User.get_by_id(reviewer_id)
+                    if reviewer:
+                        reviewer_email = reviewer.email
+                elif review.reviewer_details:
+                    reviewer_email = re.search(r'\[(.*?)\]', review.reviewer_details).group(1)
 
-                if recomm.recommender_id == reviewer_id:
-                    selfFlag = True
-                    if con.review_state == "Cancelled":
-                        selfFlagCancelled = True
-                if reviewer_email != None and reviewer_email in reviewers_emails:
-                    pass
-                else:
-                    if reviewer_id in reviewersIds:
-                        continue
 
+                if reviewer_email and reviewer_email in reviewers_emails:
+                    continue
+
+                if reviewer_id and reviewer_id in reviewers_ids:
+                    continue
+
+                if reviewer_email:
                     reviewers_emails.append(reviewer_email)
-                    reviewersIds.append(reviewer_id)
-                    display = LI(
-                            TAG(con.reviewer_details) if con.reviewer_details else \
-                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
-                            " ",
-                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            I("(" + (con.review_state or "") + ")"), 
-                            )
-                    if new_round or new_stage:
-                        current_reviewers = db((db.t_reviews.recommendation_id == recomm.id)).select(db.t_reviews.reviewer_id)
-                        for i in current_reviewers:
-                            current_reviewers_id.append(i.reviewer_id)
-                        display = LI(
-                            TAG(con.reviewer_details) if con.reviewer_details else \
-                                    common_small_html.mkUserWithMail(auth, db, reviewer_id),
-                            " ",
-                            B(T(" (YOU) ")) if reviewer_id == recomm.recommender_id else "",
-                            SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, con, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if con.anonymously  and new_round else "",
-                            SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, con, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if con.anonymously  and (new_stage and not new_round) else "",
-                            A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
-                                _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=recommId, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
-                                    if reviewer_id not in current_reviewers_id else "",
+                reviewers_ids.append(reviewer_id)
+
+                html = LI(
+                        TAG(review.reviewer_details) if review.reviewer_details else \
+                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                        " ",
+                        B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
+                        I("(" + (review.review_state or "") + ")"), 
                         )
-                        if con.anonymously:
-                            nb_anonymous += 1
+                
+                if new_round or new_stage:
+                    current_reviewers = Review.get_by_recommendation_id(db, recommendation.id)
+                    for current_reviewer in current_reviewers:
+                        current_reviewers_ids.append(current_reviewer.reviewer_id)
+                    html = LI(
+                        TAG(review.reviewer_details) if review.reviewer_details else \
+                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                        " ",
+                        B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, review, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, review, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if review.anonymously  and (new_stage and not new_round) else "",
+                        A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
+                            _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=latest_round_recommendation_id, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
+                                if reviewer_id not in current_reviewers_ids else "",
+                    )
+                    if review.anonymously:
+                        nb_anonymous += 1
+                
+                reviewers_list.append(html)
                     
-                    reviewersList.append(display)
-                    
-            return reviewersList, reviewersIds
+            return reviewers_list, reviewers_ids
 
 
 ######################################################################################################################################################################
@@ -1132,7 +1134,7 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
                 & (db.t_reviews.review_state == "Review completed")
         ).select(orderby=db.t_reviews.id)
         text = "Reviewers from the previous round of review"
-    prevReviewersList, prevRoundreviewersIds = edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
+    prevReviewersList, prevRoundreviewersIds = _edit_reviewers(prevRoundreviewersList, recomm, latestRoundRecommId, new_round=new_round, new_stage=new_stage)
     prevRoundHeader = DIV(
         BUTTON(H4(B(text, SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
         DIV(P(UL(prevReviewersList)),
@@ -1242,11 +1244,10 @@ def reviewers():
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
         
-        reviewersListSel = db((db.t_reviews.recommendation_id == recommId)).select(orderby=db.t_reviews.id)
+        reviewersListSel = Review.get_by_recommendation_id(db, recommId, db.t_reviews.id)
         selfFlag = False
         selfFlagCancelled = False
-        reviewersList, reviewersIds = edit_reviewers(reviewersListSel, recomm)
-        excludeList = ",".join(map(str, filter(lambda x: x is not None, reviewersIds)))
+        reviewersList, reviewersIds = _edit_reviewers(reviewersListSel, recomm)
         if len(reviewersList) > 0:
             myContents = DIV(
                 BUTTON(H4(B("Reviewers already invited:", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
