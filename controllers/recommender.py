@@ -1598,7 +1598,11 @@ def email_for_registered_reviewer():
     
     reviewer = User.get_by_id(reviewer_id)
     if not reviewer:
-        session.flash = auth.not_authorized()
+        session.flash = ("""
+        This reviewer is no longer in the database
+        and must therefore be invited as a new reviewer
+        using the button “INVITE A REVIEWER"
+        """)
         redirect(request.env.http_referer)
         return
 
