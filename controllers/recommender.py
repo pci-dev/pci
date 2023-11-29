@@ -1047,8 +1047,8 @@ def reviews():
 
 ######################################################################################################################################################################
 def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, latest_round_recommendation_id: Optional[int] = None, new_round: bool = False, new_stage: bool = False):
-            reviewers_emails: List[str] = [auth.user.email] # To prevent duplication
-            reviewers_ids: List[int] = [auth.user_id]
+            reviewers_emails: List[str] = [] # To prevent duplication
+            reviewers_ids: List[int] = []
             reviewers_list: List[LI] = []
             current_reviewers_ids: List[int] = []
             nb_anonymous = 1
