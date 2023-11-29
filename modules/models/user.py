@@ -148,3 +148,12 @@ class User(Row):
         user.update_record()
 
 
+    @staticmethod
+    def is_unsubscribed(user_id: int):
+        user = User.get_by_id(user_id)
+        if not user:
+            return False
+        
+        return not user.email
+
+

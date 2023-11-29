@@ -103,7 +103,7 @@ def impersonate_users():
         user_id_with_role.append(membership.user_id)
 
     grid = SQLFORM.grid(
-                    ~db.auth_user.id.belongs(user_id_with_role),
+                    db((~db.auth_user.id.belongs(user_id_with_role)) & (db.auth_user.email != None)),
                     fields=fields,
                     editable=False,
                     deletable=False,
@@ -144,7 +144,7 @@ def impersonate():
         session.flash = e
         return redirect(URL('default','index'))
 
-    if Membership.has_membership(db, user_id, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER]):
+    if User.is_unsubscribed(user_id) or Membership.has_membership(db, user_id, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER]):
         session.flash = "You can't impersonate this user"
         return redirect(URL('default','index'))
     
