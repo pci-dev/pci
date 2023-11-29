@@ -907,8 +907,7 @@ def one_review():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(URL(c=request.controller, f=" "))
     else:
         form = ""
@@ -960,8 +959,7 @@ def reviews():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(URL(c=request.controller, f=" "))
     if recomm == None:
         session.flash = auth.not_authorized()
@@ -2820,8 +2818,7 @@ def verify_co_authorship():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 

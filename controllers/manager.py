@@ -655,8 +655,7 @@ def manage_recommendations():
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
@@ -916,8 +915,7 @@ def suggested_recommenders():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
@@ -999,8 +997,7 @@ def edit_article():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
@@ -1177,8 +1174,7 @@ def edit_report_survey():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
@@ -1506,8 +1502,7 @@ def article_emails():
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
-        if pciRRactivated: session.flash = T("You cannot access this page because you are a co-author of this submission")
-        else: session.flash = T("You cannot access this page because you are a co-author of this submitted preprint")
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
