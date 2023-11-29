@@ -503,22 +503,37 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             else:
                 mail_vars["addNote"] = ""
 
-            declineLinkTarget = URL(
+            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
+            sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
+
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+
+            delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+
+            reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
+
+    emailing_tools.getFlashMessage(session, reports)
+
+
+def build_sugg_recommender_buttons(link_target: str, article_id: int):
+    common_mail_vars = emailing_tools.getMailCommonVars()
+
+    declineLinkTarget = URL(
                 c="recommender_actions",
                 f="decline_new_article_to_recommend",
-                vars=dict(articleId=article.id),
-                scheme=mail_vars["scheme"],
-                host=mail_vars["host"],
-                port=mail_vars["port"],
+                vars=dict(articleId=article_id),
+                scheme=common_mail_vars["scheme"],
+                host=common_mail_vars["host"],
+                port=common_mail_vars["port"],
             )
 
-            sugg_recommender_buttons = DIV(
+    sugg_recommender_buttons = DIV(
                 A(
                     SPAN(
                         current.T("Yes, I would like to handle the evaluation process"),
                         _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
                     ),
-                    _href=mail_vars["linkTarget"],
+                    _href=link_target,
                     _style="text-decoration: none; display: block",
                 ),
                 B(current.T("OR")),
@@ -532,16 +547,8 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
                 ),
                 _style="width: 100%; text-align: center; margin-bottom: 25px;",
             )
-
-            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
-
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
-
-            delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
-
-            reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-
-    emailing_tools.getFlashMessage(session, reports)
+    
+    return sugg_recommender_buttons
 
 
 ######################################################################################################################################################################
@@ -584,37 +591,8 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
         else:
             mail_vars["addNote"] = ""
 
-        declineLinkTarget = URL(
-            c="recommender_actions",
-            f="decline_new_article_to_recommend",
-            vars=dict(articleId=article.id),
-            scheme=mail_vars["scheme"],
-            host=mail_vars["host"],
-            port=mail_vars["port"],
-        )
-
-        sugg_recommender_buttons = DIV(
-            A(
-                SPAN(
-                    current.T("Yes, I would like to handle the evaluation process"),
-                    _style="margin: 10px; font-size: 14px; background: #93c54b; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
-                ),
-                _href=mail_vars["linkTarget"],
-                _style="text-decoration: none; display: block",
-            ),
-            B(current.T("OR")),
-            A(
-                SPAN(
-                    current.T("No, I would rather not"),
-                    _style="margin: 10px; font-size: 14px; background: #f47c3c; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block",
-                ),
-                _href=declineLinkTarget,
-                _style="text-decoration: none; display: block",
-            ),
-            _style="width: 100%; text-align: center; margin-bottom: 25px;",
-        )
-
         hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
 
         emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
@@ -2506,7 +2484,8 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
             )
             mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+            sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
+            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
@@ -2532,7 +2511,8 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
         )
         mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
+        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
