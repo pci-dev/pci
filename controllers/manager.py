@@ -1826,7 +1826,7 @@ def email_for_recommender():
 
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
-        sender = User.get_by_id(db, recomm.recommender_id)
+        sender = User.get_by_id(recomm.recommender_id)
     else:
         sender = cast(User, auth.user)
 

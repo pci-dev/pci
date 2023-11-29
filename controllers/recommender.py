@@ -1596,9 +1596,13 @@ def email_for_registered_reviewer():
         redirect(request.env.http_referer)
         return
     
-    reviewer = User.get_by_id(db, reviewer_id)
+    reviewer = User.get_by_id(reviewer_id)
     if not reviewer:
-        session.flash = auth.not_authorized()
+        session.flash = ("""
+        This reviewer is no longer in the database
+        and must therefore be invited as a new reviewer
+        using the button “INVITE A REVIEWER"
+        """)
         redirect(request.env.http_referer)
         return
 
@@ -1608,7 +1612,7 @@ def email_for_registered_reviewer():
 
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
-        sender = User.get_by_id(db, recommendation.recommender_id)
+        sender = User.get_by_id(recommendation.recommender_id)
     else:
         sender = cast(User, auth.user)
 
@@ -1761,7 +1765,7 @@ def email_for_new_reviewer():
 
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
-        sender = User.get_by_id(db, recommendation.recommender_id)
+        sender = User.get_by_id(recommendation.recommender_id)
     else:
         sender = cast(User, auth.user)
     

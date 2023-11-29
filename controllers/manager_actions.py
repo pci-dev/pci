@@ -262,7 +262,7 @@ def set_not_considered():
         session.flash = T('No author for this article')
         return redirect(request.env.http_referer, client_side=True)
 
-    author = User.get_by_id(db, article.user_id)
+    author = User.get_by_id(article.user_id)
     if not author:
         session.flash = T('No author for this article')
         return redirect(request.env.http_referer, client_side=True)

@@ -167,7 +167,7 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
             mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
     
     elif auth.has_membership(role="manager"):
-        recommender = User.get_by_id(db, recommendation.recommender_id)
+        recommender = User.get_by_id(recommendation.recommender_id)
         if recommender:
             mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
             mail_vars["Institution"] = recommender.institution
@@ -246,7 +246,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
             mail_vars["senderName"] = sender.first_name + ' ' + sender.last_name
     
     elif auth.has_membership(role="manager"):
-        recommender = User.get_by_id(db, recommendation.recommender_id)
+        recommender = User.get_by_id(recommendation.recommender_id)
         if recommender:
             mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
             mail_vars["Institution"] = recommender.institution

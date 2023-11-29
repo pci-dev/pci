@@ -2,7 +2,7 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime
 from typing import List, Optional as _, cast
 from pydal.objects import Row
-from pydal import DAL
+from gluon import current
 
 
 class User(Row):
@@ -35,12 +35,16 @@ class User(Row):
     no_orcid: bool
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
-        return cast(_[User], db.auth_user[id])
+    def get_by_id(id: int):
+        db = current.db
+        try: user = db.auth_user[id]
+        except: user = None
+        return cast(_[User], user)
     
     
     @staticmethod
-    def get_by_reset_password_key(db: DAL, reset_password_key: str):
+    def get_by_reset_password_key(reset_password_key: str):
+        db = current.db
         user = db(db.auth_user.reset_password_key == reset_password_key).select().first()
         return cast(_[User], user)
     
