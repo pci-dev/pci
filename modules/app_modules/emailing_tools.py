@@ -504,7 +504,8 @@ def insertReminderMailInQueue(
     sending_date_forced=None,
     base_sending_date=None,
     reviewer_invitation_buttons=None,
-    sender_name: Optional[str]=None
+    sender_name: Optional[str]=None,
+    sugg_recommender_buttons: Optional[DIV]=None
 ):
 
     reminder = getReminder(hashtag_template, db.t_reviews[review_id])
@@ -527,7 +528,7 @@ def insertReminderMailInQueue(
 
         mail = buildMail(
             db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
-            article_id=article_id,
+            article_id=article_id, sugg_recommender_buttons=sugg_recommender_buttons
         )
 
 
