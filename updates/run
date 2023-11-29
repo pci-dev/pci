@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+DIR=$(dirname $(realpath $0))
+SCRIPT=$1
+
+SITE=$(basename $(dirname $DIR))
+
+main() {
+
+[ -f $DIR/$SCRIPT ] || {
+	echo -e "usage: $0 <update script>\n
+	$DIR/$SCRIPT: script not found"
+	exit 1
+}
+
+cd $DIR/../../..
+
+python3 web2py.py --no_banner \
+	-M \
+	-S $SITE \
+	-R applications/$SITE/updates/$SCRIPT
+
+}
+
+main
