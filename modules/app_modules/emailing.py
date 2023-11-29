@@ -3509,8 +3509,7 @@ def send_message_to_recommender_and_reviewers(auth, db, article_id):
     article = db.t_articles[article_id]
     hashtag_template = "#ArticlePublishedPCJ"
 
-    if article and not db((db.mail_queue.mail_template_hashtag == hashtag_template) & \
-                          (db.mail_queue.article_id == article.id)).count() > 0:
+    if article:
         recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(auth, db, article_id)
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
