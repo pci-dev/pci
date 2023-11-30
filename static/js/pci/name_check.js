@@ -64,7 +64,7 @@ function create_question_modal(user_json) {
 
     let author_warning = user_json['author_match']
     if (author_warning != '') {
-        span.innerHTML = 'The name you entered corresponds closely to one of the authors of this submission: <strong>' + author_warning + '</strong>. Please make sure they are not the same person.<br><br>';
+        span.innerHTML = 'The name you entered corresponds closely to one of the authors of this submission: <strong>' + author_warning + '</strong>. Please make sure they are not the same person.<br><br>(Attention, names may be similar for different persons and generate a false positive).<br><br>';
         var modal_footer = document.createElement('div');
         modal_footer.classList.add('modal-footer');
         modal_footer.classList.add('modal-footer2');
