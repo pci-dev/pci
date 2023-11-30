@@ -1002,6 +1002,7 @@ def reviewSuggested(s, row):
     article = db.t_articles[recomm.article_id]
     rev = db.t_reviews[reviewId]
     revwr = db.t_recommendations[rev.recommendation_id]
+    no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
 
     notify_submitter(row)
 
@@ -1039,7 +1040,8 @@ def reviewSuggested(s, row):
                 if pciRRactivated:
                     emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], row["recommendation_id"])
                      # renew reminder
-                    emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recomm.id)
+                    if no_of_accepted_invites < 2 and recomm.recommendation_state == "Ongoing":
+                        emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recomm.id)
     return None
 
 
