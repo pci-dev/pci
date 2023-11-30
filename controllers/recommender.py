@@ -1945,7 +1945,6 @@ def check_reviewer_name():
     recommId = request.vars['recommId']
 
     response_json = {}
-
     if not last_name or not first_name:
         response_json['success'] = False
         return response.json(response_json)
@@ -1976,6 +1975,8 @@ def check_reviewer_name():
             single_user['country'] = user.country
             users.append(single_user)
         response_json['users'] = users
+        response_json['success'] = True
+    elif response_json['author_match'] != '':
         response_json['success'] = True
     else:
         response_json['success'] = False
