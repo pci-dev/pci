@@ -480,7 +480,6 @@ def unsubscribe():
     
     send_unsubscription_alert_for_manager(auth, db)
 
-    User.empty_user_data(current_user)
     Membership.remove_all_membership(db, current_user.id)
     Review.change_reviews_state(db, user_id, 
                                         [ReviewState.ASK_FOR_REVIEW,
@@ -489,8 +488,10 @@ def unsubscribe():
                                          ReviewState.WILLING_TO_REVIEW,
                                          ReviewState.NEED_EXTRA_REVIEW_TIME],
                                          ReviewState.DECLINED)
-    
-
+    deleted = User.delete(current_user.id)
+    if not deleted:
+        session.flash = "User not deleted"
+        return redirect(URL("default", "index"))
     
     response.cookies['unsubscribe'] = True
     redirect(URL("default", "user", args='logout', vars=dict(unsubscribe=True), user_signature=True))

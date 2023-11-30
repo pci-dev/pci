@@ -121,39 +121,7 @@ class User(Row):
         user.update_record()
 
     @staticmethod
-    def empty_user_data(user: 'User'):
-        user.email = None
-        user.password = None
-        user.registration_key = None
-        user.reset_password_key = None
-        user.registration_id = None
-        user.picture_data = None
-        user.uploaded_picture = None
-        user.user_title = None
-        user.city = None
-        user.country = None
-        user.laboratory = None
-        user.institution = None
-        user.alerts = None
-        user.thematics = None
-        user.cv = None
-        user.last_alert = None
-        user.recover_email = None
-        user.recover_email_key = None
-        user.website = None
-        user.keywords = None
-        user.email_options = []
-        user.orcid = None
-        
-        user.update_record()
-
-
-    @staticmethod
-    def is_unsubscribed(user_id: int):
-        user = User.get_by_id(user_id)
-        if not user:
-            return False
-        
-        return not user.email
-
-
+    def delete(user_id: int):
+        db = current.db
+        count_deleted = cast(int, db(db.auth_user.id == user_id).delete())
+        return count_deleted == 1
