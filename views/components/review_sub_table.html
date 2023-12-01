@@ -128,14 +128,16 @@
             {{=T("Write or edit your decision / recommendation")}}
           </a>
         {{else:}}
+        <div title="You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.">
           <a 
             style="height: 22px; padding: 0 15px;" 
             class="btn btn-default disabled" 
-            title="{{=T('Write your decision or recommendation once all reviews are completed. At least two reviews are required.')}}"
+            title=""
           >
           <i class="glyphicon glyphicon-edit" style="margin-right: 5px;"></i>
             {{=T("Write your decision / recommendation")}}
           </a>
+        </div>
         {{pass}}
       </div>
     {{pass}}
