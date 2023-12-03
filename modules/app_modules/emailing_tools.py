@@ -325,7 +325,6 @@ def clean_addresses(dirty_string_adresses):
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
-    print(hashTag)
     query = (db.mail_templates.hashtag == hashTag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
