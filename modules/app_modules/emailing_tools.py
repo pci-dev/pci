@@ -46,17 +46,12 @@ from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
 contact = myconf.take("contacts.managers")
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
-MAIL_DELAY = 1.5  # in seconds
-
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
-
-CLEANR = re.compile('<.*?>')
 
 ######################################################################################################################################################################
 # Mailing tools
