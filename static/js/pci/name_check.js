@@ -132,7 +132,8 @@ function gather_name() {
     // extract name from from for JSON
     let firstname_field = document.querySelector('#no_table_reviewer_first_name');
     let lastname_field = document.querySelector('#no_table_reviewer_last_name');
-    let field_json = {'first_name': firstname_field.value, 'last_name': lastname_field.value};
+    let email_field = document.querySelector('#no_table_reviewer_email');
+    let field_json = {'first_name': firstname_field.value, 'last_name': lastname_field.value, 'email': email_field.value};
     return field_json
 }
 
