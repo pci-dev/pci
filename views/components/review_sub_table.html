@@ -128,7 +128,11 @@
             {{=T("Write or edit your decision / recommendation")}}
           </a>
         {{else:}}
-        <div title="You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.">
+          {{if not pciRRactivated:}}
+            <div title="You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.">
+          {{else:}}
+            <div>
+          {{pass}}
           <a 
             style="height: 22px; padding: 0 15px;" 
             class="btn btn-default disabled" 

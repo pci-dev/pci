@@ -142,11 +142,11 @@
             {{if editRecommendationDisabled and isScheduledSubmission:}}
               <i style="font-size: 12px;">{{=T('Write your decision or recommendation once the full manuscript is submitted by the author.')}}</i>
             {{pass}}
-            {{if editRecommendationDisabled:}}
-                <div title="You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.">
+            {{if editRecommendationDisabled and not pciRRactivated: }}
+              <div title="You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.">
             {{else:}}
-                <div>
-            {{pass }}
+              <div>
+            {{pass}}
             <a class="buttontext btn btn-default {{if editRecommendationDisabled:}}disabled{{pass}}" 
               href="{{=editRecommendationLink}}"
             >

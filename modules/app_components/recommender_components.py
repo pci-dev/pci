@@ -128,6 +128,7 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
         showSearchingForReviewersButton=False,
         showRemoveSearchingForReviewersButton=show_remove_searching_for_reviewers_button,
         isArticleSubmitter=(article.user_id == auth.user_id),
+        pciRRactivated=pciRRactivated
     )
 
     return XML(response.render("components/review_sub_table.html", component_vars))
