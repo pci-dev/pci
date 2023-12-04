@@ -2053,12 +2053,11 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
     clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.vars.replyto)
     replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
-    clean_dest_mail_addresses, dest_errors = emailing_tools.clean_addresses(form.vars.dest_mail_address)
-    dest_mail_addresses = emailing_tools.list_addresses(clean_dest_mail_addresses)
+    dest_mail_address, dest_errors = emailing_tools.clean_addresses(form.vars.dest_mail_address)
 
     mail_content = mk_mail(form.vars.subject, form.vars.content, resend=True)
     mail_vars = emailing_tools.getMailCommonVars()
-    mail_vars["destAddress"] = dest_mail_addresses
+    mail_vars["destAddress"] = dest_mail_address
     mail_vars["ccAddresses"] = cc_addresses
     mail_vars["replytoAddresses"] = replyto_addresses
 
@@ -2079,7 +2078,7 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
                                          alternative_subject=form.vars.subject,
                                          alternative_content=mail_content)
 
-    reports = emailing_tools.createMailReport(True, dest_mail_addresses, reports=[])
+    reports = emailing_tools.createMailReport(True, dest_mail_address, reports=[])
     emailing_tools.getFlashMessage(session, reports)
 
 
