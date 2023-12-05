@@ -2,6 +2,7 @@
 
 import gc
 import os
+from typing import List, Union, cast
 import pytz
 from re import sub, match
 from copy import deepcopy
@@ -24,6 +25,11 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
+from models.article import Article
+from models.press_reviews import PressReview
+from models.review import Review
+from models.user import User
+from pydal import DAL
 
 
 from app_modules import common_small_html
@@ -31,6 +37,7 @@ from app_modules import common_tools
 
 
 myconf = AppConfig(reload=True)
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
@@ -165,7 +172,14 @@ def reviewsOfCancelled(auth, db, art):
 ######################################################################################################################################################################
 ##WARNING The most sensitive function of the whole website!!
 ##WARNING Be *VERY* careful with rights management
-def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet=True, scheme=False, host=False, port=False, to_submitter=False):
+def mkFeaturedArticle(auth: Auth,
+                      db: DAL,
+                      art: Article,
+                      printable: bool = False,
+                      quiet: bool = True,
+                      scheme: Union[str, bool] = False,
+                      host: Union[str, bool] = False,
+                      port: Union[str,  bool] = False):
     class FakeSubmitter(object):
         id = None
         first_name = ""
@@ -173,16 +187,18 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 
     submitter = FakeSubmitter()
     hideSubmitter = True
-    qyIsRecommender = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommender_id == auth.user_id)).count()
-    qyIsCoRecommender = db(
+    qyIsRecommender = cast(int, db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommender_id == auth.user_id)).count())
+    qyIsCoRecommender = cast(int, db(
         (db.t_recommendations.article_id == art.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id) & (db.t_press_reviews.contributor_id == auth.user_id)
-    ).count()
+    ).count())
     if (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role="manager")):
-        submitter = db(db.auth_user.id == art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+        if art.user_id:
+            submitter = User.get_by_id(art.user_id)
+        else:
+            submitter = None
         if submitter is None:
             submitter = FakeSubmitter()
         hideSubmitter = False
-    allowOpinion = None
     ###NOTE: article facts
     if art.uploaded_picture is not None and art.uploaded_picture != "":
         img = DIV(
@@ -306,7 +322,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
     myContents = DIV(myArticle, _class=("pci-article-div-printable" if printable else "pci-article-div"))
     # myContents = DIV('', _class=('pci-article-div-printable' if printable else 'pci-article-div'))
 
-    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
+    recomms = Article.get_last_recommendations(art.id, ~db.t_recommendations.id)
     nbRecomms = len(recomms)
     myButtons = DIV()
     if nbRecomms > 0 and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable) and not (quiet):
@@ -337,7 +353,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 _class="button",
             ),
         ]
-        amISugg = db((db.t_suggested_recommenders.article_id == art.id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).count()
+        amISugg = cast(int, db((db.t_suggested_recommenders.article_id == art.id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).count())
         if amISugg > 0:
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
@@ -371,7 +387,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
     ###NOTE: here start recommendations display
     iRecomm = 0
     roundNb = nbRecomms + 1
-    reply_filled = False
     myRound = None
     for recomm in recomms:
         iRecomm += 1
@@ -379,15 +394,15 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
         nbCompleted = 0
         nbOnGoing = 0
         myRound = DIV()
-        recommender = db(db.auth_user.id == recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
         whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
 
         ###NOTE: POST-PRINT ARTICLE
         if art.already_published:
-            contributors = []
-            contrQy = db((db.t_press_reviews.recommendation_id == recomm.id)).select(orderby=db.t_press_reviews.id)
+            contributors: List[int] = []
+            contrQy = PressReview.get_by_recommendation(recomm.id, db.t_press_reviews.id)
             for contr in contrQy:
-                contributors.append(contr.contributor_id)
+                if contr.contributor_id:
+                    contributors.append(contr.contributor_id)
 
             myRound.append(
                 DIV(
@@ -420,7 +435,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                 # (gab) minimal_number_of_corecommenders is not defiend ! => set it to 0
                 # if len(contributors) >= minimal_number_of_corecommenders:
                 if len(contributors) >= 0:
-                    if len(recomm.recommendation_comments) > 50:
+                    if recomm.recommendation_comments and len(recomm.recommendation_comments) > 50:
                         myRound.append(
                             DIV(
                                 A(
@@ -468,10 +483,10 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
 
         else:  ###NOTE: PRE-PRINT ARTICLE
             # Am I a co-recommender?
-            amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+            amICoRecommender = cast(int, db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count()) > 0
             # Am I a reviewer?
             amIReviewer = (
-                db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count()
+                cast(int,db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count())
                 > 0
             )
             # During recommendation, no one is not allowed to see last (unclosed) recommendation
@@ -506,18 +521,13 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                         _style="margin-bottom: 64px;",
                     )
                 )
-            if recomm.reply_pdf or len(recomm.reply or "") > 5:
-                reply_filled = True
 
             # Check for reviews
-            existOngoingReview = False
             myReviews = DIV()
-            reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+            reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
                 orderby=db.t_reviews.id
-            )
+            ))
             for review in reviews:
-                if review.review_state == "Awaiting review":
-                    existOngoingReview = True
                 if review.review_state == "Review completed":
                     nbCompleted += 1
                 if review.review_state == "Awaiting review":
@@ -525,7 +535,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
             # If the recommender is also a reviewer, did he/she already completed his/her review?
             recommReviewFilledOrNull = False  # Let's say no by default
             # Get reviews states for this case
-            recommenderOwnReviewStates = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).select(db.t_reviews.review_state)
+            recommenderOwnReviewStates = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).select())
             if len(recommenderOwnReviewStates) == 0:
                 # The recommender is not also a reviewer
                 recommReviewFilledOrNull = True  # He/she is allowed to see other's reviews
@@ -633,7 +643,7 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                             )
                         )
                     else:
-                        reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+                        reviewer = User.get_by_id(review.reviewer_id)
                         if reviewer is not None:
                             myReviews.append(
                                 SPAN(
@@ -647,21 +657,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                                     )
                                 )
                             )
-                        else:
-                            reviewer = db(db.auth_user.id == review.reviewer_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-                            if reviewer is not None:
-                                myReviews.append(
-                                    SPAN(
-                                        I(
-                                            current.T("Reviewed by")
-                                            + " "
-                                            + (reviewer.first_name or "")
-                                            + " "
-                                            + (reviewer.last_name or "")
-                                            + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
-                                        )
-                                    )
-                                )
                         myReviews.append(BR())
 
                     if len(review.review or "") > 2:
@@ -728,12 +723,6 @@ def mkFeaturedArticle(auth, db, art, printable=False, with_comments=False, quiet
                             )
                         )
                     )
-
-                # final opinion allowed if comments filled and no ongoing review
-                if (len(recomm.recommendation_comments or "") > 5) and not (existOngoingReview):  # and len(reviews)>=2 :
-                    allowOpinion = recomm.id
-                else:
-                    allowOpinion = -1
 
             # if (art.user_id==auth.user_id or auth.has_membership(role='manager')) and (art.status=='Awaiting revision') and not(recomm.is_closed) and not(printable) and not (quiet):
             if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and not (quiet) and (iRecomm == 1):

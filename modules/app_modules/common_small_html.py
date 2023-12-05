@@ -1,6 +1,6 @@
 import gc
 import os
-from typing import Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 import pytz
 from re import sub, match
 from copy import deepcopy
@@ -22,6 +22,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 from models.article import Article
+from models.recommendation import Recommendation
 from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
@@ -84,7 +85,7 @@ def mkElapsed(t):
 ######################################################################################################################################################################
 # Transforms  DOI
 # After CrossRef syntax must be: https://doi.org/xxxx.xx/xxx.xx
-def mkDOI(doi):
+def mkDOI(doi: Optional[str]):
     doi_url = mkLinkDOI(doi)
     if doi_url:
         return A(B(doi), _href=doi_url, _class="doi_url", _target="_blank")
@@ -97,7 +98,7 @@ def mkSimpleDOI(doi):
     return A(doi, _href=doi_url) if doi_url else ""
 
 
-def mkLinkDOI(doi: str):
+def mkLinkDOI(doi: Optional[str]):
     if doi:
         if match("^http", doi):
             return doi
@@ -487,8 +488,8 @@ def mkAnonymousMask(auth, db, anon):
 
 
 ######################################################################################################################################################################
-def mkAnonymousArticleField(auth, db, anon, value, articleId):
-    recomm = db(db.t_recommendations.article_id == articleId).select().last()
+def mkAnonymousArticleField(auth: Auth, db: DAL, anon: bool, value: Any, articleId: int):
+    recomm = Article.get_last_recommendation(articleId)
     isRecommender = recomm and recomm.recommender_id == auth.user_id
     if anon is True and not isRecommender:
         return IMG(_alt="anonymous", _src=URL(c="static", f="images/mask.png"))
@@ -798,10 +799,21 @@ def mkReviewersString(auth, db, articleId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def getRecommAndReviewAuthors(auth, db, article=dict(), recomm=dict(), with_reviewers=False, as_list=False, linked=False,
-                              host=False, port=False, scheme=False,
-                              this_recomm_only=False, citation=False, orcid: bool = False, orcid_exponant: bool = False
-                             ):
+def getRecommAndReviewAuthors(auth: Auth,
+                              db: DAL,
+                              article: Union[Article, Dict[Any, Any]] = dict(),
+                              recomm: Union[Recommendation, Dict[Any, Any]] = dict(),
+                              with_reviewers: bool = False,
+                              as_list: bool = False,
+                              linked: bool = False,
+                              host: Union[str, bool] = False,
+                              port: Union[str, bool] = False,
+                              scheme: Union[str, bool] = False,
+                              this_recomm_only: bool = False,
+                              citation: bool = False,
+                              orcid: bool = False,
+                              orcid_exponant: bool = False
+                             ) -> List[Any]:
     whoDidIt = []
 
     if hasattr(recomm, "article_id"):

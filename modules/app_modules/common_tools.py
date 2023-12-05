@@ -12,6 +12,7 @@ from gluon.sqlhtml import SQLFORM
 from gluon.tools import Auth
 from gluon.validators import IS_LIST_OF
 from models.article import Article
+from models.review import Review
 from models.suggested_recommender import SuggestedRecommender
 from pydal import DAL
 
@@ -189,7 +190,7 @@ def cancel_decided_article_pending_reviews(db, recomm):
 
 ###################################################################
 
-def find_reviewer_number(db, review, count_anon):
+def find_reviewer_number(db: DAL, review: Review, count_anon: int):
     '''
     function finds a number for the reviewer in order to differentiate between anonymous reviewers;
     it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.

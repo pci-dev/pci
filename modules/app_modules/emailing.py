@@ -160,7 +160,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterCancelledSubmission", article)
 
         elif article.status != newStatus and newStatus == "Rejected":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
@@ -171,7 +171,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRejectedSubmission", article)
 
         elif article.status != newStatus and newStatus == "Not considered":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
@@ -179,7 +179,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = "#SubmitterNotConsideredSubmission"
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
+            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )

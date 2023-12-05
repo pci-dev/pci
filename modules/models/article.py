@@ -1,9 +1,12 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional as _, cast
+from typing import Any, List, Optional as _, cast
 from pydal.objects import Row
 from pydal import DAL
 from gluon.contrib.appconfig import AppConfig
+from gluon import current
+
+from models.recommendation import Recommendation
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -79,6 +82,22 @@ class Article(Row):
     @staticmethod
     def get_by_id(db: DAL, id: int):
         return cast(_[Article], db.t_articles[id])
+
+
+    @staticmethod
+    def get_last_recommendation(article_id: int):
+        db = current.db
+        return cast(_[Recommendation], db(db.t_recommendations.article_id == article_id).select().last())
+
+
+    @staticmethod
+    def get_last_recommendations(article_id: int, order_by: _[Any]):
+        db = current.db
+        if order_by:
+            recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
+        else:
+            recommendations = db(db.t_recommendations.article_id == article_id).select()
+        return cast(List[Recommendation], recommendations)
 
 
 def is_scheduled_submission(article: Article) -> bool:
