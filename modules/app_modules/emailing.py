@@ -179,13 +179,13 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = "#SubmitterNotConsideredSubmission"
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
 
             if recomm:
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
 
