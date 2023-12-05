@@ -109,7 +109,7 @@ def cancel_scheduled_reviews(session, auth, db, articleId):
 def mkEditResendButton(auth, db, row, reviewId=None, recommId=None, articleId=None, urlFunction=None, urlController=None):
     anchor = A(
         SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
-        _href=URL(c="recommender_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController), user_signature=True),
+        _href=URL(c="recommender_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController)),
         _class="button",
     )
     return anchor

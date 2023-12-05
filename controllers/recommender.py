@@ -2746,6 +2746,7 @@ def edit_and_resend_email():
                 auth, 
                 db, 
                 form,
+                hashtag=mail.mail_template_hashtag,
                 reviewId=reviewId,
                 recommId=recommId,
                 articleId=articleId)

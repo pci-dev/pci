@@ -1,28 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
 import re
-from re import sub, match
-from lxml import html
 from datetime import datetime, timedelta
 from typing import Optional, cast
 
-# from copy import deepcopy
 from dateutil.relativedelta import *
-import traceback
-from pprint import pprint
 
 from gluon import current
 from gluon.storage import Storage
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
-from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
 from gluon.validators import IS_EMAIL
-from models.article import Article
 from pydal import DAL
 
 from gluon.custom_import import track_changes
@@ -31,32 +22,21 @@ from models.recommendation import Recommendation
 from models.user import User
 
 track_changes(True)
-import socket
-
-from uuid import uuid4
-from contextlib import closing
-import shutil
 
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules import old_common
 from app_modules import helper
 from app_modules import emailing_parts
 from app_modules.reminders import getReminder
 
 myconf = AppConfig(reload=True)
 contact = myconf.take("contacts.managers")
-parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
-MAIL_DELAY = 1.5  # in seconds
-
 # common view for all emails
 MAIL_HTML_LAYOUT = os.path.join(os.path.dirname(__file__), "../../views/mail", "mail.html")
-
-CLEANR = re.compile('<.*?>')
 
 ######################################################################################################################################################################
 # Mailing tools
@@ -325,7 +305,6 @@ def clean_addresses(dirty_string_adresses):
 
 ######################################################################################################################################################################
 def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
-    print(hashTag)
     query = (db.mail_templates.hashtag == hashTag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
