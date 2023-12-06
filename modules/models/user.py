@@ -1,5 +1,8 @@
 from datetime import datetime
+import time
 from typing import List, Optional as _, cast
+
+from gluon.utils import web2py_uuid
 from pydal.objects import Row
 from gluon import current
 
@@ -49,6 +52,13 @@ class User(Row):
     
 
     @staticmethod
+    def get_by_recover_email_key(recover_email_key: str):
+        db = current.db
+        user = db(db.auth_user.recover_email_key == recover_email_key).select().first()
+        return cast(_[User], user)
+    
+
+    @staticmethod
     def set_orcid(user: 'User', orcid: str):
         user.orcid = orcid
         return user.update_record()
@@ -74,5 +84,38 @@ class User(Row):
             and user.keywords != None and len(user.keywords) > 0 \
             and user.website != None and len(user.website) > 0 \
             and user.alerts != None and len(user.alerts) > 0
+    
 
+    @staticmethod
+    def change_email(user_id: int, new_email: str):
+        user = User.get_by_id(user_id)
+        if not user:
+            raise Exception('User not found')
+        
+        max_time = (15 * 24 * 60 * 60) + int(time.time())
+        recover_email_key = str( max_time) + "-" + web2py_uuid()
+        user.update_record(recover_email_key=recover_email_key, recover_email=new_email)
+
+        return recover_email_key
+
+
+    @staticmethod
+    def confirm_change_email(recover_email_key: str):
+        try:
+            max_time = int(recover_email_key.split('-')[0])
+        except:
+            raise Exception('Invalid key')
+        
+        user = User.get_by_recover_email_key(recover_email_key)
+        if not user:
+            raise Exception('Unknown key')
+
+        current_time = int(time.time())
+        if current_time >= max_time:
+            raise Exception('Expired key')
+    
+        user.email = user.recover_email
+        user.recover_email = None
+        user.recover_email_key = None
+        user.update_record()
 

@@ -1942,7 +1942,7 @@ def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_m
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user_id)
     mail_vars["destAddress"] = dest_mail
-    mail_vars["verifyMailUrl"] = URL(c="default", f="user", args=["verify_email", key], scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["verifyMailUrl"] = URL(c="default", f="confirm_new_address", vars=dict(recover_email_key=recover_email_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     hashtag_template = "#UserChangeMail"
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
