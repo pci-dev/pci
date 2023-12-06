@@ -37,6 +37,20 @@
         min-width: 13rem;
     }
 
+    #hover-plate {
+        display: none;
+        position: fixed;
+        top: 100%;
+        margin-left: .5rem;
+        width: fit-content;
+        padding: 0.5rem 1rem;
+        border-radius: .5rem;
+        background-color: white;
+        max-width: 30rem;
+        z-index: 1;
+        border: 1px solid #42748d48;
+    }
+
     .min15w {
         min-width: 15rem;
     }

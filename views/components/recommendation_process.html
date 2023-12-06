@@ -142,13 +142,19 @@
             {{if editRecommendationDisabled and isScheduledSubmission:}}
               <i style="font-size: 12px;">{{=T('Write your decision or recommendation once the full manuscript is submitted by the author.')}}</i>
             {{pass}}
-
+            {{if editRecommendationDisabled and not pciRRactivated: }}
+            <div onmouseover="show_hover()" onmouseleave="hide_hover()">
+            {{else:}}
+              <div>
+            {{pass}}
             <a class="buttontext btn btn-default {{if editRecommendationDisabled:}}disabled{{pass}}" 
               href="{{=editRecommendationLink}}"
             >
               {{=editRecommendationButtonText}}
             </a>
           </div>
+          <div id="hover-plate">You can't make a decision yet, as you must have at least two reviews completed and no other reviewer with an 'Awaiting review' status. To cancel a review in progress, use the 'Actions' button.</div>
+        </div>
         {{pass}}
 
         {{if recommendationPdfLink:}}
@@ -349,3 +355,19 @@
   {{pass}}
 
 </div>
+
+
+
+<script>
+  function show_hover() {
+    let hover_plate = document.querySelector('#hover-plate');
+    hover_plate.style.display = 'block';
+    hover_plate.style.left = event.clientX + 'px';
+    hover_plate.style.top = event.clientY + 'px';
+  }
+
+  function hide_hover() {
+    let hover_plate = document.querySelector('#hover-plate');
+    hover_plate.style.display = 'none';
+  }
+</script>

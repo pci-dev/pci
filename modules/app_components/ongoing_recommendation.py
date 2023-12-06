@@ -736,7 +736,8 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             replyButtonDisabled=replyButtonDisabled,
             scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
             suspend_submissions=suspend_submissions,
-            isSchedulingTrack=(pciRRactivated and art.report_stage == "STAGE 1" and (art.is_scheduled or is_scheduled_submission(art)))
+            isSchedulingTrack=(pciRRactivated and art.report_stage == "STAGE 1" and (art.is_scheduled or is_scheduled_submission(art))),
+            pciRRactivated=pciRRactivated
         )
 
         recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
