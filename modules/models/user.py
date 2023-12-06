@@ -1,4 +1,3 @@
-from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from typing import List, Optional as _, cast
 from pydal.objects import Row
@@ -50,19 +49,19 @@ class User(Row):
     
 
     @staticmethod
-    def set_orcid(user: User, orcid: str):
+    def set_orcid(user: 'User', orcid: str):
         user.orcid = orcid
         return user.update_record()
 
 
     @staticmethod
-    def set_no_orcid(user: User, no_orcid: bool = True):
+    def set_no_orcid(user: 'User', no_orcid: bool = True):
         user.no_orcid = no_orcid
         return user.update_record()
     
 
     @staticmethod
-    def is_profile_completed(user: User): 
+    def is_profile_completed(user: 'User'): 
         return user.first_name != None and len(user.first_name) > 0 \
             and user.last_name != None and len(user.last_name) > 0 \
             and user.email != None and len(user.email) > 0 \
