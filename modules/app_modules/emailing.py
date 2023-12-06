@@ -1933,15 +1933,14 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
 
 ######################################################################################################################################################################
 ######################################################################################################################################################################
-def send_change_mail(session, auth, db, userId, dest_mail, key):
-    print("send_change_mail")
+def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_mail: str, recover_email_key: str):
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_resu = False
     reports = []
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user_id)
     mail_vars["destAddress"] = dest_mail
     mail_vars["verifyMailUrl"] = URL(c="default", f="user", args=["verify_email", key], scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
