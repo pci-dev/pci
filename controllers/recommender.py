@@ -1969,7 +1969,7 @@ def check_reviewer_name():
     submitter = db(db.auth_user.id == art.user_id).select().last()
     if submitter:
         if submitter.email == email:
-            response['email_match'] = '%s %s, %s'%(submitter.first_name, submitter.last_name, submitter.email)
+            response_json['email_match'] = '%s %s, %s'%(submitter.first_name, submitter.last_name, submitter.email)
 
     # check if reviewer name corresponds to a user from our database
     existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
@@ -1987,6 +1987,8 @@ def check_reviewer_name():
         response_json['users'] = users
         response_json['success'] = True
     elif response_json['author_match'] != '':
+        response_json['success'] = True
+    elif response_json['email_match'] != '':
         response_json['success'] = True
     else:
         response_json['success'] = False

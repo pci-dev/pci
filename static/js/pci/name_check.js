@@ -62,8 +62,22 @@ function create_question_modal(user_json) {
     modal_body.classList.add('modal-body');
     let span = document.createElement('span');
 
-    let author_warning = user_json['author_match']
-    if (author_warning != '') {
+    let email_warning = user_json['email_match'];
+    let author_warning = user_json['author_match'];
+    if (email_warning != '') {
+        span.innerHTML = 'The email you entered corresponds to the email of the submitting person: <strong>' + email_warning + '</strong>.<br><br>The submitter must not be invited as reviewer.<br><br>';
+        var modal_footer = document.createElement('div');
+        modal_footer.classList.add('modal-footer');
+        modal_footer.classList.add('modal-footer2');
+        let confirm_link = document.createElement('a');
+        confirm_link.innerHTML = 'Ok';
+        confirm_link.id = 'confirm-btn';
+        confirm_link.classList.add('btn');
+        confirm_link.classList.add('btn-info');
+        confirm_link.setAttribute('onclick', 'resume_invite()');
+        modal_footer.appendChild(confirm_link);
+    }
+    else if (author_warning != '') {
         span.innerHTML = 'The name you entered corresponds closely to one of the authors of this submission: <strong>' + author_warning + '</strong>. Please make sure they are not the same person.<br><br>(Attention, names may be similar for different persons and generate a false positive).<br><br>';
         var modal_footer = document.createElement('div');
         modal_footer.classList.add('modal-footer');
