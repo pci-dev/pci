@@ -1951,28 +1951,6 @@ def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_m
 
     emailing_tools.getFlashMessage(session, reports)
 
-
-######################################################################################################################################################################
-def send_recover_mail(session, auth, db, userId, dest_mail, key):
-    print("send_recover_mail")
-    mail = emailing_tools.getMailer(auth)
-    mail_vars = emailing_tools.getMailCommonVars()
-
-    mail_resu = False
-    reports = []
-
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
-    mail_vars["destAddress"] = dest_mail
-    mail_vars["recoverMailUrl"] = URL(c="default", f="recover_mail", vars=dict(key=key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-
-    hashtag_template = "#UserRecoverMail"
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-
-    reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
-
-    emailing_tools.getFlashMessage(session, reports)
-
-
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
