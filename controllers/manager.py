@@ -491,6 +491,7 @@ def recommendations():
                 recommStatusHeader.append(mastodon_button_element)
             
         recommStatusHeader.append(crossref_toolbar(art))
+        recommStatusHeader.append(clocks_ftp(art))
 
     if printable:
         printableClass = "printable"
@@ -522,12 +523,20 @@ def recommendations():
         setNotConsideredButton=set_not_considered_button or "",
         confirmationScript=confirmationScript,
     )
+def clocks_ftp(article):
+    return A(
+        I(_class="glyphicon glyphicon-export", _style="vertical-align:middle"),
+        T("Clockss"),
+        _href=URL("clockss", f"post_form?article_id={article.id}"),
+        _class="pci2-tool-link pci2-yellow-link",
+        _style="margin-right: 25px;",
+    )
 
 def crossref_toolbar(article):
     return DIV(
         crossref_button(article),
         crossref_status(article),
-        _style="width: fit-content; display: inline-block",
+        _style="width: fit-content; display: inline-block; margin-right: 25px;",
     )
 
 def crossref_button(article: Row):
@@ -536,7 +545,7 @@ def crossref_button(article: Row):
         T("Crossref"),
         _href=URL("crossref", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style="margin-right: 25px;",
+        _style="margin-right: 15px;",
     )
 
 def basic_hypothesis_button(article_id: int):
