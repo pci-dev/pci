@@ -7,6 +7,8 @@ submit_btn_2.addEventListener('click', function(evt) {
     if (!unique) {
         evt.preventDefault();
         name_json = gather_name();
+        recommId = gather_recommId();
+        name_json['recommId'] = recommId;
         check_database(name_json);
     }
     else {
@@ -59,37 +61,67 @@ function create_question_modal(user_json) {
     let modal_body = document.createElement('div');
     modal_body.classList.add('modal-body');
     let span = document.createElement('span');
-    span.innerHTML = 'The name you entered corresponds to reviewer/s in our database. Is either of these persons the reviewer you are looking for?<br><br>';
-    let users = user_json['users'];
-    for (let i = 0; i < users.length; i++) {
-        span.innerHTML += '<input type="checkbox" class="user-checkbox" onclick="only_one(this)" id="checkbox_' + String(i) + '">'
-        span.innerHTML += String(users[i]['first_name']) + ' ';
-        span.innerHTML += String(users[i]['last_name']) + ' ';
-        span.innerHTML += '(' + String(users[i]['email']) + '), ';
-        if (String(users[i]['institution']) != 'null') { span.innerHTML += 'institution: ' + String(users[i]['institution']) + ', '; }
-        if (String(users[i]['laboratory']) != 'null') { span.innerHTML += 'laboratory: ' + String(users[i]['laboratory']) + ', '; }
-        if (String(users[i]['country']) != 'null') { span.innerHTML += 'country: ' + String(users[i]['country']); }
-        span.innerHTML += '<hr>';
+
+    let email_warning = user_json['email_match'];
+    let author_warning = user_json['author_match'];
+    if (email_warning != '') {
+        span.innerHTML = 'The email you entered corresponds to the email of the submitting person: <strong>' + email_warning + '</strong>.<br><br>The submitter must not be invited as reviewer.<br><br>';
+        var modal_footer = document.createElement('div');
+        modal_footer.classList.add('modal-footer');
+        modal_footer.classList.add('modal-footer2');
+        let confirm_link = document.createElement('a');
+        confirm_link.innerHTML = 'Ok';
+        confirm_link.id = 'confirm-btn';
+        confirm_link.classList.add('btn');
+        confirm_link.classList.add('btn-info');
+        confirm_link.setAttribute('onclick', 'refer_to_prev()');
+        modal_footer.appendChild(confirm_link);
     }
+    else if (author_warning != '') {
+        span.innerHTML = 'The name you entered corresponds closely to one of the authors of this submission: <strong>' + author_warning + '</strong>. Please make sure they are not the same person.<br><br>(Attention, names may be similar for different persons and generate a false positive).<br><br>';
+        var modal_footer = document.createElement('div');
+        modal_footer.classList.add('modal-footer');
+        modal_footer.classList.add('modal-footer2');
+        let confirm_link = document.createElement('a');
+        confirm_link.innerHTML = 'Ok';
+        confirm_link.id = 'confirm-btn';
+        confirm_link.classList.add('btn');
+        confirm_link.classList.add('btn-info');
+        confirm_link.setAttribute('onclick', 'resume_invite()');
+        modal_footer.appendChild(confirm_link);
+    }
+    else {
+        span.innerHTML = 'The name you entered corresponds to reviewer/s in our database. Is either of these persons the reviewer you are looking for?<br><br>';
+        let users = user_json['users'];
+        for (let i = 0; i < users.length; i++) {
+            span.innerHTML += '<input type="checkbox" class="user-checkbox" onclick="only_one(this)" id="checkbox_' + String(i) + '">'
+            span.innerHTML += String(users[i]['first_name']) + ' ';
+            span.innerHTML += String(users[i]['last_name']) + ' ';
+            span.innerHTML += '(' + String(users[i]['email']) + '), ';
+            if (String(users[i]['institution']) != 'null') { span.innerHTML += 'institution: ' + String(users[i]['institution']) + ', '; }
+            if (String(users[i]['laboratory']) != 'null') { span.innerHTML += 'laboratory: ' + String(users[i]['laboratory']) + ', '; }
+            if (String(users[i]['country']) != 'null') { span.innerHTML += 'country: ' + String(users[i]['country']); }
+            span.innerHTML += '<hr>';
+        }
 
-    let modal_footer = document.createElement('div');
-    modal_footer.classList.add('modal-footer');
-    modal_footer.classList.add('modal-footer2');
-    let confirm_link = document.createElement('a');
-    confirm_link.innerHTML = 'Yes, use the selected user and return to invitation editing';
-    confirm_link.id = 'confirm-btn';
-    confirm_link.classList.add('btn');
-    confirm_link.classList.add('btn-info');
-    confirm_link.setAttribute('onclick', 'add_proposed()');
-    let nofirm_link = document.createElement('a');
-    nofirm_link.innerHTML = 'No, use the exact user I entered and return to invitation editing';
-    nofirm_link.classList.add('btn');
-    nofirm_link.classList.add('btn-info');
-    nofirm_link.setAttribute('onclick', 'resume_invite()');
+        var modal_footer = document.createElement('div');
+        modal_footer.classList.add('modal-footer');
+        modal_footer.classList.add('modal-footer2');
+        let confirm_link = document.createElement('a');
+        confirm_link.innerHTML = 'Yes, use the selected user and return to invitation editing';
+        confirm_link.id = 'confirm-btn';
+        confirm_link.classList.add('btn');
+        confirm_link.classList.add('btn-info');
+        confirm_link.setAttribute('onclick', 'add_proposed()');
+        let nofirm_link = document.createElement('a');
+        nofirm_link.innerHTML = 'No, use the exact user I entered and return to invitation editing';
+        nofirm_link.classList.add('btn');
+        nofirm_link.classList.add('btn-info');
+        nofirm_link.setAttribute('onclick', 'resume_invite()');
 
-    modal_footer.appendChild(confirm_link);
-    modal_footer.appendChild(nofirm_link);
-
+        modal_footer.appendChild(confirm_link);
+        modal_footer.appendChild(nofirm_link);
+    }
     modal_body.appendChild(span);
     modal.appendChild(modal_body);
     modal.appendChild(modal_footer);
@@ -97,11 +129,11 @@ function create_question_modal(user_json) {
     container.appendChild(modal);
     document.body.appendChild(container);
 
-    adjust_positiong(modal);
+    adjust_position(modal);
 }
 
 
-function adjust_positiong(modal) {
+function adjust_position(modal) {
     let screen_height = window.innerHeight;
     let modal_height = modal.offsetHeight;
     let top_pos = screen_height/2 - modal_height/2;
@@ -114,7 +146,8 @@ function gather_name() {
     // extract name from from for JSON
     let firstname_field = document.querySelector('#no_table_reviewer_first_name');
     let lastname_field = document.querySelector('#no_table_reviewer_last_name');
-    let field_json = {'first_name': firstname_field.value, 'last_name': lastname_field.value};
+    let email_field = document.querySelector('#no_table_reviewer_email');
+    let field_json = {'first_name': firstname_field.value, 'last_name': lastname_field.value, 'email': email_field.value};
     return field_json
 }
 
@@ -123,6 +156,12 @@ function resume_invite() {
     // the proposed name was not the one the recommender wants. So proceed with the entered data
     unique = true;
     return_to_form();
+}
+
+
+function refer_to_prev() {
+    // bring user back to previous page
+    window.location.href = document.referrer;
 }
 
 
@@ -190,4 +229,14 @@ function add_choose_note() {
         modal_footer.insertBefore(note, confirm_btn);
         choose_note = true;
     }
+}
+
+
+function gather_recommId() {
+    // get the recommId from the URL params to pass to the AJAX call
+    let url_string = window.location.search;
+    let url_params = new  URLSearchParams(url_string);
+    let recommId = url_params.get('recommId');
+
+    return recommId
 }

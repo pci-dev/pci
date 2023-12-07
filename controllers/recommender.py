@@ -6,6 +6,7 @@ import copy
 import datetime
 from dateutil.relativedelta import *
 from typing import cast, Optional, List
+from difflib import SequenceMatcher
 
 from lxml import html
 
@@ -1941,13 +1942,36 @@ def email_for_new_reviewer():
 def check_reviewer_name():
     last_name = request.vars['last_name']
     first_name = request.vars['first_name']
+    email = request.vars['email']
+    recommId = request.vars['recommId']
 
     response_json = {}
-
     if not last_name or not first_name:
         response_json['success'] = False
         return response.json(response_json)
 
+    # check for name similarity to authors of submission
+    recomm = db.t_recommendations[recommId]
+    art = db.t_articles[recomm.article_id]
+    response_json['author_match'] = ''
+    try:
+        authors = art.authors.split(',')
+        reviewer_name = '%s %s'%(first_name, last_name)
+        for author in authors:
+            distance = SequenceMatcher(None, author.strip(), reviewer_name).ratio()
+            if distance > 0.7:
+                response_json['author_match'] = author.strip()
+    except:
+        pass
+
+    # check for equality of email addresses xxx
+    response_json['email_match'] = ''
+    submitter = db(db.auth_user.id == art.user_id).select().last()
+    if submitter:
+        if submitter.email == email:
+            response_json['email_match'] = '%s %s, %s'%(submitter.first_name, submitter.last_name, submitter.email)
+
+    # check if reviewer name corresponds to a user from our database
     existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
     if existingUsers:
         users = []
@@ -1961,6 +1985,10 @@ def check_reviewer_name():
             single_user['country'] = user.country
             users.append(single_user)
         response_json['users'] = users
+        response_json['success'] = True
+    elif response_json['author_match'] != '':
+        response_json['success'] = True
+    elif response_json['email_match'] != '':
         response_json['success'] = True
     else:
         response_json['success'] = False
