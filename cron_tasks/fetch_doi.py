@@ -14,16 +14,16 @@ prefix = "https://doi.org/"
 
 def get_article_id(doi):
     article_id, pci_name = None, None
-    url = f'https://api.crossref.org/works/{doi}'
+    url = f'https://api.crossref.org/works?rows=1000&filter=relation.object:{doi}'
     response = requests.get(url)
     if response.ok:
         data = response.json()
         try:
-            references = data["message"]["reference"]
-            for reference in references:
-                if  "DOI" in reference and "pci" in reference["DOI"]:
-                    article_id = int(reference["DOI"][9:].split(".")[-1][1:])
-                    pci_name = reference["DOI"][9:].split(".")[1]
+            reviews = data["message"]["items"][0]["relation"]["has-review"]
+            for review in reviews:
+                if  "id" in review and "pci" in review["id"]:
+                    article_id = int(review["id"][9:].split(".")[-1][1:])
+                    pci_name = review["id"][9:].split(".")[1]
         except:
             pass
     return article_id, pci_name
