@@ -74,7 +74,7 @@ function create_question_modal(user_json) {
         confirm_link.id = 'confirm-btn';
         confirm_link.classList.add('btn');
         confirm_link.classList.add('btn-info');
-        confirm_link.setAttribute('onclick', 'resume_invite()');
+        confirm_link.setAttribute('onclick', 'refer_to_prev()');
         modal_footer.appendChild(confirm_link);
     }
     else if (author_warning != '') {
@@ -156,6 +156,12 @@ function resume_invite() {
     // the proposed name was not the one the recommender wants. So proceed with the entered data
     unique = true;
     return_to_form();
+}
+
+
+function refer_to_prev() {
+    // bring user back to previous page
+    window.location.href = document.referrer;
 }
 
 
