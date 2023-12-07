@@ -21,7 +21,7 @@ def get_article_id(doi):
         try:
             references = data["message"]["reference"]
             for reference in references:
-                if "pci" in reference["DOI"]:
+                if  "DOI" in reference and "pci" in reference["DOI"]:
                     article_id = int(reference["DOI"][9:].split(".")[-1][1:])
                     pci_name = reference["DOI"][9:].split(".")[1]
         except:
