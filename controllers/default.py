@@ -12,6 +12,7 @@ from app_modules.helper import *
 from app_modules.common_small_html import complete_orcid_dialog, complete_profile_dialog, invitation_to_review_form
 from controller_modules import adjust_grid
 from app_modules.emailing import send_conditional_acceptation_review_mail
+from app_modules import emailing
 from app_modules.orcid import OrcidTools
 from gluon import DAL
 # -------------------------------------------------------------------------
@@ -422,22 +423,48 @@ def change_email():
     )
 
     if form.process(onvalidation=change_mail_form_processing).accepted:
-        max_time = time.time()
-        registeration_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
-        recover_key = str((15 * 24 * 60 * 60) + int(max_time)) + "-" + web2py_uuid()
-
-        user = db.auth_user[auth.user_id]
-
-        emailing.send_change_mail(session, auth, db, auth.user_id, form.vars.new_email, registeration_key)
-        emailing.send_recover_mail(session, auth, db, auth.user_id, user.email, recover_key)
-
-        user.update_record(email=form.vars.new_email, registration_key=registeration_key, recover_email=user.email, recover_email_key=recover_key)
-
-        redirect(URL("default", "user", args="logout"))
+        try:
+            new_email = cast(str, form.vars.new_email)
+            recover_email_key = User.change_email(auth.user_id, new_email)
+            emailing.send_change_mail(session, auth, db, auth.user_id, new_email, recover_email_key)
+            session.flash = f"An email has been sent to {new_email} to confirm it"
+        except Exception as e:
+            session.flash = f"Error: {e}"
+        finally:
+            return redirect(URL('default', 'index'))
 
     response.flash = None
-
     return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
+
+
+def confirm_new_address():
+    recover_email_key = cast(Optional[str], request.vars['recover_email_key'])
+    if not recover_email_key:
+        session.flash = 'Invalid address'
+        return redirect(URL('default', 'index'))
+    
+    if auth.user_id:
+        current_user = User.get_by_id(auth.user_id)
+        if current_user:
+            if current_user.recover_email_key is None or current_user.recover_email_key != recover_email_key:
+                session.flash = 'Bad user'
+                return redirect(URL('default', 'index'))
+    
+    try:
+        User.confirm_change_email(recover_email_key)
+    except Exception as e:
+        session.flash = f"Unable to change email: {e}"
+        return redirect(URL('default', 'index'))
+    
+    if auth.user_id:
+        session.flash = 'Email changed successfully'
+        return redirect(URL('default', 'index'))
+    
+    response.view = 'default/myLayoutBot.html'
+    pageTitle = "Your email address has been successfully changed."
+    customText = "You can now log in with your new email address.."
+    return dict(pageTitle=pageTitle, customText=customText)
+
 
 ######################################################################################################################################################################
 

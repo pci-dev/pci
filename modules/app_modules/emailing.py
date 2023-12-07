@@ -1933,17 +1933,16 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
 
 ######################################################################################################################################################################
 ######################################################################################################################################################################
-def send_change_mail(session, auth, db, userId, dest_mail, key):
-    print("send_change_mail")
+def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_mail: str, recover_email_key: str):
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_resu = False
     reports = []
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user_id)
     mail_vars["destAddress"] = dest_mail
-    mail_vars["verifyMailUrl"] = URL(c="default", f="user", args=["verify_email", key], scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["verifyMailUrl"] = URL(c="default", f="confirm_new_address", vars=dict(recover_email_key=recover_email_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     hashtag_template = "#UserChangeMail"
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
@@ -1951,28 +1950,6 @@ def send_change_mail(session, auth, db, userId, dest_mail, key):
     reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
 
     emailing_tools.getFlashMessage(session, reports)
-
-
-######################################################################################################################################################################
-def send_recover_mail(session, auth, db, userId, dest_mail, key):
-    print("send_recover_mail")
-    mail = emailing_tools.getMailer(auth)
-    mail_vars = emailing_tools.getMailCommonVars()
-
-    mail_resu = False
-    reports = []
-
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
-    mail_vars["destAddress"] = dest_mail
-    mail_vars["recoverMailUrl"] = URL(c="default", f="recover_mail", vars=dict(key=key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-
-    hashtag_template = "#UserRecoverMail"
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-
-    reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
-
-    emailing_tools.getFlashMessage(session, reports)
-
 
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
