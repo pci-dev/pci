@@ -204,7 +204,7 @@ def create_prefilled_submission(req, user):
 
 
 def update_resubmitted_article(req, context):
-    article = db(db.t_articles.coar_notification_id == context) \
+    article = db(db.t_articles.doi == context) \
                     .select().first()
     if not article:
         return
