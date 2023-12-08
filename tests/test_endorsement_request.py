@@ -3,23 +3,30 @@ import requests
 import pytest
 
 import uuid
-uid = str(uuid.uuid4())
+uid = lambda: str(uuid.uuid4())
+
+_uid = uid()
 
 def test_request_endorsement():
     data = json.loads(request_endorsement)
-    data["id"] = uid
+    data["id"] = _uid
     post(data)
 
 def test_cancel_endorsement_request():
     data = json.loads(cancel_endorsement_request)
-    data["object"]["id"] = uid
+    data["id"] = uid()
+    data["object"]["id"] = _uid
     post(data)
 
 def test_resubmit_endorsement():
     data = json.loads(request_endorsement)
-    data["context"] = { "id": uid }
-    data["id"] = str(uuid.uuid4())
+    data["id"] = uid()
+
+    prev_url = data["object"]["url"]["id"]
+    data["context"] = { "id": prev_url }
+
     data["object"]["url"]["id"] = "https://hal.inrae.fr/hal-02630042v2"
+
     with pytest.raises(Exception) as e:
         post(data)
         assert "not awaiting revision" in str(e.value)
