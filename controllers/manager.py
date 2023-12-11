@@ -1359,8 +1359,6 @@ def suggested_recommender_emails():
 
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
-    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
@@ -1371,7 +1369,7 @@ def suggested_recommender_emails():
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
-    db.mail_queue.article_id.writable = False
+    db.mail_queue.article_id.readable = False
     db.mail_queue.recommendation_id.writable = False
 
     db.mail_queue.removed_from_queue.writable = False
@@ -1460,8 +1458,6 @@ def article_emails():
 
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
-    db.mail_queue.article_id.represent = lambda art_id, row: DIV(common_small_html.mkRepresentArticleLightLinked(auth, db, art_id))
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
@@ -1473,7 +1469,7 @@ def article_emails():
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
-    db.mail_queue.article_id.writable = False
+    db.mail_queue.article_id.readable = False
     db.mail_queue.recommendation_id.writable = False
 
     db.mail_queue.removed_from_queue.writable = False
