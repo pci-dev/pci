@@ -143,3 +143,7 @@ SITE=PCIHealthMovSci
 1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
+
+
+# force delete session files older than 3 days
+0 2   * * * sudo -u www-data find $BASE/*/sessions -type f -mtime +3 -delete
