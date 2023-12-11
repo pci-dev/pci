@@ -915,7 +915,7 @@ db.define_table(
         type="string",
         length=50,
         label=T("Review status"),
-        requires=IS_EMPTY_OR(IS_IN_SET(("Awaiting response", "Awaiting review", "Willing to review", "Declined by recommender", "Declined", "Declined manually", "Review completed", "Cancelled"))),
+        requires=IS_EMPTY_OR(IS_IN_SET([status.value for status in ReviewState])),
         writable=False,
     ),
     Field("review_duration", type="text", label=T("Review duration"), default=db.review_duration_default, requires=db.review_duration_requires),
