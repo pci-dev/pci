@@ -1359,7 +1359,6 @@ def suggested_recommender_emails():
 
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-350")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
@@ -1459,7 +1458,6 @@ def article_emails():
 
     db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
     db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: B(text)
     db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
