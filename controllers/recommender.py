@@ -2647,7 +2647,7 @@ def article_reviews_emails():
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
-    db.mail_queue.article_id.writable = False
+    db.mail_queue.article_id.readable = False
     db.mail_queue.recommendation_id.writable = False
 
     db.mail_queue.removed_from_queue.writable = False
@@ -2698,6 +2698,7 @@ def article_reviews_emails():
             # db.mail_queue.user_id,
             db.mail_queue.mail_subject,
             db.mail_queue.mail_template_hashtag,
+            db.mail_queue.article_id,
         ],
         links=links,
         links_placement="left",
