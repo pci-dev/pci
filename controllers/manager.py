@@ -905,16 +905,11 @@ def suggested_recommenders():
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
     db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, text)
-    db.t_suggested_recommenders.emailing.readable = True
-    if len(request.args) == 0:  # we are in grid
-        db.t_suggested_recommenders.emailing.represent = lambda text, row: DIV(XML(text), _class="pci-emailingTD") if text else ""
-    else:
-        db.t_suggested_recommenders.emailing.represent = lambda text, row: XML(text) if text else ""
     links = []
     # if art.status == "Awaiting consideration":
     links.append(
         dict(
-            header="",
+            header="Emails history",
             body=lambda row: A(
                 T("View e-mails"),
                 _class="btn btn-info pci-manager",
