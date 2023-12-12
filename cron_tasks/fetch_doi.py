@@ -13,20 +13,22 @@ feed = feedparser.parse(url)
 prefix = "https://doi.org/"
 
 def get_article_id(doi):
-    article_id, pci_name = None, None
-    url = f'https://api.crossref.org/works?rows=1000&filter=relation.object:{doi}'
-    response = requests.get(url)
-    if response.ok:
-        data = response.json()
-        try:
-            reviews = data["message"]["items"][0]["relation"]["has-review"]
+    try:
+        url = f' https://api.crossref.org/works/{doi}'
+        response = requests.get(url)
+        if response.ok:
+            data = response.json()
+            reviews = data["message"]["relation"]["has-review"]
             for review in reviews:
                 if  "id" in review and "pci" in review["id"]:
                     article_id = int(review["id"][9:].split(".")[-1][1:])
                     pci_name = review["id"][9:].split(".")[1]
-        except:
-            pass
-    return article_id, pci_name
+                    return article_id, pci_name
+    except requests.RequestException as e:
+        print(f"Error fetching data from CrossRef API: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    return None, None
 
 def update_article(id, published_doi):
     article = db((db.t_articles.id == id) & (db.t_articles.doi_of_published_article == None) & (db.t_articles.status == "Recommended")).select().last()
