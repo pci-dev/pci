@@ -313,11 +313,17 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
         hashtag_template = "#RecommenderPostprintStatusChanged"
 
         dest_emails = []
+        dest_roles = ''
         for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, db.t_recommendations.id, distinct=True):
+            mail_vars["recommender_id"] = myRecomm["recommender_id"]
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, mail_vars["recommender_id"])
+            mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
             dest_emails.append(db.auth_user[myRecomm.recommender_id]["email"])
+            dest_roles += mail_vars["destPerson"] + ';'
 
-        report = merge_mails(auth, db, hashtag_template, mail_vars, myRecomm.id, myRecomm, articleId, dest_emails=dest_emails, dest_role=mail_vars["destPerson"].flatten())
-        emailing_tools.getFlashMessage(session, report)
+        if dest_roles != '':
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, myRecomm.id, myRecomm, articleId, dest_emails=dest_emails, dest_role=mail_vars["destPerson"].flatten())
+        emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
@@ -441,17 +447,19 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
             & (db.t_suggested_recommenders.declined == False)
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+
+        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestionNotNeededAnymore", article)
+        dest_emails = []
+        dest_role = ''
         for sugg_recommender in suggested_recommenders:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
-            mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
+            dest_emails.append(db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"])
+            dest_role += "suggested recommender" + mail_vars["destPerson"].flatten() + ';'
 
-            # TODO: parallel submission
-            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestionNotNeededAnymore", article)
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
+        if dest_role != '':
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, articleId, dest_emails=dest_emails, dest_role=dest_role)
 
-            reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-
-    emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(session, reports)
 
 
 def mkUnanonymizedAuthors(article):
@@ -487,33 +495,36 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             placeholders=[article.id],
             as_dict=True,
         )
+
+        mail_vars["linkTarget"] = URL(
+            c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
+        )
+        mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+        mail_vars["ethicsurl"] = mk_ethicsLink()
+
+        if article.parallel_submission:
+            mail_vars["addNote"] = (
+                "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
+                % mail_vars
+            )
+        else:
+            mail_vars["addNote"] = ""
+
+        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
+
+        dest_emails = []
+        dest_role = ''
         for sugg_recommender in suggested_recommenders:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["id"])
-            mail_vars["destAddress"] = db.auth_user[sugg_recommender["id"]]["email"]
-            mail_vars["linkTarget"] = URL(
-                c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
-            )
-            mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["ethicsurl"] = mk_ethicsLink()
+            dest_emails.append(db.auth_user[sugg_recommender["id"]]["email"])
+            dest_role += "suggested recommender" + mail_vars["destPerson"].flatten() + ';'
 
-            if article.parallel_submission:
-                mail_vars["addNote"] = (
-                    "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
-                    % mail_vars
-                )
-            else:
-                mail_vars["addNote"] = ""
-
-            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
-            sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
-
+        if dest_role != '':
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, articleId, dest_emails=dest_emails, dest_role=dest_role, sugg_recommender_buttons=sugg_recommender_buttons)
             delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
-            reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
-
-    emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(session, reports)
 
 
 def build_sugg_recommender_buttons(link_target: str, article_id: int):
@@ -1112,7 +1123,8 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, man
         for admin in admins:
             dest_emails.append(admin.email)
 
-        merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
+        if dest_emails != []:
+            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
@@ -1147,13 +1159,16 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         for admin in admins:
             dest_emails.append(admin.email)
 
-        merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
+        if dest_emails != []:
+            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
 def send_admin_new_user(session, auth, db, userId):
     print("send_admin_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
+
     admins = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "administrator")).select(
         db.auth_user.ALL
     )
@@ -1162,15 +1177,16 @@ def send_admin_new_user(session, auth, db, userId):
     if user:
         mail_vars["userTxt"] = common_small_html.mkUser(auth, db, userId)
         mail_vars["userMail"] = user.email
+        hashtag_template = "#AdminNewUser"
 
         dest_emails = []
         for admin in admins:
             dest_emails.append(admin.email)
 
-        hashtag_template = "#AdminNewUser"
-        report = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
+        if dest_emails != []:
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
 
-    emailing_tools.getFlashMessage(session, report)
+    emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
@@ -1332,16 +1348,17 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
         else:
             dest_emails = emailing_vars.getManagersMails(db)
             dest_role = "manager"
-        report = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, article.id, dest_emails, dest_role)
 
-    emailing_tools.getFlashMessage(session, report)
+        reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, article.id, dest_emails, dest_role)
+
+    emailing_tools.getFlashMessage(session, reports)
 
 
-def merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None):
+def merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None, sugg_recommender_buttons=None):
     email_destinations = ','.join(dest_emails)
     mail_vars["destAddress"] = email_destinations
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id)
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, sugg_recommender_buttons=sugg_recommender_buttons)
     if dest_role:
         report = emailing_tools.createMailReport(True, dest_role + ' ' + (email_destinations or ''), [])
         return report
