@@ -479,7 +479,9 @@ db.define_table(
     Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
         requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
     Field("picture_rights_ok",  widget=widget(_type="hidden") if not pciRRactivated else "",type="boolean", label=T("Picture right")),
-    Field("uploaded_picture", type="upload", label=T("Picture"), requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]),
+    Field("uploaded_picture", type="upload", label=T("Picture"),
+        length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
+        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]),
     Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     Field("data_doi", 
