@@ -73,6 +73,7 @@ class Article(Row):
     funding: _[str]
     article_year: _[int]
     is_scheduled: bool
+    manager_authors: _[str]
 
 
     @staticmethod

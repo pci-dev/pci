@@ -102,6 +102,7 @@ def index():
     record_id_version
     scheduled_submission_date
     upload_timestamp
+    manager_authors
     """
     .split()): t_articles[field].readable = False
 

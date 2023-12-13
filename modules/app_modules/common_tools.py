@@ -107,7 +107,42 @@ def get_exclude_list(request):
         return list(map(int, excludeList))
     except:
         return None
+
+
+def check_coauthorship(user_id, article):
+    manager_authors = (article.manager_authors or "").split(',')
+    for manager in manager_authors:
+        if manager == str(user_id): return True
+    return False
+
+
+def get_manager_coauthors(db, artId):
+    article = db(db.t_articles.id == artId).select().last()
+    manager_authors = (article.manager_authors or "").split(',')
     
+    return manager_authors
+
+
+def extract_manager_ids(form, manager_ids):
+    # extract the positively checked manager co-author IDs from the form
+    manager_authors = []
+    for m_id in manager_ids:
+        form_field = form.vars['chk_' + m_id]
+        if form_field == 'on': manager_authors.append(m_id)
+
+    return ','.join(manager_authors)
+
+
+def get_managers(db):
+    # collect managers and admins
+    manager_query = db((db.auth_user._id == db.auth_membership.user_id) & ((db.auth_membership.group_id == '2') | (db.auth_membership.group_id == '3'))).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
+    users = []
+    for manager in manager_query:
+        user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
+        if user not in users: users.append(user)
+
+    return users
+
 
 def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
     article = Article.get_by_id(db, article_id)

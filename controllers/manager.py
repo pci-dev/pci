@@ -433,8 +433,12 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
 @auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
 def recommendations():
     articleId = request.vars["articleId"]
+    manager_authors = request.vars["manager_authors"]
     art = db.t_articles[articleId]
     printable = "printable" in request.vars and request.vars["printable"] == "True"
+
+    if manager_authors != None:
+        art.update_record(manager_authors=manager_authors)
 
     if art is None:
         session.flash = auth.not_authorized()
@@ -463,8 +467,14 @@ def recommendations():
 
     recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
-    recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
-    set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
+    
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if not manager_coauthor:
+        set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+    else:
+        set_not_considered_button = ''
+        recommTopButtons = ''
 
     recommendation = db.get_last_recomm(art)
     if (auth.has_membership(role="administrator")
@@ -642,6 +652,12 @@ def manage_recommendations():
     art = db.t_articles[articleId]
     if art is None:
         redirect(URL(c="manager", f="all_recommendations"))
+    
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
+        redirect(request.env.http_referer)
+        return
 
     target = URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)
     if "edit" in request.env.request_uri:
@@ -897,6 +913,12 @@ def suggested_recommenders():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
+        redirect(request.env.http_referer)
+        return
+
     articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
 
     query = db.t_suggested_recommenders.article_id == articleId
@@ -972,6 +994,13 @@ def edit_article():
         redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
+        redirect(request.env.http_referer)
+        return
+
     if art == None:
         # raise HTTP(404, "404: "+T('Unavailable'))
         redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
@@ -983,6 +1012,7 @@ def edit_article():
 
     db.t_articles.request_submission_change.readable = False
     db.t_articles.request_submission_change.writable = False
+    db.t_articles.manager_authors.readable = False
 
     if not art.already_published: # != "postprint"
         db.t_articles.article_source.readable = False
@@ -1066,7 +1096,20 @@ def edit_article():
         db.t_articles.record_url_version.readable = False
         db.t_articles.record_url_version.writable = False
 
-    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True)
+    try: article_manager_coauthors = art.manager_authors
+    except: article_manager_coauthors = False
+    managers = common_tools.get_managers(db)
+    manager_checks = {}
+    for m in managers:
+        manager_checks[m[0]] = False
+    if article_manager_coauthors:
+        for amc in article_manager_coauthors.split(','):
+            manager_checks[amc] = True
+    manager_ids = [m[0] for m in managers]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
+
+    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
     try:
         article_version = int(art.ms_version)
     except:
@@ -1096,7 +1139,9 @@ def edit_article():
 
         session.flash = T("Article saved", lazy=False)
         controller = "manager" if auth.has_membership(role="manager") else "recommender"
-        redirect(URL(c=controller, f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        manager_ids = common_tools.extract_manager_ids(form, manager_ids)
+        myVars = dict(articleId=art.id, manager_authors=manager_ids)
+        redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
 
@@ -1126,6 +1171,12 @@ def edit_report_survey():
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("all_articles", user_signature=True))
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
+    if manager_coauthor:
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
+        redirect(request.env.http_referer)
+        return
 
     survey = db(db.t_report_survey.article_id == articleId).select().last()
     if survey is None:
@@ -1184,6 +1235,14 @@ def all_recommendations():
         & (db.t_recommendations.id == db.v_reviewers.id)
         & (db.t_recommendations.id == db.v_recommendation_contributors.id)
     )
+    query = (
+          (db.t_recommendations.article_id == db.t_articles.id)
+        & (db.t_articles.already_published == isPress)
+        & (db.t_recommendations.id == db.v_article_recommender.recommendation_id)
+        & (db.t_recommendations.id == db.v_reviewers.id)
+        & (db.t_recommendations.id == db.v_recommendation_contributors.id)
+        )
+
     if not isPress:
         query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
     resu = _all_recommendations(goBack, query, isPress)
@@ -1314,7 +1373,7 @@ def _all_recommendations(goBack, query, isPress):
                       't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics', 
                       't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
                       't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version',
-                      'v_recommendation_contributors.id']
+                      't_articles.manager_authors', 'v_recommendation_contributors.id']
     integer_fields = ['t_articles.id', 't_articles.user_id']
 
     # the grid is adjusted after creation to adhere to our requirements
@@ -1440,7 +1499,13 @@ def article_emails():
     article = db.t_articles[articleId]
     urlFunction = request.function
     urlController = request.controller
-    referer = request.env.http_referer
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if manager_coauthor:
+        session.flash = T("You cannot access this page because you are a co-author of this submission")
+        redirect(request.env.http_referer)
+        return
+
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
         SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
@@ -1491,8 +1556,11 @@ def article_emails():
 
     myScript = common_tools.get_script("replace_mail_content.js")
 
+    if manager_coauthor: query = (db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag != '#RecommenderReviewerReviewCompleted')
+    else: query = (db.mail_queue.article_id == articleId)
+
     grid = SQLFORM.grid(
-        ((db.mail_queue.article_id == articleId)),
+        query,
         details=True,
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),

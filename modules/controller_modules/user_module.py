@@ -3,6 +3,7 @@
 import re
 import copy
 import datetime
+from app_modules import common_tools
 
 from gluon.contrib.markdown import WIKI
 
@@ -36,6 +37,13 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 # From common.py
 ######################################################################################################################################################################
 def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
+    # if this recommender is a coauthor, then return empty
+    art = db(db.t_articles.id == articleId).select().last()
+    if art.manager_authors:
+        m_ids = art.manager_authors.split(',')
+        if str(row['auth_user']['id']) in m_ids:
+            return ''
+
     vars["recommenderId"] = row.auth_user["id"]
     _class = "buttontext btn btn-default pci-submitter"
     _btn_label = "Suggest as Recommender"

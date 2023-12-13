@@ -5,6 +5,7 @@ from gluon import current
 from gluon.globals import Request, Response
 from gluon.tools import Auth
 from gluon.html import *
+from app_modules import common_tools
 from gluon.sqlhtml import *
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article, ArticleStatus
@@ -23,6 +24,9 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     article = Article.get_by_id(db, recommendation.article_id)
     if not article:
         return None
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if manager_coauthor: return DIV(STRONG(current.T('Since you are a coauthor of this article,'),BR(),STRONG('you cannot see the review process.')))
 
     recommendation_round = Recommendation.get_current_round_number(db, recommendation)
     reviews = Review.get_by_recommendation_id(db, recommendation.id, order_by=~db.t_reviews.last_change)

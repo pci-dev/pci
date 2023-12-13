@@ -3106,3 +3106,7 @@ ADD COLUMN IF NOT EXISTS orcid varchar(16);
 --- 2023-10-25 updates/no_orcid_auth_user.sql
 ALTER TABLE "auth_user" 
 ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;
+
+-- 2023-11-09 updates/new_article_field_managers.sql
+ALTER TABLE "t_articles"
+ADD COLUMN IF NOT EXISTS manager_authors text DEFAULT '';
