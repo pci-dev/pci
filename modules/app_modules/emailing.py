@@ -160,18 +160,17 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterCancelledSubmission", article)
 
         elif article.status != newStatus and newStatus == "Rejected":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
 
             if recomm:
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRejectedSubmission", article)
 
         elif article.status != newStatus and newStatus == "Not considered":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
@@ -179,13 +178,13 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             hashtag_template = "#SubmitterNotConsideredSubmission"
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], to_submitter=True)
             mail_vars["recommTarget"] = URL(
                 c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
             )
 
             if recomm:
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
 
@@ -228,7 +227,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             return
 
         # Fill define template with mail_vars :
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, articleId)
+        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, article_id=articleId)
 
         reports = emailing_tools.createMailReport(True, "submitter " + mail_vars["destPerson"].flatten(), reports)
 
@@ -1258,7 +1257,7 @@ def send_new_membreship(session, auth, db, membershipId):
 
 
 ######################################################################################################################################################################
-def send_to_managers(session, auth, db, articleId, newStatus):
+def send_to_managers(session, auth, db, articleId, newStatus, response):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1268,8 +1267,6 @@ def send_to_managers(session, auth, db, articleId, newStatus):
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
-
-        recommendation = None
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
@@ -1297,7 +1294,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
                 mail_vars["recommenderPerson"] = "?"
             mail_vars["linkTarget"] = URL(c="manager", f="pending_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
             hashtag_template = emailing_tools.getCorrectHashtag("#ManagersRecommendationOrDecision", article)
 
         elif newStatus == "Under consideration":
@@ -1308,7 +1305,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
                 mail_vars["recommenderPerson"] = "?"
 
             mail_vars["linkTarget"] = URL(c="manager", f="ongoing_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            recommendation = old_common.mkFeaturedArticle(auth, db, article, printable=True, scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             if article.status == "Awaiting revision":
                 hashtag_template = emailing_tools.getCorrectHashtag("#AdminArticleResubmited", article)
@@ -1341,7 +1338,7 @@ def send_to_managers(session, auth, db, articleId, newStatus):
 
         for email in dest_emails:
             mail_vars["destAddress"] = email
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article.id)
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, article_id=article.id)
             reports = emailing_tools.createMailReport(True, dest_role + " " + (email or ""), reports)
 
 

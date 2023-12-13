@@ -603,7 +603,7 @@ def deltaStatus(s, f):
 
         if o.already_published:  # POSTPRINTS
             if o.status != f["status"]:
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_recommender_postprint_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
 
@@ -618,10 +618,10 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, o["id"])
                 # emailing.create_reminder_for_submitter_cancel_submission(session, auth, db, o["id"])
                 emailing.create_reminder_for_suggested_recommenders_invitation(session, auth, db, o["id"])
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
 
             elif o.status == "Pre-submission" and f["status"] == "Pending":
-                emailing.send_to_managers(session, auth, db, o["id"], "Resubmission")
+                emailing.send_to_managers(session, auth, db, o["id"], "Resubmission", response)
                 # create reminders
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
 
@@ -630,13 +630,13 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
             
             elif o.status == "Pending" and f["status"] == "Not considered":
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
 
             elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
 
             elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_submitter(session, auth, db, o["id"], f["status"], response=response)
                 emailing.send_to_suggested_recommenders_not_needed_anymore(session, auth, db, o["id"])
                 emailing.send_to_thank_recommender_preprint(session, auth, db, o["id"])
@@ -651,7 +651,7 @@ def deltaStatus(s, f):
             elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 # create reminders
                 emailing.create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, o["id"])
                 emailing.create_reminder_for_recommender_revised_decision_due(session, auth, db, o["id"])
@@ -661,7 +661,7 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterRevisedVersionNeeded", o["id"])
 
             elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 # delete reminders
@@ -674,7 +674,7 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionOverDue", o["id"])
 
             elif o.status in ("Pending", "Awaiting consideration", "Under consideration", "Scheduled submission pending", "Scheduled submission under consideration") and f["status"] == "Cancelled":
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 emailing.send_to_reviewers_article_cancellation(session, auth, db, o["id"], f["status"])
@@ -686,7 +686,7 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
                 emailing.delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
                 emailing.send_to_recommender_preprint_submitted(session, auth, db, o["id"])
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
 
             elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
                 emailing.send_to_recommender_preprint_validated(session, auth, db, o["id"])
@@ -700,7 +700,7 @@ def deltaStatus(s, f):
 
             elif o.status != f["status"]:
                 if o["status"].startswith("Pre-") and f["status"] == "Under consideration": return
-                emailing.send_to_managers(session, auth, db, o["id"], f["status"])
+                emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])
                 
@@ -738,7 +738,7 @@ def newArticle(s, articleId):
         return
 
     if s.already_published is False:
-        emailing.send_to_managers(session, auth, db, articleId, "Pending")
+        emailing.send_to_managers(session, auth, db, articleId, "Pending", response)
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId)
 
