@@ -22,10 +22,10 @@ def test_resubmit_endorsement():
     data = json.loads(request_endorsement)
     data["id"] = uid()
 
-    prev_url = data["object"]["url"]["id"]
+    prev_url = data["object"]["ietf:cite-as"]
     data["context"] = { "id": prev_url }
 
-    data["object"]["url"]["id"] = "https://hal.inrae.fr/hal-02630042v2"
+    data["object"]["ietf:cite-as"] = "https://hal.inrae.fr/hal-02630042v2"
 
     with pytest.raises(Exception) as e:
         post(data)
