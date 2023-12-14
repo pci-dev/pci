@@ -196,7 +196,7 @@ def create_prefilled_submission(req, user):
     return \
     db.t_articles.insert(
         user_id=user.id,
-        doi=article_data["url"]["id"],
+        doi=article_data["ietf:cite-as"],
         authors=author_data["name"],
         status="Pre-submission",
         coar_notification_id=coar_req_id,
@@ -213,7 +213,7 @@ def update_resubmitted_article(req, context):
 
     article.coar_notification_id = req["id"]
     article.coar_notification_closed = False
-    article.doi = req["object"]["url"]["id"]
+    article.doi = req["object"]["ietf:cite-as"]
 
     article.update_record()
 
