@@ -6,7 +6,7 @@ This directory contains update scripts allowing to move
 from the previous release (n-1) to the current release (n).
 
 - update-db.sh
-- update-src.sh
+- run-scripts.sh
 
 
 `update-db.sh` allows for the required update sql to be applied to the db;
@@ -16,11 +16,11 @@ there are no `*.sql` files in `updates/`.
 
 The git history provides for previous versions upgrade scripts.
 
-`update-src.sh` contains basic git commands to update the source.
-The script can be used to perform any required additional local updates
-e.g. to configuration files which are not version-controlled.
+`run-scripts.sh` runs available python scripts as web2py jobs.
+The web2py scripts may perform any required update tasks, including
+local files or db updates.
 
-The script also performs a web2py/wsgihandler.py reload.
+Option --reload performs a web2py reload (touch web2py/wsgihandler.py)
 
 
 Updating a PCI instance
@@ -28,5 +28,7 @@ Updating a PCI instance
 
 	git fetch
 	git checkout <version> updates
-	updates/update-db.sh
-	updates/update-src.sh
+	updates/update-db.sh --local-dir
+	git merge
+	updates/run-scripts.sh --all
+	updates/run-scripts.sh --reload
