@@ -140,9 +140,10 @@ def get_managers(db):
             (db.auth_user._id == db.auth_membership.user_id) &
             (db.auth_membership.group_id == db.auth_group.id) &
             (db.auth_group.role == 'manager')
-    ).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
+    ).select()
     users = []
     for manager in manager_query:
+        manager = manager.auth_user
         user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
         if user not in users: users.append(user)
 
