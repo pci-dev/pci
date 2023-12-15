@@ -136,7 +136,11 @@ def extract_manager_ids(form, manager_ids):
 
 def get_managers(db):
     # collect managers and admins
-    manager_query = db((db.auth_user._id == db.auth_membership.user_id) & ((db.auth_membership.group_id == '2') | (db.auth_membership.group_id == '3'))).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
+    manager_query = db(
+            (db.auth_user._id == db.auth_membership.user_id) &
+            (db.auth_membership.group_id == db.auth_group.id) &
+            ((db.auth_group.role == 'manager') | (db.auth_group.role == 'administrator'))
+    ).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
     users = []
     for manager in manager_query:
         user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
