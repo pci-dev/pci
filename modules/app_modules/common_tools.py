@@ -135,10 +135,15 @@ def extract_manager_ids(form, manager_ids):
 
 
 def get_managers(db):
-    # collect managers and admins
+    # collect managers (that are not admins)
+    admins = [row.auth_membership.user_id for row in db(
+            (db.auth_membership.group_id == db.auth_group.id) &
+            (db.auth_group.role == 'administrator')
+    ).select()]
     manager_query = db(
             (db.auth_user._id == db.auth_membership.user_id) &
             (db.auth_membership.group_id == db.auth_group.id) &
+            (~db.auth_user.id.belongs(admins)) &
             (db.auth_group.role == 'manager')
     ).select()
     users = []
