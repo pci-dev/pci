@@ -139,7 +139,7 @@ def get_managers(db):
     manager_query = db(
             (db.auth_user._id == db.auth_membership.user_id) &
             (db.auth_membership.group_id == db.auth_group.id) &
-            ((db.auth_group.role == 'manager') | (db.auth_group.role == 'administrator'))
+            (db.auth_group.role == 'manager')
     ).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
     users = []
     for manager in manager_query:
