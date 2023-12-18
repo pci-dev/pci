@@ -490,6 +490,7 @@ def recommendations():
             if mastodon_button_element:
                 recommStatusHeader.append(mastodon_button_element)
             
+        recommStatusHeader.append(clocks_ftp(art))
         recommStatusHeader.append(crossref_toolbar(art))
 
     if printable:
@@ -521,6 +522,14 @@ def recommendations():
         isPendingValidation=(art.status == "Pending" and not pciRRactivated),
         setNotConsideredButton=set_not_considered_button or "",
         confirmationScript=confirmationScript,
+    )
+def clocks_ftp(article):
+    return A(
+        I(_class="glyphicon glyphicon-export", _style="vertical-align:middle"),
+        T("Clockss"),
+        _href=URL("clockss", f"post_form?article_id={article.id}"),
+        _class="pci2-tool-link pci2-yellow-link",
+        _style="margin-right: 25px;",
     )
 
 def crossref_toolbar(article):
