@@ -560,7 +560,7 @@ def fill_new_article():
 
     managers = common_tools.get_managers(db)
     manager_ids = [m[0] for m in managers]
-    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are members of the managing board) if they are co-authors of the article')]
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=False, label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, fields=fields, keepvalues=True,
@@ -838,7 +838,7 @@ def edit_my_article():
         for amc in article_manager_coauthors.split(','):
             manager_checks[amc] = True
     manager_ids = [m[0] for m in managers]
-    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are of members of the managing board) if they are co-authors of the article.')]
+    manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are members of the managing board) if they are co-authors of the article')]
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)

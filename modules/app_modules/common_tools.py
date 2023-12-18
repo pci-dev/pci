@@ -135,10 +135,20 @@ def extract_manager_ids(form, manager_ids):
 
 
 def get_managers(db):
-    # collect managers and admins
-    manager_query = db((db.auth_user._id == db.auth_membership.user_id) & ((db.auth_membership.group_id == '2') | (db.auth_membership.group_id == '3'))).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.laboratory)
+    # collect managers (that are not admins)
+    admins = [row.user_id for row in db(
+            (db.auth_membership.group_id == db.auth_group.id) &
+            (db.auth_group.role.belongs(['administrator', 'developer']))
+    ).select(db.auth_membership.user_id, distinct=True)]
+    manager_query = db(
+            (db.auth_user._id == db.auth_membership.user_id) &
+            (db.auth_membership.group_id == db.auth_group.id) &
+            (~db.auth_user.id.belongs(admins)) &
+            (db.auth_group.role == 'manager')
+    ).select()
     users = []
     for manager in manager_query:
+        manager = manager.auth_user
         user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
         if user not in users: users.append(user)
 
