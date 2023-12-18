@@ -56,8 +56,15 @@ def post(data):
             target,
             json=data,
             headers={"Content-Type": "application/ld+json"},
+            auth=basic_auth,
     )
     res.raise_for_status()
+
+
+from gluon.contrib.appconfig import AppConfig
+conf = AppConfig()
+basic_auth = conf.get("config.basic_auth", None)
+if basic_auth: basic_auth = tuple(basic_auth.split(":"))
 
 
 request_endorsement = """
