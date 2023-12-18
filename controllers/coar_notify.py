@@ -6,6 +6,9 @@ import json
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifyException, COARNotifier
 
+from gluon import current
+
+
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
 
@@ -58,6 +61,8 @@ def inbox():
         raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
     elif request.method == "POST":
         # The POST method is used for submitting notifications to the inbox.
+
+        if current.isRR: raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
 
         content_type, content_type_options = cgi.parse_header(
             request.env.content_type or ""

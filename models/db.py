@@ -194,6 +194,7 @@ auth.settings.host = host
 from gluon import current
 current.auth = auth
 current.db = db
+current.isRR = pciRRactivated
 
 # -------------------------------------------------------------------------
 db.define_table(
