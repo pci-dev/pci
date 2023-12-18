@@ -33,10 +33,13 @@ class CLOCKSS_UPLOAD:
         return attachments_dir, base_dir
 
     def build_pdf(self):
+        options = {
+            'cookie' : self.request.cookies.items()
+        }
         attachments_dir, base_dir = self.init_dir()
         filename = f"{attachments_dir}/{base_dir}.pdf"
         printable_page = URL("articles", f"rec?articleId={self.article.id}&printable=True", host=host, scheme=scheme, port=port)
-        pdfkit.from_url(printable_page, filename)
+        pdfkit.from_url(printable_page, filename, options=options)
         return f"{base_dir}.pdf"
         
 
