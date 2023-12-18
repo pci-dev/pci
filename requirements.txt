@@ -38,6 +38,8 @@ pillow==10.2.0
     # via
     #   -r requirements.in
     #   treepoem
+pdfkit==1.0.0
+    # via -r requirements.in
 psycopg2-binary==2.9.5
     # via -r requirements.in
 pydal==20221110.1
