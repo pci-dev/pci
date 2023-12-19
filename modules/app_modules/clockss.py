@@ -38,12 +38,10 @@ class CLOCKSS_UPLOAD:
         }
         attachments_dir, base_dir = self.init_dir()
         filename = f"{attachments_dir}/{base_dir}.pdf"
-        printable_page = URL("articles", f"rec?articleId={self.article.id}&printable=True", host=host, scheme=scheme, port=port)
+        printable_page = URL(c="articles", f= "rec", vars=dict(articleId=self.article.id, printable=True), host=host, scheme=scheme, port=port)
         pdfkit.from_url(printable_page, filename, options=options)
         return f"{base_dir}.pdf"
         
-
-
     def zip_directory(self, filepath):
         direc = pathlib.Path(filepath)
         with z.ZipFile(f'{filepath}.zip', 'w', z.ZIP_DEFLATED) as zp:
