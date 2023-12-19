@@ -995,15 +995,15 @@ def edit_article():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
 
+    if art == None:
+        redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
+
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer)
         return
 
-    if art == None:
-        # raise HTTP(404, "404: "+T('Unavailable'))
-        redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
     db.t_articles.status.writable = True
     db.t_articles.user_id.writable = True
 
@@ -1499,6 +1499,10 @@ def article_emails():
     article = db.t_articles[articleId]
     urlFunction = request.function
     urlController = request.controller
+
+    if not article:
+        session.flash = T(f"no such article: articleId={articleId}")
+        redirect(request.env.http_referer)
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
