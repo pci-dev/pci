@@ -9,9 +9,6 @@ from app_modules import emailing
 from gluon import current
 
 
-from gluon import current
-
-
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
 
