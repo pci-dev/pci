@@ -903,24 +903,24 @@ def one_review():
 
     revId = request.vars["reviewId"]
     rev = db.t_reviews[revId]
-    art = db((db.t_recommendations.id == rev.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select().last()
+    if rev == None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    recomm = db.t_recommendations[rev.recommendation_id]
+    if recomm == None:
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
+    if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
+        session.flash = auth.not_authorized()
+        redirect(request.env.http_referer)
 
-    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
+    art = db.t_articles[recomm.article_id]
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(URL(c=request.controller, f=" "))
     else:
-        form = ""
-        if rev == None:
-            session.flash = auth.not_authorized()
-            redirect(request.env.http_referer)
-        recomm = db.t_recommendations[rev.recommendation_id]
-        if recomm == None:
-            session.flash = auth.not_authorized()
-            redirect(request.env.http_referer)
-        if (recomm.recommender_id != auth.user_id) and not (auth.has_membership(role="manager")):
-            session.flash = auth.not_authorized()
-            redirect(request.env.http_referer)
         db.t_reviews._id.readable = False
         db.t_reviews.reviewer_id.writable = False
         db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
@@ -955,9 +955,9 @@ def reviews():
 
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
-    art = db(db.t_recommendations.article_id == db.t_articles.id).select().last()
+    art = db.t_articles[recomm.article_id]
 
-    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(URL(c=request.controller, f=" "))
