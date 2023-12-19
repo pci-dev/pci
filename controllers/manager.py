@@ -989,13 +989,11 @@ def suggested_recommenders():
 def edit_article():
     response.view = "default/myLayout.html"
 
-    if not ("articleId" in request.vars):
-        session.flash = T("Unavailable")
-        redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
+    art = db.t_articles[articleId or None]
 
     if art == None:
+        session.flash = f"no such article: articleId={articleId}"
         redirect(URL("manager", "all_articles"))  # it may have been deleted, so that's normal!
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
