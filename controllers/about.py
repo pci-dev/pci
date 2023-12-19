@@ -17,6 +17,7 @@ track_changes(True)  # reimport module if changed; disable in production
 from app_modules.helper import *
 
 from app_modules import common_tools
+from app_modules.utils import run
 from app_modules.orcid import OrcidTools
 from controller_modules import adjust_grid
 
@@ -40,24 +41,10 @@ def version():
     pageTitle = getTitle(request, auth, db, "#VersionTitle")
     customText = getText(request, auth, db, "#VersionInfo")
     opt = "--decorate --decorate-refs-exclude remotes/origin/*"
-    version = _run(f"git log {opt} --oneline HEAD -1")
+    version = run(f"git log {opt} --oneline HEAD -1")
 
     response.view = "default/info.html"
     return dict(pageTitle=pageTitle, customText=customText, message=version, shareable=False, currentUrl=URL(c="about", f="version", host=host, scheme=scheme, port=port))
-
-
-def _run(command):
-    return "".join(
-        Popen(
-            command.split(" "),
-            cwd=request.folder,
-            stdout=PIPE,
-            stderr=STDOUT,
-            encoding="utf-8",
-        )
-        .stdout
-        .readlines()
-    )
 
 
 ######################################################################################################################################################################
