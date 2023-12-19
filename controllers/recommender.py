@@ -955,9 +955,9 @@ def reviews():
 
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
-    art = db(db.t_recommendations.article_id == db.t_articles.id).select().last()
+    art = db.t_articles[recomm.article_id]
 
-    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art.t_articles)
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(URL(c=request.controller, f=" "))
