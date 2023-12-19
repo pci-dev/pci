@@ -46,8 +46,7 @@ def post_form():
     if form.process().accepted:
         attachments_dir, _ = clockss.init_dir()
         save_pdf_to_db(recomm, attachments_dir, f"{_}.pdf")
-        clockss.build_xml()
-        # # clockss.send_to_clockss()
+        # clockss.compile_and_send()
         session.flash = T("Successfully Uploaded to Clockss")
         redirect(url)
 
