@@ -3,16 +3,13 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Iterable, List, Optional as _, Tuple, cast
 from models.article import is_scheduled_submission
-from gluon.contrib.appconfig import AppConfig
 from models.article import Article
 from models.recommendation import Recommendation
 from models.report_survey import ReportSurvey
 from models.user import User
 from pydal.objects import Row, Rows
 from pydal import DAL
-
-myconf = AppConfig(reload=True)
-pciRRactivated = myconf.get("config.registered_reports", default=False)
+from gluon import current
 
 class ReviewDuration(Enum):
     FIVE_WORKING_DAY = 'Five working days'
@@ -145,7 +142,7 @@ class Review(Row):
             return review.due_date
         
         due_date: _[datetime] = None
-        if pciRRactivated:
+        if current.isRR:
             due_date = Review.get_due_date_from_scheduled_submission_date(db, review)
         
         if not due_date:
@@ -223,11 +220,12 @@ class Review(Row):
 
     @staticmethod
     def get_default_review_duration():
-        return ReviewDuration.TWO_WEEK.value if pciRRactivated else ReviewDuration.THREE_WEEK.value
+        return ReviewDuration.TWO_WEEK.value if current.isRR else ReviewDuration.THREE_WEEK.value
 
         
     @staticmethod
-    def get_all_with_reviewer(db: DAL, reviews_states: List[ReviewState] = []):
+    def get_all_with_reviewer(reviews_states: List[ReviewState] = []):
+        db = current.db
         if len(reviews_states) == 0:
             result = db(db.t_reviews.reviewer_id == db.auth_user.id).select(db.t_reviews.ALL, db.auth_user.ALL, orderby=db.auth_user.last_name|db.auth_user.first_name)
         else:

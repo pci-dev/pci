@@ -17,11 +17,11 @@ track_changes(True)  # reimport module if changed; disable in production
 from app_modules.helper import *
 
 from app_modules import common_tools
+from app_modules.utils import run
 from app_modules.orcid import OrcidTools
 from controller_modules import adjust_grid
 
 from gluon.contrib.appconfig import AppConfig
-from pydal import DAL
 
 myconf = AppConfig(reload=True)
 
@@ -40,24 +40,10 @@ def version():
     pageTitle = getTitle(request, auth, db, "#VersionTitle")
     customText = getText(request, auth, db, "#VersionInfo")
     opt = "--decorate --decorate-refs-exclude remotes/origin/*"
-    version = _run(f"git log {opt} --oneline HEAD -1")
+    version = run(f"git log {opt} --oneline HEAD -1")
 
     response.view = "default/info.html"
     return dict(pageTitle=pageTitle, customText=customText, message=version, shareable=False, currentUrl=URL(c="about", f="version", host=host, scheme=scheme, port=port))
-
-
-def _run(command):
-    return "".join(
-        Popen(
-            command.split(" "),
-            cwd=request.folder,
-            stdout=PIPE,
-            stderr=STDOUT,
-            encoding="utf-8",
-        )
-        .stdout
-        .readlines()
-    )
 
 
 ######################################################################################################################################################################
@@ -236,7 +222,7 @@ def thanks_to_reviewers():
     tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
         
-    years_reviews = _get_review_with_reviewer_by_year(db)
+    years_reviews = _get_review_with_reviewer_by_year()
 
     html = DIV()
     for year in sorted(years_reviews.keys(), reverse=True):
@@ -289,19 +275,19 @@ def thanks_to_reviewers():
         tweeterAcc=tweeterAcc,
     )
 
-def _get_recommendation_dict(db: DAL):
+def _get_recommendation_dict():
     dict_id_recommendations: Dict[int, Recommendation] = {}
-    recommendations = Recommendation.get_all(db, [RecommendationState.RECOMMENDED])
+    recommendations = Recommendation.get_all([RecommendationState.RECOMMENDED])
     for recommendation in recommendations:
         if recommendation.validation_timestamp:
             dict_id_recommendations[recommendation.id] = recommendation
     return dict_id_recommendations
 
-def _get_review_with_reviewer_by_year(db: DAL):
+def _get_review_with_reviewer_by_year():
     years_reviews: Dict[int, List[Tuple[Review, User]]] = {}
-    dict_id_recommendations = _get_recommendation_dict(db)
+    dict_id_recommendations = _get_recommendation_dict()
 
-    reviews_users = Review.get_all_with_reviewer(db, [ReviewState.REVIEW_COMPLETED])
+    reviews_users = Review.get_all_with_reviewer([ReviewState.REVIEW_COMPLETED])
     for review_user in reviews_users:
         review = review_user[0]
         review_date: Optional[datetime.datetime]

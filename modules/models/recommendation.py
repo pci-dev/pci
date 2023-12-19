@@ -5,6 +5,7 @@ from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
 from pydal.objects import Row
 from pydal import DAL
+from gluon import current
 
 class RecommendationState(Enum):
     REJECTED = 'Rejected'
@@ -63,7 +64,8 @@ class Recommendation(Row):
     
 
     @staticmethod
-    def get_all(db: DAL, recommendation_states: List[RecommendationState] = []):
+    def get_all(recommendation_states: List[RecommendationState] = []):
+        db = current.db
         if len(recommendation_states) == 0:
             return cast(List[Recommendation], db().select(db.t_recommendations.ALL))
         else:
