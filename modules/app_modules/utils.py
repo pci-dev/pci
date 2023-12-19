@@ -13,14 +13,14 @@ def json(arg):
 
 def run(command):
     try:
-        return "".join(
-            Popen(
+        with Popen(
                 shlex.split(command),
                 cwd=current.request.folder,
                 stdout=PIPE,
                 stderr=STDOUT,
                 encoding="utf-8",
-            )
+            ) \
+        as p: return "".join(p
             .stdout
             .readlines()
         )

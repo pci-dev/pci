@@ -11,6 +11,7 @@ def index():
 
     return menu([
         "pcis",
+        "coar_inboxes",
         "version",
         "issn",
         "all/issn",
@@ -27,13 +28,22 @@ def version():
     })
 
 
-def pcis():
+def _list_pcis():
     host = pci_hosts()
     desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
 
-    return json({
-        host[i]: desc[i] for i,_ in enumerate(host)
-    })
+    return { host[i]: desc[i] for i,_ in enumerate(host) }
+
+
+def pcis():
+    return json(_list_pcis())
+
+
+def coar_inboxes():
+    hosts = _list_pcis()
+    if 'rr' in hosts: del hosts['rr']
+
+    return json(hosts)
 
 
 def issn():
