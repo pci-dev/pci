@@ -1496,19 +1496,18 @@ def article_emails():
     response.view = "default/myLayout.html"
 
     articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
+    article = db.t_articles[articleId or None]
     urlFunction = request.function
     urlController = request.controller
 
     if not article:
         session.flash = T(f"no such article: articleId={articleId}")
-        redirect(request.env.http_referer)
+        redirect(request.env.http_referer or request.home)
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
-        redirect(request.env.http_referer)
-        return
+        redirect(request.env.http_referer or request.home)
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
