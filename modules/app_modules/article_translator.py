@@ -96,6 +96,9 @@ class ArticleTranslator(Translator):
 
     def _save_translations(self, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
         field_name = str(field.name.lower())
+
+        if field_name not in data_translated:
+            return
         
         translation = TranslatedFieldDict({
             'lang': self._lang.value.code,
