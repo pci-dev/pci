@@ -151,8 +151,15 @@ class Article(Row):
             
 
     @staticmethod
-    def already_translated(article: 'Article', field: TranslatedFieldType, lang: Lang):
-        return Article.get_translation(article, field, lang) != None
+    def already_translated(article: 'Article', field: TranslatedFieldType, lang: Lang, manual: bool = False):
+        translation = Article.get_translation(article, field, lang)
+        if not translation:
+            return False
+        
+        if manual:
+            return not translation['automated']
+        
+        return True
 
 
     @staticmethod

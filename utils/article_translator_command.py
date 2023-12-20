@@ -11,9 +11,11 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('article_id', type=int)
+parser.add_argument('force', type=lambda x: (x if str(x).lower() == 'true' else False))
 args = parser.parse_args()
 
 article_id = int(args.article_id)
+force = bool(args.force)
 
 
 def main(article_id: int):
@@ -22,7 +24,7 @@ def main(article_id: int):
     if not article:
         raise Exception('Article not found')
 
-    ArticleTranslator.run_article_translation_for_default_langs(article)
+    ArticleTranslator.run_article_translation_for_default_langs(article, force)
 
 
 main(article_id)

@@ -23,17 +23,28 @@ class ArticleTranslator(Translator):
         self._article = article
 
 
-    def run_article_translation(self):
-        data_to_translate = self._build_data_to_translate(self._article)
+    def run_article_translation(self, force: bool = False):
+        data_to_translate = self._build_data_to_translate(self._article, force)
         if not data_to_translate:
             return
         
         data_translated = self._translate_article_data(data_to_translate)
 
-        self._save_translations(self._article, TranslatedFieldType.ABSTRACT, data_translated)
-        self._save_translations(self._article, TranslatedFieldType.TITLE, data_translated)
-        self._save_translations(self._article, TranslatedFieldType.KEYWORDS, data_translated)
+        self._save_translations(TranslatedFieldType.ABSTRACT, data_translated)
+        self._save_translations(TranslatedFieldType.TITLE, data_translated)
+        self._save_translations(TranslatedFieldType.KEYWORDS, data_translated)
 
+        self._clean_translation()
+
+
+    def _clean_translation(self):
+        if not self._article.abstract:
+            Article.delete_translation(self._article, TranslatedFieldType.ABSTRACT, self._lang)
+        if not self._article.title:
+            Article.delete_translation(self._article, TranslatedFieldType.TITLE, self._lang)
+        if not self._article.keywords:
+            Article.delete_translation(self._article, TranslatedFieldType.KEYWORDS, self._lang)
+        
 
     def _translate_article_data(self, data_to_translate: ArticleTranslationDict) -> ArticleTranslationDict:
         data_translated = ArticleTranslationDict()
@@ -50,8 +61,7 @@ class ArticleTranslator(Translator):
         text_translated = self.translate(text)
 
         keys = list(data_to_translate.keys())
-        for i in range(len(keys)):
-            key = keys[i]
+        for i, key in enumerate(keys):
             hash = cast(str, data_to_translate_hash[key])
             next_hash = None
             if i + 1 < len(keys):
@@ -84,12 +94,8 @@ class ArticleTranslator(Translator):
             return '\n'.join(lines[start_index+1:end_index])
 
 
-    def _save_translations(self, article: Article, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
+    def _save_translations(self, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
         field_name = str(field.name.lower())
-
-        if field_name not in data_translated:
-            Article.delete_translation(article, field, self._lang)
-            return
         
         translation = TranslatedFieldDict({
             'lang': self._lang.value.code,
@@ -97,30 +103,46 @@ class ArticleTranslator(Translator):
             'automated': True
         })
 
-        Article.add_or_update_translation(article, field, translation)
+        Article.add_or_update_translation(self._article, field, translation)
 
 
-    def _build_data_to_translate(self, article: Article):
+    def _build_data_to_translate(self, article: Article, force: bool = False):
         data_to_translate = ArticleTranslationDict()
-        if article.abstract and not Article.already_translated(article, TranslatedFieldType.ABSTRACT, self._lang):
-            data_to_translate['abstract'] = article.abstract
-        if article.title and not Article.already_translated(article, TranslatedFieldType.TITLE, self._lang):
-            data_to_translate['title'] = article.title
-        if article.keywords and not Article.already_translated(article, TranslatedFieldType.KEYWORDS, self._lang):
-            data_to_translate['keywords'] = article.keywords
+
+        if article.abstract:
+            already_translated = Article.already_translated(article, TranslatedFieldType.ABSTRACT, self._lang) and not force
+            manual_translation = Article.already_translated(article, TranslatedFieldType.ABSTRACT, self._lang, manual=True)
+
+            if not already_translated and not manual_translation :
+                data_to_translate['abstract'] = article.abstract
+
+        if article.title:
+            already_translated = Article.already_translated(article, TranslatedFieldType.TITLE, self._lang) and not force
+            manual_translation = Article.already_translated(article, TranslatedFieldType.TITLE, self._lang, manual=True)
+
+            if not already_translated and not manual_translation :
+                data_to_translate['title'] = article.title
+
+        if article.keywords:
+            already_translated = Article.already_translated(article, TranslatedFieldType.KEYWORDS, self._lang) and not force
+            manual_translation = Article.already_translated(article, TranslatedFieldType.KEYWORDS, self._lang, manual=True)
+
+            if not already_translated and not manual_translation :
+                data_to_translate['keywords'] = article.keywords
+
         return data_to_translate
 
 
     @staticmethod
-    def run_article_translation_for_default_langs(article: Article):
+    def run_article_translation_for_default_langs(article: Article, force: bool = False):
         for lang in ArticleTranslator.DEFAULT_TARGET_LANG:
             translator = ArticleTranslator(lang, article)
-            translator.run_article_translation()
+            translator.run_article_translation(force)
             sleep(1)
 
 
     @staticmethod
-    def launch_article_translation_for_default_langs_process(article_id: int):
+    def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False):
         cmd = [
             'python3',
             'web2py.py',
@@ -130,7 +152,8 @@ class ArticleTranslator(Translator):
             '-R', 
             'applications/pci/utils/article_translator_command.py', 
             '-A', 
-            str(article_id)
+            str(article_id),
+            str(force)
         ]
         
         subprocess.Popen(cmd)
