@@ -6,6 +6,7 @@ import datetime
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
+from app_modules.article_translator import ArticleTranslator
 from gluon.http import HTTP, redirect
 from models.article import Article, ArticleStatus, is_scheduled_submission
 from models.recommendation import RecommendationState
@@ -95,6 +96,7 @@ def do_accept_new_article_to_recommend():
             raise HTTP(404, "404: " + T("Article not found"))
         article.status = ArticleStatus.UNDER_CONSIDERATION.value
         article.update_record()
+        ArticleTranslator.launch_article_translation_for_default_langs_process(article.id)
         if is_scheduled_submission(article):
             emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
