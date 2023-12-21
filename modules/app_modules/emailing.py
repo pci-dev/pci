@@ -1530,31 +1530,33 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
         mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
 
+        if newStatus == "Recommended":
+            mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+            mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommended", article)
+        elif newStatus == "Recommended-private":
+            mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommendedPrivate", article)
+        else:
+            if newStatus == "Cancelled":
+                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
+
+            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleStatusChanged", article)
+
+        dest_emails = []
+        dest_roles = ''
         contribs = db(db.t_press_reviews.recommendation_id == recomm.id).select()
         for contrib in contribs:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
+            dest_emails.append(common_small_html.mkUser(auth, db, contrib.contributor_id).flatten())
+            dest_roles += "contributor " + common_small_html.mkUser(auth, db, contrib.contributor_id).flatten() + ';'
             dest = db.auth_user[contrib.contributor_id]
             if dest:
                 mail_vars["destAddress"] = dest["email"]
             else:
                 mail_vars["destAddress"] = ""
 
-            if newStatus == "Recommended":
-                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
-                mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommended", article)
-            elif newStatus == "Recommended-private":
-                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
-                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommendedPrivate", article)
-            else:
-                if newStatus == "Cancelled":
-                    mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-
-                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleStatusChanged", article)
-
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
-
-            reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
+        if dest_roles != '':
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails=dest_emails, dest_role=dest_roles)
 
     emailing_tools.getFlashMessage(session, reports)
 
