@@ -10,6 +10,7 @@ import uuid
 
 import requests
 
+from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
 
@@ -109,12 +110,13 @@ class COARNotifier:
         This method handles adding the generic bits of the notification (i.e. the
         @context, id, origin and target.
         """
-        session = _get_requests_session()
-
         target_inbox = get_target_inbox(article)
 
-        # Add the base properties for the notification, including the JSON-LD context.
-        notification = {
+        notification = self.add_base_notification_properties(notification, target_inbox)
+        self._send_notification(notification, target_inbox)
+
+    def add_base_notification_properties(self, notification, target_inbox):
+        return {
             "@context": [
                 "https://www.w3.org/ns/activitystreams",
                 "https://purl.org/coar/notify",
@@ -126,13 +128,16 @@ class COARNotifier:
                 "type": ["Service"],
             },
             "target": {
+                "id": re.sub("(http[s]?://[^/]+/).*", "\\1", target_inbox),
                 "inbox": target_inbox,
                 "type": ["Service"],
             },
             **notification,
         }
 
+    def _send_notification(self, notification, target_inbox):
         serialized_notification = json.dumps(notification, indent=2)
+        session = _get_requests_session()
 
         try:
             response = session.post(
@@ -244,6 +249,22 @@ class COARNotifier:
         }
         self.send_notification(notification, article)
 
+    def send_acknowledge_and_tentative_accept(self, article):
+        if not article.coar_notification_id: return
+        if article.coar_notification_closed: return
+
+        send_ack(self, "Accept", article)
+
+    def send_acknowledge_and_reject(self, article):
+        if not article.coar_notification_id: return
+        if article.coar_notification_closed: return
+
+        send_ack(self, "Reject", article)
+
+        article.coar_notification_closed = True
+        article.update_record()
+
+
     def record_notification(
         self,
         *,
@@ -264,50 +285,113 @@ class COARNotifier:
         body can either be a JSON-LD-style dictionary, or a BytesIO.
         base, if specified, provides the base URL for resolving absolute URLs
         """
+        if isinstance(body, dict):
+            bb = json.dumps(body)
+            b = bytes(bb, "utf8")
+        else:
+            bb = body.read()
+            body.seek(0)
+            b = body
+
         graph = rdflib.Graph()
 
         try:
-            graph.parse(body, format=body_format, base=base or "https://invalid/")
+            graph.parse(b, format=body_format, base=base or "https://invalid/")
         except Exception as e:
             raise COARNotifyParseException from e
 
-        subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
-        if len(subjects) != 1:
-            raise COARNotifyNoUniqueSubjectException
-        subject = subjects[0]
+        body = (
+            body if body_format == "json-ld" and isinstance(body, dict)
+            else json.loads(bb) if body_format == "json-ld"
+            else json.loads(graph.serialize(
+                    format="json-ld", auto_compact=True))["@graph"]
+        )
 
-        origin = graph.value(subject, ACTIVITYSTREAMS.origin)
-        target = graph.value(subject, ACTIVITYSTREAMS.target)
+        if direction == "Outbound":
+            validate_outbound_notification(graph)
 
-        if not origin:
-            raise COARNotifyMissingOrigin
-        if not target:
-            raise COARNotifyMissingTarget
-
-        origin_inbox = graph.value(origin, LDP.inbox)
-        target_inbox = graph.value(target, LDP.inbox)
-
-        if not isinstance(origin_inbox, rdflib.URIRef):
-            raise COARNotifyMissingOriginInbox
-        if not isinstance(target_inbox, rdflib.URIRef):
-            raise COARNotifyMissingTargetInbox
+        inbox_url = body \
+                ["target" if direction == "Outbound" else "origin"] \
+                ["inbox"]
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=" ".join(
-                str(type)
-                for type in graph.objects(subject, rdflib.RDF.type)
-                if type != ACTIVITYSTREAMS.Announce
-            ),
-            body=(
-                json.dumps(body)
-                if body_format == "json-ld" and isinstance(body, dict)
-                else graph.serialize(format="json-ld")
-            ),
+            rdf_type=get_notification_type(graph),
+            body=json.dumps(body),
             direction=direction,
-            inbox_url=str(origin_inbox if direction == "Inbound" else target_inbox),
+            inbox_url=inbox_url,
             http_status=http_status,
+            coar_id=body["id"],
         )
+
+#
+
+def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
+    origin_req = get_origin_request(article)
+    if not origin_req: return
+
+    target_inbox = origin_req["origin"]["inbox"]
+    origin_object = origin_req["object"]["id"]
+    notification = {
+          "type": f"Tentative{typ}",
+          "object": {
+            "id": article.coar_notification_id,
+            "object": origin_object,
+            "type": "Offer"
+          },
+          "inReplyTo": article.coar_notification_id,
+          "actor": {
+            "id": self.base_url,
+            "type": "Service",
+            #"name": "PCI coar Service",
+          },
+          #"context": {
+          #  "id": "https://some-organisation.org/resource/0021",
+          #  "ietf:cite-as": "https://doi.org/10.4598/12123487",
+          #  "type": "Document"
+          #},
+        }
+
+    notification = self.add_base_notification_properties(notification, target_inbox)
+    self._send_notification(notification, target_inbox)
+
+
+def get_origin_request(article):
+    db = current.db
+    req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
+    return json.loads(req.body) if req else None
+
+
+def validate_outbound_notification(graph):
+    subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
+    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeAccept))
+    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeReject))
+    if len(subjects) != 1:
+        raise COARNotifyNoUniqueSubjectException
+    subject = subjects[0]
+
+    origin = graph.value(subject, ACTIVITYSTREAMS.origin)
+    target = graph.value(subject, ACTIVITYSTREAMS.target)
+
+    if not origin:
+        raise COARNotifyMissingOrigin
+    if not target:
+        raise COARNotifyMissingTarget
+
+    origin_inbox = graph.value(origin, LDP.inbox)
+    target_inbox = graph.value(target, LDP.inbox)
+
+    if not isinstance(origin_inbox, rdflib.URIRef):
+        raise COARNotifyMissingOriginInbox
+    if not isinstance(target_inbox, rdflib.URIRef):
+        raise COARNotifyMissingTargetInbox
+
+
+def get_notification_type(graph):
+    return " ".join(typ.fragment
+            for typ in graph.objects(predicate=rdflib.RDF.type)
+            if typ not in (ACTIVITYSTREAMS.Service)
+    )
 
 
 def get_target_inbox(article):

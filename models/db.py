@@ -195,6 +195,7 @@ from gluon import current
 current.auth = auth
 current.db = db
 current.isRR = pciRRactivated
+current.coar = COARNotifier(db)
 
 # -------------------------------------------------------------------------
 db.define_table(
@@ -573,6 +574,8 @@ db.define_table(
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
     Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     Field("manager_authors", type="string", length=50, default=""),
+    Field("coar_notification_id", type="text", readable=False, writable=False),
+    Field("coar_notification_closed", type="boolean", readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -586,7 +589,7 @@ db.t_articles.auto_nb_recommendations.writable = False
 db.t_articles.auto_nb_recommendations.readable = False
 db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(last_name)s, %(first_name)s"))
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
-db.t_articles._after_insert.append(lambda s, i: newArticle(s, i))
+db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
 
@@ -740,6 +743,9 @@ def newArticle(s, articleId):
     if s.status == "Pending-survey": # pciRRactivated only
         return
 
+    if s.coar_notification_id:
+        return
+
     if s.already_published is False:
         emailing.send_to_managers(session, auth, db, articleId, "Pending", response)
         emailing.send_to_submitter_acknowledgement_submission(session, auth, db, articleId)
@@ -809,7 +815,7 @@ db.t_recommendations.recommender_id.requires = IS_IN_DB(
 db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
 db.t_recommendations._before_update.append(lambda s, i: setRecommendationDoi(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
-        if COARNotifier(db).enabled else None
+        if current.coar.enabled else None
 
 def get_last_recomm(articleId):
     return db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
@@ -840,7 +846,7 @@ def recommendationUpdated(s, updated_recommendation):
         and updated_recommendation.get('recommendation_state') == "Recommended"
     ):
         # COAR notification
-        coar_notifier = COARNotifier(db)
+        coar_notifier = current.coar
         for review in db(
                 (db.t_recommendations.article_id == original_recommendation.article_id)
               & (db.t_reviews.recommendation_id == db.t_recommendations.id)
@@ -1956,6 +1962,7 @@ db.define_table(
     Field("direction", type="string", label="Inbound or Outbound"),
     Field("http_status", type="integer", label="HTTP Status for outboard messages"),
     Field("inbox_url", type="string", label="Remote inbox for notification"),
+    Field("coar_id", type="string", label="Notification id"),
 )
 
 

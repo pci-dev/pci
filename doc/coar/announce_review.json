@@ -1,0 +1,43 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://purl.org/coar/notify"
+  ],
+  "id": "urn:uuid:aea79b01-d641-40e5-b3db-373f44af1658",
+  "origin": {
+    "id": "http://localhost:8000/pci/coar_notify/",
+    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
+    "type": [
+      "Service"
+    ]
+  },
+  "target": {
+    "inbox": "",
+    "type": [
+      "Service"
+    ]
+  },
+  "type": [
+    "Announce",
+    "coar-notify:ReviewAction"
+  ],
+  "context": {
+    "id": "https://10.1038/nature.2014.14583",
+    "ietf:cite-as": "https://10.1038/nature.2014.14583",
+    "type": "sorg:AboutPage"
+  },
+  "object": {
+    "id": "http://localhost:8000/pci/articles/rec?articleId=1#review-1",
+    "type": [
+      "Document",
+      "sorg:Review"
+    ]
+  },
+  "actor": {
+    "id": "http://localhost:8000/pci/public/user_public_page?userId=106",
+    "type": [
+      "Person"
+    ],
+    "name": "reviewer dude"
+  }
+}

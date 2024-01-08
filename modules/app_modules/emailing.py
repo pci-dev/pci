@@ -147,6 +147,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterParallelPreprintUnderConsideration", article)
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterPreprintUnderConsideration", article)
+                current.coar.send_acknowledge_and_tentative_accept(article)
 
             if pciRRactivated:
                 mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
@@ -158,6 +159,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                     "parallelText"
                 ] += """If your manuscript was sent to reviewers and evaluated, we will add a link to the reports on our progress log page. This is because you chose the parallel submission option and we do not wish to waste the effort that went into evaluating your work. This provides reviewers a possibility to claim credit for their evaluation work and, in addition to being useful to your team, we hope the reports are useful discussion points for other researchers in the field."""
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterCancelledSubmission", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Rejected":
             mail_vars["recommTarget"] = URL(
@@ -169,6 +171,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRejectedSubmission", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Not considered":
             mail_vars["recommTarget"] = URL(
@@ -176,6 +179,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             )
 
             hashtag_template = "#SubmitterNotConsideredSubmission"
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
             mail_vars["recommTarget"] = URL(
@@ -187,6 +191,9 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
+            if article.coar_notification_id: hashtag_template = "#SubmitterAwaitingSubmissionCOAR"
+
+            current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Pre-recommended":
             return  # patience!
@@ -3138,34 +3145,45 @@ def delete_all_reminders_from_recommendation_id(db, recommendationId):
 
 
 ######################################################################################################################################################################
-# RESET PASSWORD EMAIL
-def send_to_reset_password(session, auth, db, userId):
-    print("send_reset_password")
-    mail = emailing_tools.getMailer(auth)
+def send_to_coar_requester(session, auth, db, user, article):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_resu = False
-    reports = []
-
-    fkey = db.auth_user[userId]["reset_password_key"]
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
-    mail_vars["destAddress"] = db.auth_user[userId]["email"]
-    mail_vars["siteName"] = mail_vars["appName"]
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destAddress"] = user.email
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"]
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
     mail_vars["linkTarget"] = URL(
-        c="default", f="user", args=["reset_password"], scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(key=fkey)
-    )  # default/user/reset_password?key=1561727068-2946ea7b-54fe-4caa-87af-9c5e459b3487.
-    mail_vars["linkTargetA"] = A(mail_vars["linkTarget"], _href=mail_vars["linkTarget"])
+        c="user", f="edit_my_article",
+        vars=dict(articleId=article.id, key=user.reset_password_key),
+        scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
+    )
 
-    mail = emailing_tools.buildMail(db, "#UserResetPassword", mail_vars)
+    hashtag_template = "#UserCompleteSubmissionCOAR"
 
-    try:
-        mail_resu = mail.send(to=[mail_vars["destAddress"]], subject=mail["subject"], message=mail["content"])
-    except:
-        pass
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
 
-    reports = emailing_tools.createMailReport(mail_resu, mail_vars["destPerson"].flatten(), reports)
-    time.sleep(MAIL_DELAY)
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
+    emailing_tools.getFlashMessage(session, reports)
 
+
+def send_to_coar_resubmitter(session, auth, db, user, article):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destAddress"] = user.email
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"]
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["linkTarget"] = URL(
+        c="user", f="edit_my_article",
+        vars=dict(articleId=article.id, key=user.reset_password_key),
+        scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
+    )
+
+    hashtag_template = "#UserCompleteResubmissionCOAR"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
+
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################
