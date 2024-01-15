@@ -90,10 +90,14 @@ set.conf.rr.%:
 	sed -i '/^registered_reports/ s/=.*/= $*/' private/appconfig.ini
 	sed -i '/^scheduled_submissions/ s/=.*/= $*/' private/appconfig.ini
 
+test.full test.basic test.medium test.scheduled-track: delete.external.user
+
 test.full:		test_full.py
 test.basic:		test_basic.py
 test.medium:		test_medium.py
 test.scheduled-track:	test_scheduled_track.py
+
+test.full test.basic test.medium test.scheduled-track: test.clean
 
 
 test.create-article:
@@ -114,8 +118,6 @@ test_%:
 
 delete.external.user:
 	$(psql) main -c "delete from auth_user where first_name='Titi';"
-
-test.medium test.scheduled-track: delete.external.user
 
 test.clean:
 	pkill -9 -ef 'geckodriver[ ]|marionette[ ]' || true

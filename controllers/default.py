@@ -55,6 +55,13 @@ def loading():
 ######################################################################################################################################################################
 # Home page (public)
 def index():
+    if request.env.request_method == 'HEAD':
+        response.headers = { "link": (
+            '<' + URL("coar_notify", "inbox", scheme=True) + '>' +
+            '; rel="http://www.w3.org/ns/ldp#inbox"'
+        )}
+        return ""
+
     response.view = "default/index.html"
 
     recomms = db.get_last_recomms()
