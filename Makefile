@@ -97,6 +97,8 @@ test.basic:		test_basic.py
 test.medium:		test_medium.py
 test.scheduled-track:	test_scheduled_track.py
 
+test.full test.basic test.medium test.scheduled-track: test.clean
+
 
 test.create-article:
 	cd tests ; pytest -k "basic and User_submits"
