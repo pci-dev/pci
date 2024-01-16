@@ -165,7 +165,7 @@ class COARNotifier:
             http_status = response.status_code
 
         self.record_notification(
-            body=io.BytesIO(serialized_notification.encode()),
+            body=notification,
             direction="Outbound",
             http_status=http_status,
         )
