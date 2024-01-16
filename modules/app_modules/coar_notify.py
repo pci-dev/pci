@@ -269,46 +269,19 @@ class COARNotifier:
         self,
         *,
         body: io.BytesIO,
-        body_format: str = "json-ld",
         http_status: int = None,
         direction: typing.Literal["Inbound", "Outbound"],
-        base: str = None,
     ) -> None:
         """Records a notification in the database for logging purposes.
 
-        This method does some validation:
-
-        * ensures that the notification can be parsed into RDF
-        * ensures that it contains a single activitystreams:Announce
-        * ensures that there is an origin and a target, and that both have an ldp:inbox
-
         body can either be a JSON-LD-style dictionary, or a BytesIO.
-        base, if specified, provides the base URL for resolving absolute URLs
         """
+        print("record notification: start")
         if isinstance(body, dict):
-            bb = json.dumps(body)
-            b = bytes(bb, "utf8")
+            pass
         else:
             bb = body.read()
-            body.seek(0)
-            b = body
-
-        graph = rdflib.Graph()
-
-        try:
-            graph.parse(b, format=body_format, base=base or "https://invalid/")
-        except Exception as e:
-            raise COARNotifyParseException from e
-
-        body = (
-            body if body_format == "json-ld" and isinstance(body, dict)
-            else json.loads(bb) if body_format == "json-ld"
-            else json.loads(graph.serialize(
-                    format="json-ld", auto_compact=True))["@graph"]
-        )
-
-        if direction == "Outbound":
-            validate_outbound_notification(graph)
+            body = json.loads(bb)
 
         inbox_url = body \
                 ["target" if direction == "Outbound" else "origin"] \
@@ -316,13 +289,14 @@ class COARNotifier:
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=get_notification_type(graph),
+            rdf_type=get_notification_type(body),
             body=json.dumps(body),
             direction=direction,
             inbox_url=inbox_url,
             http_status=http_status,
             coar_id=body["id"],
         )
+        print("record notification: done")
 
 #
 
@@ -362,36 +336,8 @@ def get_origin_request(article):
     return json.loads(req.body) if req else None
 
 
-def validate_outbound_notification(graph):
-    subjects = list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.Announce))
-    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeAccept))
-    subjects += list(graph.subjects(rdflib.RDF.type, ACTIVITYSTREAMS.TentativeReject))
-    if len(subjects) != 1:
-        raise COARNotifyNoUniqueSubjectException
-    subject = subjects[0]
-
-    origin = graph.value(subject, ACTIVITYSTREAMS.origin)
-    target = graph.value(subject, ACTIVITYSTREAMS.target)
-
-    if not origin:
-        raise COARNotifyMissingOrigin
-    if not target:
-        raise COARNotifyMissingTarget
-
-    origin_inbox = graph.value(origin, LDP.inbox)
-    target_inbox = graph.value(target, LDP.inbox)
-
-    if not isinstance(origin_inbox, rdflib.URIRef):
-        raise COARNotifyMissingOriginInbox
-    if not isinstance(target_inbox, rdflib.URIRef):
-        raise COARNotifyMissingTargetInbox
-
-
-def get_notification_type(graph):
-    return " ".join(typ.fragment
-            for typ in graph.objects(predicate=rdflib.RDF.type)
-            if typ not in (ACTIVITYSTREAMS.Service)
-    )
+def get_notification_type(body):
+    return " ".join(body["type"])
 
 
 def get_target_inbox(article):
