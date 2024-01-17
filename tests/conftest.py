@@ -145,18 +145,22 @@ def logout(user):
 
 from configparser import ConfigParser
 
-def is_rr():
+def get_web2py_config():
     config = ConfigParser()
     config.read("../private/appconfig.ini")
-    return config["config"].getboolean("registered_reports")
+    return config
+
+w2p_config = get_web2py_config()
+
 
 def config_set_scheduled_track(value=getenv("RR_SCHEDULED_TRACK")):
     if config.is_rr:
         config.is_rr = Namespace(scheduled_track=value)
 
-config.is_rr = is_rr()
+config.is_rr = w2p_config["config"].getboolean("registered_reports")
 config_set_scheduled_track()
 
+config.coar_enabled = w2p_config["coar_notify"].get("inbox_url")
 
 
 import sys
