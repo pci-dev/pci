@@ -43,6 +43,10 @@ class TranslatedFieldType(Enum):
     TITLE = 'translated_title'
     KEYWORDS = 'translated_keywords'
 
+    @staticmethod
+    def get_corresponding_english_field(translated_field: 'TranslatedFieldType'):
+        return translated_field.name.lower()
+
 
 class Article(Row):
     id: int
@@ -148,6 +152,11 @@ class Article(Row):
         for translation in translations:
             if translation['lang'] == lang.value.code:
                 return translation
+            
+    
+    @staticmethod
+    def get_all_translations(article: 'Article', field: TranslatedFieldType):
+        return cast(_[List[TranslatedFieldDict]], getattr(article, field.value))
             
 
     @staticmethod

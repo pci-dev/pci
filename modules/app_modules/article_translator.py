@@ -2,6 +2,8 @@ from time import sleep
 from typing import Optional, TypedDict, cast
 import uuid
 import subprocess
+from gluon.html import A, URL
+from gluon.sqlhtml import SQLFORM
 
 from models.article import Article, TranslatedFieldDict, TranslatedFieldType
 from app_modules.lang import Lang
@@ -24,7 +26,7 @@ class ArticleTranslator(Translator):
 
 
     def run_article_translation(self, force: bool = False):
-        data_to_translate = self._build_data_to_translate(self._article, force)
+        data_to_translate = self._build_data_to_translate(force)
         if not data_to_translate:
             return
         
@@ -35,6 +37,18 @@ class ArticleTranslator(Translator):
         self._save_translations(TranslatedFieldType.KEYWORDS, data_translated)
 
         self._clean_translation()
+
+
+    def run_field_article_translation(self, field: TranslatedFieldType):
+        data_to_translate = ArticleTranslationDict()
+        self._build_field_data_to_translate(data_to_translate, field)
+
+        if not data_to_translate:
+            return
+
+        data_translated = self._translate_article_data(data_to_translate)
+
+        self._save_translations(field, data_translated)
 
 
     def _clean_translation(self):
@@ -95,7 +109,7 @@ class ArticleTranslator(Translator):
 
 
     def _save_translations(self, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
-        field_name = str(field.name.lower())
+        field_name = str(TranslatedFieldType.get_corresponding_english_field(field))
 
         if field_name not in data_translated:
             return
@@ -109,31 +123,26 @@ class ArticleTranslator(Translator):
         Article.add_or_update_translation(self._article, field, translation)
 
 
-    def _build_data_to_translate(self, article: Article, force: bool = False):
+    def _build_data_to_translate(self, force: bool = False):
         data_to_translate = ArticleTranslationDict()
 
-        if article.abstract:
-            already_translated = Article.already_translated(article, TranslatedFieldType.ABSTRACT, self._lang) and not force
-            manual_translation = Article.already_translated(article, TranslatedFieldType.ABSTRACT, self._lang, manual=True)
-
-            if not already_translated and not manual_translation :
-                data_to_translate['abstract'] = article.abstract
-
-        if article.title:
-            already_translated = Article.already_translated(article, TranslatedFieldType.TITLE, self._lang) and not force
-            manual_translation = Article.already_translated(article, TranslatedFieldType.TITLE, self._lang, manual=True)
-
-            if not already_translated and not manual_translation :
-                data_to_translate['title'] = article.title
-
-        if article.keywords:
-            already_translated = Article.already_translated(article, TranslatedFieldType.KEYWORDS, self._lang) and not force
-            manual_translation = Article.already_translated(article, TranslatedFieldType.KEYWORDS, self._lang, manual=True)
-
-            if not already_translated and not manual_translation :
-                data_to_translate['keywords'] = article.keywords
+        self._build_field_data_to_translate(data_to_translate, TranslatedFieldType.ABSTRACT, force)
+        self._build_field_data_to_translate(data_to_translate, TranslatedFieldType.TITLE, force)
+        self._build_field_data_to_translate(data_to_translate, TranslatedFieldType.KEYWORDS, force)
 
         return data_to_translate
+
+
+    def _build_field_data_to_translate(self, data_to_translate: ArticleTranslationDict, translated_field: TranslatedFieldType, force: bool = False):
+        field = str(TranslatedFieldType.get_corresponding_english_field(translated_field))
+        field_value = str(getattr(self._article, field))
+
+        if field_value:
+            already_translated = Article.already_translated(self._article, translated_field, self._lang) and not force
+            manual_translation = Article.already_translated(self._article, translated_field, self._lang, manual=True)
+
+            if not already_translated and not manual_translation :
+                data_to_translate[field] = field_value
 
 
     @staticmethod
@@ -160,3 +169,25 @@ class ArticleTranslator(Translator):
         ]
         
         subprocess.Popen(cmd)
+
+    
+    @staticmethod
+    def add_edit_translation_buttons(article_id: int, article_form: SQLFORM):
+        style = "margin: 0px"
+        button_class = "btn btn-default"
+
+        title_url = cast(str, URL(c="translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.TITLE.value, article_id=article_id), user_signature=True))
+        abstract_url = cast(str, URL(c="translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.ABSTRACT.value, article_id=article_id), user_signature=True))
+        keywords_url = cast(str, URL(c="translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.KEYWORDS.value, article_id=article_id), user_signature=True))
+
+        title_row = article_form.element(_id="t_articles_title__row")
+        if title_row:
+            title_row.components[1].append(A("Edit title translations", _class=button_class, _style=style, _href=title_url))
+        
+        abstract_row = article_form.element(_id="t_articles_abstract__row")
+        if abstract_row:
+            abstract_row.components[1].append(A("Edit abstract translations", _class=button_class, _style=style, _href=abstract_url))
+
+        keywords_row = article_form.element(_id="t_articles_keywords__row")
+        if keywords_row:
+            keywords_row.components[1].append(A("Edit keywords translations", _class=button_class, _style=style, _href=keywords_url))

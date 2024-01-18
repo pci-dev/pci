@@ -7,7 +7,7 @@ class LangItem:
         code: str
         english_name: str
         name: Optional[str] = None
-            
+
 
 class Lang(Enum):
     ZH = LangItem("zh", "Chinese", "汉语")
@@ -740,11 +740,13 @@ class Lang(Enum):
     ANG = LangItem("ang", "Old English", "Ænglisc")
     PI = LangItem("pi", "Pali", "पालि")
 
-
     @staticmethod
     def get_lang_by_code(code: str):
         for lang in Lang:
                 if lang.value.code == code:
                     return lang
 
-        raise Exception("Language code doesn't exist")
+        raise Exception(f"Language code '{code}' doesn't exist")
+    
+
+DEFAULT_LANG = Lang.get_lang_by_code('en')

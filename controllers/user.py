@@ -23,9 +23,11 @@ from app_modules import emailing
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.orcid import OrcidTools
+from app_modules.article_translator import ArticleTranslator
+from gluon.http import redirect
 
 from models.review import Review, ReviewState
-from models.article import Article
+from models.article import Article, TranslatedFieldType
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 
@@ -856,6 +858,7 @@ def edit_my_article():
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
+    ArticleTranslator.add_edit_translation_buttons(articleId, form)
 
     try:
         article_version = int(art.ms_version)
