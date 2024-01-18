@@ -305,25 +305,24 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
         mail_vars["linkTarget"] = URL(
             c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=True)
         )
-        mail_vars["articleAuthors"] = article.authors
-        mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
-        mail_vars["tOldStatus"] = current.T(article.status)
-        mail_vars["tNewStatus"] = current.T(newStatus)
-        hashtag_template = "#RecommenderPostprintStatusChanged"
-
-        dest_emails = []
-        dest_roles = ''
         for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, db.t_recommendations.id, distinct=True):
             mail_vars["recommender_id"] = myRecomm["recommender_id"]
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, mail_vars["recommender_id"])
             mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
-            dest_emails.append(db.auth_user[myRecomm.recommender_id]["email"])
-            dest_roles += mail_vars["destPerson"] + ';'
+            mail_vars["articleAuthors"] = article.authors
+            mail_vars["articleTitle"] = md_to_html(article.title)
+            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["tOldStatus"] = current.T(article.status)
+            mail_vars["tNewStatus"] = current.T(newStatus)
 
-        if dest_roles != '':
-            reports = merge_mails(auth, db, hashtag_template, mail_vars, myRecomm.id, myRecomm, articleId, dest_emails=dest_emails, dest_role=mail_vars["destPerson"].flatten())
-        emailing_tools.getFlashMessage(session, reports)
+            # mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, myRecomm.id)
+
+            hashtag_template = "#RecommenderPostprintStatusChanged"
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
+
+            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+
+    emailing_tools.getFlashMessage(session, reports)
 
 
 ######################################################################################################################################################################
@@ -493,36 +492,33 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             placeholders=[article.id],
             as_dict=True,
         )
-
-        mail_vars["linkTarget"] = URL(
-            c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
-        )
-        mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        mail_vars["ethicsurl"] = mk_ethicsLink()
-
-        if article.parallel_submission:
-            mail_vars["addNote"] = (
-                "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
-                % mail_vars
-            )
-        else:
-            mail_vars["addNote"] = ""
-
-        hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
-        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-
-        dest_emails = []
-        dest_role = ''
         for sugg_recommender in suggested_recommenders:
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["id"])
-            dest_emails.append(db.auth_user[sugg_recommender["id"]]["email"])
-            dest_role += "suggested recommender" + mail_vars["destPerson"].flatten() + ';'
+            mail_vars["destAddress"] = db.auth_user[sugg_recommender["id"]]["email"]
+            mail_vars["linkTarget"] = URL(
+                c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
+            )
+            mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+            mail_vars["ethicsurl"] = mk_ethicsLink()
 
-        if dest_role != '':
-            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, articleId, dest_emails=dest_emails, dest_role=dest_role, sugg_recommender_buttons=sugg_recommender_buttons)
+            if article.parallel_submission:
+                mail_vars["addNote"] = (
+                    "<b>Note:</b> The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appName)s, and hope you will agree to manage this preprint. If the authors abandon the process at %(appName)s after reviewers have written their reports, we will post the reviewers' reports on the %(appName)s website as recognition of the reviewers' work and in order to enable critical discussion."
+                    % mail_vars
+                )
+            else:
+                mail_vars["addNote"] = ""
+
+            hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
+            sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
+
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+
             delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
-        emailing_tools.getFlashMessage(session, reports)
+            reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
+
+    emailing_tools.getFlashMessage(session, reports)
 
 
 def build_sugg_recommender_buttons(link_target: str, article_id: int):
@@ -1527,33 +1523,31 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
         mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
 
-        if newStatus == "Recommended":
-            mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
-            mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommended", article)
-        elif newStatus == "Recommended-private":
-            mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
-            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommendedPrivate", article)
-        else:
-            if newStatus == "Cancelled":
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-
-            hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleStatusChanged", article)
-
-        dest_emails = []
-        dest_roles = ''
         contribs = db(db.t_press_reviews.recommendation_id == recomm.id).select()
         for contrib in contribs:
-            dest_emails.append(common_small_html.mkUser(auth, db, contrib.contributor_id).flatten())
-            dest_roles += "contributor " + common_small_html.mkUser(auth, db, contrib.contributor_id).flatten() + ';'
+            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
             dest = db.auth_user[contrib.contributor_id]
             if dest:
                 mail_vars["destAddress"] = dest["email"]
             else:
                 mail_vars["destAddress"] = ""
 
-        if dest_roles != '':
-            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails=dest_emails, dest_role=dest_roles)
+            if newStatus == "Recommended":
+                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommended", article)
+            elif newStatus == "Recommended-private":
+                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleRecommendedPrivate", article)
+            else:
+                if newStatus == "Cancelled":
+                    mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
+
+                hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleStatusChanged", article)
+
+            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+
+            reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(session, reports)
 
