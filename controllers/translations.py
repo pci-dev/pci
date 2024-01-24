@@ -3,7 +3,7 @@ from typing import List, cast
 from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Response, Request, Session
-from gluon.html import A, BUTTON, DIV, FORM, HR, INPUT, LABEL, OPTION, SELECT, SPAN, TEXTAREA, URL
+from gluon.html import A, BUTTON, DIV, FORM, HR, INPUT, LABEL, OPTION, SELECT, SPAN, TEXTAREA, URL, XML
 from gluon.http import redirect
 from gluon.tools import Auth
 from app_modules.lang import DEFAULT_LANG, Lang, LangItem
@@ -194,9 +194,10 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
         input = INPUT(_id="new-translation", _type='text', _class="string form-control", _name="new-translation")
     
     return FORM(
+        LABEL('Add translation', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
         DIV(
             SELECT(lang_options, _id="lang-selector", _class="generic-widget form-control"),
-            BUTTON("Write", _id="write-translation", _class="btn btn-default"),
+            BUTTON("Write", _id="write-translation", _class="btn btn-default", _disabled=True),
             BUTTON("Generate", _id="generate-translation", _class="btn btn-success", _link=url_generate, _disabled=True),
             DIV(
                 input,
@@ -226,7 +227,7 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
     save_url = cast(str,
                         URL(c="translations",
                             f="add_or_edit_article_field_translation",
-                            vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code),
+                            vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
                             user_signature=True,
                             host=host,
                             scheme=scheme,
@@ -260,12 +261,12 @@ def _generate_english_form(article: Article, english_field: str, is_textarea: bo
     lang_en = DEFAULT_LANG
 
     if is_textarea:
-        input = TEXTAREA(english_value, _id=lang_en.value.code, _class="form-control text", _name=lang_en.value.code, _disabled=True)
+        input = DIV(XML(english_value), _id=lang_en.value.code, _name=lang_en.value.code, _class="well")
     else:
         input = INPUT(_id=lang_en.value.code, _value=english_value, _type='text', _class="string form-control", _name=lang_en.value.code, _disabled=True),
                 
     return FORM(
-            LABEL(lang_en.value.english_name, _class="control-label col-sm-3", _for=lang_en.value.code),
+            LABEL(lang_en.value.english_name, _class="control-label col-sm-3", _for=lang_en.value.code, _style="font-size: 17px"),
             DIV(
                 input,
                 _class="col-sm-9"
@@ -278,11 +279,12 @@ def _generate_lang_label(lang: Lang, translation_value: TranslatedFieldDict):
     label_text = _build_lang_name(lang.value)
     label_class = "control-label col-sm-3"
     label_for = lang.value.code
+    style = "font-size: 17px"
 
     if translation_value['automated']:
-        return LABEL(label_text, SPAN('Generated', _style="color: red; margin-left: 5px"), _class=label_class, _for=label_for)
+        return LABEL(label_text, SPAN('Generated', _style="color: red; margin-left: 5px"), _class=label_class, _for=label_for, _style=style)
     else:
-        return LABEL(label_text, _class=label_class, _for=label_for)
+        return LABEL(label_text, _class=label_class, _for=label_for, _style=style)
 
 
 class AddNewLanguageAction(Enum):
