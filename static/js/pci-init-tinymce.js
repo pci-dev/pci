@@ -1,30 +1,7 @@
 initTinyMCE();
 
-function initTinyMCE(elementSelector, idTextarea) {
-
-  const ids_array = [
-    "#help_texts_contents",
-    "#t_articles_abstract",
-    "#t_articles_cover_letter",
-    "#t_recommendations_recommendation_comments",
-    "#t_reviews_review",
-    "#t_recommendations_reply",
-    "#mail_templates_contents",
-    "#no_table_message",
-    "#mail_queue_mail_content",
-  ];
-
-  for (const id_textarea of ids_array) {
-    let elem;
-    if (elementSelector && idTextarea && id_textarea == idTextarea) {
-      elem = document.querySelector(elementSelector);
-    } else {
-      elem = document.querySelector(id_textarea);
-    }
-   
-    if (elem) {
-      // let editor_elem = `<div id="${id_textarea + '_editor'}"></div>`
-      let invalid_styles;
+function generateTinyMCEOptions(elementSelector, id_textarea) {
+  let invalid_styles;
       if (
         id_textarea == "#help_texts_contents" ||
         id_textarea == "#mail_templates_contents"
@@ -176,6 +153,34 @@ function initTinyMCE(elementSelector, idTextarea) {
         }
 			`);
       }
+      return tinymce_options;
+}
+
+function initTinyMCE(elementSelector, idTextarea) {
+
+  const ids_array = [
+    "#help_texts_contents",
+    "#t_articles_abstract",
+    "#t_articles_cover_letter",
+    "#t_recommendations_recommendation_comments",
+    "#t_reviews_review",
+    "#t_recommendations_reply",
+    "#mail_templates_contents",
+    "#no_table_message",
+    "#mail_queue_mail_content",
+  ];
+
+  for (const id_textarea of ids_array) {
+    let elem;
+    if (elementSelector && idTextarea && id_textarea == idTextarea) {
+      elem = document.querySelector(elementSelector);
+    } else {
+      elem = document.querySelector(id_textarea);
+    }
+   
+    if (elem) {
+      // let editor_elem = `<div id="${id_textarea + '_editor'}"></div>`
+      tinymce_options = generateTinyMCEOptions(elementSelector, id_textarea)
 
       tinymce.init(tinymce_options).then((el) => {
         const editor = el[0]
