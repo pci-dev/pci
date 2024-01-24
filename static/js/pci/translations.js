@@ -273,6 +273,8 @@ window.addEventListener('load', () => {
 document.getElementById('lang-form-list').addEventListener('DOMNodeInserted', (e) => {
     if (e.target.tagName === 'FORM') {
         textarea = e.target.getElementsByTagName('TEXTAREA')[0]
-        addTinyMCEForm(textarea);
+        if (textarea != null) {
+            addTinyMCEForm(textarea);
+        }
     }
 });
