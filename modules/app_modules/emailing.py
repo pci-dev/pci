@@ -1113,11 +1113,12 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, man
             db.auth_user.ALL
         )
 
+        dest_emails = []
         for admin in admins:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, admin.id)
-            mail_vars["destAddress"] = admin.email
+            dest_emails.append(admin.email)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        if dest_emails != []:
+            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
@@ -1135,7 +1136,6 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and article and count_reviews_completed >= 1 and count_reviews_under_consideration == 1:
-
         delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -1149,11 +1149,12 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
             db.auth_user.ALL
         )
 
+        dest_emails = []
         for admin in admins:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, admin.id)
-            mail_vars["destAddress"] = admin.email
+            dest_emails.append(admin.email)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        if dest_emails != []:
+            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
@@ -1165,20 +1166,19 @@ def send_admin_new_user(session, auth, db, userId):
     admins = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "administrator")).select(
         db.auth_user.ALL
     )
-    dest = []
 
     user = db.auth_user[userId]
     if user:
         mail_vars["userTxt"] = common_small_html.mkUser(auth, db, userId)
         mail_vars["userMail"] = user.email
+        hashtag_template = "#AdminNewUser"
 
+        dest_emails = []
         for admin in admins:
-            mail_vars["destAddress"] = admin.email
+            dest_emails.append(admin.email)
 
-            hashtag_template = "#AdminNewUser"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
-
-    reports = emailing_tools.createMailReport(True, "administrators", reports)
+        if dest_emails != []:
+            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
 
     emailing_tools.getFlashMessage(session, reports)
 
@@ -1342,14 +1342,19 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
         else:
             dest_emails = emailing_vars.getManagersMails(db)
             dest_role = "manager"
-
-        for email in dest_emails:
-            mail_vars["destAddress"] = email
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, article_id=article.id)
-            reports = emailing_tools.createMailReport(True, dest_role + " " + (email or ""), reports)
-
+        reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, article.id, dest_emails, dest_role)
 
     emailing_tools.getFlashMessage(session, reports)
+
+
+def merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None, sugg_recommender_buttons=None):
+    email_destinations = ','.join(dest_emails)
+    mail_vars["destAddress"] = email_destinations
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, sugg_recommender_buttons=sugg_recommender_buttons)
+    if dest_role:
+        report = emailing_tools.createMailReport(True, dest_role + ' ' + (email_destinations or ''), [])
+        return report
 
 
 def listCorrectHashtags(hashtags, article):

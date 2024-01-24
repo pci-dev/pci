@@ -1494,7 +1494,8 @@
     }
 
     td .ellipsis-over-500 {
-        min-width: 500px;
+        min-width: 450px;
+        max-width: 450px;
     }
 
     .pci2-recomm-backButtonDiv {
