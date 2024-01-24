@@ -138,7 +138,7 @@ class Article(Row):
                 index_to_remove = i
                 break
 
-        if index_to_remove:
+        if index_to_remove != None:
             translations.pop(index_to_remove)
             article.update_record()
         
