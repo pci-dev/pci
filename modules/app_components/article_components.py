@@ -263,7 +263,9 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
         for translated_abstract in article.translated_abstract:
             lang = translated_abstract['lang']
             translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
-            if not translated_abstract['automated']:
+            if translated_abstract['automated']:
+                translations[lang]['automated'] = I('This is a version automatically generated. The authors and PCI decline all responsibility concerning its content')
+            else:
                 translations[lang]['automated'] = I('This is an author version: The autors endorse the responsability of its content.')
             
     if article.translated_keywords:
