@@ -3,7 +3,7 @@ from typing import List, cast
 from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Response, Request, Session
-from gluon.html import A, BUTTON, DIV, FORM, HR, INPUT, LABEL, OPTION, SELECT, SPAN, TEXTAREA, URL, XML
+from gluon.html import A, BUTTON, DIV, FORM, HR, I, INPUT, LABEL, OPTION, P, SELECT, TEXTAREA, URL, XML
 from gluon.http import redirect
 from gluon.tools import Auth
 from app_modules.lang import DEFAULT_LANG, Lang, LangItem
@@ -24,8 +24,6 @@ scheme = config.take("alerts.scheme")
 host = config.take("alerts.host")
 port = config.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
-
-@auth.requires_signature()
 @auth.requires_login()
 def edit_article_translations():
     article_id = int(request.vars["article_id"])
@@ -53,15 +51,17 @@ def edit_article_translations():
         _generate_form(article, translated_field, english_field),
         _id="lang_form_group"
         )
-
+    
+    done_button = BUTTON(current.T("Back"), _class="btn btn-default", _onclick="window.history.back();", _style="margin: auto")
+        
     response.view = 'default/myLayout.html'
     return dict(
             form=form,
             myBackButton=common_small_html.mkBackButton(),
             myFinalScript=common_tools.get_script("article_translations.js"),
             pageTitle=english_field.capitalize() + "'s translations",
-            confirmationScript = common_small_html.confirmationDialog('Are you sure?')
-        )
+            confirmationScript = common_small_html.confirmationDialog('Are you sure?'),
+            myAcceptBtn=done_button)
 
 
 @auth.requires_login()
@@ -244,13 +244,23 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                             scheme=scheme,
                             port=port)
                     )
-        
+    buttons: List[DIV] = []
+    
+    if translation_value["automated"] and translated_field == TranslatedFieldType.ABSTRACT:
+        buttons.append(DIV(
+            P("If is checked, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
+            P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
+            _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
+        buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-button", _link=save_url))
+    buttons.append(A("Save", _class="btn btn-primary lang-form-save-button", _link=save_url))
+    buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-button", _link=delete_url))
+
     return FORM(
                 _generate_lang_label(lang, translation_value),
                 DIV(
                     input,
-                    A("Save", _class="btn btn-primary lang-form-save-button", _link=save_url),
-                    A("Delete", _class="btn btn-danger lang-form-delete-button", _link=delete_url),
+                    *buttons,
+                    HR(),
                     _class="col-sm-9"
                 ),
                 _class="form-group", _style="margin-bottom: 10px", _id=f"translation-{lang.value.code}"
@@ -283,9 +293,9 @@ def _generate_lang_label(lang: Lang, translation_value: TranslatedFieldDict):
     style = "font-size: 17px"
 
     if translation_value['automated']:
-        return LABEL(label_text, SPAN('Generated', _style="color: red; margin-left: 5px"), _class=label_class, _for=label_for, _style=style)
+        return LABEL(label_text, I('Automated translation', _style="color: #d9534f; margin-left: 5px"), _class=label_class, _for=label_for, _style=style)
     else:
-        return LABEL(label_text, _class=label_class, _for=label_for, _style=style)
+        return LABEL(label_text, I('Author version', _style="color: #0275d8; margin-left: 5px"), _class=label_class, _for=label_for, _style=style)
 
 
 class AddNewLanguageAction(Enum):
