@@ -58,7 +58,7 @@ def edit_article_translations():
     return dict(
             form=form,
             myBackButton=common_small_html.mkBackButton(),
-            myFinalScript=common_tools.get_script("translations.js"),
+            myFinalScript=common_tools.get_script("article_translations.js"),
             pageTitle=english_field.capitalize() + "'s translations",
             confirmationScript = common_small_html.confirmationDialog('Are you sure?')
         )
@@ -170,7 +170,7 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
     lang_options.insert(0, OPTION(''))
 
     url_generate = cast(str,
-               URL(c="translations",
+               URL(c="article_translations",
                    f="add_or_edit_article_field_translation",
                    vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.GENERATE.value),
                    user_signature=True,
@@ -180,7 +180,7 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
                )
     
     url_write = cast(str,
-               URL(c="translations",
+               URL(c="article_translations",
                    f="add_or_edit_article_field_translation",
                    vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value),
                    user_signature=True,
@@ -226,7 +226,7 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
         input = INPUT(_id=lang.value.code, _value=translation_value["content"], _type='text', _class="string form-control", _name=lang.value.code)
 
     save_url = cast(str,
-                        URL(c="translations",
+                        URL(c="article_translations",
                             f="add_or_edit_article_field_translation",
                             vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
                             user_signature=True,
@@ -236,7 +236,7 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                     )
     
     delete_url = cast(str,
-                        URL(c="translations",
+                        URL(c="article_translations",
                             f="delete_translation",
                             vars=dict(article_id=article.id, field=translated_field.value, lang=lang.value.code),
                             user_signature=True,
