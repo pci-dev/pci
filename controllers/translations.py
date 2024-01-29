@@ -57,6 +57,7 @@ def edit_article_translations():
     response.view = 'default/myLayout.html'
     return dict(
             form=form,
+            myBackButton=common_small_html.mkBackButton(),
             myFinalScript=common_tools.get_script("translations.js"),
             pageTitle=english_field.capitalize() + "'s translations",
             confirmationScript = common_small_html.confirmationDialog('Are you sure?')
