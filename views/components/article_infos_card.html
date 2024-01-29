@@ -209,7 +209,7 @@
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
-      >Abstract</b
+      >Abstract in English</b
     >
     <hr
       style="margin: 0 10px;"
@@ -230,6 +230,48 @@
     </div>
   {{pass}}
 
+{{pass}}
+
+
+{{if 'translations' in locals():}}
+  {{for lang, translation in translations.items():}}
+      <div
+        style="margin:  15px 0 0px;"
+        {{if not printable:}}
+        onclick="checkPanel('#menu-5-{{=lang}}','#icon-menu-5-{{=lang}}')"
+          class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+        {{else:}}
+          class="pci2-flex-row pci2-flex-center"
+        {{pass}}
+      >
+        <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+          >Abstract in {{=Lang.get_lang_by_code(lang).value.english_name}}</b
+        >
+        <hr
+          style="margin: 0 10px;"
+          class="pci2-main-color-hr pci2-flex-grow"
+        />
+        {{if not printable:}}
+          <i id="icon-menu-5-{{=lang}}" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+        {{pass}}
+      </div>
+
+      {{if not printable:}}
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+          {{=translation.get('title', '')}}
+          {{=translation.get('automated', '')}}
+          {{=translation.get('abstract', '')}}
+          {{=translation.get('keywords', '')}}
+        </div>
+      {{else:}}
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div" style="margin-top: 15px;">
+          {{=translation.get('title', '')}}
+          {{=translation.get('automated', '')}}
+          {{=translation.get('abstract', '')}}
+          {{=translation.get('keywords', '')}}
+        </div>
+      {{pass}}
+  {{pass}}
 {{pass}}
 
 

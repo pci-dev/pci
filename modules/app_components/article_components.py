@@ -2,6 +2,7 @@
 
 import gc
 import os
+from typing import Dict, Union
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
@@ -25,6 +26,7 @@ from gluon.sqlhtml import *
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
+from app_modules.lang import Lang
 from models.article import Article
 
 
@@ -251,6 +253,23 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             or
             isRecommended
         )
+    
+    translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
+    if article.translated_title:
+        for translated_title in article.translated_title:
+            translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
+
+    if article.translated_abstract:
+        for translated_abstract in article.translated_abstract:
+            lang = translated_abstract['lang']
+            translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
+            if not translated_abstract['automated']:
+                translations[lang]['automated'] = I('This is an author version: The autors endorse the responsability of its content.')
+            
+    if article.translated_keywords:
+        for translated_keywords in article.translated_keywords:
+            lang = translated_keywords['lang']
+            translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
 
     articleContent = dict()
     articleContent.update(
@@ -268,7 +287,9 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             ("printableClass", printableClass),
             ("pciRRactivated", pciRRactivated),
             ("articleStage", articleStage),
-            ("isRecommended", isRecommended)
+            ("isRecommended", isRecommended),
+            ("translations", translations),
+            ("Lang", Lang)
         ]
     )
     if article.data_doi and policy_2():
