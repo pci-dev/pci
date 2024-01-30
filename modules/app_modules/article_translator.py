@@ -117,7 +117,8 @@ class ArticleTranslator(Translator):
         translation = TranslatedFieldDict({
             'lang': self._lang.value.code,
             'content': data_translated[field_name],
-            'automated': True
+            'automated': True,
+            'public': False
         })
 
         Article.add_or_update_translation(self._article, field, translation)

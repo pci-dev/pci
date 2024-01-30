@@ -1,4 +1,5 @@
 from enum import Enum
+import html
 from typing import List, cast
 from gluon import current
 from gluon.contrib.appconfig import AppConfig
@@ -13,6 +14,7 @@ from pydal.base import DAL
 from app_modules import common_tools
 from app_modules import common_small_html
 
+
 db = cast(DAL, current.db)
 response = cast(Response, current.response)
 request = cast(Request, current.request)
@@ -23,6 +25,7 @@ config = AppConfig()
 scheme = config.take("alerts.scheme")
 host = config.take("alerts.host")
 port = config.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
 
 @auth.requires_login()
 def edit_article_translations():
@@ -71,6 +74,7 @@ def add_or_edit_article_field_translation():
     lang = Lang.get_lang_by_code(request.vars["lang"])
     action = AddNewLanguageAction(request.vars["action"])
     translation = str(request.vars["translation"] or '')
+    public = bool(request.vars["public"])
 
     if not translated_field:
         response.flash = "Translated field not found"
@@ -86,7 +90,8 @@ def add_or_edit_article_field_translation():
         return
     
     is_textarea = translated_field == TranslatedFieldType.ABSTRACT
-    exists_translation = translation_value = Article.get_translation(article, translated_field, lang) != None
+    existing_translation = Article.get_translation(article, translated_field, lang)
+    exists_translation = existing_translation != None
 
     if action == AddNewLanguageAction.GENERATE:
         try:
@@ -99,10 +104,18 @@ def add_or_edit_article_field_translation():
             response.flash = 'Text input field empty'
             return
         
+        if exists_translation:
+            old_content = html.unescape(existing_translation["content"])
+            new_content = html.unescape(translation)
+            automated = AddNewLanguageAction.CHECK != action and old_content == new_content
+        else:
+            automated = False
+        
         new_translation: TranslatedFieldDict = {
-            'automated': False,
+            'automated': automated,
             'content': translation,
-            'lang': lang.value.code
+            'lang': lang.value.code,
+            'public': public
         }
         Article.add_or_update_translation(article, translated_field, new_translation)
 
@@ -235,6 +248,16 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                             port=port)
                     )
     
+    check_url = cast(str,
+                        URL(c="article_translations",
+                            f="add_or_edit_article_field_translation",
+                            vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.CHECK.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
+                            user_signature=True,
+                            host=host,
+                            scheme=scheme,
+                            port=port)
+                    )
+    
     delete_url = cast(str,
                         URL(c="article_translations",
                             f="delete_translation",
@@ -244,14 +267,22 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                             scheme=scheme,
                             port=port)
                     )
-    buttons: List[DIV] = []
     
+    checkbox = DIV(
+        INPUT(_type="checkbox", _id=f"checkbox-public-{lang.value.code}", value=translation_value['public']),
+        LABEL("Show translation on recommendation page", _for=f"checkbox-show-{lang.value.code}"),
+        _style="margin-top: 5px; margin-left: 2px"
+    )
+
+    buttons: List[DIV] = []
+    buttons.append(checkbox)
+
     if translation_value["automated"] and translated_field == TranslatedFieldType.ABSTRACT:
         buttons.append(DIV(
             P("If is checked, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
             P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
-        buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-button", _link=save_url))
+        buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-button", _link=check_url))
     buttons.append(A("Save", _class="btn btn-primary lang-form-save-button", _link=save_url))
     buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-button", _link=delete_url))
 
@@ -301,3 +332,4 @@ def _generate_lang_label(lang: Lang, translation_value: TranslatedFieldDict):
 class AddNewLanguageAction(Enum):
     WRITE = 'write'
     GENERATE = 'generate'
+    CHECK = 'check'

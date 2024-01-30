@@ -77,7 +77,7 @@ function saveTranslation(e) {
     const translationInputId = 'new-translation'
     const translationInput = document.getElementById(translationInputId);
     const isTextarea = translationInput.tagName === 'TEXTAREA';
-
+    
     let translation;
     if (isTextarea) {
         translation = tinymce.get('new-translation')?.getContent();
@@ -110,11 +110,18 @@ function editTranslation(e) {
         translation = document.getElementById(lang).value;
     }
 
+    const publicCheckBox = document.getElementById(`checkbox-public-${lang}`)
+
+    payload = {
+        'translation': translation,
+        'public': publicCheckBox.checked
+    }
+
     $.ajax({
         type: 'POST',
         contentType: 'application/json; charset=utf-8',
         url: url,
-        data: JSON.stringify({'translation': translation}),
+        data: JSON.stringify(payload),
     }).done((response) => {
         insertTranslationForm(response, lang, isTextarea);
     });

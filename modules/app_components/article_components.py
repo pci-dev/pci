@@ -257,10 +257,14 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
     translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
     if article.translated_title:
         for translated_title in article.translated_title:
+            if not translated_title['public']:
+                continue
             translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
 
     if article.translated_abstract:
         for translated_abstract in article.translated_abstract:
+            if not translated_abstract['public']:
+                continue
             lang = translated_abstract['lang']
             translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
             if translated_abstract['automated']:
@@ -270,6 +274,8 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             
     if article.translated_keywords:
         for translated_keywords in article.translated_keywords:
+            if not translated_keywords['public']:
+                continue
             lang = translated_keywords['lang']
             translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
 
