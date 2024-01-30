@@ -208,8 +208,13 @@
       class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
-    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
-      >Abstract in English</b
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}>
+      {{if 'translations' in locals() and len(translations) > 0:}}
+        Abstract in English
+      {{else:}}
+        Abstract
+      {{pass}}
+    </b
     >
     <hr
       style="margin: 0 10px;"
