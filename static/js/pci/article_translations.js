@@ -8,13 +8,17 @@ const generateTranslationButton = document.getElementById('generate-translation'
 const writeTranslationButton = document.getElementById('write-translation');
 const saveTranslationButton = document.getElementById('save-translation');
 
+const saveAllTranslationButton = document.getElementById('save-all-translation');
+
 
 /**
  * Listener
  */
 
-generateTranslationButton.addEventListener('click', generateTranslation);
-saveTranslationButton.addEventListener('click', saveTranslation);
+generateTranslationButton?.addEventListener('click', generateTranslation);
+saveTranslationButton?.addEventListener('click', saveTranslation);
+
+saveAllTranslationButton?.addEventListener('click', saveAllTranslation);
 
 langSelector.addEventListener('change', disableGenerateSaveButton);
 
@@ -29,12 +33,23 @@ function addListenerLangForm() {
     const langFormSaveButtons = document.querySelectorAll('.lang-form-save-button');
     const langFormDeleteButtons = document.querySelectorAll('.lang-form-delete-button');
 
+    const langFormSaveAllButtons = document.querySelectorAll('.lang-form-save-all-button');
+    const langFormDeleteAllButtons = document.querySelectorAll('.lang-form-delete-all-button');
+
     langFormSaveButtons.forEach((saveButton) => {
         saveButton.addEventListener('click', editTranslation);
     });
     
     langFormDeleteButtons.forEach((deleteButton) => {
         deleteButton.addEventListener('click', deleteTranslation);
+    });
+
+    langFormSaveAllButtons.forEach((saveButton) => {
+        saveButton.addEventListener('click', editAllTranslation);
+    });
+
+    langFormDeleteAllButtons.forEach((deleteButton) => {
+        deleteButton.addEventListener('click', deleteAllTranslation);
     });
 }
 
@@ -95,6 +110,41 @@ function saveTranslation(e) {
     });
 }
 
+function saveAllTranslation(e) {
+    e.preventDefault();
+    
+    const lang = langSelector.value;
+
+    const url = new URL(saveAllTranslationButton.getAttribute('link'));
+    url.searchParams.append('lang', lang);
+
+    const translationTitleInputId = 'title-new-translation';
+    const translationAbstractInputId = 'abstract-new-translation';
+    const translationKeywordsInputId = 'keywords-new-translation';
+
+    const translationTitleInput = document.getElementById(translationTitleInputId);
+    const translationKeywordsInput = document.getElementById(translationKeywordsInputId);
+
+    let title = translationTitleInput.value;
+    let abstract = tinymce.get(translationAbstractInputId)?.getContent();
+    let keywords = translationKeywordsInput.value;
+
+    payload = {
+        title,
+        abstract,
+        keywords
+    }
+
+    $.ajax({
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        url: url,
+        data: JSON.stringify(payload),
+    }).done((response) => {
+        insertTranslationForm(response, lang);
+    });
+}
+
 
 function editTranslation(e) {
     e.preventDefault();
@@ -127,6 +177,39 @@ function editTranslation(e) {
     });
 }
 
+function editAllTranslation(e) {
+    e.preventDefault();
+    
+    const url = new URL(e.target.getAttribute('link'));
+    const lang = url.searchParams.get('lang');
+    
+    const translationTitleInputId = `title-${lang}`;
+    const translationAbstractInputId = `abstract-${lang}`;
+    const translationKeywordsInputId = `keywords-${lang}`;
+
+    const title = document.getElementById(translationTitleInputId).value;
+    const abstract = tinymce.get(translationAbstractInputId)?.getContent();
+    const keywords = document.getElementById(translationKeywordsInputId).value;
+
+    const publicCheckBox = document.getElementById(`checkbox-public-${lang}`)
+
+    payload = {
+        title,
+        abstract,
+        keywords,
+        'public': publicCheckBox.checked
+    }
+
+    $.ajax({
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        url: url,
+        data: JSON.stringify(payload),
+    }).done((response) => {
+        insertTranslationForm(response, lang);
+    });
+}
+
 
 function deleteTranslation(e) {
     e.preventDefault();
@@ -152,6 +235,29 @@ function deleteTranslation(e) {
 		.on('click',function(){ return; });
 }
 
+function deleteAllTranslation(e) {
+    e.preventDefault();
+    
+    const url = new URL(e.target.getAttribute('link'));
+    const lang = url.searchParams.get('lang');
+
+    $('#confirmation-modal').modal('show')
+		.on('click', '#confirm-dialog', function(){
+			$.ajax({
+                type: 'GET',
+                url: url,
+            }).done(() => {
+                const form = document.getElementById(`translation-${lang}`);
+                if (form != null) {
+                    form.remove();
+                }
+                disableGenerateSaveButton();
+            });
+		});
+
+	$('#cancel-dialog')
+		.on('click',function(){ return; });
+}
 
 /**
  * Misc functions
@@ -191,8 +297,14 @@ function disableGenerateSaveButton() {
     const disabled = langSelector.value == null || langSelector.value.length === 0;
 
     generateTranslationButton.disabled = disabled;
-    saveTranslationButton.disabled = disabled;
     writeTranslationButton.disabled = disabled;
+
+    if (saveTranslationButton != null) {
+        saveTranslationButton.disabled = disabled;
+    }
+    if (saveAllTranslationButton != null) {
+        saveAllTranslationButton.disabled = disabled;
+    }
 
     const lang = langSelector.value;
     const forms = document.querySelectorAll('#lang-form-list form');
@@ -205,7 +317,12 @@ function disableGenerateSaveButton() {
 
     if (translationAlreadyExists) {
         generateTranslationButton.disabled = true;
-        saveTranslationButton.disabled = true;
+        if (saveTranslationButton != null) {
+            saveTranslationButton.disabled = true;
+        }
+        if (saveAllTranslationButton != null) {
+            saveAllTranslationButton.disabled = disabled;
+        }
         writeTranslationButton.disabled = true;
 
         if (document.getElementById('generate-status') == null) {

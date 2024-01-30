@@ -177,9 +177,15 @@ class ArticleTranslator(Translator):
         style = "margin: 0px"
         button_class = "btn btn-default"
 
+        all_translation_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article_id),  user_signature=True))
+        
         title_url = cast(str, URL(c="article_translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.TITLE.value, article_id=article_id), user_signature=True))
         abstract_url = cast(str, URL(c="article_translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.ABSTRACT.value, article_id=article_id), user_signature=True))
         keywords_url = cast(str, URL(c="article_translations", f="edit_article_translations", vars=dict(field=TranslatedFieldType.KEYWORDS.value, article_id=article_id), user_signature=True))
+
+        form = article_form.components[0][0]
+        if form:
+            form.components.insert(0, A("Edit article translations", _class=button_class, _style=style, _href=all_translation_url))
 
         title_row = article_form.element(_id="t_articles_title__row")
         if title_row:
