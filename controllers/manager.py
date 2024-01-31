@@ -889,6 +889,7 @@ def search_recommenders():
         titleIcon="search",
         pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
         myBackButton=common_small_html.mkBackButton(),
+        myFinalScript=common_tools.get_script("popover.js"),
         grid=grid,
         articleHeaderHtml=articleHeaderHtml,
         selectAllBtn = select_all_btn,

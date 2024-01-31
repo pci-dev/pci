@@ -349,6 +349,7 @@ def search_recommenders():
             pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
+            myFinalScript=common_tools.get_script("popover.js"),
             grid=grid,
             selectAllBtn = select_all_btn,
             selectAllScript = select_all_script,
