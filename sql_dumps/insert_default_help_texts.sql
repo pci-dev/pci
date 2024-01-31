@@ -250,7 +250,7 @@ VALUES
 (E'#UserMyReviewsRequestsText',E'default',E'<p><span style="line-height: 1.2em;"> The preprints listed here are those for which you have been proposed as a reviewer. </span></p>\n<p><span style="line-height: 1.2em;">In case of any problems or difficulties, please contact us at: <a href="mailto:{{contact}}">{{contact}}</a></span></p>'),
 (E'#UserMyReviewsRequestsTitle',E'default',E'<p>Invitations to review a preprint</p>'),
 (E'#UserMyReviewsText',E'default',E'<p><span style="line-height: 1.2em;"> This page shows all the preprints you have agreed to review. </span></p>\n<p><span style="line-height: 1.2em;">In case of any problems or difficulties, please contact us at <a href="mailto:?to={{contact}}">{{contact}}</a></span></p>'),
-(E'#UserMyReviewsTitle',E'default',E'Your reviews'),
+(E'#UserMyReviewsTitle',E'default',E'Your past and ongoing reviews'),
 (E'#UserRecommendations',E'default',NULL),
 (E'#UserSearchRecommenders',E'default',E'You can suggest members of {{appname}} for considering your submission. A member willing to consider your submission becomes the “recommender” of this preprint. The recommender will send your submission and your preprint for review. The “recommender” sends the reviews (which may or may not be written anonymously, at the reviewer’s discretion) to the authors and asks for modifications, if required. He/she eventually writes a short text of recommendation (together with the other reviewers, if they are willing to do so) explaining the recommendation, when all the requested modifications have been made.'),
 (E'#UserSearchRecommendersForWarning',E'default',NULL),
