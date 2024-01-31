@@ -224,7 +224,7 @@ def _UserMenu():
         contribMenuClass = "pci-enhancedMenuItem"
 
     if nRevTot > 0: myContributionsMenu += [
-        menu_entry("Your reviews", "glyphicon-eye-open", URL("user", "my_reviews", vars=dict(pendingOnly=False), user_signature=True), _class=revClass),
+        menu_entry("Your past and ongoing reviews", "glyphicon-eye-open", URL("user", "my_reviews", vars=dict(pendingOnly=False), user_signature=True), _class=revClass),
     ]
 
     _class = "pci-enhancedMenuItem" if nRevisions > 0 else None
