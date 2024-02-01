@@ -9,6 +9,5 @@ treepoem
 dkimpy
 feedparser
 pillow
-rdflib
 requests
 requests-oauthlib
