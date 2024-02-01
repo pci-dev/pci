@@ -18,8 +18,7 @@ If `coar_notify.inbox_url` is missing or empty, COAR Notify support — both the
 disabled.
 
 We recommend against enabling the COAR sub-system in a real production system, because
-a.) it'll accept notifications from anywhere without authentication, and
-b.) rdflib still doesn't have a constrained URL resolver, which could lead to DoS attacks.
+it'll accept notifications from anywhere without authentication.
 
 
 Checking it works
@@ -38,12 +37,7 @@ Deployment
 ----------
 
 The COAR sub-system requires the following extra python libs:
-- rdflib (and dependencies)
 - requests
-
-In a `mod_wsgi` deployment, a straight install with pip3 will not make the libs available to web2py.
-To fix the issue, copy the directories installed by pip3 in `~/.local/lib/python3.8/site-packages`
-directly into your web2py apps directory under `modules/`.
 
 The PCI `coar_notify/inbox` endpoint somehow requires the captcha to be turned off.  To disable
 the captcha, comment-out the line `private` in section `[captcha]` in `appconfig.ini`.
