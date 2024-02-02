@@ -34,38 +34,6 @@ def _get_requests_session() -> requests.Session:
     return session
 
 
-class COARNotifyException(Exception):
-    """Base exception from which all other COAR Notify exceptions derive."""
-    message = "COAR Notify exception"
-
-
-class COARNotifyParseException(COARNotifyException):
-    message = "Couldn't parse message body."
-
-
-class COARNotifyNoUniqueSubjectException(COARNotifyException):
-    message = (
-        "Exactly one resource in notification body must be an Activity Streams "
-        "Announce instance."
-    )
-
-
-class COARNotifyMissingOrigin(COARNotifyException):
-    message = "The Announcement is missing an activitystreams:origin property"
-
-
-class COARNotifyMissingTarget(COARNotifyException):
-    message = "The Announcement is missing an activitystreams:target property"
-
-
-class COARNotifyMissingOriginInbox(COARNotifyException):
-    message = "The origin is missing an ldp:inbox URI property"
-
-
-class COARNotifyMissingTargetInbox(COARNotifyException):
-    message = "The target is missing an ldp:inbox URI property"
-
-
 class COARNotifier:
     """Handles sending and recording COAR Notify notifications.
 

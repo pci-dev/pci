@@ -4,7 +4,7 @@ import typing
 import json
 
 from app_modules.helper import *
-from app_modules.coar_notify import COARNotifyException, COARNotifier
+from app_modules.coar_notify import COARNotifier
 from app_modules import emailing
 from gluon import current
 
@@ -214,7 +214,7 @@ def validate_request(body, content_type, coar_notifier):
                 body=json.loads(body),
                 direction="Inbound",
             )
-        except COARNotifyException as e:
+        except Exception as e:
             raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value, body=e.message) from e
 
 
