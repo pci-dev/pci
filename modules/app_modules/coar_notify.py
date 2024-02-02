@@ -40,7 +40,7 @@ class COARNotifier:
     COAR Notify allows services to communicate review- and endorsement-related
     information between themselves.
 
-    This is a demonstrator, which sends all outbound notifications to a pre-configured
+    This component sends (and records) outbound notifications to a
     Linked Data Notifications (LDN) inbox. The inbox implementation in
     :module:`controllers.coar_notify` is unauthenticated.
 
@@ -54,16 +54,9 @@ class COARNotifier:
     def base_url(self):
         return myconf["coar_notify"]["base_url"].strip()
 
-    @functools.cached_property
-    def inbox_url(self):
-        return myconf["coar_notify"]["inbox_url"].strip()
-
     @property
     def enabled(self):
-        try:
-            return bool(self.inbox_url)
-        except KeyError:
-            return False
+        return myconf.get("coar_notify.enabled")
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
