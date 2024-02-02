@@ -20,13 +20,6 @@ logger = logging.getLogger(__name__)
 
 myconf = AppConfig(reload=True)
 
-try:
- import rdflib
- ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
- LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
-except:
- rdflib = None
-
 
 @functools.lru_cache()
 def _get_requests_session() -> requests.Session:
@@ -100,7 +93,7 @@ class COARNotifier:
     @property
     def enabled(self):
         try:
-            return bool(self.inbox_url) and rdflib
+            return bool(self.inbox_url)
         except KeyError:
             return False
 
