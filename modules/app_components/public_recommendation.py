@@ -2,6 +2,9 @@
 
 import gc
 import os
+from typing import List
+from app_modules.lang import Lang
+from models.article import Article
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
@@ -199,9 +202,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
     # Get METADATA (see next function)
     recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfUrl, citeNum, scheme, host, port)
+    dublin_core = _dublinc_core_meta_tag(art)
 
     headerHtml = XML(response.render("components/last_recommendation.html", headerContent))
-    return dict(headerHtml=headerHtml, recommMetadata=recommMetadata)
+    return dict(headerHtml=headerHtml, recommMetadata=recommMetadata, dublin_core=dublin_core)
 
 
 ######################################################################################################################################################################
@@ -251,6 +255,27 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
     myMeta["DC.rights"] = "(C) %s, %d" % (myconf.take("app.description"), lastRecomm.last_change.date().year)
 
     return myMeta
+
+
+def _dublinc_core_meta_tag(article: Article):
+    dublin_core: List[META] = []
+
+    if article.translated_title:
+        for translated_title in article.translated_title:
+            if translated_title['public']:
+                dublin_core.append(META(_name="DC.Title", _content=translated_title['content'], _lang=translated_title['lang']))
+
+    if article.translated_abstract:
+        for translated_abstract in article.translated_abstract:
+            if translated_abstract['public']:
+                dublin_core.append(META(_name="DC.Description", _content=translated_abstract['content'], _lang=translated_abstract['lang']))
+            
+    if article.translated_keywords:
+        for translated_keywords in article.translated_keywords:
+            if translated_keywords['public']:
+                dublin_core.append(META(_name="DC.Subject", _content=translated_keywords['content'], _lang=translated_keywords['lang']))
+
+    return dublin_core
 
 
 ######################################################################################################################################################################

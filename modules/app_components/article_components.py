@@ -253,31 +253,6 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             or
             isRecommended
         )
-    
-    translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
-    if article.translated_title:
-        for translated_title in article.translated_title:
-            if not translated_title['public']:
-                continue
-            translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
-
-    if article.translated_abstract:
-        for translated_abstract in article.translated_abstract:
-            if not translated_abstract['public']:
-                continue
-            lang = translated_abstract['lang']
-            translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
-            if translated_abstract['automated']:
-                translations[lang]['automated'] = I('This is a version automatically generated. The authors and PCI decline all responsibility concerning its content')
-            else:
-                translations[lang]['automated'] = I('This is an author version: The autors endorse the responsability of its content.')
-            
-    if article.translated_keywords:
-        for translated_keywords in article.translated_keywords:
-            if not translated_keywords['public']:
-                continue
-            lang = translated_keywords['lang']
-            translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
 
     articleContent = dict()
     articleContent.update(
@@ -296,7 +271,7 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             ("pciRRactivated", pciRRactivated),
             ("articleStage", articleStage),
             ("isRecommended", isRecommended),
-            ("translations", translations),
+            ("translations", _get_article_translation(article)),
             ("Lang", Lang)
         ]
     )
@@ -341,6 +316,36 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article, _target="blank"))])
     return XML(response.render("components/article_infos_card.html", articleContent))
+
+
+def _get_article_translation(article: Article):
+    translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
+    if article.translated_title:
+        for translated_title in article.translated_title:
+            if not translated_title['public']:
+                continue
+            translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
+
+    if article.translated_abstract:
+        for translated_abstract in article.translated_abstract:
+            if not translated_abstract['public']:
+                continue
+            lang = translated_abstract['lang']
+            translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
+            if translated_abstract['automated']:
+                translations[lang]['automated'] = I('This is a version automatically generated. The authors and PCI decline all responsibility concerning its content')
+            else:
+                translations[lang]['automated'] = I('This is an author version: The autors endorse the responsability of its content.')
+            
+    if article.translated_keywords:
+        for translated_keywords in article.translated_keywords:
+            if not translated_keywords['public']:
+                continue
+            lang = translated_keywords['lang']
+            translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
+
+    return translations
+
 
 def make_article_source(article):
     if pciRRactivated:

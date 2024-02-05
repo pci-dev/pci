@@ -1,6 +1,14 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
+{{ block header }}
+	{{ if 'dublinCore' in locals(): }}
+		{{for meta in dublinCore:}}
+			{{=meta}}
+		{{ pass }}
+	{{ pass }}
+{{ end }}
+
 
 {{if 'myBackButton' in locals():}}
 	<div class="pci2-recomm-backButtonDiv">{{=myBackButton}}</div>
