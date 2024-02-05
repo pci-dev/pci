@@ -319,7 +319,7 @@ def _generate_lang_selector_all_field(article: Article):
                )
     
     return FORM(
-        LABEL('Add translation', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
+        LABEL('Add translation - Choose a language', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
         DIV(
             _get_lang_select_input(),
             BUTTON("Write", _id="write-translation", _class="btn btn-default", _disabled=True),
@@ -366,7 +366,7 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
         input = INPUT(_id="new-translation", _type='text', _class="string form-control", _name="new-translation")
     
     return FORM(
-        LABEL('Add translation', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
+        LABEL('Add translation - Choose a language', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
         DIV(
             _get_lang_select_input(),
             BUTTON("Write", _id="write-translation", _class="btn btn-default", _disabled=True),
@@ -464,7 +464,8 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
 
     if abstract["automated"]:
         buttons.append(DIV(
-            P("If is checked, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
+            P("If the green button \"Mark Checked\" below is pushed, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
+            P("If you edit the text, the translation will appear as \"an author version: The autors endorse the responsability of its content.\""),
             P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
         buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-all-button", _link=check_url))
