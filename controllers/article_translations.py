@@ -13,6 +13,7 @@ from models.article import Article, TranslatedFieldType, TranslatedFieldDict
 from pydal.base import DAL
 from app_modules import common_tools
 from app_modules import common_small_html
+from app_modules.translator import Translator
 
 
 db = cast(DAL, current.db)
@@ -383,8 +384,14 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
 def _get_lang_select_input():
     lang_list = [lang.value for lang in Lang if lang != DEFAULT_LANG]
     lang_list = sorted(lang_list, key=lambda lang: lang.english_name)
-    lang_options = [OPTION(_build_lang_name(lang), _value=lang.code) for lang in lang_list]
-    lang_options.insert(0, OPTION(''))
+
+    lang_generation_supported = [lang.value for lang in Translator.get_all_supported_langs()]
+    lang_options: List[OPTION] = [OPTION('')]
+    for lang in lang_list:
+        if lang in lang_generation_supported:
+            lang_options.append(OPTION(_build_lang_name(lang) + ' - Generation supported', _value=lang.code))
+        else:
+            lang_options.append(OPTION(_build_lang_name(lang), _value=lang.code))
 
     return SELECT(lang_options, _id="lang-selector", _class="generic-widget form-control")
 

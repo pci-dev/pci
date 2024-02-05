@@ -305,6 +305,9 @@ function disableGenerateSaveButton() {
     if (saveAllTranslationButton != null) {
         saveAllTranslationButton.disabled = disabled;
     }
+    if (!langSelector.selectedOptions[0].innerText.endsWith(' - Generation supported')) {
+        generateTranslationButton.disabled = true;
+    }
 
     const lang = langSelector.value;
     const forms = document.querySelectorAll('#lang-form-list form');
