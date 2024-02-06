@@ -167,7 +167,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             )
 
             if recomm:
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRejectedSubmission", article)
@@ -187,7 +187,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
             )
 
             if recomm:
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
             mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAwaitingSubmission", article)
@@ -207,7 +207,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                 mail_vars["recommVersion"] = lastRecomm.ms_version
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
-                mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, lastRecomm.id)
+                mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRecommendedPreprint", article)
@@ -220,7 +220,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
                 mail_vars["recommVersion"] = lastRecomm.ms_version
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
-                mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, lastRecomm.id)
+                mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.getRecommendationProcess(auth, db, response, article, True)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterRecommendedPreprintPrivate", article)
@@ -291,7 +291,7 @@ def get_recomm_and_co_recomm_emails(db, article):
     recomm = db.get_last_recomm(article.id)
     return [
             db.auth_user[recomm.recommender_id]["email"],
-    ] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+    ] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
 
 ######################################################################################################################################################################
@@ -315,7 +315,7 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
             mail_vars["tOldStatus"] = current.T(article.status)
             mail_vars["tNewStatus"] = current.T(newStatus)
 
-            # mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, myRecomm.id)
+            # mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(myRecomm.id)
 
             hashtag_template = "#RecommenderPostprintStatusChanged"
             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
@@ -365,7 +365,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 )
                 mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime(DEFAULT_DATE_FORMAT)
 
-                mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, myRecomm.id)
+                mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(myRecomm.id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderStatusChangedToUnderConsideration", article)
                 authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, myRecomm.id)
@@ -874,7 +874,7 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
                 mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
                 mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
 
-                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+                mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewReopened", article)
 
@@ -909,7 +909,7 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
                     mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, lastRecomm.recommender_id)
 
-                    mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, lastRecomm.id)
+                    mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewersArticleCancellation", article)
 
@@ -1032,7 +1032,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
         mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
-        mail_vars["ccAddresses"] = [db.auth_user[recommendation.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recommendation.id)
+        mail_vars["ccAddresses"] = [db.auth_user[recommendation.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recommendation.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
 
@@ -1597,7 +1597,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
                 recommender_email = [
                         db.auth_user[recomm.recommender_id]["email"]
                 ] if db.auth_user[recomm.recommender_id] else []
-                mail_vars["ccAddresses"] = recommender_email + emailing_vars.getCoRecommendersMails(db, recomm.id) \
+                mail_vars["ccAddresses"] = recommender_email + emailing_vars.get_co_recommenders_mails(recomm.id) \
 
                 emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
 
@@ -1631,7 +1631,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
             mail_vars.update(getPCiRRinvitationTexts(article))
-            mail_vars["ccAddresses"] = [db.auth_user[finalRecomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, finalRecomm.id)
+            mail_vars["ccAddresses"] = [db.auth_user[finalRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(finalRecomm.id)
 
         for review in reviews:
             # Get common variables :
@@ -1828,7 +1828,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         ),
     )
 
-    mail_vars["ccAddresses"] = cc_addresses + emailing_vars.getCoRecommendersMails(db, recommendation.id)
+    mail_vars["ccAddresses"] = cc_addresses + emailing_vars.get_co_recommenders_mails(recommendation.id)
     mail_vars["replytoAddresses"] = replyto_addresses
 
     sender_name = None
@@ -2593,7 +2593,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
                     "parallelText"
                 ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
-        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
         mail_vars["replytoAddresses"] = replyto_addresses
        
         if hashtag_template is None:
@@ -2656,7 +2656,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
                     "parallelText"
                 ] += """Note: The authors have chosen to submit their manuscript elsewhere in parallel. We still believe it is useful to review their work at %(appLongName)s, and hope you will agree to review this preprint.""" % mail_vars
 
-        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
         if hashtag_template is  None:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationRegisteredUser", article)
@@ -2698,7 +2698,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
@@ -2748,7 +2748,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
@@ -2784,7 +2784,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.getCoRecommendersMails(db, recomm.id)
+            mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
             if isScheduledTrack(article):
                 mail_vars["reviewDueDate"] = due_date = getScheduledReviewDueDate(article)
@@ -2921,7 +2921,7 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionSoonDue", article)
 
@@ -2947,7 +2947,7 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionDue", article)
 
@@ -2973,7 +2973,7 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
         mail_vars["articleAuthors"] = article.authors
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionOverDue", article)
 
@@ -2995,7 +2995,7 @@ def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db,
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionSoonDue", article)
 
@@ -3017,7 +3017,7 @@ def create_reminder_for_recommender_revised_decision_due(session, auth, db, arti
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionDue", article)
 
@@ -3039,7 +3039,7 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(db, recomm.id)
+        mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionOverDue", article)
 
@@ -3472,7 +3472,7 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["ccAddresses"] = [recommender.email] + emailing_vars.getCoRecommendersMails(db, recommendation.id)
+    mail_vars["ccAddresses"] = [recommender.email] + emailing_vars.get_co_recommenders_mails(recommendation.id)
 
     hashtag_template = "#RecommenderChangeReviewDueDate"
 
