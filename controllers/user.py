@@ -233,6 +233,7 @@ def search_recommenders():
             'thematics',
             'expertise',
             'keywords',
+            'cv'
         ]
 
         def limit_to_width_list(value, row):

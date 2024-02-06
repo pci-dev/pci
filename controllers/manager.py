@@ -795,6 +795,7 @@ def search_recommenders():
         'thematics',
         'expertise',
         'keywords',
+        'cv'
     ]
 
     for f in users.fields:
