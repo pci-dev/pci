@@ -11,7 +11,7 @@ class PressReview(Row):
 
 
     @staticmethod
-    def get_by_recommendation(recommendation_id: int, order_by: _[Any]):
+    def get_by_recommendation(recommendation_id: int, order_by: _[Any] = None):
         db = current.db
         if order_by:
             press_reviews = db((db.t_press_reviews.recommendation_id == recommendation_id)).select(orderby=db.t_press_reviews.id)
