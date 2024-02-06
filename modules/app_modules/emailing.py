@@ -1342,7 +1342,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
         else:
             dest_emails = emailing_vars.getManagersMails(db)
             dest_role = "manager"
-        reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recomm, article.id, dest_emails, dest_role)
+        reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
 
     emailing_tools.getFlashMessage(session, reports)
 
