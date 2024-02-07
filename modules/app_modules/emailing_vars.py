@@ -5,6 +5,7 @@ import time
 from re import sub, match
 
 from datetime import datetime, timedelta
+from typing import List
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -30,6 +31,8 @@ import shutil
 
 from app_modules import common_tools
 from app_modules import common_small_html
+from models.press_reviews import PressReview
+from models.user import User
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -44,12 +47,17 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 
 ######################################################################################################################################################################
-def getCoRecommendersMails(db, recommId):
-    contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
+def get_co_recommenders_mails(recommendation_id: int):
+    result: List[str] = []
 
-    result = []
-    for contrib in contribsQy:
-        result.append(db.auth_user[contrib.contributor_id]["email"])
+    contribs_qy = PressReview.get_by_recommendation(recommendation_id)
+    for contrib in contribs_qy:
+        if contrib.contributor_id == None:
+            continue
+
+        user = User.get_by_id(contrib.contributor_id)
+        if user and user.email:
+            result.append(user.email)
 
     return result
 
