@@ -564,7 +564,8 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
     reports = []
 
     article = db.t_articles[articleId]
-    if article:
+    suggested_recommender = User.get_by_id(suggRecommId)
+    if article and suggested_recommender and suggested_recommender.email:
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
@@ -582,7 +583,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
             recomm_id = recomm.id
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
-        mail_vars["destAddress"] = db.auth_user[suggRecommId]["email"]
+        mail_vars["destAddress"] = suggested_recommender.email
         mail_vars["linkTarget"] = URL(
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
         )
@@ -2479,14 +2480,15 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    if article:
+    suggested_recommender = User.get_by_id(suggRecommId)
+    if article and suggested_recommender and suggested_recommender.email:
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSuggestedRecommenderInvitation", article)
 
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
-        mail_vars["destAddress"] = db.auth_user[suggRecommId]["email"]
+        mail_vars["destAddress"] = suggested_recommender.email
 
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleTitle"] = md_to_html(article.title)
