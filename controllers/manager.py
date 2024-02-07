@@ -772,6 +772,7 @@ def manage_recommendations():
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
     whatNext = request.vars["whatNext"]
+    previous = URL(args=request.args, vars=request.get_vars, host=True)
     articleId = request.vars["articleId"]
     if articleId is None:
         articleHeaderHtml = ""
@@ -840,7 +841,7 @@ def search_recommenders():
 
     select_all_btn = DIV(A(
                          SPAN(current.T("CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"), _class="btn btn-success"),
-                         _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds=''), user_signature=True),
+                         _href=URL(c="manager_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, previous=previous, recommenderIds=''), user_signature=True),
                          _class="button select-all-btn",
                          _id="select-all-btn",
                          )

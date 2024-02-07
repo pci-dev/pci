@@ -227,12 +227,20 @@ def suggest_article_to():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def suggest_all_selected():
-    articleId = request.vars["articleId"]
-    whatNext = request.vars["whatNext"]
-    recommenderIds = request.vars["recommenderIds"]
-    for recommenderId in recommenderIds.split(','):
-        db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
-    redirect(whatNext)
+    article_id = int(request.vars["articleId"])
+    what_next = str(request.vars["whatNext"])
+    previous = str(request.vars["previous"])
+    recommender_ids_var = str(request.vars["recommenderIds"])
+
+    recommender_ids = recommender_ids_var.split(',')
+
+    if len(recommender_ids_var) == 0:
+        session.flash = 'No recommenders selected'
+        redirect(previous)
+
+    for recommender_id in recommender_ids:
+        db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommender_id, article_id=article_id)
+    redirect(what_next)
 
 
 ######################################################################################################################################################################
