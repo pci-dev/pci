@@ -20,13 +20,6 @@ logger = logging.getLogger(__name__)
 
 myconf = AppConfig(reload=True)
 
-try:
- import rdflib
- ACTIVITYSTREAMS = rdflib.Namespace("https://www.w3.org/ns/activitystreams#")
- LDP = rdflib.Namespace("http://www.w3.org/ns/ldp#")
-except:
- rdflib = None
-
 
 @functools.lru_cache()
 def _get_requests_session() -> requests.Session:
@@ -41,45 +34,13 @@ def _get_requests_session() -> requests.Session:
     return session
 
 
-class COARNotifyException(Exception):
-    """Base exception from which all other COAR Notify exceptions derive."""
-    message = "COAR Notify exception"
-
-
-class COARNotifyParseException(COARNotifyException):
-    message = "Couldn't parse message body."
-
-
-class COARNotifyNoUniqueSubjectException(COARNotifyException):
-    message = (
-        "Exactly one resource in notification body must be an Activity Streams "
-        "Announce instance."
-    )
-
-
-class COARNotifyMissingOrigin(COARNotifyException):
-    message = "The Announcement is missing an activitystreams:origin property"
-
-
-class COARNotifyMissingTarget(COARNotifyException):
-    message = "The Announcement is missing an activitystreams:target property"
-
-
-class COARNotifyMissingOriginInbox(COARNotifyException):
-    message = "The origin is missing an ldp:inbox URI property"
-
-
-class COARNotifyMissingTargetInbox(COARNotifyException):
-    message = "The target is missing an ldp:inbox URI property"
-
-
 class COARNotifier:
     """Handles sending and recording COAR Notify notifications.
 
     COAR Notify allows services to communicate review- and endorsement-related
     information between themselves.
 
-    This is a demonstrator, which sends all outbound notifications to a pre-configured
+    This component sends (and records) outbound notifications to a
     Linked Data Notifications (LDN) inbox. The inbox implementation in
     :module:`controllers.coar_notify` is unauthenticated.
 
@@ -93,16 +54,9 @@ class COARNotifier:
     def base_url(self):
         return myconf["coar_notify"]["base_url"].strip()
 
-    @functools.cached_property
-    def inbox_url(self):
-        return myconf["coar_notify"]["inbox_url"].strip()
-
     @property
     def enabled(self):
-        try:
-            return bool(self.inbox_url) and rdflib
-        except KeyError:
-            return False
+        return myconf.get("coar_notify.enabled")
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
