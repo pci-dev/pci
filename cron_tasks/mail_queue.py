@@ -51,9 +51,14 @@ def tryToSendMail(mail_item):
             email.utils.parseaddr(mail.settings.sender)[1],
         ))
 
+    dest_mail_address = mail_item.dest_mail_address
+    if ',' in dest_mail_address:
+        dest_mail_address = dest_mail_address.strip().strip(',').strip()
+        dest_mail_address = dest_mail_address.split(',')
+
     try:
         isSent = mail.send(
-                to=mail_item.dest_mail_address,
+                to=dest_mail_address,
                 cc=mail_item.cc_mail_addresses,
                 bcc=mail_item.bcc_mail_addresses,
                 reply_to=mail_item.replyto_addresses,
