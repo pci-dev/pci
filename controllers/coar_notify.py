@@ -118,6 +118,8 @@ def request_endorsement(req):
 
     if not user:
         user = create_new_user(user_email, user_name)
+    else:
+        user.reset_password_key = ''
 
     if "context" in req.keys():
         article = handle_resubmission(req, user)
