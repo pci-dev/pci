@@ -79,6 +79,7 @@ test.db:
 	$(psql) main < sql_dumps/insert_test_users.sql
 
 test.db.rr:
+	$(psql) main -c "delete from mail_templates"
 	$(psql) main < sql_dumps/insert_default_mail_templates_pci_RR.sql
 
 test.reset:	reset set.conf.rr.false
