@@ -108,3 +108,5 @@ COPY public.mail_templates (id, hashtag, lang, subject, description, contents) F
 
 
 SELECT pg_catalog.setval('public.mail_templates_id_seq', 283, true);
+
+\i sql_dumps/insert_common_mail_templates.sql
