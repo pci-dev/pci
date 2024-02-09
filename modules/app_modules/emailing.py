@@ -3150,6 +3150,15 @@ def delete_all_reminders_from_recommendation_id(db, recommendationId):
     if recomm:
         db((db.mail_queue.recommendation_id == recommendationId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
 
+#####################################################################################################################################################################
+def send_reset_password(user, link):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destAddress"] = user.email
+    mail_vars["linkTarget"] = link
+
+    hashtag_template = "#UserResetPassword"
+    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
 
 ######################################################################################################################################################################
 def send_to_coar_requester(session, auth, db, user, article):
