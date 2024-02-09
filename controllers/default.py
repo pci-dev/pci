@@ -340,6 +340,23 @@ def intercept_reset_password_login(_next=request.vars._next):
     redirect(URL("reset_password", vars=dict(_key=key, _next=_next)))
 
 
+def email_reset_password():
+    user = db.auth_user[request.vars.user_id]
+    if not user: return "no user specified"
+
+    reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
+    user.update_record(reset_password_key=reset_password_key)
+
+    link = URL("default", "reset_password", scheme=True, vars=dict(
+        _key=reset_password_key,
+        _next=request.vars._next,
+    ))
+    emailing.send_reset_password(user, link)
+
+    session.flash = "reset password email sent to: " + user.email
+    redirect(request.home)
+
+
 def reset_password():
     _key = request.vars._key
     _next = request.vars._next or request.home
