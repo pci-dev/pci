@@ -3117,6 +3117,6 @@ alter table config add column if not exists coar_whitelist text;
 update config set coar_whitelist = '|127.0.0.1 LOCAL|';
 
 --- 2024-01-30 updates/article_translation.sql
-ALTER TABLE t_articles ADD COLUMN translated_abstract json;
-ALTER TABLE t_articles ADD COLUMN translated_title json;
-ALTER TABLE t_articles ADD COLUMN translated_keywords json;
+ALTER TABLE t_articles ADD COLUMN translated_abstract jsonb;
+ALTER TABLE t_articles ADD COLUMN translated_title jsonb;
+ALTER TABLE t_articles ADD COLUMN translated_keywords jsonb;
