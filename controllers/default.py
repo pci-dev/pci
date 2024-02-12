@@ -247,7 +247,9 @@ def user():
             pageTitle = getTitle(request, auth, db, "#LogInTitle")
             pageHelp = getHelp(request, auth, db, "#LogIn")
             customText = getText(request, auth, db, "#LogInText")
-            form.add_button(T("Lost password?"), URL(c="default", f="user", args=["request_reset_password"]), _class="pci2-lost-password-link")
+
+            form.add_button(T("Lost password?"), get_lost_password_url(),
+                    _class="pci2-lost-password-link")
             # green color for submit button form
             form.element(_type="submit")["_class"] = "btn btn-success"
             # display "Lost password?" under login button
@@ -338,6 +340,45 @@ def intercept_reset_password_login(_next=request.vars._next):
     if not db.auth_user(reset_password_key=key): return
 
     redirect(URL("reset_password", vars=dict(_key=key, _next=_next)))
+
+
+def get_user_from_article(_next):
+    if "edit_my_article?articleId=" in _next:
+        m = re.match(".*articleId=(\d+).*", _next)
+        article_id = m.group(1) if m else None
+        article = db.t_articles[article_id]
+    else:
+        article = None
+
+    return db.auth_user[article.user_id] if article else None
+
+
+def get_lost_password_url(user=None):
+    _next = request.vars._next or ""
+    user = user or get_user_from_article(_next)
+
+    if user:
+        return URL("default", "email_reset_password",
+                vars=dict(user_id=user.id, _next=_next))
+    else:
+        return URL("default", "user", args=["request_reset_password"])
+
+
+def email_reset_password():
+    user = db.auth_user[request.vars.user_id]
+    if not user: return "no user specified"
+
+    reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
+    user.update_record(reset_password_key=reset_password_key)
+
+    link = URL("default", "reset_password", scheme=True, vars=dict(
+        _key=reset_password_key,
+        _next=request.vars._next,
+    ))
+    emailing.send_reset_password(user, link)
+
+    session.flash = "reset password email sent to: " + user.email
+    redirect(request.home)
 
 
 def reset_password():

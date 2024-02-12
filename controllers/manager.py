@@ -437,12 +437,10 @@ def recommendations():
     art = db.t_articles[articleId]
     printable = "printable" in request.vars and request.vars["printable"] == "True"
 
+    if art is None: redirect(request.home)
+
     if manager_authors != None:
         art.update_record(manager_authors=manager_authors)
-
-    if art is None:
-        session.flash = auth.not_authorized()
-        redirect(URL('default','index'))
 
     if art.already_published:
         myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
