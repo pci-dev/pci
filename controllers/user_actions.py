@@ -286,11 +286,6 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
 
-    if auth.user_id:
-        user = User.get_by_id(review.reviewer_id)
-        if user and user.reset_password_key:
-            db(db.auth_user.id == review.reviewer_id).delete()
-
     next = get_next(request)
     if next and review.suggested_reviewers_send:
         redirect(next)
