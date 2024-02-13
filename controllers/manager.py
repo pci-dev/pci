@@ -1567,7 +1567,7 @@ def article_emails():
         editable=lambda row: (row.sending_status == "pending"),
         deletable=lambda row: (row.sending_status == "pending"),
         create=False,
-        searchable=False,
+        searchable=True,
         csv=False,
         paginate=None,
         maxtextlength=256,
