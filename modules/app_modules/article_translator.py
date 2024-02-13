@@ -2,6 +2,7 @@ from time import sleep
 from typing import Optional, TypedDict, cast
 import uuid
 import subprocess
+from gluon import current
 from gluon.html import A, URL
 from gluon.sqlhtml import SQLFORM
 
@@ -156,14 +157,16 @@ class ArticleTranslator(Translator):
 
     @staticmethod
     def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False):
+        app_name = current.request.application
+        
         cmd = [
             'python3',
             'web2py.py',
             '-M', 
             '-S', 
-            'pci', 
+            app_name, 
             '-R', 
-            'applications/pci/utils/article_translator_command.py', 
+            f'applications/{app_name}/utils/article_translator_command.py',
             '-A', 
             str(article_id),
             str(force)
