@@ -245,12 +245,19 @@ def decline_review_confirmed(): # no auth required
 
         user = db.auth_user[review.reviewer_id]
         if user and user.reset_password_key: # user (auto-created) did not register yet
-            db(db.auth_user.id == review.reviewer_id).delete()
+            if not has_accepted_reviews(user):
+                db(db.auth_user.id == review.reviewer_id).delete()
 
         message = T("Thank you for taking the time to decline this invitation!")
         form = app_forms.getSendMessageForm(review.quick_decline_key, 'decline')
 
     return _decline_review_page(message, form)
+
+
+def has_accepted_reviews(user):
+    return db((db.t_reviews.reviewer_id == user.id)
+            & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
+        ).count() > 0
 
 
 def _decline_review_page(message, form):
