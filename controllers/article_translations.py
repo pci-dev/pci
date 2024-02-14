@@ -68,6 +68,7 @@ def edit_article_translations():
             myAcceptBtn=done_button)
 
 
+@auth.requires_login()
 def edit_all_article_translations():
     article_id = int(request.vars["article_id"])
 
@@ -464,7 +465,7 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
 
     if abstract["automated"]:
         buttons.append(DIV(
-            P("If the green button \"Mark Checked\" below is pushed, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
+            P("If the green button \"Mark Checked\" below is clicked, the authors endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
             P("If you edit the text, the translation will appear as \"an author version: The autors endorse the responsability of its content.\""),
             P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))

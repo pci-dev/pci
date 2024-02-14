@@ -15,6 +15,13 @@
   			<i class="glyphicon glyphicon-edit"></i>
   		  {{=T('Edit article')}} 
       </a>
+
+      <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
+        href="{{=URL(c='article_translations', f='edit_all_article_translations', vars=dict(article_id=articleId))}}"
+      >
+      <i class="glyphicon glyphicon-edit"></i>
+  		  {{=T('Edit translations')}} 
+      </a>
         {{if 'pciRRactivated' in locals() and pciRRactivated is True:}}
           <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
             href="{{=URL(c='user', f='edit_report_survey', vars=dict(articleId=articleId))}}"
@@ -32,6 +39,13 @@
         >
   		    <i class="glyphicon glyphicon-edit"></i>
           {{=T('Edit article')}} 
+        </a>
+
+        <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
+          href="{{=URL(c='article_translations', f='edit_all_article_translations', vars=dict(article_id=articleId))}}"
+        >
+  			<i class="glyphicon glyphicon-edit"></i>
+  		    {{=T('Edit translations')}} 
         </a>
         {{if 'pciRRactivated' in locals() and pciRRactivated is True:}}
           <a class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link" style="margin-right: 25px" 
