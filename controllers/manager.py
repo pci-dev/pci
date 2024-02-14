@@ -1569,7 +1569,7 @@ def article_emails():
         create=False,
         searchable=True,
         csv=False,
-        paginate=None,
+        paginate=50,
         maxtextlength=256,
         orderby=~db.mail_queue.id,
         onvalidation=mail_form_processing,
