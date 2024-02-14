@@ -45,6 +45,13 @@ class User(Row):
         except: user = None
         return cast(_[User], user)
     
+
+    @staticmethod
+    def get_by_email(email: str):
+        db = current.db
+        user = db(db.auth_user.email == email).select().first()
+        return cast(_[User], user)
+    
     
     @staticmethod
     def get_by_reset_password_key(reset_password_key: str):
