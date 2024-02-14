@@ -3,8 +3,6 @@ import re
 from typing import List, Optional
 import xml.etree.ElementTree as ET
 
-from models.user import User
-
 class XMLJATSAuthorElement:
     first_name: str
     last_name: str
@@ -107,21 +105,11 @@ class XMLJATSArticleElement:
 
 class XMLJATSParser:
 
-    destination_journal_code: str
     article: XMLJATSArticleElement
 
-    def __init__(self, filename: str):
-        xml_tree = ET.parse(filename)
-        self.xml_root = xml_tree.getroot()
+    def __init__(self, filepath: str):
+        xml_tree = ET.parse(filepath)
+        xml_root = xml_tree.getroot()
 
-        self.article = XMLJATSArticleElement(self.xml_root)
-      
-    def add_author_in_db(self):
-        for author in self.article.authors:
-            if not author.email or not author.first_name or not author.last_name:
-                continue
-
-            user = User.get_by_email(author.email)
-            if not user:
-                User.create_new_user(author.first_name, author.last_name, author.email)
+        self.article = XMLJATSArticleElement(xml_root)
 
