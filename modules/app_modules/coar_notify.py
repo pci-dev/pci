@@ -302,18 +302,25 @@ def get_target_inbox(article):
 
     return inbox
 
+def __get_target_inbox(article):
+    for _ in range(5):
+        try:
+            print(f"get_target_inbox attempt #{_} for {article.doi}")
+            return _get_target_inbox(article)
+        except KeyError:
+            return ""
+        except requests.exceptions.RequestException:
+            continue
+
 
 def _get_target_inbox(article):
     """Grab the inbox url from the Link entry (if any) provided by the repo
     We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
     """
 
-    try:
-        resp = requests.head(article.doi, timeout=5, allow_redirects=True)
-        inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
-        return inbox
-    except:
-        return ""
+    resp = requests.head(article.doi, timeout=(1, 4), allow_redirects=True)
+    inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
+    return inbox
 
 
 def article_cite_as(article):
