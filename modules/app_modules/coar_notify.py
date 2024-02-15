@@ -294,12 +294,13 @@ def get_notification_type(body):
 
 
 def get_target_inbox(article):
-    for _ in range(5):
-        inbox = _get_target_inbox(article)
+    """note: thread-local caching, assumes single article is processed"""
 
-        if inbox: break
+    if not hasattr(current, "target_inbox"):
+        current.target_inbox = __get_target_inbox(article) or ""
 
-    return inbox
+    return current.target_inbox
+
 
 def __get_target_inbox(article):
     for _ in range(5):
