@@ -80,11 +80,11 @@ request_endorsement = """
   },
   "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
   "object": {
-    "id": "https://hal.inrae.fr/hal-02630042",
-    "ietf:cite-as": "https://hal.inrae.fr/hal-02630042v1",
+    "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042",
+    "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042v1",
     "type": "sorg:AboutPage",
     "url": {
-      "id": "https://hal.inrae.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
+      "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
       "mediaType": "application/pdf",
       "type": [
         "Article",

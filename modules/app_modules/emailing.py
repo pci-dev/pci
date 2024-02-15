@@ -1324,6 +1324,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
             mail_vars["linkTarget"] = URL(c="manager", f="completed_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ManagersArticleCancelled", article)
+            current.coar.send_acknowledge_and_reject(article)
 
         else:
             mail_vars["linkTarget"] = URL(c="manager", f="all_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
