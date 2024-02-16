@@ -229,7 +229,6 @@ class COARNotifier:
 
         body can either be a JSON-LD-style dictionary, or a json string.
         """
-        print("record notification: start")
         if isinstance(body, dict):
             pass
         else:
@@ -249,7 +248,6 @@ class COARNotifier:
             http_status=http_status,
             coar_id=body["id"],
         )
-        print("record notification: done")
 
 #
 
@@ -305,7 +303,6 @@ def get_target_inbox(article):
 def __get_target_inbox(article):
     for _ in range(5):
         try:
-            print(f"get_target_inbox attempt #{_} for {article.doi}")
             return _get_target_inbox(article)
         except KeyError:
             return ""
