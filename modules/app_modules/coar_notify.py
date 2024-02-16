@@ -2,7 +2,6 @@ import logging
 
 import datetime
 import functools
-import io
 import json
 import re
 import typing
@@ -187,7 +186,7 @@ class COARNotifier:
     def article_endorsed(self, recommendation):
         """Notify that an article has received an endorsement via a recommendation.
 
-        This implements Step 5 of Scenario 3 from COAR Notify. See
+        This implements Step 5 of Scenario 1 from COAR Notify. See
         https://notify.coar-repositories.org/scenarios/1/ for more information.
         """
         if not self.enabled:
@@ -222,15 +221,14 @@ class COARNotifier:
     def record_notification(
         self,
         *,
-        body: io.BytesIO,
+        body: dict,
         http_status: int = None,
         direction: typing.Literal["Inbound", "Outbound"],
     ) -> None:
         """Records a notification in the database for logging purposes.
 
-        body can either be a JSON-LD-style dictionary, or a BytesIO.
+        body can either be a JSON-LD-style dictionary, or a json string.
         """
-        print("record notification: start")
         if isinstance(body, dict):
             pass
         else:
@@ -250,7 +248,6 @@ class COARNotifier:
             http_status=http_status,
             coar_id=body["id"],
         )
-        print("record notification: done")
 
 #
 
@@ -295,12 +292,22 @@ def get_notification_type(body):
 
 
 def get_target_inbox(article):
+    """note: thread-local caching, assumes single article is processed"""
+
+    if not hasattr(current, "target_inbox"):
+        current.target_inbox = __get_target_inbox(article) or ""
+
+    return current.target_inbox
+
+
+def __get_target_inbox(article):
     for _ in range(5):
-        inbox = _get_target_inbox(article)
-
-        if inbox: break
-
-    return inbox
+        try:
+            return _get_target_inbox(article)
+        except KeyError:
+            return ""
+        except requests.exceptions.RequestException:
+            continue
 
 
 def _get_target_inbox(article):
@@ -308,12 +315,9 @@ def _get_target_inbox(article):
     We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
     """
 
-    try:
-        resp = requests.head(article.doi, timeout=5, allow_redirects=True)
-        inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
-        return inbox
-    except:
-        return ""
+    resp = requests.head(article.doi, timeout=(1, 4), allow_redirects=True)
+    inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
+    return inbox
 
 
 def article_cite_as(article):

@@ -55,8 +55,6 @@ class Manager_validates_decision:
     select("#do_recommend_article").click()
     select('#confirm-change-modal .btn-info', 'Yes'.upper()).click()
 
-    if config.coar_enabled: import time; time.sleep(10)
-
     select('.pci-status-big', 'Recommended'.upper())
 
  def logout_manager(_):

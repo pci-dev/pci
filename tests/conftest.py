@@ -160,8 +160,6 @@ def config_set_scheduled_track(value=getenv("RR_SCHEDULED_TRACK")):
 config.is_rr = w2p_config["config"].getboolean("registered_reports")
 config_set_scheduled_track()
 
-config.coar_enabled = w2p_config["coar_notify"].get("inbox_url")
-
 
 import sys
 
