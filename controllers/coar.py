@@ -13,16 +13,31 @@ def index():
 def complete_submission():
     articleId = request.vars.articleId
 
-    return DIV(
-            P("are you sure?"),
-            A("Complete your submission", _href=URL("user", "edit_my_article",
-                vars=dict(articleId=articleId, key=request.vars.key)),
-            ),
-            A("Cancel your submission", _href=URL("coar", "cancel_submission",
-                vars=dict(articleId=articleId, coarId=request.vars.coarId)),
-            ),
-            STYLE("a {display:block;}"),
+    from app_modules.emailing_tools import getMailCommonVars
+    mail_vars = getMailCommonVars()
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
+    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
+    mail_vars["completeSubmissionLink"] = URL("user", "edit_my_article",
+                vars=dict(articleId=articleId, key=request.vars.key),
     )
+    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission",
+                vars=dict(articleId=articleId, coarId=request.vars.coarId),
+    )
+
+    hashtag_template = "#UserCompleteSubmissionCOAR"
+
+    from app_modules.emailing_tools import getMailTemplateHashtag, replaceMailVars
+    import re
+    mail_template = getMailTemplateHashtag(db, hashtag_template)["content"]
+    mail_template = re.sub(r"<p>Dear .*Welcome on board!</p>", "", mail_template, flags=re.MULTILINE)
+    content = replaceMailVars(mail_template, mail_vars)
+
+    response.view = "default/myLayoutBot.html"
+    pageTitle = "BEFORE COMPLETING YOUR SUBMISSION"
+    customText = XML(content)
+
+    return dict(pageTitle=pageTitle, customText=customText)
+
 
 def cancel_submission():
     articleId = request.vars.articleId
