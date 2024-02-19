@@ -654,6 +654,12 @@ def edit_my_article():
     elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
+
+    user = db.auth_user[auth.user_id]
+    if not user.ethical_code_approved:
+        user.ethical_code_approved = True
+        user.update_record()
+
     # deletable = (art.status == 'Pending')
     deletable = False
     db.t_articles.status.readable = False
