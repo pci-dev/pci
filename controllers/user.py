@@ -660,6 +660,12 @@ def edit_my_article():
         user.ethical_code_approved = True
         user.update_record()
 
+    from models.user import User
+    if not User.is_profile_completed(user):
+        redirect(URL("default", "user/profile",
+            vars={"_next": URL(request.controller, request.function, vars=request.vars)}))
+
+
     # deletable = (art.status == 'Pending')
     deletable = False
     db.t_articles.status.readable = False
