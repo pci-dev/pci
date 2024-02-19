@@ -19,11 +19,12 @@ class ArticleTranslationDict(TypedDict, total=False):
 class ArticleTranslator(Translator):
     
     _article: Article
+    _public: Optional[bool]
 
-
-    def __init__(self, lang: Lang, article: Article):
+    def __init__(self, lang: Lang, article: Article, public: Optional[bool] = False):
         super().__init__(lang)
         self._article = article
+        self._public = public
 
 
     def run_article_translation(self, force: bool = False):
@@ -119,7 +120,7 @@ class ArticleTranslator(Translator):
             'lang': self._lang.value.code,
             'content': data_translated[field_name],
             'automated': True,
-            'public': False
+            'public': self._public
         })
 
         Article.add_or_update_translation(self._article, field, translation)
@@ -148,15 +149,15 @@ class ArticleTranslator(Translator):
 
 
     @staticmethod
-    def run_article_translation_for_default_langs(article: Article, force: bool = False):
+    def run_article_translation_for_default_langs(article: Article, force: bool = False, public: Optional[bool] = None):
         for lang in ArticleTranslator.DEFAULT_TARGET_LANG:
-            translator = ArticleTranslator(lang, article)
+            translator = ArticleTranslator(lang, article, public)
             translator.run_article_translation(force)
             sleep(1)
 
 
     @staticmethod
-    def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False):
+    def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False, public: Optional[bool] = None):
         app_name = current.request.application
         
         cmd = [
@@ -171,6 +172,9 @@ class ArticleTranslator(Translator):
             str(article_id),
             str(force)
         ]
+
+        if public != None:
+            cmd.append(str(public))
         
         subprocess.Popen(cmd)
 

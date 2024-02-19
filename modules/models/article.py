@@ -36,7 +36,7 @@ class TranslatedFieldDict(TypedDict):
     lang: str
     content: str
     automated: bool
-    public: bool
+    public: _[bool]
 
 
 class TranslatedFieldType(Enum):
@@ -118,10 +118,13 @@ class Article(Row):
                 if current_translation['automated'] or not new_translation['automated']:
                     current_translation['content'] = new_translation['content']
                     current_translation['automated'] = new_translation['automated']
-                current_translation['public'] = new_translation['public']
+                if new_translation['public'] != None: 
+                    current_translation['public'] = new_translation['public']
             else:
                 translations.append(new_translation)
         else:
+            if new_translation['public'] == None:
+                new_translation['public'] = False
             setattr(article, field.value, [new_translation])
 
         article.update_record()

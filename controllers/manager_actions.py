@@ -41,7 +41,7 @@ def do_validate_article():
         art.status = "Awaiting consideration"
         art.validation_timestamp = request.now
         art.update_record()
-        ArticleTranslator.launch_article_translation_for_default_langs_process(articleId)
+        ArticleTranslator.launch_article_translation_for_default_langs_process(articleId, public=True)
         session.flash = T("Request now available to recommenders")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
