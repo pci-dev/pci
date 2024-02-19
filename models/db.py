@@ -679,7 +679,10 @@ def deltaStatus(s, f):
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionDue", o["id"])
                 emailing.delete_reminder_for_recommender_from_article_id(db, "#ReminderRecommenderRevisedDecisionOverDue", o["id"])
 
-            elif o.status in ("Pending", "Awaiting consideration", "Under consideration", "Scheduled submission pending", "Scheduled submission under consideration") and f["status"] == "Cancelled":
+            elif o.status in ("Pending", "Awaiting consideration", "Under consideration",
+                                "Scheduled submission pending", "Scheduled submission under consideration",
+                                "Pre-submission",
+                        ) and f["status"] == "Cancelled":
                 emailing.send_to_managers(session, auth, db, o["id"], f["status"], response)
                 emailing.send_to_recommender_status_changed(session, auth, db, o["id"], f["status"])
                 emailing.send_to_corecommenders(session, auth, db, o["id"], f["status"])

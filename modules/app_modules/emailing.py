@@ -3175,6 +3175,16 @@ def send_to_coar_requester(session, auth, db, user, article):
         scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
     )
 
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
+    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
+    mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
+        vars=dict(articleId=article.id, key=user.reset_password_key,
+                    coarId=article.coar_notification_id),
+    )
+    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission", scheme=True,
+        vars=dict(articleId=article.id, coarId=article.coar_notification_id),
+    )
+
     hashtag_template = "#UserCompleteSubmissionCOAR"
 
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
