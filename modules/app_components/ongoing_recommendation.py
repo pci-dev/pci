@@ -65,6 +65,10 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if (lastRecomm or art.status == "Under consideration") and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
 
+    allow_edit_translations = allowManageRecomms
+    if not allowManageRecomms and art.user_id == auth.user_id and art.status not in (ArticleStatus.REJECTED.value, ArticleStatus.RECOMMENDED.value, ArticleStatus.NOT_CONSIDERED.value, ArticleStatus.CANCELLED.value):
+        allow_edit_translations = True
+
     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
     allowManageRequest = False
@@ -92,6 +96,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
+        allow_edit_translations=allow_edit_translations,
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,
         manageRecommendersButton=manageRecommendersButton,
