@@ -4,7 +4,7 @@ from typing import List, Optional, cast
 from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from gluon.globals import Response, Request, Session
-from gluon.html import A, BUTTON, DIV, FORM, HR, I, INPUT, LABEL, OPTION, P, SELECT, TEXTAREA, URL, XML
+from gluon.html import A, BUTTON, DIV, FORM, HR, I, INPUT, LABEL, OPTION, P, SELECT, STRONG, TEXTAREA, URL, XML
 from gluon.http import redirect
 from gluon.tools import Auth
 from app_modules.lang import DEFAULT_LANG, Lang, LangItem
@@ -434,16 +434,6 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
                             port=port)
                     )
     
-    check_url = cast(str,
-                        URL(c="article_translations",
-                            f="add_or_edit_article_fields_translations",
-                            vars=dict(article_id=article.id, action=AddNewLanguageAction.CHECK.value, lang=lang.value.code),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
-    
     delete_url = cast(str,
                         URL(c="article_translations",
                             f="delete_all_translation",
@@ -465,11 +455,10 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
 
     if abstract["automated"]:
         buttons.append(DIV(
-            P("If the green button \"Mark Checked\" below is clicked, the authors endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
-            P("If you edit the text, the translation will appear as \"an author version: The autors endorse the responsability of its content.\""),
-            P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
+            STRONG("If you edit the text, the translation will appear as an \"author version: The autors endorse the responsability of its content.\""),
+            P("Else the following statement will be displayed: \"this is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
+            P("If you want to go back to the automatic translation after you have modified it, delete the current modified version of the text and generate a new automatic translation"),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
-        buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-all-button", _link=check_url))
     buttons.append(A("Save", _class="btn btn-primary lang-form-save-all-button", _link=save_url))
     buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-all-button", _link=delete_url))
 
@@ -503,16 +492,6 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                             port=port)
                     )
     
-    check_url = cast(str,
-                        URL(c="article_translations",
-                            f="add_or_edit_article_field_translation",
-                            vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.CHECK.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
-    
     delete_url = cast(str,
                         URL(c="article_translations",
                             f="delete_translation",
@@ -534,10 +513,10 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
 
     if translation_value["automated"] and translated_field == TranslatedFieldType.ABSTRACT:
         buttons.append(DIV(
-            P("If is checked, the author endorse the responsibiblity of this translation and the following statement will be published with the translation \"This is an author verified version. The authors endorse the responsibility of its content.\""),
-            P("Else the following statement will be displayed: \"This is a version automatically generated. The authors and PCI decline all responsibility concerning its content.\""),
+            STRONG("If you edit the text, the translation will appear as an \"author version: The autors endorse the responsability of its content.\""),
+            P("Else the following statement will be displayed: \"this is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
+            P("If you want to go back to the automatic translation after you have modified it, delete the current modified version of the text and generate a new automatic translation"),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
-        buttons.append(A("Mark checked", _class="btn btn-success lang-form-save-button", _link=check_url))
     buttons.append(A("Save", _class="btn btn-primary lang-form-save-button", _link=save_url))
     buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-button", _link=delete_url))
 
