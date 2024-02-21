@@ -5,6 +5,8 @@ import requests
 from app_modules import emailing
 from http import HTTPStatus
 from gluon import current
+from models.article import Article
+from models.user import User
 
 
 if typing.TYPE_CHECKING:
@@ -147,7 +149,7 @@ def request_endorsement(req):
     user = db(db.auth_user.email.lower() == user_email.lower()).select().first()
 
     if not user:
-        user = create_new_user(user_email, user_name)
+        user = User.create_new_user(user_name.split()[0], user_name.split()[-1], user_email)
     else:
         user.reset_password_key = ''
 
@@ -185,23 +187,6 @@ def cancel_endorsement(req):
     article.update_record(status="Cancelled")
 
 
-def create_new_user(user_email, user_name):
-    my_crypt = CRYPT(key=auth.settings.hmac_key)
-    crypt_pass = my_crypt(auth.random_password())[0]
-    import time
-    from gluon.utils import web2py_uuid
-    reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
-    new_user_id = db.auth_user.insert(
-        email=user_email,
-        password=crypt_pass,
-        reset_password_key=reset_password_key,
-        first_name=user_name.split()[0],
-        last_name=user_name.split()[-1],
-    )
-    new_user = db.auth_user(new_user_id)
-    return new_user
-
-
 def create_prefilled_submission(req, user):
     article_data = req["object"]
     author_data = req["actor"]
@@ -212,15 +197,12 @@ def create_prefilled_submission(req, user):
     preprint_server = get_preprint_server(doi)
     guess_version(doi, meta_data)
 
-    return \
-    db.t_articles.insert(
-        doi=doi,
-        user_id=user.id,
-        status="Pre-submission",
-        preprint_server=preprint_server,
-        coar_notification_id=coar_req_id,
-        **meta_data,
-    )
+    return Article.create_prefilled_submission(user_id=user.id, 
+                                               doi=doi, 
+                                               authors=author_data["name"],
+                                               coar_notification_id=coar_req_id,
+                                               preprint_server=preprint_server,
+                                               **meta_data)
 
 
 def update_resubmitted_article(req, context):
