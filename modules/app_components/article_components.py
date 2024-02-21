@@ -333,9 +333,9 @@ def _get_article_translation(article: Article):
             lang = translated_abstract['lang']
             translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
             if translated_abstract['automated']:
-                translations[lang]['automated'] = I('This is a version automatically generated. The authors and PCI decline all responsibility concerning its content')
+                translations[lang]['automated'] = I('This is an automatically generated version. The authors and PCI decline all responsibility concerning its content')
             else:
-                translations[lang]['automated'] = I('This is an author version: The autors endorse the responsability of its content.')
+                translations[lang]['automated'] = I('This is an author-verified version. The authors endorse the responsibility for its content.')
             
     if article.translated_keywords:
         for translated_keywords in article.translated_keywords:

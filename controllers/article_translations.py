@@ -455,8 +455,8 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
 
     if abstract["automated"]:
         buttons.append(DIV(
-            STRONG("If you edit the text, the translation will appear as an \"author version: The autors endorse the responsability of its content.\""),
-            P("Else the following statement will be displayed: \"this is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
+            STRONG("If you edit the text, the following statement will be published with the translation: \"This is an author-verified version. The authors endorse the responsibility for its content.\""),
+            P("Otherwise, the following statement will be displayed: \"This is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
             P("If you want to go back to the automatic translation after you have modified it, delete the current modified version of the text and generate a new automatic translation"),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
     buttons.append(A("Save", _class="btn btn-primary lang-form-save-all-button disabled", _link=save_url))
