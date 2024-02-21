@@ -36,6 +36,8 @@ function addListenerLangForm() {
     const langFormSaveAllButtons = document.querySelectorAll('.lang-form-save-all-button');
     const langFormDeleteAllButtons = document.querySelectorAll('.lang-form-delete-all-button');
 
+    const langForm = document.querySelectorAll('#lang-form-list form');
+
     langFormSaveButtons.forEach((saveButton) => {
         saveButton.addEventListener('click', editTranslation);
     });
@@ -51,6 +53,34 @@ function addListenerLangForm() {
     langFormDeleteAllButtons.forEach((deleteButton) => {
         deleteButton.addEventListener('click', deleteAllTranslation);
     });
+
+    langForm.forEach((form) => {
+        toggleEditButton(form);
+        addEventListenerToogleEditButton(null, form);
+    });
+}
+
+function addEventListenerToogleEditButton(lang, form) {
+    if (lang != null) {
+        formId = `translation-${lang}`;
+        form = document.getElementById(formId);
+    }
+
+    if (form == null) {
+        return;
+    }
+
+    inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach((input) => {
+        toggleEditButton(form);
+        input.addEventListener('keyup', () => {
+            toggleEditButton(form);
+        });
+        input.addEventListener('change', () => {
+            toggleEditButton(form);
+        });
+    })
+
 }
 
 
@@ -160,7 +190,7 @@ function editTranslation(e) {
         translation = document.getElementById(lang).value;
     }
 
-    const publicCheckBox = document.getElementById(`checkbox-public-${lang}`)
+    const publicCheckBox = document.getElementById(`checkboxpublic-${lang}`);
 
     payload = {
         'translation': translation,
@@ -191,7 +221,7 @@ function editAllTranslation(e) {
     const abstract = tinymce.get(translationAbstractInputId)?.getContent();
     const keywords = document.getElementById(translationKeywordsInputId).value;
 
-    const publicCheckBox = document.getElementById(`checkbox-public-${lang}`)
+    const publicCheckBox = document.getElementById(`checkboxpublic-${lang}`);
 
     payload = {
         title,
@@ -290,6 +320,69 @@ function insertTranslationForm(response, lang, isTextarea) {
     langSelector.value = '';
     addListenerLangForm();
     disableGenerateSaveButton();
+    addEventListenerToogleEditButton(lang);
+}
+
+
+function toggleEditButton(form) {
+    editButton = form.querySelector('.lang-form-save-all-button');
+    if (editButton == null) {
+        return;
+    }
+    editButton.disabled = !isModifiedForm(form);
+    if (editButton.disabled) {
+        editButton?.classList.add('disabled');
+    } else {
+        editButton?.classList.remove('disabled');
+    }
+}
+
+
+function isModifiedForm(form) {
+    inputs = form.querySelectorAll('input, textarea');
+
+    let modified = false;
+    inputs.forEach((input) => {
+        if (isModifiedInput(input.id)) {
+            modified = true;
+        }
+    });
+
+    return modified;
+}
+
+
+function isModifiedInput(inputId) {
+    if (inputId == null) {
+        return;
+    }
+
+    const el = document.getElementById(inputId);
+
+    const lang = getLangFromFieldId(inputId);
+    let intial_value = el.getAttribute('initial');
+    const editButton = document.querySelector(`#translation-${lang} .lang-form-save-all-button`);
+    const isTextarea = el.tagName === 'TEXTAREA';
+    const isCheckbox = el.type === 'checkbox';
+
+    if (isTextarea) {
+        new_value = tinymce.get(inputId)?.getContent();
+    }
+    else if (isCheckbox) {
+        intial_value = el?.hasAttribute('checked');
+        new_value = el?.checked;
+    } else {
+        new_value = el.value;
+    }
+
+    return intial_value !== new_value;
+}
+
+
+function getLangFromFieldId(id) {
+    var lang = id.split('-');
+    lang.shift();
+    return lang.join('-');
 }
 
 
@@ -389,6 +482,13 @@ function addTinyMCEForm(textarea) {
         
         editor.contentDocument.body.style.overflowY = 'scroll';
         observer.observe(editor.contentDocument.body, { attributeFilter: ['style'] });
+        toggleEditButton(editor.formElement);
+        editor.on('keyup', () => {
+            toggleEditButton(editor.formElement);
+        });
+        editor.on('change', () => {
+            toggleEditButton(editor.formElement);
+        });
     });
 }
 

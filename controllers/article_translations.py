@@ -418,11 +418,11 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
 
     inputs: List[DIV] = []
     inputs.append(LABEL(TranslatedFieldType.get_corresponding_english_field(TranslatedFieldType.TITLE).capitalize(), _for=f"title-{lang.value.code}", _class="control-label"))
-    inputs.append(INPUT(_id=f"title-{lang.value.code}", _value=title_content, _type='text', _class="string form-control", _name=f"title-{lang.value.code}"))
+    inputs.append(INPUT(_id=f"title-{lang.value.code}", _value=title_content, _type='text', _class="string form-control", _name=f"title-{lang.value.code}", _initial=title_content))
     inputs.append(LABEL(TranslatedFieldType.get_corresponding_english_field(TranslatedFieldType.ABSTRACT).capitalize(), _for=f"title-{lang.value.code}", _class="control-label"))
-    inputs.append(TEXTAREA(abstract_content, _id=f"abstract-{lang.value.code}", _class="form-control text", _name=f"abstract-{lang.value.code}"))
+    inputs.append(TEXTAREA(abstract_content, _id=f"abstract-{lang.value.code}", _class="form-control text", _name=f"abstract-{lang.value.code}", _initial=abstract_content))
     inputs.append(LABEL(TranslatedFieldType.get_corresponding_english_field(TranslatedFieldType.KEYWORDS).capitalize(), _for=f"title-{lang.value.code}", _class="control-label"))
-    inputs.append(INPUT(_id=f"keywords-{lang.value.code}", _value=keywords_content, _type='text', _class="string form-control", _name=f"keywords-{lang.value.code}"))
+    inputs.append(INPUT(_id=f"keywords-{lang.value.code}", _value=keywords_content, _type='text', _class="string form-control", _name=f"keywords-{lang.value.code}", _initial=keywords_content))
 
     save_url = cast(str,
                         URL(c="article_translations",
@@ -445,8 +445,8 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
                     )
     
     checkbox = DIV(
-        INPUT(_type="checkbox", _id=f"checkbox-public-{lang.value.code}", value=abstract['public']),
-        LABEL("Show translation on recommendation page", _for=f"checkbox-show-{lang.value.code}"),
+        INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=abstract['public']),
+        LABEL("Show translation on recommendation page", _for=f"checkboxpublic-{lang.value.code}"),
         _style="margin-top: 5px; margin-left: 2px"
     )
 
@@ -459,7 +459,7 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
             P("Else the following statement will be displayed: \"this is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
             P("If you want to go back to the automatic translation after you have modified it, delete the current modified version of the text and generate a new automatic translation"),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
-    buttons.append(A("Save", _class="btn btn-primary lang-form-save-all-button", _link=save_url))
+    buttons.append(A("Save", _class="btn btn-primary lang-form-save-all-button disabled", _link=save_url))
     buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-all-button", _link=delete_url))
 
     return FORM(
@@ -503,8 +503,8 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
                     )
     
     checkbox = DIV(
-        INPUT(_type="checkbox", _id=f"checkbox-public-{lang.value.code}", value=translation_value['public']),
-        LABEL("Show translation on recommendation page", _for=f"checkbox-show-{lang.value.code}"),
+        INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=translation_value['public']),
+        LABEL("Show translation on recommendation page", _for=f"checkboxpublic-{lang.value.code}"),
         _style="margin-top: 5px; margin-left: 2px"
     )
 
@@ -517,7 +517,7 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
             P("Else the following statement will be displayed: \"this is an automatically generated version. The authors and PCI decline all responsibility concerning its content.\""),
             P("If you want to go back to the automatic translation after you have modified it, delete the current modified version of the text and generate a new automatic translation"),
             _class="well", _style="font-size: 13px; margin-bottom: 5px; margin-top: 10px"))
-    buttons.append(A("Save", _class="btn btn-primary lang-form-save-button", _link=save_url))
+    buttons.append(A("Save", _class="btn btn-primary lang-form-save-button disabled", _link=save_url))
     buttons.append(A("Delete", _class="btn btn-danger lang-form-delete-button", _link=delete_url))
 
     return FORM(
