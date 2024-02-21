@@ -1854,7 +1854,7 @@ def email_for_new_reviewer():
             redirect(request.env.http_referer)
 
         # NOTE adapt long-delay key for invitation
-        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+        reset_password_key = User.generate_new_reset_password_key()
 
         # search for already-existing user
         existingUser = db(db.auth_user.email.upper() == request.vars["reviewer_email"].upper()).select().last()
@@ -1868,17 +1868,8 @@ def email_for_new_reviewer():
         else:
             # create user
             try:
-                my_crypt = CRYPT(key=auth.settings.hmac_key)
-                crypt_pass = my_crypt(auth.random_password())[0]
-                new_user_id = db.auth_user.insert(
-                    first_name=request.vars["reviewer_first_name"],
-                    last_name=request.vars["reviewer_last_name"],
-                    email=request.vars["reviewer_email"],
-                    password=crypt_pass,
-                )
-                # reset password link
-                new_user = db.auth_user(new_user_id)
-                new_user.update_record(reset_password_key=reset_password_key)
+                new_user = User.create_new_user(request.vars["reviewer_first_name"], request.vars["reviewer_last_name"], request.vars["reviewer_email"], reset_password_key)
+                new_user_id = new_user.id
                 nbExistingReviews = 0
                 session.flash = T('User "%(reviewer_email)s" created.') % (request.vars)
             except:
