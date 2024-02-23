@@ -248,10 +248,22 @@ def get_signposting_metadata(doi):
         r = requests.get(metadata_url, timeout=(1,4), allow_redirects=True)
         content = r.json()
 
+        map_HAL_json(metadata, content)
     except:
         pass
 
     return metadata
+
+
+def map_HAL_json(metadata, content):
+    c = content["response"]["docs"][0]
+
+    # map to db.t_article columns
+    metadata["title"] = c["title_s"][0]
+    metadata["authors"] = c["authFullName_s"][0]
+    metadata["ms_version"] = c["version_i"]
+    metadata["article_year"] = c["publicationDateY_i"]
+    metadata["article_source"] = f'c["journalTitle_s"], c["publicationDateY_i"], c["volume_s"], c["pages_s"]'
 
 
 def get_link(doi, rel, typ):
