@@ -16,7 +16,7 @@ class Hypothesis:
         self.__myconf = AppConfig(reload=True)
         self.__http = HttpClient(
             default_headers = {
-                'Authorization': f"Bearer {self.__myconf.take('hypothesis.api_key')}",
+                'Authorization': f"Bearer {self.__myconf.get('hypothesis.api_key')}",
                 'content-type': 'application/json',
                 'Accept': 'application/vnd.hypothesis.v1+json',
             }
