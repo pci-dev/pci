@@ -144,7 +144,7 @@ class OrcidAPI:
 
         self.__myconf = AppConfig()
         self.__client_id = self.__myconf.get('ORCID.client_id', '')
-        self.__client_secrect = self.__myconf.get('ORCID.client_secret', '')
+        self.__client_secret = self.__myconf.get('ORCID.client_secret', '')
 
         self.__orcid_keys: Optional[OrcidAPI.OrcidKeys] = None
 
@@ -318,7 +318,7 @@ class OrcidAPI:
         if not code:
             return None
         
-        payload = f'client_id={self.__client_id}&client_secret={self.__client_secrect}&grant_type=authorization_code&redirect_uri={self.__redirect_url}&code={code}'
+        payload = f'client_id={self.__client_id}&client_secret={self.__client_secret}&grant_type=authorization_code&redirect_uri={self.__redirect_url}&code={code}'
         
         http_client = HttpClient({'Content-Type': 'application/x-www-form-urlencoded'})
         response = http_client.post(self.OAUTH_TOKEN_URL, data=payload)
