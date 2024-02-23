@@ -2,6 +2,7 @@ import cgi
 import http
 import typing
 import json
+import requests
 
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifier
@@ -195,13 +196,16 @@ def create_prefilled_submission(req, user):
     author_data = req["actor"]
     coar_req_id = req["id"]
 
+    doi = article_data["ietf:cite-as"]
+    meta_data = get_signposting_metadata(doi)
+
     return \
     db.t_articles.insert(
+        doi=doi,
         user_id=user.id,
-        doi=article_data["ietf:cite-as"],
-        authors=author_data["name"],
         status="Pre-submission",
         coar_notification_id=coar_req_id,
+        **meta_data,
     )
 
 
@@ -235,6 +239,28 @@ def validate_request(body, content_type, coar_notifier):
 def get_article_by_coar_req_id(coar_req_id):
     return db(db.t_articles.coar_notification_id == coar_req_id) \
                 .select().first()
+
+
+def get_signposting_metadata(doi):
+    metadata = {}
+    try:
+        metadata_url = get_link(doi, "describedby", "application/json")
+        r = requests.get(metadata_url, timeout=(1,4), allow_redirects=True)
+        content = r.json()
+
+    except:
+        pass
+
+    return metadata
+
+
+def get_link(doi, rel, typ):
+    r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+
+    for h in r.headers["link"].split(','):
+       if f'rel="{rel}"' in h:
+            if f'type="{typ}"' in h:
+                return h.split(';')[0][1:-1]
 
 
 def show_coar_status():
