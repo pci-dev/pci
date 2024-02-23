@@ -1,5 +1,6 @@
 import json
 import requests
+import uuid
 
 
 def index():
@@ -9,7 +10,8 @@ def index():
 
 def post_form():
     form = SQLFORM.factory(
-        Field("json_ld", label=T("COAR json+ld"), type="text", default=request_endorsement),
+        Field("json_ld", label=T("COAR json+ld"), type="text",
+            default=request_endorsement.replace('_UUID_', str(uuid.uuid4()))),
     )
     form.element(_type="submit")["_value"] = T("Send to inbox")
     form.element(_name="json_ld").attributes.update(dict(
@@ -78,7 +80,7 @@ request_endorsement = """
     "name": "Denis Bourguet",
     "type": "Person"
   },
-  "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+  "id": "urn:uuid:_UUID_",
   "object": {
     "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042",
     "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042v1",
