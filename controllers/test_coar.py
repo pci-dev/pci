@@ -82,11 +82,11 @@ request_endorsement = """
   },
   "id": "urn:uuid:_UUID_",
   "object": {
-    "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042",
-    "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042v1",
+    "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368",
+    "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368v2",
     "type": "sorg:AboutPage",
     "url": {
-      "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
+      "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368v2/file/ArditiLobrySariDispersal.pdf",
       "mediaType": "application/pdf",
       "type": [
         "Article",
