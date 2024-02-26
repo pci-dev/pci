@@ -52,7 +52,9 @@ def inbox():
         if current.isRR: raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
 
         if not is_coar_whitelisted(request.env.remote_addr):
-            raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
+            raise HTTP(
+                    http.HTTPStatus.FORBIDDEN.value,
+                    f"not whitelisted: {request.env.remote_addr}")
 
         content_type, content_type_options = cgi.parse_header(
             request.env.content_type or ""
