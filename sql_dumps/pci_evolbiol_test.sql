@@ -3121,3 +3121,6 @@ ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;
 -- 2023-11-09 updates/new_article_field_managers.sql
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS manager_authors text DEFAULT '';
+
+-- 2024-02-26 updates/add_config_coar_whitelist.sql
+alter table config add column if not exists coar_whitelist text;
