@@ -51,6 +51,9 @@ def inbox():
     elif request.method == "POST":
         if current.isRR: raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
 
+        if not is_coar_whitelisted(request.env.remote_addr):
+            raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
+
         content_type, content_type_options = cgi.parse_header(
             request.env.content_type or ""
         )
@@ -73,6 +76,13 @@ def inbox():
             http.HTTPStatus.METHOD_NOT_ALLOWED.value,
             **{ "Allow": ", ".join(["POST", "OPTIONS"]) },
         )
+
+
+def is_coar_whitelisted(host):
+    for entry in db.cfg.coar_whitelist or []:
+        if host == entry.split(" ")[0]:
+            return True
+    return False
 
 
 def process_request(req):
