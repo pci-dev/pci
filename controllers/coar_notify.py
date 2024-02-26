@@ -244,11 +244,10 @@ def get_article_by_coar_req_id(coar_req_id):
 
 
 def get_preprint_server(doi):
-    try:
-        r = requests.head(doi, timeout=(1,4), allow_redirects=True)
-        return r.url.split(".")[1].upper()
-    except:
-        return ""
+    conf = map(str.split, db.cfg.coar_whitelist or [])
+    conf = { e[0]: e[-1] for e in conf }
+
+    return conf[request.env.remote_addr]
 
 
 def get_signposting_metadata(doi):
