@@ -260,7 +260,7 @@ def map_HAL_json(metadata, content):
 
     # map to db.t_article columns
     metadata["title"] = c["title_s"][0]
-    metadata["authors"] = c["authFullName_s"][0]
+    metadata["authors"] = ", ".join(c["authFullName_s"])
     metadata["ms_version"] = c["version_i"]
     metadata["article_year"] = c["publicationDateY_i"]
     metadata["article_source"] = f'c["journalTitle_s"], c["publicationDateY_i"], c["volume_s"], c["pages_s"]'
