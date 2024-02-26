@@ -3124,3 +3124,4 @@ ADD COLUMN IF NOT EXISTS manager_authors text DEFAULT '';
 
 -- 2024-02-26 updates/add_config_coar_whitelist.sql
 alter table config add column if not exists coar_whitelist text;
+update config set coar_whitelist = '|127.0.0.1 LOCAL|';
