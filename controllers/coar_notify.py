@@ -198,12 +198,14 @@ def create_prefilled_submission(req, user):
 
     doi = article_data["ietf:cite-as"]
     meta_data = get_signposting_metadata(doi)
+    preprint_server = get_preprint_server(doi)
 
     return \
     db.t_articles.insert(
         doi=doi,
         user_id=user.id,
         status="Pre-submission",
+        preprint_server=preprint_server,
         coar_notification_id=coar_req_id,
         **meta_data,
     )
@@ -239,6 +241,14 @@ def validate_request(body, content_type, coar_notifier):
 def get_article_by_coar_req_id(coar_req_id):
     return db(db.t_articles.coar_notification_id == coar_req_id) \
                 .select().first()
+
+
+def get_preprint_server(doi):
+    try:
+        r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+        return r.url.split(".")[1].upper()
+    except:
+        return ""
 
 
 def get_signposting_metadata(doi):
