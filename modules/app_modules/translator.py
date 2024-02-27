@@ -18,7 +18,10 @@ class Translator:
         Lang.ES,
         Lang.HI,
         Lang.ZH_CN,
-        Lang.AR
+        Lang.AR,
+        Lang.JA,
+        Lang.PT,
+        Lang.RU
     ]
 
     @staticmethod
