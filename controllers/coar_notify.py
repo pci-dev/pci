@@ -272,7 +272,6 @@ def map_HAL_json(metadata, content):
     metadata["authors"] = ", ".join(c["authFullName_s"])
     metadata["ms_version"] = c["version_i"]
     metadata["article_year"] = c["publicationDateY_i"]
-    metadata["article_source"] = f'c["journalTitle_s"], c["publicationDateY_i"], c["volume_s"], c["pages_s"]'
     metadata["abstract"] = grab_json_meta(c, "abstract_s", 0)
     metadata["keywords"] = ", ".join(grab_json_meta(c, "keyword_s"))
 

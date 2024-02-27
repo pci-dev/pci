@@ -3169,12 +3169,6 @@ def send_to_coar_requester(session, auth, db, user, article):
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
-    mail_vars["linkTarget"] = URL(
-        c="user", f="edit_my_article",
-        vars=dict(articleId=article.id, key=user.reset_password_key),
-        scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
-    )
-
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
     mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
