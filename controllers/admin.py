@@ -739,11 +739,13 @@ def edit_config():
         showid=False,
         fields=[request.args[0]] if request.args else db.config.fields,
     )
+    page_url = URL(request.controller, request.function, args=request.args)
     if form.process().accepted:
         session.flash = T("Configuration saved")
-        redirect(URL(c="admin", f=" "))
+        redirect(page_url)
     elif form.errors:
         response.flash = T("Form has errors")
+        redirect(page_url)
 
     response.view = "default/myLayout.html"
     return dict(

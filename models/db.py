@@ -119,6 +119,11 @@ db.define_table(
         type="list:string",
         label=T("Allowed upload filetypes"),
     ),
+    Field(
+        "coar_whitelist",
+        type="list:string",
+        label=T("Allowed COAR Notify clients (ip-address label)"),
+    ),
 )
 cfg = db.config[1]
 

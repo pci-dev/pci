@@ -157,6 +157,7 @@ def _AdminMenu():
         menu_entry("Help texts", "glyphicon-question-sign", URL("custom_help_text", "help_texts", user_signature=True)),
         menu_entry("E-mail templates", "glyphicon-envelope", URL("custom_help_text", "mail_templates", user_signature=True)),
         menu_entry("Upload filetypes", "glyphicon-file", URL("admin", "edit_config/allowed_upload_filetypes")),
+        menu_entry("COAR whitelist", "glyphicon-inbox", URL("admin", "edit_config/coar_whitelist")),
         menu_entry("ISSN", "glyphicon-cog", URL("admin", "edit_config/issn")),
         divider(),
         menu_entry("Contact lists", "glyphicon-earphone", URL("admin", "mailing_lists", user_signature=True)),
