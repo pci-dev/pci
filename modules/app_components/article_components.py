@@ -320,6 +320,7 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
 
 def _get_article_translation(article: Article):
     translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
+
     if article.translated_title:
         for translated_title in article.translated_title:
             if not translated_title['public']:
@@ -344,7 +345,14 @@ def _get_article_translation(article: Article):
             lang = translated_keywords['lang']
             translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
 
-    return translations
+    if len(translations) > 0:
+        en = {Lang.EN.value.code: dict(title=H3(article.title), abstract=XML(article.abstract), keywords=I(article.keywords))}
+        langs = list(translations.keys())
+        langs.sort()
+        translations = {lang: translations[lang] for lang in langs}
+        return {**en, **translations}
+    else:
+        return translations
 
 
 def make_article_source(article):

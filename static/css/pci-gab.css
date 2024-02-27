@@ -21,6 +21,15 @@ span.sub-text {
   color: #3eaede !important;
 }
 
+.pci2-main-color-selected {
+  color: #3eaede !important;
+  cursor: pointer;
+}
+
+.pci2-main-color-selected .glyphicon {
+  color: #3eaede !important;
+}
+
 .pci2-hover-main-color hr {
   border-top: 1px solid #42748d48;
 }
