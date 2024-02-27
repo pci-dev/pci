@@ -2,6 +2,7 @@ import cgi
 import http
 import typing
 import json
+import requests
 
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifier
@@ -195,13 +196,18 @@ def create_prefilled_submission(req, user):
     author_data = req["actor"]
     coar_req_id = req["id"]
 
+    doi = article_data["ietf:cite-as"]
+    meta_data = get_signposting_metadata(doi)
+    preprint_server = get_preprint_server(doi)
+
     return \
     db.t_articles.insert(
+        doi=doi,
         user_id=user.id,
-        doi=article_data["ietf:cite-as"],
-        authors=author_data["name"],
         status="Pre-submission",
+        preprint_server=preprint_server,
         coar_notification_id=coar_req_id,
+        **meta_data,
     )
 
 
@@ -235,6 +241,57 @@ def validate_request(body, content_type, coar_notifier):
 def get_article_by_coar_req_id(coar_req_id):
     return db(db.t_articles.coar_notification_id == coar_req_id) \
                 .select().first()
+
+
+def get_preprint_server(doi):
+    conf = map(str.split, db.cfg.coar_whitelist or [])
+    conf = { e[0]: e[-1] for e in conf }
+
+    return conf[request.env.remote_addr]
+
+
+def get_signposting_metadata(doi):
+    metadata = {}
+    try:
+        metadata_url = get_link(doi, "describedby", "application/json")
+        r = requests.get(metadata_url, timeout=(1,4), allow_redirects=True)
+        content = r.json()
+
+        map_HAL_json(metadata, content)
+    except:
+        pass
+
+    return metadata
+
+
+def map_HAL_json(metadata, content):
+    c = content["response"]["docs"][0]
+
+    # map to db.t_article columns
+    metadata["title"] = c["title_s"][0]
+    metadata["authors"] = ", ".join(c["authFullName_s"])
+    metadata["ms_version"] = c["version_i"]
+    metadata["article_year"] = c["publicationDateY_i"]
+    metadata["article_source"] = f'c["journalTitle_s"], c["publicationDateY_i"], c["volume_s"], c["pages_s"]'
+    metadata["abstract"] = grab_json_meta(c, "abstract_s", 0)
+    metadata["keywords"] = ", ".join(grab_json_meta(c, "keyword_s"))
+
+
+def grab_json_meta(c, *args):
+    try:
+        for k in args: c = c[k]
+        return c
+    except:
+        return ""
+
+
+def get_link(doi, rel, typ):
+    r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+
+    for h in r.headers["link"].split(','):
+       if f'rel="{rel}"' in h:
+            if f'type="{typ}"' in h:
+                return h.split(';')[0][1:-1]
 
 
 def show_coar_status():
