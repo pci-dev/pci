@@ -286,18 +286,25 @@ def grab_json_meta(c, *args):
 
 
 def get_link(doi, rel, typ):
-    for _ in range(5):
-        try:
-            r = requests.head(doi, timeout=(1,4), allow_redirects=True)
-            r.raise_for_status()
-            break
-        except:
-            continue
+    r = retry(requests.head, doi)
 
     for h in r.headers["link"].split(','):
        if f'rel="{rel}"' in h:
             if f'type="{typ}"' in h:
                 return h.split(';')[0][1:-1]
+
+
+def retry(func, url):
+    for _ in range(30):
+        try:
+            r = func(url, timeout=(1,4), allow_redirects=True)
+            r.raise_for_status()
+            return r
+        except:
+            from time import sleep
+            sleep(1)
+
+    raise Exception(f"{func}: too many retries ({_})")
 
 
 def show_coar_status():
