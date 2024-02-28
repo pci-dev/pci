@@ -319,7 +319,7 @@ def show_coar_requests():
             '<a href="%s">%s</a> / ' +
             '<a href="%s">%s</a> / ' +
             '<a href="%s">%s</a>') % (
-            get_status_display(x.http_status),
+            get_status_display(x.http_status or 200),
             x.id,
             x.created,
             x.inbox_url,
@@ -330,7 +330,7 @@ def show_coar_requests():
             get_person_name(x.body),
         )
         for x in db(
-            db.t_coar_notification.direction == "Outbound"
+            #db.t_coar_notification.direction == "Outbound"
         ).select(orderby=~db.t_coar_notification.id)
     ])
 
