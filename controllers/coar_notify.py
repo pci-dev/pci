@@ -286,7 +286,13 @@ def grab_json_meta(c, *args):
 
 
 def get_link(doi, rel, typ):
-    r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+    for _ in range(5):
+        try:
+            r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+            r.raise_for_status()
+            break
+        except:
+            continue
 
     for h in r.headers["link"].split(','):
        if f'rel="{rel}"' in h:
