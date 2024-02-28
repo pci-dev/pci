@@ -18,6 +18,7 @@ accepted_media_types = {
 }
 
 
+@auth.requires(auth.has_membership(role="administrator"))
 def index():
     if not current.coar.enabled:
         return "COAR notifications for PCI (disabled)"
