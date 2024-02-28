@@ -10,6 +10,7 @@ from gluon.tools import Auth
 from app_modules.lang import DEFAULT_LANG, Lang, LangItem
 from app_modules.article_translator import ArticleTranslator
 from models.article import Article, TranslatedFieldType, TranslatedFieldDict
+from models.group import Role
 from pydal.base import DAL
 from app_modules import common_tools
 from app_modules import common_small_html
@@ -55,9 +56,7 @@ def edit_article_translations():
         _generate_form(article, translated_field, english_field),
         _id="lang_form_group"
         )
-    
-    done_button = BUTTON(current.T("Back"), _class="btn btn-default", _onclick="window.history.back();", _style="margin: auto")
-        
+            
     response.view = 'default/myLayout.html'
     return dict(
             form=form,
@@ -65,7 +64,8 @@ def edit_article_translations():
             myFinalScript=common_tools.get_script("article_translations.js"),
             pageTitle=english_field.capitalize() + "'s translations",
             confirmationScript = common_small_html.confirmationDialog('Are you sure?'),
-            myAcceptBtn=done_button)
+            myAcceptBtn=_back_button(),
+            prevContent=_admin_alert_message(article))
 
 
 @auth.requires_login()
@@ -85,8 +85,6 @@ def edit_all_article_translations():
         _generate_all_form(article)
     )
 
-    done_button = BUTTON(current.T("Back"), _class="btn btn-default", _onclick="window.history.back();", _style="margin: auto")
-
     response.view = 'default/myLayout.html'
     return dict(
             form=form,
@@ -94,7 +92,8 @@ def edit_all_article_translations():
             myFinalScript=common_tools.get_script("article_translations.js"),
             pageTitle="Translations",
             confirmationScript = common_small_html.confirmationDialog('Are you sure?'),
-            myAcceptBtn=done_button)
+            myAcceptBtn=_back_button(),
+            prevContent=_admin_alert_message(article))
 
 
 @auth.requires_login()
@@ -156,6 +155,17 @@ def add_or_edit_article_field_translation():
         is_textarea = translated_field == TranslatedFieldType.ABSTRACT
         return _generate_lang_form(article, translated_field, translation_value, is_textarea)
 
+
+def _back_button():
+    return BUTTON(current.T("Back"), _class="btn btn-default", _onclick="window.history.back();", _style="margin: auto")
+
+
+def _admin_alert_message(article: Article):
+    if article.user_id != auth.user_id and auth.has_membership(role=Role.ADMINISTRATOR.value):
+        return DIV("Please DO NOT make any change unless requested by the authors or with their agreement", 
+                            _class="alert alert-danger", _role="alert", _style="font-weight: bold; margin: 0px auto 20px")
+    else:
+        return DIV()
 
 def _add_or_edit_field_translation(article: Article, translated_field: TranslatedFieldType, lang: Lang, action: 'AddNewLanguageAction', translation: str, public: bool):
     if not translated_field:
