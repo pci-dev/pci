@@ -42,7 +42,7 @@ def edit_article_translations():
         session.flash = "Article not found"
         return redirect(URL('default','index'))
     
-    if article.user_id != auth.user_id and not auth.has_membership(role="manager"):
+    if not Article.current_user_has_edit_translation_right(article):
         session.flash = "Forbidden"
         return redirect(URL('default','index'))
         
@@ -77,7 +77,7 @@ def edit_all_article_translations():
         session.flash = "Article not found"
         return redirect(URL('default','index'))
     
-    if article.user_id != auth.user_id and not auth.has_membership(role="manager"):
+    if not Article.current_user_has_edit_translation_right(article):
         session.flash = "Forbidden"
         return redirect(URL('default','index'))
     
@@ -162,7 +162,7 @@ def _add_or_edit_field_translation(article: Article, translated_field: Translate
         response.flash = "Translated field not found"
         return
 
-    if article.user_id != auth.user_id and not auth.has_membership(role="manager"):
+    if not Article.current_user_has_edit_translation_right(article):
         response.flash = "Forbidden"
         return
     
@@ -224,7 +224,7 @@ def delete_translation():
         response.flash = "Article not found"
         return
     
-    if article.user_id != auth.user_id and not auth.has_membership(role="manager"):
+    if not Article.current_user_has_edit_translation_right(article):
         response.flash = "Forbidden"
         return
     
@@ -241,7 +241,7 @@ def delete_all_translation():
         response.flash = "Article not found"
         return
     
-    if article.user_id != auth.user_id and not auth.has_membership(role="manager"):
+    if not Article.current_user_has_edit_translation_right(article):
         response.flash = "Forbidden"
         return
     

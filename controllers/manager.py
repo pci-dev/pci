@@ -1100,7 +1100,7 @@ def edit_article():
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
-    ArticleTranslator.add_edit_translation_buttons(articleId, form)
+    ArticleTranslator.add_edit_translation_buttons(art, form)
     try:
         article_version = int(art.ms_version)
     except:

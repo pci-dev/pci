@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, List, Optional as _, cast, TypedDict
+from gluon.tools import Auth
+from models.group import Role
 from pydal.objects import Row
 from pydal import DAL
 from gluon.contrib.appconfig import AppConfig
@@ -190,6 +192,20 @@ class Article(Row):
         else:
             recommendations = db(db.t_recommendations.article_id == article_id).select()
         return cast(List[Recommendation], recommendations)
+    
+
+    @staticmethod
+    def current_user_has_edit_translation_right(article: 'Article'):
+        auth = cast(Auth, current.auth)
+        is_author = bool(article.user_id == auth.user_id) \
+                                and article.status not in (ArticleStatus.PENDING.value,
+                                                        ArticleStatus.PRE_SUBMISSION.value,
+                                                        ArticleStatus.REJECTED.value,
+                                                        ArticleStatus.RECOMMENDED.value,
+                                                        ArticleStatus.NOT_CONSIDERED.value,
+                                                        ArticleStatus.CANCELLED.value)
+        is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value))
+        return is_author or is_admin
 
 
 def is_scheduled_submission(article: Article) -> bool:

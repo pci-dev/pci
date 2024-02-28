@@ -180,13 +180,16 @@ class ArticleTranslator(Translator):
 
     
     @staticmethod
-    def add_edit_translation_buttons(article_id: int, article_form: SQLFORM):
+    def add_edit_translation_buttons(article: Article, article_form: SQLFORM):
+        if not Article.current_user_has_edit_translation_right(article):
+            return
+        
         style = "margin: 0px"
         button_class = "btn btn-default"
         
-        title_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article_id),  user_signature=True))
-        abstract_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article_id),  user_signature=True))
-        keywords_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article_id),  user_signature=True))
+        title_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
+        abstract_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
+        keywords_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
 
         title_row = article_form.element(_id="t_articles_title__row")
         if title_row:

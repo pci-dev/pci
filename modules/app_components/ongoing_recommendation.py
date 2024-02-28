@@ -6,6 +6,7 @@ from dateutil.relativedelta import *
 import io
 
 from gluon import current, IS_IN_DB
+from gluon.globals import Request, Response
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
@@ -13,6 +14,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.sqlhtml import *
 from app_modules.helper import *
+from pydal import DAL
 
 from app_modules import common_tools
 from app_modules import common_small_html
@@ -21,6 +23,7 @@ from models.article import ArticleStatus, Article
 
 from controller_modules import manager_module
 from models.article import is_scheduled_submission
+from models.group import Role
 from models.review import Review, ReviewState
 
 myconf = AppConfig(reload=True)
@@ -35,7 +38,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ########################################################################################################################################################################
-def getRecommStatusHeader(auth, db, response, art, controller_name, request, userDiv, printable, quiet=True):
+def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
     lastRecomm = db.get_last_recomm(art.id)
     if lastRecomm:
         co_recommender = is_co_recommender(auth, db, lastRecomm.id)
@@ -65,10 +68,6 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     if (lastRecomm or art.status == "Under consideration") and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
 
-    allow_edit_translations = allowManageRecomms
-    if not allowManageRecomms and art.user_id == auth.user_id and art.status not in (ArticleStatus.REJECTED.value, ArticleStatus.RECOMMENDED.value, ArticleStatus.NOT_CONSIDERED.value, ArticleStatus.CANCELLED.value):
-        allow_edit_translations = True
-
     back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
 
     allowManageRequest = False
@@ -96,7 +95,7 @@ def getRecommStatusHeader(auth, db, response, art, controller_name, request, use
     componentVars = dict(
         statusTitle=myTitle,
         allowEditArticle=allowEditArticle,
-        allow_edit_translations=allow_edit_translations,
+        allowEditTranslations=Article.current_user_has_edit_translation_right(art),
         allowManageRecomms=allowManageRecomms,
         allowManageRequest=allowManageRequest,
         manageRecommendersButton=manageRecommendersButton,
