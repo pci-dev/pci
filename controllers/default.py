@@ -284,7 +284,7 @@ def user():
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
             form.element(_name="orcid")["_maxlength"] = 19
 
-            OrcidTools.add_orcid_auth_user_form(session, request, form, URL(c="default", f="user", args="profile", host=host, scheme=scheme, user_signature=True))
+            OrcidTools.add_orcid_auth_user_form(session, request, form, URL(c="default", f="user", args="profile", scheme=True, vars={"_next": suite}))
 
             if suite:
                 auth.settings.profile_next = suite
