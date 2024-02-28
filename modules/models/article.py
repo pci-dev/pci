@@ -231,6 +231,35 @@ class Article(Row):
             return db(db.t_articles.status.belongs(states_values)).select(orderby=order_by)
         else:
             return db(db.t_articles.status.belongs(states_values)).select()
+        
+    
+    @staticmethod
+    def create_prefilled_submission(user_id: int,
+                                    doi: _[str] = None,
+                                    authors: _[str] = None,
+                                    coar_notification_id: _[str] = None,
+                                    title: _[str] = None,
+                                    abstract: _[str] = None,
+                                    ms_version: _[str] = None,
+                                    article_year: _[int] = None,
+                                    preprint_server: _[str] = None,
+                                    **kwargs: Any):
+        db = current.db
+ 
+        article_id = db.t_articles.insert(
+            user_id=user_id,
+            doi=doi,
+            authors=authors,
+            status=ArticleStatus.PRE_SUBMISSION.value,
+            coar_notification_id=coar_notification_id,
+            title=title,
+            abstract=abstract,
+            ms_version=ms_version,
+            article_year=article_year,
+            preprint_server=preprint_server,
+            **kwargs)
+
+        return Article.get_by_id(article_id)
 
 
 def is_scheduled_submission(article: Article) -> bool:

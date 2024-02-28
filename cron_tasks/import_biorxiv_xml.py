@@ -26,7 +26,7 @@ def main():
           
           user = add_author_in_db(xml_jats_parser.article.authors)
           if not user:
-            raise(Exception("Unable to create user."))
+            raise(Exception("Unable to create or find user."))
           
           article = add_article_in_db(xml_jats_parser.article, user)     
           if not article:
@@ -36,19 +36,24 @@ def main():
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
-     authors = f"{user.first_name} {user.last_name}"
+     authors: List[str] = []
      for author in article_data.authors:
           if author.email == user.email:
                continue
 
-          authors += f", {author.first_name} {author.last_name}"
+          authors.append(f"{author.first_name} {author.last_name}")
+
+     authors.append(f"{user.first_name} {user.last_name}")
 
      article = Article.create_prefilled_submission(user.id, 
                                                    article_data.doi,
-                                                   authors,
+                                                   ", ".join(authors),
                                                    title=article_data.title,
                                                    abstract=article_data.abstract,
-                                                   )
+                                                   ms_version=article_data.version,
+                                                   article_year=article_data.year,
+                                                   preprint_server=article_data.journal)
+     
      return article
 
 
@@ -58,7 +63,9 @@ def add_author_in_db(authors: List[XMLJATSAuthorElement]):
                 continue
 
             user = User.get_by_email(author.email)
-            if not user:
+            if user:
+                 return user
+            else:
                 return User.create_new_user(author.first_name, 
                                             author.last_name, 
                                             author.email,

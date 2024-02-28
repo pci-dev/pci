@@ -111,20 +111,26 @@ class XMLJATSAuthorElement:
                     
 
 class XMLJATSArticleElement:
+
+    DOI_PREFIX = "https://doi.org/"
+
     title: Optional[str]
     authors: List[XMLJATSAuthorElement]
     abstract: Optional[str]
     doi: Optional[str]
+    version: Optional[str]
+    year: Optional[int]
+    journal: Optional[str]
+
 
     def __init__(self, xml_root: ET.Element):
         self.title = None
         self.authors = []
         self.abstract = None
         self.doi = None
-
-        doi = xml_root.findtext("./front/article-meta/article-id[@pub-id-type='doi']")
-        if doi:
-            self.doi = f"https://doi.org/{doi.strip()}"
+        self.version = None
+        self.year = None
+        self.journal = None
 
         title = xml_root.findtext("./front/article-meta/title-group/article-title")
         if title:
@@ -134,10 +140,64 @@ class XMLJATSArticleElement:
         if abstract:
             self.abstract = abstract.strip()
 
+        version = xml_root.findtext("./front/article-meta/article-version")
+        if version:
+            self.version = version.strip()
+
+        year = xml_root.findtext("./front/article-meta/pub-date/year")
+        if year:
+            self.year = int(year.strip())
+
+        journal = xml_root.findtext("./front/journal-meta/journal-title-group/journal-title")
+        if journal:
+            self.journal = journal.strip()
+
+        self._explore_doi(xml_root)
+
         self.authors = []
         authors = xml_root.findall("./front/article-meta/contrib-group/contrib")
         for author in authors:
             self.authors.append(XMLJATSAuthorElement(xml_root, author))
+
+
+    def _explore_doi(self, xml_root: ET.Element):
+        doi = xml_root.findtext("./front/article-meta/article-id[@pub-id-type='doi']")
+        if doi:
+            self.doi = f"{self.DOI_PREFIX}{doi.strip()}"
+            return
+        
+        self._explore_biorxiv_doi(xml_root)
+    
+
+    def _explore_biorxiv_doi(self, xml_root: ET.Element):
+        article_id = xml_root.findtext("./front/article-meta/article-id")
+        if article_id == None:
+            return
+        
+        article_id_info = article_id.strip().split("/")
+        if len(article_id_info) != 3:
+            return
+        
+        if article_id_info[0].upper() != "BIORXIV":
+            return
+        
+        day = xml_root.findtext("./front/article-meta/pub-date/day")
+        if day == None:
+            return
+
+        month = xml_root.findtext("./front/article-meta/pub-date/month")
+        if month == None:
+            return
+
+        year = xml_root.findtext("./front/article-meta/pub-date/year")
+        if year == None:
+            return
+        
+        day = day.strip().zfill(2)
+        month = month.strip().zfill(2)
+        year = year.strip().zfill(2)
+        
+        self.doi = f"{self.DOI_PREFIX}10.1101/{year}.{month}.{day}.{article_id_info[2]}"
 
 
 class XMLJATSParser:

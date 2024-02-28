@@ -220,6 +220,6 @@ class User(Row):
             last_name=last_name,
             institution=institution,
             country=country,
-            orcid=orcid
-        )
+            orcid=orcid)
+        
         return User.get_by_id(new_user_id)
