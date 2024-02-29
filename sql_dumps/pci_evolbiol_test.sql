@@ -3040,7 +3040,6 @@ DROP VIEW IF EXISTS v_recommender_stats;
 CREATE OR REPLACE VIEW v_recommender_stats AS
 SELECT 
     recommender.id AS id,
-    (SELECT DISTINCT recommender_details  FROM t_recommendations  WHERE recommender_id=recommender.id),
     (SELECT COUNT(DISTINCT id) FROM (
         SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id=recommender.id and recomm.id=v_art.recommendation_id 
 		    UNION ALL
