@@ -3181,7 +3181,7 @@ def send_to_coar_requester(session, auth, db, user, article):
 
     hashtag_template = "#UserCompleteSubmissionCOAR"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars) #, article.id)
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
