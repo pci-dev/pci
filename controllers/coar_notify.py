@@ -255,7 +255,7 @@ def get_signposting_metadata(doi):
     metadata = {}
     try:
         metadata_url = get_link(doi, "describedby", "application/json")
-        r = requests.get(metadata_url, timeout=(1,4), allow_redirects=True)
+        r = retry(requests.get, metadata_url)
         content = r.json()
 
         map_HAL_json(metadata, content)
