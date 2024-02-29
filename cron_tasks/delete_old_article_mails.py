@@ -17,3 +17,7 @@ list_mail_to_delete = db(
 for mail in list_mail_to_delete:
     db(db.mail_queue.id == mail.mail_queue.id).delete()
 
+db(
+    (db.mail_queue.article_id == None)
+    & (db.mail_queue.sending_date <= (datetime.now() - timedelta(days=6*30)))
+).delete()
