@@ -2029,7 +2029,6 @@ db.define_table(
     Field("requiring_reviewers", type="text", label=T("Requiring reviewers")),
     Field("required_reviews_completed", type="text", label=T("Required reviews completed")),
     Field("late_reviews", type="text", label=T("Late reviews")),
-    Field("recommender_details", type="text", label=T("Recommender Details")),
     # writable=False,
     migrate=False,
 )
