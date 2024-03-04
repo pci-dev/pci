@@ -262,6 +262,7 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     Field("last_alert", type="datetime", label=T("Last alert"), writable=False, readable=False),
     Field("registration_datetime", type="datetime", default=request.now, label=T("Registration date & time"), writable=False, readable=False),
+    Field("deleted", type="boolean", writable=False, readable=False),
     Field(
         "ethical_code_approved",
         type="boolean",

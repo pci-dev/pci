@@ -3121,6 +3121,9 @@ ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS manager_authors text DEFAULT '';
 
+-- updates/add_deleted_to_auth_user.sql
+alter table auth_user add column deleted boolean default false not null;
+
 -- 2024-02-26 updates/add_config_coar_whitelist.sql
 alter table config add column if not exists coar_whitelist text;
 update config set coar_whitelist = '|127.0.0.1 LOCAL|';
