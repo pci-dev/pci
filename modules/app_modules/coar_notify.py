@@ -308,6 +308,10 @@ def __get_target_inbox(article):
             return ""
         except requests.exceptions.RequestException:
             continue
+        except requests.exceptions.HTTPError:
+            from time import sleep
+            sleep(1)
+            continue
 
 
 def _get_target_inbox(article):
@@ -316,6 +320,7 @@ def _get_target_inbox(article):
     """
 
     resp = requests.head(article.doi, timeout=(1, 4), allow_redirects=True)
+    resp.raise_for_status()
     inbox = resp.links['http://www.w3.org/ns/ldp#inbox']['url']
     return inbox
 

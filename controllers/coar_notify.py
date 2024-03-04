@@ -255,7 +255,7 @@ def get_signposting_metadata(doi):
     metadata = {}
     try:
         metadata_url = get_link(doi, "describedby", "application/json")
-        r = requests.get(metadata_url, timeout=(1,4), allow_redirects=True)
+        r = retry(requests.get, metadata_url)
         content = r.json()
 
         map_HAL_json(metadata, content)
@@ -286,12 +286,25 @@ def grab_json_meta(c, *args):
 
 
 def get_link(doi, rel, typ):
-    r = requests.head(doi, timeout=(1,4), allow_redirects=True)
+    r = retry(requests.head, doi)
 
     for h in r.headers["link"].split(','):
        if f'rel="{rel}"' in h:
             if f'type="{typ}"' in h:
                 return h.split(';')[0][1:-1]
+
+
+def retry(func, url):
+    for _ in range(30):
+        try:
+            r = func(url, timeout=(1,4), allow_redirects=True)
+            r.raise_for_status()
+            return r
+        except:
+            from time import sleep
+            sleep(1)
+
+    raise Exception(f"{func}: too many retries ({_})")
 
 
 def show_coar_status():
