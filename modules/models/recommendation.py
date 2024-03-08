@@ -38,7 +38,6 @@ class Recommendation(Row):
     ms_version: _[str]
     recommender_file: _[str]
     recommender_file_data: _[bytes]
-    recommender_details: _[str]
     author_last_change: _[datetime]
     validation_timestamp: _[datetime]
 

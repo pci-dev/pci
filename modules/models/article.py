@@ -69,7 +69,6 @@ class Article(Row):
     suggest_reviewers: _[List[str]]
     competitors: _[List[str]]
     doi_of_published_article: _[str]
-    submitter_details: _[str]
     coar_notification_id: _[str]
     request_submission_change: _[bool]
     validation_timestamp: _[datetime]

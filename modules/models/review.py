@@ -50,7 +50,6 @@ class Review(Row):
     acceptation_timestamp: _[datetime]
     emailing: _[str]
     quick_decline_key: _[str]
-    reviewer_details: _[str]
     review_duration: _[str]
     anonymous_agreement: _[bool]
     suggested_reviewers_send: _[bool]
