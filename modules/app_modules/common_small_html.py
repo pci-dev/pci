@@ -23,6 +23,7 @@ from gluon.tools import Mail
 from gluon.sqlhtml import *
 from models.article import Article
 from models.recommendation import Recommendation
+from models.press_reviews import PressReview
 from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
@@ -31,6 +32,8 @@ from app_modules.helper import getText
 from app_modules import common_tools
 from app_modules.hypothesis import Hypothesis
 from app_modules.orcid import OrcidTools
+
+from gluon import current
 
 myconf = AppConfig(reload=True)
 
@@ -254,15 +257,6 @@ def _mkUser(theUser, linked=False, reverse=False):
             resu = SPAN("?")
 
         return resu
-
-
-def mkUserNoSpan(auth, db, userId):
-    resu = ""
-    if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email).last()
-        resu = "%s %s" % (theUser.first_name, theUser.last_name)
-
-    return resu
 
 ######################################################################################################################################################################
 # Article status
@@ -742,7 +736,7 @@ def mkCoRecommenders(auth, db, row, goBack=URL()):
     revs = db(db.t_press_reviews.recommendation_id == row.id).select()
     for rev in revs:
         if rev.contributor_id:
-            hrevs.append(LI(TAG(rev.contributor_details) if rev.contributor_details else mkUserWithMail(auth, db, rev.contributor_id)))
+            hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
         else:
             hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
@@ -840,13 +834,11 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mk_user_name(theUser))
+                    whoDidIt.append(mkUser_U(None, None, theUser['id']).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
-                    else:
-                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -855,8 +847,6 @@ def getRecommAndReviewAuthors(auth: Auth,
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
-                    else:
-                        whoDidIt.append(get_name_from_details(theUser['details']))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -875,7 +865,7 @@ def getRecommAndReviewAuthors(auth: Auth,
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.t_reviews.anonymously == True)
                     & (db.t_reviews.review_state == "Review completed")
-                ).select(db.t_reviews.reviewer_id, db.t_reviews.reviewer_details, distinct=True)
+                ).select(db.t_reviews.reviewer_id, distinct=True)
                 na = len(na)
                 na1 = 1 if na > 0 else 0
             else:
@@ -888,13 +878,11 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mk_user_name(theUser))
+                    whoDidIt.append(mkUser_U(None, None, theUser['id']).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
-                    else:
-                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))                  
+                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))              
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -903,8 +891,6 @@ def getRecommAndReviewAuthors(auth: Auth,
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
-                    else:
-                        whoDidIt.append(get_name_from_details(theUser['details'], reverse=True))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -918,13 +904,13 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(mk_user_name(theUser, "reviewer_"))
+                    whoDidIt.append(mkUser_U(None, None, theUser['reviewer_id']).flatten())
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
                     else:
-                        whoDidIt.append(mk_user_name(theUser, "reviewer_"))
+                        whoDidIt.append(mkUser_U(None, None, theUser['reviewer_id']).flatten())
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
@@ -937,23 +923,6 @@ def getRecommAndReviewAuthors(auth: Auth,
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
 
     return whoDidIt
-
-
-def mk_user_name(user, _type=""):
-    return (
-        get_name_from_details(user[_type+"details"])
-        or mkUser_U(None, None, user[_type+"id"]).flatten()
-    )
-
-
-def get_name_from_details(user_details, reverse=False):
-    user_details = user_details[:user_details.rfind(' [')] \
-            if user_details else ""
-
-    if user_details != "" and reverse:
-        reverse = "%s, %s"%(user_details.split(' ')[1], str(user_details.split(' ')[0])[1])
-
-    return user_details
 
 
 ######################################################################################################################################################################
@@ -981,9 +950,7 @@ def getArticleSubmitter(auth, db, art):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter,
-                B(get_name_from_details(art.submitter_details)
-                if art.submitter_details else mkUser_U(auth, db, submitter, linked=True)), art.id)),
+            I(mkAnonymousArticleField(auth, db, hideSubmitter,B(mkUser_U(auth, db, submitter, linked=True)), art.id)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:
@@ -992,29 +959,16 @@ def getArticleSubmitter(auth, db, art):
     return result
 
 ###########################################################################################################################
-def group_reviewers(db, reviewers):
+def group_reviewers(reviews: List[Review]):
     result = []
-    for reviewer in reviewers:
-        if reviewer.reviewer_details:
-            name = get_name_from_details(reviewer.reviewer_details)
-        else:
-            name = mkUserNoSpan(None, db, reviewer.reviewer_id)
+    for review in reviews:
+        name = Review.get_reviewer_name(review)
         group = "accepted reviewer"
-        if reviewer.review_state == "Awaiting response":
+        if review.review_state == "Awaiting response":
             group = "invited reviewer"
 
         result.append({"group": group, "name" : name})
     return result
-
-###########################################################################################################################
-def mk_co_recommender_no_span(db, recommender):
-    name = ""
-    if recommender.contributor_details:
-        name = get_name_from_details(recommender.contributor_details)
-    else:
-        name = mkUserNoSpan(None, db, recommender.contributor_id)
-
-    return name
 
 ######################################################################################################################################################################
 def mkRecommendersString(auth, db, recomm):
@@ -1076,13 +1030,15 @@ def mkReviewerStat(auth, db, stat):
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommenderandContributorList(query):
+def mkRecommenderandContributorList(records: List[Union[Recommendation, PressReview]]):
     result = []
-    for i in query:
-        try:
-            result_dict = {'id': i.recommender_id, 'details': i.recommender_details}
-        except:
-             result_dict = {'id': i.contributor_id, 'details': i.contributor_details}
+    for record in records:
+        if hasattr(record, 'recommender_id'):
+            result_dict = {'id': record.recommender_id, 'details': mkUserWithMail(current.auth, current.db, record.recommender_id).flatten()}
+        elif hasattr(record, 'contributor_id'):
+             result_dict = {'id': record.contributor_id, 'details': mkUserWithMail(current.auth, current.db, record.contributor_id).flatten()}
+        else:
+            raise Exception('DB record is not a Recommendation or PressReview.')
         result.append(result_dict)
     return result
 ######################################################################################################################################

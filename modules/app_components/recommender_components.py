@@ -43,8 +43,7 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     review_list: List[Dict[str, Any]] = []
     for review in reviews:
             review_vars: Dict[str, Any] = dict(
-                reviewer=TAG(review.reviewer_details) if review.reviewer_details else \
-                         common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
+                reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
                 status=common_small_html.mkReviewStateDiv(auth, db, review.review_state, review),
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],

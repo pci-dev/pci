@@ -120,8 +120,28 @@ class User(Row):
         user.recover_email_key = None
         user.update_record()
 
+
     @staticmethod
     def delete(user_id: int):
         db = current.db
         count_deleted = cast(int, db(db.auth_user.id == user_id).delete())
         return count_deleted == 1
+
+
+    @staticmethod
+    def get_name(user: 'User'):        
+        name: List[str] = []
+        if user.first_name:
+            name.append(user.first_name)
+        if user.last_name:
+            name.append(user.last_name)
+        
+        if len(name) > 0:
+            return " ".join(name)
+
+
+    @staticmethod
+    def get_name_by_id(user_id: int):
+        user = User.get_by_id(user_id)
+        if user:
+            return User.get_name(user)

@@ -114,7 +114,7 @@ def index():
     """
     .split()): t_articles[field].readable = False
 
-    try: original_grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid(
         (t_articles.status == "Recommended"),
         maxtextlength=250,
         paginate=10,
@@ -141,7 +141,7 @@ def index():
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
-    except: redirect(request.home)
+
 
     integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']

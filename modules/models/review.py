@@ -259,3 +259,11 @@ class Review(Row):
             Review.set_review_status(review, new_review_state)
         return reviews
         
+
+    @staticmethod
+    def get_reviewer_name(review: Review):
+        reviewer = User.get_by_id(review.reviewer_id)
+        if not reviewer:
+            return
+        
+        return User.get_name(reviewer)

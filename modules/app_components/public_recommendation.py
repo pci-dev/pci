@@ -296,9 +296,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             else:
                 reviewAuthorAndDate = SPAN(
                     current.T("Reviewed by"),
-                    " ",
-                    common_small_html.get_name_from_details(review.reviewer_details) or
-                        common_small_html.mkUser(auth, db, review.reviewer_id, linked=True, orcid_exponant=True),
+                    " ", common_small_html.mkUser(auth, db, review.reviewer_id, linked=True, orcid_exponant=True),
                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
                 )
 
