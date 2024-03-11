@@ -13,26 +13,30 @@ class Twitter(SocialNetwork):
     def __init__(self, db: DAL):
         super().__init__(db, self.POST_MAX_LENGTH, PostTable.TWEETS)
 
-        self.__general_api_key = cast(str, self._myconf.take('social_twitter.general_api_key'))
-        self.__general_api_secret = cast(str, self._myconf.take('social_twitter.general_api_secret'))
-        self.__general_access_token = cast(str, self._myconf.take('social_twitter.general_access_token'))
-        self.__general_access_secret = cast(str, self._myconf.take('social_twitter.general_access_secret'))
+        self.__general_api_key = self.get_config('general_api_key')
+        self.__general_api_secret = self.get_config('general_api_secret')
+        self.__general_access_token = self.get_config('general_access_token')
+        self.__general_access_secret = self.get_config('general_access_secret')
 
         self.__twitter = OAuth1Session(self.__general_api_key,
                                         client_secret=self.__general_api_secret,
                                         resource_owner_key=self.__general_access_token,
                                         resource_owner_secret=self.__general_access_secret)
         
-        self.__specific_api_key = cast(str, self._myconf.take('social_twitter.specific_api_key'))
-        self.__specific_api_secret = cast(str, self._myconf.take('social_twitter.specific_api_secret'))
-        self.__specific_access_token = cast(str, self._myconf.take('social_twitter.specific_access_token'))
-        self.__specific_access_secret = cast(str, self._myconf.take('social_twitter.specific_access_secret'))
+        self.__specific_api_key = self.get_config('specific_api_key')
+        self.__specific_api_secret = self.get_config('specific_api_secret')
+        self.__specific_access_token = self.get_config('specific_access_token')
+        self.__specific_access_secret = self.get_config('specific_access_secret')
 
         self.__specific_twitter = OAuth1Session(self.__specific_api_key,
                                         client_secret=self.__specific_api_secret,
                                         resource_owner_key=self.__specific_access_token,
                                         resource_owner_secret=self.__specific_access_secret)
-        
+
+
+    def get_config(self, key: str) -> str:
+        return cast(str, self._myconf.get(f'social_twitter.{key}', ''))
+
 
     def has_specific_twitter_config(self) -> bool:
          return len(self.__specific_api_key) > 0 \

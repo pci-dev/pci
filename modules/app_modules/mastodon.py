@@ -15,14 +15,14 @@ class Mastodon(SocialNetwork) :
     def __init__(self, db: DAL):
         super().__init__(db, self.POST_MAX_LENGTH, PostTable.TOOTS)
 
-        self.__general_access_token = cast(str, self._myconf.take('social_mastodon.general_access_token'))
+        self.__general_access_token = self.get_config('general_access_token')
         self.__general_instance_url = self.__get_instance_url()
         self.__general_mastodon = HttpClient(default_headers = {
                 'Authorization': f'Bearer {self.__general_access_token}',
                 'content-type': 'application/json',
             })
         
-        self.__specific_access_token = cast(str, self._myconf.take('social_mastodon.specific_access_token'))
+        self.__specific_access_token = self.get_config('specific_access_token')
         self.__specific_instance_url = self.__get_instance_url(True)
         self.__specific_mastodon = HttpClient(default_headers = {
                 'Authorization': f'Bearer {self.__specific_access_token}',
@@ -38,11 +38,15 @@ class Mastodon(SocialNetwork) :
         return len(self.__general_access_token) > 0 and len(self.__general_instance_url) > 0
 
 
+    def get_config(self, key: str) -> str:
+        return cast(str, self._myconf.get(f'social_mastodon.{key}', ''))
+
+
     def __get_instance_url(self, specific: bool = False):
         if specific:
-            instance_url = cast(str, self._myconf.take('social_mastodon.specific_instance_url'))
+            instance_url = self.get_config('specific_instance_url')
         else:
-            instance_url = cast(str, self._myconf.take('social_mastodon.general_instance_url'))
+            instance_url = self.get_config('general_instance_url')
 
         if instance_url.endswith('/'):
             return instance_url[:-1]
