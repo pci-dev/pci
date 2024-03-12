@@ -2467,32 +2467,6 @@ def my_co_recommendations():
 
 
 ######################################################################################################################################################################
-# @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
-# def review_emails():
-# response.view = "default/info.html"
-
-# revId = request.vars["reviewId"]
-# rev = db.t_reviews[revId]
-# myContents = DIV()
-# myContents.append(SPAN(B(T("Reviewer: ")), common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)))
-# myContents.append(H2(T("E-mails:")))
-# myContents.append(
-#     DIV(
-#         # WIKI((rev.emailing or '*None yet*'), safe_mode=False)
-#         XML((rev.emailing or "<b>None yet</b>")),
-#         _style="margin-left:20px; border-left:1px solid #cccccc; padding-left:4px;",
-#     )
-# )
-# return dict(
-#     pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
-#     customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
-#     titleIcon="envelope",
-#     pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-#     myBackButton=common_small_html.mkBackButton(),
-#     message=myContents,
-# )
-
-
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def review_emails():
     response.view = "default/myLayout.html"
@@ -2662,6 +2636,10 @@ def article_reviews_emails():
 
     db.mail_queue.removed_from_queue.writable = False
     db.mail_queue.removed_from_queue.readable = False
+
+    db.mail_queue.user_id.searchable = False
+    db.mail_queue.review_id.searchable = False
+    db.mail_queue.recommendation_id.searchable = False
 
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
