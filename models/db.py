@@ -3,6 +3,8 @@
 from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
+from gluon.http import HTTP, redirect
+from models.user import User
 from pydal.validators import IS_IN_SET
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
@@ -12,6 +14,7 @@ from pydal.objects import OpRow
 from pydal import Field
 
 from gluon.custom_import import track_changes
+from gluon import current
 
 track_changes(True)
 
@@ -391,6 +394,15 @@ def newRegistration(s, f):
         emailing.send_new_user(session, auth, db, o.id)
         emailing.send_admin_new_user(session, auth, db, o.id)
     return None
+
+def ondelete_user(set: ...):
+    user_to_delete = cast(User, set.select().first())
+    if user_to_delete:
+        common_tools.delete_user_from_PCI(user_to_delete)
+        redirect(current.request.env.http_referer)
+    else:
+        raise HTTP(404)
+db.auth_user._before_delete.append(ondelete_user)
 
 
 db.auth_membership._after_insert.append(lambda f, id: newMembership(f, id))
