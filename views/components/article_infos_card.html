@@ -270,8 +270,10 @@
         {{=articleTitle}}
     {{pass}}
 
+        {{if 'articleAbstract' in locals():}}
         {{=articleAbstract}}
-        {{if isRecommended:}}
+        {{pass}}
+        {{if isRecommended and 'articleKeywords' in locals():}}
           <i>{{=articleKeywords}}</i>
         {{pass}}
       </div>
