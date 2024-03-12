@@ -228,7 +228,7 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
         theUser = None
 
     user_with_mail = _mkUser(theUser, linked, reverse)
-    if orcid:
+    if orcid and theUser:
         return OrcidTools.build_name_with_orcid(user_with_mail, theUser.orcid)
     else:
         return user_with_mail
