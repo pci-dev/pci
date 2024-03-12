@@ -7,7 +7,7 @@ from typing import Any, Optional, cast
 
 from app_components import article_components
 from models.article import is_scheduled_submission
-from app_modules.common_tools import get_article_id, get_next, get_reset_password_key, get_review_id
+from app_modules.common_tools import delete_user_from_PCI, get_article_id, get_next, get_reset_password_key, get_review_id
 from app_modules.helper import *
 from app_modules.common_small_html import complete_orcid_dialog, complete_profile_dialog, invitation_to_review_form, unsubscribe_checkbox
 from controller_modules import adjust_grid
@@ -480,17 +480,10 @@ def unsubscribe():
     
     send_unsubscription_alert_for_manager(auth, db)
 
-    Membership.remove_all_membership(db, current_user.id)
-    Review.change_reviews_state(db, user_id, 
-                                        [ReviewState.ASK_FOR_REVIEW,
-                                         ReviewState.AWAITING_REVIEW,
-                                         ReviewState.AWAITING_RESPONSE,
-                                         ReviewState.WILLING_TO_REVIEW,
-                                         ReviewState.NEED_EXTRA_REVIEW_TIME],
-                                         ReviewState.DECLINED)
-    deleted = User.delete(current_user.id)
-    if not deleted:
-        session.flash = "User not deleted"
+    try:
+        delete_user_from_PCI(current_user)
+    except Exception as e:
+        session.flash = f"User not deleted: {e}"
         return redirect(URL("default", "index"))
     
     response.cookies['unsubscribe'] = True
