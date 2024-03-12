@@ -265,20 +265,16 @@
     {{if not printable:}}
       <div id="menu-5" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
         <h3>{{=articleTitle}}</h3>
-        {{=articleAbstract}}
-        {{ if isRecommended:}}
-          <i>{{=articleKeywords}}</i>
-        {{pass}}
-      </div>
     {{else:}}
       <div id="menu-5" class="pci2-abstract-div" style="margin-top: 15px;">
         {{=articleTitle}}
+    {{pass}}
+
         {{=articleAbstract}}
         {{if isRecommended:}}
           <i>{{=articleKeywords}}</i>
         {{pass}}
       </div>
-    {{pass}}
   {{pass}}
 {{pass}}  
 
