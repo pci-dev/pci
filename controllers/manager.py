@@ -104,7 +104,7 @@ def impersonate_users():
         user_id_with_role.append(membership.user_id)
 
     grid = SQLFORM.grid(
-                    ~db.auth_user.id.belongs(user_id_with_role),
+                    (~db.auth_user.id.belongs(user_id_with_role)) & (db.auth_user.deleted == False),
                     fields=fields,
                     editable=False,
                     deletable=False,

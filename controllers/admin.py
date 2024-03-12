@@ -159,6 +159,9 @@ def list_users():
                     selectable=selectable,
                     maxtextlength=250,
                     paginate=25,
+                    constraints={
+                        'auth_user': db.auth_user.deleted == False
+                    }
     )
 
     # options to be removed from the search dropdown:
