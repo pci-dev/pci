@@ -43,7 +43,12 @@ def getMailsInQueue():
 def tryToSendMail(mail_item):
     if not isTimeToTrySending(mail_item):
         return
-    
+
+    if not mail_item.dest_mail_address:
+        mail_item.update_record(sending_status="failed")
+        db.commit()
+        return
+
     sender = None
     if mail_item.sender_name:
         sender = email.utils.formataddr((
