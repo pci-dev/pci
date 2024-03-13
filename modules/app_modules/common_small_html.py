@@ -1115,10 +1115,10 @@ def mkSearchWidget(chars):
 
 #################################################################################
 
-def confirmationDialog(text):
+def confirmationDialog(text: str, url: str = ''):
     return DIV( 
     DIV(TAG(current.T(text)), _class="modal-body"), 
-    DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
+    DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog", _redirect=url),
         SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
     _class="modal-footer"), _id="confirmation-modal", _class="modal fade", _role="dialog")
 
@@ -1281,3 +1281,26 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
     )
 
     return form
+
+####################################################################################
+
+def unsubscribe_checkbox():
+    html = DIV(
+            DIV(
+                LABEL(
+                    INPUT(_type="checkbox", _name="unsubscribe_checkbox", _id="unsubscribe_checkbox"),
+                    current.T('Please check this box if you want to unsubscribe.'),
+                    _style="font-weight: normal"
+                ), _class="col-sm-offset-3 col-sm-9", **{'_data-toggle': 'collapse', '_data-target': '#unsubscribe-text', '_aria-expanded': 'false', '_aria-controls': 'unsubscribe-text'}
+            ),
+            DIV(
+                DIV(
+                    "All of your personal information will be removed from the site except in the following situations: If you are the author of any public reviews, public editorial decisions, public recommendations, or if you are the submitter of a recommended article, your name will still be present in the PCI database and will be publicly visible on the recommendation page of the corresponding article. If you are the author of any public anonymous reviews, hidden reviews, hidden editorial decisions, or if you are the submitter of an article that has not been recommended, your name will still be present in the PCI database, but will not be publicly viewable.",
+                    _class="well"),
+            _class="collapse col-sm-offset-3 col-sm-9", _id="unsubscribe-text"),
+
+          _class="form-group")
+
+    html.append(common_tools.get_script('unsubscribe.js'))
+    html.append(confirmationDialog('You are about to permanently delete your account, are you sure?', URL('default', 'unsubscribe', user_signature=True)))
+    return html

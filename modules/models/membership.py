@@ -40,3 +40,8 @@ class Membership(Row):
     def has_membership(db: DAL, user_id: int, roles: List[Role] = []):
         membership = Membership.get_by_user_id(db, user_id, roles)
         return len(membership) > 0
+    
+
+    @staticmethod
+    def remove_all_membership(db: DAL, user_id: int) -> int:
+        return db(db.auth_membership.user_id == user_id).delete()

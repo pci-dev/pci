@@ -21,3 +21,7 @@ insert into mail_templates
 <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
 <div style="width: 100%; text-align: center; margin-bottom: 25px;"><a href="{{completeSubmissionLink}}" style="text-decoration: none; display: block"><span style="margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; hyphens: none;background: #93c54b">Complete your submission</span></a><b>OR</b><a href="{{cancelSubmissionLink}}" style="text-decoration: none; display: block"><span style="margin: 10px; font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: block; hyphens: none;background: #f47c3c">Cancel your submission</span></a></div>'
 );
+
+-- updates/unsubscription_mail_template.sql
+INSERT INTO mail_templates (hashtag,lang,subject,description,contents) VALUES
+	 ('#UnsubscriptionAlert','default','Unsubscription','Unsubscription','<p><span class="HwtZe" lang="en"><span class="jCAhz ChMk0b"><span class="ryNqvb">User {{person}} [{{address}}] has unsubscribed from {{appLongName}}.</span></span></span></p>');

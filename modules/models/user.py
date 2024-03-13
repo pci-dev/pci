@@ -33,6 +33,7 @@ class User(Row):
     recover_email_key: _[str]
     website: _[str]
     keywords: _[str]
+    email_options = List[str]
     orcid: _[str]
     no_orcid: bool
 
@@ -119,3 +120,8 @@ class User(Row):
         user.recover_email_key = None
         user.update_record()
 
+    @staticmethod
+    def delete(user_id: int):
+        db = current.db
+        count_deleted = cast(int, db(db.auth_user.id == user_id).delete())
+        return count_deleted == 1
