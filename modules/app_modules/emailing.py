@@ -3526,7 +3526,10 @@ def send_unsubscription_alert_for_manager(auth: Auth, db: DAL):
     mail_vars["destAddress"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+    admin_email = emailing_vars.getAdminsMails(db)[0]
+    class first_admin: user_id = db(db.auth_user.email == admin_email).select().first().id
+
+    emailing_tools.insertMailInQueue(first_admin, db, hashtag_template, mail_vars)
 
 
 
