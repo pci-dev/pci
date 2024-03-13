@@ -2866,6 +2866,8 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
         mail_vars["reviewDuration"] = default_review_duration.lower()
+    else:
+        return
 
     if pciRRactivated:
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(article)
