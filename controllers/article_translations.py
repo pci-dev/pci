@@ -543,7 +543,7 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
 
 
 def _generate_english_form(article: Article, english_field: str, is_textarea: bool, id_prefix: Optional[TranslatedFieldType] = None, show_lang_label: bool = True):
-    english_value = cast(str, getattr(article, english_field))
+    english_value = cast(str, getattr(article, english_field)) or ""
     lang_en = DEFAULT_LANG
 
     id = lang_en.value.code

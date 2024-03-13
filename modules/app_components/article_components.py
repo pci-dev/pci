@@ -346,7 +346,7 @@ def _get_article_translation(article: Article):
             translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
 
     if len(translations) > 0:
-        en = {Lang.EN.value.code: dict(title=H3(article.title), abstract=XML(article.abstract), keywords=I(article.keywords))}
+        en = {Lang.EN.value.code: dict(title=H3(article.title or ""), abstract=XML(article.abstract or ""), keywords=I(article.keywords or ""))}
         langs = list(translations.keys())
         langs.sort()
         translations = {lang: translations[lang] for lang in langs}
