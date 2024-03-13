@@ -3040,7 +3040,6 @@ DROP VIEW IF EXISTS v_recommender_stats;
 CREATE OR REPLACE VIEW v_recommender_stats AS
 SELECT 
     recommender.id AS id,
-    (SELECT DISTINCT recommender_details  FROM t_recommendations  WHERE recommender_id=recommender.id),
     (SELECT COUNT(DISTINCT id) FROM (
         SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id=recommender.id and recomm.id=v_art.recommendation_id 
 		    UNION ALL
@@ -3121,6 +3120,9 @@ ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;
 -- 2023-11-09 updates/new_article_field_managers.sql
 ALTER TABLE "t_articles"
 ADD COLUMN IF NOT EXISTS manager_authors text DEFAULT '';
+
+-- updates/add_deleted_to_auth_user.sql
+alter table auth_user add column deleted boolean default false not null;
 
 -- 2024-02-26 updates/add_config_coar_whitelist.sql
 alter table config add column if not exists coar_whitelist text;

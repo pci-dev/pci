@@ -1707,9 +1707,7 @@ def send_submitter_generic_mail():
 def recommender_statistics():
     response.view = "default/myLayout.html"
 
-    db.v_recommender_stats.recommender_details.readable = False
-
-    db.v_recommender_stats.id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id, reverse=True)
+    db.v_recommender_stats.id.represent = lambda id, row: common_small_html.mkUserWithMail(auth, db, id, reverse=True)
     db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_invitations"))) if text != 0 else "0"
     db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_accepted"))) if text != 0 else "0"
     db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_completed"))) if text != 0 else "0"
@@ -1740,7 +1738,6 @@ def recommender_statistics():
             db.v_recommender_stats.current_invitations,
             db.v_recommender_stats.current_assignments,
             db.v_recommender_stats.awaiting_revision,
-            db.v_recommender_stats.recommender_details,
             db.v_recommender_stats.requiring_action,
             db.v_recommender_stats.requiring_reviewers,
             db.v_recommender_stats.required_reviews_completed,

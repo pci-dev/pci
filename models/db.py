@@ -262,6 +262,7 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     Field("last_alert", type="datetime", label=T("Last alert"), writable=False, readable=False),
     Field("registration_datetime", type="datetime", default=request.now, label=T("Registration date & time"), writable=False, readable=False),
+    Field("deleted", type="boolean", writable=False, readable=False),
     Field(
         "ethical_code_approved",
         type="boolean",
@@ -963,7 +964,6 @@ db.define_table(
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(last_name)s, %(first_name)s"))
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
-db.t_reviews._before_update.append(lambda s, f: updateReviewerDetails(f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
 db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
 db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
@@ -993,11 +993,6 @@ def setCoRecommenderDetails(user):
         contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
                                 .flatten()
     )
-
-def updateReviewerDetails(row):
-    if hasattr(row, "reviewer_id") and hasattr(row, "reviewer_details"):
-        if row.reviewer_id and row.reviewer_details:
-            row.reviewer_details = None
 
 
 from app_modules.emailing import isScheduledTrack
@@ -2029,7 +2024,6 @@ db.define_table(
     Field("requiring_reviewers", type="text", label=T("Requiring reviewers")),
     Field("required_reviews_completed", type="text", label=T("Required reviews completed")),
     Field("late_reviews", type="text", label=T("Late reviews")),
-    Field("recommender_details", type="text", label=T("Recommender Details")),
     # writable=False,
     migrate=False,
 )
