@@ -24,9 +24,16 @@ def index():
 
 def user_public_page():
     response.view = "default/user_public_profile.html"
+    custom_text = "Unavailable"
     try:
-        userId = request.vars["userId"]
-        user = db.auth_user[userId]
+        user_id = int(request.vars["userId"])
+        user = User.get_by_id(user_id)
+        if not user:
+            custom_text = "The user no longer exists"
+            raise Exception(custom_text)
+        if user.deleted:
+            custom_text = "The user has been deleted or unsubscribed"
+            raise Exception(custom_text)
 
         return profile_page(user)
     except:
@@ -34,7 +41,7 @@ def user_public_page():
             pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
             titleIcon="briefcase",
             pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"),
-            customText=B(T("Unavailable"))
+            customText=B(T(custom_text))
         )
 
 

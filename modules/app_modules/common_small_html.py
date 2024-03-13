@@ -112,57 +112,13 @@ def mkLinkDOI(doi: Optional[str]):
 
 
 ######################################################################################################################################################################
-# User text or link
-######################################################################################################################################################################
-def mkUserRow(auth, db, userRow, withPicture=False, withMail=False, withRoles=False):
-    resu = []
-    if withPicture:
-        if userRow.uploaded_picture is not None and userRow.uploaded_picture != "":
-            img = IMG(_alt="avatar", _src=URL("default", "download", args=userRow.uploaded_picture), _class="pci-userPicture", _style="float:left;")
-        else:
-            img = IMG(_alt="avatar", _src=URL(c="static", f="images/default_user.png"), _class="pci-userPicture", _style="float:left;")
-        resu.append(TD(img))
-    name = ""
-    if (userRow.first_name or "") != "":
-        name += userRow.first_name
-    if (userRow.last_name or "") != "":
-        if name != "":
-            name += " "
-        name += userRow.last_name.upper()
-    resu.append(TD(A(name, _target="blank", _href=URL(c="public", f="user_public_page", vars=dict(userId=userRow.id)))))
-    affil = ""
-    if (userRow.laboratory or "") != "":
-        affil += userRow.laboratory
-    if (userRow.institution or "") != "":
-        if affil != "":
-            affil += ", "
-        affil += userRow.institution
-    if (userRow.city or "") != "":
-        if affil != "":
-            affil += ", "
-        affil += userRow.city
-    if (userRow.country or "") != "":
-        if affil != "":
-            affil += ", "
-        affil += userRow.country
-    resu.append(TD(I(affil)))
-    if withMail:
-        resu.append(TD((" [%s]" % userRow.email) if withMail else TD("")))
-    if withRoles:
-        rolesQy = db((db.auth_membership.user_id == userRow.id) & (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role, orderby=db.auth_group.role)
-        rolesList = []
-        for roleRow in rolesQy:
-            rolesList.append(roleRow.role)
-        roles = ", ".join(rolesList)
-        resu.append(TD(B(roles)))
-    return TR(resu, _class="pci-UsersTable-row")
-
-
-######################################################################################################################################################################
 def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False, orcid: bool = False, orcid_exponant: bool = False):
     if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.orcid).last()
-        return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid, orcid_exponant=orcid_exponant)
+        theUser = User.get_by_id(userId)
+        if theUser:
+            return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid, orcid_exponant=orcid_exponant)
+        else:
+            return SPAN("")
     else:
         return SPAN("")
 
@@ -179,9 +135,9 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 
 ######################################################################################################################################################################
-def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser_U(auth, db, theUser: User, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
     if theUser:
-        if linked:
+        if linked and not theUser.deleted:
             if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
             else: b_tag = B("%s %s" % (theUser.first_name, theUser.last_name))
             resu = A(
@@ -204,9 +160,9 @@ def mkUser_U(auth, db, theUser, linked=False, scheme=False, host=False, port=Fal
 
 
 ######################################################################################################################################################################
-def mkUserWithAffil_U(auth, db, theUser, linked=False, scheme=False, host=False, port=False):
+def mkUserWithAffil_U(auth, db, theUser: User, linked=False, scheme=False, host=False, port=False):
     if theUser:
-        if linked:
+        if linked and not theUser.deleted:
             resu = SPAN(
                 A(
                     "%s %s" % (theUser.first_name, theUser.last_name),
@@ -237,11 +193,11 @@ def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, por
         return user_with_mail
 
 
-def _mkUser(theUser, linked=False, reverse=False):
+def _mkUser(theUser: User, linked=False, reverse=False):
         if theUser:
             if reverse: name = "%s, %s" % (theUser.last_name, theUser.first_name)
             else: name = "%s %s" % (theUser.first_name, theUser.last_name)
-            if linked:
+            if linked and not theUser.deleted:
                 resu = SPAN(
                     A(
                         name,
@@ -942,7 +898,7 @@ def getArticleSubmitter(auth, db, art):
 
     submitter = None
     if (art.anonymous_submission is False) or (qyIsRecommender > 0) or (qyIsCoRecommender > 0) or (auth.has_membership(role="manager")):
-        submitter = db(db.auth_user.id == art.user_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
+        submitter = User.get_by_id(art.user_id)
         if submitter is None:
             submitter = FakeSubmitter()
         hideSubmitter = False
@@ -1014,18 +970,6 @@ def mkReviewerInfo(auth, db, user, orcid: bool = False):
                     _title=(f"{reviewer_name}'s {areas_of_expertise.lower()}"),
                     **{'_data-toggle':'popover',  '_data-trigger':'focus', '_data-content':f'{expertise}'})
                 if expertise else ""),
-        )
-    return anchor
-
-######################################################################################################################################################################
-def mkReviewerStat(auth, db, stat):
-    anchor = ""
-    if stat:
-        anchor = DIV(
-            DIV((stat[0], " Review(s)") if int(stat[0]) > 0 else ""),
-            DIV((stat[1], " Recommendation(s)") if int(stat[1]) > 0 else ""),
-            DIV((stat[2], " Co-Recommendation(s)") if int(stat[2]) > 0 else ""),
-            DIV(A("See recommender's profile", _href=URL(c="public", f="user_public_page", vars=dict(userId=stat[4])), _target="_blank") if stat[3] == "True" else ""),
         )
     return anchor
 

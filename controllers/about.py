@@ -374,11 +374,24 @@ def recommenders():
     users.laboratory.label = 'Affiliation'
     users.laboratory.represent = lambda txt, row: mkAffiliation(row)
 
-    def mkName(row):
-        user = users[row.auth_user.id]
-        first_name = str(user.first_name)
-        return A(OrcidTools.build_name_with_orcid(' '.join([name.capitalize() for name in first_name.split(' ')]) + ' ' + str(user.last_name).upper(), user.orcid),
-                 _href=URL(c="public", f="user_public_page", vars=dict(userId=row.auth_user.id)))
+    def mkName(row: ...):
+        user_name = ''
+        user = User.get_by_id(row.auth_user.id)
+        if not user:
+            return user_name
+        
+        if user.first_name:
+            user_name += ' '.join([name.capitalize() for name in user.first_name.split(' ')])
+        if user.last_name:
+            if user.first_name:
+                user_name += ' '
+            user_name += user.last_name.upper()
+
+        if user.deleted:
+            return user_name
+        else:
+            user_name = OrcidTools.build_name_with_orcid(user_name, user.orcid)
+            return A(user_name, _href=URL(c="public", f="user_public_page", vars=dict(userId=user.id)))
 
     def mkAffiliation(row):
         user = users[row.auth_user.id]
@@ -392,7 +405,7 @@ def recommenders():
     for f in db.auth_membership:
         f.searchable = False
 
-    query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
+    query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender") & (db.auth_user.deleted == False)
 
     original_grid = SQLFORM.grid(
                     query,
