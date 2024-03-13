@@ -52,7 +52,9 @@ def profile_page(user: User):
                 )
 
                 name = LI(B(nameTitle))
-                addr = LI(I((user.laboratory or ""), ", ", (user.institution or ""), ", ", (user.city or ""), ", ", (user.country or ""),))
+                full_address = [user.laboratory, user.institution, user.city, user.country]
+                full_address = [i for i in full_address if i is not None]
+                addr = LI(I(", ".join(full_address)))
                 uthema = user.thematics
                 if not isinstance(uthema, list):
                     if uthema is None:
