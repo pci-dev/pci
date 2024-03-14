@@ -243,7 +243,8 @@ def validate_request(body, content_type, coar_notifier):
                 direction="Inbound",
             )
         except Exception as e:
-            raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value, body=e.message) from e
+            raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value,
+                        body=f"{e.__class__.__name__}: {e}")
 
 
 def get_article_by_coar_req_id(coar_req_id):
