@@ -12,12 +12,17 @@ def index():
 
         ret += [f"{f[0]}: {len(objects)}"]
 
-    users = db(db.auth_user.deleted==True)
-    ret += ['', f"retrofitted users: {users.count()}", '']
-    for u in users.select(orderby=db.auth_user.id):
-        ret += [f"{u.id}: {u.laboratory} = {u.first_name}"]
+    show_retrofited_users(ret)
 
     return "<pre>" + '\n'.join(ret) + "</pre>"
+
+
+def show_retrofited_users(ret):
+    users = db(db.auth_user.deleted==True)
+    ret += ['', f"retrofitted users: {users.count()}", '']
+
+    for u in users.select(orderby=db.auth_user.id):
+        ret += [f"{u.id}: {u.laboratory} = {u.first_name}"]
 
 
 def retrofit_users(items, source, target):
