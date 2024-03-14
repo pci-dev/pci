@@ -15,7 +15,7 @@ def index():
     users = db(db.auth_user.deleted==True)
     ret += ['', f"retrofitted users: {users.count()}", '']
     for u in users.select():
-        ret += [f"{u.id}: {u.email} = {u.first_name}"]
+        ret += [f"{u.id}: {u.laboratory} = {u.first_name}"]
 
     return "<pre>" + '\n'.join(ret) + "</pre>"
 
@@ -36,8 +36,8 @@ def get_user(details_str):
     name, email = m[1], m[2]
     if not email: return no_user
 
-    user = db(db.auth_user.email==email).select().first()
+    user = db(db.auth_user.laboratory==email).select().first()
     if user: return user
 
-    return db.auth_user.insert(email=email, first_name=name,
+    return db.auth_user.insert(laboratory=email, first_name=name,
                                 deleted=True, last_name="(x)")
