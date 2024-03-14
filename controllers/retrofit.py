@@ -40,4 +40,5 @@ def get_user(details_str):
     if user: return user
 
     return db.auth_user.insert(laboratory=email, first_name=name,
+                                email=None,
                                 deleted=True, last_name="(x)")
