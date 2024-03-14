@@ -73,7 +73,7 @@ def inbox():
         validate_request(body, content_type, coar_notifier)
         process_request(json.loads(body))
 
-        return HTTP(status=http.HTTPStatus.ACCEPTED.value)
+        return HTTP(status=http.HTTPStatus.CREATED.value)
 
     else:
         raise HTTP(
