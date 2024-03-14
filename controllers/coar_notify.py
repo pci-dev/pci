@@ -73,6 +73,8 @@ def inbox():
         validate_request(body, content_type, coar_notifier)
         process_request(json.loads(body))
 
+        db_id = get_db_id(json.loads(body)["id"])
+        response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
         return HTTP(status=http.HTTPStatus.CREATED.value)
 
     else:
@@ -87,6 +89,11 @@ def is_coar_whitelisted(host):
         if host == entry.split(" ")[0]:
             return True
     return False
+
+
+def get_db_id(coar_id):
+    return db(db.t_coar_notification.coar_id == coar_id).select(
+            db.t_coar_notification.id).first().id
 
 
 def process_request(req):
