@@ -14,7 +14,7 @@ def index():
 
     users = db(db.auth_user.deleted==True)
     ret += ['', f"retrofitted users: {users.count()}", '']
-    for u in users.select():
+    for u in users.select(orderby=db.auth_user.id):
         ret += [f"{u.id}: {u.laboratory} = {u.first_name}"]
 
     return "<pre>" + '\n'.join(ret) + "</pre>"
