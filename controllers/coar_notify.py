@@ -272,6 +272,23 @@ def get_signposting_metadata(doi):
 
     return metadata
 
+DC_profile = "http://purl.org/dc/elements/1.1/"
+
+
+def map_dc(metadata, xml_str):
+    from lxml import objectify
+    c = objectify.fromstring(xml_str.encode("utf8"))
+
+    def get(elt): return str(c.find("{"+DC_profile+"}"+elt))
+    def get_all(elt): return map(str, c.findall("{"+DC_profile+"}"+elt))
+
+    # map to db.t_article columns
+    metadata["title"] = get("title")
+    metadata["authors"] = ", ".join(get_all("creator"))
+    metadata["article_year"] = get("date").split("-")[0]
+    metadata["abstract"] = get("description")
+    metadata["keywords"] = get("subject")
+
 
 def map_HAL_json(metadata, content):
     c = content["response"]["docs"][0]
