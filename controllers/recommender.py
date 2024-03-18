@@ -1977,7 +1977,7 @@ def check_reviewer_name():
             response_json['email_match'] = '%s %s, %s'%(submitter.first_name, submitter.last_name, submitter.email)
 
     # check if reviewer name corresponds to a user from our database
-    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
+    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%')) & (db.auth_user.deleted == False)).select()
     if existingUsers:
         users = []
         for user in existingUsers:
