@@ -325,13 +325,12 @@ def guess_version(doi, metadata):
     metadata["ms_version"] = version
 
 
-def get_link(doi, rel, typ):
+def get_link(doi, **kv):
     r = retry(requests.head, doi)
 
     for h in r.headers["link"].split(','):
-       if f'rel="{rel}"' in h:
-            if f'type="{typ}"' in h:
-                return h.split(';')[0][1:-1]
+        if all([ f'{k}="{v}"' in h for k,v in kv.items()]):
+            return h.split(';')[0].strip('<>') # discard < and > in '<url>'
 
 
 def retry(func, url):
