@@ -35,7 +35,7 @@ class Twitter(SocialNetwork):
 
 
     def get_config(self, key: str) -> str:
-        return cast(str, self._myconf.get(f'social_twitter.{key}', ''))
+        return cast(str, self._myconf.get(f'social_twitter.{key}')) or ''
 
 
     def has_specific_twitter_config(self) -> bool:
