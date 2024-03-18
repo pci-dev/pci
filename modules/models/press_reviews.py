@@ -7,7 +7,6 @@ class PressReview(Row):
     id: int
     recommendation_id: int
     contributor_id: _[int]
-    contributor_details: _[str]
 
 
     @staticmethod

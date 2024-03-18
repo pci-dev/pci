@@ -427,8 +427,7 @@ def my_awaiting_articles():
     db.t_articles.user_id.writable = False
     db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(
             auth, db, row.anonymous_submission,
-            common_small_html.get_name_from_details(row.submitter_details)
-            or common_small_html.mkUser(auth, db, userId), row.id
+            common_small_html.mkUser(auth, db, userId), row.id
     )
     # db.t_articles.doi.represent = lambda text, row: common_small_html.mkDOI(text)
     db.t_articles.auto_nb_recommendations.readable = False
@@ -467,7 +466,6 @@ def my_awaiting_articles():
             db.t_articles.keywords,
             db.t_articles.user_id,
             db.t_articles.auto_nb_recommendations,
-            db.t_articles.submitter_details,
         ]
 
     grid = SQLFORM.grid(
@@ -923,7 +921,7 @@ def one_review():
     else:
         db.t_reviews._id.readable = False
         db.t_reviews.reviewer_id.writable = False
-        db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
+        db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id) if row else ""
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
         db.t_reviews.review.writable = auth.has_membership(role="manager")
@@ -977,8 +975,7 @@ def reviews():
         db.t_reviews.recommendation_id.readable = False
         db.t_reviews.reviewer_id.writable = auth.has_membership(role="manager")
         db.t_reviews.reviewer_id.default = auth.user_id
-        db.t_reviews.reviewer_id.represent = lambda text, row: TAG(row.reviewer_details) \
-                if row.reviewer_details else common_small_html.mkUserWithMail(auth, db, row.reviewer_id, orcid=True)
+        db.t_reviews.reviewer_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.reviewer_id, orcid=True)
         db.t_reviews.anonymously.default = True
         db.t_reviews.anonymously.writable = auth.has_membership(role="manager")
         db.t_reviews.anonymous_agreement.writable = False
@@ -1036,7 +1033,6 @@ def reviews():
                 db.t_reviews.review,
                 db.t_reviews.review_pdf,
                 db.t_reviews.emailing,
-                db.t_reviews.reviewer_details,
             ],
             selectable=selectable,
             onvalidation=onvalidation,
@@ -1078,8 +1074,6 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                     reviewer = User.get_by_id(reviewer_id)
                     if reviewer:
                         reviewer_email = reviewer.email
-                elif review.reviewer_details:
-                    reviewer_email = re.search(r'\[(.*?)\]', review.reviewer_details).group(1)
 
 
                 if reviewer_email and reviewer_email in reviewers_emails:
@@ -1093,8 +1087,7 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                 reviewers_ids.append(reviewer_id)
 
                 html = LI(
-                        TAG(review.reviewer_details) if review.reviewer_details else \
-                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                        common_small_html.mkUserWithMail(auth, db, reviewer_id),
                         " ",
                         B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
                         I("(" + (review.review_state or "") + ")"), 
@@ -1105,8 +1098,7 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                     for current_reviewer in current_reviewers:
                         current_reviewers_ids.append(current_reviewer.reviewer_id)
                     html = LI(
-                        TAG(review.reviewer_details) if review.reviewer_details else \
-                                common_small_html.mkUserWithMail(auth, db, reviewer_id),
+                        common_small_html.mkUserWithMail(auth, db, reviewer_id),
                         " ",
                         B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
                         SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, review, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
@@ -1985,7 +1977,7 @@ def check_reviewer_name():
             response_json['email_match'] = '%s %s, %s'%(submitter.first_name, submitter.last_name, submitter.email)
 
     # check if reviewer name corresponds to a user from our database
-    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%'))).select()
+    existingUsers = db((db.auth_user.first_name.lower().like('%'+first_name.lower()+'%')) & (db.auth_user.last_name.lower().like('%'+last_name.lower()+'%')) & (db.auth_user.deleted == False)).select()
     if existingUsers:
         users = []
         for user in existingUsers:
@@ -2026,13 +2018,12 @@ def add_contributor():
         roleClass = " pci-manager" if (recomm.recommender_id != auth.user_id) and auth.has_membership(role="manager") else " pci-recommender"
         art = db.t_articles[recomm.article_id]
         contributorsListSel = db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == db.auth_user.id)).select(
-            db.t_press_reviews.id, db.auth_user.id, db.t_press_reviews.contributor_details
+            db.t_press_reviews.id, db.auth_user.id
         )
         contributorsList = []
         for con in contributorsListSel:
             contributorsList.append(
                 LI(
-                    TAG(con.t_press_reviews.contributor_details) if con.t_press_reviews.contributor_details else \
                     common_small_html.mkUserWithMail(auth, db, con.auth_user.id),
                     A(
                         T("Delete"),
@@ -2117,7 +2108,7 @@ def contributions():
         db.t_press_reviews.recommendation_id.writable = False
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
-        db.t_press_reviews.contributor_id.represent = lambda text, row: TAG(row.contributor_details) if row.contributor_details else common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""  
+        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, row.contributor_id) if row else ""  
         alreadyCo = db(db.t_press_reviews.recommendation_id == recommId)._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -2138,7 +2129,7 @@ def contributions():
             paginate=100,
             csv=csv,
             exportclasses=expClass,
-            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details],
+            fields=[db.t_press_reviews.recommendation_id, db.t_press_reviews.contributor_id],
         )
 
         myScript = common_tools.get_script("contributions.js")
@@ -2405,7 +2396,7 @@ def my_co_recommendations():
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id)
     db.t_press_reviews._id.readable = False
-    db.t_recommendations.recommender_id.represent = lambda uid, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else common_small_html.mkUserWithMail(auth, db, uid)
+    db.t_recommendations.recommender_id.represent = lambda uid, row: common_small_html.mkUserWithMail(auth, db, uid)
     db.t_recommendations.article_id.readable = False
     db.t_articles.already_published.represent = lambda press, row: common_small_html.mkJournalImg(auth, db, press)
 
@@ -2434,7 +2425,6 @@ def my_co_recommendations():
             db.t_articles.already_published,
             db.t_recommendations.article_id,
             db.t_recommendations.recommender_id,
-            db.t_recommendations.recommender_details,
         ],
         links=[
             dict(
@@ -2804,21 +2794,21 @@ def verify_co_authorship():
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
                             (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
     has_recommender = db(db.v_article_recommender.recommendation_id == recomm.id).select(db.v_article_recommender.recommender) if recomm else None
-    has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state, db.t_reviews.reviewer_details)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id, db.t_press_reviews.contributor_details) if recomm else None
+    has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
+    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id) if recomm else None
 
     grid = []
     recommenders = []
 
     # List of suggested recommenders
     if is_suggested and not has_recommender:
-        recommenders = [{"group" : "suggested recommender", "name" : common_small_html.mkUserNoSpan(None, db, user.suggested_recommender_id)} for user in is_suggested]
+        recommenders = [{"group" : "suggested recommender", "name" : User.get_name_by_id(user.suggested_recommender_id)} for user in is_suggested]
     if has_recommender:
         recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
     if has_co_recommenders:
-        recommenders += [{"group" : "co-recommender", "name" : common_small_html.mk_co_recommender_no_span(db, user)} for user in has_co_recommenders]
+        recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(recommender.contributor_id)} for user in has_co_recommenders]
     if has_reviewers:
-        recommenders += common_small_html.group_reviewers(db, has_reviewers)
+        recommenders += common_small_html.group_reviewers(has_reviewers)
   
     grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 

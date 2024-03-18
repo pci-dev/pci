@@ -1918,8 +1918,7 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             reviewerPerson = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
-            if list(reviewerPerson) == ['?']: mail_vars["reviewerPerson"] = '<span>%s</span>'%review.reviewer_details
-            else: mail_vars["reviewerPerson"] = reviewerPerson
+            mail_vars["reviewerPerson"] = reviewerPerson
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["linkTarget"] = URL(
                 c="recommender",

@@ -40,6 +40,7 @@ from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 from models.group import Group, Role
+from models.review import Review
 
 from models.suggested_recommender import SuggestedRecommender
 
@@ -103,7 +104,7 @@ def impersonate_users():
         user_id_with_role.append(membership.user_id)
 
     grid = SQLFORM.grid(
-                    ~db.auth_user.id.belongs(user_id_with_role),
+                    (~db.auth_user.id.belongs(user_id_with_role)) & (db.auth_user.deleted == False),
                     fields=fields,
                     editable=False,
                     deletable=False,
@@ -276,18 +277,14 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
         'request_submission_change',
         'last_status_change',
         'keywords',
-        'submitter_details',
         'upload_timestamp',
         'thematics'
     ]
 
-    def mkUser(user_details, user_id):
-        return TAG(user_details) if user_details else common_small_html._mkUser(users.get(user_id))
-
     def mkSubmitter(row):
         return SPAN(
             DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "", row.id)),
-            mkUser(row.submitter_details, row.user_id),
+            common_small_html._mkUser(users.get(row.user_id)),
         )
 
     def mkRecommenders(row):
@@ -298,11 +295,11 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
             return DIV("no recommender")
 
         resu = DIV()
-        resu.append(mkUser(recomm.recommender_details,recomm.recommender_id))
+        resu.append(common_small_html._mkUser(users.get(recomm.recommender_id)))
 
         for co_recomm in co_recomms:
             if co_recomm.recommendation_id == recomm.id:
-                resu.append(mkUser(co_recomm.contributor_details, co_recomm.contributor_id))
+                resu.append(common_small_html._mkUser(users.get(co_recomm.contributor_id)))
 
         if len(resu) > 1:
             resu.insert(1, DIV(B("Co-recommenders:")))
@@ -398,7 +395,6 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
             articles.user_id,
             articles.art_stage_1_id,
             articles.anonymous_submission,
-            articles.submitter_details,
             articles.title,
             articles.already_published,
             articles.report_stage,
@@ -670,7 +666,7 @@ def manage_recommendations():
     db.t_pdf.pdf.represent = lambda text, row: A(IMG(_src=URL("static", "images/application-pdf.png")), _href=URL("default", "download", args=text)) if text else ""
     db.t_recommendations._id.readable = True
     if len(request.args) == 0:  # in grid
-        db.t_recommendations.recommender_id.represent = lambda id, row: TAG(row.recommender_details) if row.recommender_details else common_small_html.mkUserWithMail(auth, db, id)
+        db.t_recommendations.recommender_id.represent = lambda id, row: common_small_html.mkUserWithMail(auth, db, id)
         db.t_recommendations.recommendation_state.represent = lambda state, row: common_small_html.mkContributionStateDiv(auth, db, (state or ""))
         db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
         db.t_recommendations.recommendation_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
@@ -690,13 +686,7 @@ def manage_recommendations():
 
     def getReviewers(row):
         reviews = db(db.t_reviews.recommendation_id==row.id).select()
-        return ", ".join([common_small_html.get_name_from_details(
-                            getReviewerDetails(review)) for review in reviews])
-
-    def getReviewerDetails(review):
-        return review.reviewer_details or (
-                common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
-                .flatten())
+        return ", ".join([Review.get_reviewer_name(review) for review in reviews])
 
     if not (art.already_published):
         links += [
@@ -732,7 +722,6 @@ def manage_recommendations():
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
-            db.t_recommendations.recommender_details,
             # db.t_recommendations.recommendation_comments,
             # db.t_recommendations.reply,
             # db.t_recommendations.reply_pdf,
@@ -1266,7 +1255,6 @@ def _all_recommendations(goBack, query, isPress):
             db.t_recommendations.doi,
             # db.t_recommendations.recommendation_timestamp,
             db.t_recommendations.is_closed,
-            db.t_recommendations.recommender_details,
         ]
         links = [
             dict(
@@ -1291,7 +1279,6 @@ def _all_recommendations(goBack, query, isPress):
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
-            db.t_recommendations.recommender_details,
         ]
         links = [
             dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
@@ -1309,7 +1296,7 @@ def _all_recommendations(goBack, query, isPress):
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
     db.t_recommendations.recommender_id.readable = True
-    db.t_recommendations.recommender_id.represent =  lambda id, row: TAG(row.t_recommendations.recommender_details) if row.t_recommendations.recommender_details else DIV(common_small_html.mkUserWithMail(auth, db, id) + HR(_class="column-merge-hr") + SPAN("Co-Recommenders") + common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack), _class="m230w")
+    db.t_recommendations.recommender_id.represent =  lambda id, row: DIV(common_small_html.mkUserWithMail(auth, db, id) + HR(_class="column-merge-hr") + SPAN("Co-Recommenders") + common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack), _class="m230w")
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
     db.t_recommendations.is_closed.writable = False

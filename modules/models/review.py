@@ -50,7 +50,6 @@ class Review(Row):
     acceptation_timestamp: _[datetime]
     emailing: _[str]
     quick_decline_key: _[str]
-    reviewer_details: _[str]
     review_duration: _[str]
     anonymous_agreement: _[bool]
     suggested_reviewers_send: _[bool]
@@ -254,9 +253,18 @@ class Review(Row):
 
 
     @staticmethod
-    def change_reviews_state(db: DAL, reviewer_id: int, reviews_states: List[ReviewState], new_review_state: ReviewState):
+    def change_reviews_state(reviewer_id: int, reviews_states: List[ReviewState], new_review_state: ReviewState):
+        db = current.db
         reviews = Review.get_all_by_user(db, reviewer_id, reviews_states)
         for review in reviews:
             Review.set_review_status(review, new_review_state)
         return reviews
         
+
+    @staticmethod
+    def get_reviewer_name(review: Review):
+        reviewer = User.get_by_id(review.reviewer_id)
+        if not reviewer:
+            return
+        
+        return User.get_name(reviewer)

@@ -48,7 +48,7 @@ def recommended_submitters(uri):
     select
         year, string_agg(email, '\n' order by email)
     from (select
-        distinct concat(usr.email, art.submitter_details) as email,
+        distinct usr.email as email,
         extract (year from art.{date_field()}) as year
     from auth_user as usr
     left join t_articles as art

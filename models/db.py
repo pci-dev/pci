@@ -3,6 +3,8 @@
 from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
+from gluon.http import HTTP, redirect
+from models.user import User
 from pydal.validators import IS_IN_SET
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
@@ -12,6 +14,7 @@ from pydal.objects import OpRow
 from pydal import Field
 
 from gluon.custom_import import track_changes
+from gluon import current
 
 track_changes(True)
 
@@ -392,6 +395,15 @@ def newRegistration(s, f):
         emailing.send_admin_new_user(session, auth, db, o.id)
     return None
 
+def ondelete_user(set: ...):
+    user_to_delete = cast(User, set.select().first())
+    if user_to_delete:
+        common_tools.delete_user_from_PCI(user_to_delete)
+        redirect(current.request.env.http_referer)
+    else:
+        raise HTTP(404)
+db.auth_user._before_delete.append(ondelete_user)
+
 
 db.auth_membership._after_insert.append(lambda f, id: newMembership(f, id))
 
@@ -578,7 +590,6 @@ db.define_table(
 
     Field("scheduled_submission_date", type="date", label=T("Scheduled submission date"), requires=IS_EMPTY_OR(IS_DATE(format=T('%Y-%m-%d'), error_message='must be a valid date: YYYY-MM-DD'))),
     Field("auto_nb_recommendations", type="integer", label=T("Rounds of reviews")),
-    Field("submitter_details", type="text", length=512, label=T("Article submitter"), readable=False, writable=False),
     Field("manager_authors", type="string", length=50, default=""),
     Field("coar_notification_id", type="text", readable=False, writable=False),
     Field("coar_notification_closed", type="boolean", readable=False, writable=False),
@@ -810,7 +821,6 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
-    Field("recommender_details", type="text", length=512, label=T("Recommender details"), readable=False, writable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
@@ -954,7 +964,6 @@ db.define_table(
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
     Field("emailing", type="text", length=2097152, label=T("Emails sent"), readable=False, writable=False),
     Field("quick_decline_key", type="text", length=512, label=T("Quick decline key"), readable=False, writable=False),
-    Field("reviewer_details", type="text", length=512, label=T("Reviewer details"), readable=False, writable=False),
     Field("suggested_reviewers_send", type="boolean", label=T("Suggested reviewers send")),
     Field("due_date", type="datetime", label=("Due date")),
     singular=T("Review"),
@@ -965,35 +974,6 @@ db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
 db.t_reviews._before_update.append(lambda s, f: reviewDone(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
-db.auth_user._before_delete.append(lambda s: setReviewerDetails(s.select().first()))
-db.auth_user._before_delete.append(lambda s: setRecommenderDetails(s.select().first()))
-db.auth_user._before_delete.append(lambda s: setArticleSubmitter(s.select().first()))
-db.auth_user._before_delete.append(lambda s: setCoRecommenderDetails(s.select().first()))
-
-def setReviewerDetails(user):
-    db(db.t_reviews.reviewer_id == user.id).update(
-        reviewer_details = common_small_html.mkUserWithMail(auth, db, user.id)
-                                .flatten()
-    )
-
-def setRecommenderDetails(user):
-    db(db.t_recommendations.recommender_id == user.id).update(
-        recommender_details = common_small_html.mkUserWithMail(auth, db, user.id)
-                                .flatten()
-    )
-
-def setArticleSubmitter(user):
-    db(db.t_articles.user_id == user.id).update(
-        submitter_details = common_small_html.mkUserWithMail(auth, db, user.id)
-                                .flatten()
-    )
-
-def setCoRecommenderDetails(user):
-    db(db.t_press_reviews.contributor_id == user.id).update(
-        contributor_details = common_small_html.mkUserWithMail(auth, db, user.id)
-                                .flatten()
-    )
-
 
 from app_modules.emailing import isScheduledTrack
 
@@ -1292,7 +1272,6 @@ db.define_table(
     Field("id", type="id"),
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("contributor_id", type="reference auth_user", ondelete="RESTRICT", label=T("Contributor")),
-    Field("contributor_details", type="text", length=512, label=T("Co-Recommender details"), readable=False, writable=False),
     singular=T("Co-recommendation"),
     plural=T("Co-recommendations"),
     migrate=False,

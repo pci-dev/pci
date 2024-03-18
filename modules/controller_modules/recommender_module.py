@@ -81,7 +81,7 @@ def mkOtherContributors(auth, db, row):
             if rev.contributor_id != auth.user_id:
                 hrevs.append(LI(common_small_html.mkUserWithMail(auth, db, rev.contributor_id)))
         else:
-            hrevs.append(LI(TAG(rev.contributor_details) if rev.contributor_details else I(current.T("not registered"))))
+            hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
     return butts
 

@@ -601,7 +601,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                             (
                                 "authors",
                                 SPAN(
-                                    common_small_html.get_name_from_details(review.reviewer_details) or
+                                    Review.get_reviewer_name(review) or
                                     common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
                                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                                 ),

@@ -12,8 +12,10 @@ from gluon.sqlhtml import SQLFORM
 from gluon.tools import Auth
 from gluon.validators import IS_LIST_OF
 from models.article import Article
-from models.review import Review
+from models.membership import Membership
+from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
+from models.user import User
 from pydal import DAL
 
 from gluon.contrib.appconfig import AppConfig
@@ -296,3 +298,17 @@ def separate_suggestions(suggested_reviewers: List[str]):
             suggested_by_author.append(reviewer)
 
     return suggested_by_author, suggestor_2_suggestions
+
+###################################################################
+
+def delete_user_from_PCI(user: User):
+    Membership.remove_all_membership(user.id)
+    Review.change_reviews_state(user.id, 
+                                [ReviewState.ASK_FOR_REVIEW,
+                                ReviewState.AWAITING_REVIEW,
+                                ReviewState.AWAITING_RESPONSE,
+                                ReviewState.WILLING_TO_REVIEW,
+                                ReviewState.NEED_EXTRA_REVIEW_TIME],
+                                ReviewState.DECLINED)
+    User.empty_user_data(user)
+    return User.set_deleted(user)

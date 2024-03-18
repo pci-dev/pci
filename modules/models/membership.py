@@ -2,6 +2,7 @@ from typing import cast, List
 from models.group import Role
 from pydal.objects import Row
 from pydal import DAL
+from gluon import current
 
 
 class Membership(Row):
@@ -41,7 +42,7 @@ class Membership(Row):
         membership = Membership.get_by_user_id(db, user_id, roles)
         return len(membership) > 0
     
-
     @staticmethod
-    def remove_all_membership(db: DAL, user_id: int) -> int:
+    def remove_all_membership(user_id: int) -> int:
+        db = current.db
         return db(db.auth_membership.user_id == user_id).delete()
