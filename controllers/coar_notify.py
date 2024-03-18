@@ -337,7 +337,8 @@ def get_link(doi, rel, typ):
 def retry(func, url):
     for _ in range(30):
         try:
-            r = func(url, timeout=(1,4), allow_redirects=True)
+            r = func(url, timeout=(1,4), allow_redirects=True,
+                        headers={"user-agent":"curl"})
             r.raise_for_status()
             return r
         except:
