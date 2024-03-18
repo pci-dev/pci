@@ -263,11 +263,14 @@ def get_preprint_server(doi):
 def get_signposting_metadata(doi):
     metadata = {}
     try:
-        metadata_url = get_link(doi, "describedby", "application/json")
-        r = retry(requests.get, metadata_url)
-        content = r.json()
+        metadata_url = get_link(doi, rel="describedby", formats=DC_profile)
+        # HAL currently uses "formats" but will eventually use "profile"
+        if not metadata_url:
+            metadata_url = get_link(doi, rel="describedby", profile=DC_profile)
 
-        map_HAL_json(metadata, content)
+        r = retry(requests.get, metadata_url)
+
+        map_dc(metadata, r.text)
     except:
         pass
 
