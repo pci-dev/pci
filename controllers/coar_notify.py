@@ -207,6 +207,7 @@ def create_prefilled_submission(req, user):
     doi = article_data["ietf:cite-as"]
     meta_data = get_signposting_metadata(doi)
     preprint_server = get_preprint_server(doi)
+    guess_version(doi, meta_data)
 
     return \
     db.t_articles.insert(
@@ -308,6 +309,20 @@ def grab_json_meta(c, *args):
         return c
     except:
         return ""
+
+
+def guess_version(doi, metadata):
+    try:
+        r = requests.get(doi, timeout=(1,4), allow_redirects=True)
+        m = (
+               re.match(r".*v(\d+)$", r.url)        # HAL
+            or re.match(r".*\d+\.(\d+)$", r.url)    # DSpace
+        )
+        version = m[1]
+    except:
+        version = 1
+
+    metadata["ms_version"] = version
 
 
 def get_link(doi, rel, typ):
