@@ -8,7 +8,6 @@ dateutils
 treepoem
 dkimpy
 feedparser
-pdfkit
 pillow
 requests
 requests-oauthlib

@@ -38,8 +38,6 @@ pillow==10.2.0
     # via
     #   -r requirements.in
     #   treepoem
-pdfkit==1.0.0
-    # via -r requirements.in
 psycopg2-binary==2.9.5
     # via -r requirements.in
 pydal==20221110.1
@@ -60,7 +58,6 @@ sgmllib3k==1.0.0
 six==1.16.0
     # via
     #   furl
-    #   isodate
     #   orderedmultidict
     #   python-dateutil
 soupsieve==2.5
@@ -71,6 +68,3 @@ urllib3==1.26.18
     # via requests
 yatl==20220907.1
     # via -r requirements.in
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
