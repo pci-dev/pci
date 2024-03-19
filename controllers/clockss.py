@@ -1,5 +1,5 @@
 from typing import cast
-from app_modules.clockss import CLOCKSS_UPLOAD
+from app_modules.clockss import ClockssUpload
 import os
 
 from gluon.globals import Request
@@ -32,7 +32,7 @@ def post_form():
     if not recommendation.recommendation_title:
         return error("recommendation: no title (not recommended)")
 
-    clockss = CLOCKSS_UPLOAD(db, request, article)
+    clockss = ClockssUpload(article)
 
     controller = "clockss"
     disabled: bool = False
@@ -62,7 +62,7 @@ def post_form():
             )
         
     if form.process().accepted:
-        attachments_dir, _ = clockss.init_dir()
+        attachments_dir= clockss.attachments_dir
         PDF.save_pdf_to_db(recommendation, attachments_dir, f"{_}.pdf")
         # clockss.compile_and_send()
         session.flash = T("Successfully Uploaded to Clockss")
