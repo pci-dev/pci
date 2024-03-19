@@ -2,6 +2,7 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional as _, cast
+from models.pdf import PDF
 from models.press_reviews import PressReview
 from pydal.objects import Row
 from pydal import DAL
@@ -73,3 +74,9 @@ class Recommendation(Row):
                 states_values.append(recommendation_state.value)
             reco = cast(List[Recommendation], db((db.t_recommendations.recommendation_state.belongs(states_values))).select())
             return reco
+
+
+    @staticmethod
+    def get_last_pdf(recommendation_id: int) -> _[PDF]:
+        db = current.db
+        return db(db.t_pdf.recommendation_id == recommendation_id).select().last() 
