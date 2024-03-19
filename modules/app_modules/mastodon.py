@@ -39,7 +39,7 @@ class Mastodon(SocialNetwork) :
 
 
     def get_config(self, key: str) -> str:
-        return cast(str, self._myconf.get(f'social_mastodon.{key}', ''))
+        return cast(str, self._myconf.get(f'social_mastodon.{key}')) or ''
 
 
     def __get_instance_url(self, specific: bool = False):

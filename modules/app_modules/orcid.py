@@ -143,8 +143,8 @@ class OrcidAPI:
         self.__redirect_url = redirect_url
 
         self.__myconf = AppConfig()
-        self.__client_id = self.__myconf.get('ORCID.client_id', '')
-        self.__client_secret = self.__myconf.get('ORCID.client_secret', '')
+        self.__client_id = self.__myconf.get('ORCID.client_id') or ''
+        self.__client_secret = self.__myconf.get('ORCID.client_secret') or ''
 
         self.__orcid_keys: Optional[OrcidAPI.OrcidKeys] = None
 
