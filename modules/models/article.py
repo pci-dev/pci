@@ -17,21 +17,25 @@ myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 class ArticleStatus(Enum):
-    NOT_CONSIDERED = 'Not considered'
-    PRE_RECOMMENDED = 'Pre-recommended'
-    AWAITING_REVISION = 'Awaiting revision'
-    RECOMMENDED = 'Recommended'
-    UNDER_CONSIDERATION = 'Under consideration'
-    REJECTED = 'Rejected'
-    PRE_REJECTED = 'Pre-rejected'
-    CANCELLED = 'Cancelled'
-    AWAITING_CONSIDERATION = 'Awaiting consideration'
-    PENDING = 'Pending'
-    PRE_SUBMISSION = 'Pre-submission'
-    PRE_RECOMMENDED_PRIVATE = 'Pre-recommended-private'
-    PRE_REVISION = 'Pre-revision'
-    SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending'
-    SCHEDULED_SUBMISSION_UNDER_CONSIDERATION = 'Scheduled submission under consideration'
+    NOT_CONSIDERED = 'Not considered' # Not considered
+    PRE_RECOMMENDED = 'Pre-recommended' # Recommendation pending validation
+    AWAITING_REVISION = 'Awaiting revision' # Awaiting revision
+    RECOMMENDED = 'Recommended' # Recommended
+    UNDER_CONSIDERATION = 'Under consideration' # Handling process underway
+    REJECTED = 'Rejected' # Rejected
+    PRE_REJECTED = 'Pre-rejected' # Rejection pending validation
+    CANCELLED = 'Cancelled' # Cancelled
+    AWAITING_CONSIDERATION = 'Awaiting consideration' # Preprint requiring a recommender
+    PENDING = 'Pending' # Submission pending validation
+    PRE_SUBMISSION = 'Pre-submission' # Pre-submission pending validation
+    PRE_RECOMMENDED_PRIVATE = 'Pre-recommended-private' # Pre-recommended-private
+    PRE_REVISION = 'Pre-revision' # Request for revision pending validation
+    SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending' # Scheduled submission pending Validation
+    SCHEDULED_SUBMISSION_UNDER_CONSIDERATION = 'Scheduled submission under consideration' # Scheduled submission under consideration
+    SCHEDULED_SUBMISSION_REVISION = 'Scheduled submission revision' # Scheduled submission awaiting revision
+    PENDING_SURVEY = 'Pending-survey' # Pending-survey
+    RECOMMENDED_PRIVATE = 'Recommended-private' # Recommended-private
+
 
 @dataclass
 class TranslatedFieldDict(TypedDict):
