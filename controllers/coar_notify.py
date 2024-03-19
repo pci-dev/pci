@@ -207,6 +207,7 @@ def create_prefilled_submission(req, user):
     doi = article_data["ietf:cite-as"]
     meta_data = get_signposting_metadata(doi)
     preprint_server = get_preprint_server(doi)
+    guess_version(doi, meta_data)
 
     return \
     db.t_articles.insert(
@@ -262,15 +263,35 @@ def get_preprint_server(doi):
 def get_signposting_metadata(doi):
     metadata = {}
     try:
-        metadata_url = get_link(doi, "describedby", "application/json")
-        r = retry(requests.get, metadata_url)
-        content = r.json()
+        metadata_url = get_link(doi, rel="describedby", formats=DC_profile)
+        # HAL currently uses "formats" but will eventually use "profile"
+        if not metadata_url:
+            metadata_url = get_link(doi, rel="describedby", profile=DC_profile)
 
-        map_HAL_json(metadata, content)
+        r = retry(requests.get, metadata_url)
+
+        map_dc(metadata, r.text)
     except:
         pass
 
     return metadata
+
+DC_profile = "http://purl.org/dc/elements/1.1/"
+
+
+def map_dc(metadata, xml_str):
+    from lxml import objectify
+    c = objectify.fromstring(xml_str.encode("utf8"))
+
+    def get(elt): return str(c.find("{"+DC_profile+"}"+elt))
+    def get_all(elt): return map(str, c.findall("{"+DC_profile+"}"+elt))
+
+    # map to db.t_article columns
+    metadata["title"] = get("title")
+    metadata["authors"] = ", ".join(get_all("creator"))
+    metadata["article_year"] = get("date").split("-")[0]
+    metadata["abstract"] = get("description")
+    metadata["keywords"] = get("subject")
 
 
 def map_HAL_json(metadata, content):
@@ -293,19 +314,33 @@ def grab_json_meta(c, *args):
         return ""
 
 
-def get_link(doi, rel, typ):
+def guess_version(doi, metadata):
+    try:
+        r = requests.get(doi, timeout=(1,4), allow_redirects=True)
+        m = (
+               re.match(r".*v(\d+)$", r.url)        # HAL
+            or re.match(r".*\d+\.(\d+)$", r.url)    # DSpace
+        )
+        version = m[1]
+    except:
+        version = 1
+
+    metadata["ms_version"] = version
+
+
+def get_link(doi, **kv):
     r = retry(requests.head, doi)
 
     for h in r.headers["link"].split(','):
-       if f'rel="{rel}"' in h:
-            if f'type="{typ}"' in h:
-                return h.split(';')[0][1:-1]
+        if all([ f'{k}="{v}"' in h for k,v in kv.items()]):
+            return h.split(';')[0].strip('<>') # discard < and > in '<url>'
 
 
 def retry(func, url):
     for _ in range(30):
         try:
-            r = func(url, timeout=(1,4), allow_redirects=True)
+            r = func(url, timeout=(1,4), allow_redirects=True,
+                        headers={"user-agent":"curl"})
             r.raise_for_status()
             return r
         except:
