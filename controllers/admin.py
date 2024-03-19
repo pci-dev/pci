@@ -228,6 +228,7 @@ def mailing_lists():
         db.auth_user.email, groupby=db.auth_user.email
     )
     for user in query:
+        if user.email:
             emails.append(user.email)
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
@@ -243,7 +244,7 @@ def mailing_lists():
         db.auth_user.email, groupby=db.auth_user.email
     )
     myContents.append(", ".join(
-        [ _.email for _ in query]
+        [ _.email for _ in query if _.email]
     ))
 
     # Other users
