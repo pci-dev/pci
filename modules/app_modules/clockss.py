@@ -2,65 +2,87 @@ import os
 import ftplib
 import pathlib
 import shutil
-import pdfkit
+from typing import Literal, Union
+from models.article import Article
 import zipfile as z
-from gluon.html import *
+from models.recommendation import Recommendation
 from app_modules import crossref
 from app_modules import common_tools
 from gluon.contrib.appconfig import AppConfig
+from gluon import current
+
 
 myconf = AppConfig(reload=True)
-scheme = myconf.take("alerts.scheme")
-host = myconf.take("alerts.host")
-port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-server = myconf.take("clockss.server")
-username = myconf.take("clockss.username")
-password = myconf.take("clockss.password")
+
+scheme = str(myconf.take("alerts.scheme"))
+host = str(myconf.take("alerts.host"))
+port: Union[int, Literal[False]] = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+server = str(myconf.take("clockss.server"))
+username = str(myconf.take("clockss.username"))
+password = str(myconf.take("clockss.password"))
+
 session = ftplib.FTP(server, username, password) 
 
-class CLOCKSS_UPLOAD:
-    def __init__(self, db, request, article):
-        self.db = db
-        self.request = request
+
+class ClockssUpload:
+
+    article: Article
+    attachments_dir: str
+    prefix: str
+    recommendation: Recommendation
+
+    def __init__(self, article: Article):
         self.article = article
-        self.attachments_dir, self.prefix = self.init_dir()
+        self._init_dir()
+        recommendation = Article.get_last_recommendation(self.article.id)
+        if not recommendation:
+            raise Exception(f'No recommendation found for article with id: {self.article.id}')
+        self.recommendation = recommendation
 
-    def build_xml(self):
-        recomm = self.db.get_last_recomm(self.article)
+
+    def _build_xml(self):
         filename = f"{self.attachments_dir}/{self.prefix}.xml"
-        crossref.init_conf(self.db)
-        recomm_xml = crossref.crossref_xml(recomm)
+        crossref.init_conf(current.db)
+        recommendation_xml = crossref.crossref_xml(self.recommendation)
         with open(filename, 'wb') as file:
-            file.write(recomm_xml.encode('utf8'))
+            file.write(recommendation_xml.encode('utf8'))
 
 
-    def init_dir(self):
+    def _init_dir(self):
         prefix = common_tools.generate_recommendation_doi(self.article.id)[9:]
-        attachments_dir = os.path.join(self.request.folder, "clockss", prefix)
+        attachments_dir = os.path.join(str(current.request.folder), "clockss", prefix)
         os.makedirs(attachments_dir, exist_ok=True)
-        return attachments_dir, prefix
+        self.prefix = prefix
+        self.attachments_dir = attachments_dir
+
 
     def build_pdf(self):
         options = {
             'cookie' : self.request.cookies.items()
         }
         filename = f"{self.attachments_dir}/{self.prefix}.pdf"
-        printable_page = URL(c="articles", f= "rec", vars=dict(articleId=self.article.id, printable=True), host=host, scheme=scheme, port=port)
+        printable_page = cast(str, URL(c="articles", f= "rec", vars=dict(articleId=self.article.id, printable=True), host=host, scheme=scheme, port=port))
         pdfkit.from_url(printable_page, filename, options=options)
         return f"{self.prefix}.pdf"
         
-    def zip_directory(self, filepath):
+
+    def _get_latex_template(self):
+        ...
+
+    def _zip_directory(self, filepath: str):
         direc = pathlib.Path(filepath)
         with z.ZipFile(f'{filepath}.zip', 'w', z.ZIP_DEFLATED) as zp:
             for file in direc.iterdir():
                 zp.write(file, arcname=file.name)
 
+
     def compile_and_send(self):
-        self.build_xml()
-        self.zip_directory(self.attachments_dir)
+        self._build_xml()
+        self._zip_directory(self.attachments_dir)
         filename = self.attachments_dir + ".zip"
         with open(filename, 'rb') as file:
             session.storbinary(f'STOR {self.prefix}.zip', file)
         #delete files after upload
-        shutil.rmtree(self.attachments_dir), os.remove(filename)
+        shutil.rmtree(self.attachments_dir)
+        os.remove(filename)
         session.quit()

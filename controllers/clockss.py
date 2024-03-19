@@ -1,37 +1,55 @@
-from app_modules.clockss import CLOCKSS_UPLOAD
+from typing import cast
+from app_modules.clockss import ClockssUpload
 import os
 
-is_admin = auth.has_membership(role="administrator")
+from gluon.globals import Request
+from gluon.html import DIV, FORM, H4, IFRAME, INPUT, PRE, URL
+from gluon.http import redirect
+from models.recommendation import Recommendation
+from models.pdf import PDF
+from pydal import DAL
+
+from models.article import Article
+
+is_admin = bool(auth.has_membership(role="administrator"))
+db = cast(DAL, db)
+request = cast(Request, request)
 
 
 @auth.requires(is_admin)
 def post_form():
-    article_id = request.vars.article_id
-    article = db.t_articles[article_id]
-    recomm = db.get_last_recomm(article)
-
-    clockss = CLOCKSS_UPLOAD(db, request, article)
-    if not article_id:   return error("article_id: no such parameter")
-    if not article:      return error("article: no such article")
-    if not recomm :      return error("article: no recommendation yet")
-    if not recomm.recommendation_title:
+    article_id = int(request.vars.article_id)
+    if not article_id:
+        return error("article_id: no such parameter")
+    
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        return error("article: no such article")
+    
+    recommendation = Article.get_last_recommendation(article_id)
+    if not recommendation :
+        return error("article: no recommendation yet")
+    if not recommendation.recommendation_title:
         return error("recommendation: no title (not recommended)")
+
+    clockss = ClockssUpload(article)
+
     controller = "clockss"
-    disabled = False
+    disabled: bool = False
     message = H4("This article is yet to be uploaded to Clockss, review the pdf to ensure details are correct, you can go back to edit metadata if any is missing.", 
                 _class="alert alert-warning", cr2br="true")
 
-    pdf_exists = db(db.t_pdf.recommendation_id == recomm.id).select(db.t_pdf.pdf).last() 
-    if pdf_exists:
-        filename = pdf_exists.pdf
+    pdf = Recommendation.get_last_pdf(recommendation.id)
+    if pdf:
+        filename = pdf.pdf
         controller = "default"
         disabled = True
         message = H4("This article has been uploaded to Clockss", _class="alert alert-info", cr2br="true")
     else:
         filename = clockss.build_pdf()
     
-    file_url = (URL(controller, "stream_pdf", args=filename))
-    url = URL(c="manager", f="recommendations", vars=dict(articleId=recomm.article_id), user_signature=True)
+    file_url = cast(str, URL(controller, "stream_pdf", args=filename))
+    url = cast(str, URL(c="manager", f="recommendations", vars=dict(articleId=recommendation.article_id), user_signature=True))
     form = FORM(
                 DIV(
                     message,                             
@@ -44,8 +62,8 @@ def post_form():
             )
         
     if form.process().accepted:
-        attachments_dir, _ = clockss.init_dir()
-        save_pdf_to_db(recomm, attachments_dir, f"{_}.pdf")
+        attachments_dir= clockss.attachments_dir
+        PDF.save_pdf_to_db(recommendation, attachments_dir, f"{_}.pdf")
         # clockss.compile_and_send()
         session.flash = T("Successfully Uploaded to Clockss")
         redirect(url)
@@ -60,7 +78,7 @@ def post_form():
 
 
 @auth.requires(is_admin)
-def error(message):
+def error(message: str):
     response.view = "default/myLayout.html"
     return dict(
         form=PRE(message),
@@ -70,17 +88,8 @@ def error(message):
 
 
 def stream_pdf():
-    filename = request.args[0]
+    filename = str(request.args[0])
     folder = filename[:-4]
-    attachments_dir = os.path.join(request.folder, "clockss", folder)
+    attachments_dir = os.path.join(str(request.folder), "clockss", folder)
     file_to_download = os.path.join(attachments_dir, filename)
     return response.stream(file_to_download)
-
-def save_pdf_to_db(recomm, directory, filename):
-    pdf_id = db.t_pdf.insert(recommendation_id=recomm.id, pdf=filename)
-    pdf = db.t_pdf[pdf_id]
-    file_to_upload = os.path.join(directory, filename)
-    data = open(file_to_upload, 'rb')
-    data = data.read()
-    filename = current.db.t_pdf.pdf.store(data, filename)
-    pdf.update_record(pdf=filename, pdf_data=data)

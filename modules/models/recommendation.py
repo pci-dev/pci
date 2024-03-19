@@ -2,6 +2,7 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional as _, cast
+from models.pdf import PDF
 from models.press_reviews import PressReview
 from models.user import User
 from pydal.objects import Row
