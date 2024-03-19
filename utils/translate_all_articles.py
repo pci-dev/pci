@@ -42,9 +42,11 @@ if __name__ == "__main__":
     print(f"# {nb_articles_total - nb_articles_to_translate} articles already translated.")
     print("-----", end="\n\n")
 
+    i = 1
     for article in articles_to_translate:
-        print(f"Traduction for article ID {article.id}: {article.title}", end="")
+        print(f"{i}/{nb_articles_to_translate} Traduction for article ID {article.id}: {article.title}", end="")
         ArticleTranslator.run_article_translation_for_default_langs(article)
         current.db.commit()
         print('-> Added!')
         sleep(1)
+        i += 1
