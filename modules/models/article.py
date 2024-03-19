@@ -210,6 +210,19 @@ class Article(Row):
                                                         ArticleStatus.CANCELLED.value)
         is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value))
         return is_author or is_admin
+    
+
+    @staticmethod
+    def get_by_status(article_status: List[ArticleStatus], order_by: _[Any] = None) -> List['Article']:
+        db = current.db
+        states_values: List[str] = []
+        for status in article_status:
+            states_values.append(status.value)
+
+        if order_by:
+            return db(db.t_articles.status.belongs(states_values)).select(orderby=order_by)
+        else:
+            return db(db.t_articles.status.belongs(states_values)).select()
 
 
 def is_scheduled_submission(article: Article) -> bool:
