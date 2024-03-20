@@ -1385,7 +1385,8 @@ def suggested_recommender_emails():
 
     suggRecommId = request.vars["suggRecommId"]
     articleId = request.vars["articleId"]
-    suggested_recommender = db.auth_user[suggRecommId]
+
+    suggested_recommender = User.get_by_id(suggRecommId)
 
     if not suggested_recommender:
         return f"no such recommender: {suggRecommId}"
