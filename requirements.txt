@@ -11,5 +11,4 @@ feedparser
 pillow
 requests
 requests-oauthlib
-pdfkit
 deep_translator
