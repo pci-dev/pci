@@ -22,8 +22,8 @@ def test_resubmit_endorsement():
     data = json.loads(request_endorsement)
     data["id"] = uid()
 
-    prev_url = data["object"]["ietf:cite-as"]
-    data["context"] = { "id": prev_url }
+    prev_notif_context = _uid
+    data["inReplyTo"] = prev_notif_context
 
     data["object"]["ietf:cite-as"] = "https://hal.inrae.fr/hal-02630042v2"
 
@@ -55,8 +55,8 @@ request_endorsement = """
   },
   "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
   "object": {
-    "id": "https://hal.inrae.fr/hal-02630042",
-    "ietf:cite-as": "https://hal.inrae.fr/hal-02630042v1",
+    "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368",
+    "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368v1",
     "type": "sorg:AboutPage",
     "url": {
       "id": "https://hal.inrae.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
