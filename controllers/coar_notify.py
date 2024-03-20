@@ -142,7 +142,7 @@ def request_endorsement(req):
     else:
         user.reset_password_key = ''
 
-    if "context" in req.keys():
+    if "inReplyTo" in req.keys():
         article = handle_resubmission(req, user)
         emailing.send_to_coar_resubmitter(session, auth, db, user, article)
     else:
@@ -151,17 +151,12 @@ def request_endorsement(req):
 
 
 def handle_resubmission(req, user):
-    context = req["context"]
-    if not "id" in context: raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no context.id")
-
-    context_id = context["id"]
+    context_id = req["inReplyTo"]
     article = update_resubmitted_article(req, context_id)
 
     if not article: raise HTTP(
             status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no matching article for context.id='{context_id}'")
+            body=f"no matching article for inReplyTo='{context_id}'")
     if article.status != 'Awaiting revision': raise HTTP(
             status=http.HTTPStatus.BAD_REQUEST.value,
             body=f"not awaiting revision: article.id='{article.id}'")
@@ -221,7 +216,7 @@ def create_prefilled_submission(req, user):
 
 
 def update_resubmitted_article(req, context):
-    article = db(db.t_articles.doi == context) \
+    article = db(db.t_articles.coar_notification_id == context) \
                     .select().first()
     if not article:
         return
