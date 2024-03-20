@@ -1385,7 +1385,13 @@ def suggested_recommender_emails():
 
     suggRecommId = request.vars["suggRecommId"]
     articleId = request.vars["articleId"]
-    suggested_recommender = db.auth_user[suggRecommId]
+
+    suggested_recommender = User.get_by_id(suggRecommId)
+
+    if not suggested_recommender:
+        return f"no such recommender: {suggRecommId}"
+    if suggested_recommender.deleted:
+        return f"no such recommender: {suggRecommId}"
 
     db.mail_queue.sending_status.represent = lambda text, row: DIV(
         SPAN(admin_module.makeMailStatusDiv(text)),
