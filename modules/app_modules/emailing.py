@@ -1450,6 +1450,10 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
             if recomm:
                 article = db.t_articles[recomm.article_id]
                 if article:
+                    if not (contrib.contributor_id and db.auth_user[contrib.contributor_id].email):
+                        return
+                    if not (recomm.recommender_id and db.auth_user[recomm.recommender_id].email):
+                        return
                     mail_vars["articleTitle"] = md_to_html(article.title)
                     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
                     mail_vars["articleAuthors"] = mkAuthors(article)
