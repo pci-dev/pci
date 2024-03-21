@@ -239,7 +239,7 @@ class COARNotifier:
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=get_notification_type(body),
+            rdf_type=body["type"],
             body=json.dumps(body),
             direction=direction,
             inbox_url=inbox_url,
@@ -283,10 +283,6 @@ def get_origin_request(article):
     db = current.db
     req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
     return json.loads(req.body) if req else None
-
-
-def get_notification_type(body):
-    return " ".join(body["type"])
 
 
 def get_target_inbox(article):
