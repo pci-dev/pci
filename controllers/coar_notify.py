@@ -70,10 +70,15 @@ def inbox():
         request.body.seek(0)
         body = request.body.read()
 
-        validate_request(body, content_type, coar_notifier)
-        process_request(json.loads(body))
+        try:
+            body = json.loads(body)
+        except Exception as e:
+            fail(f"{e.__class__.__name__}: {e}")
 
-        db_id = get_db_id(json.loads(body)["id"])
+        validate_request(body, content_type, coar_notifier)
+        process_request(body)
+
+        db_id = get_db_id(body["id"])
         response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
         return HTTP(status=http.HTTPStatus.CREATED.value)
 
@@ -226,7 +231,7 @@ def update_resubmitted_article(req, context):
 def validate_request(body, content_type, coar_notifier):
         try:
             coar_notifier.record_notification(
-                body=json.loads(body),
+                body=body,
                 direction="Inbound",
             )
         except Exception as e:
