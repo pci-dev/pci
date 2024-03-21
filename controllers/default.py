@@ -114,6 +114,10 @@ def index():
     """
     .split()): t_articles[field].readable = False
 
+    # discard "params" in urls e.g. /view/about/ethics (crashes grid)
+    from gluon.storage import List
+    request.args = List()
+
     original_grid = SQLFORM.grid(
         (t_articles.status == "Recommended"),
         maxtextlength=250,
