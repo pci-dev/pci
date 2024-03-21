@@ -33,6 +33,10 @@ def index():
     return text .strip().replace('\n', '\n<br/>')
 
 
+##
+## the inbox (at /coar_notify/inbox)
+##
+
 def inbox():
     coar_notifier = current.coar
 
@@ -344,6 +348,10 @@ def retry(func, url):
 def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
     raise HTTP(status=status.value, body=message, **headers)
 
+
+##
+## inbox/outbox display (page /coar_notify)
+##
 
 def show_coar_status():
     coar_notifier = current.coar
