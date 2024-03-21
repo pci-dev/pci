@@ -7,6 +7,7 @@ import requests
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifier
 from app_modules import emailing
+from http import HTTPStatus
 from gluon import current
 
 
@@ -36,7 +37,7 @@ def inbox():
     coar_notifier = current.coar
 
     if not coar_notifier.enabled:
-        raise HTTP(status=http.HTTPStatus.NOT_FOUND.value)
+        fail(status=HTTPStatus.NOT_FOUND)
 
     if request.method == "OPTIONS":
         response.headers.update(
@@ -48,22 +49,21 @@ def inbox():
         return ""
 
     elif request.method == "GET":
-        raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
+        fail(status=HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
-        if current.isRR: raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
+        if current.isRR:
+            fail(status=HTTPStatus.FORBIDDEN)
 
         if not is_coar_whitelisted(request.env.remote_addr):
-            raise HTTP(
-                    http.HTTPStatus.FORBIDDEN.value,
+            fail(status=HTTPStatus.FORBIDDEN, message=
                     f"not whitelisted: {request.env.remote_addr}")
 
         content_type, content_type_options = cgi.parse_header(
             request.env.content_type or ""
         )
         if content_type not in accepted_media_types:
-            raise HTTP(
-                http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE.value,
+            fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
 
@@ -78,8 +78,7 @@ def inbox():
         return HTTP(status=http.HTTPStatus.CREATED.value)
 
     else:
-        raise HTTP(
-            http.HTTPStatus.METHOD_NOT_ALLOWED.value,
+        fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
             **{ "Allow": ", ".join(["POST", "OPTIONS"]) },
         )
 
@@ -106,17 +105,13 @@ def process_request(req):
     if type(req_type) is list: req_type = " ".join(req_type)
 
     if req_type not in request_handlers:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"request.type: unsupported type '{req_type}'")
+        fail(f"request.type: unsupported type '{req_type}'")
     try:
         request_handlers[req_type](req)
     except HTTP as e:
         raise e
     except Exception as e:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"exception: {e}")
+        fail(f"{e.__class__.__name__}: {e}")
 
 
 def request_endorsement(req):
@@ -125,14 +120,10 @@ def request_endorsement(req):
     coar_req_id = req["id"]
 
     if not user_email.startswith("mailto:"):
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body="actor.id must be a 'mailto:' url")
+        fail("actor.id must be a 'mailto:' url")
 
     if get_article_by_coar_req_id(coar_req_id):
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"already exists: request .id='{coar_req_id}'")
+        fail(f"already exists: request.id='{coar_req_id}'")
 
     user_email = user_email.replace("mailto:", "")
     user = db(db.auth_user.email.lower() == user_email.lower()).select().first()
@@ -152,19 +143,16 @@ def request_endorsement(req):
 
 def handle_resubmission(req, user):
     context = req["context"]
-    if not "id" in context: raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no context.id")
+    if not "id" in context:
+        fail("no context.id")
 
     context_id = context["id"]
     article = update_resubmitted_article(req, context_id)
 
-    if not article: raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no matching article for context.id='{context_id}'")
-    if article.status != 'Awaiting revision': raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"not awaiting revision: article.id='{article.id}'")
+    if not article:
+        fail(f"no matching article for context.id='{context_id}'")
+    if article.status != 'Awaiting revision':
+        fail(f"not awaiting revision: article.id='{article.id}'")
 
     return article
 
@@ -174,9 +162,7 @@ def cancel_endorsement(req):
 
     article = get_article_by_coar_req_id(coar_req_id)
     if not article:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"no such offer: object.id='{coar_req_id}'")
+        fail(f"no such offer: object.id='{coar_req_id}'")
 
     article.status = "Cancelled"
     article.update_record()
@@ -244,8 +230,7 @@ def validate_request(body, content_type, coar_notifier):
                 direction="Inbound",
             )
         except Exception as e:
-            raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value,
-                        body=f"{e.__class__.__name__}: {e}")
+            fail(f"{e.__class__.__name__}: {e}")
 
 
 def get_article_by_coar_req_id(coar_req_id):
@@ -349,6 +334,10 @@ def retry(func, url):
             sleep(1)
 
     raise Exception(f"{func}: too many retries ({_})")
+
+
+def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
+    raise HTTP(status=status.value, body=message, **headers)
 
 
 def show_coar_status():
