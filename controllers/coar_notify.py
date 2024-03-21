@@ -332,8 +332,9 @@ def get_link(doi, **kv):
     r = retry(requests.head, doi)
 
     for h in r.headers["link"].split(','):
+        h = [v.strip() for v in h.split(';')]
         if all([ f'{k}="{v}"' in h for k,v in kv.items()]):
-            return h.split(';')[0].strip('<>') # discard < and > in '<url>'
+            return h[0].strip('<>') # discard < and > in '<url>'
 
 
 def retry(func, url):
