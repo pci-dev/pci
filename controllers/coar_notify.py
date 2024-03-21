@@ -19,16 +19,16 @@ accepted_media_types = {
 }
 
 
-@auth.requires(auth.has_membership(role="administrator"))
 def index():
     if not current.coar.enabled:
         return "COAR notifications for PCI (disabled)"
 
-    ensure_trailing_slash()
-
     text = show_coar_status()
-    text += "\n"
-    text += show_coar_requests()
+
+    if auth.has_membership(role="administrator"):
+        ensure_trailing_slash()
+        text += "\n"
+        text += show_coar_requests()
 
     return text .strip().replace('\n', '\n<br/>')
 
