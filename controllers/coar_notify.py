@@ -484,3 +484,50 @@ errors = {
     524: "inbox read timeout",
     525: "inbox ssl handshake failed",
 }
+
+
+##
+## system description (proposal)
+##
+
+def system_description():
+    response.headers['Content-Type'] = 'application/json'
+    resp_json = {
+        "takes": {
+                "Offer.EndorsementAction": {
+                        "yields": [
+                                "TentativeAccept",
+                                "TentativeReject",
+                        ],
+                        "returns": [
+                                "201:CREATED",
+                                "400:BAD_REQUEST",
+                        ],
+                },
+                "Undo": {
+                        "yields": [
+                        ],
+                        "returns": [
+                                "201:CREATED",
+                                "400:BAD_REQUEST",
+                        ],
+                },
+        },
+        "gives": {
+                "Announce.EndorsementAction": {
+                        "after": [
+                                "Offer.EndorsementAction",
+                                "spontaneous",
+                        ],
+                        "time-frame": "1-2 months",
+                },
+                "Announce.ReviewAction": {
+                        "after": [
+                                "Offer.EndorsementAction",
+                                "spontaneous",
+                        ],
+                        "time-frame": "1-2 months",
+                },
+        },
+    }
+    return json.dumps(resp_json, indent=4)
