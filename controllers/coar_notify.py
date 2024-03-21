@@ -23,6 +23,10 @@ def index():
     if not current.coar.enabled:
         return "COAR notifications for PCI (disabled)"
 
+    if request.method == 'HEAD':
+        add_describedby_header(response)
+        return ""
+
     text = show_coar_status()
 
     if auth.has_membership(role="administrator"):
@@ -531,3 +535,10 @@ def system_description():
         },
     }
     return json.dumps(resp_json, indent=4)
+
+
+def add_describedby_header(response):
+    response.headers.update({
+        "link": '<' + URL("coar_notify", "system_description", scheme=True) + '>' +
+        '; rel="describedby"; type="application/json"'
+    })
