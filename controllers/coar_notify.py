@@ -78,11 +78,16 @@ def inbox():
 
         try:
             body = json.loads(body)
+
+            record_request(body)
+            process_request(body)
+
+        except HTTP as e:
+            raise e
+        except json.JSONDecodeError as e:
+            fail(f"Invalid JSON: {e}")
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
-
-        record_request(body)
-        process_request(body)
 
         db_id = get_db_id(body["id"])
         response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
@@ -117,12 +122,8 @@ def process_request(req):
 
     if req_type not in request_handlers:
         fail(f"request.type: unsupported type '{req_type}'")
-    try:
-        request_handlers[req_type](req)
-    except HTTP as e:
-        raise e
-    except Exception as e:
-        fail(f"{e.__class__.__name__}: {e}")
+
+    request_handlers[req_type](req)
 
 
 def request_endorsement(req):
@@ -235,13 +236,10 @@ def update_resubmitted_article(req, context):
 
 
 def record_request(body):
-        try:
-            current.coar.record_notification(
+    current.coar.record_notification(
                 body=body,
                 direction="Inbound",
             )
-        except Exception as e:
-            fail(f"{e.__class__.__name__}: {e}")
 
 
 def get_article_by_coar_req_id(coar_req_id):
