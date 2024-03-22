@@ -89,8 +89,8 @@ def inbox():
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
 
-        db_id = get_db_id(body["id"])
-        response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
+        response.headers['Location'] = URL(
+            "coar_notify", "show", vars={"coar_id":body['id']}, scheme=True)
         return HTTP(status=HTTPStatus.CREATED.value)
 
     else:
@@ -104,11 +104,6 @@ def is_coar_whitelisted(host):
         if host == entry.split(" ")[0]:
             return True
     return False
-
-
-def get_db_id(coar_id):
-    return db(db.t_coar_notification.coar_id == coar_id).select(
-            db.t_coar_notification.id).first().id
 
 
 def process_request(req):
@@ -397,18 +392,14 @@ def show_coar_requests():
 
 
 def show():
+    req_id = request.vars.id or request.vars.coar_id
     try:
-        req_id = request.vars.id
-        int(req_id)
+        req = db(
+            db.t_coar_notification.id == req_id   if req_id.isdigit() else
+            db.t_coar_notification.coar_id == req_id
+        ).select()
     except:
-        raise HTTP(400, "usage: ?id=&lt;coar request id (int)&gt;")
-
-    req = db(
-            db.t_coar_notification.id == req_id
-    ).select()
-
-    if not req:
-        raise HTTP(400, "error: no such coar request. id=" + req_id)
+        raise HTTP(400, f"error: no such coar request, id={req_id}")
 
     req_body = req[0].body
     req_json = json.loads(req_body)
