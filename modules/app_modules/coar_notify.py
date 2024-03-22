@@ -224,14 +224,7 @@ class COARNotifier:
         direction: typing.Literal["Inbound", "Outbound"],
     ) -> None:
         """Records a notification in the database for logging purposes.
-
-        body can either be a JSON-LD-style dictionary, or a json string.
         """
-        if isinstance(body, dict):
-            pass
-        else:
-            bb = body.read()
-            body = json.loads(bb)
 
         inbox_url = body \
                 ["target" if direction == "Outbound" else "origin"] \

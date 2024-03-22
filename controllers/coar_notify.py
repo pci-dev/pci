@@ -1,5 +1,3 @@
-import cgi
-import http
 import typing
 import json
 import requests
@@ -13,10 +11,6 @@ from gluon import current
 
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
-
-accepted_media_types = {
-    "application/ld+json": "json-ld",
-}
 
 
 def index():
@@ -42,6 +36,13 @@ def index():
 ##
 
 def inbox():
+    accepted_media_types = [
+        "application/ld+json",
+    ]
+    allowed_methods = [
+            "POST",
+            "OPTIONS",
+    ]
     coar_notifier = current.coar
 
     if not coar_notifier.enabled:
@@ -50,7 +51,7 @@ def inbox():
     if request.method == "OPTIONS":
         response.headers.update(
             {
-                "Allow": ", ".join(["POST", "OPTIONS"]),
+                "Allow": ", ".join(allowed_methods),
                 "Accept-Post": ", ".join(accepted_media_types),
             }
         )
@@ -67,10 +68,7 @@ def inbox():
             fail(status=HTTPStatus.FORBIDDEN, message=
                     f"not whitelisted: {request.env.remote_addr}")
 
-        content_type, content_type_options = cgi.parse_header(
-            request.env.content_type or ""
-        )
-        if content_type not in accepted_media_types:
+        if not request.env.content_type in accepted_media_types:
             fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
@@ -83,16 +81,16 @@ def inbox():
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
 
-        validate_request(body, content_type, coar_notifier)
+        record_request(body)
         process_request(body)
 
         db_id = get_db_id(body["id"])
         response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
-        return HTTP(status=http.HTTPStatus.CREATED.value)
+        return HTTP(status=HTTPStatus.CREATED.value)
 
     else:
         fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
-            **{ "Allow": ", ".join(["POST", "OPTIONS"]) },
+            Allow=", ".join(allowed_methods),
         )
 
 
@@ -236,9 +234,9 @@ def update_resubmitted_article(req, context):
     return article
 
 
-def validate_request(body, content_type, coar_notifier):
+def record_request(body):
         try:
-            coar_notifier.record_notification(
+            current.coar.record_notification(
                 body=body,
                 direction="Inbound",
             )
