@@ -528,6 +528,10 @@ def system_description():
                         "time-frame": "1-2 months",
                 },
         },
+        "access-control": {
+            "inbox.POST": "whitelisted IP",
+            "inbox.READ": "none",
+        },
     }
     return json.dumps(resp_json, indent=4)
 
