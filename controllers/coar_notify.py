@@ -423,6 +423,7 @@ def get_type(body):
     coar_types = [
             "Endorsement", "Review",
             "Reject", "Accept",
+            "Undo",
     ]
     for t in coar_types:
         if body.find("://purl.org/coar/notify_vocabulary/" + t) > 0:
@@ -430,6 +431,8 @@ def get_type(body):
         if body.find(f'"coar-notify:{t}Action"') > 0:
             return t
         if body.find(f'"type": "Tentative{t}"') > 0:
+            return t
+        if body.find(f'"type": "{t}"') > 0:
             return t
 
 
