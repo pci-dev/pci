@@ -41,6 +41,7 @@ def inbox():
     ]
     allowed_methods = [
             "POST",
+            "HEAD",
             "OPTIONS",
     ]
     coar_notifier = current.coar
@@ -48,16 +49,7 @@ def inbox():
     if not coar_notifier.enabled:
         fail(status=HTTPStatus.NOT_FOUND)
 
-    if request.method == "OPTIONS":
-        response.headers.update(
-            {
-                "Allow": ", ".join(allowed_methods),
-                "Accept-Post": ", ".join(accepted_media_types),
-            }
-        )
-        return ""
-
-    elif request.method == "GET":
+    if request.method == "GET":
         fail(status=HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
@@ -92,6 +84,19 @@ def inbox():
         response.headers['Location'] = URL(
             "coar_notify", "show", vars={"coar_id":body['id']}, scheme=True)
         return HTTP(status=HTTPStatus.CREATED.value)
+
+    elif request.method == "HEAD":
+        add_describedby_header(response)
+        return ""
+
+    elif request.method == "OPTIONS":
+        response.headers.update(
+            {
+                "Allow": ", ".join(allowed_methods),
+                "Accept-Post": ", ".join(accepted_media_types),
+            }
+        )
+        return ""
 
     else:
         fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
