@@ -204,7 +204,7 @@ class COARNotifier:
         if not article.coar_notification_id: return
         if article.coar_notification_closed: return
 
-        send_ack(self, "Accept", article)
+        send_ack(self, "TentativeAccept", article)
 
     def send_acknowledge_and_reject(self, article):
         if not article.coar_notification_id: return
@@ -242,14 +242,14 @@ class COARNotifier:
 
 #
 
-def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
+def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
     origin_req = get_origin_request(article)
     if not origin_req: return
 
     target_inbox = origin_req["origin"]["inbox"]
     origin_object = origin_req["object"]["id"]
     notification = {
-          "type": f"Tentative{typ}",
+          "type": typ,
           "object": {
             "id": article.coar_notification_id,
             "object": origin_object,

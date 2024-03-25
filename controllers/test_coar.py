@@ -175,7 +175,7 @@ acknowledge_and_reject = """
     "name": "Some Organisation",
     "type": "Organization"
   },
-  "type": "TentativeReject"
+  "type": "Reject"
 }
 """
 

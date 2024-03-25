@@ -496,7 +496,7 @@ def system_description():
                 "Offer.EndorsementAction": {
                         "yields": [
                                 "TentativeAccept",
-                                "TentativeReject",
+                                "Reject",
                         ],
                         "returns": [
                                 "201:CREATED",
