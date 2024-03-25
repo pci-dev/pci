@@ -69,12 +69,12 @@ request_endorsement = """
   },
   "origin": {
     "id": "https://research-organisation.org/repository",
-    "inbox": "http://localhost:8000/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
     "type": "Service"
   },
   "target": {
     "id": "https://overlay-journal.com/system",
-    "inbox": "http://localhost:8000/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
     "type": "Service"
   },
   "type": [
